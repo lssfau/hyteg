@@ -9,7 +9,7 @@
 namespace hhg
 {
 
-void VTKWriter(std::vector<const hhg::Function<hhg::P1FunctionSpace>*> functions, size_t level, const std::string& dir, const std::string& filename)
+void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
   int rk = hhg::Comm::get().rk;
   int np = hhg::Comm::get().np;
@@ -54,7 +54,7 @@ void VTKWriter(std::vector<const hhg::Function<hhg::P1FunctionSpace>*> functions
     pvtu_file.close();
   }
 
-  const Mesh& mesh = functions[0]->functionSpace.mesh;
+  const Mesh& mesh = functions[0]->mesh;
 
   std::ofstream file;
   std::string vtu_filename(fmt::format("{}/{}-rk{:0>4}.vtu", dir, filename, rk));

@@ -4,88 +4,51 @@
 #include <string>
 #include <functional>
 
+#include "mesh.hpp"
+#include "comm.hpp"
+#include "operator.hpp"
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
-
-#include "p1functionspace/p1operator.hpp"
 
 namespace hhg
 {
 
-template<typename FunctionSpace>
 class Function
 {
 public: 
-  Function(const std::string& _name, FunctionSpace& _functionSpace, size_t _minLevel, size_t _maxLevel)
-    : name(_name), functionSpace(_functionSpace), minLevel(_minLevel), maxLevel(_maxLevel)
+  Function(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
+    : name(_name), mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(-1), rank(Comm::get().rk)
   {
-    memory_id = functionSpace.allocate(minLevel, maxLevel);
   }
 
-  ~Function()
+  virtual ~Function()
   {
-    functionSpace.free(memory_id, minLevel, maxLevel);
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag = All)
-  {
-    functionSpace.interpolate(memory_id, expr, level, flag);
-  }
+  virtual void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag) = 0;
 
-  template<size_t N>
-  void assign(std::array<double, N> scalars, std::array<Function*, N> functions, size_t level, size_t flag = All)
-  {
-    std::array<size_t, N> src_ids;
-    for (size_t i = 0; i < N; ++i)
-    {
-      src_ids[i] = functions[i]->memory_id;
-    }
+  template<class T, size_t N>
+  void assign(std::array<double, N> scalars, std::array<T*, N> functions, size_t level, size_t flag);
 
-    functionSpace.assign(scalars, src_ids, memory_id, level, flag);
-  }
+  template<class T, size_t N>
+  void add(std::array<double, N> scalars, std::array<T*, N> functions, size_t level, size_t flag);
 
-  template<size_t N>
-  void add(std::array<double, N> scalars, std::array<Function*, N> functions, size_t level, size_t flag = All)
-  {
-    std::array<size_t, N> src_ids;
-    for (size_t i = 0; i < N; ++i)
-    {
-      src_ids[i] = functions[i]->memory_id;
-    }
+  virtual double dot(Function& rhs, size_t level, size_t flag) = 0;
 
-    functionSpace.add(scalars, src_ids, memory_id, level, flag);
-  }
+  virtual void apply(Operator& opr, Function& dst, size_t level, size_t flag) = 0;
 
-  double dot(Function& rhs, size_t level, size_t flag = All)
-  {
-    return functionSpace.dot(memory_id, rhs.memory_id, level, flag);
-  }
+  virtual void smooth_gs(Operator& opr, Function& rhs, size_t level, size_t flag) = 0;
 
-  void apply(P1LaplaceOperator& opr, Function& dst, size_t level, size_t flag = All)
-  {
-    functionSpace.apply(opr.id, memory_id, dst.memory_id, level, flag);
-  }
+  virtual void prolongate(size_t level, size_t flag) = 0;
 
-  void smooth_gs(P1LaplaceOperator& opr, Function& rhs, size_t level, size_t flag = All)
-  {
-    functionSpace.smooth_gs(opr.id, memory_id, rhs.memory_id, level, flag);
-  }
-
-  void prolongate(size_t level, size_t flag = All)
-  {
-    functionSpace.prolongate(memory_id, level, flag);
-  }
-
-  void restrict(size_t level, size_t flag = All)
-  {
-    functionSpace.restrict(memory_id, level, flag);
-  }
+  virtual void restrict(size_t level, size_t flag) = 0;
 
   std::string name;
-  FunctionSpace& functionSpace;
+  Mesh& mesh;
   size_t minLevel;
   size_t maxLevel;
   size_t memory_id;
+  size_t rank;
 };
 
 }

@@ -38,12 +38,11 @@ inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(c
   vertex.data[memory_id][level-2][0] = expr(vertex.coords);
 }
 
-template<size_t N>
-inline void assign(Vertex& vertex, std::array<double, N>& scalars, std::array<size_t, N>& src_ids, size_t dst_id, size_t level)
+inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
 {
   double tmp = scalars[0] * vertex.data[src_ids[0]][level-2][0];
 
-  for (size_t i = 1; i < N; ++i)
+  for (size_t i = 1; i < src_ids.size(); ++i)
   {
     tmp += scalars[i] * vertex.data[src_ids[i]][level-2][0];
   }
@@ -51,12 +50,11 @@ inline void assign(Vertex& vertex, std::array<double, N>& scalars, std::array<si
   vertex.data[dst_id][level-2][0] = tmp;
 }
 
-template<size_t N>
-inline void add(Vertex& vertex, std::array<double, N>& scalars, std::array<size_t, N>& src_ids, size_t dst_id, size_t level)
+inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
 {
   double tmp = 0.0;
 
-  for (size_t i = 0; i < N; ++i)
+  for (size_t i = 0; i < src_ids.size(); ++i)
   {
     tmp += scalars[i] * vertex.data[src_ids[i]][level-2][0];
   }

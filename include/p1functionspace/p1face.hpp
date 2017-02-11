@@ -223,8 +223,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   }
 }
 
-template<size_t N>
-inline void assign(Face& face, std::array<double, N>& scalars, std::array<size_t, N>& src_ids, size_t dst_id, size_t level)
+inline void assign(Face& face, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
@@ -237,7 +236,7 @@ inline void assign(Face& face, std::array<double, N>& scalars, std::array<size_t
     {
       double tmp = scalars[0] * face.data[src_ids[0]][level-2][mr];
 
-      for (size_t k = 1; k < N; ++k)
+      for (size_t k = 1; k < src_ids.size(); ++k)
       {
         tmp += scalars[k] * face.data[src_ids[k]][level-2][mr];
       }
@@ -252,8 +251,7 @@ inline void assign(Face& face, std::array<double, N>& scalars, std::array<size_t
   }
 }
 
-template<size_t N>
-inline void add(Face& face, std::array<double, N>& scalars, std::array<size_t, N>& src_ids, size_t dst_id, size_t level)
+inline void add(Face& face, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
@@ -266,7 +264,7 @@ inline void add(Face& face, std::array<double, N>& scalars, std::array<size_t, N
     {
       double tmp = 0.0;
 
-      for (size_t k = 0; k < N; ++k)
+      for (size_t k = 0; k < src_ids.size(); ++k)
       {
         tmp += scalars[k] * face.data[src_ids[k]][level-2][mr];
       }

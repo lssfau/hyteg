@@ -15,14 +15,12 @@ int main(int argc, char* argv[])
   size_t minLevel = 2;
   size_t maxLevel = 3;
 
-  hhg::P1FunctionSpace V = hhg::P1FunctionSpace(mesh);
-
   std::function<double(const hhg::Point3D&)> expr = [](const hhg::Point3D& x) { return 1.0; };
-  hhg::Function<hhg::P1FunctionSpace> u("u", V, minLevel, maxLevel);
-  hhg::Function<hhg::P1FunctionSpace> Lu("Lu", V, minLevel, maxLevel);
+  hhg::P1Function u("u", mesh, minLevel, maxLevel);
+  hhg::P1Function Lu("Lu", mesh, minLevel, maxLevel);
 
   u.interpolate(expr, maxLevel);
-  hhg::P1LaplaceOperator L(V, minLevel, maxLevel);
+  hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
 
   hhg::VTKWriter({&u}, maxLevel, "../output", "test");
   MPI_Finalize();

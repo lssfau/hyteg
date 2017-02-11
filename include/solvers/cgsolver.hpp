@@ -7,29 +7,30 @@
 namespace hhg
 {
 
+template<class F>
 class CGSolver
 {
 public:
 
-  CGSolver(P1FunctionSpace& fspace, size_t minLevel, size_t maxLevel)
-    : p("p", fspace, minLevel, maxLevel), ap("ap", fspace, minLevel, maxLevel)
+  CGSolver(Mesh& mesh, size_t minLevel, size_t maxLevel)
+    : p("p", mesh, minLevel, maxLevel), ap("ap", mesh, minLevel, maxLevel)
   {
   }
 
-  void solve(P1LaplaceOperator& A, Function<P1FunctionSpace>& x, Function<P1FunctionSpace>& b, Function<P1FunctionSpace>& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
+  void solve(Operator& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
   {
     x.apply(A, p, level, flag);
-    r.assign<2>({1.0, -1.0}, {&b, &p}, level, flag);
+    r.assign({1.0, -1.0}, {&b, &p}, level, flag);
     double res_start = std::sqrt(r.dot(r, level, flag));
-    p.assign<1>({1.0}, {&r}, level, flag);
+    p.assign({1.0}, {&r}, level, flag);
     double rsold = r.dot(r, level, flag);
 
     for(size_t i = 0; i < maxiter; ++i)
     {
       p.apply(A, ap, level, flag);
       double alpha = rsold / p.dot(ap, level, flag);
-      x.assign<2>({1.0, alpha}, {&x, &p}, level, flag);
-      r.add<1>({ -alpha }, { &ap }, level, flag);
+      x.assign({1.0, alpha}, {&x, &p}, level, flag);
+      r.add({ -alpha }, { &ap }, level, flag);
       double rsnew = r.dot(r, level, flag);
       double sqrsnew = std::sqrt(rsnew);
 
@@ -47,14 +48,14 @@ public:
         break;
       }
 
-      p.assign<2>({1.0, rsnew/rsold}, {&r, &p}, level, flag);
+      p.assign({1.0, rsnew/rsold}, {&r, &p}, level, flag);
       rsold = rsnew;
     }
   }
 
 private:
-  Function<P1FunctionSpace> p;
-  Function<P1FunctionSpace> ap;
+  F p;
+  F ap;
 
 };
 

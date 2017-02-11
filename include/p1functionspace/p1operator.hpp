@@ -3,7 +3,7 @@
 
 #include <array>
 #include <types/pointnd.hpp>
-#include <p1functionspace/p1functionspace.hpp>
+#include <operator.hpp>
 
 #include <fmt/format.h>
 
@@ -27,16 +27,16 @@ inline std::array<Point2D, 3> grad_shape(std::array<Point3D, 3>& coords)
   return { a, b, c };
 }
 
-class P1LaplaceOperator
+class P1LaplaceOperator : public Operator
 {
 public:
-  P1LaplaceOperator(P1FunctionSpace& _fs, size_t _minLevel, size_t _maxLevel)
-    : fs(_fs), minLevel(_minLevel), maxLevel(_maxLevel)
+  P1LaplaceOperator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
+    : Operator(_mesh, _minLevel, _maxLevel)
   {
-    id = fs.mesh.faces[0].opr_data.size();
+    id = mesh.faces[0].opr_data.size();
     fmt::printf("Creating Laplace operator with id %d\n", id);
 
-    for (Face& face : fs.mesh.faces)
+    for (Face& face : mesh.faces)
     {
       std::array<Point2D, 3> gshape = grad_shape(face.coords);
 
@@ -207,26 +207,21 @@ public:
 
   ~P1LaplaceOperator()
   {
-    for (Vertex& v : fs.mesh.vertices)
+    for (Vertex& v : mesh.vertices)
     {
       delete[] v.opr_data[id][0];
     }
 
-    for (Edge& e : fs.mesh.edges)
+    for (Edge& e : mesh.edges)
     {
       delete[] e.opr_data[id][0];
     }
 
-    for (Face& f : fs.mesh.faces)
+    for (Face& f : mesh.faces)
     {
       delete[] f.opr_data[id][0];
     }
   }
-
-  size_t id;
-  P1FunctionSpace& fs;
-  size_t minLevel;
-  size_t maxLevel;
 
 };
 
