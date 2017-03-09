@@ -8,6 +8,20 @@ set (CMAKE_CXX_STANDARD 11)
 # set (CMAKE_CXX_FLAGS "-O2")
 set (CMAKE_CXX_FLAGS "-g -O0")
 
+option ( HHG_ENABLE_LIKWID                "Compile with LIKWID" )
+
+if ( HHG_ENABLE_LIKWID )
+    find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )
+    find_path( LIKWID_INCLUDE_DIR likwid.h HINTS $ENV{LIKWID_ROOT}/include )
+    message("HHG_ENABLE_LIKWID set")
+    if ( LIKWID_LIB AND LIKWID_INCLUDE_DIR)
+        include_directories( ${LIKWID_INCLUDE_DIR})
+        add_definitions ( "-DLIKWID_PERFMON" )
+    else()
+        message(WARNING "likwid marker library not found. Set environment variable LIKWID_ROOT")
+    endif()
+endif()
+
 add_subdirectory (extern/fmt-3.0.1)
 include_directories ("${PROJECT_SOURCE_DIR}/extern/fmt-3.0.1")
 
@@ -21,4 +35,4 @@ add_executable (tinytest_cg test/cg_test.cpp)
 target_link_libraries (tinytest_cg tinyhhg fmt ${MPI_CXX_LIBRARIES})
 
 add_executable (tinytest_fmg test/fmg_test.cpp)
-target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES})
+target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
