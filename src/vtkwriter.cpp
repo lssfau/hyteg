@@ -16,9 +16,8 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
   if (rk == 0)
   {
-    fmt::printf("[VTKWriter] Writing functions on level %d to directory '%s'\n", level, dir);
-
-    std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));    
+    std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
+    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", level, pvtu_filename);
     std::ofstream pvtu_file;
     pvtu_file.open(pvtu_filename.c_str());
 

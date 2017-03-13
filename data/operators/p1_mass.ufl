@@ -1,0 +1,9 @@
+# generate code with ffc p1_mass.ufl
+element = FiniteElement("Lagrange", triangle, 1)
+
+u = TestFunction(element)
+v = TrialFunction(element)
+u, v = v, u # HHG uses Fortran layout for local matrices
+
+a = u*v*dx
+ 

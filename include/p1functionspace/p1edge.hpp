@@ -137,7 +137,7 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  double* opr_data = edge.opr_data[opr_id][0];
+  double* opr_data = edge.opr_data[opr_id][level-2];
   double* src = edge.data[src_id][level-2];
   double* dst = edge.data[dst_id][level-2];
 
@@ -157,7 +157,7 @@ inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, s
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  double* opr_data = edge.opr_data[opr_id][0];
+  double* opr_data = edge.opr_data[opr_id][level-2];
   double* dst = edge.data[dst_id][level-2];
   double* rhs = edge.data[rhs_id][level-2];
 

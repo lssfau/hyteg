@@ -25,10 +25,18 @@ public:
     p.assign({1.0}, {&r}, level, flag);
     double rsold = r.dot(r, level, flag);
 
+    if (std::sqrt(rsold) < tolerance && printInfo && Comm::get().rk == 0)
+    {
+      fmt::printf("[CG] converged\n");
+      return;
+    }
+
     for(size_t i = 0; i < maxiter; ++i)
     {
       p.apply(A, ap, level, flag);
-      double alpha = rsold / p.dot(ap, level, flag);
+      double pAp = p.dot(ap, level, flag);
+
+      double alpha = rsold / pAp;
       x.assign({1.0, alpha}, {&x, &p}, level, flag);
       r.add({ -alpha }, { &ap }, level, flag);
       double rsnew = r.dot(r, level, flag);

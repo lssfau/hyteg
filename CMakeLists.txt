@@ -38,3 +38,6 @@ target_link_libraries (tinytest_cg tinyhhg fmt ${MPI_CXX_LIBRARIES})
 
 add_executable (tinytest_fmg test/fmg_test.cpp)
 target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
+
+add_executable (tinytest_chorin test/chorin_test.cpp)
+target_link_libraries (tinytest_chorin tinyhhg fmt ${MPI_CXX_LIBRARIES})

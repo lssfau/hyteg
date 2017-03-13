@@ -69,7 +69,7 @@ inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
 
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
 {
-  double* opr_data = vertex.opr_data[opr_id][0];
+  double* opr_data = vertex.opr_data[opr_id][level-2];
   double* src = vertex.data[src_id][level-2];
   double* dst = vertex.data[dst_id][level-2];
 
@@ -83,7 +83,7 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)
 {
-  double* opr_data = vertex.opr_data[opr_id][0];
+  double* opr_data = vertex.opr_data[opr_id][level-2];
   double* dst = vertex.data[f_id][level-2];
   double* rhs = vertex.data[rhs_id][level-2];
 
