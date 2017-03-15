@@ -1,10 +1,12 @@
 #include <tinyhhg.hpp>
-
 #include <fmt/format.h>
+#include <likwidwrapper.hpp>
 
 int main(int argc, char* argv[])
 {
-  MPI_Init(&argc, &argv); 
+  LIKWID_MARKER_INIT;
+  MPI_Init(&argc, &argv);
+  LIKWID_MARKER_THREADINIT;
   int rk = hhg::Comm::get().rk;
   int np = hhg::Comm::get().np;
 
@@ -115,6 +117,7 @@ int main(int argc, char* argv[])
     }
   };
 
+  LIKWID_MARKER_START("Compute");
   for (size_t i = 0; i < outer; ++i)
   {
     cscycle(maxLevel);
@@ -137,9 +140,10 @@ int main(int argc, char* argv[])
       break;
     }
   }
+  LIKWID_MARKER_STOP("Compute");
 
   // hhg::VTKWriter({ &x }, maxLevel, "../output", "test");
   MPI_Finalize();
-
+  LIKWID_MARKER_CLOSE;
   return 0;
 }
