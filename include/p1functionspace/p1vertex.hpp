@@ -8,9 +8,19 @@
 
 namespace hhg
 {
+
+/// P1Vertex namespace for P1 macro-vertex kernels
 namespace P1Vertex
 {
 
+/// Allocate memory for P1 macro-vertex including halos
+/// \param vertex Reference to Vertex the allocated memory will belong to
+/// \param memory_id Index of the \ref data 
+/// \param minLevel The minimum level allocated
+/// \param maxLevel The maximum level allocated
+///
+/// This function allocates (1 + number of adjacent edges of \p vertex) doubles for each level within the range of \p minLevel and \p maxLevel.
+/// The pointers to these arrays are saved in the Vertex' data vector at index \p memory_id.
 inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
   vertex.data.push_back(std::vector<double*>());

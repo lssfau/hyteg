@@ -13,10 +13,32 @@
 namespace hhg
 {
 
+/// \brief  Macro mesh implementation with \a GMSH file reader
+/// \author Daniel Drzisga (drzisga@ma.tum.de)
+/// \date   March, 2017
+///
+/// The Mesh class is responsible for reading a \a GMSH mesh file and creating all
+/// the appropriate primitive objects. These primitives are stored in separate std::vector
+/// objects for each primitive type. Since pointers into these vectors are later used, modifications
+/// of these vectors is prohibited.
 class Mesh
 {
 public:
 
+  /// Mesh constructor that reads the given \a GMSH file and mesh builds the mesh topology using primitives.
+  /// \param filename filename of \a GMSH file.
+  Mesh(const std::string& filename);
+
+  /// Vector containing all macro vertices
+  std::vector<Vertex> vertices;
+
+  /// Vector containing all macro edges
+  std::vector<Edge> edges;
+
+  /// Vector containing all macro faces
+  std::vector<Face> faces;
+
+private:
   struct pairhash {
   public:
     template <typename T, typename U>
@@ -28,13 +50,6 @@ public:
 
   typedef std::unordered_map<std::pair<size_t, size_t>, size_t, pairhash> EdgeMap;
 
-  Mesh(const std::string& filename);
-
-  std::vector<Vertex> vertices;
-  std::vector<Edge> edges;
-  std::vector<Face> faces;
-
-private:
   size_t addEdge(size_t v0, size_t v1, size_t type, EdgeMap& map);
 
 };
