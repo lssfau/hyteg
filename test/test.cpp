@@ -10,20 +10,23 @@ int main(int argc, char* argv[])
   {
     fmt::printf("TinyHHG default test\n");
   }
-  hhg::Mesh mesh("../data/meshes/tri_1el.msh");
+  hhg::Mesh mesh("../data/meshes/tri_2el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  size_t maxLevel = 2;
 
   std::function<double(const hhg::Point3D&)> expr = [](const hhg::Point3D& x) { return 1.0; };
   hhg::P2Function u("u", mesh, minLevel, maxLevel);
   // hhg::P1Function Lu("Lu", mesh, minLevel, maxLevel);
 
-  // u.interpolate(expr, maxLevel);
+  u.interpolate(expr, maxLevel);
   // hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
   // hhg::P1MassOperator L_gen(mesh, minLevel, maxLevel);
 
   // hhg::VTKWriter({&u}, maxLevel, "../output", "test");
+  hhg::P2Edge::print(mesh.edges[4],u.memory_id,maxLevel);
+
+
   MPI_Finalize();
   return 0;
 }

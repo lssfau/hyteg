@@ -125,7 +125,7 @@ public:
     {
       P2Edge::pull_vertices(edge, memory_id, level);
     }
-
+*/
     for (Edge& edge : mesh.edges)
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
@@ -133,7 +133,7 @@ public:
         P2Edge::interpolate(edge, memory_id, expr, level);
       }
     }
-
+/*
     for (Face& face : mesh.faces)
     {
       P2Face::pull_edges(face, memory_id, level);

@@ -73,10 +73,36 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
       x += dx;
     }
   }
+}
+void print(Edge & edge, size_t memory_id, size_t level) {
+  if (edge.faces.size() == 1) {
+    fmt::print("print does not support edges with only one face");
+    return;
+  }
+//  bad hack!
+//  for(size_t i = 0; i < 10000;++i){
+//    fmt::print(" {} ",edge.data[memory_id][level - 2][i]);
+//  }
 
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
+  int midpos = 0;
+  int face1pos = rowsize;
+  int face1ghostpos = face1pos + rowsize - 1;
+  int face2pos = face1ghostpos + rowsize - 2;
+  int face2ghostpos = face2pos + rowsize - 1;
+
+  for (size_t i = 0; i < rowsize - 2; ++i) {
+    fmt::print("{}\t{}\t{}\t{}\t{}\n", edge.data[memory_id][level - 2][face1ghostpos++],
+               edge.data[memory_id][level - 2][face1pos++], edge.data[memory_id][level - 2][midpos++],
+               edge.data[memory_id][level - 2][face2pos++], edge.data[memory_id][level - 2][face2ghostpos++]);
+  }
+  fmt::print("\t{}\t{}\t{}\t\n", edge.data[memory_id][level - 2][face1pos],
+             edge.data[memory_id][level - 2][midpos++], edge.data[memory_id][level - 2][face2pos]);
+  fmt::print("\t\t{}\t\t\n", edge.data[memory_id][level - 2][midpos]);
+}
+}
 }
 
-}
-}
+
 
 #endif /* P2EDGE_HPP */
