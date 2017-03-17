@@ -92,13 +92,13 @@ void print(Edge & edge, size_t memory_id, size_t level) {
   int face2ghostpos = face2pos + rowsize - 1;
 
   for (size_t i = 0; i < rowsize - 2; ++i) {
-    fmt::print("{}\t{}\t{}\t{}\t{}\n", edge.data[memory_id][level - 2][face1ghostpos++],
+    fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n", edge.data[memory_id][level - 2][face1ghostpos++],
                edge.data[memory_id][level - 2][face1pos++], edge.data[memory_id][level - 2][midpos++],
                edge.data[memory_id][level - 2][face2pos++], edge.data[memory_id][level - 2][face2ghostpos++]);
   }
-  fmt::print("\t{}\t{}\t{}\t\n", edge.data[memory_id][level - 2][face1pos],
-             edge.data[memory_id][level - 2][midpos++], edge.data[memory_id][level - 2][face2pos]);
-  fmt::print("\t\t{}\t\t\n", edge.data[memory_id][level - 2][midpos]);
+  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","",edge.data[memory_id][level - 2][face1pos],
+             edge.data[memory_id][level - 2][midpos++], edge.data[memory_id][level - 2][face2pos],"");
+  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","","",edge.data[memory_id][level - 2][midpos],"","");
 }
 }
 }

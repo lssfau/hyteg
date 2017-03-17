@@ -62,6 +62,27 @@ inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(c
     ++offset;
   }
 }
+void print(Vertex & vertex, size_t memory_id, size_t level) {
+    //bad hack!
+//    for(size_t i = 0; i < 10000;++i){
+//      fmt::print(" {} ",vertex.data[memory_id][level - 2][i]);
+//    }
+
+  auto vertexData = vertex.data[memory_id][level -2];
+  int pos = 0;
+  fmt::print("Center dof: {}\n" , vertexData[pos++]);
+  fmt::print("{:<8} {:<8} {:<8} {:<8}  -Edges-\n","inner","outer","localID","globalID");
+  for(size_t i = 0; i < vertex.edges.size(); ++i){
+    fmt::print("{:<8} {:<8} {:<8} {:<8}\n",vertexData[pos],vertexData[pos+1],i,vertex.edges[i]->id);
+    pos += 2;
+  }
+  fmt::print("{:<8} {:<8} {:<8}  -Faces-\n","edgeDoF","localID","globalID");
+  for(size_t i = 0; i < vertex.faces.size(); ++i){
+    fmt::print("{:<8} {:<8} {:<8}\n",vertexData[pos++],i,vertex.faces[i]->id);
+    //fmt::print("{}\t{}\t{}\n",vertexData[pos++],i,vertex.faces[i]->id);
+  }
+
+}
 
 }
 }

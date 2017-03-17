@@ -112,7 +112,7 @@ public:
 
   void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag = All)
   {
-    /*
+
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
@@ -120,7 +120,7 @@ public:
         P2Vertex::interpolate(vertex, memory_id, expr, level);
       }
     }
-
+/*
     for (Edge& edge : mesh.edges)
     {
       P2Edge::pull_vertices(edge, memory_id, level);
