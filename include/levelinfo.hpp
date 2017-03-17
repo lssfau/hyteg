@@ -28,6 +28,16 @@ inline size_t num_microfaces_per_face(size_t level)
   return std::pow(4, level);
 }
 
+inline size_t num_microedges_per_face(size_t level)
+{
+  return 3 * (std::pow(2, level-1) * (std::pow(2, level) + 1));
+}
+
+inline size_t num_microedges_per_edge(size_t level)
+{
+  return std::pow(2, level);
+}
+
 }
 }
 

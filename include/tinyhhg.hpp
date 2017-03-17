@@ -7,6 +7,8 @@
 #include "p1functionspace/p1function.hpp"
 #include "p1functionspace/p1operator.hpp"
 
+#include "p2functionspace/p2function.hpp"
+
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
 

@@ -2,6 +2,7 @@
 #include <primitives/face.hpp>
 #include <primitives/vertex.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <fmt/ostream.h>
 
@@ -111,6 +112,16 @@ size_t Face::edge_index(const Edge& edge) const
   }
 
   return -1;
+}
+
+Vertex* Face::get_vertex_opposite_to_edge(const Edge& edge) const
+{
+  std::vector<Vertex*> v(vertices);
+
+  std::remove(v.begin(), v.end(), edge.v0);
+  std::remove(v.begin(), v.end(), edge.v1);
+
+  return v[0];
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
