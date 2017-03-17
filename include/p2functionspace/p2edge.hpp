@@ -75,14 +75,6 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
   }
 }
 void print(Edge & edge, size_t memory_id, size_t level) {
-  if (edge.faces.size() == 1) {
-    fmt::print("print does not support edges with only one face");
-    return;
-  }
-//  bad hack!
-//  for(size_t i = 0; i < 10000;++i){
-//    fmt::print(" {} ",edge.data[memory_id][level - 2][i]);
-//  }
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
   int midpos = 0;
@@ -90,15 +82,26 @@ void print(Edge & edge, size_t memory_id, size_t level) {
   int face1ghostpos = face1pos + rowsize - 1;
   int face2pos = face1ghostpos + rowsize - 2;
   int face2ghostpos = face2pos + rowsize - 1;
+  auto mid = edge.data[memory_id][level - 2];
+  auto face1 = edge.data[memory_id][level - 2];
+  double * face2;
+  ///This vector is used as a dummy in the case that only one edges exists;
+  auto eights = std::vector<double>(rowsize,NAN);
+  if(edge.faces.size() == 2) {
+    face2 = edge.data[memory_id][level - 2];
+  } else {
+    face2 = eights.data();
+    face2pos = 0;
+    face2ghostpos = 0;
+  }
 
   for (size_t i = 0; i < rowsize - 2; ++i) {
-    fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n", edge.data[memory_id][level - 2][face1ghostpos++],
-               edge.data[memory_id][level - 2][face1pos++], edge.data[memory_id][level - 2][midpos++],
-               edge.data[memory_id][level - 2][face2pos++], edge.data[memory_id][level - 2][face2ghostpos++]);
+    fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n", face1[face1ghostpos++],
+               face1[face1pos++], mid[midpos++],
+               face2[face2pos++], face2[face2ghostpos++]);
   }
-  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","",edge.data[memory_id][level - 2][face1pos],
-             edge.data[memory_id][level - 2][midpos++], edge.data[memory_id][level - 2][face2pos],"");
-  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","","",edge.data[memory_id][level - 2][midpos],"","");
+  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","",face1[face1pos],mid[midpos++], face2[face2pos],"");
+  fmt::print("{:<8} {:<8} {:<8} {:<8} {:<8}\n","","",mid[midpos],"","");
 }
 }
 }
