@@ -66,6 +66,20 @@ inline void interpolate(Face& face, size_t memory_id, std::function<double(const
     inner_rowsize -= 1;
   }
 }
+inline void print(Face & face, size_t memory_id, size_t level) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
+  auto facedata = face.data[memory_id][level - 2];
+  int pos = 0;
+
+  for (size_t i = 0; i < rowsize; ++i) {
+
+    for (size_t j = 0; j < rowsize - i; ++j) {
+      fmt::print("{:<8}", facedata[pos++]);
+    }
+    fmt::print("\n");
+  }
+}
 
 }
 }
