@@ -3,6 +3,8 @@
 
 #include <function.hpp>
 
+#include <p2functionspace/p2function.hpp>
+
 #include <string>
 
 namespace hhg

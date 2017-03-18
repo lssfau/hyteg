@@ -112,7 +112,6 @@ public:
 
   void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag = All)
   {
-
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
@@ -120,37 +119,36 @@ public:
         P2Vertex::interpolate(vertex, memory_id, expr, level);
       }
     }
-/*
+
     for (Edge& edge : mesh.edges)
     {
       P2Edge::pull_vertices(edge, memory_id, level);
     }
-*/
+
     for (Edge& edge : mesh.edges)
     {
-      if (edge.rank == rank && testFlag(edge.type, flag))
+      if (edge.rank == rank)
       {
-        P2Edge::interpolate(edge, memory_id, expr, level);
+        P2Edge::interpolate(edge, memory_id, expr, level, testFlag(edge.type, flag));
       }
     }
-/*
+
     for (Face& face : mesh.faces)
     {
       P2Face::pull_edges(face, memory_id, level);
     }
-    */
 
     for (Face& face : mesh.faces)
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P2Face::interpolate(face, memory_id, expr, level);
+        // P2Face::interpolate(face, memory_id, expr, level);
       }
     }
   }
 
 
-  void assign(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<double> scalars, const std::vector<P2Function*> functions, size_t level, size_t flag = All)
   {
     // std::vector<size_t> src_ids(functions.size());
     // for (size_t i = 0; i < functions.size(); ++i)
@@ -193,7 +191,7 @@ public:
     // }
   }
 
-  void add(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<double> scalars, const std::vector<P2Function*> functions, size_t level, size_t flag = All)
   {
     // std::vector<size_t> src_ids(functions.size());
     // for (size_t i = 0; i < functions.size(); ++i)

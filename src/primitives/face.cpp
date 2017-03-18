@@ -124,6 +124,28 @@ Vertex* Face::get_vertex_opposite_to_edge(const Edge& edge) const
   return v[0];
 }
 
+Edge* Face::get_edge_opposite_to_vertex(const Vertex& vertex) const
+{
+  size_t v_idx = vertex_index(vertex);
+
+  if (v_idx == 0)
+  {
+    return edges[1];
+  }
+  else if (v_idx == 1)
+  {
+    return edges[2];
+  }
+  else if (v_idx == 2)
+  {
+    return edges[0];
+  }
+  else
+  {
+    return NULL;
+  }
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
   return os << "Face { id = " << face.id << "; "

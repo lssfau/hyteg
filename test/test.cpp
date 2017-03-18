@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   {
     fmt::printf("TinyHHG default test\n");
   }
-  hhg::Mesh mesh("../data/meshes/tri_2el.msh");
+  hhg::Mesh mesh("../data/meshes/tri_1el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 2;
@@ -23,8 +23,10 @@ int main(int argc, char* argv[])
   // hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
   // hhg::P1MassOperator L_gen(mesh, minLevel, maxLevel);
 
-  // hhg::VTKWriter({&u}, maxLevel, "../output", "test");
+  hhg::VTKWriter({&u}, maxLevel, "../output", "test");
   hhg::P2Edge::print(mesh.edges[4],u.memory_id,maxLevel);
+
+  hhg::P2Vertex::print(mesh.vertices[0], u.memory_id, maxLevel);
 
 
   MPI_Finalize();

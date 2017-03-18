@@ -34,23 +34,26 @@ inline void free(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
   }
 }
 
-inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)
+inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level, bool boundaryDofs)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
   Point3D x = edge.v0->coords;
   Point3D dx = edge.direction / (double) (rowsize - 1);
   x += dx;
 
-  for (size_t i = 2; i < rowsize-2; ++i)
+  if (boundaryDofs)
   {
-    edge.data[memory_id][level-2][i] = expr(x);
-    x += dx;
+    for (size_t i = 1; i < rowsize-1; ++i)
+    {
+      edge.data[memory_id][level-2][i] = expr(x);
+      x += dx;
+    }
   }
 
   Point3D v(edge.faces[0]->get_vertex_opposite_to_edge(edge)->coords);
   Point3D dirv((v - edge.v0->coords) / ((double) rowsize - 1));
 
-  x = edge.v0->coords + dirv;
+  x = edge.v0->coords + dx + dirv;
 
   size_t offset = rowsize;
 
@@ -67,14 +70,57 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
     v = edge.faces[1]->get_vertex_opposite_to_edge(edge)->coords;
     dirv = (v - edge.v0->coords) / ((double) rowsize - 1);
 
+    x = edge.v0->coords + dx + dirv;
+
     for (size_t i = 1; i < rowsize-1-1; ++i)
     {
       edge.data[memory_id][level-2][offset+i] = expr(x);
       x += dx;
     }
   }
+
 }
-void print(Edge & edge, size_t memory_id, size_t level) {
+
+inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
+
+  if (edge.v0->rank == hhg::Comm::get().rk)
+  {
+    // local information
+    if (edge.rank == hhg::Comm::get().rk)
+    {
+      edge.data[memory_id][level-2][0] = edge.v0->data[memory_id][level-2][0];
+    }
+    else
+    {
+      MPI_Send(&edge.v0->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+    }
+  }
+  else if (edge.rank == hhg::Comm::get().rk)
+  {
+    MPI_Recv(&edge.data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  }
+
+  if (edge.v1->rank == hhg::Comm::get().rk)
+  {
+    // local information
+    if (edge.rank == hhg::Comm::get().rk)
+    {
+      edge.data[memory_id][level-2][rowsize-1] = edge.v1->data[memory_id][level-2][0];
+    }
+    else
+    {
+      MPI_Send(&edge.v1->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+    }
+  }
+  else if (edge.rank == hhg::Comm::get().rk)
+  {
+    MPI_Recv(&edge.data[memory_id][level-2][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+  }
+}
+
+inline void print(Edge & edge, size_t memory_id, size_t level) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
   int midpos = 0;

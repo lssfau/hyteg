@@ -11,7 +11,7 @@ namespace hhg
 
 /// P2Vertex namespace for P2 macro-vertex kernels
 /// 
-/// [Vertex dof, Edges: [Edge dof, Vertex ghost dof], Faces: [Edge ghost dof]]
+/// [Vertex dof, Edges: [Edge ghost dof, Vertex ghost dof], Faces: [Edge ghost dof]]
 namespace P2Vertex
 {
 
@@ -40,29 +40,9 @@ inline void free(Vertex& vertex, size_t memory_id, size_t minLevel, size_t maxLe
 inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)
 {
   vertex.data[memory_id][level-2][0] = expr(vertex.coords);
-
-  size_t offset = 1;
-  for (Edge* edge : vertex.edges)
-  {
-    Point3D x(vertex.coords);
-    double orientation = 1.0;
-
-    if (edge->vertex_index(vertex) == 1)
-    {
-      orientation = -1.0;
-    }
-
-    Point3D direction(orientation * edge->direction);
-    direction /= levelinfo::num_microedges_per_edge(level);
-
-    vertex.data[memory_id][level-2][offset] = expr(x + 0.5 * direction);
-    ++offset;
-
-    // vertex.data[memory_id][level-2][offset] = expr(x + direction);
-    ++offset;
-  }
 }
-void print(Vertex & vertex, size_t memory_id, size_t level) {
+
+inline void print(Vertex & vertex, size_t memory_id, size_t level) {
     //bad hack!
 //    for(size_t i = 0; i < 10000;++i){
 //      fmt::print(" {} ",vertex.data[memory_id][level - 2][i]);

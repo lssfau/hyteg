@@ -14,6 +14,8 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   int rk = hhg::Comm::get().rk;
   int np = hhg::Comm::get().np;
 
+  level += 1;
+
   if (rk == 0)
   {
     std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
@@ -215,7 +217,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << face.data[function->memory_id][level-2][i] << " ";
+        file << face.data[function->memory_id][level-2-1][i] << " ";
       }
     }
     file << "\n</DataArray>\n";

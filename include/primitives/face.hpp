@@ -20,6 +20,7 @@ public:
   size_t edge_index(const Edge& edge) const;
 
   Vertex* get_vertex_opposite_to_edge(const Edge& edge) const;
+  Edge* get_edge_opposite_to_vertex(const Vertex& vertex) const;
 
   size_t id;
   int rank;
