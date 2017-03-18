@@ -129,7 +129,7 @@ public:
     {
       if (edge.rank == rank)
       {
-        P2Edge::interpolate(edge, memory_id, expr, level, testFlag(edge.type, flag));
+        P2Edge::interpolate(edge, memory_id, expr, level, flag);
       }
     }
 
@@ -142,7 +142,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        // P2Face::interpolate(face, memory_id, expr, level);
+        P2Face::interpolate(face, memory_id, expr, level);
       }
     }
   }

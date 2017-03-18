@@ -34,14 +34,14 @@ inline void free(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
   }
 }
 
-inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level, bool boundaryDofs)
+inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level) + levelinfo::num_microedges_per_edge(level);
   Point3D x = edge.v0->coords;
   Point3D dx = edge.direction / (double) (rowsize - 1);
   x += dx;
 
-  if (boundaryDofs)
+  if (testFlag(edge.type, flag))
   {
     for (size_t i = 1; i < rowsize-1; ++i)
     {
@@ -50,35 +50,37 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
     }
   }
 
-  Point3D v(edge.faces[0]->get_vertex_opposite_to_edge(edge)->coords);
-  Point3D dirv((v - edge.v0->coords) / ((double) rowsize - 1));
-
-  x = edge.v0->coords + dx + dirv;
-
-  size_t offset = rowsize;
-
-  for (size_t i = 1; i < rowsize-1-1; ++i)
+  if (testFlag(hhg::Inner, flag))
   {
-    edge.data[memory_id][level-2][offset+i] = expr(x);
-    x += dx;
-  }
-
-  offset += rowsize-1 + rowsize-2;
-
-  if (edge.faces.size() == 2)
-  {
-    v = edge.faces[1]->get_vertex_opposite_to_edge(edge)->coords;
-    dirv = (v - edge.v0->coords) / ((double) rowsize - 1);
+    Point3D v(edge.faces[0]->get_vertex_opposite_to_edge(edge)->coords);
+    Point3D dirv((v - edge.v0->coords) / ((double) rowsize - 1));
 
     x = edge.v0->coords + dx + dirv;
+
+    size_t offset = rowsize;
 
     for (size_t i = 1; i < rowsize-1-1; ++i)
     {
       edge.data[memory_id][level-2][offset+i] = expr(x);
       x += dx;
     }
-  }
 
+    offset += rowsize-1 + rowsize-2;
+
+    if (edge.faces.size() == 2)
+    {
+      v = edge.faces[1]->get_vertex_opposite_to_edge(edge)->coords;
+      dirv = (v - edge.v0->coords) / ((double) rowsize - 1);
+
+      x = edge.v0->coords + dx + dirv;
+
+      for (size_t i = 1; i < rowsize-1-1; ++i)
+      {
+        edge.data[memory_id][level-2][offset+i] = expr(x);
+        x += dx;
+      }
+    }
+  }
 }
 
 inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
