@@ -36,7 +36,7 @@ public:
       double pAp = p.dot(ap, level, flag);
 
       double alpha = rsold / pAp;
-      x.assign({1.0, alpha}, {&x, &p}, level, flag);
+      x.add({alpha}, {&p}, level, flag);
       r.add({ -alpha }, { &ap }, level, flag);
       double rsnew = r.dot(r, level, flag);
       double sqrsnew = std::sqrt(rsnew);
