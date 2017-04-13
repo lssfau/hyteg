@@ -1,14 +1,14 @@
 #ifndef FUNCTION_HPP
 #define FUNCTION_HPP
 
-#include <string>
-#include <functional>
-
 #include "mesh.hpp"
 #include "comm.hpp"
 #include "operator.hpp"
-#include "types/pointnd.hpp"
-#include "types/flags.hpp"
+#include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/flags.hpp"
+
+#include <string>
+#include <functional>
 
 namespace hhg
 {

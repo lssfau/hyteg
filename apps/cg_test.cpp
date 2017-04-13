@@ -1,5 +1,5 @@
-#include <tinyhhg.hpp>
 #include <core/timing/Timer.h>
+#include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
 
 int main(int argc, char* argv[])
@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   {
     fmt::printf("TinyHHG CG Test\n");
   }
-  hhg::Mesh mesh("../data/meshes/bfs_126el.msh");
+  hhg::Mesh mesh("../../data/meshes/bfs_126el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 5;
@@ -33,8 +33,10 @@ int main(int argc, char* argv[])
   u_exact.interpolate(exact, maxLevel);
 
   auto solver = hhg::CGSolver<hhg::P1Function>(mesh, minLevel, maxLevel);
+  walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
-
+  timer.end();
+  fmt::printf("time was: %e\n",timer.last());
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);

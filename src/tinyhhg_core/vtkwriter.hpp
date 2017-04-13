@@ -1,7 +1,7 @@
 #ifndef VTKWRITER_HPP
 #define VTKWRITER_HPP
 
-#include <function.hpp>
+#include "function.hpp"
 
 #include <string>
 

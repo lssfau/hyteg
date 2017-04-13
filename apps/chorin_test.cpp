@@ -1,4 +1,4 @@
-#include <tinyhhg.hpp>
+#include <tinyhhg_core/tinyhhg.hpp>
 
 #include <fmt/format.h>
 

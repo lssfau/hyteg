@@ -1,6 +1,6 @@
-#include <tinyhhg.hpp>
+#include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
-#include <likwidwrapper.hpp>
+#include <tinyhhg_core/likwidwrapper.hpp>
 
 int main(int argc, char* argv[])
 {
