@@ -146,47 +146,47 @@
 #      - intel
 
 
-intel-17_Serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
-      
-intel-17_MpiOnly:
-   <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
-      
-intel-17_Hybrid:
-   <<: *build_hybrid_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
-   
-intel-17_Serial_Dbg:
-   <<: *build_serial_dbg_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
-      
-intel-17_MpiOnly_Dbg:
-   <<: *build_mpionly_dbg_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
-      
-intel-17_Hybrid_Dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   tags:
-      - docker
-      - intel
+#intel-17_Serial:
+#   <<: *build_serial_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
+#
+#intel-17_MpiOnly:
+#   <<: *build_mpionly_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
+#
+#intel-17_Hybrid:
+#   <<: *build_hybrid_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
+#
+#intel-17_Serial_Dbg:
+#   <<: *build_serial_dbg_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
+#
+#intel-17_MpiOnly_Dbg:
+#   <<: *build_mpionly_dbg_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
+#
+#intel-17_Hybrid_Dbg:
+#   <<: *build_hybrid_dbg_definition
+#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+#   tags:
+#      - docker
+#      - intel
 
    
 ## GCC
