@@ -2,8 +2,9 @@
 #include "face.hpp"
 #include "vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
-#include "tinyhhg_core/comm.hpp"
 #include "tinyhhg_core/math.hpp"
+
+#include <core/mpi/MPIManager.h>
 
 #include <fmt/ostream.h>
 #include <cstddef>
@@ -12,7 +13,7 @@ namespace hhg
 {
 
 Face::Face(size_t _id, Edge* _edges[3])
-  : id(_id), rank(id % hhg::Comm::get().np), type(Inner)
+  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {

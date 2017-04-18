@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
-#include "comm.hpp"
+#include <core/logging/Logging.h>
 
 namespace hhg
 {
@@ -13,10 +13,7 @@ Boundary BoundaryTypeToFlag[] = { Inner, DirichletBoundary, NeumannBoundary };
 
 Mesh::Mesh(const std::string& filename)
 {
-  if (Comm::get().rk == 0)
-  {
-    fmt::printf("[Mesh] Opening mesh file: %s\n", filename);
-  }
+  WALBERLA_LOG_INFO_ON_ROOT( "[Mesh] Opening mesh file: " << filename);
 
   std::ifstream meshFile;
   meshFile.open(filename.c_str());

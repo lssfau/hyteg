@@ -1,6 +1,7 @@
 #include "edge.hpp"
 #include "vertex.hpp"
-#include "tinyhhg_core/comm.hpp"
+
+#include <core/mpi/MPIManager.h>
 
 #include <fmt/format.h>
 
@@ -8,7 +9,7 @@ namespace hhg
 {
 
 Edge::Edge(size_t _id, size_t _type, Vertex* _v0, Vertex* _v1)
-  : id(_id), rank(id % hhg::Comm::get().np), type(_type), v0(_v0), v1(_v1)
+  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), type(_type), v0(_v0), v1(_v1)
 {
   direction = v1->coords - v0->coords;
   length = direction.norm();

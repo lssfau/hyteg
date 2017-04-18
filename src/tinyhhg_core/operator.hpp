@@ -2,15 +2,16 @@
 #define OPERATOR_HPP
 
 #include "mesh.hpp"
+#include <core/all.h>
 
 namespace hhg
 {
 
 class Operator
 {
-public: 
+public:
   Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), id(-1), rank(Comm::get().rk)
+    : mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), id(-1), rank(walberla::mpi::MPIManager::instance()->rank() )
   {
   }
 

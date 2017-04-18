@@ -2,7 +2,6 @@
 #define P1EDGE_HPP
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/comm.hpp"
 
 namespace hhg
 {
@@ -51,10 +50,10 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  if (edge.v0->rank == hhg::Comm::get().rk)
+  if (edge.v0->rank == walberla::mpi::MPIManager::instance()->rank())
   {
     // local information
-    if (edge.rank == hhg::Comm::get().rk)
+    if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
       edge.data[memory_id][level-2][0] = edge.v0->data[memory_id][level-2][0];
     }
@@ -63,15 +62,15 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
       MPI_Send(&edge.v0->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
-  else if (edge.rank == hhg::Comm::get().rk)
+  else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
     MPI_Recv(&edge.data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
-  if (edge.v1->rank == hhg::Comm::get().rk)
+  if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
   {
     // local information
-    if (edge.rank == hhg::Comm::get().rk)
+    if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
       edge.data[memory_id][level-2][rowsize-1] = edge.v1->data[memory_id][level-2][0];
     }
@@ -80,7 +79,7 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
       MPI_Send(&edge.v1->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
-  else if (edge.rank == hhg::Comm::get().rk)
+  else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
     MPI_Recv(&edge.data[memory_id][level-2][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
@@ -181,7 +180,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   size_t rowsize_halo = rowsize - 1;
 
   size_t offset = rowsize;
-  int rk = hhg::Comm::get().rk;
+  int rk = walberla::mpi::MPIManager::instance()->rank();
 
   auto pull = [rowsize, rowsize_halo, level](Edge& edge, double* edge_data, Face* face, double* face_data)
   {
@@ -245,7 +244,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       }
     }
   };
-  
+
   for (Face* face : edge.faces)
   {
     if (edge.rank == rk)

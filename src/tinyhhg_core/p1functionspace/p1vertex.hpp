@@ -2,7 +2,6 @@
 #define P1VERTEX_HPP
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/comm.hpp"
 
 #include <fmt/format.h>
 
@@ -15,7 +14,7 @@ namespace P1Vertex
 
 /// Allocate memory for P1 macro-vertex including halos
 /// \param vertex Reference to Vertex the allocated memory will belong to
-/// \param memory_id Index of the \ref data 
+/// \param memory_id Index of the \ref data
 /// \param minLevel The minimum level allocated
 /// \param maxLevel The maximum level allocated
 ///
@@ -110,7 +109,7 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
   size_t i = 1;
-  int rk = hhg::Comm::get().rk;
+  int rk = walberla::mpi::MPIManager::instance()->rank();
 
   for (Edge* edge : vertex.edges)
   {

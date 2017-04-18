@@ -1,12 +1,12 @@
 #include "vertex.hpp"
 
-#include "tinyhhg_core/comm.hpp"
+#include <core/mpi/MPIManager.h>
 
 namespace hhg
 {
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : id(_id), rank(id % hhg::Comm::get().np), coords(_coords)
+  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), coords(_coords)
 {
 }
 

@@ -2,14 +2,21 @@
 
 ### Build instructions
 
-```sh
-$ cd build
-$ cmake ..
-$ make
-```
+    git clone git@i10git.cs.fau.de:software/walberla.git
+    cd walberla
+    git checkout master
+    cd ..
+    git clone git@i10git.cs.fau.de:drzisga/tinyhhg_cpp.git
+    cd tinyhhg_cpp
+    git checkout walberla_coupling
+    cd ..
+    mkdir build
+    cd build
+    cmake ../marble_run -DWALBERLA_DIR=../walberla
+    cd apps
+    make
 
 ### Execution instructions
-```sh
-$ cd build
-$ ./tinytest_fmg
-```
+
+    cd apps
+    ./tinytest_fmg

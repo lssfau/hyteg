@@ -12,6 +12,4 @@
 
 #include "solvers/cgsolver.hpp"
 
-#include "comm.hpp"
-
 #endif /* TINYHHG_HPP */

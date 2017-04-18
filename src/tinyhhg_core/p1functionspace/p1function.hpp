@@ -3,7 +3,8 @@
 
 #include "tinyhhg_core//mesh.hpp"
 #include "tinyhhg_core//function.hpp"
-#include "tinyhhg_core//comm.hpp"
+
+#include <core/mpi/all.h>
 
 #include "p1vertex.hpp"
 #include "p1edge.hpp"
@@ -57,7 +58,7 @@ public:
       fmt::printf("There was an error allocating P1 memory\n");
       std::exit(-1);
     }
-    
+
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank)
@@ -186,7 +187,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::assign(face, scalars, src_ids, memory_id, level);
-      } 
+      }
     }
   }
 
@@ -205,7 +206,7 @@ public:
         P1Vertex::add(vertex, scalars, src_ids, memory_id, level);
       }
     }
-    
+
     for (Edge& edge : mesh.edges)
     {
       P1Edge::pull_vertices(edge, memory_id, level);
@@ -229,7 +230,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::add(face, scalars, src_ids, memory_id, level);
-      } 
+      }
     }
   }
 
@@ -258,7 +259,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         sp_l += P1Face::dot(face, memory_id, rhs.memory_id, level);
-      } 
+      }
     }
 
     double sp_g = 0.0;
@@ -312,7 +313,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::apply(face, opr.id, memory_id, dst.memory_id, level);
-      } 
+      }
     }
   }
 
@@ -361,7 +362,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::smooth_gs(face, opr.id, memory_id, rhs.memory_id, level);
-      } 
+      }
     }
   }
 
@@ -398,7 +399,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::prolongate(face, memory_id, level);
-      } 
+      }
     }
   }
 
@@ -447,7 +448,7 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::restrict(face, memory_id, level);
-      } 
+      }
     }
   }
 };

@@ -1,7 +1,8 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
-#include "comm.hpp"
+//#include "comm.hpp"
 
+#include <core/mpi/MPIManager.h>
 #include <fmt/format.h>
 
 #include <fstream>
@@ -11,8 +12,10 @@ namespace hhg
 
 void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
-  int rk = hhg::Comm::get().rk;
-  int np = hhg::Comm::get().np;
+  int np = walberla::mpi::MPIManager::instance()->numProcesses() ;
+  int rk = walberla::mpi::MPIManager::instance()->rank() ;
+  // int rk = hhg::Comm::get().rk;
+  // int np = hhg::Comm::get().np;
 
   if (rk == 0)
   {
@@ -120,7 +123,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
       }
 
       --inner_rowsize;
-    }    
+    }
   }
 
   file << "\n</DataArray>\n";

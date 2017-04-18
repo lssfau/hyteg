@@ -1,8 +1,6 @@
 #ifndef CGSOLVER_HPP
 #define CGSOLVER_HPP
 
-#include "tinyhhg_core/comm.hpp"
-
 #include <fmt/format.h>
 
 namespace hhg
@@ -26,7 +24,7 @@ public:
     p.assign({1.0}, {&r}, level, flag);
     double rsold = r.dot(r, level, flag);
 
-    if (std::sqrt(rsold) < tolerance && printInfo && Comm::get().rk == 0)
+    if (std::sqrt(rsold) < tolerance && printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
     {
       fmt::printf("[CG] converged\n");
       return;
@@ -43,14 +41,14 @@ public:
       double rsnew = r.dot(r, level, flag);
       double sqrsnew = std::sqrt(rsnew);
 
-      if (printInfo && Comm::get().rk == 0)
+      if (printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
       {
         fmt::printf("[CG] residuum: %e\n", sqrsnew);
       }
 
       if (sqrsnew/res_start < tolerance)
       {
-        if (printInfo && Comm::get().rk == 0)
+        if (printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
         {
           fmt::printf("[CG] converged after %d iterations\n", i);
         }

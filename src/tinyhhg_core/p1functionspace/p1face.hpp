@@ -2,7 +2,6 @@
 #define P1FACE_HPP
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/comm.hpp"
 
 namespace hhg
 {
@@ -78,8 +77,8 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   MPI_Request req1;
   MPI_Request req2;
 
-  int rk = hhg::Comm::get().rk;
-  
+  int rk = walberla::mpi::MPIManager::instance()->rank();
+
   if (face.edges[0]->rank == rk)
   {
     if (face.rank == rk)
@@ -306,7 +305,7 @@ inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
-  
+
   double* opr_data = face.opr_data[opr_id][level-2];
   double* src = face.data[src_id][level-2];
   double* dst = face.data[dst_id][level-2];
@@ -338,7 +337,7 @@ inline void smooth_gs(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id, s
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
-  
+
   double* opr_data = face.opr_data[opr_id][level-2];
   double* dst = face.data[dst_id][level-2];
   double* rhs = face.data[rhs_id][level-2];

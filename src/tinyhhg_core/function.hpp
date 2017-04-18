@@ -2,7 +2,7 @@
 #define FUNCTION_HPP
 
 #include "mesh.hpp"
-#include "comm.hpp"
+//#include "comm.hpp"
 #include "operator.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
@@ -15,9 +15,9 @@ namespace hhg
 
 class Function
 {
-public: 
+public:
   Function(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : name(_name), mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(-1), rank(Comm::get().rk)
+    : name(_name), mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(-1), rank(walberla::mpi::MPIManager::instance()->rank())
   {
   }
 
