@@ -2,6 +2,8 @@
 #define LEVELINFO_HPP
 
 #include <cmath>
+//this is a big hack to get mpi.h into all files REMOVE!!!
+
 
 namespace hhg
 {
@@ -15,17 +17,17 @@ inline size_t num_microvertices_per_vertex(size_t level)
 
 inline size_t num_microvertices_per_edge(size_t level)
 {
-  return std::pow(2, level) + 1;
+  return (size_t) std::pow(2, level) + 1;
 }
 
 inline size_t num_microvertices_per_face(size_t level)
 {
-  return (std::pow(2, level)+1) * (std::pow(2, level-1) + 1);
+  return (size_t) ((std::pow(2, level)+1) * (std::pow(2, level-1) + 1));
 }
 
 inline size_t num_microfaces_per_face(size_t level)
 {
-  return std::pow(4, level);
+  return (size_t) (std::pow(4, level));
 }
 
 }

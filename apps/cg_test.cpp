@@ -4,12 +4,10 @@
 
 int main(int argc, char* argv[])
 {
-  MPI_Init(&argc, &argv);
-  int rk = hhg::Comm::get().rk;
-  if(rk == 0)
-  {
-    fmt::printf("TinyHHG CG Test\n");
-  }
+  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+  walberla::MPIManager::instance()->useWorldComm();
+  WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
+
   hhg::Mesh mesh("../../../tinyhhg_cpp/data/meshes/bfs_126el.msh");
 
   size_t minLevel = 2;
@@ -44,10 +42,8 @@ int main(int argc, char* argv[])
 
   double discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  if (rk == 0)
-  {
-    fmt::printf("discrete L2 error = %e\n", discr_l2_err);
-  }
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
+
   hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
   MPI_Finalize();
   return 0;

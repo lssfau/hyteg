@@ -1,8 +1,8 @@
 #ifndef P1FUNCTION_HPP
 #define P1FUNCTION_HPP
 
-#include "tinyhhg_core//mesh.hpp"
-#include "tinyhhg_core//function.hpp"
+#include "tinyhhg_core/mesh.hpp"
+#include "tinyhhg_core/function.hpp"
 
 #include <core/mpi/all.h>
 

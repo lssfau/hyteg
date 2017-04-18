@@ -109,7 +109,10 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
   size_t i = 1;
-  int rk = walberla::mpi::MPIManager::instance()->rank();
+  auto MPIManager = walberla::mpi::MPIManager::instance();
+  int rk = MPIManager->rank();
+  walberla::mpi::BufferSystem bs ( MPIManager->comm() );
+
 
   for (Edge* edge : vertex.edges)
   {
