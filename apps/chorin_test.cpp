@@ -4,12 +4,10 @@
 
 int main(int argc, char* argv[])
 {
-  MPI_Init(&argc, &argv);
-  int rk = hhg::Comm::get().rk;
-  if (rk == 0)
-  {
-    fmt::printf("Navier-Stokes solver\n");
-  }
+  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+  walberla::MPIManager::instance()->useWorldComm();
+  WALBERLA_LOG_INFO_ON_ROOT("Navier-Stokes solver");
+
   hhg::Mesh mesh("../data/meshes/quad_2el_neumann.msh");
 
   double viscosity = 1e-5;

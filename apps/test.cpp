@@ -4,12 +4,10 @@
 
 int main(int argc, char* argv[])
 {
-  MPI_Init(&argc, &argv);
-  int rk = hhg::Comm::get().rk;
-  if (rk == 0)
-  {
-    fmt::printf("TinyHHG default test\n");
-  }
+  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+  walberla::MPIManager::instance()->useWorldComm();
+  WALBERLA_LOG_INFO_ON_ROOT("TinyHHG default test");
+
   hhg::Mesh mesh("../data/meshes/tri_1el.msh");
 
   size_t minLevel = 2;

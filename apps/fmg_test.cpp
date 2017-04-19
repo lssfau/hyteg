@@ -5,17 +5,16 @@
 int main(int argc, char* argv[])
 {
   LIKWID_MARKER_INIT;
-  MPI_Init(&argc, &argv);
+  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+  walberla::MPIManager::instance()->useWorldComm();
   LIKWID_MARKER_THREADINIT;
-  int rk = hhg::Comm::get().rk;
-  int np = hhg::Comm::get().np;
+  int rk = walberla::MPIManager::instance()->rank();
+  int np = walberla::MPIManager::instance()->numProcesses();
 
-  if (rk == 0)
-  {
-    fmt::printf("[%d] TinyHHG FMG Test\n", rk);
-  }
+  WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+
+  hhg::Mesh mesh("../../../tinyhhg_cpp/data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 11;
@@ -142,7 +141,6 @@ int main(int argc, char* argv[])
   LIKWID_MARKER_STOP("Compute");
 
   // hhg::VTKWriter({ &x }, maxLevel, "../output", "test");
-  MPI_Finalize();
   LIKWID_MARKER_CLOSE;
   return 0;
 }
