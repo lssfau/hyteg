@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
 
-  hhg::Mesh mesh("../../../tinyhhg_cpp/data/meshes/bfs_126el.msh");
+  hhg::Mesh mesh("../data/meshes/bfs_126el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 5;

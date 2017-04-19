@@ -3,6 +3,7 @@
 #
 #add_executable (tinytest_cg cg_test.cpp)
 #target_link_libraries (tinytest_cg tinyhhg fmt core ${MPI_CXX_LIBRARIES})
+waLBerla_link_files_to_builddir(../data)
 
 waLBerla_add_executable( NAME tinytest
         FILES test.cpp

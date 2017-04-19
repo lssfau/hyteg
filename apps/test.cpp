@@ -22,6 +22,5 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator L_gen(mesh, minLevel, maxLevel);
 
   hhg::VTKWriter({&u}, maxLevel, "../output", "test");
-  MPI_Finalize();
   return 0;
 }
