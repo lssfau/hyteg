@@ -446,10 +446,17 @@ inline void restrict(Face& face, size_t memory_id, size_t level)
   }
 }
 
-
-bool is_boundary(size_t index)
+/// Checks if a given index is a the boundary of the face
+/// \param index The index which should be checked
+/// \param length Size of the triangle in the first dimension
+bool is_boundary(size_t index, size_t length)
 {
-
+  if(index < length) return true;
+  while(index >= length){
+    index -= length;
+    length--;
+  }
+  return(index == 0 || index == (length -1));
 }
 
 }// namespace P1Face
