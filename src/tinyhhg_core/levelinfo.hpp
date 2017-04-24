@@ -2,7 +2,6 @@
 #define LEVELINFO_HPP
 
 #include <cmath>
-//this is a big hack to get mpi.h into all files REMOVE!!!
 
 
 namespace hhg

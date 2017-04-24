@@ -106,6 +106,44 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
   dst[0] /= opr_data[0];
 }
 
+/// Function testing the perfomance and features of the walberla Buffersystem instead of manual mpi comm
+//inline void pull_halos_bs(Vertex& vertex, size_t memory_id, size_t level, walberla::mpi::BufferSystem bs) {
+//  size_t i = 1;
+//  int rk = walberla::mpi::MPIManager::instance()->rank();
+//
+//  for (Edge* edge: vertex.edges) {
+//    if(vertex.rank != rk && edge->rank == rk)
+//    {
+//      if (edge->vertex_index(vertex) == 0)
+//      {
+//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level - 2][1];
+//      }
+//      else
+//      {
+//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level - 2][levelinfo::num_microvertices_per_edge(level) - 2];
+//      }
+//    }
+//    else if (vertex.rank == rk)
+//    {
+//      if (edge->rank == rk)
+//      {
+//        if(edge->vertex_index(vertex) == 0)
+//        {
+//          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][1];
+//        }
+//        else
+//        {
+//          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2];
+//        }
+//      }
+//      else
+//      {
+//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//      }
+//    }
+//  }
+//}
+
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
   size_t i = 1;

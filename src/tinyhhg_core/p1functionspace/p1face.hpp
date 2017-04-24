@@ -446,7 +446,14 @@ inline void restrict(Face& face, size_t memory_id, size_t level)
   }
 }
 
+
+bool is_boundary(size_t index)
+{
+
 }
-}
+
+}// namespace P1Face
+}// namespace hhg
+
 
 #endif /* P1FACE_HPP */
