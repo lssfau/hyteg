@@ -24,7 +24,7 @@ int main (int argc, char ** argv )
   auto faceZero = mesh.faces[0];
   hhg::P1Face::interpolate(faceZero,0,exact,maxLevel);
 
-  for(size_t i = 0)
+  
 
 
   //x.interpolate(exact, maxLevel);
