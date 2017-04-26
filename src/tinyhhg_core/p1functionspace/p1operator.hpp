@@ -22,8 +22,8 @@ public:
   P1Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
     : Operator(_mesh, _minLevel, _maxLevel)
   {
-    id = mesh.faces[0].opr_data.size();
-    fmt::printf("Creating Laplace operator with id %d\n", id);
+    id = mesh.faces[0].memory.size();
+	WALBERLA_LOG_DEVEL_ON_ROOT("Creating Laplace operator with id " + std::to_string(id) );	
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {
@@ -76,9 +76,9 @@ public:
 
         if (level == minLevel)
         {
-          face.opr_data.push_back(std::vector<double*>());
+          face.memory.push_back(new FaceStencilMemory());
         }
-        face.opr_data[id].push_back(face_stencil);
+        static_cast<FaceStencilMemory*>(face.memory[id])->data[level] = face_stencil;
 
         // fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
         // fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
@@ -237,7 +237,7 @@ public:
 
     for (Face& f : mesh.faces)
     {
-      delete[] f.opr_data[id][0];
+			f.memory[id]->free();
     }
   }
 

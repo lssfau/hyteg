@@ -47,7 +47,7 @@ public:
       {
         if (f.rank == rank)
         {
-          memory_id = f.data.size();
+          memory_id = f.memory.size();
           break;
         }
       }
@@ -106,7 +106,7 @@ public:
     {
       if (face.rank == rank)
       {
-        P1Face::free(face, memory_id, minLevel, maxLevel);
+        P1Face::free(face, memory_id);
       }
     }
   }

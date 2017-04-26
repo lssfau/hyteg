@@ -5,11 +5,13 @@
 
 #include <array>
 #include <vector>
+#include <map>
 
 namespace hhg
 {
 
 class Edge;
+class FaceMemory;
 
 class Face
 {
@@ -28,11 +30,49 @@ public:
   std::array<int, 3> edge_orientation;
   std::array<Point3D, 3> coords;
 
-  std::vector<std::vector<double*> > data;
-  std::vector<std::vector<double*> > opr_data;
+  std::vector<FaceMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 };
+
+class FaceMemory
+{
+public:
+	enum FaceMemoryType {Base,Stencil,P1};
+
+	const FaceMemoryType type;
+
+	virtual void free() = 0;
+
+protected:
+	FaceMemory(FaceMemoryType t) : type(t) { ; }
+};
+
+
+class FaceStencilMemory
+	:public FaceMemory
+{
+public:
+	FaceStencilMemory() : FaceMemory(Stencil) { ; }
+
+	std::map<size_t,double*> data;
+
+	virtual void free();
+
+};
+
+
+class FaceP1Memory
+	:public FaceMemory
+{
+public:
+	FaceP1Memory() : FaceMemory(P1) { ; }
+
+	std::map<size_t,double*> data;
+
+	virtual void free();
+};
+
 
 }
 

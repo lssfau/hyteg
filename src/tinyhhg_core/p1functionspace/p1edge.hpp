@@ -253,7 +253,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
 
       if (face->rank == rk)
       {
-        double* face_data = face->data[memory_id][level-2];
+        double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level-2];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
@@ -265,7 +265,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     else if (face->rank == rk)
     {
-      double* face_data = face->data[memory_id][level-2];
+      double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level-2];
       double* tmp = new double[rowsize_halo];
       pull(edge, tmp, face, face_data);
       MPI_Send(tmp, rowsize_halo, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
