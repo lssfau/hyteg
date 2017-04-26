@@ -8,7 +8,7 @@
     cd ..
     git clone git@i10git.cs.fau.de:drzisga/tinyhhg_cpp.git
     cd tinyhhg_cpp
-    git checkout walberla_coupling
+    git checkout master
     cd ..
     mkdir build
     cd build
