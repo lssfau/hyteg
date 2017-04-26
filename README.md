@@ -12,7 +12,7 @@
     cd ..
     mkdir build
     cd build
-    cmake ../marble_run -DWALBERLA_DIR=../walberla
+    cmake ../tinyhhg_cpp -DWALBERLA_DIR=../walberla
     cd apps
     make
 
