@@ -10,7 +10,7 @@ namespace P1Edge
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  edge.data.push_back(std::vector<double*>());
+  edge.memory.push_back(new EdgeP1Memory());
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
@@ -18,18 +18,16 @@ inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLe
     size_t n_dofs_per_edge_nbr = n_dofs_per_edge - 1;
     size_t num_deps = edge.faces.size();
     size_t total_n_dofs = n_dofs_per_edge + num_deps * n_dofs_per_edge_nbr;
-    double* new_data = new double[total_n_dofs];
-    memset(new_data, 0, total_n_dofs * sizeof(double));
-    edge.data[memory_id].push_back(new_data);
+    //double* new_data = new double[total_n_dofs];
+    //memset(new_data, 0, total_n_dofs * sizeof(double));
+    //edge.data[memory_id].push_back(new_data);
+    static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level] = new double[total_n_dofs]();
   }
 }
 
 inline void free(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  for (size_t level = minLevel; level <= maxLevel; ++level)
-  {
-    delete[] edge.data[memory_id][level - minLevel];
-  }
+  edge.memory[memory_id]->free();
 }
 
 inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)
@@ -41,7 +39,7 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    edge.data[memory_id][level-2][i] = expr(x);
+    static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level-2][i] = expr(x);
     x += dx;
   }
 }
@@ -55,16 +53,16 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     // local information
     if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
-      edge.data[memory_id][level-2][0] = edge.v0->data[memory_id][level-2][0];
+      static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][0] = static_cast<VertexP1Memory*>(edge.v0->memory[memory_id])->data[level][0];
     }
     else
     {
-      MPI_Send(&edge.v0->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&static_cast<VertexP1Memory*>(edge.v0->memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
   if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
@@ -72,16 +70,16 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     // local information
     if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
-      edge.data[memory_id][level-2][rowsize-1] = edge.v1->data[memory_id][level-2][0];
+      static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][rowsize-1] = static_cast<VertexP1Memory*>(edge.v1->memory[memory_id])->data[level][0];
     }
     else
     {
-      MPI_Send(&edge.v1->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&static_cast<VertexP1Memory*>(edge.v1->memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][level-2][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 
@@ -91,14 +89,14 @@ inline void assign(Edge& edge, const std::vector<double>& scalars, const std::ve
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    double tmp = scalars[0] * edge.data[src_ids[0]][level-2][i];
+    double tmp = scalars[0] * static_cast<EdgeP1Memory*>(edge.memory[src_ids[0]])->data[level][i];
 
     for (size_t k = 1; k < src_ids.size(); ++k)
     {
-      tmp += scalars[k] * edge.data[src_ids[k]][level-2][i];
+      tmp += scalars[k] * static_cast<EdgeP1Memory*>(edge.memory[src_ids[k]])->data[level][i];
     }
 
-    edge.data[dst_id][level-2][i] = tmp;
+    static_cast<EdgeP1Memory*>(edge.memory[dst_id])->data[level][i] = tmp;
   }
 }
 
@@ -112,10 +110,10 @@ inline void add(Edge& edge, const std::vector<double>& scalars, const std::vecto
 
     for (size_t k = 0; k < src_ids.size(); ++k)
     {
-      tmp += scalars[k] * edge.data[src_ids[k]][level-2][i];
+      tmp += scalars[k] * static_cast<EdgeP1Memory*>(edge.memory[src_ids[k]])->data[level][i];
     }
 
-    edge.data[dst_id][level-2][i] += tmp;
+    static_cast<EdgeP1Memory*>(edge.memory[dst_id])->data[level][i] += tmp;
   }
 }
 
@@ -126,7 +124,7 @@ inline double dot(Edge& edge, size_t lhs_id, size_t rhs_id, size_t level)
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    sp += edge.data[lhs_id][level-2][i] * edge.data[rhs_id][level-2][i];
+    sp += static_cast<EdgeP1Memory*>(edge.memory[lhs_id])->data[level][i] * static_cast<EdgeP1Memory*>(edge.memory[rhs_id])->data[level][i];
   }
 
   return sp;
@@ -136,9 +134,9 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  double* opr_data = edge.opr_data[opr_id][level-2];
-  double* src = edge.data[src_id][level-2];
-  double* dst = edge.data[dst_id][level-2];
+  double* opr_data = static_cast<EdgeStencilMemory*>(edge.memory[opr_id])->data[level];
+  double* src = static_cast<EdgeP1Memory*>(edge.memory[src_id])->data[level];
+  double* dst = static_cast<EdgeP1Memory*>(edge.memory[dst_id])->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -156,9 +154,9 @@ inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, s
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  double* opr_data = edge.opr_data[opr_id][level-2];
-  double* dst = edge.data[dst_id][level-2];
-  double* rhs = edge.data[rhs_id][level-2];
+  double* opr_data = static_cast<EdgeStencilMemory*>(edge.memory[opr_id])->data[level];
+  double* dst = static_cast<EdgeP1Memory*>(edge.memory[dst_id])->data[level];
+  double* rhs = static_cast<EdgeP1Memory*>(edge.memory[rhs_id])->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -249,11 +247,11 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   {
     if (edge.rank == rk)
     {
-      double* edge_data = edge.data[memory_id][level-2];
+      double* edge_data = static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level];
 
       if (face->rank == rk)
       {
-        double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level-2];
+        double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
@@ -265,7 +263,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     else if (face->rank == rk)
     {
-      double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level-2];
+      double* face_data = static_cast<FaceP1Memory*>(face->memory[memory_id])->data[level];
       double* tmp = new double[rowsize_halo];
       pull(edge, tmp, face, face_data);
       MPI_Send(tmp, rowsize_halo, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
@@ -279,8 +277,8 @@ inline void prolongate(Edge& edge, size_t memory_id, size_t level)
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
   size_t i_fine = 1;
 
-  double* edge_data_f = edge.data[memory_id][level-2+1];
-  double* edge_data_c = edge.data[memory_id][level-2];
+  double* edge_data_f = static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level+1];
+  double* edge_data_c = static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level];
 
   for (size_t i_coarse = 0; i_coarse < rowsize_coarse-1; ++i_coarse)
   {
@@ -295,8 +293,8 @@ inline void restrict(Edge& edge, size_t memory_id, size_t level)
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
 
-  double* edge_data_f = edge.data[memory_id][level-2];
-  double* edge_data_c = edge.data[memory_id][level-2-1];
+  double* edge_data_f = static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level];
+  double* edge_data_c = static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level-1];
 
   size_t i_fine = 2;
   size_t i_off = 1;

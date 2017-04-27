@@ -24,7 +24,7 @@ public:
     {
       if (v.rank == rank)
       {
-        memory_id = v.data.size();
+        memory_id = v.memory.size();
         break;
       }
     }
@@ -35,7 +35,7 @@ public:
       {
         if (e.rank == rank)
         {
-          memory_id = e.data.size();
+          memory_id = e.memory.size();
           break;
         }
       }

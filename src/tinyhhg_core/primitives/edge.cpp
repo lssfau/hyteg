@@ -59,4 +59,23 @@ std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
             << "v1 = " << edge.v1->id << "; }";
 }
 
+
+void EdgeStencilMemory::free()
+{
+	for (auto el : data)
+	{
+		delete[] el.second;
+	}
+	data.clear();
+}
+
+void EdgeP1Memory::free()
+{
+	for (auto el : data)
+	{
+		delete[] el.second;
+	}
+	data.clear();
+}
+
 }

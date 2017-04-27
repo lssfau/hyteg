@@ -90,7 +90,7 @@ public:
 
           double* edge_stencil;
 
-          if (level == minLevel && edge.opr_data.size() == id)
+          if (level == minLevel && edge.memory.size() == id)
           {
             edge.opr_data.push_back(std::vector<double*>());
           }

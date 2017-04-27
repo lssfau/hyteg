@@ -4,6 +4,7 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 
 #include <vector>
+#include <map>
 #include <fmt/ostream.h>
 
 namespace hhg
@@ -11,6 +12,8 @@ namespace hhg
 
 class Vertex;
 class Face;
+
+class EdgeMemory;
 
 class Edge
 {
@@ -34,11 +37,52 @@ public:
   Point3D normal_2d;
 
   std::vector<Face*> faces;
-  std::vector<std::vector<double*> > data;
-  std::vector<std::vector<double*> > opr_data;
+
+	std::vector<EdgeMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 };
+
+
+
+class EdgeMemory
+{
+public:
+	enum EdgeMemoryType { Base, Stencil, P1 };
+
+	const EdgeMemoryType type;
+
+	virtual void free() = 0;
+
+protected:
+	EdgeMemory(EdgeMemoryType t) : type(t) { ; }
+};
+
+
+class EdgeStencilMemory
+	:public EdgeMemory
+{
+public:
+	EdgeStencilMemory() : EdgeMemory(Stencil) { ; }
+
+	std::map<size_t, double*> data;
+
+	virtual void free();
+
+};
+
+
+class EdgeP1Memory
+	:public EdgeMemory
+{
+public:
+	EdgeP1Memory() : EdgeMemory(P1) { ; }
+
+	std::map<size_t, double*> data;
+
+	virtual void free();
+};
+
 
 }
 

@@ -4,6 +4,7 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 
 #include <vector>
+#include <map>
 #include <fmt/ostream.h>
 
 namespace hhg
@@ -11,6 +12,8 @@ namespace hhg
 
 class Edge;
 class Face;
+
+class VertexMemory;
 
 /// \brief  Macro-Vertex primitive
 /// \author Daniel Drzisga (drzisga@ma.tum.de)
@@ -57,19 +60,56 @@ public:
   /// Pointers to faces adjacent to vertex
   std::vector<Face*> faces;
 
-  /// Multi-vector of pointers to memory used by \ref Function.
-  /// The outer std::vector corresponds to an instance of a \ref Function and the
-  /// inner std::vector to the hierarchy level.
-  std::vector<std::vector<double*> > data;
 
-  /// Multi-vector of pointers to memory used by \ref Operator.
-  /// The outer std::vector corresponds to an instance of an \ref Operator and the
-  /// inner std::vector to the hierarchy level.
-  std::vector<std::vector<double*> > opr_data;
+	/// Vector containing pointers to memory used by \ref Function and \ref Operator
+	/// The std::vector corresponds to the memory id of a \ref Function or an \Operator
+	/// This replaces the old data and opr_data vectors
+	std::vector<VertexMemory*> memory;
 
+  
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 };
+
+
+class VertexMemory
+{
+public:
+	enum VertexMemoryType { Base, Stencil, P1 };
+
+	const VertexMemoryType type;
+
+	virtual void free() = 0;
+
+protected:
+	VertexMemory(VertexMemoryType t) : type(t) { ; }
+};
+
+
+class VertexStencilMemory
+	:public VertexMemory
+{
+public:
+	VertexStencilMemory() : VertexMemory(Stencil) { ; }
+
+	std::map<size_t, double*> data;
+
+	virtual void free();
+
+};
+
+
+class VertexP1Memory
+	:public VertexMemory
+{
+public:
+	VertexP1Memory() : VertexMemory(P1) { ; }
+
+	std::map<size_t, double*> data;
+
+	virtual void free();
+};
+
 
 }
 

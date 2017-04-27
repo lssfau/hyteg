@@ -81,11 +81,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_0 = face.edges[0]->data[memory_id][level-2];
+      edge_data_0 = static_cast<EdgeP1Memory*>(face.edges[0]->memory[memory_id])->data[level];
     }
     else
     {
-      MPI_Send(&face.edges[0]->data[memory_id][level-2][0], rowsize, MPI_DOUBLE, face.rank, face.edges[0]->id, MPI_COMM_WORLD);
+      MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[0]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[0]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -98,11 +98,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_1 = face.edges[1]->data[memory_id][level-2];
+      edge_data_1 = static_cast<EdgeP1Memory*>(face.edges[1]->memory[memory_id])->data[level];
     }
     else
     {
-      MPI_Send(&face.edges[1]->data[memory_id][level-2][0], rowsize, MPI_DOUBLE, face.rank, face.edges[1]->id, MPI_COMM_WORLD);
+      MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[1]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[1]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -115,11 +115,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_2 = face.edges[2]->data[memory_id][level-2];
+      edge_data_2 = static_cast<EdgeP1Memory*>(face.edges[2]->memory[memory_id])->data[level];
     }
     else
     {
-      MPI_Send(&face.edges[2]->data[memory_id][level-2][0], rowsize, MPI_DOUBLE, face.rank, face.edges[2]->id, MPI_COMM_WORLD);
+      MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[2]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[2]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -130,7 +130,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
   if (face.rank == rk)
   {
-    double* face_data = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2];
+    double* face_data = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level];
 
     if (face.edges[0]->rank != rk)
     {

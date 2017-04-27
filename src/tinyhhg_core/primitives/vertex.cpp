@@ -41,4 +41,24 @@ std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
             << "}";
 }
 
+
+
+void VertexStencilMemory::free()
+{
+	for (auto el : data)
+	{
+		delete[] el.second;
+	}
+	data.clear();
+}
+
+void VertexP1Memory::free()
+{
+	for (auto el : data)
+	{
+		delete[] el.second;
+	}
+	data.clear();
+}
+
 }
