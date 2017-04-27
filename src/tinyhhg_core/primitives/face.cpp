@@ -112,6 +112,21 @@ size_t Face::edge_index(const Edge& edge) const
   return -1;
 }
 
+std::vector<Edge*> Face::adjacent_edges(const Vertex& vertex) const
+{
+  std::vector<Edge*> e;
+
+  for (size_t i = 0; i < 3; ++i)
+  {
+    if (edges[i]->vertex_index(vertex) != 2)
+    {
+      e.push_back(edges[i]);
+    }
+  }
+
+  return e;
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
   return os << "Face { id = " << face.id << "; "

@@ -15,6 +15,40 @@
 namespace hhg
 {
 
+void compute_micro_coords(const std::array<Point3D, 3>& macro_coords, size_t level, double coords[6])
+{
+  auto& x = macro_coords;
+  double fac = std::pow(2.0, -(double) level);
+
+  coords[0] = fac*(x[0][0]-x[0][0]);
+  coords[1] = fac*(x[0][1]-x[0][1]);
+  coords[2] = fac*(x[1][0]-x[0][0]);
+  coords[3] = fac*(x[1][1]-x[0][1]);
+  coords[4] = fac*(x[2][0]-x[0][0]);
+  coords[5] = fac*(x[2][1]-x[0][1]);
+}
+
+template<class UFCOperator>
+void compute_local_stiffness(const Face& face, size_t level, double local_stiffness[3][3])
+{
+  double A[9];
+  double coords[6];
+  compute_micro_coords(face.coords, level, coords);
+  UFCOperator gen;
+  gen.tabulate_tensor(A, NULL, coords, 0);
+
+  // double local_stiffness[3][3] = { { t[0], t[1], t[2] }, {t[3], t[4], t[5]}, {t[6], t[7], t[8]} };
+  // double local_stiffness[3][3] = { { t[0], t[3], t[6] }, {t[1], t[4], t[7]}, {t[2], t[5], t[8]} };
+
+  for (size_t i = 0; i < 3; ++i)
+  {
+    for (size_t j = 0; j < 3; ++j)
+    {
+      local_stiffness[i][j] = A[3 * i + j];
+    }
+  }
+}
+
 template<class UFCOperator>
 class P1Operator : public Operator
 {
@@ -30,49 +64,20 @@ public:
 
       for (Face& face : mesh.faces)
       {
-        double _local_stiffness[9];
-        //double* local_stiffness[3] = { &_local_stiffness[0], &_local_stiffness[3], &_local_stiffness[6] };
+        double local_stiffness[3][3];
+        compute_local_stiffness<UFCOperator>(face, level, local_stiffness);
 
-        double* t = _local_stiffness;
+        double* face_stencil = new double[7]();
 
-        auto& x = face.coords;
-        double fac = std::pow(2.0, -(double) level);
+        face_stencil[0] = local_stiffness[0][2] + local_stiffness[2][0];
+        face_stencil[1] = local_stiffness[1][2] + local_stiffness[2][1];
+        face_stencil[2] = local_stiffness[1][0] + local_stiffness[0][1];
 
-        double coords[] = {
-          fac*(x[0][0]-x[0][0]), fac*(x[0][1]-x[0][1]), 
-          fac*(x[1][0]-x[0][0]), fac*(x[1][1]-x[0][1]),
-          fac*(x[2][0]-x[0][0]), fac*(x[2][1]-x[0][1])
-        };
+        face_stencil[4] = local_stiffness[0][1] + local_stiffness[1][0];
+        face_stencil[5] = local_stiffness[2][1] + local_stiffness[1][2];
+        face_stencil[6] = local_stiffness[2][0] + local_stiffness[0][2];
 
-        UFCOperator gen;
-        gen.tabulate_tensor(_local_stiffness, NULL, coords, 0);
-
-        double local_stiffness[3][3] = { { t[0], t[1], t[2] }, {t[3], t[4], t[5]}, {t[6], t[7], t[8]} };
-        // double local_stiffness[3][3] = { { t[0], t[3], t[6] }, {t[1], t[4], t[7]}, {t[2], t[5], t[8]} };
-
-        /*
-        fmt::print("[\n{}, {}, {};\n", local_stiffness[0][0], local_stiffness[0][1], local_stiffness[0][2]);
-        fmt::print("{}, {}, {};\n", local_stiffness[1][0], local_stiffness[1][1], local_stiffness[1][2]);
-        fmt::print("{}, {}, {};\n]\n", local_stiffness[2][0], local_stiffness[2][1], local_stiffness[2][2]);
-        */
-
-        double* face_stencil = new double[7];
-
-        face_stencil[0] = 2 * local_stiffness[0][2];
-        face_stencil[1] = 2 * local_stiffness[1][2];
-        face_stencil[2] = 2 * local_stiffness[1][0];
-
-        face_stencil[4] = 2 * local_stiffness[0][1];
-        face_stencil[5] = 2 * local_stiffness[2][1];
-        face_stencil[6] = 2 * local_stiffness[2][0];
-
-        face_stencil[3] = 0.0;
-        double sum = 0.0;
-        for (size_t i = 0; i < 7; ++i)
-        {
-          sum += face_stencil[i];
-        }
-        face_stencil[3] = -sum;
+        face_stencil[3] = 2.0 * (local_stiffness[0][0] + local_stiffness[1][1] + local_stiffness[2][2]);
 
         if (level == minLevel)
         {
@@ -97,7 +102,7 @@ public:
 
           if (edge.opr_data[id].size() == level-minLevel)
           {
-            edge_stencil = new double[7];
+            edge_stencil = new double[7]();
             edge.opr_data[id].push_back(edge_stencil);
           }
           else
@@ -162,61 +167,98 @@ public:
         }
 
         // create vertex stencil
-        for (size_t v = 0; v < 3; ++v)
+        // for (size_t v = 0; v < 3; ++v)
+        // {
+        //   Vertex& vertex = *face.vertices[v];
+
+        //   double* vertex_stencil = NULL;
+
+        //   if (level == minLevel && vertex.opr_data.size() == id)
+        //   {
+        //     vertex.opr_data.push_back(std::vector<double*>());
+        //   }
+
+        //   if (vertex.opr_data[id].size() == level-minLevel)
+        //   {
+        //     vertex_stencil = new double[1 + vertex.edges.size()];
+        //     vertex.opr_data[id].push_back(vertex_stencil);
+        //   }
+        //   else
+        //   {
+        //     vertex_stencil = vertex.opr_data[id][level-minLevel];
+        //   }
+
+        //   std::vector<Edge*> local_edges;
+
+        //   for (size_t i = 0; i < 3; ++i)
+        //   {
+        //     if (&vertex == face.edges[i]->v0 || &vertex == face.edges[i]->v1)
+        //     {
+        //       local_edges.push_back(face.edges[i]);
+        //     }
+        //   }
+
+        //   size_t e1i = vertex.edge_index(*local_edges[0]);
+        //   size_t e2i = vertex.edge_index(*local_edges[1]);
+
+        //   std::vector<size_t> idx;
+
+        //   for (size_t e = 0; e < 2; ++e)
+        //   {
+        //     if (&vertex != local_edges[e]->v0)
+        //     {
+        //       idx.push_back(face.vertex_index(*local_edges[e]->v0));
+        //     }
+        //     else
+        //     {
+        //       idx.push_back(face.vertex_index(*local_edges[e]->v1));
+        //     }
+        //   }
+
+        //   double val1 = local_stiffness[v][idx[0]];
+        //   double val2 = local_stiffness[v][idx[1]];
+
+        //   vertex_stencil[e1i] += val1;
+        //   vertex_stencil[e2i] += val2;
+
+        //   vertex_stencil[0] -= val1 + val2;
+        // }
+      }
+
+      for (Vertex& vertex : mesh.vertices)
+      {
+
+        // allocate new level-vector if first level
+        if (level == minLevel)
         {
-          Vertex& vertex = *face.vertices[v];
+          vertex.opr_data.push_back(std::vector<double*>());
+        }
 
-          double* vertex_stencil = NULL;
+        double* vertex_stencil = new double[1 + vertex.edges.size()]();
+        vertex.opr_data[id].push_back(vertex_stencil);
 
-          if (level == minLevel && vertex.opr_data.size() == id)
+        // iterate over adjacent faces
+        for (Face* face : vertex.faces)
+        {
+          double local_stiffness[3][3];
+          compute_local_stiffness<UFCOperator>(*face, level, local_stiffness);
+
+          size_t v_i = face->vertex_index(vertex);
+
+          std::vector<Edge*> adj_edges = face->adjacent_edges(vertex);
+
+          // iterate over adjacent edges
+          for (Edge* edge : adj_edges)
           {
-            vertex.opr_data.push_back(std::vector<double*>());
+            size_t edge_idx = vertex.edge_index(*edge);
+            Vertex* vertex_j = edge->get_opposite_vertex(vertex);
+
+            size_t v_j = face->vertex_index(*vertex_j);
+
+            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
           }
 
-          if (vertex.opr_data[id].size() == level-minLevel)
-          {
-            vertex_stencil = new double[1 + vertex.edges.size()];
-            vertex.opr_data[id].push_back(vertex_stencil);
-          }
-          else
-          {
-            vertex_stencil = vertex.opr_data[id][level-minLevel];
-          }
-
-          std::vector<Edge*> local_edges;
-
-          for (size_t i = 0; i < 3; ++i)
-          {
-            if (&vertex == face.edges[i]->v0 || &vertex == face.edges[i]->v1)
-            {
-              local_edges.push_back(face.edges[i]);
-            }
-          }
-
-          size_t e1i = vertex.edge_index(*local_edges[0]);
-          size_t e2i = vertex.edge_index(*local_edges[1]);
-
-          std::vector<size_t> idx;
-
-          for (size_t e = 0; e < 2; ++e)
-          {
-            if (&vertex != local_edges[e]->v0)
-            {
-              idx.push_back(face.vertex_index(*local_edges[e]->v0));
-            }
-            else
-            {
-              idx.push_back(face.vertex_index(*local_edges[e]->v1));
-            }
-          }
-
-          double val1 = local_stiffness[v][idx[0]];
-          double val2 = local_stiffness[v][idx[1]];
-
-          vertex_stencil[e1i] += val1;
-          vertex_stencil[e2i] += val2;
-
-          vertex_stencil[0] -= val1 + val2;
+          vertex_stencil[0] += local_stiffness[v_i][v_i];
         }
       }
     }

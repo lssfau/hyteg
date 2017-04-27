@@ -33,9 +33,13 @@ size_t Edge::vertex_index(const Vertex& vertex) const
   {
     return 0;
   }
-  else
+  else if (&vertex == v1)
   {
     return 1;
+  }
+  else
+  {
+    return 2;
   }
 }
 
@@ -48,6 +52,22 @@ size_t Edge::face_index(const Face& face) const
   else
   {
     return 1;
+  }
+}
+
+Vertex* Edge::get_opposite_vertex(const Vertex& vertex) const
+{
+  if (&vertex == v0)
+  {
+    return v1;
+  }
+  else if (&vertex == v1)
+  {
+    return v0;
+  }
+  else
+  {
+    return NULL;
   }
 }
 

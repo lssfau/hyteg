@@ -22,6 +22,8 @@ public:
   size_t vertex_index(const Vertex& vertex) const;
   size_t face_index(const Face& face) const;
 
+  Vertex* get_opposite_vertex(const Vertex& vertex) const;
+
   size_t id;
   int rank;
   size_t type;
