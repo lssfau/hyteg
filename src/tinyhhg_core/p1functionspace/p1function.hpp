@@ -59,6 +59,8 @@ public:
       std::exit(-1);
     }
 
+    WALBERLA_LOG_DEVEL("Created Function with ID " + std::to_string(memory_id))
+
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank)
@@ -90,7 +92,7 @@ public:
     {
       if (vertex.rank == rank)
       {
-        P1Vertex::free(vertex, memory_id, minLevel, maxLevel);
+        P1Vertex::free(vertex, memory_id);
       }
     }
 
@@ -98,7 +100,7 @@ public:
     {
       if (edge.rank == rank)
       {
-        P1Edge::free(edge, memory_id, minLevel, maxLevel);
+        P1Edge::free(edge, memory_id);
       }
     }
 

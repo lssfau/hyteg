@@ -2,6 +2,7 @@
 #define VERTEX_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 
 #include <vector>
 #include <map>
@@ -75,14 +76,13 @@ public:
 class VertexMemory
 {
 public:
-	enum VertexMemoryType { Base, Stencil, P1 };
 
-	const VertexMemoryType type;
+	const MemoryType type;
 
 	virtual void free() = 0;
 
 protected:
-	VertexMemory(VertexMemoryType t) : type(t) { ; }
+	VertexMemory(MemoryType t) : type(t) { ; }
 };
 
 

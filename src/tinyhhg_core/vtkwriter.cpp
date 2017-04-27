@@ -218,7 +218,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << static_cast<FaceP1Memory*>(face.memory[function->memory_id])->data[level-2][i] << " ";
+        file << static_cast<FaceP1Memory*>(face.memory[function->memory_id])->data[level][i] << " ";
       }
     }
     file << "\n</DataArray>\n";

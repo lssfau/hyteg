@@ -2,6 +2,7 @@
 #define FACE_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 
 #include <array>
 #include <vector>
@@ -38,14 +39,13 @@ public:
 class FaceMemory
 {
 public:
-	enum FaceMemoryType {Base,Stencil,P1};
 
-	const FaceMemoryType type;
+	const MemoryType type;
 
 	virtual void free() = 0;
 
 protected:
-	FaceMemory(FaceMemoryType t) : type(t) { ; }
+	FaceMemory(MemoryType t) : type(t) { ; }
 };
 
 

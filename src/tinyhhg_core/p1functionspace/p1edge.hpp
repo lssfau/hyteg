@@ -25,7 +25,7 @@ inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLe
   }
 }
 
-inline void free(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
+inline void free(Edge& edge, size_t memory_id)
 {
   edge.memory[memory_id]->free();
 }
@@ -39,14 +39,22 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level-2][i] = expr(x);
+    static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][i] = expr(x);
     x += dx;
   }
 }
 
 inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
+  //WALBERLA_LOG_DEVEL("Started Pull Vertices in p1edge");
+
+
+
+
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  //if (edge.memory[memory_id]->type != P1)
+  //  WALBERLA_LOG_WARNING("IN p1edge: memory had not the right type!")
 
   if (edge.v0->rank == walberla::mpi::MPIManager::instance()->rank())
   {
@@ -57,11 +65,13 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
+      //WALBERLA_LOG_DEVEL("Sending vertex 0");
       MPI_Send(&static_cast<VertexP1Memory*>(edge.v0->memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
+    //WALBERLA_LOG_DEVEL("Receiving vertex 0");
     MPI_Recv(&static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
@@ -74,13 +84,16 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
+      //WALBERLA_LOG_DEVEL("sending vertex 1");
       MPI_Send(&static_cast<VertexP1Memory*>(edge.v1->memory[memory_id])->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
+    //WALBERLA_LOG_DEVEL("Receiving vertex 1");
     MPI_Recv(&static_cast<EdgeP1Memory*>(edge.memory[memory_id])->data[level][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
+  //WALBERLA_LOG_DEVEL("Finished Pull Vertices in p1edge");
 }
 
 inline void assign(Edge& edge, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)

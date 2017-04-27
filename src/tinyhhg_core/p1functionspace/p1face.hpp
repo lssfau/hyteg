@@ -54,7 +54,7 @@ inline void interpolate(Face& face, size_t memory_id, std::function<double(const
 
     for (size_t j = 0; j < inner_rowsize-3; ++j)
     {
-			static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2][mr_c] = expr(x);
+			static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level][mr_c] = expr(x);
       x += d0;
       mr_c += 1;
     }
@@ -66,6 +66,7 @@ inline void interpolate(Face& face, size_t memory_id, std::function<double(const
 
 inline void pull_edges(Face& face, size_t memory_id, size_t level)
 {
+  //WALBERLA_LOG_DEVEL("Started Pull Edges in p1face");
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   double* edge_data_0 = NULL;
   double* edge_data_1 = NULL;
@@ -76,7 +77,13 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   MPI_Request req2;
 
   int rk = walberla::mpi::MPIManager::instance()->rank();
-
+  
+  /*if (face.edges[0]->memory[memory_id]->type != P1)
+    WALBERLA_LOG_WARNING("IN p1face: memory had not the right type!")
+  if (face.edges[1]->memory[memory_id]->type != P1)
+    WALBERLA_LOG_WARNING("IN p1face: memory had not the right type!")
+  if (face.edges[1]->memory[memory_id]->type != P1)
+    WALBERLA_LOG_WARNING("IN p1face: memory had not the right type!")*/
   if (face.edges[0]->rank == rk)
   {
     if (face.rank == rk)
@@ -85,11 +92,13 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
+      //WALBERLA_LOG_DEVEL("Sending edge 0");
       MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[0]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[0]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
+    //WALBERLA_LOG_DEVEL("Receiving edge 0");
     edge_data_0 = new double[rowsize];
     MPI_Irecv(edge_data_0, rowsize, MPI_DOUBLE, face.edges[0]->rank, face.edges[0]->id, MPI_COMM_WORLD, &req0);
   }
@@ -102,12 +111,14 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
+      //WALBERLA_LOG_DEVEL("Sending edge 1");
       MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[1]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[1]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
     edge_data_1 = new double[rowsize];
+    //WALBERLA_LOG_DEVEL("Receiving edge 1");
     MPI_Irecv(edge_data_1, rowsize, MPI_DOUBLE, face.edges[1]->rank, face.edges[1]->id, MPI_COMM_WORLD, &req1);
   }
 
@@ -119,12 +130,14 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
+      //WALBERLA_LOG_DEVEL("Sending edge 2");
       MPI_Send(&static_cast<EdgeP1Memory*>(face.edges[2]->memory[memory_id])->data[level][0], rowsize, MPI_DOUBLE, face.rank, face.edges[2]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
     edge_data_2 = new double[rowsize];
+    //WALBERLA_LOG_DEVEL("Receiving edge 2");
     MPI_Irecv(edge_data_2, rowsize, MPI_DOUBLE, face.edges[2]->rank, face.edges[2]->id, MPI_COMM_WORLD, &req2);
   }
 
@@ -218,6 +231,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
       delete[] edge_data_2;
     }
   }
+  //WALBERLA_LOG_DEVEL("Finished Pull Edges in p1face");
 }
 
 inline void assign(Face& face, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
@@ -231,13 +245,13 @@ inline void assign(Face& face, const std::vector<double>& scalars, const std::ve
   {
     for (size_t j = 0; j < inner_rowsize - 3; ++j)
     {
-      double tmp = scalars[0] * static_cast<FaceP1Memory*>(face.memory[src_ids[0]])->data[level-2][mr];
+      double tmp = scalars[0] * static_cast<FaceP1Memory*>(face.memory[src_ids[0]])->data[level][mr];
 
       for (size_t k = 1; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * static_cast<FaceP1Memory*>(face.memory[src_ids[k]])->data[level-2][mr];
+        tmp += scalars[k] * static_cast<FaceP1Memory*>(face.memory[src_ids[k]])->data[level][mr];
       }
-			static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level-2][mr] = tmp;
+			static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level][mr] = tmp;
 
       mr += 1;
     }
@@ -262,10 +276,10 @@ inline void add(Face& face, const std::vector<double>& scalars, const std::vecto
 
       for (size_t k = 0; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * static_cast<FaceP1Memory*>(face.memory[src_ids[k]])->data[level-2][mr];
+        tmp += scalars[k] * static_cast<FaceP1Memory*>(face.memory[src_ids[k]])->data[level][mr];
       }
 
-			static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level-2][mr] += tmp;
+			static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level][mr] += tmp;
 
       mr += 1;
     }
@@ -287,7 +301,7 @@ inline double dot(Face& face, size_t lhs_id, size_t rhs_id, size_t level)
   {
     for (size_t j = 0; j < inner_rowsize - 3; ++j)
     {
-      sp += static_cast<FaceP1Memory*>(face.memory[lhs_id])->data[level-2][mr] * static_cast<FaceP1Memory*>(face.memory[rhs_id])->data[level-2][mr];
+      sp += static_cast<FaceP1Memory*>(face.memory[lhs_id])->data[level][mr] * static_cast<FaceP1Memory*>(face.memory[rhs_id])->data[level][mr];
       mr += 1;
     }
 
@@ -303,9 +317,9 @@ inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, size_
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
 
-  double* opr_data = static_cast<FaceStencilMemory*>(face.memory[opr_id])->data[level-2];
-  double* src = static_cast<FaceP1Memory*>(face.memory[src_id])->data[level-2];
-  double* dst = static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level-2];
+  double* opr_data = static_cast<FaceStencilMemory*>(face.memory[opr_id])->data[level];
+  double* src = static_cast<FaceP1Memory*>(face.memory[src_id])->data[level];
+  double* dst = static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level];
 
   size_t br = 1;
   size_t mr = 1 + rowsize ;
@@ -335,9 +349,9 @@ inline void smooth_gs(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id, s
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
 
-  double* opr_data = static_cast<FaceStencilMemory*>(face.memory[opr_id])->data[level-2];
-  double* dst = static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level-2];
-  double* rhs = static_cast<FaceP1Memory*>(face.memory[rhs_id])->data[level-2];
+  double* opr_data = static_cast<FaceStencilMemory*>(face.memory[opr_id])->data[level];
+  double* dst = static_cast<FaceP1Memory*>(face.memory[dst_id])->data[level];
+  double* rhs = static_cast<FaceP1Memory*>(face.memory[rhs_id])->data[level];
 
   size_t br = 1;
   size_t mr = 1 + rowsize ;
@@ -367,8 +381,8 @@ inline void prolongate(Face& face, size_t memory_id, size_t level)
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level+1);
 
-  double* face_data_f = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2+1];
-  double* face_data_c = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2];
+  double* face_data_f = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level+1];
+  double* face_data_c = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level];
 
   size_t mr_c = 1;
   size_t mr_f = rowsize_fine + 2;
@@ -406,8 +420,8 @@ inline void restrict(Face& face, size_t memory_id, size_t level)
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
 
-  double* face_data_f = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2];
-  double* face_data_c = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-2-1];
+  double* face_data_f = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level];
+  double* face_data_c = static_cast<FaceP1Memory*>(face.memory[memory_id])->data[level-1];
 
   size_t mr_c = 1 + rowsize_coarse;
 

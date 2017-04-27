@@ -14,10 +14,10 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+  hhg::Mesh mesh("C:/cygwin64/home/TUM/tinyhhg/build/apps/data/meshes/bfs_12el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 11;
+  size_t maxLevel = 8;
   size_t nu_pre = 2;
   size_t nu_post = 2;
   size_t outer = 50;
@@ -35,13 +35,16 @@ int main(int argc, char* argv[])
   hhg::P1Function err("err", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
-
+  
+  WALBERLA_LOG_DEVEL("Creating functions")
   std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return x[0]*x[0] - x[1]*x[1]; };
   std::function<double(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
   std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D& x) { return 0.0; };
   std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D& x) { return 1.0; };
 
+  WALBERLA_LOG_DEVEL("Interpolating x")
   x.interpolate(exact, maxLevel, hhg::DirichletBoundary);
+  WALBERLA_LOG_DEVEL("Interpolatin x_exact")
   x_exact.interpolate(exact, maxLevel);
 
   tmp.interpolate(ones, maxLevel);

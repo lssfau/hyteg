@@ -22,14 +22,53 @@ public:
   P1Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
     : Operator(_mesh, _minLevel, _maxLevel)
   {
-    id = mesh.faces[0].memory.size();
-	WALBERLA_LOG_DEVEL_ON_ROOT("Creating Laplace operator with id " + std::to_string(id) );	
+    for (Vertex& v : mesh.vertices)
+    {
+      if (v.rank == rank)
+      {
+        id = v.memory.size();
+        break;
+      }
+    }
+
+    if (id == -1)
+    {
+      for (Edge& e : mesh.edges)
+      {
+        if (e.rank == rank)
+        {
+          id = e.memory.size();
+          break;
+        }
+      }
+    }
+
+    if (id == -1)
+    {
+      for (Face& f : mesh.faces)
+      {
+        if (f.rank == rank)
+        {
+          id = f.memory.size();
+          break;
+        }
+      }
+    }
+
+    if (id == -1)
+    {
+      fmt::printf("There was an error allocating P1 memory\n");
+      std::exit(-1);
+    }
+    //id = mesh.faces[0].memory.size();
+	WALBERLA_LOG_DEVEL("Creating Laplace operator with id " + std::to_string(id) );	
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {
 
       for (Face& face : mesh.faces)
       {
+        
         double _local_stiffness[9];
         //double* local_stiffness[3] = { &_local_stiffness[0], &_local_stiffness[3], &_local_stiffness[6] };
 
@@ -55,36 +94,41 @@ public:
         fmt::print("{}, {}, {};\n", local_stiffness[1][0], local_stiffness[1][1], local_stiffness[1][2]);
         fmt::print("{}, {}, {};\n]\n", local_stiffness[2][0], local_stiffness[2][1], local_stiffness[2][2]);
         */
-
-        double* face_stencil = new double[7];
-
-        face_stencil[0] = 2 * local_stiffness[0][2];
-        face_stencil[1] = 2 * local_stiffness[1][2];
-        face_stencil[2] = 2 * local_stiffness[1][0];
-
-        face_stencil[4] = 2 * local_stiffness[0][1];
-        face_stencil[5] = 2 * local_stiffness[2][1];
-        face_stencil[6] = 2 * local_stiffness[2][0];
-
-        face_stencil[3] = 0.0;
-        double sum = 0.0;
-        for (size_t i = 0; i < 7; ++i)
+        if(face.rank == rank)
         {
-          sum += face_stencil[i];
-        }
-        face_stencil[3] = -sum;
+          double* face_stencil = new double[7];
 
-        if (level == minLevel)
-        {
-          face.memory.push_back(new FaceStencilMemory());
-        }
+          face_stencil[0] = 2 * local_stiffness[0][2];
+          face_stencil[1] = 2 * local_stiffness[1][2];
+          face_stencil[2] = 2 * local_stiffness[1][0];
+
+          face_stencil[4] = 2 * local_stiffness[0][1];
+          face_stencil[5] = 2 * local_stiffness[2][1];
+          face_stencil[6] = 2 * local_stiffness[2][0];
+
+          face_stencil[3] = 0.0;
+          double sum = 0.0;
+          for (size_t i = 0; i < 7; ++i)
+          {
+            sum += face_stencil[i];
+          }
+          face_stencil[3] = -sum;
+
+          if (level == minLevel)
+          {
+            //WALBERLA_LOG_DEVEL("memory-length: " + std::to_string(face.memory.size()));
+            face.memory.push_back(new FaceStencilMemory());
+          }
         static_cast<FaceStencilMemory*>(face.memory[id])->data[level] = face_stencil;
+        }
+        
 
         // fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
         // fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
-
         for (size_t i = 0; i < 3; ++i)
         {
+          if (face.edges[i]->rank != rank)
+            continue;
           Edge& edge = *face.edges[i];
           size_t face_idx = edge.face_index(face);
 
@@ -92,17 +136,17 @@ public:
 
           if (level == minLevel && edge.memory.size() == id)
           {
-            edge.opr_data.push_back(std::vector<double*>());
+            edge.memory.push_back(new EdgeStencilMemory());
           }
 
-          if (edge.opr_data[id].size() == level-minLevel)
+          if (static_cast<EdgeStencilMemory*>(edge.memory[id])->data.count(level) == 0)
           {
-            edge_stencil = new double[7];
-            edge.opr_data[id].push_back(edge_stencil);
+            edge_stencil = new double[7]();
+            static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level] = edge_stencil;
           }
           else
           {
-            edge_stencil = edge.opr_data[id][level-minLevel];
+            edge_stencil = static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level];
           }
 
           std::pair<size_t, size_t> base;
@@ -164,23 +208,25 @@ public:
         // create vertex stencil
         for (size_t v = 0; v < 3; ++v)
         {
+          if (face.vertices[v]->rank != rank)
+            continue;
           Vertex& vertex = *face.vertices[v];
 
           double* vertex_stencil = NULL;
 
-          if (level == minLevel && vertex.opr_data.size() == id)
+          if (level == minLevel && vertex.memory.size() == id)
           {
-            vertex.opr_data.push_back(std::vector<double*>());
+            vertex.memory.push_back(new VertexStencilMemory());
           }
 
-          if (vertex.opr_data[id].size() == level-minLevel)
+          if (static_cast<VertexStencilMemory*>(vertex.memory[id])->data.count(level)==0)
           {
             vertex_stencil = new double[1 + vertex.edges.size()];
-            vertex.opr_data[id].push_back(vertex_stencil);
+            static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level] = vertex_stencil;
           }
           else
           {
-            vertex_stencil = vertex.opr_data[id][level-minLevel];
+            vertex_stencil = static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level];
           }
 
           std::vector<Edge*> local_edges;
@@ -227,12 +273,12 @@ public:
   {
     for (Vertex& v : mesh.vertices)
     {
-      delete[] v.opr_data[id][0];
+      v.memory[id]->free();
     }
 
     for (Edge& e : mesh.edges)
     {
-      delete[] e.opr_data[id][0];
+      e.memory[id]->free();
     }
 
     for (Face& f : mesh.faces)

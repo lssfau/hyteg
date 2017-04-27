@@ -2,6 +2,7 @@
 #define EDGE_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 
 #include <vector>
 #include <map>
@@ -48,14 +49,13 @@ public:
 class EdgeMemory
 {
 public:
-	enum EdgeMemoryType { Base, Stencil, P1 };
 
-	const EdgeMemoryType type;
+	const MemoryType type;
 
 	virtual void free() = 0;
 
 protected:
-	EdgeMemory(EdgeMemoryType t) : type(t) { ; }
+	EdgeMemory(MemoryType t) : type(t) { ; }
 };
 
 
