@@ -51,9 +51,9 @@ int main(int argc, char* argv[])
 
   if (rk == 0)
   {
-    fmt::print("[{}] Num dofs = {}\n", rk, (size_t)npoints);
-    fmt::printf("[%d] Starting V cycles\n", rk);
-    fmt::printf("[%d] iter  abs_res       rel_res       conv          L2-error\n", rk);
+    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
+    WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
+    WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error");
   }
 
   double rel_res = 1.0;
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 
   if (rk == 0)
   {
-    fmt::printf("[%d] %-3d   %e  %e  %e  %e\n", rk, 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err);
+    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
   }
 
   std::function<void(size_t)> cscycle;
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 
     if (rk == 0)
     {
-      fmt::printf("[%d] %-3d   %e  %e  %e  %e\n", rk, i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err);
+      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err));
     }
 
     abs_res_old = abs_res;

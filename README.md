@@ -2,7 +2,7 @@
 
 ### Build instructions
 
-    git clone git@i10git.cs.fau.de:software/walberla.git
+    git clone git@i10git.cs.fau.de:walberla/walberla.git
     cd walberla
     git checkout master
     cd ..
