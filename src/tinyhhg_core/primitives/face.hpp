@@ -20,6 +20,7 @@ public:
   size_t edge_index(const Edge& edge) const;
 
   std::vector<Edge*> adjacent_edges(const Vertex& vertex) const;
+  Vertex* get_vertex_opposite_to_edge(const Edge& edge) const;
 
   size_t id;
   int rank;
