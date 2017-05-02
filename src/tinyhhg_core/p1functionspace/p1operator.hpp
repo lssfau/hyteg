@@ -15,6 +15,50 @@
 namespace hhg
 {
 
+enum ElementType
+{
+  UPWARD,
+  DOWNWARD
+};
+
+void compute_micro_coords(const Face& face, size_t level, double coords[6], ElementType element_type)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize-1);
+  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize-1);
+
+  double orientation = 1.0;
+
+  if (element_type == DOWNWARD) {
+    orientation = -1.0;
+  }
+
+  coords[0] = 0.0;
+  coords[1] = 0.0;
+  coords[2] = orientation * d0[0];
+  coords[3] = orientation * d0[1];
+  coords[4] = orientation * d2[0];
+  coords[5] = orientation * d2[1];
+}
+
+template<class UFCOperator>
+void compute_local_stiffness(const Face& face, size_t level, double local_stiffness[3][3], ElementType element_type)
+{
+  double A[9];
+  double coords[6];
+  compute_micro_coords(face, level, coords, element_type);
+  UFCOperator gen;
+  gen.tabulate_tensor(A, NULL, coords, 0);
+
+  for (size_t i = 0; i < 3; ++i)
+  {
+    for (size_t j = 0; j < 3; ++j)
+    {
+      local_stiffness[i][j] = A[3 * j + i];
+    }
+  }
+}
+
 template<class UFCOperator>
 class P1Operator : public Operator
 {
@@ -57,212 +101,140 @@ public:
 
     if (id == -1)
     {
-      fmt::printf("There was an error allocating P1 memory\n");
-      std::exit(-1);
+      WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
-    //id = mesh.faces[0].memory.size();
-	WALBERLA_LOG_DEVEL("Creating Laplace operator with id " + std::to_string(id) );	
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {
 
       for (Face& face : mesh.faces)
       {
-        
-        double _local_stiffness[9];
-        //double* local_stiffness[3] = { &_local_stiffness[0], &_local_stiffness[3], &_local_stiffness[6] };
-
-        double* t = _local_stiffness;
-
-        auto& x = face.coords;
-        double fac = std::pow(2.0, -(double) level);
-
-        double coords[] = {
-          fac*(x[0][0]-x[0][0]), fac*(x[0][1]-x[0][1]), 
-          fac*(x[1][0]-x[0][0]), fac*(x[1][1]-x[0][1]),
-          fac*(x[2][0]-x[0][0]), fac*(x[2][1]-x[0][1])
-        };
-
-        UFCOperator gen;
-        gen.tabulate_tensor(_local_stiffness, NULL, coords, 0);
-
-        double local_stiffness[3][3] = { { t[0], t[1], t[2] }, {t[3], t[4], t[5]}, {t[6], t[7], t[8]} };
-        // double local_stiffness[3][3] = { { t[0], t[3], t[6] }, {t[1], t[4], t[7]}, {t[2], t[5], t[8]} };
-
-        /*
-        fmt::print("[\n{}, {}, {};\n", local_stiffness[0][0], local_stiffness[0][1], local_stiffness[0][2]);
-        fmt::print("{}, {}, {};\n", local_stiffness[1][0], local_stiffness[1][1], local_stiffness[1][2]);
-        fmt::print("{}, {}, {};\n]\n", local_stiffness[2][0], local_stiffness[2][1], local_stiffness[2][2]);
-        */
-        if(face.rank == rank)
+        if (face.rank != rank)
         {
-          double* face_stencil = new double[7];
+          continue;
+        }
 
-          face_stencil[0] = 2 * local_stiffness[0][2];
-          face_stencil[1] = 2 * local_stiffness[1][2];
-          face_stencil[2] = 2 * local_stiffness[1][0];
+        double local_stiffness_up[3][3];
+        double local_stiffness_down[3][3];
+        compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, UPWARD);
+        compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, DOWNWARD);
 
-          face_stencil[4] = 2 * local_stiffness[0][1];
-          face_stencil[5] = 2 * local_stiffness[2][1];
-          face_stencil[6] = 2 * local_stiffness[2][0];
+        double* face_stencil = new double[7]();
 
-          face_stencil[3] = 0.0;
-          double sum = 0.0;
-          for (size_t i = 0; i < 7; ++i)
-          {
-            sum += face_stencil[i];
-          }
-          face_stencil[3] = -sum;
+        face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
+        face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
+        face_stencil[2] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
 
-          if (level == minLevel)
-          {
-            //WALBERLA_LOG_DEVEL("memory-length: " + std::to_string(face.memory.size()));
-            face.memory.push_back(new FaceStencilMemory());
-          }
+        face_stencil[4] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
+        face_stencil[5] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
+        face_stencil[6] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
+
+        face_stencil[3] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
+                            + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
+
+        if (level == minLevel)
+        {
+          face.memory.push_back(new FaceStencilMemory());
+        }
         static_cast<FaceStencilMemory*>(face.memory[id])->data[level] = face_stencil;
-        }
-        
 
-        // fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
-        // fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
-        for (size_t i = 0; i < 3; ++i)
+//        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
+//        fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
+      }
+
+      for (Edge& edge : mesh.edges)
+      {
+        if (edge.rank != rank)
         {
-          if (face.edges[i]->rank != rank)
-            continue;
-          Edge& edge = *face.edges[i];
-          size_t face_idx = edge.face_index(face);
-
-          double* edge_stencil;
-
-          if (level == minLevel && edge.memory.size() == id)
-          {
-            edge.memory.push_back(new EdgeStencilMemory());
-          }
-
-          if (static_cast<EdgeStencilMemory*>(edge.memory[id])->data.count(level) == 0)
-          {
-            edge_stencil = new double[7]();
-            static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level] = edge_stencil;
-          }
-          else
-          {
-            edge_stencil = static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level];
-          }
-
-          std::pair<size_t, size_t> base;
-
-          if (i == 0)
-          {
-            base = std::make_pair(0, 1);
-          }
-          else if(i == 1)
-          {
-            base = std::make_pair(1, 2);
-          }
-          else
-          {
-            base = std::make_pair(0, 2);
-          }
-
-          if (face_idx == 0)
-          {
-            if (face.edge_orientation[i] == -1)
-            {
-              edge_stencil[0] = 2 * local_stiffness[(i+0) % 3][(i+2) % 3];
-              edge_stencil[1] = 2 * local_stiffness[(i+1) % 3][(i+2) % 3];
-            }
-            else
-            {
-              edge_stencil[1] = 2 * local_stiffness[(i+0) % 3][(i+2) % 3];
-              edge_stencil[0] = 2 * local_stiffness[(i+1) % 3][(i+2) % 3];
-            }
-
-            edge_stencil[3] -= edge_stencil[0] + edge_stencil[1];
-          }
-          else
-          {
-            if (face.edge_orientation[i] == 1)
-            {
-              edge_stencil[5] = 2 * local_stiffness[(i+1) % 3][(i+2) % 3];
-              edge_stencil[6] = 2 * local_stiffness[(i+0) % 3][(i+2) % 3];
-            }
-            else
-            {
-              edge_stencil[6] = 2 * local_stiffness[(i+1) % 3][(i+2) % 3];
-              edge_stencil[5] = 2 * local_stiffness[(i+0) % 3][(i+2) % 3];
-            }
-
-            edge_stencil[3] -= edge_stencil[5] + edge_stencil[6];
-          }
-
-          double tmp = local_stiffness[base.first][base.second];
-
-          edge_stencil[2] += tmp;
-          edge_stencil[4] += tmp;
-
-          edge_stencil[3] -= 2 * tmp;
-
-          // fmt::print("edge_stencil = {}\n", PointND<double, 7>(edge_stencil));
+          continue;
         }
 
-        // create vertex stencil
-        for (size_t v = 0; v < 3; ++v)
+        if (level == minLevel)
         {
-          if (face.vertices[v]->rank != rank)
-            continue;
-          Vertex& vertex = *face.vertices[v];
+          edge.memory.push_back(new EdgeStencilMemory());
+        }
 
-          double* vertex_stencil = NULL;
+        double* edge_stencil = new double[7]();
+        static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level] = edge_stencil;
 
-          if (level == minLevel && vertex.memory.size() == id)
+        double local_stiffness_up[3][3];
+        double local_stiffness_down[3][3];
+        // first face
+        Face* face = edge.faces[0];
+        compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, UPWARD);
+        compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, DOWNWARD);
+
+        size_t start_id = face->vertex_index(*edge.v0);
+        size_t end_id = face->vertex_index(*edge.v1);
+        size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
+
+        edge_stencil[0] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
+        edge_stencil[1] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+
+        edge_stencil[2] = local_stiffness_up[end_id][start_id];
+        edge_stencil[4] = local_stiffness_up[start_id][end_id];
+
+        edge_stencil[3] = local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+
+        if (edge.faces.size() == 2)
+        {
+          // second face
+          Face* face = edge.faces[1];
+          compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, UPWARD);
+          compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, DOWNWARD);
+
+          size_t start_id = face->vertex_index(*edge.v0);
+          size_t end_id = face->vertex_index(*edge.v1);
+          size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
+
+          edge_stencil[5] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
+          edge_stencil[6] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+
+          edge_stencil[2] += local_stiffness_up[end_id][start_id];
+          edge_stencil[4] += local_stiffness_up[start_id][end_id];
+
+          edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+        }
+      }
+
+      for (Vertex& vertex : mesh.vertices)
+      {
+        if (vertex.rank != rank)
+        {
+          continue;
+        }
+
+        // allocate new level-vector if first level
+        if (level == minLevel)
+        {
+          vertex.memory.push_back(new VertexStencilMemory());
+        }
+
+        double* vertex_stencil = new double[1 + vertex.edges.size()]();
+        static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level] = vertex_stencil;
+
+        // iterate over adjacent faces
+        for (Face* face : vertex.faces)
+        {
+          double local_stiffness[3][3];
+          compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, UPWARD);
+
+          size_t v_i = face->vertex_index(vertex);
+
+          std::vector<Edge*> adj_edges = face->adjacent_edges(vertex);
+
+          // iterate over adjacent edges
+          for (Edge* edge : adj_edges)
           {
-            vertex.memory.push_back(new VertexStencilMemory());
+            size_t edge_idx = vertex.edge_index(*edge);
+            Vertex* vertex_j = edge->get_opposite_vertex(vertex);
+
+            size_t v_j = face->vertex_index(*vertex_j);
+
+            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
           }
 
-          if (static_cast<VertexStencilMemory*>(vertex.memory[id])->data.count(level)==0)
-          {
-            vertex_stencil = new double[1 + vertex.edges.size()];
-            static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level] = vertex_stencil;
-          }
-          else
-          {
-            vertex_stencil = static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level];
-          }
-
-          std::vector<Edge*> local_edges;
-
-          for (size_t i = 0; i < 3; ++i)
-          {
-            if (&vertex == face.edges[i]->v0 || &vertex == face.edges[i]->v1)
-            {
-              local_edges.push_back(face.edges[i]);
-            }
-          }
-
-          size_t e1i = vertex.edge_index(*local_edges[0]);
-          size_t e2i = vertex.edge_index(*local_edges[1]);
-
-          std::vector<size_t> idx;
-
-          for (size_t e = 0; e < 2; ++e)
-          {
-            if (&vertex != local_edges[e]->v0)
-            {
-              idx.push_back(face.vertex_index(*local_edges[e]->v0));
-            }
-            else
-            {
-              idx.push_back(face.vertex_index(*local_edges[e]->v1));
-            }
-          }
-
-          double val1 = local_stiffness[v][idx[0]];
-          double val2 = local_stiffness[v][idx[1]];
-
-          vertex_stencil[e1i] += val1;
-          vertex_stencil[e2i] += val2;
-
-          vertex_stencil[0] -= val1 + val2;
+          vertex_stencil[0] += local_stiffness[v_i][v_i];
         }
       }
     }
@@ -273,17 +245,17 @@ public:
   {
     for (Vertex& v : mesh.vertices)
     {
-      v.memory[id]->free();
+      delete[] v.memory[id];
     }
 
     for (Edge& e : mesh.edges)
     {
-      e.memory[id]->free();
+      delete[] e.memory[id];
     }
 
     for (Face& f : mesh.faces)
     {
-			f.memory[id]->free();
+      delete[] f.memory[id];
     }
   }
 
