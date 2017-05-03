@@ -1,9 +1,8 @@
-#add_executable (tinytest test.cpp)
-#target_link_libraries (tinytest tinyhhg fmt ${MPI_CXX_LIBRARIES})
-#
-#add_executable (tinytest_cg cg_test.cpp)
-#target_link_libraries (tinytest_cg tinyhhg fmt core ${MPI_CXX_LIBRARIES})
-waLBerla_link_files_to_builddir(../data)
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")
+endif()
+
+waLBerla_link_files_to_builddir(../data/meshes/*.msh)
 
 waLBerla_add_executable( NAME tinytest
         FILES test.cpp
