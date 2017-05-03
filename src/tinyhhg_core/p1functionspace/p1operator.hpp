@@ -257,17 +257,23 @@ public:
   {
     for (Vertex& v : mesh.vertices)
     {
-      delete v.memory[id];
+      if (v.rank == rank) {
+        delete v.memory[id];
+      }
     }
 
     for (Edge& e : mesh.edges)
     {
-      delete e.memory[id];
+      if (e.rank == rank) {
+        delete e.memory[id];
+      }
     }
 
     for (Face& f : mesh.faces)
     {
-      delete f.memory[id];
+      if (f.rank == rank) {
+        delete f.memory[id];
+      }
     }
   }
 
