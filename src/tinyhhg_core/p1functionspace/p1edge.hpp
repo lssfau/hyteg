@@ -27,7 +27,8 @@ inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLe
 
 inline void free(Edge& edge, size_t memory_id)
 {
-  edge.memory[memory_id]->free();
+  delete edge.memory[memory_id];
+  edge.memory[memory_id] = nullptr;
 }
 
 inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)

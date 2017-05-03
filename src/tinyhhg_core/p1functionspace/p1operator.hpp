@@ -75,29 +75,41 @@ public:
       }
     }
 
-    if (id == -1)
-    {
+    //if (id == -1)
+    //{
       for (Edge& e : mesh.edges)
       {
         if (e.rank == rank)
         {
-          id = e.memory.size();
-          break;
+          if (id == -1)
+          {
+            id = e.memory.size();
+            break;
+          }
+          else if (id != e.memory.size())
+            WALBERLA_LOGLEVEL_WARNING("ID of Vertex and Edge are not the same");
+            
         }
       }
-    }
+    //}
 
-    if (id == -1)
-    {
+    //if (id == -1)
+    //{
       for (Face& f : mesh.faces)
       {
         if (f.rank == rank)
         {
-          id = f.memory.size();
-          break;
+
+          if (id == -1)
+          {
+            id = f.memory.size();
+            break;
+          }
+          else if (id != f.memory.size())
+            WALBERLA_LOGLEVEL_WARNING("ID of Vertex and Face are not the same");
         }
       }
-    }
+    //}
 
     if (id == -1)
     {
@@ -245,17 +257,17 @@ public:
   {
     for (Vertex& v : mesh.vertices)
     {
-      delete[] v.memory[id];
+      delete v.memory[id];
     }
 
     for (Edge& e : mesh.edges)
     {
-      delete[] e.memory[id];
+      delete e.memory[id];
     }
 
     for (Face& f : mesh.faces)
     {
-      delete[] f.memory[id];
+      delete f.memory[id];
     }
   }
 

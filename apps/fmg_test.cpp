@@ -14,7 +14,8 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
 
-  hhg::Mesh mesh("C:/cygwin64/home/TUM/tinyhhg/build/apps/data/meshes/bfs_12el.msh");
+  //hhg::Mesh mesh("C:/cygwin64/home/TUM/tinyhhg/build/apps/data/meshes/bfs_12el.msh");
+  hhg::Mesh mesh("C:/cygwin64/home/TUM/tinyhhg/build/apps/data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 8;

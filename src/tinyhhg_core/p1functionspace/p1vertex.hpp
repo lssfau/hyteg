@@ -36,7 +36,8 @@ inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t m
 
 inline void free(Vertex& vertex, size_t memory_id)
 {
-  vertex.memory[memory_id]->free();
+  delete vertex.memory[memory_id];
+  vertex.memory[memory_id] = nullptr;
 }
 
 inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)

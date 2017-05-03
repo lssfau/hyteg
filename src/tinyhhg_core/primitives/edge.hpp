@@ -71,6 +71,8 @@ public:
 
 	virtual void free();
 
+  ~EdgeStencilMemory() { free(); }
+
 };
 
 
@@ -83,6 +85,8 @@ public:
 	std::map<size_t, double*> data;
 
 	virtual void free();
+
+  ~EdgeP1Memory() { free(); }
 };
 
 

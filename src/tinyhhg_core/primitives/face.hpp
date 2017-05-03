@@ -47,6 +47,8 @@ public:
 
 	virtual void free() = 0;
 
+
+   
 protected:
 	FaceMemory(MemoryType t) : type(t) { ; }
 };
@@ -62,6 +64,8 @@ public:
 
 	virtual void free();
 
+  ~FaceStencilMemory() { free(); }
+
 };
 
 
@@ -74,6 +78,8 @@ public:
 	std::map<size_t,double*> data;
 
 	virtual void free();
+
+  ~FaceP1Memory() { free(); }
 };
 
 
