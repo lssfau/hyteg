@@ -491,6 +491,7 @@ clang-3.8_MpiOnly_Dbg:
       - export MSMPI_DISABLE_SHM=1
       - export
       - cmake --version
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       - mkdir build
       - cd build
       - cmake -LAH -DWALBERLA_DIR=../../walberla -DWALBERLA_BUILD_TESTS=ON -DWALBERLA_BUILD_BENCHMARKS=ON -DWALBERLA_BUILD_TUTORIALS=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=ON -G "$CMAKE_GENERATOR" ..
