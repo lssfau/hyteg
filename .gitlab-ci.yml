@@ -489,7 +489,6 @@ clang-3.8_MpiOnly_Dbg:
       - export OMP_NUM_THREADS=4
       - export OMP_WAIT_POLICY="PASSIVE"
       - export MSMPI_DISABLE_SHM=1
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       - export
       - cmake --version
       - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
