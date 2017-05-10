@@ -22,8 +22,18 @@ public:
   {
   }
 
+  void init(size_t level, size_t flag)
+  {
+    std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+    v0.interpolate(zero, level, flag);
+    w0.interpolate(zero, level, flag);
+    w1.interpolate(zero, level, flag);
+  }
+
   void solve(Operator& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
   {
+    init(level, flag);
+
     x.apply(A, ap, level, flag);
     v1.assign({1.0, -1.0}, {&b, &ap}, level, flag);
 
@@ -40,9 +50,9 @@ public:
     double c1 = 1.0;
     double c2;
 
-    if (std::sqrt(gamma1) < tolerance && printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
+    if (std::sqrt(gamma1) < tolerance && printInfo)
     {
-      fmt::printf("[MinRes] converged\n");
+      WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
       return;
     }
 
