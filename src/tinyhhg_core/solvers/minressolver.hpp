@@ -80,8 +80,7 @@ public:
       p_z->apply(A, *p_vp, level, flag);
       double delta = p_vp->dot(*p_z, level, flag);
 
-      p_vp->assign({1.0, -delta / gamma_new}, {p_vp, p_v}, level, flag);
-      p_vp->assign({1.0, -gamma_new / gamma_old}, {p_vp, p_vm}, level, flag);
+      p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
 
       // identity preconditioner
       p_zp->assign({1.0}, {p_vp}, level, flag);
@@ -99,12 +98,8 @@ public:
       s_old = s_new;
       s_new = gamma_new / alpha1;
 
-      p_wp->assign({1.0}, {p_z}, level, flag);
-      p_wp->assign({1.0, -alpha3}, {p_wp, p_wm}, level, flag);
-      p_wp->assign({1.0, -alpha2}, {p_wp, p_w}, level, flag);
-      p_wp->assign({1.0 / alpha1}, {p_wp}, level, flag);
-
-      x.assign({1.0, c_new * eta}, {&x, p_wp}, level, flag);
+      p_wp->assign({1.0/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, level, flag);
+      x.add({c_new * eta}, {p_wp}, level, flag);
 
       eta = -s_new * eta;
 
@@ -122,18 +117,12 @@ public:
       p_zp = p_z;
       p_z = p_tmp;
 
-
-      x.apply(A, r, level, flag);
-      r.assign({1.0, -1.0}, {&b, &r}, level, flag);
-
-      double res = std::sqrt(r.dot(r, level, flag));
-
       if (printInfo)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", res));
+        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", abs(eta)));
       }
 
-      if (res/res_start < tolerance)
+      if (std::abs(eta)/res_start < tolerance)
       {
         if (printInfo)
         {
