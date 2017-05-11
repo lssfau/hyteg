@@ -11,5 +11,6 @@
 #include "types/flags.hpp"
 
 #include "solvers/cgsolver.hpp"
+#include "solvers/minressolver.hpp"
 
 #endif /* TINYHHG_HPP */
