@@ -12,100 +12,152 @@ class MinResSolver
 public:
 
   MinResSolver(Mesh& mesh, size_t minLevel, size_t maxLevel)
-    : v0("v0", mesh, minLevel, maxLevel),
-      v1("v1", mesh, minLevel, maxLevel),
-      v2("v2", mesh, minLevel, maxLevel),
-      w0("w0", mesh, minLevel, maxLevel),
-      w1("w1", mesh, minLevel, maxLevel),
-      w2("w2", mesh, minLevel, maxLevel),
-      ap("ap", mesh, minLevel, maxLevel)
   {
+    p_vm = new F("vm", mesh, minLevel, maxLevel);
+    p_v = new F("v", mesh, minLevel, maxLevel);
+    p_vp = new F("vp", mesh, minLevel, maxLevel);
+
+    p_z = new F("z", mesh, minLevel, maxLevel);
+    p_zp = new F("zp", mesh, minLevel, maxLevel);
+
+    p_wm = new F("wm", mesh, minLevel, maxLevel);
+    p_w = new F("w", mesh, minLevel, maxLevel);
+    p_wp = new F("wp", mesh, minLevel, maxLevel);
+  }
+
+  ~MinResSolver()
+  {
+    delete p_vm;
+    delete p_v;
+    delete p_vp;
+
+    delete p_z;
+    delete p_zp;
+
+    delete p_wm;
+    delete p_w;
+    delete p_wp;
   }
 
   void init(size_t level, size_t flag)
   {
     std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
-    v0.interpolate(zero, level, flag);
-    w0.interpolate(zero, level, flag);
-    w1.interpolate(zero, level, flag);
+    p_vm->interpolate(zero, level, flag);
+    p_wm->interpolate(zero, level, flag);
+    p_w->interpolate(zero, level, flag);
   }
 
   void solve(Operator& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
   {
     init(level, flag);
 
-    x.apply(A, ap, level, flag);
-    v1.assign({1.0, -1.0}, {&b, &ap}, level, flag);
+    x.apply(A, r, level, flag);
+    p_v->assign({1.0, -1.0}, {&b, &r}, level, flag);
 
-    double gamma0 = 1.0;
-    double gamma1 = std::sqrt(v1.dot(v1, level, flag));
-    double gamma2;
+    // identity preconditioner
+    p_z->assign({1.0}, {p_v}, level, flag);
 
-    double eta = gamma1;
-    double s0 = 0.0;
-    double s1 = 0.0;
-    double s2;
+    double gamma_old = 1.0;
+    double gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
 
-    double c0 = 1.0;
-    double c1 = 1.0;
-    double c2;
+    double res_start = gamma_new;
 
-    if (std::sqrt(gamma1) < tolerance && printInfo)
+    double eta = gamma_new;
+    double s_old = 0.0;
+    double s_new = 0.0;
+
+    double c_old = 1.0;
+    double c_new = 1.0;
+
+    if (gamma_new < tolerance && printInfo)
     {
       WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
       return;
     }
 
     for(size_t i = 0; i < maxiter; ++i) {
-      v1.assign({1.0 / gamma1}, {&v1}, level, flag);
-      v1.apply(A, ap, level, flag);
-      double delta = ap.dot(v1, level, flag);
+      p_z->assign({1.0 / gamma_new}, {p_z}, level, flag);
+      p_z->apply(A, *p_vp, level, flag);
+      double delta = p_vp->dot(*p_z, level, flag);
 
-      v2.assign({1.0, -delta / gamma1, -gamma1 / gamma0}, {&ap, &v1, &v0}, level, flag);
+      p_vp->assign({1.0, -delta / gamma_new}, {p_vp, p_v}, level, flag);
+      p_vp->assign({1.0, -gamma_new / gamma_old}, {p_vp, p_vm}, level, flag);
 
-      gamma2 = std::sqrt(v2.dot(v2, level, flag));
+      // identity preconditioner
+      p_zp->assign({1.0}, {p_vp}, level, flag);
 
-      double alpha0 = c1 * delta - c0 * s1 * gamma1;
-      double alpha1 = std::sqrt(alpha0 * alpha0 + gamma2 * gamma2);
-      double alpha2 = s1 * delta + c0 * c1 * gamma1;
-      double alpha3 = s0 * gamma1;
+      gamma_old = gamma_new;
+      gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
 
-      c2 = alpha0 / alpha1;
-      s2 = gamma2 / alpha1;
+      double alpha0 = c_new * delta - c_old * s_new * gamma_old;
+      double alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
+      double alpha2 = s_new * delta + c_old * c_new * gamma_old;
+      double alpha3 = s_old * gamma_old;
 
-      w2.assign({1.0 / alpha1, -alpha3 / alpha1, -alpha2 / alpha1}, {&v1, &w0, &w1}, level, flag);
-      x.add({c2 * eta}, {&w2}, level, flag);
+      c_old = c_new;
+      c_new = alpha0 / alpha1;
+      s_old = s_new;
+      s_new = gamma_new / alpha1;
 
-      eta = -s2 * eta;
+      p_wp->assign({1.0}, {p_z}, level, flag);
+      p_wp->assign({1.0, -alpha3}, {p_wp, p_wm}, level, flag);
+      p_wp->assign({1.0, -alpha2}, {p_wp, p_w}, level, flag);
+      p_wp->assign({1.0 / alpha1}, {p_wp}, level, flag);
 
-      s0 = s1;
-      s1 = s2;
-      c0 = c1;
-      c1 = c2;
-      gamma0 = gamma1;
-      gamma1 = gamma2;
-      v0.assign({1.0}, {&v1}, level, flag);
-      v1.assign({1.0}, {&v2}, level, flag);
-      w0.assign({1.0}, {&w1}, level, flag);
-      w1.assign({1.0}, {&w2}, level, flag);
+      x.assign({1.0, c_new * eta}, {&x, p_wp}, level, flag);
 
-      x.apply(A, ap, level, flag);
-      r.assign({1.0, -1.0}, {&b, &ap}, level, flag);
+      eta = -s_new * eta;
+
+      p_tmp = p_vp;
+      p_vp = p_vm;
+      p_vm = p_v;
+      p_v = p_tmp;
+
+      p_tmp = p_wp;
+      p_wp = p_wm;
+      p_wm = p_w;
+      p_w = p_tmp;
+
+      p_tmp = p_zp;
+      p_zp = p_z;
+      p_z = p_tmp;
+
+
+      x.apply(A, r, level, flag);
+      r.assign({1.0, -1.0}, {&b, &r}, level, flag);
 
       double res = std::sqrt(r.dot(r, level, flag));
-      fmt::printf("res = %e\n", res);
+
+      if (printInfo)
+      {
+        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", res));
+      }
+
+      if (res/res_start < tolerance)
+      {
+        if (printInfo)
+        {
+          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] converged after {:d} iterations", i));
+        }
+        break;
+      }
     }
   }
 
 private:
-  F v0;
-  F v1;
-  F v2;
-  F w0;
-  F w1;
-  F w2;
-  F ap;
 
+  F* p_vm;
+  F* p_v;
+  F* p_vp;
+
+  F* p_z;
+  F* p_zp;
+
+  F* p_wm;
+  F* p_w;
+  F* p_wp;
+
+  F* p_tmp;
 };
 
 }
