@@ -208,6 +208,19 @@ inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
   }
 }
 
+inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id, size_t level)
+{
+  double* opr_data = vertex.opr_data[opr_id][level-2];
+  double* src = vertex.data[src_id][level-2];
+
+  fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
+
+  for (size_t i = 0; i < vertex.edges.size(); ++i)
+  {
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[i+1], opr_data[i+1]);
+  }
+}
+
 }
 }
 

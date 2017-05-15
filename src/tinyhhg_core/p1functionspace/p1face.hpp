@@ -459,6 +459,41 @@ bool is_boundary(size_t index, size_t length)
   return(index == 0 || index == (length -1));
 }
 
+inline void printmatrix(Face& face, size_t opr_id, size_t src_id, size_t level)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t inner_rowsize = rowsize;
+
+  double* opr_data = face.opr_data[opr_id][level-2];
+  double* src = face.data[src_id][level-2];
+  size_t br = 1;
+  size_t mr = 1 + rowsize ;
+  size_t tr = mr + (rowsize - 1);
+
+  for (size_t i = 0; i < rowsize - 3; ++i)
+  {
+    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    {
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[br], opr_data[0]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[br+1], opr_data[1]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr-1], opr_data[2]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr], opr_data[3]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr+1], opr_data[4]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[tr-1], opr_data[5]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[tr], opr_data[6]);
+
+      br += 1;
+      mr += 1;
+      tr += 1;
+    }
+
+    br += 3;
+    mr += 2;
+    tr += 1;
+    --inner_rowsize;
+  }
+}
+
 }// namespace P1Face
 }// namespace hhg
 

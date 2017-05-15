@@ -316,6 +316,31 @@ inline void restrict(Edge& edge, size_t memory_id, size_t level)
   }
 }
 
+inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id, size_t level)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  double* opr_data = edge.opr_data[opr_id][level-2];
+  double* src = edge.data[src_id][level-2];
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i-1], opr_data[2]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i], opr_data[3]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i+1], opr_data[4]);
+
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i - 1], opr_data[0]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i], opr_data[1]);
+
+    if (edge.faces.size() == 2)
+    {
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i - 1], opr_data[5]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i], opr_data[6]);
+    }
+  }
+}
+
 }
 }
 
