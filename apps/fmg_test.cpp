@@ -7,21 +7,28 @@ using namespace walberla;
 int main(int argc, char* argv[])
 {
   LIKWID_MARKER_INIT;
-  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+
+  walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
   LIKWID_MARKER_THREADINIT;
   uint_t rk = uint_c(walberla::MPIManager::instance()->rank());
 
+  if (walberlaEnv.config() == nullptr) {
+    WALBERLA_ABORT("No parameter file was given");
+  }
+
+  auto parameters = walberlaEnv.config()->getOneBlock("Parameters");
+
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+  hhg::Mesh mesh(parameters.getParameter<std::string>("mesh"));
 
-  size_t minLevel = 2;
-  size_t maxLevel = 11;
-  size_t nu_pre = 2;
-  size_t nu_post = 2;
-  size_t outer = 50;
+  size_t minLevel = parameters.getParameter<size_t>("minlevel");
+  size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
+  size_t nu_pre = parameters.getParameter<size_t>("nu_pre");
+  size_t nu_post = parameters.getParameter<size_t>("nu_post");
+  size_t outer = parameters.getParameter<size_t>("outer_iter");
 
   size_t coarse_maxiter = 100;
   double coarse_tolerance = 1e-6;
@@ -143,5 +150,5 @@ int main(int argc, char* argv[])
 
   // hhg::VTKWriter({ &x }, maxLevel, "../output", "test");
   LIKWID_MARKER_CLOSE;
-  return 0;
+  return EXIT_SUCCESS;
 }
