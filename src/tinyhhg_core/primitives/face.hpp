@@ -2,12 +2,15 @@
 #define FACE_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
+#include <core/DataTypes.h>
 
 #include <array>
 #include <vector>
 
 namespace hhg
 {
+
+using namespace walberla;
 
 class Edge;
 
@@ -23,8 +26,8 @@ public:
   Vertex* get_vertex_opposite_to_edge(const Edge& edge) const;
 
   size_t id;
-  int rank;
-  size_t type;
+  uint_t rank;
+  uint_t type;
   double area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;

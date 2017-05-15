@@ -2,12 +2,15 @@
 #define VERTEX_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
+#include <core/DataTypes.h>
 
 #include <vector>
 #include <fmt/ostream.h>
 
 namespace hhg
 {
+
+using namespace walberla;
 
 class Edge;
 class Face;
@@ -35,7 +38,7 @@ public:
   void addFace(Face* face);
 
   /// Returns the index+1 of \p edge within \ref edges
-  /// \param edge Edge 
+  /// \param edge Edge
   /// \returns Index+1 of \p edge within \ref edges
   size_t edge_index(const Edge& edge) const;
 
@@ -43,7 +46,7 @@ public:
   size_t id;
 
   /// Processor rank this vertex belongs to
-  int rank;
+  uint_t rank;
 
   /// Boundary type of vertex
   size_t type;

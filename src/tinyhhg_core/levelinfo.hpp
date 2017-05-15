@@ -9,7 +9,7 @@ namespace hhg
 namespace levelinfo
 {
 
-inline size_t num_microvertices_per_vertex(size_t level)
+inline size_t num_microvertices_per_vertex(size_t /*level*/)
 {
   return 1;
 }

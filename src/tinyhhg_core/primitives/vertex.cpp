@@ -22,16 +22,8 @@ void Vertex::addFace(Face* face)
 
 size_t Vertex::edge_index(const Edge& edge) const
 {
-  size_t i = 1;
-
-  for (Edge* e : edges)
-  {
-    if (&edge == e)
-    {
-      return i;
-    }
-    ++i;
-  }
+  auto it = std::find(edges.begin(),edges.end(),&edge);
+  return uint_c((it - edges.begin()));
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
