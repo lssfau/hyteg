@@ -276,41 +276,6 @@ intel-17_Hybrid_SP_Dbg:
 
 ## GCC
 
-gcc-4.7_Serial:
-   <<: *build_serial_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-   only:
-      - triggers
-
-gcc-4.7_MpiOnly:
-   <<: *build_mpionly_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-   only:
-      - triggers
-
-gcc-4.7_Hybrid:
-   <<: *build_hybrid_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-   only:
-      - triggers
-
-gcc-4.7_Serial_Dbg:
-   <<: *build_serial_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-   only:
-      - triggers
-
-gcc-4.7_MpiOnly_Dbg:
-   <<: *build_mpionly_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-   only:
-      - triggers
-
-gcc-4.7_Hybrid_Dbg:
-   <<: *build_hybrid_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.7
-
-
 gcc-4.8_Serial:
    <<: *build_serial_definition
    image: walberla/buildenv-ubuntu-gcc:4.8
@@ -326,8 +291,6 @@ gcc-4.8_MpiOnly:
 gcc-4.8_Hybrid:
    <<: *build_hybrid_definition
    image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
 
 gcc-4.8_Serial_Dbg:
    <<: *build_serial_dbg_definition
