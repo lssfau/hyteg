@@ -43,6 +43,8 @@ public:
 
   virtual void restrict(size_t level, size_t flag) = 0;
 
+  virtual void printmatrix(Operator& opr, size_t level, size_t flag) = 0;
+
   std::string name;
   Mesh& mesh;
   size_t minLevel;

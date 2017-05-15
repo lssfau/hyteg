@@ -451,6 +451,43 @@ public:
       }
     }
   }
+
+  void printmatrix(Operator& opr, size_t level, size_t flag = All)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1Vertex::pull_halos(vertex, memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::printmatrix(vertex, opr.id, memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_halos(edge, memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::printmatrix(edge, opr.id, memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::printmatrix(face, opr.id, memory_id, level);
+      }
+    }
+  }
 };
 
 }
