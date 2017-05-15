@@ -23,9 +23,9 @@ int main(int argc, char* argv[])
 
   hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return x[0]*x[0] - x[1]*x[1]; };
-  std::function<double(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D& x) { return 1.0; };
+  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
