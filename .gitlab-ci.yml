@@ -91,388 +91,577 @@
 ##                                                                           ##
 ###############################################################################
 
-## Intel
 
-#intel-15_Serial:
-#   <<: *build_serial_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   only:
-#      - triggers
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-15_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   only:
-#      - triggers
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-15_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   only:
-#      - triggers
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-15_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   only:
-#      - triggers
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-15_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   only:
-#      - triggers
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-15_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
-#   tags:
-#      - docker
-#      - intel
+intel-15_Serial:
+   <<: *build_serial_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-15_MpiOnly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-15_Hybrid:
+   <<: *build_hybrid_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-15_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-15_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-15_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2015
+   tags:
+      - docker
+      - intel
 
 
-#intel-17_Serial:
-#   <<: *build_serial_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-17_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-17_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-17_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-17_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
-#
-#intel-17_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-#   tags:
-#      - docker
-#      - intel
+intel-16_Serial:
+   <<: *build_serial_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-16_MpiOnly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-16_Hybrid:
+   <<: *build_hybrid_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-16_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-16_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-16_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   tags:
+      - docker
+      - intel
+
+intel-16_Hybrid_SP_Dbg:
+   <<: *build_hybrid_dbg_sp_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2016
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+
+intel-17_Serial:
+   <<: *build_serial_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-17_MpiOnly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   only:
+      - triggers
+   tags:
+      - docker
+      - intel
+
+intel-17_Hybrid:
+   <<: *build_hybrid_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   tags:
+      - docker
+      - intel
+
+intel-17_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   tags:
+      - docker
+      - intel
+
+intel-17_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   tags:
+      - docker
+      - intel
+
+intel-17_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   tags:
+      - docker
+      - intel
+
+intel-17_Hybrid_SP_Dbg:
+   <<: *build_hybrid_dbg_sp_definition
+   image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
+   tags:
+      - docker
+      - intel
 
 
 ## GCC
 
-#gcc-4.7_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#   only:
-#      - triggers
-#
-#gcc-4.7_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#   only:
-#      - triggers
-#
-#gcc-4.7_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#   only:
-#      - triggers
-#
-#gcc-4.7_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#   only:
-#      - triggers
-#
-#gcc-4.7_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#   only:
-#      - triggers
-#
-#gcc-4.7_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.7
-#
-#
-#gcc-4.8_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#gcc-4.8_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#gcc-4.8_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#gcc-4.8_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#gcc-4.8_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#gcc-4.8_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.8
-#   only:
-#      - triggers
-#
-#
-#gcc-4.9_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
-#
-#gcc-4.9_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
-#
-#gcc-4.9_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
-#
-#gcc-4.9_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
-#
-#gcc-4.9_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
-#
-#gcc-4.9_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:4.9
-#   only:
-#      - triggers
+gcc-4.7_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
+   only:
+      - triggers
+
+gcc-4.7_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
+   only:
+      - triggers
+
+gcc-4.7_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
+   only:
+      - triggers
+
+gcc-4.7_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
+   only:
+      - triggers
+
+gcc-4.7_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
+   only:
+      - triggers
+
+gcc-4.7_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.7
 
 
-#gcc-5_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-gcc:5
+gcc-4.8_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+gcc-4.8_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+gcc-4.8_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+gcc-4.8_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+gcc-4.8_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+gcc-4.8_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.8
+   only:
+      - triggers
+
+
+gcc-4.9_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+gcc-4.9_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+gcc-4.9_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+gcc-4.9_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+gcc-4.9_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+gcc-4.9_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
+
+
+gcc-5_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
 
 gcc-5_MpiOnly:
    <<: *build_mpionly_definition
    image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
 
-#gcc-5_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-gcc:5
-#
-#gcc-5_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:5
+gcc-5_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
+
+gcc-5_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
 
 gcc-5_MpiOnly_Dbg:
    <<: *build_mpionly_dbg_definition
    image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
 
-#gcc-5_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:5
+gcc-5_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:5
+   only:
+      - triggers
 
 
-#gcc-6_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
-#
-#gcc-6_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
-#
-#gcc-6_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
-#
-#gcc-6_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
-#
-#gcc-6_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
+gcc-6_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+   only:
+      - triggers
 
-#gcc-6_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-gcc:6
-#   allow_failure: true
+gcc-6_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+   only:
+      - triggers
+
+gcc-6_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+
+gcc-6_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+
+gcc-6_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+
+gcc-6_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-gcc:6
+
+gcc-6_Hybrid_SP_Dbg:
+   <<: *build_hybrid_dbg_sp_definition
+   image: walberla/buildenv-ubuntu-gcc:6
 
 
 ## Clang
 
-#clang-3.4_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-clang:3.4
-#   only:
-#      - triggers
-#
-#clang-3.4_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-clang:3.4
-#   only:
-#      - triggers
-#
-#clang-3.4_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.4
-#   only:
-#      - triggers
-#
-#clang-3.4_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.4
-#
-#
-#clang-3.5_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-clang:3.5
-#   only:
-#      - triggers
-#
-#clang-3.5_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-clang:3.5
-#   only:
-#      - triggers
-#
-#clang-3.5_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.5
-#   only:
-#      - triggers
-#
-#clang-3.5_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.5
-#   only:
-#      - triggers
-#
-#
-#clang-3.6_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-clang:3.6
-#   only:
-#      - triggers
-#
-#clang-3.6_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-clang:3.6
-#   only:
-#      - triggers
-#
-#clang-3.6_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.6
-#   only:
-#      - triggers
-#
-#clang-3.6_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.6
-#   only:
-#      - triggers
-#
-#
-#clang-3.7_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-clang:3.7
-#   only:
-#      - triggers
-#
-#clang-3.7_MpiOnly:
-#   <<: *build_mpionly_definition
-#   image: walberla/buildenv-ubuntu-clang:3.7
-#   only:
-#      - triggers
-#
-#clang-3.7_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.7
-#   only:
-#      - triggers
-#
-#clang-3.7_MpiOnly_Dbg:
-#   <<: *build_mpionly_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.7
-#   only:
-#      - triggers
+clang-3.4_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.4
+   only:
+      - triggers
 
-#clang-3.8_Serial:
-#   <<: *build_serial_definition
-#   image: walberla/buildenv-ubuntu-clang:3.8
+clang-3.4_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:3.4
+   only:
+      - triggers
+
+clang-3.4_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.4
+   only:
+      - triggers
+
+clang-3.4_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.4
+
+
+clang-3.5_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.5
+   only:
+      - triggers
+
+clang-3.5_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:3.5
+   only:
+      - triggers
+
+clang-3.5_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.5
+   only:
+      - triggers
+
+clang-3.5_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.5
+   only:
+      - triggers
+
+
+clang-3.6_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.6
+   only:
+      - triggers
+
+clang-3.6_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:3.6
+   only:
+      - triggers
+
+clang-3.6_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.6
+   only:
+      - triggers
+
+clang-3.6_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.6
+   only:
+      - triggers
+
+
+clang-3.7_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.7
+   only:
+      - triggers
+
+clang-3.7_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:3.7
+   only:
+      - triggers
+
+clang-3.7_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.7
+   only:
+      - triggers
+
+clang-3.7_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.7
+   only:
+      - triggers
+
+clang-3.8_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
 
 clang-3.8_MpiOnly:
    <<: *build_mpionly_definition
    image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
 
-#clang-3.8_Hybrid:
-#   <<: *build_hybrid_definition
-#   image: walberla/buildenv-ubuntu-clang:3.8
-#
-#clang-3.8_Serial_Dbg:
-#   <<: *build_serial_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.8
+clang-3.8_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
+
+clang-3.8_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
 
 clang-3.8_MpiOnly_Dbg:
    <<: *build_mpionly_dbg_definition
    image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
 
-#clang-3.8_Hybrid_Dbg:
-#   <<: *build_hybrid_dbg_definition
-#   image: walberla/buildenv-ubuntu-clang:3.8
+clang-3.8_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.8
+   only:
+      - triggers
+
+
+clang-3.9_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+clang-3.9_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+clang-3.9_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+clang-3.9_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+clang-3.9_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+clang-3.9_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:3.9
+   only:
+      - triggers
+
+
+clang-4.0_Serial:
+   <<: *build_serial_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+   only:
+      - triggers
+
+clang-4.0_MpiOnly:
+   <<: *build_mpionly_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+   only:
+      - triggers
+
+clang-4.0_Hybrid:
+   <<: *build_hybrid_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+
+clang-4.0_Serial_Dbg:
+   <<: *build_serial_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+
+clang-4.0_MpiOnly_Dbg:
+   <<: *build_mpionly_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+
+clang-4.0_Hybrid_Dbg:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+
+clang-4.0_Hybrid_SP_Dbg:
+   <<: *build_hybrid_dbg_sp_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+
+clang-4.0_Hybrid_Dbg_BufferDebug:
+   <<: *build_hybrid_dbg_definition
+   image: walberla/buildenv-ubuntu-clang:4.0
+   variables:
+      CTEST_EXCLUDE_LABELS: "longrun"
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "ON"
+      OMP_NUM_THREADS: "4"
+      OMP_WAIT_POLICY: "PASSIVE"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUFFER_DEBUG: "ON"
+      WALBERLA_DOUBLE_ACCURACY: "ON"
+   only:
+      - triggers
+
 
 ###############################################################################
 ##                                                                           ##
