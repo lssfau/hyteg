@@ -84,6 +84,18 @@
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "DebugOptimized"
 
+.build_hybrid_dbg_sp_template: &build_hybrid_dbg_sp_definition
+   <<: *build_definition
+   variables:
+      CTEST_EXCLUDE_LABELS: "longrun"
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "ON"
+      OMP_NUM_THREADS: "4"
+      OMP_WAIT_POLICY: "PASSIVE"
+      CMAKE_BUILD_TYPE: "DebugOptimized"
+      WALBERLA_BUFFER_DEBUG: "OFF"
+      WALBERLA_DOUBLE_ACCURACY: "OFF"
+
 
 ###############################################################################
 ##                                                                           ##
@@ -91,6 +103,7 @@
 ##                                                                           ##
 ###############################################################################
 
+## Intel
 
 intel-15_Serial:
    <<: *build_serial_definition
