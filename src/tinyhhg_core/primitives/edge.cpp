@@ -16,7 +16,8 @@ Edge::Edge(size_t _id, size_t _type, Vertex* _v0, Vertex* _v1)
   direction = v1->coords - v0->coords;
   length = direction.norm();
   tangent = direction / length;
-  normal_2d = Point3D({tangent[1], -tangent[0], 0.0});
+  //std::array is need otherwise => ambiguous constructor
+  normal_2d = Point3D(std::array<real_t,3>{{tangent[1], -tangent[0], 0.0}});
 
   // fmt::print("direction = {}\n", direction);
   // fmt::print("length = {}\n", length);

@@ -6,7 +6,7 @@ namespace hhg
 {
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), coords(_coords)
+  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), coords(_coords)
 {
 }
 
