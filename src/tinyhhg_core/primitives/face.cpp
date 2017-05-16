@@ -96,7 +96,7 @@ size_t Face::vertex_index(const Vertex& vertex) const
     }
   }
 
-  return uint_c(-1);
+  return std::numeric_limits<std::size_t>::max();
 }
 
 size_t Face::edge_index(const Edge& edge) const
@@ -109,7 +109,7 @@ size_t Face::edge_index(const Edge& edge) const
     }
   }
 
-  return uint_c(-1);
+  return std::numeric_limits<std::size_t>::max();
 }
 
 std::vector<Edge*> Face::adjacent_edges(const Vertex& vertex) const
