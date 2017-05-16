@@ -73,9 +73,9 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   double* edge_data_1 = NULL;
   double* edge_data_2 = NULL;
 
-  walberla::MPI_Request req0;
-  walberla::MPI_Request req1;
-  walberla::MPI_Request req2;
+  MPI_Request req0;
+  MPI_Request req1;
+  MPI_Request req2;
 
   int rk = walberla::mpi::MPIManager::instance()->rank();
 
@@ -87,13 +87,13 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
-      walberla::MPI_Send(&face.edges[0]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[0]->id, walberla::MPI_COMM_WORLD);
+      MPI_Send(&face.edges[0]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[0]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
     edge_data_0 = new double[rowsize];
-    walberla::MPI_Irecv(edge_data_0, rowsize, walberla::MPITrait< double >::type(), face.edges[0]->rank, face.edges[0]->id, walberla::MPI_COMM_WORLD, &req0);
+    MPI_Irecv(edge_data_0, rowsize, walberla::MPITrait< double >::type(), face.edges[0]->rank, face.edges[0]->id, MPI_COMM_WORLD, &req0);
   }
 
   if (face.edges[1]->rank == rk)
@@ -104,13 +104,13 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
-      walberla::MPI_Send(&face.edges[1]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[1]->id, walberla::MPI_COMM_WORLD);
+      MPI_Send(&face.edges[1]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[1]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
     edge_data_1 = new double[rowsize];
-    walberla::MPI_Irecv(edge_data_1, rowsize, walberla::MPITrait< double >::type(), face.edges[1]->rank, face.edges[1]->id, walberla::MPI_COMM_WORLD, &req1);
+    MPI_Irecv(edge_data_1, rowsize, walberla::MPITrait< double >::type(), face.edges[1]->rank, face.edges[1]->id, MPI_COMM_WORLD, &req1);
   }
 
   if (face.edges[2]->rank == rk)
@@ -121,13 +121,13 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
     }
     else
     {
-      walberla::MPI_Send(&face.edges[2]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[2]->id, walberla::MPI_COMM_WORLD);
+      MPI_Send(&face.edges[2]->data[memory_id][level-2][0], rowsize, walberla::MPITrait< double >::type(), face.rank, face.edges[2]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
   {
     edge_data_2 = new double[rowsize];
-    walberla::MPI_Irecv(edge_data_2, rowsize, walberla::MPITrait< double >::type(), face.edges[2]->rank, face.edges[2]->id, walberla::MPI_COMM_WORLD, &req2);
+    MPI_Irecv(edge_data_2, rowsize, walberla::MPITrait< double >::type(), face.edges[2]->rank, face.edges[2]->id, MPI_COMM_WORLD, &req2);
   }
 
   if (face.rank == rk)
@@ -136,17 +136,17 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
     if (face.edges[0]->rank != rk)
     {
-      MPI_Wait(&req0,walberla::MPI_STATUS_IGNORE);
+      MPI_Wait(&req0,MPI_STATUS_IGNORE);
     }
 
     if (face.edges[1]->rank != rk)
     {
-      MPI_Wait(&req1,walberla::MPI_STATUS_IGNORE);
+      MPI_Wait(&req1,MPI_STATUS_IGNORE);
     }
 
     if (face.edges[2]->rank != rk)
     {
-      MPI_Wait(&req2,walberla::MPI_STATUS_IGNORE);
+      MPI_Wait(&req2,MPI_STATUS_IGNORE);
     }
 
     // edge 0
