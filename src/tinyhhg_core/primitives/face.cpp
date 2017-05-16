@@ -1,3 +1,5 @@
+#include <fmt/ostream.h>
+
 #include "edge.hpp"
 #include "face.hpp"
 #include "vertex.hpp"
@@ -6,7 +8,6 @@
 
 #include <core/mpi/MPIManager.h>
 
-#include <fmt/ostream.h>
 #include <cstddef>
 
 namespace hhg

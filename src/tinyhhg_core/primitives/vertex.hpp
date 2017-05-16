@@ -1,11 +1,12 @@
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 
+#include <fmt/ostream.h>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
 
 #include <vector>
-#include <fmt/ostream.h>
+
 
 namespace hhg
 {

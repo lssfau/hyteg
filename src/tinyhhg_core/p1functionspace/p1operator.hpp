@@ -1,11 +1,11 @@
 #ifndef P1OPERATOR_HPP
 #define P1OPERATOR_HPP
 
+#include <fmt/format.h>
+
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/operator.hpp"
-
-#include <fmt/format.h>
 
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_div.h"

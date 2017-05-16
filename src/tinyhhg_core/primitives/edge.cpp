@@ -1,9 +1,9 @@
 #include "edge.hpp"
 #include "vertex.hpp"
 
-#include <core/mpi/MPIManager.h>
-
 #include <fmt/format.h>
+
+#include <core/mpi/MPIManager.h>
 
 namespace hhg
 {

@@ -1,9 +1,9 @@
 #ifndef P1VERTEX_HPP
 #define P1VERTEX_HPP
 
-#include "tinyhhg_core/levelinfo.hpp"
-
 #include <fmt/format.h>
+
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg
 {

@@ -1,11 +1,11 @@
 #ifndef EDGE_HPP
 #define EDGE_HPP
 
+#include <fmt/ostream.h>
+#include <vector>
+
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
-
-#include <vector>
-#include <fmt/ostream.h>
 
 namespace hhg
 {
