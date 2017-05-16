@@ -13,6 +13,8 @@ namespace hhg
 /// P1Vertex namespace for P1 macro-vertex kernels
 namespace P1Vertex
 {
+//FIXME this can be removed after me moved into walberla namespace
+using namespace walberla::mpistubs;
 
 /// Allocate memory for P1 macro-vertex including halos
 /// \param vertex Reference to Vertex the allocated memory will belong to

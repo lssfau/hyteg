@@ -7,6 +7,8 @@ namespace hhg
 {
 namespace P1Edge
 {
+//FIXME this can be removed after we moved into walberla namespace
+using namespace walberla::mpistubs;
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {

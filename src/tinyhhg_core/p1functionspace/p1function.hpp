@@ -13,6 +13,9 @@
 namespace hhg
 {
 
+//FIXME remove after we are in walberla namespace
+using namespace walberla::mpistubs;
+
 class P1Function : public Function
 {
 public:

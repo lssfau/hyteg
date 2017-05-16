@@ -5,6 +5,8 @@ namespace hhg
 {
 
 using namespace walberla;
+//FIXME this typedef can be remove when we move into walberla namespace
+typedef walberla::uint64_t uint64_t;
 
 void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {

@@ -7,6 +7,8 @@ namespace hhg
 {
 namespace P1Face
 {
+//FIXME this can be removed after we are in waberla namespace
+using namespace walberla::mpistubs;
 
 inline void allocate(Face& face, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
