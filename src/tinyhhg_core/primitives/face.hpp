@@ -10,8 +10,6 @@
 namespace hhg
 {
 
-using namespace walberla;
-
 class Edge;
 
 class Face
@@ -26,8 +24,8 @@ public:
   Vertex* get_vertex_opposite_to_edge(const Edge& edge) const;
 
   size_t id;
-  uint_t rank;
-  uint_t type;
+  walberla::uint_t rank;
+  walberla::uint_t type;
   double area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;

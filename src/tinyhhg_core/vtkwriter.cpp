@@ -5,6 +5,8 @@
 namespace hhg
 {
 
+using namespace walberla;
+
 void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());

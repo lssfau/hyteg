@@ -10,8 +10,6 @@
 namespace hhg
 {
 
-using namespace walberla;
-
 class Vertex;
 class Face;
 
@@ -28,7 +26,7 @@ public:
   Vertex* get_opposite_vertex(const Vertex& vertex) const;
 
   size_t id;
-  uint_t rank;
+  walberla::uint_t rank;
   size_t type;
   Vertex* v0;
   Vertex* v1;

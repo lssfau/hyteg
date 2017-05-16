@@ -11,8 +11,6 @@
 namespace hhg
 {
 
-using namespace walberla;
-
 class Edge;
 class Face;
 
@@ -47,7 +45,7 @@ public:
   size_t id;
 
   /// Processor rank this vertex belongs to
-  uint_t rank;
+  walberla::uint_t rank;
 
   /// Boundary type of vertex
   size_t type;

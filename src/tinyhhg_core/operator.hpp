@@ -11,7 +11,7 @@ class Operator
 {
 public:
   Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(std::numeric_limits<std::size_t>::max()), rank(uint_c(walberla::mpi::MPIManager::instance()->rank()) )
+    : mesh(_mesh), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(std::numeric_limits<std::size_t>::max()), rank(walberla::uint_c(walberla::mpi::MPIManager::instance()->rank()) )
   {
   }
 
