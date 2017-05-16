@@ -13,4 +13,7 @@
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
 
+#include "composites/p1stokesfunction.hpp"
+#include "composites/p1stokesoperator.hpp"
+
 #endif /* TINYHHG_HPP */

@@ -148,7 +148,7 @@ public:
     }
   }
 
-  void assign(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<real_t> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -191,7 +191,7 @@ public:
     }
   }
 
-  void add(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<real_t> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)

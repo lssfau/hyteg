@@ -1,8 +1,7 @@
 #ifndef TINYHHG_FUNCTIONS_HPP
 #define TINYHHG_FUNCTIONS_HPP
 
-#include "../function.hpp"
-#include "../p1functionspace/p1function.hpp"
+#include "tinyhhg_core/p1functionspace/p1function.hpp"
 
 namespace hhg
 {
@@ -18,7 +17,43 @@ public:
   {
   }
 
-  real_t dot(P1StokesFunction& rhs, size_t level, size_t flag)
+  void assign(const std::vector<real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  {
+    std::vector<P1Function*> functions_u;
+    std::vector<P1Function*> functions_v;
+    std::vector<P1Function*> functions_p;
+
+    for (auto& function : functions)
+    {
+      functions_u.push_back(&function->u);
+      functions_v.push_back(&function->v);
+      functions_p.push_back(&function->p);
+    }
+
+    u.assign(scalars, functions_u, level, flag);
+    v.assign(scalars, functions_v, level, flag);
+    p.assign(scalars, functions_p, level, flag);
+  }
+
+  void add(const std::vector<real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  {
+    std::vector<P1Function*> functions_u;
+    std::vector<P1Function*> functions_v;
+    std::vector<P1Function*> functions_p;
+
+    for (auto& function : functions)
+    {
+      functions_u.push_back(&function->u);
+      functions_v.push_back(&function->v);
+      functions_p.push_back(&function->p);
+    }
+
+    u.add(scalars, functions_u, level, flag);
+    v.add(scalars, functions_v, level, flag);
+    p.add(scalars, functions_p, level, flag);
+  }
+
+  real_t dot(P1StokesFunction& rhs, size_t level, size_t flag = All)
   {
     real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
@@ -26,14 +61,14 @@ public:
     return sum;
   }
 
-  void prolongate(size_t level, size_t flag)
+  void prolongate(size_t level, size_t flag = All)
   {
     u.prolongate(level, flag);
     v.prolongate(level, flag);
     p.prolongate(level, flag);
   }
 
-  void restrict(size_t level, size_t flag)
+  void restrict(size_t level, size_t flag = All)
   {
     u.restrict(level, flag);
     v.restrict(level, flag);
