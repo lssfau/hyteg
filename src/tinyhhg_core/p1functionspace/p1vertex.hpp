@@ -5,6 +5,8 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include <core/mpi/MPIWrapper.h>
+
 namespace hhg
 {
 
@@ -138,7 +140,7 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 //      }
 //      else
 //      {
-//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//        walberla::MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD,walberla::MPI_STATUS_IGNORE);
 //      }
 //    }
 //  }
@@ -169,18 +171,18 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
       }
       else
       {
-        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        walberla::MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, walberla::MPI_COMM_WORLD, walberla::MPI_STATUS_IGNORE);
       }
     }
     else if (edge->rank == rk)
     {
       if(edge->vertex_index(vertex) == 0)
       {
-        MPI_Send(&edge->data[memory_id][level-2][1], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        walberla::MPI_Send(&edge->data[memory_id][level-2][1], 1, walberla::MPITrait< double >::type(), vertex.rank, i, walberla::MPI_COMM_WORLD);
       }
       else
       {
-        MPI_Send(&edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        walberla::MPI_Send(&edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2], 1, walberla::MPITrait< double >::type(), vertex.rank, i, walberla::MPI_COMM_WORLD);
       }
     }
 

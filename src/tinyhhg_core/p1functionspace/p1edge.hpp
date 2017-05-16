@@ -59,12 +59,12 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
-      MPI_Send(&edge.v0->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      walberla::MPI_Send(&edge.v0->data[memory_id][level-2][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, walberla::MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    walberla::MPI_Recv(&edge.data[memory_id][level-2][0], 1, walberla::MPITrait< double >::type(), edge.v0->rank, 0, walberla::MPI_COMM_WORLD,walberla::MPI_STATUS_IGNORE);
   }
 
   if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
@@ -76,12 +76,12 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
-      MPI_Send(&edge.v1->data[memory_id][level-2][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      walberla::MPI_Send(&edge.v1->data[memory_id][level-2][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, walberla::MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][level-2][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    walberla::MPI_Recv(&edge.data[memory_id][level-2][rowsize-1], 1, walberla::MPITrait< double >::type(), edge.v1->rank, 0, walberla::MPI_COMM_WORLD,walberla::MPI_STATUS_IGNORE);
   }
 }
 
@@ -259,7 +259,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       }
       else
       {
-        MPI_Recv(&edge_data[offset], rowsize_halo, MPI_DOUBLE, face->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        walberla::MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< double >::type(), face->rank, 0, walberla::MPI_COMM_WORLD,walberla::MPI_STATUS_IGNORE);
         offset += rowsize_halo;
       }
     }
@@ -268,7 +268,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       double* face_data = face->data[memory_id][level-2];
       double* tmp = new double[rowsize_halo];
       pull(edge, tmp, face, face_data);
-      MPI_Send(tmp, rowsize_halo, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      walberla::MPI_Send(tmp, rowsize_halo, walberla::MPITrait< double >::type(), edge.rank, 0, walberla::MPI_COMM_WORLD);
       delete[] tmp;
     }
   }

@@ -263,7 +263,7 @@ public:
     }
 
     double sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    walberla::MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< double >::type(), walberla::MPI_SUM, walberla::MPI_COMM_WORLD);
 
     return sp_g;
   }
