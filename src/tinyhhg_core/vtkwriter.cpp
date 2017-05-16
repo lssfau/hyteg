@@ -1,6 +1,5 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
-//#include "comm.hpp"
 
 namespace hhg
 {
