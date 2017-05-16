@@ -12,7 +12,7 @@
       - cmake --version
       - ccache --version
       - mpirun --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/thoennes/walberla.git
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
@@ -656,7 +656,7 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
       - export MSMPI_DISABLE_SHM=1
       - export
       - cmake --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/thoennes/walberla.git
       - mkdir build
       - cd build
       - cmake -LAH -DWALBERLA_DIR=../walberla -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=ON -G "$CMAKE_GENERATOR" ..
