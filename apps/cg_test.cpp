@@ -8,10 +8,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
 
-  hhg::Mesh mesh("../data/meshes/bfs_126el.msh");
+  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  size_t maxLevel = 2;
   size_t maxiter = 10000;
 
   hhg::P1Function r("r", mesh, minLevel, maxLevel);
@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::CGSolver<hhg::P1Function>(mesh, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();

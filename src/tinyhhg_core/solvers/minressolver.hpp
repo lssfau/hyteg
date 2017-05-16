@@ -6,7 +6,7 @@
 namespace hhg
 {
 
-template<class F>
+template<class F, class O>
 class MinResSolver
 {
 public:
@@ -47,11 +47,11 @@ public:
     p_w->interpolate(zero, level, flag);
   }
 
-  void solve(Operator& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
   {
     init(level, flag);
 
-    x.apply(A, r, level, flag);
+    A.apply(x, r, level, flag);
     p_v->assign({1.0, -1.0}, {&b, &r}, level, flag);
 
     // identity preconditioner
@@ -77,7 +77,7 @@ public:
 
     for(size_t i = 0; i < maxiter; ++i) {
       p_z->assign({1.0 / gamma_new}, {p_z}, level, flag);
-      p_z->apply(A, *p_vp, level, flag);
+      A.apply(*p_z, *p_vp, level, flag);
       double delta = p_vp->dot(*p_z, level, flag);
 
       p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);

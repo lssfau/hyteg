@@ -66,7 +66,7 @@ public:
   P1Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
     : Operator(_mesh, _minLevel, _maxLevel)
   {
-    id = mesh.faces[0].opr_data.size();
+    memory_id = mesh.faces[0].opr_data.size();
 //    fmt::printf("Creating Laplace operator with id %d\n", id);
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
@@ -96,7 +96,7 @@ public:
         {
           face.opr_data.push_back(std::vector<double*>());
         }
-        face.opr_data[id].push_back(face_stencil);
+        face.opr_data[memory_id].push_back(face_stencil);
 
 //        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
 //        fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
@@ -110,7 +110,7 @@ public:
         }
 
         double* edge_stencil = new double[7]();
-        edge.opr_data[id].push_back(edge_stencil);
+        edge.opr_data[memory_id].push_back(edge_stencil);
 
         double local_stiffness_up[3][3];
         double local_stiffness_down[3][3];
@@ -161,7 +161,7 @@ public:
         }
 
         double* vertex_stencil = new double[1 + vertex.edges.size()]();
-        vertex.opr_data[id].push_back(vertex_stencil);
+        vertex.opr_data[memory_id].push_back(vertex_stencil);
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)
@@ -195,17 +195,152 @@ public:
   {
     for (Vertex& v : mesh.vertices)
     {
-      delete[] v.opr_data[id][0];
+      delete[] v.opr_data[memory_id][0];
     }
 
     for (Edge& e : mesh.edges)
     {
-      delete[] e.opr_data[id][0];
+      delete[] e.opr_data[memory_id][0];
     }
 
     for (Face& f : mesh.faces)
     {
-      delete[] f.opr_data[id][0];
+      delete[] f.opr_data[memory_id][0];
+    }
+  }
+
+  void apply(P1Function& src, P1Function& dst, size_t level, size_t flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::pull_halos(vertex, src.memory_id, level);
+      }
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, dst.memory_id, level);
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::pull_halos(edge, src.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, dst.memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::apply(face, this->memory_id, src.memory_id, dst.memory_id, level);
+      }
+    }
+  }
+
+  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, size_t flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::pull_halos(vertex, dst.memory_id, level);
+      }
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, dst.memory_id, level);
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::pull_halos(edge, dst.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, dst.memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::smooth_gs(face, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+  }
+
+  void printmatrix(P1Function& src, size_t level, size_t flag = All)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1Vertex::pull_halos(vertex, src.memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::printmatrix(vertex, this->memory_id, src.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_halos(edge, src.memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::printmatrix(edge, this->memory_id, src.memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::printmatrix(face, this->memory_id, src.memory_id, level);
+      }
     }
   }
 

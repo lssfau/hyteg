@@ -25,26 +25,6 @@ public:
   {
   }
 
-  virtual void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, size_t flag) = 0;
-
-  template<class T, size_t N>
-  void assign(std::array<real_t, N> scalars, std::array<T*, N> functions, size_t level, size_t flag);
-
-  template<class T, size_t N>
-  void add(std::array<real_t, N> scalars, std::array<T*, N> functions, size_t level, size_t flag);
-
-  virtual double dot(Function& rhs, size_t level, size_t flag) = 0;
-
-  virtual void apply(Operator& opr, Function& dst, size_t level, size_t flag) = 0;
-
-  virtual void smooth_gs(Operator& opr, Function& rhs, size_t level, size_t flag) = 0;
-
-  virtual void prolongate(size_t level, size_t flag) = 0;
-
-  virtual void restrict(size_t level, size_t flag) = 0;
-
-  virtual void printmatrix(Operator& opr, size_t level, size_t flag) = 0;
-
   std::string name;
   Mesh& mesh;
   size_t minLevel;
