@@ -17,7 +17,7 @@ public:
   {
   }
 
-  void assign(const std::vector<real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -35,7 +35,7 @@ public:
     p.assign(scalars, functions_p, level, flag);
   }
 
-  void add(const std::vector<real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -53,9 +53,9 @@ public:
     p.add(scalars, functions_p, level, flag);
   }
 
-  real_t dot(P1StokesFunction& rhs, size_t level, size_t flag = All)
+  walberla::real_t dot(P1StokesFunction& rhs, size_t level, size_t flag = All)
   {
-    real_t sum = u.dot(rhs.u, level, flag);
+    walberla::real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
     sum += p.dot(rhs.p, level, flag);
     return sum;
