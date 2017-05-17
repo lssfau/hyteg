@@ -4,13 +4,17 @@
 namespace hhg
 {
 
-enum Boundary
+enum Boundary:size_t
 {
   All = 1+2+4,
   Inner = 1,
   DirichletBoundary = 2,
   NeumannBoundary = 4,
 };
+
+inline Boundary operator|(Boundary a, Boundary b){
+  return Boundary(a|b);
+}
 
 inline bool testFlag(Boundary a, Boundary b)
 {
