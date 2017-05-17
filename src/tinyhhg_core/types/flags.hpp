@@ -18,7 +18,7 @@ inline Boundary operator|(Boundary a, Boundary b){
 
 inline bool testFlag(Boundary a, Boundary b)
 {
-  return (a == b);
+  return (a & b);
 }
 
 }
