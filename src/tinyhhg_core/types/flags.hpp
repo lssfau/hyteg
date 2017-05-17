@@ -26,11 +26,23 @@ inline DoFType operator&(DoFType a, DoFType b){
   return DoFType(static_cast<size_t>(a) & static_cast<size_t>(b));
 }
 
+inline std::ostream& operator<<(std::ostream &os, const DoFType type){
+  switch(type) {
+    case NeumannBoundary   :
+      return os << "NeumannBoundary";
+    case DirichletBoundary :
+      return os << "DirichletBoundary";
+    default:
+      return os << "Inner";
+  }
+}
+
+
 inline bool testFlag(DoFType a, DoFType b)
 {
   return (a & b) != 0;
 }
 
-}
+} // namespace hhg
 
 #endif /* FLAGS_HPP */
