@@ -17,7 +17,8 @@ Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
   length = direction.norm();
   tangent = direction / length;
   //std::array is need otherwise => ambiguous constructor
-  normal_2d = Point3D(std::array<walberla::real_t,3>{{tangent[1], -tangent[0], 0.0}});
+  const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
+  normal_2d = Point3D(init);
 
   // fmt::print("direction = {}\n", direction);
   // fmt::print("length = {}\n", length);
