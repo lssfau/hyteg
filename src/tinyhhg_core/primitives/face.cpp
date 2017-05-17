@@ -12,8 +12,7 @@
 
 namespace hhg
 {
-
-using namespace walberla;
+using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
   : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
