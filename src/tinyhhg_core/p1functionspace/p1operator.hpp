@@ -209,7 +209,7 @@ public:
     }
   }
 
-  void apply(P1Function& src, P1Function& dst, size_t level, size_t flag)
+  void apply(P1Function& src, P1Function& dst, size_t level, Boundary flag)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -258,7 +258,7 @@ public:
     }
   }
 
-  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, size_t flag)
+  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, Boundary flag)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -307,7 +307,7 @@ public:
     }
   }
 
-  void printmatrix(P1Function& src, size_t level, size_t flag = All)
+  void printmatrix(P1Function& src, size_t level, Boundary flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {

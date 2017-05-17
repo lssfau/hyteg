@@ -16,7 +16,7 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, size_t flag)
+  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, Boundary flag)
   {
     A.apply(src.u, dst.u, level, flag);
     A.apply(src.v, dst.v, level, flag);

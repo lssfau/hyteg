@@ -4,6 +4,7 @@
 #include <fmt/ostream.h>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
+#include <tinyhhg_core/types/flags.hpp>
 
 #include <vector>
 
@@ -48,7 +49,7 @@ public:
   walberla::uint_t rank;
 
   /// Boundary type of vertex
-  size_t type;
+  Boundary type;
 
   /// Spatial coordinates of vertex
   Point3D coords;

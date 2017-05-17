@@ -114,7 +114,7 @@ public:
     }
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag = All)
+  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, Boundary flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -151,7 +151,7 @@ public:
     }
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, Boundary flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -194,7 +194,7 @@ public:
     }
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, Boundary flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -237,7 +237,7 @@ public:
     }
   }
 
-  double dot(P1Function& rhs, size_t level, size_t flag = All)
+  double dot(P1Function& rhs, size_t level, Boundary flag = All)
   {
     double sp_l = 0.0;
 
@@ -271,7 +271,7 @@ public:
     return sp_g;
   }
 
-  void prolongate(size_t level, size_t flag = All)
+  void prolongate(size_t level, Boundary flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -308,7 +308,7 @@ public:
     }
   }
 
-  void restrict(size_t level, size_t flag = All)
+  void restrict(size_t level, Boundary flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {

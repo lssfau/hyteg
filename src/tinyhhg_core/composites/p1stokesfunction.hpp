@@ -17,7 +17,7 @@ public:
   {
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, Boundary flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -35,7 +35,7 @@ public:
     p.assign(scalars, functions_p, level, flag);
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, Boundary flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -53,7 +53,7 @@ public:
     p.add(scalars, functions_p, level, flag);
   }
 
-  walberla::real_t dot(P1StokesFunction& rhs, size_t level, size_t flag = All)
+  walberla::real_t dot(P1StokesFunction& rhs, size_t level, Boundary flag = All)
   {
     walberla::real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
@@ -61,14 +61,14 @@ public:
     return sum;
   }
 
-  void prolongate(size_t level, size_t flag = All)
+  void prolongate(size_t level, Boundary flag = All)
   {
     u.prolongate(level, flag);
     v.prolongate(level, flag);
     p.prolongate(level, flag);
   }
 
-  void restrict(size_t level, size_t flag = All)
+  void restrict(size_t level, Boundary flag = All)
   {
     u.restrict(level, flag);
     v.restrict(level, flag);

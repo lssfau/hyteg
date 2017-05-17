@@ -12,7 +12,7 @@ enum Boundary
   NeumannBoundary = 4,
 };
 
-inline bool testFlag(size_t a, size_t b)
+inline bool testFlag(Boundary a, Boundary b)
 {
   return (a & b);
 }

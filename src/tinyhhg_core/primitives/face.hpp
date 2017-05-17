@@ -1,7 +1,8 @@
 #ifndef FACE_HPP
 #define FACE_HPP
 
-#include "tinyhhg_core/types/pointnd.hpp"
+#include <tinyhhg_core/types/pointnd.hpp>
+#include <tinyhhg_core/types/flags.hpp>
 #include <core/DataTypes.h>
 
 #include <array>
@@ -25,7 +26,7 @@ public:
 
   size_t id;
   walberla::uint_t rank;
-  walberla::uint_t type;
+  Boundary type;
   double area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;

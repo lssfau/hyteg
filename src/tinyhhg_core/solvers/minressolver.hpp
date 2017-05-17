@@ -39,7 +39,7 @@ public:
     delete p_wp;
   }
 
-  void init(size_t level, size_t flag)
+  void init(size_t level, Boundary flag)
   {
     std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
     p_vm->interpolate(zero, level, flag);
@@ -47,7 +47,7 @@ public:
     p_w->interpolate(zero, level, flag);
   }
 
-  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, Boundary flag = All, bool printInfo = false)
   {
     init(level, flag);
 
