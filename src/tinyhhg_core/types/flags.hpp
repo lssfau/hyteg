@@ -4,7 +4,13 @@
 namespace hhg
 {
 
-enum Boundary:size_t
+enum UpdateType
+{
+  Replace = 0,
+  Add = 1
+};
+
+enum DoFType:size_t
 {
   All = 1+2+4,
   Inner = 1,
@@ -12,14 +18,15 @@ enum Boundary:size_t
   NeumannBoundary = 4,
 };
 
-inline Boundary operator|(Boundary a, Boundary b){
-  return Boundary(a|b);
-}
-inline Boundary operator&(Boundary a, Boundary b){
-  return Boundary(a&b);
+inline DoFType operator|(DoFType a, DoFType b){
+  return DoFType(static_cast<size_t>(a) | static_cast<size_t>(b));
 }
 
-inline bool testFlag(Boundary a, Boundary b)
+inline DoFType operator&(DoFType a, DoFType b){
+  return DoFType(static_cast<size_t>(a) & static_cast<size_t>(b));
+}
+
+inline bool testFlag(DoFType a, DoFType b)
 {
   return (a & b) != 0;
 }

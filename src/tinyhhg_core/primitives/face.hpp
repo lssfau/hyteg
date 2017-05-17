@@ -26,7 +26,7 @@ public:
 
   size_t id;
   walberla::uint_t rank;
-  Boundary type;
+  DoFType type;
   double area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   hhg::P1StokesFunction err("err", mesh, minLevel, maxLevel);
   hhg::P1Function npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
 
-  hhg::P1StokesOperator L(mesh, minLevel, maxLevel);
+  hhg::P1BlockLaplaceOperator L(mesh, minLevel, maxLevel);
 
   std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
   std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   u_exact.v.interpolate(exact, maxLevel);
   u_exact.p.interpolate(exact, maxLevel);
 
-  auto solver = hhg::CGSolver<hhg::P1StokesFunction, hhg::P1StokesOperator>(mesh, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1StokesFunction, hhg::P1BlockLaplaceOperator>(mesh, minLevel, maxLevel);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();

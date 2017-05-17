@@ -16,7 +16,7 @@ public:
   {
   }
 
-  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, Boundary flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
     A.apply(x, p, level, flag);
     r.assign({1.0, -1.0}, {&b, &p}, level, flag);

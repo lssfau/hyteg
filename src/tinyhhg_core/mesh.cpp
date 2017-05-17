@@ -9,7 +9,7 @@
 namespace hhg
 {
 
-Boundary BoundaryTypeToFlag[] = { Inner, DirichletBoundary, NeumannBoundary };
+DoFType BoundaryTypeToFlag[] = { Inner, DirichletBoundary, NeumannBoundary };
 
 Mesh::Mesh(const std::string& filename)
 {

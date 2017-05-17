@@ -19,7 +19,7 @@ class Edge
 {
 public:
 
-  Edge(size_t id, Boundary type, Vertex* v0, Vertex* v1);
+  Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;
@@ -29,7 +29,7 @@ public:
 
   size_t id;
   walberla::uint_t rank;
-  Boundary type;
+  DoFType type;
   Vertex* v0;
   Vertex* v1;
 

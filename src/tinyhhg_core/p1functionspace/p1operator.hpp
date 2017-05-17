@@ -11,6 +11,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_div.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 
 namespace hhg
 {
@@ -209,7 +210,7 @@ public:
     }
   }
 
-  void apply(P1Function& src, P1Function& dst, size_t level, Boundary flag)
+  void apply(const P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -223,7 +224,7 @@ public:
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level);
+        P1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
       }
     }
 
@@ -240,7 +241,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1Edge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level);
+        P1Edge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
       }
     }
 
@@ -253,12 +254,12 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::apply(face, this->memory_id, src.memory_id, dst.memory_id, level);
+        P1Face::apply(face, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
       }
     }
   }
 
-  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, Boundary flag)
+  void smooth_gs(P1Function& dst, const P1Function& rhs, size_t level, DoFType flag)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -307,7 +308,7 @@ public:
     }
   }
 
-  void printmatrix(P1Function& src, size_t level, Boundary flag = All)
+  void printmatrix(const P1Function& src, size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -355,6 +356,8 @@ typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
 typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
 
 typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
+
+typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
 
 }
 

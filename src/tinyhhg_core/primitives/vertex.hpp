@@ -48,8 +48,8 @@ public:
   /// Processor rank this vertex belongs to
   walberla::uint_t rank;
 
-  /// Boundary type of vertex
-  Boundary type;
+  /// DoF type of vertex
+  DoFType type;
 
   /// Spatial coordinates of vertex
   Point3D coords;

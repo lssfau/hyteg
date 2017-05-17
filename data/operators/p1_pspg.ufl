@@ -1,0 +1,8 @@
+# generate code with ffc p1_pspg.ufl
+element = FiniteElement('Lagrange', triangle, 1)
+
+p = TrialFunction(element)
+q = TestFunction(element)
+
+tau = CellVolume(triangle)/5.0 # h^2/5
+a = -tau*dot(grad(p), grad(q))*dx

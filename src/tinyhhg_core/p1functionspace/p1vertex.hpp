@@ -80,13 +80,18 @@ inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
   return vertex.data[lhs_id][level-2][0] * vertex.data[rhs_id][level-2][0];
 }
 
-inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
+inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
   double* opr_data = vertex.opr_data[opr_id][level-2];
   double* src = vertex.data[src_id][level-2];
   double* dst = vertex.data[dst_id][level-2];
 
-  dst[0] = opr_data[0] * src[0];
+  if (update == Replace) {
+    dst[0] = opr_data[0] * src[0];
+  }
+  else if (update == Add) {
+    dst[0] += opr_data[0] * src[0];
+  }
 
   for (size_t i = 0; i < vertex.edges.size(); ++i)
   {

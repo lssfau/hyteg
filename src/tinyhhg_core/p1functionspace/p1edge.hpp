@@ -134,7 +134,7 @@ inline double dot(Edge& edge, size_t lhs_id, size_t rhs_id, size_t level)
   return sp;
 }
 
-inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
+inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
@@ -144,7 +144,12 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    dst[i] = opr_data[2] * src[i-1] + opr_data[3] * src[i] + opr_data[4] * src[i+1];
+    if (update == Replace) {
+      dst[i] = opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+    }
+    else if (update == Add) {
+      dst[i] += opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+    }
     dst[i] += opr_data[0] * src[rowsize + i - 1] + opr_data[1] * src[rowsize + i];
 
     if (edge.faces.size() == 2)

@@ -33,6 +33,10 @@ waLBerla_add_executable( NAME tinytest_block_cg
         FILES block_cg_test.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME tinytest_stokes_stab
+        FILES stokes_stab.cpp
+        DEPENDS tinyhhg_core fmt)
+
 #add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
 #

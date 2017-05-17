@@ -303,7 +303,7 @@ inline double dot(Face& face, size_t lhs_id, size_t rhs_id, size_t level)
   return sp;
 }
 
-inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
+inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
@@ -320,9 +320,16 @@ inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, size_
   {
     for (size_t j = 0; j < inner_rowsize - 3; ++j)
     {
-      dst[mr] = opr_data[0] * src[br] + opr_data[1] * src[br+1]
-                + opr_data[2] * src[mr-1] + opr_data[3] * src[mr] + opr_data[4] * src[mr+1]
-                + opr_data[5] * src[tr-1] + opr_data[6] * src[tr];
+      if (update == Replace) {
+        dst[mr] = opr_data[0] * src[br] + opr_data[1] * src[br+1]
+                  + opr_data[2] * src[mr-1] + opr_data[3] * src[mr] + opr_data[4] * src[mr+1]
+                  + opr_data[5] * src[tr-1] + opr_data[6] * src[tr];
+      } else if (update == Add) {
+        dst[mr] += opr_data[0] * src[br] + opr_data[1] * src[br+1]
+                  + opr_data[2] * src[mr-1] + opr_data[3] * src[mr] + opr_data[4] * src[mr+1]
+                  + opr_data[5] * src[tr-1] + opr_data[6] * src[tr];
+      }
+
       br += 1;
       mr += 1;
       tr += 1;
