@@ -5,4 +5,4 @@ p = TrialFunction(element)
 v = TestFunction(element)
 p, v = v, p # HHG uses FORTRAN layout
 
-forms = [- v.dx(i)*p*dx for i in xrange(2)]
+forms = [- v.dx(i)*p*dx for i in range(2)]
