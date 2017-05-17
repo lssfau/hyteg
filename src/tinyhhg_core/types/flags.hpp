@@ -15,6 +15,9 @@ enum Boundary:size_t
 inline Boundary operator|(Boundary a, Boundary b){
   return Boundary(a|b);
 }
+inline Boundary operator&(Boundary a, Boundary b){
+  return Boundary(a&b);
+}
 
 inline bool testFlag(Boundary a, Boundary b)
 {
