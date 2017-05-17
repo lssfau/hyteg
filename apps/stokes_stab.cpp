@@ -5,10 +5,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
   
-  hhg::Mesh mesh("../data/meshes/quad_2el_neumann.msh");
+  hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   hhg::P1StokesFunction r("r", mesh, minLevel, maxLevel);
@@ -17,12 +17,21 @@ int main(int argc, char* argv[])
 
   hhg::P1StokesOperator L(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> u_exact = [](const hhg::Point3D& x) -> double { return 4.0 * x[1] * (1.0 - x[1]); };
+  std::function<double(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
+    if (x[0] < 1e-8)
+    {
+      return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
+    }
+    else
+    {
+      return 0.0;
+    }
+  };
   std::function<double(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
-  u.u.interpolate(u_exact, maxLevel, hhg::DirichletBoundary);
+  u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
   auto solver = hhg::MinResSolver<hhg::P1StokesFunction, hhg::P1StokesOperator>(mesh, minLevel, maxLevel);

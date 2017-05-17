@@ -37,9 +37,9 @@ public:
   /// \param face Pointer to face which will be added
   void addFace(Face* face);
 
-  /// Returns the index+1 of \p edge within \ref edges
+  /// Returns the index of \p edge within \ref edges
   /// \param edge Edge
-  /// \returns Index+1 of \p edge within \ref edges
+  /// \returns Index of \p edge within \ref edges
   size_t edge_index(const Edge& edge) const;
 
   /// Id of vertex
