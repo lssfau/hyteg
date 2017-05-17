@@ -45,8 +45,8 @@ inline void interpolate(Face& face, size_t memory_id, std::function<double(const
     x0 = face.edges[0]->v1->coords;
   }
 
-  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize-1);
-  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize-1);
+  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (walberla::real_c(rowsize-1));
+  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (walberla::real_c(rowsize-1));
 
   size_t mr_c = 1 + rowsize;
   size_t inner_rowsize = rowsize;
