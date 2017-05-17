@@ -77,7 +77,7 @@ Vertex* Edge::get_opposite_vertex(const Vertex& vertex) const
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.id << "; "
-            << "type = " << edge.type << "; "
+            << "type = " << uint_c(edge.type) << "; "
             << "v0 = " << edge.v0->id << "; "
             << "v1 = " << edge.v1->id << "; }";
 }
