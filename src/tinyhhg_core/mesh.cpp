@@ -61,7 +61,7 @@ Mesh::Mesh(const std::string& filename)
   for (size_t i=0; i < numVertices; ++i)
   {
     size_t id;
-    double x[3];
+    real_t x[3];
     meshFile >> id; // ignore
     meshFile >> x[0];
     meshFile >> x[1];

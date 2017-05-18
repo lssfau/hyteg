@@ -170,21 +170,21 @@ inline PointND<T, N> operator-(PointND<T, N> lhs, const PointND<T, N>& rhs)
 }
 
 template<typename T, size_t N>
-inline PointND<T, N> operator*(double scalar, PointND<T, N> rhs)
+inline PointND<T, N> operator*(real_t scalar, PointND<T, N> rhs)
 {
   rhs *= scalar;
   return rhs;
 }
 
 template<typename T, size_t N>
-inline PointND<T, N> operator*(PointND<T, N> lhs, double scalar)
+inline PointND<T, N> operator*(PointND<T, N> lhs, real_t scalar)
 {
   lhs *= scalar;
   return lhs;
 }
 
 template<typename T, size_t N>
-inline PointND<T, N> operator/(PointND<T, N> lhs, double scalar)
+inline PointND<T, N> operator/(PointND<T, N> lhs, real_t scalar)
 {
   lhs /= scalar;
   return lhs;
