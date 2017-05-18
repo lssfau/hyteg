@@ -2,7 +2,9 @@
 #include <fmt/format.h>
 #include <tinyhhg_core/likwidwrapper.hpp>
 
-using namespace walberla;
+//using namespace walberla;
+using walberla::uint_t;
+using walberla::uint_c;
 
 int main(int argc, char* argv[])
 {

@@ -177,7 +177,7 @@ public:
           // iterate over adjacent edges
           for (Edge* edge : adj_edges)
           {
-            size_t edge_idx = vertex.edge_index(*edge);
+            size_t edge_idx = vertex.edge_index(*edge) + 1;
             Vertex* vertex_j = edge->get_opposite_vertex(vertex);
 
             size_t v_j = face->vertex_index(*vertex_j);
