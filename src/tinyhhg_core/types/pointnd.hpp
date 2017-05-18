@@ -1,12 +1,16 @@
 #ifndef POINT3D_HPP
 #define POINT3D_HPP
 
+#include "core/DataTypes.h"
+
 #include <fmt/ostream.h>
 #include <cmath>
 #include <array>
 
 namespace hhg
 {
+
+using walberla::real_t;
 
 /// \brief  N-dimensional vector
 /// \author Daniel Drzisga (drzisga@ma.tum.de)
@@ -205,8 +209,8 @@ inline std::ostream& operator<<(std::ostream &os, const PointND<T, N> &pointnd)
   return os;
 }
 
-typedef PointND<double, 2> Point2D;
-typedef PointND<double, 3> Point3D;
+typedef PointND<real_t, 2> Point2D;
+typedef PointND<real_t, 3> Point3D;
 
 }
 
