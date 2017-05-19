@@ -1,16 +1,17 @@
 #ifndef P1OPERATOR_HPP
 #define P1OPERATOR_HPP
 
+#include <fmt/format.h>
+
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/operator.hpp"
-
-#include <fmt/format.h>
 
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_div.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
@@ -72,7 +73,7 @@ public:
     {
       if (v.rank == rank)
       {
-        id = v.memory.size();
+        memory_id = v.memory.size();
         break;
       }
     }
@@ -83,12 +84,12 @@ public:
       {
         if (e.rank == rank)
         {
-          if (id == -1)
+          if (memory_id == -1)
           {
-            id = e.memory.size();
+            memory_id = e.memory.size();
             break;
           }
-          else if (id != e.memory.size())
+          else if (memory_id != e.memory.size())
             WALBERLA_LOGLEVEL_WARNING("ID of Vertex and Edge are not the same");
 
         }
@@ -102,18 +103,18 @@ public:
         if (f.rank == rank)
         {
 
-          if (id == -1)
+          if (memory_id == -1)
           {
-            id = f.memory.size();
+            memory_id = f.memory.size();
             break;
           }
-          else if (id != f.memory.size())
+          else if (memory_id != f.memory.size())
             WALBERLA_LOGLEVEL_WARNING("ID of Vertex and Face are not the same");
         }
       }
     //}
 
-    if (id == -1)
+    if (memory_id == -1)
     {
       WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
@@ -133,7 +134,7 @@ public:
           face.memory.push_back(new FaceStencilMemory());
         }
 
-        double* face_stencil = getFaceStencilMemory(face, id)->addlevel(level);
+        double* face_stencil = getFaceStencilMemory(face, memory_id)->addlevel(level);
 
         double local_stiffness_up[3][3];
         double local_stiffness_down[3][3];
@@ -154,25 +155,18 @@ public:
                             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
 
 
-
-
 //        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
 //        fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
       }
 
       for (Edge& edge : mesh.edges)
       {
-        if (edge.rank != rank)
-        {
-          continue;
-        }
-
         if (level == minLevel)
         {
           edge.memory.push_back(new EdgeStencilMemory());
         }
 
-        double* edge_stencil = getEdgeStencilMemory(edge, id)->addlevel(level);
+        double* edge_stencil = getEdgeStencilMemory(edge, memory_id)->addlevel(level);
 
         double local_stiffness_up[3][3];
         double local_stiffness_down[3][3];
@@ -230,7 +224,7 @@ public:
         //double* vertex_stencil = new double[1 + vertex.edges.size()]();
         //getVertexStencilMemory(vertex, id)->data[level] = vertex_stencil;
 
-        double* vertex_stencil = getVertexStencilMemory(vertex, id)->addlevel(level, vertex.edges.size());
+        double* vertex_stencil = getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)
@@ -245,7 +239,7 @@ public:
           // iterate over adjacent edges
           for (Edge* edge : adj_edges)
           {
-            size_t edge_idx = vertex.edge_index(*edge);
+            size_t edge_idx = vertex.edge_index(*edge) + 1;
             Vertex* vertex_j = edge->get_opposite_vertex(vertex);
 
             size_t v_j = face->vertex_index(*vertex_j);
@@ -265,21 +259,156 @@ public:
     for (Vertex& v : mesh.vertices)
     {
       if (v.rank == rank) {
-        delete v.memory[id];
+        delete v.memory[memory_id];
       }
     }
 
     for (Edge& e : mesh.edges)
     {
       if (e.rank == rank) {
-        delete e.memory[id];
+        delete e.memory[memory_id];
       }
     }
 
     for (Face& f : mesh.faces)
     {
       if (f.rank == rank) {
-        delete f.memory[id];
+        delete f.memory[memory_id];
+      }
+    }
+  }
+
+  void apply(const P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::pull_halos(vertex, src.memory_id, level);
+      }
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, dst.memory_id, level);
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::pull_halos(edge, src.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, dst.memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::apply(face, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+      }
+    }
+  }
+
+  void smooth_gs(P1Function& dst, const P1Function& rhs, size_t level, DoFType flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::pull_halos(vertex, dst.memory_id, level);
+      }
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, dst.memory_id, level);
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::pull_halos(edge, dst.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, dst.memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::smooth_gs(face, this->memory_id, dst.memory_id, rhs.memory_id, level);
+      }
+    }
+  }
+
+  void printmatrix(const P1Function& src, size_t level, DoFType flag = All)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1Vertex::pull_halos(vertex, src.memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::printmatrix(vertex, this->memory_id, src.memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_halos(edge, src.memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::printmatrix(edge, this->memory_id, src.memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::printmatrix(face, this->memory_id, src.memory_id, level);
       }
     }
   }
@@ -295,6 +424,8 @@ typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
 typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
 
 typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
+
+typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
 
 }
 

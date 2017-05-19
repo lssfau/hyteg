@@ -8,6 +8,8 @@ namespace hhg
 {
 namespace P1Edge
 {
+//FIXME this can be removed after we moved into walberla namespace
+using namespace walberla::mpistubs;
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
@@ -48,15 +50,7 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const
 
 inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
-  //WALBERLA_LOG_DEVEL("Started Pull Vertices in p1edge");
-
-
-
-
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-
-  //if (edge.memory[memory_id]->type != P1)
-  //  WALBERLA_LOG_WARNING("IN p1edge: memory had not the right type!")
 
   if (edge.v0->rank == walberla::mpi::MPIManager::instance()->rank())
   {
@@ -67,14 +61,12 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
-      //WALBERLA_LOG_DEVEL("Sending vertex 0");
-      MPI_Send(&getVertexP1Memory(*edge.v0, memory_id)->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&getVertexP1Memory(*edge.v0, memory_id)->data[level][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    //WALBERLA_LOG_DEVEL("Receiving vertex 0");
-    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][0], 1, MPI_DOUBLE, edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][0], 1, walberla::MPITrait< double >::type(), edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
   if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
@@ -86,16 +78,13 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     else
     {
-      //WALBERLA_LOG_DEVEL("sending vertex 1");
-      MPI_Send(&getVertexP1Memory(*edge.v1, memory_id)->data[level][0], 1, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&getVertexP1Memory(*edge.v1, memory_id)->data[level][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    //WALBERLA_LOG_DEVEL("Receiving vertex 1");
-    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][rowsize-1], 1, MPI_DOUBLE, edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][rowsize-1], 1, walberla::MPITrait< double >::type(), edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
-  //WALBERLA_LOG_DEVEL("Finished Pull Vertices in p1edge");
 }
 
 inline void assign(Edge& edge, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
@@ -145,7 +134,7 @@ inline double dot(Edge& edge, size_t lhs_id, size_t rhs_id, size_t level)
   return sp;
 }
 
-inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
+inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
@@ -155,7 +144,12 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    dst[i] = opr_data[2] * src[i-1] + opr_data[3] * src[i] + opr_data[4] * src[i+1];
+    if (update == Replace) {
+      dst[i] = opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+    }
+    else if (update == Add) {
+      dst[i] += opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+    }
     dst[i] += opr_data[0] * src[rowsize + i - 1] + opr_data[1] * src[rowsize + i];
 
     if (edge.faces.size() == 2)
@@ -272,7 +266,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       }
       else
       {
-        MPI_Recv(&edge_data[offset], rowsize_halo, MPI_DOUBLE, face->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< double >::type(), face->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
         offset += rowsize_halo;
       }
     }
@@ -281,7 +275,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       double* face_data = getFaceP1Memory(*face, memory_id)->data[level];
       double* tmp = new double[rowsize_halo];
       pull(edge, tmp, face, face_data);
-      MPI_Send(tmp, rowsize_halo, MPI_DOUBLE, edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(tmp, rowsize_halo, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
       delete[] tmp;
     }
   }
@@ -326,6 +320,31 @@ inline void restrict(Edge& edge, size_t memory_id, size_t level)
 
     i_fine += 2;
     i_off += 2;
+  }
+}
+
+inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id, size_t level)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  double* opr_data = getEdgeStencilMemory(edge, opr_id)->data[level];
+  double* src = getEdgeP1Memory(edge, src_id)->data[level];
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i-1], opr_data[2]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i], opr_data[3]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i+1], opr_data[4]);
+
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i - 1], opr_data[0]);
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i], opr_data[1]);
+
+    if (edge.faces.size() == 2)
+    {
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i - 1], opr_data[5]);
+      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i], opr_data[6]);
+    }
   }
 }
 

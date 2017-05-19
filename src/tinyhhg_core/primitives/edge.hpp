@@ -2,11 +2,13 @@
 #define EDGE_HPP
 
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/types/flags.hpp"
 
 #include <vector>
-#include <map>
-#include <fmt/ostream.h>
+
+#include <tinyhhg_core/types/pointnd.hpp>
+#include <tinyhhg_core/types/flags.hpp>
+
+#include <core/DataTypes.h>
 
 namespace hhg
 {
@@ -20,7 +22,7 @@ class Edge
 {
 public:
 
-  Edge(size_t id, size_t type, Vertex* v0, Vertex* v1);
+  Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;
@@ -29,8 +31,8 @@ public:
   Vertex* get_opposite_vertex(const Vertex& vertex) const;
 
   size_t id;
-  int rank;
-  size_t type;
+  walberla::uint_t rank;
+  DoFType type;
   Vertex* v0;
   Vertex* v1;
 
@@ -41,7 +43,7 @@ public:
 
   std::vector<Face*> faces;
 
-	std::vector<EdgeMemory*> memory;
+  std::vector<EdgeMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 };

@@ -1,9 +1,13 @@
-#add_executable (tinytest test.cpp)
-#target_link_libraries (tinytest tinyhhg fmt ${MPI_CXX_LIBRARIES})
-#
-#add_executable (tinytest_cg cg_test.cpp)
-#target_link_libraries (tinytest_cg tinyhhg fmt core ${MPI_CXX_LIBRARIES})
-waLBerla_link_files_to_builddir(../data)
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
+endif()
+
+waLBerla_link_files_to_builddir(../data/meshes/*.msh)
+waLBerla_link_files_to_builddir(../data/param/*.prm)
 
 waLBerla_add_executable( NAME tinytest
         FILES test.cpp
@@ -19,6 +23,18 @@ waLBerla_add_executable( NAME tinytest_fmg
 
 waLBerla_add_executable( NAME tinytest_chorin
         FILES chorin_test.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME tinytest_minres
+        FILES minres_test.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME tinytest_block_cg
+        FILES block_cg_test.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME tinytest_stokes_stab
+        FILES stokes_stab.cpp
         DEPENDS tinyhhg_core fmt)
 
 #add_executable (tinytest_fmg fmg_test.cpp)

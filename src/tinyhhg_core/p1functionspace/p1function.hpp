@@ -13,6 +13,9 @@
 namespace hhg
 {
 
+//FIXME remove after we are in walberla namespace
+using namespace walberla::mpistubs;
+
 class P1Function : public Function
 {
 public:
@@ -113,7 +116,7 @@ public:
     }
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, size_t flag = All)
+  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -150,7 +153,7 @@ public:
     }
   }
 
-  void assign(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -193,7 +196,7 @@ public:
     }
   }
 
-  void add(const std::vector<double> scalars, const std::vector<P1Function*> functions, size_t level, size_t flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -236,7 +239,7 @@ public:
     }
   }
 
-  double dot(Function& rhs, size_t level, size_t flag = All)
+  double dot(P1Function& rhs, size_t level, DoFType flag = All)
   {
     double sp_l = 0.0;
 
@@ -265,110 +268,12 @@ public:
     }
 
     double sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< double >::type(), MPI_SUM, MPI_COMM_WORLD);
 
     return sp_g;
   }
 
-  void apply(Operator& opr, Function& dst, size_t level, size_t flag)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (testFlag(vertex.type, flag))
-      {
-        P1Vertex::pull_halos(vertex, memory_id, level);
-      }
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1Vertex::apply(vertex, opr.id, memory_id, dst.memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1Edge::pull_vertices(edge, dst.memory_id, level);
-      if (testFlag(edge.type, flag))
-      {
-        P1Edge::pull_halos(edge, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1Edge::apply(edge, opr.id, memory_id, dst.memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1Face::pull_edges(face, dst.memory_id, level);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1Face::apply(face, opr.id, memory_id, dst.memory_id, level);
-      }
-    }
-  }
-
-  void smooth_gs(Operator& opr, Function& rhs, size_t level, size_t flag)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (testFlag(vertex.type, flag))
-      {
-        P1Vertex::pull_halos(vertex, memory_id, level);
-      }
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1Vertex::smooth_gs(vertex, opr.id, memory_id, rhs.memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1Edge::pull_vertices(edge, memory_id, level);
-      if (testFlag(edge.type, flag))
-      {
-        P1Edge::pull_halos(edge, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1Edge::smooth_gs(edge, opr.id, memory_id, rhs.memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1Face::pull_edges(face, memory_id, level);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1Face::smooth_gs(face, opr.id, memory_id, rhs.memory_id, level);
-      }
-    }
-  }
-
-  void prolongate(size_t level, size_t flag = All)
+  void prolongate(size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -405,7 +310,7 @@ public:
     }
   }
 
-  void restrict(size_t level, size_t flag = All)
+  void restrict(size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {

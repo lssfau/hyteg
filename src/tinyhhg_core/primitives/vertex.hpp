@@ -1,12 +1,13 @@
 #ifndef VERTEX_HPP
 #define VERTEX_HPP
 
+#include <fmt/ostream.h>
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/types/flags.hpp"
+#include <core/DataTypes.h>
+#include <tinyhhg_core/types/flags.hpp>
 
 #include <vector>
-#include <map>
-#include <fmt/ostream.h>
+
 
 namespace hhg
 {
@@ -38,19 +39,19 @@ public:
   /// \param face Pointer to face which will be added
   void addFace(Face* face);
 
-  /// Returns the index+1 of \p edge within \ref edges
-  /// \param edge Edge 
-  /// \returns Index+1 of \p edge within \ref edges
+  /// Returns the index of \p edge within \ref edges
+  /// \param edge Edge
+  /// \returns Index of \p edge within \ref edges
   size_t edge_index(const Edge& edge) const;
 
   /// Id of vertex
   size_t id;
 
   /// Processor rank this vertex belongs to
-  int rank;
+  walberla::uint_t rank;
 
-  /// Boundary type of vertex
-  size_t type;
+  /// DoF type of vertex
+  DoFType type;
 
   /// Spatial coordinates of vertex
   Point3D coords;
@@ -62,12 +63,12 @@ public:
   std::vector<Face*> faces;
 
 
-	/// Vector containing pointers to memory used by \ref Function and \ref Operator
-	/// The std::vector corresponds to the memory id of a \ref Function or an \Operator
-	/// This replaces the old data and opr_data vectors
-	std::vector<VertexMemory*> memory;
+  /// Vector containing pointers to memory used by \ref Function and \ref Operator
+  /// The std::vector corresponds to the memory id of a \ref Function or an \Operator
+  /// This replaces the old data and opr_data vectors
+  std::vector<VertexMemory*> memory;
 
-  
+
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 };

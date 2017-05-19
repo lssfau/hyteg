@@ -1,10 +1,12 @@
 #ifndef P1VERTEX_HPP
 #define P1VERTEX_HPP
 
+#include <fmt/format.h>
+
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
-#include <fmt/format.h>
+#include <core/mpi/MPIWrapper.h>
 
 namespace hhg
 {
@@ -12,6 +14,8 @@ namespace hhg
 /// P1Vertex namespace for P1 macro-vertex kernels
 namespace P1Vertex
 {
+//FIXME this can be removed after me moved into walberla namespace
+using namespace walberla::mpistubs;
 
 /// Allocate memory for P1 macro-vertex including halos
 /// \param vertex Reference to Vertex the allocated memory will belong to
@@ -76,23 +80,29 @@ inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
     getVertexP1Memory(vertex, rhs_id)->data[level][0];
 }
 
-inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
+inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
   double* opr_data = getVertexStencilMemory(vertex, opr_id)->data[level];
   double* src = getVertexP1Memory(vertex, src_id)->data[level];
   double* dst = getVertexP1Memory(vertex, dst_id)->data[level];
 
-  dst[0] = opr_data[0] * src[0];
+  if (update == Replace) {
+    dst[0] = opr_data[0] * src[0];
+  }
+  else if (update == Add) {
+    dst[0] += opr_data[0] * src[0];
+  }
 
   for (size_t i = 0; i < vertex.edges.size(); ++i)
   {
     dst[0] += opr_data[i+1] * src[i+1];
   }
+
 }
 
 inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)
 {
-  double* opr_data = getVertexP1Memory(vertex, opr_id)->data[level];
+  double* opr_data = getVertexStencilMemory(vertex, opr_id)->data[level];
   double* dst = getVertexP1Memory(vertex, f_id)->data[level];
   double* rhs = getVertexP1Memory(vertex, rhs_id)->data[level];
 
@@ -116,11 +126,11 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 //    {
 //      if (edge->vertex_index(vertex) == 0)
 //      {
-//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level][1];
+//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level - 2][1];
 //      }
 //      else
 //      {
-//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level][levelinfo::num_microvertices_per_edge(level) - 2];
+//        bs.sendBuffer(vertex.rank) << edge->data[memory_id][level - 2][levelinfo::num_microvertices_per_edge(level) - 2];
 //      }
 //    }
 //    else if (vertex.rank == rk)
@@ -129,16 +139,16 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 //      {
 //        if(edge->vertex_index(vertex) == 0)
 //        {
-//          vertex.data[memory_id][level][i] = edge->data[memory_id][level][1];
+//          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][1];
 //        }
 //        else
 //        {
-//          vertex.data[memory_id][level][i] = edge->data[memory_id][level][levelinfo::num_microvertices_per_edge(level) - 2];
+//          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2];
 //        }
 //      }
 //      else
 //      {
-//        MPI_Recv(&vertex.data[memory_id][level][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 //      }
 //    }
 //  }
@@ -146,7 +156,6 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
-  //WALBERLA_LOG_DEVEL("Started Pull Halos in p1vertex");
   size_t i = 1;
   auto MPIManager = walberla::mpi::MPIManager::instance();
   int rk = MPIManager->rank();
@@ -170,24 +179,23 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
       }
       else
       {
-        MPI_Recv(&getVertexP1Memory(vertex, memory_id)->data[level][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&getVertexP1Memory(vertex, memory_id)->data[level][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
     }
     else if (edge->rank == rk)
     {
       if(edge->vertex_index(vertex) == 0)
       {
-        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][1], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][1], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
       else
       {
-        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
     }
 
     i += 1;
   }
-  //WALBERLA_LOG_DEVEL("Finished Pull Halos in p1vertex");
 }
 
 inline void prolongate(Vertex& vertex, size_t memory_id, size_t level)
@@ -207,6 +215,19 @@ inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
   {
     vertex_data_c[0] += 0.5 * vertex_data_f[i];
     i += 1;
+  }
+}
+
+inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id, size_t level)
+{
+  double* opr_data = getVertexStencilMemory(vertex, opr_id)->data[level];
+  double* src = getVertexP1Memory(vertex, src_id)->data[level];
+
+  fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
+
+  for (size_t i = 0; i < vertex.edges.size(); ++i)
+  {
+    fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[i+1], opr_data[i+1]);
   }
 }
 

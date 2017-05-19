@@ -1,3 +1,5 @@
+#include <fmt/ostream.h>
+
 #include "edge.hpp"
 #include "face.hpp"
 #include "vertex.hpp"
@@ -6,14 +8,14 @@
 
 #include <core/mpi/MPIManager.h>
 
-#include <fmt/ostream.h>
 #include <cstddef>
 
 namespace hhg
 {
+using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
-  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), type(Inner)
+  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {
@@ -29,35 +31,35 @@ Face::Face(size_t _id, Edge* _edges[3])
 
   if (v0_1 == v1_0 && v1_1 == v2_0 && v2_1 == v0_0)
   {
-    edge_orientation = {1, 1, 1};
+    edge_orientation = {{1, 1, 1}};
   }
   else if (v0_1 == v1_0 && v1_1 == v2_1 && v2_0 == v0_0)
   {
-    edge_orientation = {1, 1, -1};
+    edge_orientation = {{1, 1, -1}};
   }
   else if (v0_1 == v1_1 && v1_0 == v2_0 && v2_1 == v0_0)
   {
-    edge_orientation = {1, -1, 1};
+    edge_orientation = {{1, -1, 1}};
   }
   else if (v0_1 == v1_1 && v1_0 == v2_1 && v2_0 == v0_0)
   {
-    edge_orientation = {1, -1, -1};
+    edge_orientation = {{1, -1, -1}};
   }
   else if (v0_0 == v1_0 && v1_1 == v2_0 && v2_1 == v0_1)
   {
-    edge_orientation = {-1, 1, 1};
+    edge_orientation = {{-1, 1, 1}};
   }
   else if (v0_0 == v1_0 && v1_1 == v2_1 && v2_0 == v0_1)
   {
-    edge_orientation = {-1, 1, -1};
+    edge_orientation = {{-1, 1, -1}};
   }
   else if (v0_0 == v1_1 && v1_0 == v2_0 && v2_1 == v0_1)
   {
-    edge_orientation = {-1, -1, 1};
+    edge_orientation = {{-1, -1, 1}};
   }
   else if (v0_0 == v1_1 && v1_0 == v2_1 && v2_0 == v0_1)
   {
-    edge_orientation = {-1, -1, -1};
+    edge_orientation = {{-1, -1, -1}};
   }
 
   if (edge_orientation[0] == 1)
@@ -80,9 +82,9 @@ Face::Face(size_t _id, Edge* _edges[3])
     vertices.push_back(v1_0);
   }
 
-  coords = { vertices[0]->coords, vertices[1]->coords, vertices[2]->coords };
+  coords = {{vertices[0]->coords, vertices[1]->coords, vertices[2]->coords}};
 
-  std::array<Point3D, 2> B({coords[1]-coords[0], coords[2] - coords[0]});
+  std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
   area = std::abs(0.5 * math::det2(B));
 }
 
@@ -96,7 +98,7 @@ size_t Face::vertex_index(const Vertex& vertex) const
     }
   }
 
-  return -1;
+  return std::numeric_limits<std::size_t>::max();
 }
 
 size_t Face::edge_index(const Edge& edge) const
@@ -109,7 +111,7 @@ size_t Face::edge_index(const Edge& edge) const
     }
   }
 
-  return -1;
+  return std::numeric_limits<std::size_t>::max();
 }
 
 std::vector<Edge*> Face::adjacent_edges(const Vertex& vertex) const
@@ -145,7 +147,5 @@ std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
             << "edges[2] = " << face.edges[2]->id << "; "
             << "}";
 }
-
-
 
 }

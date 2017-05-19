@@ -18,8 +18,7 @@ int main (int argc, char ** argv )
 
   hhg::P1Function x("x", mesh, minLevel, maxLevel);
 
-  //std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return x[0] + x[1]; };
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return 13; };
+  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13; };
 
   auto faceZero = mesh.faces[0];
   hhg::P1Face::interpolate(faceZero,0,exact,maxLevel);

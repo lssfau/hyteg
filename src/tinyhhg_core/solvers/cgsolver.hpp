@@ -6,7 +6,7 @@
 namespace hhg
 {
 
-template<class F>
+template<class F, class O>
 class CGSolver
 {
 public:
@@ -16,9 +16,9 @@ public:
   {
   }
 
-  void solve(Operator& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, size_t flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
-    x.apply(A, p, level, flag);
+    A.apply(x, p, level, flag);
     r.assign({1.0, -1.0}, {&b, &p}, level, flag);
     double res_start = std::sqrt(r.dot(r, level, flag));
     p.assign({1.0}, {&r}, level, flag);
@@ -32,11 +32,11 @@ public:
 
     for(size_t i = 0; i < maxiter; ++i)
     {
-      p.apply(A, ap, level, flag);
+      A.apply(p, ap, level, flag);
       double pAp = p.dot(ap, level, flag);
 
       double alpha = rsold / pAp;
-      x.assign({1.0, alpha}, {&x, &p}, level, flag);
+      x.add({alpha}, {&p}, level, flag);
       r.add({ -alpha }, { &ap }, level, flag);
       double rsnew = r.dot(r, level, flag);
       double sqrsnew = std::sqrt(rsnew);

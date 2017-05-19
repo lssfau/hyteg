@@ -5,8 +5,10 @@
 namespace hhg
 {
 
+using walberla::uint_c;
+
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), coords(_coords)
+  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), coords(_coords)
 {
 }
 
@@ -22,16 +24,8 @@ void Vertex::addFace(Face* face)
 
 size_t Vertex::edge_index(const Edge& edge) const
 {
-  size_t i = 1;
-
-  for (Edge* e : edges)
-  {
-    if (&edge == e)
-    {
-      return i;
-    }
-    ++i;
-  }
+  auto it = std::find(edges.begin(),edges.end(),&edge);
+  return uint_c((it - edges.begin()));
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
@@ -40,8 +34,5 @@ std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
             << "coords = [" << vertex.coords[0] << ", " << vertex.coords[1] << ", " << vertex.coords[2] << "]; "
             << "}";
 }
-
-
-
 
 }

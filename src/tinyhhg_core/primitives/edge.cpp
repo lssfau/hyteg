@@ -1,20 +1,23 @@
 #include "edge.hpp"
 #include "vertex.hpp"
 
-#include <core/mpi/MPIManager.h>
-
 #include <fmt/format.h>
+
+#include <core/mpi/MPIManager.h>
 
 namespace hhg
 {
 
-Edge::Edge(size_t _id, size_t _type, Vertex* _v0, Vertex* _v1)
-  : id(_id), rank(id % walberla::mpi::MPIManager::instance()->numProcesses()), type(_type), v0(_v0), v1(_v1)
+using walberla::uint_c;
+
+Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
+  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(_type), v0(_v0), v1(_v1)
 {
   direction = v1->coords - v0->coords;
   length = direction.norm();
   tangent = direction / length;
-  normal_2d = Point3D({tangent[1], -tangent[0], 0.0});
+  const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
+  normal_2d = Point3D(init);
 
   // fmt::print("direction = {}\n", direction);
   // fmt::print("length = {}\n", length);
@@ -78,6 +81,5 @@ std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
             << "v0 = " << edge.v0->id << "; "
             << "v1 = " << edge.v1->id << "; }";
 }
-
 
 }

@@ -1,22 +1,21 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
-//#include "comm.hpp"
-
-#include <core/mpi/MPIManager.h>
-#include <fmt/format.h>
-
-#include <fstream>
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
 namespace hhg
 {
 
+using walberla::uint_t;
+using walberla::uint_c;
+using walberla::real_t;
+using walberla::real_c;
+////FIXME this typedef can be remove when we move into walberla namespace
+//typedef walberla::uint64_t uint64_t;
+
 void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
-  int np = walberla::mpi::MPIManager::instance()->numProcesses() ;
-  int rk = walberla::mpi::MPIManager::instance()->rank() ;
-  // int rk = hhg::Comm::get().rk;
-  // int np = hhg::Comm::get().np;
+  uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
+  uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
 
   if (rk == 0)
   {
@@ -47,7 +46,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
     pvtu_file << "    </PPointData>\n";
     pvtu_file << "    <PCellData/>\n";
 
-    for (int i = 0; i < np; ++i)
+    for (uint_t i = 0; i < np; ++i)
     {
       pvtu_file << "    <Piece Source=\"" << fmt::format("{}-rk{:0>4}.vtu", filename, i) << "\"/>\n";
     }
@@ -107,15 +106,15 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
       x0 = face.edges[0]->v1->coords;
     }
 
-    Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize-1);
-    Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize-1);
+    Point3D d0 =  face.edge_orientation[0] * face.edges[0]->direction / (real_c(rowsize)-1);
+    Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (real_c(rowsize)-1);
 
     size_t inner_rowsize = rowsize;
 
     for (size_t i = 0; i < rowsize; ++i)
     {
       x = x0;
-      x += i * d2;
+      x += real_c(i) * d2;
 
       for (size_t j = 0; j < inner_rowsize; ++j)
       {

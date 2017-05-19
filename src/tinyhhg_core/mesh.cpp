@@ -9,7 +9,7 @@
 namespace hhg
 {
 
-Boundary BoundaryTypeToFlag[] = { Inner, DirichletBoundary, NeumannBoundary };
+DoFType BoundaryTypeToFlag[] = { Inner, DirichletBoundary, NeumannBoundary };
 
 Mesh::Mesh(const std::string& filename)
 {
@@ -125,7 +125,7 @@ Mesh::Mesh(const std::string& filename)
       size_t e1 = addEdge(v1, v2, 0, map);
       size_t e2 = addEdge(v2, v0, 0, map);
 
-      face_edge_indices.push_back({e0, e1, e2});
+      face_edge_indices.push_back({{e0, e1, e2}});
     }
     else if (elemType == 15) // vertex
     {
