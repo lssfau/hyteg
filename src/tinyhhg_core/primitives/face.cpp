@@ -147,22 +147,5 @@ std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 }
 
 
-void FaceStencilMemory::free()
-{
-	for (auto el : data)
-	{
-		delete[] el.second;
-	}
-	data.clear();
-}
-
-void FaceP1Memory::free()
-{
-	for (auto el : data)
-	{
-		delete[] el.second;
-	}
-	data.clear();
-}
 
 }

@@ -52,37 +52,6 @@ public:
 protected:
 	FaceMemory(MemoryType t) : type(t) { ; }
 };
-
-
-class FaceStencilMemory
-	:public FaceMemory
-{
-public:
-	FaceStencilMemory() : FaceMemory(Stencil) { ; }
-
-	std::map<size_t,double*> data;
-
-	virtual void free();
-
-  ~FaceStencilMemory() { free(); }
-
-};
-
-
-class FaceP1Memory
-	:public FaceMemory
-{
-public:
-	FaceP1Memory() : FaceMemory(P1) { ; }
-
-	std::map<size_t,double*> data;
-
-	virtual void free();
-
-  ~FaceP1Memory() { free(); }
-};
-
-
 }
 
 #endif /* FACE_HPP */

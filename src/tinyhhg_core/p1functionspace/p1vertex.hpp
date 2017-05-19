@@ -2,6 +2,7 @@
 #define P1VERTEX_HPP
 
 #include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
 #include <fmt/format.h>
 
@@ -30,7 +31,7 @@ inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t m
     size_t total_n_dofs = levelinfo::num_microvertices_per_vertex(level) + num_deps;
     double* new_data = new double[total_n_dofs];
     memset(new_data, 0, total_n_dofs * sizeof(double));
-    static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level] = new_data;
+    getVertexP1Memory(vertex, memory_id)->data[level] = new_data;
   }
 }
 
@@ -42,19 +43,19 @@ inline void free(Vertex& vertex, size_t memory_id)
 
 inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)
 {
-  static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level][0] = expr(vertex.coords);
+  getVertexP1Memory(vertex, memory_id)->data[level][0] = expr(vertex.coords);
 }
 
 inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
 {
-  double tmp = scalars[0] * static_cast<VertexP1Memory*>(vertex.memory[src_ids[0]])->data[level][0];
+  double tmp = scalars[0] * getVertexP1Memory(vertex, src_ids[0])->data[level][0];
 
   for (size_t i = 1; i < src_ids.size(); ++i)
   {
-    tmp += scalars[i] * static_cast<VertexP1Memory*>(vertex.memory[src_ids[i]])->data[level][0];
+    tmp += scalars[i] * getVertexP1Memory(vertex, src_ids[i])->data[level][0];
   }
 
-  static_cast<VertexP1Memory*>(vertex.memory[dst_id])->data[level][0] = tmp;
+  getVertexP1Memory(vertex, dst_id)->data[level][0] = tmp;
 }
 
 inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
@@ -63,23 +64,23 @@ inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::v
 
   for (size_t i = 0; i < src_ids.size(); ++i)
   {
-    tmp += scalars[i] * static_cast<VertexP1Memory*>(vertex.memory[src_ids[i]])->data[level][0];
+    tmp += scalars[i] * getVertexP1Memory(vertex, src_ids[i])->data[level][0];
   }
 
-  static_cast<VertexP1Memory*>(vertex.memory[dst_id])->data[level][0] += tmp;
+  getVertexP1Memory(vertex, dst_id)->data[level][0] += tmp;
 }
 
 inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
 {
-  return static_cast<VertexP1Memory*>(vertex.memory[lhs_id])->data[level][0] *
-    static_cast<VertexP1Memory*>(vertex.memory[rhs_id])->data[level][0];
+  return getVertexP1Memory(vertex, lhs_id)->data[level][0] *
+    getVertexP1Memory(vertex, rhs_id)->data[level][0];
 }
 
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level)
 {
-  double* opr_data = static_cast<VertexStencilMemory*>(vertex.memory[opr_id])->data[level];
-  double* src = static_cast<VertexP1Memory*>(vertex.memory[src_id])->data[level];
-  double* dst = static_cast<VertexP1Memory*>(vertex.memory[dst_id])->data[level];
+  double* opr_data = getVertexStencilMemory(vertex, opr_id)->data[level];
+  double* src = getVertexP1Memory(vertex, src_id)->data[level];
+  double* dst = getVertexP1Memory(vertex, dst_id)->data[level];
 
   dst[0] = opr_data[0] * src[0];
 
@@ -91,9 +92,9 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)
 {
-  double* opr_data = static_cast<VertexP1Memory*>(vertex.memory[opr_id])->data[level];
-  double* dst = static_cast<VertexP1Memory*>(vertex.memory[f_id])->data[level];
-  double* rhs = static_cast<VertexP1Memory*>(vertex.memory[rhs_id])->data[level];
+  double* opr_data = getVertexP1Memory(vertex, opr_id)->data[level];
+  double* dst = getVertexP1Memory(vertex, f_id)->data[level];
+  double* rhs = getVertexP1Memory(vertex, rhs_id)->data[level];
 
   dst[0] = rhs[0];
 
@@ -160,27 +161,27 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
       {
         if(edge->vertex_index(vertex) == 0)
         {
-          static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level][i] = static_cast<EdgeP1Memory*>(edge->memory[memory_id])->data[level][1];
+          getVertexP1Memory(vertex, memory_id)->data[level][i] = getEdgeP1Memory(*edge, memory_id)->data[level][1];
         }
         else
         {
-          static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level][i] = static_cast<EdgeP1Memory*>(edge->memory[memory_id])->data[level][levelinfo::num_microvertices_per_edge(level) - 2];
+          getVertexP1Memory(vertex, memory_id)->data[level][i] = getEdgeP1Memory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2];
         }
       }
       else
       {
-        MPI_Recv(&static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&getVertexP1Memory(vertex, memory_id)->data[level][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
     }
     else if (edge->rank == rk)
     {
       if(edge->vertex_index(vertex) == 0)
       {
-        MPI_Send(&static_cast<EdgeP1Memory*>(edge->memory[memory_id])->data[level][1], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][1], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
       }
       else
       {
-        MPI_Send(&static_cast<EdgeP1Memory*>(edge->memory[memory_id])->data[level][levelinfo::num_microvertices_per_edge(level) - 2], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&getEdgeP1Memory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2], 1, MPI_DOUBLE, vertex.rank, i, MPI_COMM_WORLD);
       }
     }
 
@@ -191,13 +192,13 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 
 inline void prolongate(Vertex& vertex, size_t memory_id, size_t level)
 {
-  static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level+1][0] = static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level][0];
+  getVertexP1Memory(vertex, memory_id)->data[level+1][0] = getVertexP1Memory(vertex, memory_id)->data[level][0];
 }
 
 inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
 {
-  double* vertex_data_f = static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level];
-  double* vertex_data_c = static_cast<VertexP1Memory*>(vertex.memory[memory_id])->data[level-1];
+  double* vertex_data_f = getVertexP1Memory(vertex, memory_id)->data[level];
+  double* vertex_data_c = getVertexP1Memory(vertex, memory_id)->data[level-1];
 
   vertex_data_c[0] = vertex_data_f[0];
 

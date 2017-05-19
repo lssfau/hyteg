@@ -80,22 +80,4 @@ std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 }
 
 
-void EdgeStencilMemory::free()
-{
-	for (auto el : data)
-	{
-		delete[] el.second;
-	}
-	data.clear();
-}
-
-void EdgeP1Memory::free()
-{
-	for (auto el : data)
-	{
-		delete[] el.second;
-	}
-	data.clear();
-}
-
 }

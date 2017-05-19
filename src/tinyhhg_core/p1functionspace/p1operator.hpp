@@ -12,6 +12,8 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 
+#include "tinyhhg_core/p1functionspace/p1memory.hpp"
+
 namespace hhg
 {
 
@@ -88,7 +90,7 @@ public:
           }
           else if (id != e.memory.size())
             WALBERLA_LOGLEVEL_WARNING("ID of Vertex and Edge are not the same");
-            
+
         }
       }
     //}
@@ -126,12 +128,19 @@ public:
           continue;
         }
 
+        if (level == minLevel)
+        {
+          face.memory.push_back(new FaceStencilMemory());
+        }
+
+        double* face_stencil = getFaceStencilMemory(face, id)->addlevel(level);
+
         double local_stiffness_up[3][3];
         double local_stiffness_down[3][3];
         compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, UPWARD);
         compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, DOWNWARD);
 
-        double* face_stencil = new double[7]();
+
 
         face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
         face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
@@ -144,11 +153,8 @@ public:
         face_stencil[3] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
                             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
 
-        if (level == minLevel)
-        {
-          face.memory.push_back(new FaceStencilMemory());
-        }
-        static_cast<FaceStencilMemory*>(face.memory[id])->data[level] = face_stencil;
+
+
 
 //        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
 //        fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
@@ -166,8 +172,7 @@ public:
           edge.memory.push_back(new EdgeStencilMemory());
         }
 
-        double* edge_stencil = new double[7]();
-        static_cast<EdgeStencilMemory*>(edge.memory[id])->data[level] = edge_stencil;
+        double* edge_stencil = getEdgeStencilMemory(edge, id)->addlevel(level);
 
         double local_stiffness_up[3][3];
         double local_stiffness_down[3][3];
@@ -222,8 +227,10 @@ public:
           vertex.memory.push_back(new VertexStencilMemory());
         }
 
-        double* vertex_stencil = new double[1 + vertex.edges.size()]();
-        static_cast<VertexStencilMemory*>(vertex.memory[id])->data[level] = vertex_stencil;
+        //double* vertex_stencil = new double[1 + vertex.edges.size()]();
+        //getVertexStencilMemory(vertex, id)->data[level] = vertex_stencil;
+
+        double* vertex_stencil = getVertexStencilMemory(vertex, id)->addlevel(level, vertex.edges.size());
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)

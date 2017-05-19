@@ -59,37 +59,6 @@ public:
 protected:
 	EdgeMemory(MemoryType t) : type(t) { ; }
 };
-
-
-class EdgeStencilMemory
-	:public EdgeMemory
-{
-public:
-	EdgeStencilMemory() : EdgeMemory(Stencil) { ; }
-
-	std::map<size_t, double*> data;
-
-	virtual void free();
-
-  ~EdgeStencilMemory() { free(); }
-
-};
-
-
-class EdgeP1Memory
-	:public EdgeMemory
-{
-public:
-	EdgeP1Memory() : EdgeMemory(P1) { ; }
-
-	std::map<size_t, double*> data;
-
-	virtual void free();
-
-  ~EdgeP1Memory() { free(); }
-};
-
-
 }
 
 #endif /* EDGE_HPP */

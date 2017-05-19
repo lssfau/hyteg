@@ -88,34 +88,6 @@ protected:
 };
 
 
-class VertexStencilMemory
-	:public VertexMemory
-{
-public:
-	VertexStencilMemory() : VertexMemory(Stencil) { ; }
-
-	std::map<size_t, double*> data;
-
-	virtual void free();
-
-  ~VertexStencilMemory() { free(); }
-
-};
-
-
-class VertexP1Memory
-	:public VertexMemory
-{
-public:
-	VertexP1Memory() : VertexMemory(P1) { ; }
-
-	std::map<size_t, double*> data;
-
-	virtual void free();
-
-  ~VertexP1Memory() { free(); }
-};
-
 
 }
 
