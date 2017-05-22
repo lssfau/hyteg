@@ -1,6 +1,6 @@
 Parameters
 {
-  mesh ../data/meshes/quad_4el.msh;
+  mesh ../../data/meshes/quad_4el.msh;
   nu_pre 2;
   nu_post 2;
   outer_iter 20;
