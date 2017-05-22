@@ -46,45 +46,50 @@ inline void free(Vertex& vertex, size_t memory_id, size_t minLevel, size_t maxLe
   }
 }
 
-inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr, size_t level)
+template<size_t Level>
+inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr)
 {
-  vertex.data[memory_id][level-2][0] = expr(vertex.coords);
+  vertex.data[memory_id][Level-2][0] = expr(vertex.coords);
 }
 
-inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+template<size_t Level>
+inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
-  double tmp = scalars[0] * vertex.data[src_ids[0]][level-2][0];
+  double tmp = scalars[0] * vertex.data[src_ids[0]][Level-2][0];
 
   for (size_t i = 1; i < src_ids.size(); ++i)
   {
-    tmp += scalars[i] * vertex.data[src_ids[i]][level-2][0];
+    tmp += scalars[i] * vertex.data[src_ids[i]][Level-2][0];
   }
 
-  vertex.data[dst_id][level-2][0] = tmp;
+  vertex.data[dst_id][Level-2][0] = tmp;
 }
 
-inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+template<size_t Level>
+inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
   double tmp = 0.0;
 
   for (size_t i = 0; i < src_ids.size(); ++i)
   {
-    tmp += scalars[i] * vertex.data[src_ids[i]][level-2][0];
+    tmp += scalars[i] * vertex.data[src_ids[i]][Level-2][0];
   }
 
-  vertex.data[dst_id][level-2][0] += tmp;
+  vertex.data[dst_id][Level-2][0] += tmp;
 }
 
-inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
+template<size_t Level>
+inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id)
 {
-  return vertex.data[lhs_id][level-2][0] * vertex.data[rhs_id][level-2][0];
+  return vertex.data[lhs_id][Level-2][0] * vertex.data[rhs_id][Level-2][0];
 }
 
-inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
+template<size_t Level>
+inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
 {
-  double* opr_data = vertex.opr_data[opr_id][level-2];
-  double* src = vertex.data[src_id][level-2];
-  double* dst = vertex.data[dst_id][level-2];
+  double* opr_data = vertex.opr_data[opr_id][Level-2];
+  double* src = vertex.data[src_id][Level-2];
+  double* dst = vertex.data[dst_id][Level-2];
 
   if (update == Replace) {
     dst[0] = opr_data[0] * src[0];
@@ -99,11 +104,12 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
   }
 }
 
-inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)
+template<size_t Level>
+inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id)
 {
-  double* opr_data = vertex.opr_data[opr_id][level-2];
-  double* dst = vertex.data[f_id][level-2];
-  double* rhs = vertex.data[rhs_id][level-2];
+  double* opr_data = vertex.opr_data[opr_id][Level-2];
+  double* dst = vertex.data[f_id][Level-2];
+  double* rhs = vertex.data[rhs_id][Level-2];
 
   dst[0] = rhs[0];
 
@@ -153,7 +159,8 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 //  }
 //}
 
-inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
+template<size_t Level>
+inline void pull_halos(Vertex& vertex, size_t memory_id)
 {
   size_t i = 1;
   auto MPIManager = walberla::mpi::MPIManager::instance();
@@ -169,27 +176,27 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
       {
         if(edge->vertex_index(vertex) == 0)
         {
-          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][1];
+          vertex.data[memory_id][Level-2][i] = edge->data[memory_id][Level-2][1];
         }
         else
         {
-          vertex.data[memory_id][level-2][i] = edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2];
+          vertex.data[memory_id][Level-2][i] = edge->data[memory_id][Level-2][levelinfo::num_microvertices_per_edge(Level) - 2];
         }
       }
       else
       {
-        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&vertex.data[memory_id][Level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
     }
     else if (edge->rank == rk)
     {
       if(edge->vertex_index(vertex) == 0)
       {
-        MPI_Send(&edge->data[memory_id][level-2][1], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&edge->data[memory_id][Level-2][1], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
       else
       {
-        MPI_Send(&edge->data[memory_id][level-2][levelinfo::num_microvertices_per_edge(level) - 2], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&edge->data[memory_id][Level-2][levelinfo::num_microvertices_per_edge(Level) - 2], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
     }
 
@@ -197,15 +204,17 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
   }
 }
 
-inline void prolongate(Vertex& vertex, size_t memory_id, size_t level)
+template<size_t Level>
+inline void prolongate(Vertex& vertex, size_t memory_id)
 {
-  vertex.data[memory_id][level-2+1][0] = vertex.data[memory_id][level-2][0];
+  vertex.data[memory_id][Level-2+1][0] = vertex.data[memory_id][Level-2][0];
 }
 
-inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
+template<size_t Level>
+inline void restrict(Vertex& vertex, size_t memory_id)
 {
-  double* vertex_data_f = vertex.data[memory_id][level-2];
-  double* vertex_data_c = vertex.data[memory_id][level-2-1];
+  double* vertex_data_f = vertex.data[memory_id][Level-2];
+  double* vertex_data_c = vertex.data[memory_id][Level-2-1];
 
   vertex_data_c[0] = vertex_data_f[0];
 
@@ -217,10 +226,11 @@ inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
   }
 }
 
-inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id, size_t level)
+template<size_t Level>
+inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id)
 {
-  double* opr_data = vertex.opr_data[opr_id][level-2];
-  double* src = vertex.data[src_id][level-2];
+  double* opr_data = vertex.opr_data[opr_id][Level-2];
+  double* src = vertex.data[src_id][Level-2];
 
   fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
 

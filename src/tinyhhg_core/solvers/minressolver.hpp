@@ -39,26 +39,28 @@ public:
     delete p_wp;
   }
 
-  void init(size_t level, DoFType flag)
+  template<size_t Level>
+  void init(DoFType flag)
   {
     std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
-    p_vm->interpolate(zero, level, flag);
-    p_wm->interpolate(zero, level, flag);
-    p_w->interpolate(zero, level, flag);
+    p_vm->template interpolate<Level>(zero, flag);
+    p_wm->template interpolate<Level>(zero, flag);
+    p_w->template interpolate<Level>(zero, flag);
   }
 
-  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
+  template<size_t Level>
+  void solve(O& A, F& x, F& b, F& r, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
-    init(level, flag);
+    init<Level>(flag);
 
-    A.apply(x, r, level, flag);
-    p_v->assign({1.0, -1.0}, {&b, &r}, level, flag);
+    A.template apply<Level>(x, r, flag);
+    p_v->template assign<Level>({1.0, -1.0}, {&b, &r}, flag);
 
     // identity preconditioner
-    p_z->assign({1.0}, {p_v}, level, flag);
+    p_z->template assign<Level>({1.0}, {p_v}, flag);
 
     double gamma_old = 1.0;
-    double gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
+    double gamma_new = std::sqrt(p_z->template dot<Level>(*p_v, flag));
 
     double res_start = gamma_new;
 
@@ -76,17 +78,17 @@ public:
     }
 
     for(size_t i = 0; i < maxiter; ++i) {
-      p_z->assign({1.0 / gamma_new}, {p_z}, level, flag);
-      A.apply(*p_z, *p_vp, level, flag);
-      double delta = p_vp->dot(*p_z, level, flag);
+      p_z->template assign<Level>({1.0 / gamma_new}, {p_z}, flag);
+      A.template apply<Level>(*p_z, *p_vp, flag);
+      double delta = p_vp->template dot<Level>(*p_z, flag);
 
-      p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
+      p_vp->template assign<Level>({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, flag);
 
       // identity preconditioner
-      p_zp->assign({1.0}, {p_vp}, level, flag);
+      p_zp->template assign<Level>({1.0}, {p_vp}, flag);
 
       gamma_old = gamma_new;
-      gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
+      gamma_new = std::sqrt(p_zp->template dot<Level>(*p_vp, flag));
 
       double alpha0 = c_new * delta - c_old * s_new * gamma_old;
       double alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
@@ -98,8 +100,8 @@ public:
       s_old = s_new;
       s_new = gamma_new / alpha1;
 
-      p_wp->assign({1.0/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, level, flag);
-      x.add({c_new * eta}, {p_wp}, level, flag);
+      p_wp->template assign<Level>({1.0/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, flag);
+      x.template add<Level>({c_new * eta}, {p_wp}, flag);
 
       eta = -s_new * eta;
 

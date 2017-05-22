@@ -114,87 +114,46 @@ public:
     }
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void interpolate(std::function<double(const hhg::Point3D&)>& expr, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1Vertex::interpolate(vertex, memory_id, expr, level);
+        P1Vertex::interpolate<Level>(vertex, memory_id, expr);
       }
     }
 
     for (Edge& edge : mesh.edges)
     {
-      P1Edge::pull_vertices(edge, memory_id, level);
+      P1Edge::pull_vertices<Level>(edge, memory_id);
     }
 
     for (Edge& edge : mesh.edges)
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1Edge::interpolate(edge, memory_id, expr, level);
+        P1Edge::interpolate<Level>(edge, memory_id, expr);
       }
     }
 
     for (Face& face : mesh.faces)
     {
-      P1Face::pull_edges(face, memory_id, level);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1Face::interpolate(face, memory_id, expr, level);
-      }
-    }
-  }
-
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
-  {
-    std::vector<size_t> src_ids(functions.size());
-    for (size_t i = 0; i < functions.size(); ++i)
-    {
-      src_ids[i] = functions[i]->memory_id;
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1Vertex::assign(vertex, scalars, src_ids, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1Edge::pull_vertices(edge, memory_id, level);
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1Edge::assign(edge, scalars, src_ids, memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1Face::pull_edges(face, memory_id, level);
+      P1Face::pull_edges<Level>(face, memory_id);
     }
 
     for (Face& face : mesh.faces)
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::assign(face, scalars, src_ids, memory_id, level);
+        P1Face::interpolate<Level>(face, memory_id, expr);
       }
     }
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, DoFType flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -206,38 +165,83 @@ public:
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1Vertex::add(vertex, scalars, src_ids, memory_id, level);
+        P1Vertex::assign<Level>(vertex, scalars, src_ids, memory_id);
       }
     }
 
     for (Edge& edge : mesh.edges)
     {
-      P1Edge::pull_vertices(edge, memory_id, level);
+      P1Edge::pull_vertices<Level>(edge, memory_id);
     }
 
     for (Edge& edge : mesh.edges)
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1Edge::add(edge, scalars, src_ids, memory_id, level);
+        P1Edge::assign<Level>(edge, scalars, src_ids, memory_id);
       }
     }
 
     for (Face& face : mesh.faces)
     {
-      P1Face::pull_edges(face, memory_id, level);
+      P1Face::pull_edges<Level>(face, memory_id);
     }
 
     for (Face& face : mesh.faces)
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::add(face, scalars, src_ids, memory_id, level);
+        P1Face::assign<Level>(face, scalars, src_ids, memory_id);
       }
     }
   }
 
-  double dot(P1Function& rhs, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, DoFType flag = All)
+  {
+    std::vector<size_t> src_ids(functions.size());
+    for (size_t i = 0; i < functions.size(); ++i)
+    {
+      src_ids[i] = functions[i]->memory_id;
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::add<Level>(vertex, scalars, src_ids, memory_id);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices<Level>(edge, memory_id);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::add<Level>(edge, scalars, src_ids, memory_id);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges<Level>(face, memory_id);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::add<Level>(face, scalars, src_ids, memory_id);
+      }
+    }
+  }
+
+  template<size_t Level>
+  double dot(P1Function& rhs, DoFType flag = All)
   {
     double sp_l = 0.0;
 
@@ -245,7 +249,7 @@ public:
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        sp_l += P1Vertex::dot(vertex, memory_id, rhs.memory_id, level);
+        sp_l += P1Vertex::dot<Level>(vertex, memory_id, rhs.memory_id);
       }
     }
 
@@ -253,7 +257,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        sp_l += P1Edge::dot(edge, memory_id, rhs.memory_id, level);
+        sp_l += P1Edge::dot<Level>(edge, memory_id, rhs.memory_id);
       }
     }
 
@@ -261,7 +265,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        sp_l += P1Face::dot(face, memory_id, rhs.memory_id, level);
+        sp_l += P1Face::dot<Level>(face, memory_id, rhs.memory_id);
       }
     }
 
@@ -271,50 +275,52 @@ public:
     return sp_g;
   }
 
-  void prolongate(size_t level, DoFType flag = All)
+  template<size_t Level>
+  void prolongate(DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1Vertex::prolongate(vertex, memory_id, level);
+        P1Vertex::prolongate<Level>(vertex, memory_id);
       }
     }
 
     for (Edge& edge : mesh.edges)
     {
-      P1Edge::pull_vertices(edge, memory_id, level+1);
+      P1Edge::pull_vertices<Level+1>(edge, memory_id);
     }
 
     for (Edge& edge : mesh.edges)
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1Edge::prolongate(edge, memory_id, level);
+        P1Edge::prolongate<Level>(edge, memory_id);
       }
     }
 
     for (Face& face : mesh.faces)
     {
-      P1Face::pull_edges(face, memory_id, level+1);
+      P1Face::pull_edges<Level+1>(face, memory_id);
     }
 
     for (Face& face : mesh.faces)
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::prolongate(face, memory_id, level);
+        P1Face::prolongate<Level>(face, memory_id);
       }
     }
   }
 
-  void restrict(size_t level, DoFType flag = All)
+  template<size_t Level>
+  void restrict(DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
       if (testFlag(vertex.type, flag))
       {
-        P1Vertex::pull_halos(vertex, memory_id, level);
+        P1Vertex::pull_halos<Level>(vertex, memory_id);
       }
     }
 
@@ -322,16 +328,16 @@ public:
     {
       if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1Vertex::restrict(vertex, memory_id, level);
+        P1Vertex::restrict<Level>(vertex, memory_id);
       }
     }
 
     for (Edge& edge : mesh.edges)
     {
-      P1Edge::pull_vertices(edge, memory_id, level-1);
+      P1Edge::pull_vertices<Level-1>(edge, memory_id);
       if (testFlag(edge.type, flag))
       {
-        P1Edge::pull_halos(edge, memory_id, level);
+        P1Edge::pull_halos<Level>(edge, memory_id);
       }
     }
 
@@ -339,20 +345,20 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1Edge::restrict(edge, memory_id, level);
+        P1Edge::restrict<Level>(edge, memory_id);
       }
     }
 
     for (Face& face : mesh.faces)
     {
-      P1Face::pull_edges(face, memory_id, level-1);
+      P1Face::pull_edges<Level-1>(face, memory_id);
     }
 
     for (Face& face : mesh.faces)
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::restrict(face, memory_id, level);
+        P1Face::restrict<Level>(face, memory_id);
       }
     }
   }

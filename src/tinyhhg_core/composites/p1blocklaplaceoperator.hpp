@@ -16,11 +16,12 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  template<size_t Level>
+  void apply(P1StokesFunction& src, P1StokesFunction& dst, DoFType flag)
   {
-    A.apply(src.u, dst.u, level, flag);
-    A.apply(src.v, dst.v, level, flag);
-    A.apply(src.p, dst.p, level, flag);
+    A.apply<Level>(src.u, dst.u, flag);
+    A.apply<Level>(src.v, dst.v, flag);
+    A.apply<Level>(src.p, dst.p, flag);
   }
 
   P1LaplaceOperator A;

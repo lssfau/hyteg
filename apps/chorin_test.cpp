@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   double dt = 1e-4;
 
   size_t minLevel = 2;
-  size_t maxLevel = 4;
+  const size_t maxLevel = 4;
 
   std::function<double(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     if (x[0] < 1e-8)
@@ -57,53 +57,53 @@ int main(int argc, char* argv[])
   auto mass_solver = hhg::CGSolver<hhg::P1Function, hhg::P1MassOperator>(mesh, minLevel, maxLevel);
   auto laplace_solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
 
-  u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
-  v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
-  p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
+  u.interpolate<maxLevel>(bc_x, hhg::DirichletBoundary);
+  v.interpolate<maxLevel>(bc_y, hhg::DirichletBoundary);
+  p.interpolate<maxLevel-1>(zero, hhg::NeumannBoundary);
 
   hhg::VTKWriter({&u, &v, &p, &p_rhs}, maxLevel, "../output", fmt::format("test_{:0>4}", iter));
   ++iter;
 
   while (time < 1.0)
   {
-    u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
-    v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
+    u.interpolate<maxLevel>(bc_x, hhg::DirichletBoundary);
+    v.interpolate<maxLevel>(bc_y, hhg::DirichletBoundary);
 
     fmt::print("predict u\n");
-    A.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    u.assign({1.0, -dt * viscosity}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    A.apply<maxLevel>(u, tmp, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.interpolate<maxLevel>(zero);
+    mass_solver.solve<maxLevel>(mass, tmp2, tmp, res, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
+    u.assign<maxLevel>({1.0, -dt * viscosity}, {&u, &tmp2}, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("predict v\n");
-    A.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    v.assign({1.0, -dt * viscosity}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    A.apply<maxLevel>(v, tmp, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.interpolate<maxLevel>(zero);
+    mass_solver.solve<maxLevel>(mass, tmp2, tmp, res, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
+    v.assign<maxLevel>({1.0, -dt * viscosity}, {&v, &tmp2}, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("solve p\n");
-    p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
-    div_x.apply(u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary);
-    div_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::DirichletBoundary);
+    p.interpolate<maxLevel-1>(zero, hhg::NeumannBoundary);
+    div_x.apply<maxLevel>(u, p_rhs, hhg::Inner | hhg::DirichletBoundary);
+    div_y.apply<maxLevel>(v, tmp, hhg::Inner | hhg::DirichletBoundary);
 
-    p_rhs.assign({ 1.0/dt, 1.0/dt }, { &p_rhs, &tmp }, maxLevel, hhg::Inner | hhg::DirichletBoundary);
-    p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
+    p_rhs.assign<maxLevel>({ 1.0/dt, 1.0/dt }, { &p_rhs, &tmp }, hhg::Inner | hhg::DirichletBoundary);
+    p_rhs.restrict<maxLevel>(hhg::Inner | hhg::DirichletBoundary);
 
-    laplace_solver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-8, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, true);
+    laplace_solver.solve<maxLevel-1>(A, p, p_rhs, p_res, 1e-8, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, true);
 
-    p.prolongate(maxLevel-1, hhg::Inner | hhg::DirichletBoundary);
+    p.prolongate<maxLevel-1>(hhg::Inner | hhg::DirichletBoundary);
 
     fmt::print("correct u\n");
-    divT_x.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    divT_x.apply<maxLevel>(u, tmp, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.interpolate<maxLevel>(zero);
+    mass_solver.solve<maxLevel>(mass, tmp2, tmp, res, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
+    u.assign<maxLevel>({1.0, -dt}, {&u, &tmp2}, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("correct v\n");
-    divT_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    divT_y.apply<maxLevel>(v, tmp, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.interpolate<maxLevel>(zero);
+    mass_solver.solve<maxLevel>(mass, tmp2, tmp, res, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
+    v.assign<maxLevel>({1.0, -dt}, {&v, &tmp2}, hhg::Inner | hhg::NeumannBoundary);
 
     hhg::VTKWriter({&u, &v, &p, &p_rhs}, maxLevel, "../output", fmt::format("test_{:0>4}", iter));
     time += dt;

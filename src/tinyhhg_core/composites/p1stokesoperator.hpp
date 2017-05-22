@@ -21,17 +21,18 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  template<size_t Level>
+  void apply(P1StokesFunction& src, P1StokesFunction& dst, DoFType flag)
   {
-    A.apply(src.u, dst.u, level, flag, Replace);
-    divT_x.apply(src.p, dst.u, level, flag, Add);
+    A.apply<Level>(src.u, dst.u, flag, Replace);
+    divT_x.apply<Level>(src.p, dst.u, flag, Add);
 
-    A.apply(src.v, dst.v, level, flag, Replace);
-    divT_y.apply(src.p, dst.v, level, flag, Add);
+    A.apply<Level>(src.v, dst.v, flag, Replace);
+    divT_y.apply<Level>(src.p, dst.v, flag, Add);
 
-    div_x.apply(src.u, dst.p, level, flag | DirichletBoundary, Replace);
-    div_y.apply(src.v, dst.p, level, flag | DirichletBoundary, Add);
-    pspg.apply(src.p, dst.p, level, flag | DirichletBoundary, Add);
+    div_x.apply<Level>(src.u, dst.p, flag | DirichletBoundary, Replace);
+    div_y.apply<Level>(src.v, dst.p, flag | DirichletBoundary, Add);
+    pspg.apply<Level>(src.p, dst.p, flag | DirichletBoundary, Add);
   }
 
   P1LaplaceOperator A;

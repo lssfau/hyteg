@@ -17,14 +17,16 @@ public:
   {
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void interpolate(std::function<double(const hhg::Point3D&)>& expr, DoFType flag = All)
   {
-    u.interpolate(expr, level, flag);
-    v.interpolate(expr, level, flag);
-    p.interpolate(expr, level, flag | DirichletBoundary);
+    u.interpolate<Level>(expr, flag);
+    v.interpolate<Level>(expr, flag);
+    p.interpolate<Level>(expr, flag | DirichletBoundary);
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, DoFType flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -37,12 +39,13 @@ public:
       functions_p.push_back(&function->p);
     }
 
-    u.assign(scalars, functions_u, level, flag);
-    v.assign(scalars, functions_v, level, flag);
-    p.assign(scalars, functions_p, level, flag | DirichletBoundary);
+    u.assign<Level>(scalars, functions_u, flag);
+    v.assign<Level>(scalars, functions_v, flag);
+    p.assign<Level>(scalars, functions_p, flag | DirichletBoundary);
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
+  template<size_t Level>
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, DoFType flag = All)
   {
     std::vector<P1Function*> functions_u;
     std::vector<P1Function*> functions_v;
@@ -55,31 +58,34 @@ public:
       functions_p.push_back(&function->p);
     }
 
-    u.add(scalars, functions_u, level, flag);
-    v.add(scalars, functions_v, level, flag);
-    p.add(scalars, functions_p, level, flag | DirichletBoundary);
+    u.add<Level>(scalars, functions_u, flag);
+    v.add<Level>(scalars, functions_v, flag);
+    p.add<Level>(scalars, functions_p, flag | DirichletBoundary);
   }
 
-  walberla::real_t dot(P1StokesFunction& rhs, size_t level, DoFType flag = All)
+  template<size_t Level>
+  walberla::real_t dot(P1StokesFunction& rhs, DoFType flag = All)
   {
-    walberla::real_t sum = u.dot(rhs.u, level, flag);
-    sum += v.dot(rhs.v, level, flag);
-    sum += p.dot(rhs.p, level, flag | DirichletBoundary);
+    walberla::real_t sum = u.dot<Level>(rhs.u, flag);
+    sum += v.dot<Level>(rhs.v, flag);
+    sum += p.dot<Level>(rhs.p, flag | DirichletBoundary);
     return sum;
   }
 
-  void prolongate(size_t level, DoFType flag = All)
+  template<size_t Level>
+  void prolongate(DoFType flag = All)
   {
-    u.prolongate(level, flag);
-    v.prolongate(level, flag);
-    p.prolongate(level, flag | DirichletBoundary);
+    u.prolongate<Level>(flag);
+    v.prolongate<Level>(flag);
+    p.prolongate<Level>(flag | DirichletBoundary);
   }
 
-  void restrict(size_t level, DoFType flag = All)
+  template<size_t Level>
+  void restrict(DoFType flag = All)
   {
-    u.restrict(level, flag);
-    v.restrict(level, flag);
-    p.restrict(level, flag | DirichletBoundary);
+    u.restrict<Level>(flag);
+    v.restrict<Level>(flag);
+    p.restrict<Level>(flag | DirichletBoundary);
   }
 
   P1Function u;

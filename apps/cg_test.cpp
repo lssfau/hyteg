@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
+  const size_t maxLevel = 7;
   size_t maxiter = 10000;
 
   hhg::P1Function r("r", mesh, minLevel, maxLevel);
@@ -27,20 +27,20 @@ int main(int argc, char* argv[])
   std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
   std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
-  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  u_exact.interpolate(exact, maxLevel);
+  u.interpolate<maxLevel>(exact, hhg::DirichletBoundary);
+  u_exact.interpolate<maxLevel>(exact);
 
   auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  solver.solve<maxLevel>(L, u, f, r, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
   fmt::printf("time was: %e\n",timer.last());
-  err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
+  err.assign<maxLevel>({1.0, -1.0}, {&u, &u_exact});
 
-  npoints_helper.interpolate(ones, maxLevel);
-  double npoints = npoints_helper.dot(npoints_helper, maxLevel);
+  npoints_helper.interpolate<maxLevel>(ones);
+  double npoints = npoints_helper.dot<maxLevel>(npoints_helper);
 
-  double discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  double discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 

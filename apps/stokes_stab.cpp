@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 4;
+  const size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   hhg::P1StokesFunction r("r", mesh, minLevel, maxLevel);
@@ -31,11 +31,11 @@ int main(int argc, char* argv[])
   std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
-  u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
-  u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
+  u.u.interpolate<maxLevel>(bc_x, hhg::DirichletBoundary);
+  u.v.interpolate<maxLevel>(zero, hhg::DirichletBoundary);
 
   auto solver = hhg::MinResSolver<hhg::P1StokesFunction, hhg::P1StokesOperator>(mesh, minLevel, maxLevel);
-  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+  solver.solve<maxLevel>(L, u, f, r, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab_test");
   return EXIT_SUCCESS;
