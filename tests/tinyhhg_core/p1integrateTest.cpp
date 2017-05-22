@@ -17,14 +17,14 @@ int main (int argc, char ** argv )
   hhg::Mesh mesh("./tri_1el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  const size_t maxLevel = 5;
 
   hhg::P1Function x("x", mesh, minLevel, maxLevel);
 
   std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
 
   auto faceZero = mesh.faces[0];
-  hhg::P1Face::interpolate(faceZero,0,exact,maxLevel);
+  hhg::P1Face::interpolate<maxLevel>(faceZero,0,exact);
 
   size_t totalPoints =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
   size_t length = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
