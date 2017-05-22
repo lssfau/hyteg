@@ -4,8 +4,6 @@ PROJECT ( tinyhhg )
 enable_testing()
 option ( HHG_ENABLE_LIKWID                "Compile with LIKWID" )
 
-find_package(MPI REQUIRED)
-
 if ( HHG_ENABLE_LIKWID )
     find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )
     find_path( LIKWID_INCLUDE_DIR likwid.h HINTS $ENV{LIKWID_ROOT}/include )
