@@ -18,7 +18,7 @@ public:
   }
 
   template<size_t Level>
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, DoFType flag = All)
+  void interpolate(std::function<walberla::real_t(const hhg::Point3D&)>& expr, DoFType flag = All)
   {
     u.interpolate<Level>(expr, flag);
     v.interpolate<Level>(expr, flag);

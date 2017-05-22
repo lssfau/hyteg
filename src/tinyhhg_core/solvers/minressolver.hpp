@@ -42,14 +42,14 @@ public:
   template<size_t Level>
   void init(DoFType flag)
   {
-    std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+    std::function<walberla::real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
     p_vm->template interpolate<Level>(zero, flag);
     p_wm->template interpolate<Level>(zero, flag);
     p_w->template interpolate<Level>(zero, flag);
   }
 
   template<size_t Level>
-  void solve(O& A, F& x, F& b, F& r, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, walberla::real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
     init<Level>(flag);
 
@@ -59,17 +59,17 @@ public:
     // identity preconditioner
     p_z->template assign<Level>({1.0}, {p_v}, flag);
 
-    double gamma_old = 1.0;
-    double gamma_new = std::sqrt(p_z->template dot<Level>(*p_v, flag));
+    walberla::real_t gamma_old = 1.0;
+    walberla::real_t gamma_new = std::sqrt(p_z->template dot<Level>(*p_v, flag));
 
-    double res_start = gamma_new;
+    walberla::real_t res_start = gamma_new;
 
-    double eta = gamma_new;
-    double s_old = 0.0;
-    double s_new = 0.0;
+    walberla::real_t eta = gamma_new;
+    walberla::real_t s_old = 0.0;
+    walberla::real_t s_new = 0.0;
 
-    double c_old = 1.0;
-    double c_new = 1.0;
+    walberla::real_t c_old = 1.0;
+    walberla::real_t c_new = 1.0;
 
     if (gamma_new < tolerance && printInfo)
     {
@@ -80,7 +80,7 @@ public:
     for(size_t i = 0; i < maxiter; ++i) {
       p_z->template assign<Level>({1.0 / gamma_new}, {p_z}, flag);
       A.template apply<Level>(*p_z, *p_vp, flag);
-      double delta = p_vp->template dot<Level>(*p_z, flag);
+      walberla::real_t delta = p_vp->template dot<Level>(*p_z, flag);
 
       p_vp->template assign<Level>({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, flag);
 
@@ -90,10 +90,10 @@ public:
       gamma_old = gamma_new;
       gamma_new = std::sqrt(p_zp->template dot<Level>(*p_vp, flag));
 
-      double alpha0 = c_new * delta - c_old * s_new * gamma_old;
-      double alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
-      double alpha2 = s_new * delta + c_old * c_new * gamma_old;
-      double alpha3 = s_old * gamma_old;
+      walberla::real_t alpha0 = c_new * delta - c_old * s_new * gamma_old;
+      walberla::real_t alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
+      walberla::real_t alpha2 = s_new * delta + c_old * c_new * gamma_old;
+      walberla::real_t alpha3 = s_old * gamma_old;
 
       c_old = c_new;
       c_new = alpha0 / alpha1;

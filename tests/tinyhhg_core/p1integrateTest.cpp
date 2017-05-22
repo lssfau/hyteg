@@ -21,7 +21,7 @@ int main (int argc, char ** argv )
 
   hhg::P1Function x("x", mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
 
   auto faceZero = mesh.faces[0];
   hhg::P1Face::interpolate<maxLevel>(faceZero,0,exact);

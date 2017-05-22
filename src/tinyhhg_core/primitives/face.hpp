@@ -27,14 +27,14 @@ public:
   size_t id;
   walberla::uint_t rank;
   DoFType type;
-  double area;
+  walberla::real_t area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;
   std::array<int, 3> edge_orientation;
   std::array<Point3D, 3> coords;
 
-  std::vector<std::vector<double*> > data;
-  std::vector<std::vector<double*> > opr_data;
+  std::vector<std::vector<walberla::real_t*> > data;
+  std::vector<std::vector<walberla::real_t*> > opr_data;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 };

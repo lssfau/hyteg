@@ -10,13 +10,13 @@ int main(int argc, char* argv[])
 
   hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
 
-  double viscosity = 1e-1;
-  double dt = 1e-4;
+  walberla::real_t viscosity = 1e-1;
+  walberla::real_t dt = 1e-4;
 
   size_t minLevel = 2;
   const size_t maxLevel = 4;
 
-  std::function<double(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
+  std::function<walberla::real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     if (x[0] < 1e-8)
     {
       return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
@@ -27,12 +27,12 @@ int main(int argc, char* argv[])
     }
   };
 
-  std::function<double(const hhg::Point3D&)> bc_y = [](const hhg::Point3D&) {
+  std::function<walberla::real_t(const hhg::Point3D&)> bc_y = [](const hhg::Point3D&) {
     return 0.0;
   };
 
-  std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
 
   hhg::P1Function u("u", mesh, minLevel, maxLevel);
   hhg::P1Function v("v", mesh, minLevel, maxLevel);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
   hhg::P1DivTyOperator divT_y(mesh, minLevel, maxLevel);
   hhg::P1MassOperator mass(mesh, minLevel, maxLevel);
 
-  double time = 0.0;
+  walberla::real_t time = 0.0;
   size_t iter = 0;
   size_t max_cg_iter = 10000;
 

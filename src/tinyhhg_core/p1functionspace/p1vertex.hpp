@@ -22,18 +22,18 @@ using namespace walberla::mpistubs;
 /// \param minLevel The minimum level allocated
 /// \param maxLevel The maximum level allocated
 ///
-/// This function allocates (1 + number of adjacent edges of \p vertex) doubles for each level within the range of \p minLevel and \p maxLevel.
+/// This function allocates (1 + number of adjacent edges of \p vertex) walberla::real_ts for each level within the range of \p minLevel and \p maxLevel.
 /// The pointers to these arrays are saved in the Vertex' data vector at index \p memory_id.
 inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  vertex.data.push_back(std::vector<double*>());
+  vertex.data.push_back(std::vector<walberla::real_t*>());
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
     size_t num_deps = vertex.edges.size();
     size_t total_n_dofs = levelinfo::num_microvertices_per_vertex(level) + num_deps;
-    double* new_data = new double[total_n_dofs];
-    memset(new_data, 0, total_n_dofs * sizeof(double));
+    walberla::real_t* new_data = new walberla::real_t[total_n_dofs];
+    memset(new_data, 0, total_n_dofs * sizeof(walberla::real_t));
     vertex.data[memory_id].push_back(new_data);
   }
 }
@@ -47,15 +47,15 @@ inline void free(Vertex& vertex, size_t memory_id, size_t minLevel, size_t maxLe
 }
 
 template<size_t Level>
-inline void interpolate(Vertex& vertex, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr)
+inline void interpolate(Vertex& vertex, size_t memory_id, std::function<walberla::real_t(const hhg::Point3D&)>& expr)
 {
   vertex.data[memory_id][Level-2][0] = expr(vertex.coords);
 }
 
 template<size_t Level>
-inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
+inline void assign(Vertex& vertex, const std::vector<walberla::real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
-  double tmp = scalars[0] * vertex.data[src_ids[0]][Level-2][0];
+  walberla::real_t tmp = scalars[0] * vertex.data[src_ids[0]][Level-2][0];
 
   for (size_t i = 1; i < src_ids.size(); ++i)
   {
@@ -66,9 +66,9 @@ inline void assign(Vertex& vertex, const std::vector<double>& scalars, const std
 }
 
 template<size_t Level>
-inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
+inline void add(Vertex& vertex, const std::vector<walberla::real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
-  double tmp = 0.0;
+  walberla::real_t tmp = 0.0;
 
   for (size_t i = 0; i < src_ids.size(); ++i)
   {
@@ -79,7 +79,7 @@ inline void add(Vertex& vertex, const std::vector<double>& scalars, const std::v
 }
 
 template<size_t Level>
-inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id)
+inline walberla::real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id)
 {
   return vertex.data[lhs_id][Level-2][0] * vertex.data[rhs_id][Level-2][0];
 }
@@ -87,9 +87,9 @@ inline double dot(Vertex& vertex, size_t lhs_id, size_t rhs_id)
 template<size_t Level>
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
 {
-  double* opr_data = vertex.opr_data[opr_id][Level-2];
-  double* src = vertex.data[src_id][Level-2];
-  double* dst = vertex.data[dst_id][Level-2];
+  walberla::real_t* opr_data = vertex.opr_data[opr_id][Level-2];
+  walberla::real_t* src = vertex.data[src_id][Level-2];
+  walberla::real_t* dst = vertex.data[dst_id][Level-2];
 
   if (update == Replace) {
     dst[0] = opr_data[0] * src[0];
@@ -107,9 +107,9 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, U
 template<size_t Level>
 inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id)
 {
-  double* opr_data = vertex.opr_data[opr_id][Level-2];
-  double* dst = vertex.data[f_id][Level-2];
-  double* rhs = vertex.data[rhs_id][Level-2];
+  walberla::real_t* opr_data = vertex.opr_data[opr_id][Level-2];
+  walberla::real_t* dst = vertex.data[f_id][Level-2];
+  walberla::real_t* rhs = vertex.data[rhs_id][Level-2];
 
   dst[0] = rhs[0];
 
@@ -153,7 +153,7 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id)
 //      }
 //      else
 //      {
-//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< walberla::real_t >::type(), edge->rank, i, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 //      }
 //    }
 //  }
@@ -185,18 +185,18 @@ inline void pull_halos(Vertex& vertex, size_t memory_id)
       }
       else
       {
-        MPI_Recv(&vertex.data[memory_id][Level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Recv(&vertex.data[memory_id][Level-2][i], 1, walberla::MPITrait< walberla::real_t >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }
     }
     else if (edge->rank == rk)
     {
       if(edge->vertex_index(vertex) == 0)
       {
-        MPI_Send(&edge->data[memory_id][Level-2][1], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&edge->data[memory_id][Level-2][1], 1, walberla::MPITrait< walberla::real_t >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
       else
       {
-        MPI_Send(&edge->data[memory_id][Level-2][levelinfo::num_microvertices_per_edge(Level) - 2], 1, walberla::MPITrait< double >::type(), vertex.rank, i, MPI_COMM_WORLD);
+        MPI_Send(&edge->data[memory_id][Level-2][levelinfo::num_microvertices_per_edge(Level) - 2], 1, walberla::MPITrait< walberla::real_t >::type(), vertex.rank, i, MPI_COMM_WORLD);
       }
     }
 
@@ -213,8 +213,8 @@ inline void prolongate(Vertex& vertex, size_t memory_id)
 template<size_t Level>
 inline void restrict(Vertex& vertex, size_t memory_id)
 {
-  double* vertex_data_f = vertex.data[memory_id][Level-2];
-  double* vertex_data_c = vertex.data[memory_id][Level-2-1];
+  walberla::real_t* vertex_data_f = vertex.data[memory_id][Level-2];
+  walberla::real_t* vertex_data_c = vertex.data[memory_id][Level-2-1];
 
   vertex_data_c[0] = vertex_data_f[0];
 
@@ -229,8 +229,8 @@ inline void restrict(Vertex& vertex, size_t memory_id)
 template<size_t Level>
 inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id)
 {
-  double* opr_data = vertex.opr_data[opr_id][Level-2];
-  double* src = vertex.data[src_id][Level-2];
+  walberla::real_t* opr_data = vertex.opr_data[opr_id][Level-2];
+  walberla::real_t* src = vertex.data[src_id][Level-2];
 
   fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
 

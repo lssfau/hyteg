@@ -34,13 +34,13 @@ public:
   Vertex* v1;
 
   Point3D direction;
-  double length;
+  walberla::real_t length;
   Point3D tangent;
   Point3D normal_2d;
 
   std::vector<Face*> faces;
-  std::vector<std::vector<double*> > data;
-  std::vector<std::vector<double*> > opr_data;
+  std::vector<std::vector<walberla::real_t*> > data;
+  std::vector<std::vector<walberla::real_t*> > opr_data;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 };

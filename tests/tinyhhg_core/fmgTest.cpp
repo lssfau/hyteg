@@ -13,7 +13,7 @@ struct CSCycle
 {
   static void solve(CSSolver& solver, O& A, F& x, F& ax, F& b, F& r, F& tmp, walberla::real_t coarse_tolerance, size_t coarse_maxiter, size_t nu_pre, size_t nu_post)
   {
-    std::function<double(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
+    std::function<walberla::real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
 
     // fmt::printf("Level %d...\n", level);
 
@@ -93,8 +93,8 @@ int main(int argc, char* argv[])
   size_t outer = parameters.getParameter<size_t>("outer_iter");
 
   size_t coarse_maxiter = 100;
-  double coarse_tolerance = 1e-6;
-  double mg_tolerance = 1e-8;
+  walberla::real_t coarse_tolerance = 1e-6;
+  walberla::real_t mg_tolerance = 1e-8;
 
   hhg::P1Function r("r", mesh, minLevel, maxLevel);
   hhg::P1Function b("b", mesh, minLevel, maxLevel);
@@ -106,15 +106,15 @@ int main(int argc, char* argv[])
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
-  std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<walberla::real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   x.interpolate<maxLevel>(exact, hhg::DirichletBoundary);
   x_exact.interpolate<maxLevel>(exact);
 
   tmp.interpolate<maxLevel>(ones);
-  double npoints = tmp.dot<maxLevel>(tmp);
+  walberla::real_t npoints = tmp.dot<maxLevel>(tmp);
 
   auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
 
@@ -122,16 +122,16 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error");
 
-  double rel_res = 1.0;
+  walberla::real_t rel_res = 1.0;
 
   A.apply<maxLevel>(x, ax, hhg::Inner);
   r.assign<maxLevel>({1.0, -1.0}, {&b, &ax}, hhg::Inner);
 
-  double begin_res = std::sqrt(r.dot<maxLevel>(r, hhg::Inner));
-  double abs_res_old = begin_res;
+  walberla::real_t begin_res = std::sqrt(r.dot<maxLevel>(r, hhg::Inner));
+  walberla::real_t abs_res_old = begin_res;
 
   err.assign<maxLevel>({1.0, -1.0}, {&x, &x_exact});
-  double discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);
+  walberla::real_t discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
 
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
     CSCycle<maxLevel, minLevel, decltype(solver), decltype(A), decltype(x)>::solve(solver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post);
     A.apply<maxLevel>(x, ax, hhg::Inner);
     r.assign<maxLevel>({1.0, -1.0}, { &b, &ax }, hhg::Inner);
-    double abs_res = std::sqrt(r.dot<maxLevel>(r, hhg::Inner));
+    walberla::real_t abs_res = std::sqrt(r.dot<maxLevel>(r, hhg::Inner));
     rel_res = abs_res / begin_res;
     err.assign<maxLevel>({1.0, -1.0}, { &x, &x_exact });
     discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);

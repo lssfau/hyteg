@@ -23,9 +23,9 @@ int main(int argc, char* argv[])
 
   hhg::P1BlockLaplaceOperator L(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
-  std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<walberla::real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<walberla::real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.u.interpolate<maxLevel>(exact, hhg::DirichletBoundary);
   u.v.interpolate<maxLevel>(exact, hhg::DirichletBoundary);
@@ -44,9 +44,9 @@ int main(int argc, char* argv[])
 
   npoints_helper.interpolate<maxLevel>(ones);
 
-  double npoints = npoints_helper.dot<maxLevel>(npoints_helper);
+  walberla::real_t npoints = npoints_helper.dot<maxLevel>(npoints_helper);
 
-  double discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);
+  walberla::real_t discr_l2_err = std::sqrt(err.dot<maxLevel>(err) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 

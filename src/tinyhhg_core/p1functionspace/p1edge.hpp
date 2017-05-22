@@ -12,7 +12,7 @@ using namespace walberla::mpistubs;
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  edge.data.push_back(std::vector<double*>());
+  edge.data.push_back(std::vector<walberla::real_t*>());
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
@@ -20,8 +20,8 @@ inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLe
     size_t n_dofs_per_edge_nbr = n_dofs_per_edge - 1;
     size_t num_deps = edge.faces.size();
     size_t total_n_dofs = n_dofs_per_edge + num_deps * n_dofs_per_edge_nbr;
-    double* new_data = new double[total_n_dofs];
-    memset(new_data, 0, total_n_dofs * sizeof(double));
+    walberla::real_t* new_data = new walberla::real_t[total_n_dofs];
+    memset(new_data, 0, total_n_dofs * sizeof(walberla::real_t));
     edge.data[memory_id].push_back(new_data);
   }
 }
@@ -35,11 +35,11 @@ inline void free(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 }
 
 template<size_t Level>
-inline void interpolate(Edge& edge, size_t memory_id, std::function<double(const hhg::Point3D&)>& expr)
+inline void interpolate(Edge& edge, size_t memory_id, std::function<walberla::real_t(const hhg::Point3D&)>& expr)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x = edge.v0->coords;
-  Point3D dx = edge.direction / (double) (rowsize - 1);
+  Point3D dx = edge.direction / (walberla::real_t) (rowsize - 1);
   x += dx;
 
   for (size_t i = 1; i < rowsize-1; ++i)
@@ -63,12 +63,12 @@ inline void pull_vertices(Edge& edge, size_t memory_id)
     }
     else
     {
-      MPI_Send(&edge.v0->data[memory_id][Level-2][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&edge.v0->data[memory_id][Level-2][0], 1, walberla::MPITrait< walberla::real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][Level-2][0], 1, walberla::MPITrait< double >::type(), edge.v0->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+    MPI_Recv(&edge.data[memory_id][Level-2][0], 1, walberla::MPITrait< walberla::real_t >::type(), edge.v0->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
   }
 
   if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
@@ -80,23 +80,23 @@ inline void pull_vertices(Edge& edge, size_t memory_id)
     }
     else
     {
-      MPI_Send(&edge.v1->data[memory_id][Level-2][0], 1, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&edge.v1->data[memory_id][Level-2][0], 1, walberla::MPITrait< walberla::real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&edge.data[memory_id][Level-2][rowsize-1], 1, walberla::MPITrait< double >::type(), edge.v1->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+    MPI_Recv(&edge.data[memory_id][Level-2][rowsize-1], 1, walberla::MPITrait< walberla::real_t >::type(), edge.v1->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
   }
 }
 
 template<size_t Level>
-inline void assign(Edge& edge, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
+inline void assign(Edge& edge, const std::vector<walberla::real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    double tmp = scalars[0] * edge.data[src_ids[0]][Level-2][i];
+    walberla::real_t tmp = scalars[0] * edge.data[src_ids[0]][Level-2][i];
 
     for (size_t k = 1; k < src_ids.size(); ++k)
     {
@@ -108,13 +108,13 @@ inline void assign(Edge& edge, const std::vector<double>& scalars, const std::ve
 }
 
 template<size_t Level>
-inline void add(Edge& edge, const std::vector<double>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
+inline void add(Edge& edge, const std::vector<walberla::real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    double tmp = 0.0;
+    walberla::real_t tmp = 0.0;
 
     for (size_t k = 0; k < src_ids.size(); ++k)
     {
@@ -126,9 +126,9 @@ inline void add(Edge& edge, const std::vector<double>& scalars, const std::vecto
 }
 
 template<size_t Level>
-inline double dot(Edge& edge, size_t lhs_id, size_t rhs_id)
+inline walberla::real_t dot(Edge& edge, size_t lhs_id, size_t rhs_id)
 {
-  double sp = 0.0;
+  walberla::real_t sp = 0.0;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize-1; ++i)
@@ -144,9 +144,9 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, Updat
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  double* opr_data = edge.opr_data[opr_id][Level-2];
-  double* src = edge.data[src_id][Level-2];
-  double* dst = edge.data[dst_id][Level-2];
+  walberla::real_t* opr_data = edge.opr_data[opr_id][Level-2];
+  walberla::real_t* src = edge.data[src_id][Level-2];
+  walberla::real_t* dst = edge.data[dst_id][Level-2];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -170,9 +170,9 @@ inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  double* opr_data = edge.opr_data[opr_id][Level-2];
-  double* dst = edge.data[dst_id][Level-2];
-  double* rhs = edge.data[rhs_id][Level-2];
+  walberla::real_t* opr_data = edge.opr_data[opr_id][Level-2];
+  walberla::real_t* dst = edge.data[dst_id][Level-2];
+  walberla::real_t* rhs = edge.data[rhs_id][Level-2];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -197,7 +197,7 @@ inline void pull_halos(Edge& edge, size_t memory_id)
   size_t offset = rowsize;
   int rk = walberla::mpi::MPIManager::instance()->rank();
 
-  auto pull = [rowsize, rowsize_halo](Edge& edge, double* edge_data, Face* face, double* face_data)
+  auto pull = [rowsize, rowsize_halo](Edge& edge, walberla::real_t* edge_data, Face* face, walberla::real_t* face_data)
   {
     if (&edge == face->edges[0])
     {
@@ -264,26 +264,26 @@ inline void pull_halos(Edge& edge, size_t memory_id)
   {
     if (edge.rank == rk)
     {
-      double* edge_data = edge.data[memory_id][Level-2];
+      walberla::real_t* edge_data = edge.data[memory_id][Level-2];
 
       if (face->rank == rk)
       {
-        double* face_data = face->data[memory_id][Level-2];
+        walberla::real_t* face_data = face->data[memory_id][Level-2];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
       else
       {
-        MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< double >::type(), face->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+        MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< walberla::real_t >::type(), face->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
         offset += rowsize_halo;
       }
     }
     else if (face->rank == rk)
     {
-      double* face_data = face->data[memory_id][Level-2];
-      double* tmp = new double[rowsize_halo];
+      walberla::real_t* face_data = face->data[memory_id][Level-2];
+      walberla::real_t* tmp = new walberla::real_t[rowsize_halo];
       pull(edge, tmp, face, face_data);
-      MPI_Send(tmp, rowsize_halo, walberla::MPITrait< double >::type(), edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(tmp, rowsize_halo, walberla::MPITrait< walberla::real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
       delete[] tmp;
     }
   }
@@ -295,8 +295,8 @@ inline void prolongate(Edge& edge, size_t memory_id)
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(Level);
   size_t i_fine = 1;
 
-  double* edge_data_f = edge.data[memory_id][Level-2+1];
-  double* edge_data_c = edge.data[memory_id][Level-2];
+  walberla::real_t* edge_data_f = edge.data[memory_id][Level-2+1];
+  walberla::real_t* edge_data_c = edge.data[memory_id][Level-2];
 
   for (size_t i_coarse = 0; i_coarse < rowsize_coarse-1; ++i_coarse)
   {
@@ -312,8 +312,8 @@ inline void restrict(Edge& edge, size_t memory_id)
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(Level);
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(Level-1);
 
-  double* edge_data_f = edge.data[memory_id][Level-2];
-  double* edge_data_c = edge.data[memory_id][Level-2-1];
+  walberla::real_t* edge_data_f = edge.data[memory_id][Level-2];
+  walberla::real_t* edge_data_c = edge.data[memory_id][Level-2-1];
 
   size_t i_fine = 2;
   size_t i_off = 1;
@@ -338,8 +338,8 @@ inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  double* opr_data = edge.opr_data[opr_id][Level-2];
-  double* src = edge.data[src_id][Level-2];
+  walberla::real_t* opr_data = edge.opr_data[opr_id][Level-2];
+  walberla::real_t* src = edge.data[src_id][Level-2];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {

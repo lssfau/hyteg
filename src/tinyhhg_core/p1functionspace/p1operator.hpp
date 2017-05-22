@@ -22,13 +22,13 @@ enum ElementType
   DOWNWARD
 };
 
-void compute_micro_coords(const Face& face, size_t level, double coords[6], ElementType element_type)
+void compute_micro_coords(const Face& face, size_t level, walberla::real_t coords[6], ElementType element_type)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize-1);
   Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize-1);
 
-  double orientation = 1.0;
+  walberla::real_t orientation = 1.0;
 
   if (element_type == DOWNWARD) {
     orientation = -1.0;
@@ -43,10 +43,10 @@ void compute_micro_coords(const Face& face, size_t level, double coords[6], Elem
 }
 
 template<class UFCOperator>
-void compute_local_stiffness(const Face& face, size_t level, double local_stiffness[3][3], ElementType element_type)
+void compute_local_stiffness(const Face& face, size_t level, walberla::real_t local_stiffness[3][3], ElementType element_type)
 {
-  double A[9];
-  double coords[6];
+  walberla::real_t A[9];
+  walberla::real_t coords[6];
   compute_micro_coords(face, level, coords, element_type);
   UFCOperator gen;
   gen.tabulate_tensor(A, NULL, coords, 0);
@@ -75,12 +75,12 @@ public:
 
       for (Face& face : mesh.faces)
       {
-        double local_stiffness_up[3][3];
-        double local_stiffness_down[3][3];
+        walberla::real_t local_stiffness_up[3][3];
+        walberla::real_t local_stiffness_down[3][3];
         compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, UPWARD);
         compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, DOWNWARD);
 
-        double* face_stencil = new double[7]();
+        walberla::real_t* face_stencil = new walberla::real_t[7]();
 
         face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
         face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
@@ -95,26 +95,26 @@ public:
 
         if (level == minLevel)
         {
-          face.opr_data.push_back(std::vector<double*>());
+          face.opr_data.push_back(std::vector<walberla::real_t*>());
         }
         face.opr_data[memory_id].push_back(face_stencil);
 
 //        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
-//        fmt::print("face_stencil = {}\n", PointND<double, 7>(face_stencil));
+//        fmt::print("face_stencil = {}\n", PointND<walberla::real_t, 7>(face_stencil));
       }
 
       for (Edge& edge : mesh.edges)
       {
         if (level == minLevel)
         {
-          edge.opr_data.push_back(std::vector<double*>());
+          edge.opr_data.push_back(std::vector<walberla::real_t*>());
         }
 
-        double* edge_stencil = new double[7]();
+        walberla::real_t* edge_stencil = new walberla::real_t[7]();
         edge.opr_data[memory_id].push_back(edge_stencil);
 
-        double local_stiffness_up[3][3];
-        double local_stiffness_down[3][3];
+        walberla::real_t local_stiffness_up[3][3];
+        walberla::real_t local_stiffness_down[3][3];
         // first face
         Face* face = edge.faces[0];
         compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, UPWARD);
@@ -158,16 +158,16 @@ public:
         // allocate new level-vector if first level
         if (level == minLevel)
         {
-          vertex.opr_data.push_back(std::vector<double*>());
+          vertex.opr_data.push_back(std::vector<walberla::real_t*>());
         }
 
-        double* vertex_stencil = new double[1 + vertex.edges.size()]();
+        walberla::real_t* vertex_stencil = new walberla::real_t[1 + vertex.edges.size()]();
         vertex.opr_data[memory_id].push_back(vertex_stencil);
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)
         {
-          double local_stiffness[3][3];
+          walberla::real_t local_stiffness[3][3];
           compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, UPWARD);
 
           size_t v_i = face->vertex_index(vertex);

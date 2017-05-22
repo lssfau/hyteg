@@ -17,13 +17,13 @@ public:
   }
 
   template<size_t Level>
-  void solve(O& A, F& x, F& b, F& r, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, walberla::real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
     A.template apply<Level>(x, p, flag);
     r.template assign<Level>({1.0, -1.0}, {&b, &p}, flag);
-    double res_start = std::sqrt(r.template dot<Level>(r, flag));
+    walberla::real_t res_start = std::sqrt(r.template dot<Level>(r, flag));
     p.template assign<Level>({1.0}, {&r}, flag);
-    double rsold = r.template dot<Level>(r, flag);
+    walberla::real_t rsold = r.template dot<Level>(r, flag);
 
     if (std::sqrt(rsold) < tolerance && printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
     {
@@ -34,13 +34,13 @@ public:
     for(size_t i = 0; i < maxiter; ++i)
     {
       A.template apply<Level>(p, ap, flag);
-      double pAp = p.template dot<Level>(ap, flag);
+      walberla::real_t pAp = p.template dot<Level>(ap, flag);
 
-      double alpha = rsold / pAp;
+      walberla::real_t alpha = rsold / pAp;
       x.template add<Level>({alpha}, {&p}, flag);
       r.template add<Level>({ -alpha }, { &ap }, flag);
-      double rsnew = r.template dot<Level>(r, flag);
-      double sqrsnew = std::sqrt(rsnew);
+      walberla::real_t rsnew = r.template dot<Level>(r, flag);
+      walberla::real_t sqrsnew = std::sqrt(rsnew);
 
       if (printInfo && walberla::mpi::MPIManager::instance()->rank() == 0)
       {

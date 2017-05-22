@@ -63,12 +63,12 @@ public:
   /// Multi-vector of pointers to memory used by \ref Function.
   /// The outer std::vector corresponds to an instance of a \ref Function and the
   /// inner std::vector to the hierarchy level.
-  std::vector<std::vector<double*> > data;
+  std::vector<std::vector<walberla::real_t*> > data;
 
   /// Multi-vector of pointers to memory used by \ref Operator.
   /// The outer std::vector corresponds to an instance of an \ref Operator and the
   /// inner std::vector to the hierarchy level.
-  std::vector<std::vector<double*> > opr_data;
+  std::vector<std::vector<walberla::real_t*> > opr_data;
 
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
