@@ -78,7 +78,7 @@ public:
     }
 
     for(size_t i = 0; i < maxiter; ++i) {
-      p_z->template assign<Level>({1.0 / gamma_new}, {p_z}, flag);
+      p_z->template assign<Level>({walberla::real_t(1) / gamma_new}, {p_z}, flag);
       A.template apply<Level>(*p_z, *p_vp, flag);
       walberla::real_t delta = p_vp->template dot<Level>(*p_z, flag);
 
@@ -100,7 +100,7 @@ public:
       s_old = s_new;
       s_new = gamma_new / alpha1;
 
-      p_wp->template assign<Level>({1.0/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, flag);
+      p_wp->template assign<Level>({walberla::real_t(1)/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, flag);
       x.template add<Level>({c_new * eta}, {p_wp}, flag);
 
       eta = -s_new * eta;

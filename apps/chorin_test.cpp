@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
     div_x.apply<maxLevel>(u, p_rhs, hhg::Inner | hhg::DirichletBoundary);
     div_y.apply<maxLevel>(v, tmp, hhg::Inner | hhg::DirichletBoundary);
 
-    p_rhs.assign<maxLevel>({ 1.0/dt, 1.0/dt }, { &p_rhs, &tmp }, hhg::Inner | hhg::DirichletBoundary);
+    p_rhs.assign<maxLevel>({ walberla::real_t(1)/dt, walberla::real_t(1)/dt }, { &p_rhs, &tmp }, hhg::Inner | hhg::DirichletBoundary);
     p_rhs.restrict<maxLevel>(hhg::Inner | hhg::DirichletBoundary);
 
     laplace_solver.solve<maxLevel-1>(A, p, p_rhs, p_res, 1e-8, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, true);
