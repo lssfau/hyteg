@@ -272,25 +272,19 @@ inline void assign(Face& face, const std::vector<walberla::real_t>& scalars, con
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-  for (size_t i = 0; i < rowsize - 3; ++i)
-  {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
-    {
-      walberla::real_t tmp = scalars[0] * face.data[src_ids[0]][Level-2][mr];
+      walberla::real_t tmp = face.data[src_ids[0]][Level-2][index<Level>(i, j, C)];
 
       for (size_t k = 1; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * face.data[src_ids[k]][Level-2][mr];
+        tmp += scalars[k] * face.data[src_ids[k]][Level-2][index<Level>(i, j, C)];
       }
 
-      face.data[dst_id][Level-2][mr] = tmp;
+      face.data[dst_id][Level-2][index<Level>(i, j, C)] = tmp;
 
-      mr += 1;
     }
-
-    mr += 2;
     --inner_rowsize;
   }
 }
@@ -301,25 +295,19 @@ inline void add(Face& face, const std::vector<walberla::real_t>& scalars, const 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-  for (size_t i = 0; i < rowsize - 3; ++i)
-  {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
-    {
       walberla::real_t tmp = 0.0;
 
       for (size_t k = 0; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * face.data[src_ids[k]][Level-2][mr];
+        tmp += scalars[k] * face.data[src_ids[k]][Level-2][index<Level>(i, j, C)];
       }
 
-      face.data[dst_id][Level-2][mr] += tmp;
+      face.data[dst_id][Level-2][index<Level>(i, j, C)] += tmp;
 
-      mr += 1;
     }
-
-    mr += 2;
     --inner_rowsize;
   }
 }
@@ -331,17 +319,12 @@ inline walberla::real_t dot(Face& face, size_t lhs_id, size_t rhs_id)
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
-
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      sp += face.data[lhs_id][Level-2][mr] * face.data[rhs_id][Level-2][mr];
-      mr += 1;
+      sp += face.data[lhs_id][Level-2][index<Level>(i, j, C)] * face.data[rhs_id][Level-2][index<Level>(i, j, C)];
     }
-
-    mr += 2;
     --inner_rowsize;
   }
 
