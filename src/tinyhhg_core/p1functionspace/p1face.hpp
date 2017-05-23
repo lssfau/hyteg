@@ -7,6 +7,46 @@ namespace hhg
 {
 namespace P1Face
 {
+
+enum Dir
+{
+  S  = 0,
+  SE = 1,
+  W  = 2,
+  C  = 3,
+  E  = 4,
+  NW = 5,
+  N  = 6
+};
+
+const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
+const Dir neighbors[] = {S, SE, W, E, NW, N};
+
+template<size_t Level>
+inline size_t index(size_t row, size_t col, Dir dir) {
+  size_t h = levelinfo::num_microvertices_per_edge(Level);
+  size_t n = h * (h + 1) / 2;
+  size_t center = (n - (h-row)*(h-row+1)/2) + col;
+  switch (dir) {
+    case C:
+      return center;
+    case N:
+      return center + h - row;
+    case E:
+      return center + 1;
+    case S:
+      return center - h - 1 + row;
+    case W:
+      return center - 1;
+    case SE:
+      return center - h + row;
+    case NW:
+      return center + h - row - 1;
+  }
+  return 0;
+}
+
+
 //FIXME this can be removed after we are in waberla namespace
 using namespace walberla::mpistubs;
 
@@ -318,32 +358,24 @@ inline void apply(Face& face, size_t opr_id, size_t src_id, size_t dst_id, Updat
   walberla::real_t* src = face.data[src_id][Level-2];
   walberla::real_t* dst = face.data[dst_id][Level-2];
 
-  size_t br = 1;
-  size_t mr = 1 + rowsize ;
-  size_t tr = mr + (rowsize - 1);
-
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      if (update == Replace) {
-        dst[mr] = opr_data[0] * src[br] + opr_data[1] * src[br+1]
-                  + opr_data[2] * src[mr-1] + opr_data[3] * src[mr] + opr_data[4] * src[mr+1]
-                  + opr_data[5] * src[tr-1] + opr_data[6] * src[tr];
-      } else if (update == Add) {
-        dst[mr] += opr_data[0] * src[br] + opr_data[1] * src[br+1]
-                  + opr_data[2] * src[mr-1] + opr_data[3] * src[mr] + opr_data[4] * src[mr+1]
-                  + opr_data[5] * src[tr-1] + opr_data[6] * src[tr];
+      walberla::real_t tmp = 0.0;
+
+      for (auto neighbor : neighbors_with_center)
+      {
+        tmp += opr_data[neighbor] * src[index<Level>(i, j, neighbor)];
       }
 
-      br += 1;
-      mr += 1;
-      tr += 1;
+      if (update == Replace) {
+        dst[index<Level>(i, j, C)] = tmp;
+      }
+      else {
+        dst[index<Level>(i, j, C)] += tmp;
+      }
     }
-
-    br += 3;
-    mr += 2;
-    tr += 1;
     --inner_rowsize;
   }
 }
@@ -358,25 +390,19 @@ inline void smooth_gs(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id)
   walberla::real_t* dst = face.data[dst_id][Level-2];
   walberla::real_t* rhs = face.data[rhs_id][Level-2];
 
-  size_t br = 1;
-  size_t mr = 1 + rowsize ;
-  size_t tr = mr + (rowsize - 1);
-
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      dst[mr] = (rhs[mr] - opr_data[0] * dst[br] - opr_data[1] * dst[br+1]
-                - opr_data[2] * dst[mr-1] - opr_data[4] * dst[mr+1]
-                - opr_data[5] * dst[tr-1] - opr_data[6] * dst[tr]) / opr_data[3];
-      br += 1;
-      mr += 1;
-      tr += 1;
-    }
+      walberla::real_t tmp = rhs[index<Level>(i, j, C)];
 
-    br += 3;
-    mr += 2;
-    tr += 1;
+      for (auto neighbor : neighbors)
+      {
+        tmp -= opr_data[neighbor] * dst[index<Level>(i, j, neighbor)];
+      }
+
+      dst[index<Level>(i, j, C)] = tmp / opr_data[C];
+    }
     --inner_rowsize;
   }
 }
