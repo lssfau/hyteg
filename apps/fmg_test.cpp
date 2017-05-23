@@ -1,6 +1,13 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
 #include <tinyhhg_core/likwidwrapper.hpp>
+//#define STOP_AFTER_START
+
+#ifdef STOP_AFTER_START
+#include <iostream>
+#endif // STOP_AFTER_START
+
+
 
 //using namespace walberla;
 using walberla::uint_t;
@@ -22,6 +29,14 @@ int main(int argc, char* argv[])
   auto parameters = walberlaEnv.config()->getOneBlock("Parameters");
 
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
+
+#ifdef STOP_AFTER_START
+  if (rk == 0)
+    system("Pause");
+  WALBERLA_MPI_BARRIER();
+#endif // STOP_AFTER_START
+
+
 
 
   hhg::Mesh mesh(parameters.getParameter<std::string>("mesh"));

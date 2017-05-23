@@ -7,6 +7,8 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include <string>
+
 
 namespace hhg
 {
@@ -111,6 +113,7 @@ namespace hhg
 
     inline double* addlevel(size_t level)
     {
+      //WALBERLA_LOG_DEVEL("EdgeStencilMemory, kind = " + std::to_string(this->type));
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else

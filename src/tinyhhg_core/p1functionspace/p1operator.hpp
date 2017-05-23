@@ -119,6 +119,9 @@ public:
       WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
 
+    WALBERLA_LOG_DEVEL("Created Operator with ID " + std::to_string(memory_id))
+
+
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {
 
@@ -161,10 +164,13 @@ public:
 
       for (Edge& edge : mesh.edges)
       {
+        if (edge.rank != rank)
+          continue;
         if (level == minLevel)
         {
           edge.memory.push_back(new EdgeStencilMemory());
         }
+        //WALBERLA_LOG_DEVEL("Edge.memory.size() = " + std::to_string(edge.memory.size()));
 
         double* edge_stencil = getEdgeStencilMemory(edge, memory_id)->addlevel(level);
 
