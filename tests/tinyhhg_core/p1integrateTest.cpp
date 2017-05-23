@@ -16,20 +16,43 @@ int main (int argc, char ** argv )
   walberla::MPIManager::instance()->useWorldComm();
   hhg::Mesh mesh("./tri_1el.msh");
 
+
   size_t minLevel = 2;
   size_t maxLevel = 5;
 
+  size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
+  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+  size_t nbr_v_perEdge = v_perEdge - 1;
+  size_t v_perVertex = hhg::levelinfo::num_microvertices_per_vertex(maxLevel);
+
   hhg::P1Function x("x", mesh, minLevel, maxLevel);
+
+  for(auto face : mesh.faces){
+    for(size_t i = 0; i < v_perFace; ++i){
+      WALBERLA_CHECK_FLOAT_EQUAL(face.data[0][maxLevel - 2][i],0.0)
+    }
+  }
+  for(auto edge : mesh.edges){
+    for(size_t i = 0; i < v_perEdge + edge.faces.size() * nbr_v_perEdge; ++i){
+      WALBERLA_CHECK_FLOAT_EQUAL(edge.data[0][maxLevel - 2][i],0.0)
+    }
+  }
+  for(auto vertex : mesh.vertices){
+    //vertex have variable data sizes depending on the adjacent edges
+    for(size_t i = 0; i < v_perVertex + vertex.edges.size();++i){
+      WALBERLA_CHECK_FLOAT_EQUAL(vertex.data[0][maxLevel - 2][i],0.0)
+    }
+  }
+
 
   std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
 
   auto faceZero = mesh.faces[0];
   hhg::P1Face::interpolate(faceZero,0,exact,maxLevel);
 
-  size_t totalPoints =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
-  size_t length = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
-  for(size_t i = 0; i < totalPoints; ++i){
-    if(hhg::P1Face::is_boundary(i,length)) {
+
+  for(size_t i = 0; i < v_perFace; ++i){
+    if(hhg::P1Face::is_boundary(i,v_perEdge)) {
       WALBERLA_CHECK_FLOAT_EQUAL(mesh.faces[0].data[0][maxLevel - 2][i],0.0)
     } else {
       WALBERLA_CHECK_FLOAT_EQUAL(mesh.faces[0].data[0][maxLevel - 2][i], 13.0)
