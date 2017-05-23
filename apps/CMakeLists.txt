@@ -21,10 +21,6 @@ waLBerla_add_executable( NAME tinytest_cg
         FILES cg_test.cpp
         DEPENDS tinyhhg_core fmt core)
 
-waLBerla_add_executable( NAME tinytest_fmg
-        FILES fmg_test.cpp
-        DEPENDS tinyhhg_core fmt)
-
 waLBerla_add_executable( NAME tinytest_chorin
         FILES chorin_test.cpp
         DEPENDS tinyhhg_core fmt)
