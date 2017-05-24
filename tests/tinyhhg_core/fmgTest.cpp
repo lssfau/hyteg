@@ -9,6 +9,8 @@
 
 
 
+#include <memory>
+
 //using namespace walberla;
 using walberla::uint_t;
 using walberla::uint_c;
@@ -22,11 +24,18 @@ int main(int argc, char* argv[])
   LIKWID_MARKER_THREADINIT;
   uint_t rk = uint_c(walberla::MPIManager::instance()->rank());
 
+  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
   if (walberlaEnv.config() == nullptr) {
-    WALBERLA_ABORT("No parameter file was given");
+    auto defaultFile = "../../data/param/fmg_test.prm";
+    cfg->readParameterFile(defaultFile);
+    if(!*cfg){
+      WALBERLA_ABORT("could not open default file: " << defaultFile);
+    }
+  } else {
+    cfg = walberlaEnv.config();
   }
 
-  auto parameters = walberlaEnv.config()->getOneBlock("Parameters");
+  auto parameters = cfg->getOneBlock("Parameters");
 
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
@@ -141,7 +150,8 @@ int main(int argc, char* argv[])
   };
 
   LIKWID_MARKER_START("Compute");
-  for (size_t i = 0; i < outer; ++i)
+  size_t i = 0;
+  for (; i < outer; ++i)
   {
     cscycle(maxLevel);
     A.apply(x, ax, maxLevel, hhg::Inner);
@@ -164,6 +174,8 @@ int main(int argc, char* argv[])
     }
   }
   LIKWID_MARKER_STOP("Compute");
+
+  WALBERLA_CHECK_LESS( i, outer );
 
   // hhg::VTKWriter({ &x }, maxLevel, "../output", "test");
   LIKWID_MARKER_CLOSE;

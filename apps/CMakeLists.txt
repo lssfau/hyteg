@@ -6,6 +6,10 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/output)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
+endif()
+
 waLBerla_link_files_to_builddir(../data/meshes/*.msh)
 waLBerla_link_files_to_builddir(../data/param/*.prm)
 
@@ -16,10 +20,6 @@ waLBerla_add_executable( NAME tinytest
 waLBerla_add_executable( NAME tinytest_cg
         FILES cg_test.cpp
         DEPENDS tinyhhg_core fmt core)
-
-waLBerla_add_executable( NAME tinytest_fmg
-        FILES fmg_test.cpp
-        DEPENDS tinyhhg_core fmt)
 
 waLBerla_add_executable( NAME tinytest_chorin
         FILES chorin_test.cpp
@@ -35,6 +35,10 @@ waLBerla_add_executable( NAME tinytest_block_cg
 
 waLBerla_add_executable( NAME tinytest_stokes_stab
         FILES stokes_stab.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME tinytest_fullmg
+        FILES fullmg_test.cpp
         DEPENDS tinyhhg_core fmt)
 
 #add_executable (tinytest_fmg fmg_test.cpp)

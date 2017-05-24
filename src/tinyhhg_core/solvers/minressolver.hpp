@@ -119,7 +119,7 @@ public:
 
       if (printInfo)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", abs(eta)));
+        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", std::abs(eta)));
       }
 
       if (std::abs(eta)/res_start < tolerance)

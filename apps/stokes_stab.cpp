@@ -4,7 +4,7 @@ int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
-  
+
   hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
 
   size_t minLevel = 2;
