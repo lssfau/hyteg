@@ -28,7 +28,7 @@ public:
   size_t id;
   walberla::uint_t rank;
   DoFType type;
-  double area;
+  real_t area;
   Edge* edges[3];
   std::vector<Vertex*> vertices;
   std::array<int, 3> edge_orientation;

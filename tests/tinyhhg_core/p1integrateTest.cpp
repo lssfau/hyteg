@@ -45,7 +45,7 @@ int main (int argc, char ** argv )
   }
 
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D&) { return 13.0; };
 
   auto faceZero = mesh.faces[0];
   hhg::P1Face::interpolate(faceZero,0,exact,maxLevel);

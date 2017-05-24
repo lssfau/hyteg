@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+using walberla::real_t;
+
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -13,7 +15,7 @@ int main(int argc, char* argv[])
   size_t minLevel = 2;
   size_t maxLevel = 5;
 
-  std::function<double(const hhg::Point3D&)> expr = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> expr = [](const hhg::Point3D&) { return 1.0; };
   hhg::P1Function u("u", mesh, minLevel, maxLevel);
   hhg::P1Function Lu("Lu", mesh, minLevel, maxLevel);
 

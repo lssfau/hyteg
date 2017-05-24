@@ -82,8 +82,8 @@ namespace ufc
     virtual ~function() {}
 
     /// Evaluate function at given point in cell
-    virtual void evaluate(double * values,
-                          const double * coordinates,
+    virtual void evaluate(real_t * values,
+                          const real_t * coordinates,
                           const cell& c) const = 0;
 
   };
@@ -137,58 +137,58 @@ namespace ufc
 
     /// Evaluate basis function i at given point x in cell
     virtual void evaluate_basis(std::size_t i,
-                                double * values,
-                                const double * x,
-                                const double * coordinate_dofs,
+                                real_t * values,
+                                const real_t * x,
+                                const real_t * coordinate_dofs,
                                 int cell_orientation) const = 0;
 
     /// Evaluate all basis functions at given point x in cell
-    virtual void evaluate_basis_all(double * values,
-                                    const double * x,
-                                    const double * coordinate_dofs,
+    virtual void evaluate_basis_all(real_t * values,
+                                    const real_t * x,
+                                    const real_t * coordinate_dofs,
                                     int cell_orientation) const = 0;
 
     /// Evaluate order n derivatives of basis function i at given point x in cell
     virtual void evaluate_basis_derivatives(std::size_t i,
                                             std::size_t n,
-                                            double * values,
-                                            const double * x,
-                                            const double * coordinate_dofs,
+                                            real_t * values,
+                                            const real_t * x,
+                                            const real_t * coordinate_dofs,
                                             int cell_orientation) const = 0;
 
     /// Evaluate order n derivatives of all basis functions at given point x in cell
     virtual void evaluate_basis_derivatives_all(std::size_t n,
-                                                double * values,
-                                                const double * x,
-                                                const double * coordinate_dofs,
+                                                real_t * values,
+                                                const real_t * x,
+                                                const real_t * coordinate_dofs,
                                                 int cell_orientation) const = 0;
 
     // FIXME: cell argument only included here so we can pass it to the eval function...
 
     /// Evaluate linear functional for dof i on the function f
-    virtual double evaluate_dof(std::size_t i,
+    virtual real_t evaluate_dof(std::size_t i,
                                 const function& f,
-                                const double * coordinate_dofs,
+                                const real_t * coordinate_dofs,
                                 int cell_orientation,
                                 const cell& c) const = 0;
 
     /// Evaluate linear functionals for all dofs on the function f
-    virtual void evaluate_dofs(double * values,
+    virtual void evaluate_dofs(real_t * values,
                                const function& f,
-                               const double * coordinate_dofs,
+                               const real_t * coordinate_dofs,
                                int cell_orientation,
                                const cell& c) const = 0;
 
     /// Interpolate vertex values from dof values
-    virtual void interpolate_vertex_values(double * vertex_values,
-                                           const double * dof_values,
-                                           const double * coordinate_dofs,
+    virtual void interpolate_vertex_values(real_t * vertex_values,
+                                           const real_t * dof_values,
+                                           const real_t * coordinate_dofs,
                                            int cell_orientation,
                                            const cell& c) const = 0;
 
     /// Tabulate the coordinates of all dofs on a cell
-    virtual void tabulate_dof_coordinates(double * dof_coordinates,
-                                          const double * coordinate_dofs) const = 0;
+    virtual void tabulate_dof_coordinates(real_t * dof_coordinates,
+                                          const real_t * coordinate_dofs) const = 0;
 
     /// Return the number of sub elements (for a mixed element)
     virtual std::size_t num_sub_elements() const = 0;
@@ -296,44 +296,44 @@ namespace ufc
 
     /// Compute physical coordinates x from reference coordinates X, the inverse of compute_reference_coordinates
     virtual void compute_physical_coordinates(
-        double * x, std::size_t num_points,
-        const double * X,
-        const double * coordinate_dofs) const = 0;
+        real_t * x, std::size_t num_points,
+        const real_t * X,
+        const real_t * coordinate_dofs) const = 0;
 
     /// Compute reference coordinates X from physical coordinates x, the inverse of compute_physical_coordinates
     virtual void compute_reference_coordinates(
-        double * X, std::size_t num_points,
-        const double * x,
-        const double * coordinate_dofs, double cell_orientation) const = 0;
+        real_t * X, std::size_t num_points,
+        const real_t * x,
+        const real_t * coordinate_dofs, real_t cell_orientation) const = 0;
     /// Compute X, J, detJ, K from physical coordinates x on a cell // TODO: Can compute all this at no extra cost
     //virtual void compute_reference_geometry(
-    //    double * X, double * J, double * detJ, double * K, std::size_t num_points,
-    //    const double * x,
-    //    const double * coordinate_dofs, double cell_orientation,
-    //    std::size_t iterations, double tolerance) const = 0;
+    //    real_t * X, real_t * J, real_t * detJ, real_t * K, std::size_t num_points,
+    //    const real_t * x,
+    //    const real_t * coordinate_dofs, real_t cell_orientation,
+    //    std::size_t iterations, real_t tolerance) const = 0;
 
     /// Compute Jacobian of coordinate mapping J = dx/dX at reference coordinates X
     virtual void compute_jacobians(
-        double * J, std::size_t num_points,
-        const double * X,
-        const double * coordinate_dofs) const = 0;
+        real_t * J, std::size_t num_points,
+        const real_t * X,
+        const real_t * coordinate_dofs) const = 0;
 
     /// Compute determinants of (pseudo-)Jacobians J
     virtual void compute_jacobian_determinants(
-        double * detJ, std::size_t num_points,
-        const double * J,
-        double cell_orientation) const = 0;
+        real_t * detJ, std::size_t num_points,
+        const real_t * J,
+        real_t cell_orientation) const = 0;
 
     /// Compute (pseudo-)inverses K of (pseudo-)Jacobians J
     virtual void compute_jacobian_inverses(
-        double * K, std::size_t num_points,
-        const double * J, const double * detJ) const = 0;
+        real_t * K, std::size_t num_points,
+        const real_t * J, const real_t * detJ) const = 0;
 
     /// Combined (for convenience) computation of x, J, detJ, K from X and coordinate_dofs on a cell
     virtual void compute_geometry(
-        double * x, double * J, double * detJ, double * K, std::size_t num_points,
-        const double * X,
-        const double * coordinate_dofs, double cell_orientation) const = 0;
+        real_t * x, real_t * J, real_t * detJ, real_t * K, std::size_t num_points,
+        const real_t * X,
+        const real_t * coordinate_dofs, real_t cell_orientation) const = 0;
 
   };
 
@@ -363,9 +363,9 @@ namespace ufc
     virtual ~cell_integral() {}
 
     /// Tabulate the tensor for the contribution from a local cell
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  int cell_orientation) const = 0;
 
   };
@@ -381,9 +381,9 @@ namespace ufc
     virtual ~exterior_facet_integral() {}
 
     /// Tabulate the tensor for the contribution from a local exterior facet
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t facet,
                                  int cell_orientation) const = 0;
 
@@ -400,10 +400,10 @@ namespace ufc
     virtual ~interior_facet_integral() {}
 
     /// Tabulate the tensor for the contribution from a local interior facet
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs_0,
-                                 const double * coordinate_dofs_1,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs_0,
+                                 const real_t * coordinate_dofs_1,
                                  std::size_t facet_0,
                                  std::size_t facet_1,
                                  int cell_orientation_0,
@@ -424,9 +424,9 @@ namespace ufc
     virtual ~vertex_integral() {}
 
     /// Tabulate the tensor for the contribution from the local vertex
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t vertex,
                                  int cell_orientation) const = 0;
 
@@ -450,13 +450,13 @@ namespace ufc
     virtual std::size_t num_cells() const = 0;
 
     /// Tabulate the tensor for the contribution from a custom domain
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t num_quadrature_points,
-                                 const double * quadrature_points,
-                                 const double * quadrature_weights,
-                                 const double * facet_normals,
+                                 const real_t * quadrature_points,
+                                 const real_t * quadrature_weights,
+                                 const real_t * facet_normals,
                                  int cell_orientation) const = 0;
 
   };
@@ -476,12 +476,12 @@ namespace ufc
     virtual ~cutcell_integral() {};
 
     /// Tabulate the tensor for the contribution from a cutcell domain
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t num_quadrature_points,
-                                 const double * quadrature_points,
-                                 const double * quadrature_weights,
+                                 const real_t * quadrature_points,
+                                 const real_t * quadrature_weights,
                                  int cell_orientation) const = 0;
 
   };
@@ -501,13 +501,13 @@ namespace ufc
     virtual ~interface_integral() {};
 
     /// Tabulate the tensor for the contribution from an interface domain
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t num_quadrature_points,
-                                 const double * quadrature_points,
-                                 const double * quadrature_weights,
-                                 const double * facet_normals,
+                                 const real_t * quadrature_points,
+                                 const real_t * quadrature_weights,
+                                 const real_t * facet_normals,
                                  int cell_orientation) const = 0;
 
   };
@@ -527,12 +527,12 @@ namespace ufc
     virtual ~overlap_integral() {};
 
     /// Tabulate the tensor for the contribution from an overlap domain
-    virtual void tabulate_tensor(double * A,
-                                 const double * const * w,
-                                 const double * coordinate_dofs,
+    virtual void tabulate_tensor(real_t * A,
+                                 const real_t * const * w,
+                                 const real_t * coordinate_dofs,
                                  std::size_t num_quadrature_points,
-                                 const double * quadrature_points,
-                                 const double * quadrature_weights,
+                                 const real_t * quadrature_points,
+                                 const real_t * quadrature_weights,
                                  int cell_orientation) const = 0;
 
   };

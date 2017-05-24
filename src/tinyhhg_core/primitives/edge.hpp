@@ -37,7 +37,7 @@ public:
   Vertex* v1;
 
   Point3D direction;
-  double length;
+  real_t length;
   Point3D tangent;
   Point3D normal_2d;
 

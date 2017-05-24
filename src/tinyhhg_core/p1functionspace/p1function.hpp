@@ -116,7 +116,7 @@ public:
     }
   }
 
-  void interpolate(std::function<double(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
+  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -239,9 +239,9 @@ public:
     }
   }
 
-  double dot(P1Function& rhs, size_t level, DoFType flag = All)
+  real_t dot(P1Function& rhs, size_t level, DoFType flag = All)
   {
-    double sp_l = 0.0;
+    real_t sp_l = 0.0;
 
     for (Vertex& vertex : mesh.vertices)
     {
@@ -268,8 +268,8 @@ public:
     }
 
 #ifdef WALBERLA_BUILD_WITH_MPI
-    double sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< double >::type(), MPI_SUM, MPI_COMM_WORLD);
+    real_t sp_g = 0.0;
+    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< real_t >::type(), MPI_SUM, MPI_COMM_WORLD);
 
     return sp_g;
 #else // WALBERLA_BUILD_WITH_MPI

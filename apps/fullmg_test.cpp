@@ -5,6 +5,7 @@
 //using namespace walberla;
 using walberla::uint_t;
 using walberla::uint_c;
+using walberla::real_t;
 #define PI 3.14159265359
 
 int main(int argc, char* argv[])
@@ -32,7 +33,7 @@ int main(int argc, char* argv[])
   size_t outer = parameters.getParameter<size_t>("outer_iter");
 
   size_t coarse_maxiter = 100;
-  double coarse_tolerance = 1e-6;
+  real_t coarse_tolerance = 1e-6;
     
   hhg::P1Function r("r", mesh, minLevel, maxLevel);
   hhg::P1Function b("b", mesh, minLevel, maxLevel);
@@ -45,10 +46,10 @@ int main(int argc, char* argv[])
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
   hhg::P1MassOperator M(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(PI*xx[0])*sin(PI*xx[1]); };
-  std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
-  std::function<double(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(PI*xx[0])*sin(PI*xx[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
+  std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
     
   for(size_t ll = minLevel; ll <= maxLevel;++ll)
   {
@@ -109,7 +110,7 @@ int main(int argc, char* argv[])
   for (size_t ll = minLevel; ll <= maxLevel; ++ll)
   {
       tmp.interpolate(ones, ll);
-      double npoints = tmp.dot(tmp, ll);
+      real_t npoints = tmp.dot(tmp, ll);
       if (rk == 0)
       {
           WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Level = {}", (size_t)ll));
@@ -117,16 +118,16 @@ int main(int argc, char* argv[])
           WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
           WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error           H1-semi");
       }
-      double rel_res = 1.0;
+      real_t rel_res = 1.0;
 
       A.apply(x, ax, ll, hhg::Inner);
       r.assign({1.0, -1.0}, { &b, &ax }, ll, hhg::Inner);
-      double abs_res_old = std::sqrt(r.dot(r, ll, hhg::Inner));
-      double begin_res = abs_res_old;
+      real_t abs_res_old = std::sqrt(r.dot(r, ll, hhg::Inner));
+      real_t begin_res = abs_res_old;
       err.assign({1.0, -1.0}, {&x, &x_exact}, ll);
-      double discr_l2_err = std::sqrt(err.dot(err, ll) / npoints);
+      real_t discr_l2_err = std::sqrt(err.dot(err, ll) / npoints);
       A.apply(err, tmp, ll, hhg::Inner);
-      double discr_h1_err = std::sqrt(err.dot(tmp, ll));
+      real_t discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
       
       if (rk == 0)
@@ -139,7 +140,7 @@ int main(int argc, char* argv[])
           cscycle(ll);
           A.apply(x, ax, ll, hhg::Inner);
           r.assign({1.0, -1.0}, { &b, &ax }, ll, hhg::Inner);
-          double abs_res = std::sqrt(r.dot(r, ll, hhg::Inner));
+          real_t abs_res = std::sqrt(r.dot(r, ll, hhg::Inner));
           rel_res = abs_res / begin_res;
           err.assign({1.0, -1.0}, { &x, &x_exact }, ll);
           discr_l2_err = std::sqrt(err.dot(err, ll) / npoints);

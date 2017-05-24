@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+using walberla::real_t;
+
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -10,13 +12,13 @@ int main(int argc, char* argv[])
 
   hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
 
-  double viscosity = 1e-1;
-  double dt = 1e-4;
+  real_t viscosity = 1e-1;
+  real_t dt = 1e-4;
 
   size_t minLevel = 2;
   size_t maxLevel = 4;
 
-  std::function<double(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     if (x[0] < 1e-8)
     {
       return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
@@ -27,12 +29,12 @@ int main(int argc, char* argv[])
     }
   };
 
-  std::function<double(const hhg::Point3D&)> bc_y = [](const hhg::Point3D&) {
+  std::function<real_t(const hhg::Point3D&)> bc_y = [](const hhg::Point3D&) {
     return 0.0;
   };
 
-  std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
 
   hhg::P1Function u("u", mesh, minLevel, maxLevel);
   hhg::P1Function v("v", mesh, minLevel, maxLevel);
@@ -50,7 +52,7 @@ int main(int argc, char* argv[])
   hhg::P1DivTyOperator divT_y(mesh, minLevel, maxLevel);
   hhg::P1MassOperator mass(mesh, minLevel, maxLevel);
 
-  double time = 0.0;
+  real_t time = 0.0;
   size_t iter = 0;
   size_t max_cg_iter = 10000;
 
@@ -86,7 +88,7 @@ int main(int argc, char* argv[])
     div_x.apply(u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary);
     div_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
-    p_rhs.assign({ 1.0/dt, 1.0/dt }, { &p_rhs, &tmp }, maxLevel, hhg::Inner | hhg::DirichletBoundary);
+    p_rhs.assign({ real_t(1)/dt, real_t(1)/dt }, { &p_rhs, &tmp }, maxLevel, hhg::Inner | hhg::DirichletBoundary);
     p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
     laplace_solver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-8, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, true);

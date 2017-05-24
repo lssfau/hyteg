@@ -7,6 +7,7 @@
 //using namespace walberla;
 using walberla::uint_t;
 using walberla::uint_c;
+using walberla::real_t;
 
 int main(int argc, char* argv[])
 {
@@ -42,8 +43,8 @@ int main(int argc, char* argv[])
   size_t outer = parameters.getParameter<size_t>("outer_iter");
 
   size_t coarse_maxiter = 100;
-  double coarse_tolerance = 1e-6;
-  double mg_tolerance = 1e-8;
+  real_t coarse_tolerance = 1e-6;
+  real_t mg_tolerance = 1e-8;
 
   hhg::P1Function r("r", mesh, minLevel, maxLevel);
   hhg::P1Function b("b", mesh, minLevel, maxLevel);
@@ -55,16 +56,16 @@ int main(int argc, char* argv[])
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
-  std::function<double(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   x.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   x_exact.interpolate(exact, maxLevel);
 
   tmp.interpolate(ones, maxLevel);
-  double npoints = tmp.dot(tmp, maxLevel);
+  real_t npoints = tmp.dot(tmp, maxLevel);
 
   auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
 
@@ -75,16 +76,16 @@ int main(int argc, char* argv[])
     WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error");
   }
 
-  double rel_res = 1.0;
+  real_t rel_res = 1.0;
 
   A.apply(x, ax, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, {&b, &ax}, maxLevel, hhg::Inner);
 
-  double begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
-  double abs_res_old = begin_res;
+  real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+  real_t abs_res_old = begin_res;
 
   err.assign({1.0, -1.0}, {&x, &x_exact}, maxLevel);
-  double discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
   if (rk == 0)
   {
@@ -141,7 +142,7 @@ int main(int argc, char* argv[])
     cscycle(maxLevel);
     A.apply(x, ax, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &b, &ax }, maxLevel, hhg::Inner);
-    double abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+    real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;
     err.assign({1.0, -1.0}, { &x, &x_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);

@@ -41,13 +41,13 @@ public:
 
   void init(size_t level, DoFType flag)
   {
-    std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+    std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
     p_vm->interpolate(zero, level, flag);
     p_wm->interpolate(zero, level, flag);
     p_w->interpolate(zero, level, flag);
   }
 
-  void solve(O& A, F& x, F& b, F& r, size_t level, double tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
     init(level, flag);
 
@@ -57,17 +57,17 @@ public:
     // identity preconditioner
     p_z->assign({1.0}, {p_v}, level, flag);
 
-    double gamma_old = 1.0;
-    double gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
+    real_t gamma_old = 1.0;
+    real_t gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
 
-    double res_start = gamma_new;
+    real_t res_start = gamma_new;
 
-    double eta = gamma_new;
-    double s_old = 0.0;
-    double s_new = 0.0;
+    real_t eta = gamma_new;
+    real_t s_old = 0.0;
+    real_t s_new = 0.0;
 
-    double c_old = 1.0;
-    double c_new = 1.0;
+    real_t c_old = 1.0;
+    real_t c_new = 1.0;
 
     if (gamma_new < tolerance && printInfo)
     {
@@ -76,9 +76,9 @@ public:
     }
 
     for(size_t i = 0; i < maxiter; ++i) {
-      p_z->assign({1.0 / gamma_new}, {p_z}, level, flag);
+      p_z->assign({real_t(1) / gamma_new}, {p_z}, level, flag);
       A.apply(*p_z, *p_vp, level, flag);
-      double delta = p_vp->dot(*p_z, level, flag);
+      real_t delta = p_vp->dot(*p_z, level, flag);
 
       p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
 
@@ -88,17 +88,17 @@ public:
       gamma_old = gamma_new;
       gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
 
-      double alpha0 = c_new * delta - c_old * s_new * gamma_old;
-      double alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
-      double alpha2 = s_new * delta + c_old * c_new * gamma_old;
-      double alpha3 = s_old * gamma_old;
+      real_t alpha0 = c_new * delta - c_old * s_new * gamma_old;
+      real_t alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);
+      real_t alpha2 = s_new * delta + c_old * c_new * gamma_old;
+      real_t alpha3 = s_old * gamma_old;
 
       c_old = c_new;
       c_new = alpha0 / alpha1;
       s_old = s_new;
       s_new = gamma_new / alpha1;
 
-      p_wp->assign({1.0/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, level, flag);
+      p_wp->assign({real_t(1)/alpha1, -alpha3/alpha1, -alpha2/alpha1}, {p_z, p_wm, p_w}, level, flag);
       x.add({c_new * eta}, {p_wp}, level, flag);
 
       eta = -s_new * eta;

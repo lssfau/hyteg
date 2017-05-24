@@ -21,7 +21,7 @@ namespace hhg
   public:
     VertexStencilMemory() : VertexMemory(Stencil) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
     size_t num_deps;
 
     inline virtual void free()
@@ -33,14 +33,14 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level, size_t num_deps)
+    inline real_t* addlevel(size_t level, size_t num_deps)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
         this->num_deps = num_deps;
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
@@ -61,7 +61,7 @@ namespace hhg
   public:
     VertexP1Memory() : VertexMemory(P1) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
     size_t num_deps;
 
     inline virtual void free()
@@ -73,14 +73,14 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level, size_t num_deps)
+    inline real_t* addlevel(size_t level, size_t num_deps)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
         this->num_deps = num_deps;
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
@@ -100,7 +100,7 @@ namespace hhg
   public:
     EdgeStencilMemory() : EdgeMemory(Stencil) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
 
     virtual void free()
     {
@@ -111,14 +111,14 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level)
+    inline real_t* addlevel(size_t level)
     {
       //WALBERLA_LOG_DEVEL("EdgeStencilMemory, kind = " + std::to_string(this->type));
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
@@ -139,7 +139,7 @@ namespace hhg
   public:
     EdgeP1Memory() : EdgeMemory(P1) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
     size_t num_deps;
 
     virtual void free()
@@ -151,14 +151,14 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level, size_t num_deps)
+    inline real_t* addlevel(size_t level, size_t num_deps)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
         this->num_deps = num_deps;
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
@@ -179,7 +179,7 @@ namespace hhg
   public:
     FaceStencilMemory() : FaceMemory(Stencil) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
 
     virtual void free()
     {
@@ -190,13 +190,13 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level)
+    inline real_t* addlevel(size_t level)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
@@ -217,7 +217,7 @@ namespace hhg
   public:
     FaceP1Memory() : FaceMemory(P1) { ; }
 
-    std::map<size_t, double*> data;
+    std::map<size_t, real_t*> data;
 
     virtual void free()
     {
@@ -228,13 +228,13 @@ namespace hhg
       data.clear();
     }
 
-    inline double* addlevel(size_t level)
+    inline real_t* addlevel(size_t level)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        data[level] = new double[getSize(level)]();
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }

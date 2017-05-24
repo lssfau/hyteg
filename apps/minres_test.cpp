@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+using walberla::real_t;
+
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -22,9 +24,9 @@ int main(int argc, char* argv[])
 
   hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) -> double { return x[0]*x[0] - x[1]*x[1]; };
-  std::function<double(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) -> real_t { return x[0]*x[0] - x[1]*x[1]; };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
@@ -35,9 +37,9 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);
-  double npoints = npoints_helper.dot(npoints_helper, maxLevel);
+  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
 
-  double discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("discrete L2 error = {:e}", discr_l2_err));
 

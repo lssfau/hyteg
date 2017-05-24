@@ -107,28 +107,28 @@ public:
   }
 
   static void _evaluate_basis(std::size_t i,
-                              double * values,
-                              const double * x,
-                              const double * coordinate_dofs,
+                              real_t * values,
+                              const real_t * x,
+                              const real_t * coordinate_dofs,
                               int cell_orientation)
   {
     // Compute Jacobian
-    double J[4];
+    real_t J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    double K[4];
-    double detJ;
+    real_t K[4];
+    real_t detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Reset values
     *values = 0.0;
@@ -138,10 +138,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -152,7 +152,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -166,10 +166,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -180,7 +180,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -194,10 +194,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -208,7 +208,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -223,21 +223,21 @@ public:
   }
 
   void evaluate_basis(std::size_t i,
-                      double * values,
-                      const double * x,
-                      const double * coordinate_dofs,
+                      real_t * values,
+                      const real_t * x,
+                      const real_t * coordinate_dofs,
                       int cell_orientation) const final override
   {
     _evaluate_basis(i, values, x, coordinate_dofs, cell_orientation);
   }
 
-  static void _evaluate_basis_all(double * values,
-                                  const double * x,
-                                  const double * coordinate_dofs,
+  static void _evaluate_basis_all(real_t * values,
+                                  const real_t * x,
+                                  const real_t * coordinate_dofs,
                                   int cell_orientation)
   {
     // Helper variable to hold values of a single dof.
-    double dof_values = 0.0;
+    real_t dof_values = 0.0;
     
     // Loop dofs and call evaluate_basis
     for (unsigned int r = 0; r < 3; r++)
@@ -247,9 +247,9 @@ public:
     } // end loop over 'r'
   }
 
-  void evaluate_basis_all(double * values,
-                          const double * x,
-                          const double * coordinate_dofs,
+  void evaluate_basis_all(real_t * values,
+                          const real_t * x,
+                          const real_t * coordinate_dofs,
                           int cell_orientation) const final override
   {
     _evaluate_basis_all(values, x, coordinate_dofs, cell_orientation);
@@ -257,9 +257,9 @@ public:
 
   static void _evaluate_basis_derivatives(std::size_t i,
                                           std::size_t n,
-                                          double * values,
-                                          const double * x,
-                                          const double * coordinate_dofs,
+                                          real_t * values,
+                                          const real_t * x,
+                                          const real_t * coordinate_dofs,
                                           int cell_orientation)
   {
     
@@ -290,22 +290,22 @@ public:
     }
     
     // Compute Jacobian
-    double J[4];
+    real_t J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    double K[4];
-    double detJ;
+    real_t K[4];
+    real_t detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Declare two dimensional array that holds combinations of derivatives and initialise
     unsigned int combinations[2][1];
@@ -334,11 +334,11 @@ public:
     }
     
     // Compute inverse of Jacobian
-    const double Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
+    const real_t Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
     
     // Declare transformation matrix
     // Declare pointer to two dimensional array and initialise
-    double transform[2][2];
+    real_t transform[2][2];
     for (unsigned int j = 0; j < num_derivatives; j++)
     {
       for (unsigned int k = 0; k < num_derivatives; k++)
@@ -360,10 +360,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -374,36 +374,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -491,10 +491,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -505,36 +505,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -622,10 +622,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -636,36 +636,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -755,18 +755,18 @@ public:
 
   void evaluate_basis_derivatives(std::size_t i,
                                   std::size_t n,
-                                  double * values,
-                                  const double * x,
-                                  const double * coordinate_dofs,
+                                  real_t * values,
+                                  const real_t * x,
+                                  const real_t * coordinate_dofs,
                                   int cell_orientation) const final override
   {
     _evaluate_basis_derivatives(i, n, values, x, coordinate_dofs, cell_orientation);
   }
 
   static void _evaluate_basis_derivatives_all(std::size_t n,
-                                              double * values,
-                                              const double * x,
-                                              const double * coordinate_dofs,
+                                              real_t * values,
+                                              const real_t * x,
+                                              const real_t * coordinate_dofs,
                                               int cell_orientation)
   {
     // Call evaluate_basis_all if order of derivatives is equal to zero.
@@ -799,7 +799,7 @@ public:
     }
     
     // Helper variable to hold values of a single dof.
-    double dof_values[2];
+    real_t dof_values[2];
     for (unsigned int r = 0; r < 2; r++)
     {
       dof_values[r] = 0.0;
@@ -817,25 +817,25 @@ public:
   }
 
   void evaluate_basis_derivatives_all(std::size_t n,
-                                      double * values,
-                                      const double * x,
-                                      const double * coordinate_dofs,
+                                      real_t * values,
+                                      const real_t * x,
+                                      const real_t * coordinate_dofs,
                                       int cell_orientation) const final override
   {
     _evaluate_basis_derivatives_all(n, values, x, coordinate_dofs, cell_orientation);
   }
 
-  double evaluate_dof(std::size_t i,
+  real_t evaluate_dof(std::size_t i,
                       const ufc::function& f,
-                      const double * coordinate_dofs,
+                      const real_t * coordinate_dofs,
                       int cell_orientation,
                       const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    double vals[1];
+    real_t vals[1];
     
     // Declare variable for physical coordinates
-    double y[2];
+    real_t y[2];
     switch (i)
     {
     case 0:
@@ -867,17 +867,17 @@ public:
     return 0.0;
   }
 
-  void evaluate_dofs(double * values,
+  void evaluate_dofs(real_t * values,
                              const ufc::function& f,
-                             const double * coordinate_dofs,
+                             const real_t * coordinate_dofs,
                              int cell_orientation,
                              const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    double vals[1];
+    real_t vals[1];
     
     // Declare variable for physical coordinates
-    double y[2];
+    real_t y[2];
     y[0] = coordinate_dofs[0];
     y[1] = coordinate_dofs[1];
     f.evaluate(vals, y, c);
@@ -892,9 +892,9 @@ public:
     values[2] = vals[0];
   }
 
-  void interpolate_vertex_values(double * vertex_values,
-                                 const double * dof_values,
-                                 const double * coordinate_dofs,
+  void interpolate_vertex_values(real_t * vertex_values,
+                                 const real_t * dof_values,
+                                 const real_t * coordinate_dofs,
                                  int cell_orientation,
                                  const ufc::cell& c) const final override
   {
@@ -904,8 +904,8 @@ public:
     vertex_values[2] = dof_values[2];
   }
 
-  void tabulate_dof_coordinates(double * dof_coordinates,
-                                const double * coordinate_dofs) const final override
+  void tabulate_dof_coordinates(real_t * dof_coordinates,
+                                const real_t * coordinate_dofs) const final override
   {
     dof_coordinates[0] = coordinate_dofs[0];
     dof_coordinates[1] = coordinate_dofs[1];
@@ -1031,28 +1031,28 @@ public:
   }
 
   static void _evaluate_basis(std::size_t i,
-                              double * values,
-                              const double * x,
-                              const double * coordinate_dofs,
+                              real_t * values,
+                              const real_t * x,
+                              const real_t * coordinate_dofs,
                               int cell_orientation)
   {
     // Compute Jacobian
-    double J[4];
+    real_t J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    double K[4];
-    double detJ;
+    real_t K[4];
+    real_t detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Reset values
     values[0] = 0.0;
@@ -1063,10 +1063,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1077,7 +1077,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1091,10 +1091,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1105,7 +1105,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1119,10 +1119,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1133,7 +1133,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -1147,10 +1147,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1161,7 +1161,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1175,10 +1175,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1189,7 +1189,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1203,10 +1203,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1217,7 +1217,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -1232,21 +1232,21 @@ public:
   }
 
   void evaluate_basis(std::size_t i,
-                      double * values,
-                      const double * x,
-                      const double * coordinate_dofs,
+                      real_t * values,
+                      const real_t * x,
+                      const real_t * coordinate_dofs,
                       int cell_orientation) const final override
   {
     _evaluate_basis(i, values, x, coordinate_dofs, cell_orientation);
   }
 
-  static void _evaluate_basis_all(double * values,
-                                  const double * x,
-                                  const double * coordinate_dofs,
+  static void _evaluate_basis_all(real_t * values,
+                                  const real_t * x,
+                                  const real_t * coordinate_dofs,
                                   int cell_orientation)
   {
     // Helper variable to hold values of a single dof.
-    double dof_values[2] = {0.0, 0.0};
+    real_t dof_values[2] = {0.0, 0.0};
     
     // Loop dofs and call evaluate_basis
     for (unsigned int r = 0; r < 6; r++)
@@ -1259,9 +1259,9 @@ public:
     } // end loop over 'r'
   }
 
-  void evaluate_basis_all(double * values,
-                          const double * x,
-                          const double * coordinate_dofs,
+  void evaluate_basis_all(real_t * values,
+                          const real_t * x,
+                          const real_t * coordinate_dofs,
                           int cell_orientation) const final override
   {
     _evaluate_basis_all(values, x, coordinate_dofs, cell_orientation);
@@ -1269,9 +1269,9 @@ public:
 
   static void _evaluate_basis_derivatives(std::size_t i,
                                           std::size_t n,
-                                          double * values,
-                                          const double * x,
-                                          const double * coordinate_dofs,
+                                          real_t * values,
+                                          const real_t * x,
+                                          const real_t * coordinate_dofs,
                                           int cell_orientation)
   {
     
@@ -1302,22 +1302,22 @@ public:
     }
     
     // Compute Jacobian
-    double J[4];
+    real_t J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    double K[4];
-    double detJ;
+    real_t K[4];
+    real_t detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Declare two dimensional array that holds combinations of derivatives and initialise
     unsigned int combinations[2][1];
@@ -1346,11 +1346,11 @@ public:
     }
     
     // Compute inverse of Jacobian
-    const double Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
+    const real_t Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
     
     // Declare transformation matrix
     // Declare pointer to two dimensional array and initialise
-    double transform[2][2];
+    real_t transform[2][2];
     for (unsigned int j = 0; j < num_derivatives; j++)
     {
       for (unsigned int k = 0; k < num_derivatives; k++)
@@ -1372,10 +1372,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1386,36 +1386,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1503,10 +1503,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1517,36 +1517,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1634,10 +1634,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1648,36 +1648,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1765,10 +1765,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1779,36 +1779,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1896,10 +1896,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1910,36 +1910,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -2027,10 +2027,10 @@ public:
       {
         
       // Array of basisvalues
-      double basisvalues[3] = {0.0, 0.0, 0.0};
+      real_t basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -2041,36 +2041,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const double coefficients0[3] = \
+      static const real_t coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const double dmats0[3][3] = \
+      static const real_t dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const double dmats1[3][3] = \
+      static const real_t dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      double derivatives[2];
+      real_t derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      double dmats[3][3] = \
+      real_t dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      double dmats_old[3][3] = \
+      real_t dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -2160,18 +2160,18 @@ public:
 
   void evaluate_basis_derivatives(std::size_t i,
                                   std::size_t n,
-                                  double * values,
-                                  const double * x,
-                                  const double * coordinate_dofs,
+                                  real_t * values,
+                                  const real_t * x,
+                                  const real_t * coordinate_dofs,
                                   int cell_orientation) const final override
   {
     _evaluate_basis_derivatives(i, n, values, x, coordinate_dofs, cell_orientation);
   }
 
   static void _evaluate_basis_derivatives_all(std::size_t n,
-                                              double * values,
-                                              const double * x,
-                                              const double * coordinate_dofs,
+                                              real_t * values,
+                                              const real_t * x,
+                                              const real_t * coordinate_dofs,
                                               int cell_orientation)
   {
     // Call evaluate_basis_all if order of derivatives is equal to zero.
@@ -2204,7 +2204,7 @@ public:
     }
     
     // Helper variable to hold values of a single dof.
-    double dof_values[4];
+    real_t dof_values[4];
     for (unsigned int r = 0; r < 4; r++)
     {
       dof_values[r] = 0.0;
@@ -2222,25 +2222,25 @@ public:
   }
 
   void evaluate_basis_derivatives_all(std::size_t n,
-                                      double * values,
-                                      const double * x,
-                                      const double * coordinate_dofs,
+                                      real_t * values,
+                                      const real_t * x,
+                                      const real_t * coordinate_dofs,
                                       int cell_orientation) const final override
   {
     _evaluate_basis_derivatives_all(n, values, x, coordinate_dofs, cell_orientation);
   }
 
-  double evaluate_dof(std::size_t i,
+  real_t evaluate_dof(std::size_t i,
                       const ufc::function& f,
-                      const double * coordinate_dofs,
+                      const real_t * coordinate_dofs,
                       int cell_orientation,
                       const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    double vals[2];
+    real_t vals[2];
     
     // Declare variable for physical coordinates
-    double y[2];
+    real_t y[2];
     switch (i)
     {
     case 0:
@@ -2296,17 +2296,17 @@ public:
     return 0.0;
   }
 
-  void evaluate_dofs(double * values,
+  void evaluate_dofs(real_t * values,
                              const ufc::function& f,
-                             const double * coordinate_dofs,
+                             const real_t * coordinate_dofs,
                              int cell_orientation,
                              const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    double vals[2];
+    real_t vals[2];
     
     // Declare variable for physical coordinates
-    double y[2];
+    real_t y[2];
     y[0] = coordinate_dofs[0];
     y[1] = coordinate_dofs[1];
     f.evaluate(vals, y, c);
@@ -2324,9 +2324,9 @@ public:
     values[5] = vals[1];
   }
 
-  void interpolate_vertex_values(double * vertex_values,
-                                 const double * dof_values,
-                                 const double * coordinate_dofs,
+  void interpolate_vertex_values(real_t * vertex_values,
+                                 const real_t * dof_values,
+                                 const real_t * coordinate_dofs,
                                  int cell_orientation,
                                  const ufc::cell& c) const final override
   {
@@ -2340,8 +2340,8 @@ public:
     vertex_values[5] = dof_values[5];
   }
 
-  void tabulate_dof_coordinates(double * dof_coordinates,
-                                const double * coordinate_dofs) const final override
+  void tabulate_dof_coordinates(real_t * dof_coordinates,
+                                const real_t * coordinate_dofs) const final override
   {
     dof_coordinates[0] = coordinate_dofs[0];
     dof_coordinates[1] = coordinate_dofs[1];
@@ -3058,9 +3058,9 @@ static const std::vector<bool> enabled({});
 return enabled;
   }
 
-  void tabulate_tensor(double * A,
-                       const double * const * w,
-                       const double * coordinate_dofs,
+  void tabulate_tensor(real_t * A,
+                       const real_t * const * w,
+                       const real_t * coordinate_dofs,
                        int cell_orientation) const final override
   {
     // This function was generated using 'uflacs' representation
@@ -3086,13 +3086,13 @@ return enabled;
     // FE* dimensions: [entities][points][dofs]
     // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
     // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const double FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
+    alignas(32) static const real_t FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
     // Unstructured piecewise computations
-    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
-    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
-    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
-    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
-    alignas(32) double sp[20];
+    const real_t J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
+    const real_t J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
+    const real_t J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
+    const real_t J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
+    alignas(32) real_t sp[20];
     sp[0] = J_c0 * J_c3;
     sp[1] = J_c1 * J_c2;
     sp[2] = sp[0] + -1 * sp[1];

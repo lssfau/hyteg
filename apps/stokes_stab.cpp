@@ -1,5 +1,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 
+using walberla::real_t;
+
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -17,7 +19,7 @@ int main(int argc, char* argv[])
 
   hhg::P1StokesOperator L(mesh, minLevel, maxLevel);
 
-  std::function<double(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     if (x[0] < 1e-8)
     {
       return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
@@ -27,9 +29,9 @@ int main(int argc, char* argv[])
       return 0.0;
     }
   };
-  std::function<double(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
-  std::function<double(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
   u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
