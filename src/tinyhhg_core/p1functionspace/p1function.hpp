@@ -27,7 +27,7 @@ public:
     {
       if (v.rank == rank)
       {
-        memory_id = v.data.size();
+        memory_id = v.memory.size();
         break;
       }
     }
@@ -38,7 +38,7 @@ public:
       {
         if (e.rank == rank)
         {
-          memory_id = e.data.size();
+          memory_id = e.memory.size();
           break;
         }
       }
@@ -50,7 +50,7 @@ public:
       {
         if (f.rank == rank)
         {
-          memory_id = f.data.size();
+          memory_id = f.memory.size();
           break;
         }
       }
@@ -61,6 +61,8 @@ public:
       fmt::printf("There was an error allocating P1 memory\n");
       std::exit(-1);
     }
+
+    WALBERLA_LOG_DEVEL("Created Function with ID " + std::to_string(memory_id))
 
     for (Vertex& vertex : mesh.vertices)
     {
@@ -93,7 +95,7 @@ public:
     {
       if (vertex.rank == rank)
       {
-        P1Vertex::free(vertex, memory_id, minLevel, maxLevel);
+        P1Vertex::free(vertex, memory_id);
       }
     }
 
@@ -101,7 +103,7 @@ public:
     {
       if (edge.rank == rank)
       {
-        P1Edge::free(edge, memory_id, minLevel, maxLevel);
+        P1Edge::free(edge, memory_id);
       }
     }
 
@@ -109,7 +111,7 @@ public:
     {
       if (face.rank == rank)
       {
-        P1Face::free(face, memory_id, minLevel, maxLevel);
+        P1Face::free(face, memory_id);
       }
     }
   }

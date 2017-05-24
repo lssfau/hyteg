@@ -1,5 +1,6 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
+#include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
 namespace hhg
 {
@@ -217,7 +218,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << face.data[function->memory_id][level-2][i] << " ";
+        file << getFaceP1Memory(face, function->memory_id)->data[level][i] << " ";
       }
     }
     file << "\n</DataArray>\n";

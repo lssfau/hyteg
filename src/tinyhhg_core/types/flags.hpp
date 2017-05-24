@@ -43,6 +43,13 @@ inline bool testFlag(DoFType a, DoFType b)
   return (a & b) != 0;
 }
 
+enum MemoryType 
+{ 
+  Base,
+  Stencil,
+  P1 
+};
+
 } // namespace hhg
 
 #endif /* FLAGS_HPP */

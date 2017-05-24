@@ -12,6 +12,7 @@ namespace hhg
 {
 
 class Edge;
+class FaceMemory;
 
 class Face
 {
@@ -33,12 +34,24 @@ public:
   std::array<int, 3> edge_orientation;
   std::array<Point3D, 3> coords;
 
-  std::vector<std::vector<double*> > data;
-  std::vector<std::vector<double*> > opr_data;
+  std::vector<FaceMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 };
 
+class FaceMemory
+{
+public:
+
+  const MemoryType type;
+
+  virtual void free() = 0;
+
+
+   
+protected:
+  FaceMemory(MemoryType t) : type(t) { ; }
+};
 }
 
 #endif /* FACE_HPP */
