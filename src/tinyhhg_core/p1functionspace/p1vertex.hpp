@@ -148,7 +148,7 @@ inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id,
 //      }
 //      else
 //      {
-//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, MPI_DOUBLE, edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//        MPI_Recv(&vertex.data[memory_id][level-2][i], 1, walberla::MPITrait< double >::type(), edge->rank, i, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 //      }
 //    }
 //  }

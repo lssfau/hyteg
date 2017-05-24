@@ -165,7 +165,10 @@ public:
       for (Edge& edge : mesh.edges)
       {
         if (edge.rank != rank)
+        {
           continue;
+        }
+
         if (level == minLevel)
         {
           edge.memory.push_back(new EdgeStencilMemory());
@@ -226,9 +229,6 @@ public:
         {
           vertex.memory.push_back(new VertexStencilMemory());
         }
-
-        //double* vertex_stencil = new double[1 + vertex.edges.size()]();
-        //getVertexStencilMemory(vertex, id)->data[level] = vertex_stencil;
 
         double* vertex_stencil = getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
 

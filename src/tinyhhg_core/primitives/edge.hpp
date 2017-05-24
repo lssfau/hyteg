@@ -54,12 +54,12 @@ class EdgeMemory
 {
 public:
 
-	const MemoryType type;
+  const MemoryType type;
 
-	virtual void free() = 0;
+  virtual void free() = 0;
 
 protected:
-	EdgeMemory(MemoryType t) : type(t) { ; }
+  EdgeMemory(MemoryType t) : type(t) { ; }
 };
 }
 

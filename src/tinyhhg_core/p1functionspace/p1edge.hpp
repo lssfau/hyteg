@@ -17,13 +17,6 @@ inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLe
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
-    //size_t n_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-    //size_t n_dofs_per_edge_nbr = n_dofs_per_edge - 1;
-    //size_t num_deps = edge.faces.size();
-    //size_t total_n_dofs = n_dofs_per_edge + num_deps * n_dofs_per_edge_nbr;
-    //double* new_data = new double[total_n_dofs];
-    //memset(new_data, 0, total_n_dofs * sizeof(double));
-    //edge.data[memory_id].push_back(new_data);
     getEdgeP1Memory(edge, memory_id)->addlevel(level, edge.faces.size());
   }
 }

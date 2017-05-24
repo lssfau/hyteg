@@ -43,14 +43,14 @@ class FaceMemory
 {
 public:
 
-	const MemoryType type;
+  const MemoryType type;
 
-	virtual void free() = 0;
+  virtual void free() = 0;
 
 
    
 protected:
-	FaceMemory(MemoryType t) : type(t) { ; }
+  FaceMemory(MemoryType t) : type(t) { ; }
 };
 }
 
