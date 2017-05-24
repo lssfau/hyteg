@@ -29,18 +29,18 @@ int main (int argc, char ** argv )
 
   for(auto face : mesh.faces){
     for(size_t i = 0; i < v_perFace; ++i){
-      WALBERLA_CHECK_FLOAT_EQUAL(face.data[0][maxLevel - 2][i],0.0)
+      WALBERLA_CHECK_FLOAT_EQUAL(getFaceP1Memory(mesh.faces[0], x.memory_id)->data[maxLevel][i],0.0)
     }
   }
   for(auto edge : mesh.edges){
     for(size_t i = 0; i < v_perEdge + edge.faces.size() * nbr_v_perEdge; ++i){
-      WALBERLA_CHECK_FLOAT_EQUAL(edge.data[0][maxLevel - 2][i],0.0)
+      WALBERLA_CHECK_FLOAT_EQUAL(getFaceP1Memory(mesh.faces[0], x.memory_id)->data[maxLevel][i],0.0)
     }
   }
   for(auto vertex : mesh.vertices){
     //vertex have variable data sizes depending on the adjacent edges
     for(size_t i = 0; i < v_perVertex + vertex.edges.size();++i){
-      WALBERLA_CHECK_FLOAT_EQUAL(vertex.data[0][maxLevel - 2][i],0.0)
+      WALBERLA_CHECK_FLOAT_EQUAL(getFaceP1Memory(mesh.faces[0], x.memory_id)->data[maxLevel][i],0.0)
     }
   }
 
@@ -53,9 +53,9 @@ int main (int argc, char ** argv )
 
   for(size_t i = 0; i < v_perFace; ++i){
     if(hhg::P1Face::is_boundary(i,v_perEdge)) {
-      WALBERLA_CHECK_FLOAT_EQUAL(mesh.faces[0].data[0][maxLevel - 2][i],0.0)
+      WALBERLA_CHECK_FLOAT_EQUAL(getFaceP1Memory(mesh.faces[0], x.memory_id)->data[maxLevel][i],0.0)
     } else {
-      WALBERLA_CHECK_FLOAT_EQUAL(mesh.faces[0].data[0][maxLevel - 2][i], 13.0)
+      WALBERLA_CHECK_FLOAT_EQUAL(getFaceP1Memory(mesh.faces[0], x.memory_id)->data[maxLevel][i], 13.0)
     }
   }
 
