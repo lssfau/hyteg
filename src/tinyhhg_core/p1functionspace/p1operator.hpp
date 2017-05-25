@@ -328,7 +328,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::apply(face, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+        P1Face::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
     }
   }
@@ -377,7 +377,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::smooth_gs(face, this->memory_id, dst.memory_id, rhs.memory_id, level);
+        P1Face::smooth_gs(level, face, this->memory_id, dst.memory_id, rhs.memory_id);
       }
     }
   }
