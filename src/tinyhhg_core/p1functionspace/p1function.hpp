@@ -309,7 +309,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::prolongate(face, memory_id, level);
+        P1Face::prolongate(level, face, memory_id);
       }
     }
   }
@@ -358,7 +358,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1Face::restrict(face, memory_id, level);
+        P1Face::restrict(level, face, memory_id);
       }
     }
   }

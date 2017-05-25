@@ -404,86 +404,67 @@ inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_
 
 SPECIALIZE(void, smooth_gs_tmpl, smooth_gs)
 
-inline void prolongate(Face& face, size_t memory_id, size_t level)
+template<size_t Level>
+inline void prolongate_tmpl(Face& face, size_t memory_id)
 {
-  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
-  size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level+1);
+  size_t N_c = levelinfo::num_microvertices_per_edge(Level);
+  size_t N_c_i = N_c;
 
-  real_t* face_data_f = getFaceP1Memory(face, memory_id)->data[level+1];
-  real_t* face_data_c = getFaceP1Memory(face, memory_id)->data[level];
+  real_t* v_f = getFaceP1Memory(face, memory_id)->data[Level+1];
+  real_t* v_c = getFaceP1Memory(face, memory_id)->data[Level];
 
-  size_t mr_c = 1;
-  size_t mr_f = rowsize_fine + 2;
+  size_t j;
 
-  size_t i_rowsize_coarse = rowsize_coarse;
-
-  for (size_t i_coarse = 0; i_coarse < rowsize_coarse-2; ++i_coarse)
+  for (size_t i = 1; i < N_c-1; ++i)
   {
-    for (size_t j_coarse = 0; j_coarse < i_rowsize_coarse-3; ++j_coarse)
+    for (j = 1; j < N_c_i-2; ++j)
     {
-      face_data_f[mr_f] = 0.5 * (face_data_c[mr_c] + face_data_c[mr_c + i_rowsize_coarse]);
-      face_data_f[mr_f-1] = 0.5 * (face_data_c[mr_c] + face_data_c[mr_c + i_rowsize_coarse - 1]);
-      face_data_f[mr_f + rowsize_fine - 1 - 1] = 0.5 * (face_data_c[mr_c + i_rowsize_coarse] + face_data_c[mr_c + i_rowsize_coarse - 1]);
-
-      face_data_f[mr_f + rowsize_fine - 1] = face_data_c[mr_c + i_rowsize_coarse];
-
-      mr_c += 1;
-      mr_f += 2;
+      v_f[index<Level+1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
+      v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i-1, j, C)] + v_c[index<Level>(i, j-1, C)]);
+      v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i-1, j, C)]);
+      v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j-1, C)]);
     }
 
-    face_data_f[mr_f] = 0.5 * (face_data_c[mr_c] + face_data_c[mr_c + i_rowsize_coarse]);
-    face_data_f[mr_f-1] = 0.5 * (face_data_c[mr_c] + face_data_c[mr_c + i_rowsize_coarse - 1]);
-    face_data_f[mr_f + rowsize_fine - 1 - 1] = 0.5 * (face_data_c[mr_c + i_rowsize_coarse] + face_data_c[mr_c + i_rowsize_coarse - 1]);
+    v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i-1, j, C)] + v_c[index<Level>(i, j-1, C)]);
+    v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i-1, j, C)]);
+    v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j-1, C)]);
 
-    mr_c += 3;
-    mr_f += rowsize_fine - 1 + 3;
-
-    rowsize_fine -= 2;
-    i_rowsize_coarse -= 1;
+    --N_c_i;
   }
 }
 
-inline void restrict(Face& face, size_t memory_id, size_t level)
+SPECIALIZE(void, prolongate_tmpl, prolongate)
+
+template<size_t Level>
+inline void restrict_tmpl(Face& face, size_t memory_id)
 {
-  size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
-  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
+  size_t N_c = levelinfo::num_microvertices_per_edge(Level-1);
+  size_t N_c_i = N_c;
 
-  real_t* face_data_f = getFaceP1Memory(face, memory_id)->data[level];
-  real_t* face_data_c = getFaceP1Memory(face, memory_id)->data[level-1];
+  real_t* v_f = getFaceP1Memory(face, memory_id)->data[Level];
+  real_t* v_c = getFaceP1Memory(face, memory_id)->data[Level-1];
 
-  size_t mr_c = 1 + rowsize_coarse;
+  real_t tmp;
 
-  size_t br_f = rowsize_fine + 2;
-  size_t mr_f = br_f + rowsize_fine - 1;
-  size_t tr_f = mr_f + rowsize_fine - 2;
-
-  size_t i_rowsize_coarse = rowsize_coarse;
-
-  for (size_t i = 0; i < rowsize_coarse - 3; ++i)
+  for (size_t i = 1; i < N_c - 2; ++i)
   {
-    for (size_t j = 0; j < i_rowsize_coarse - 3; ++j)
+    for (size_t j = 1; j < N_c_i - 2; ++j)
     {
-      face_data_c[mr_c] = 0.5 * (face_data_f[br_f] + face_data_f[br_f+1]);
-      face_data_c[mr_c] += 0.5 * face_data_f[mr_f-1] + face_data_f[mr_f] + 0.5 * face_data_f[mr_f+1];
-      face_data_c[mr_c] += 0.5 * (face_data_f[tr_f-1] + face_data_f[tr_f]);
+      tmp = v_f[index<Level>(2*i, 2*j, C)];
 
-      mr_c += 1;
+      for (auto neighbor : neighbors)
+      {
+        tmp += 0.5 * v_f[index<Level>(2*i, 2*j, neighbor)];
+      }
 
-      br_f += 2;
-      mr_f += 2;
-      tr_f += 2;
+      v_c[index<Level-1>(i, j, C)] = tmp;
     }
 
-    br_f += (rowsize_fine-2) + 4;
-    mr_f += (rowsize_fine-3) + 3;
-    tr_f += (rowsize_fine-4) + 2;
-
-    mr_c += 2;
-
-    rowsize_fine -= 2;
-    i_rowsize_coarse -= 1;
+    --N_c_i;
   }
 }
+
+SPECIALIZE(void, restrict_tmpl, restrict)
 
 /// Checks if a given index is a the boundary of the face
 /// \param index The index which should be checked
