@@ -1,0 +1,9 @@
+# generate code with ffc p1bubble_p1_div.ufl
+p1 = FiniteElement("Lagrange", triangle, 1)
+bubble = FiniteElement("Bubble", triangle, 3)
+
+u = TrialFunction(p1 + bubble)
+q = TestFunction(p1)
+u, q = q, u # HHG uses FORTRAN layout
+
+forms = [-u.dx(i)*q*dx for i in range(2)]
