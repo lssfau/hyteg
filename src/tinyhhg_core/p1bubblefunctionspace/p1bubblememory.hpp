@@ -6,7 +6,10 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include "core/logging/Logging.h"
+
 #include <string>
+#include <map>
 
 
 namespace hhg

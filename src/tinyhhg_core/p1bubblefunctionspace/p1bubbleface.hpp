@@ -3,6 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
+#include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
 namespace hhg
 {
@@ -13,38 +14,58 @@ using namespace walberla::mpistubs;
 
 enum Dir
 {
-  S  = 0,
-  SE = 1,
-  W  = 2,
-  C  = 3,
-  E  = 4,
-  NW = 5,
-  N  = 6
+  VERTEX_C,
+  VERTEX_S,
+  VERTEX_SE,
+  VERTEX_E,
+  VERTEX_N,
+  VERTEX_NW,
+  VERTEX_W,
+  CELL_GRAY_SE,
+  CELL_GRAY_NE,
+  CELL_GRAY_NW,
+  CELL_BLUE_SE,
+  CELL_BLUE_NW,
+  CELL_BLUE_SW
 };
 
-const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
-const Dir neighbors[] = {S, SE, W, E, NW, N};
+const Dir vertex_neighbors_with_center[] = {VERTEX_C,
+                                     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
+                                     CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
+                                     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+const Dir vertex_neighbors[] = {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
+                                CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
+                                CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
-  size_t h = levelinfo::num_microvertices_per_edge(Level);
-  size_t n = h * (h + 1) / 2;
-  size_t center = (n - (h-row)*(h-row+1)/2) + col;
+  size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
+  size_t grayBaseLength = vertexBaseLength -1;
+  size_t blueBaseLength = vertexBaseLength -2;
+  size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
+  size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
+  size_t cellGrayNE = center + totalVertices - row;
   switch (dir) {
-    case C:
+    case VERTEX_C:
       return center;
-    case N:
-      return center + h - row;
-    case E:
+    case VERTEX_N:
+      return center + vertexBaseLength - row;
+    case VERTEX_E:
       return center + 1;
-    case S:
-      return center - h - 1 + row;
-    case W:
+    case VERTEX_S:
+      return center - vertexBaseLength - 1 + row;
+    case VERTEX_W:
       return center - 1;
-    case SE:
-      return center - h + row;
-    case NW:
-      return center + h - row - 1;
+    case VERTEX_SE:
+      return center - vertexBaseLength + row;
+    case VERTEX_NW:
+      return center + vertexBaseLength - row - 1;
+    case CELL_GRAY_SE:
+      return cellGrayNE - (grayBaseLength - row) -1;
+    case CELL_GRAY_NE:
+      return cellGrayNE;
+    case CELL_BLUE_NW:
+      return cellGrayNE - 1;
   }
   return 0;
 }
@@ -353,17 +374,17 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   {
     for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      tmp = opr_data[C] * src[index<Level>(i, j, C)];
+      tmp = opr_data[VERTEX_C] * src[index<Level>(i, j, VERTEX_C)];
 
-      for (auto neighbor : neighbors)
+      for (auto neighbor : vertex_neighbors)
       {
         tmp += opr_data[neighbor] * src[index<Level>(i, j, neighbor)];
       }
 
       if (update == Replace) {
-        dst[index<Level>(i, j, C)] = tmp;
+        dst[index<Level>(i, j, VERTEX_C)] = tmp;
       } else if (update == Add) {
-        dst[index<Level>(i, j, C)] += tmp;
+        dst[index<Level>(i, j, VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -388,14 +409,14 @@ inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_
   {
     for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      tmp = rhs[index<Level>(i, j, C)];
+      tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
-      for (auto neighbor : neighbors)
+      for (auto neighbor : vertex_neighbors)
       {
         tmp -= opr_data[neighbor] * dst[index<Level>(i, j, neighbor)];
       }
 
-      dst[index<Level>(i, j, C)] = tmp / opr_data[C];
+      dst[index<Level>(i, j, VERTEX_C)] = tmp / opr_data[VERTEX_C];
     }
     --inner_rowsize;
   }
@@ -418,15 +439,15 @@ inline void prolongate_tmpl(Face& face, size_t memory_id)
   {
     for (j = 1; j < N_c_i-2; ++j)
     {
-      v_f[index<Level+1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
-      v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i-1, j, C)] + v_c[index<Level>(i, j-1, C)]);
-      v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i-1, j, C)]);
-      v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j-1, C)]);
+      v_f[index<Level+1>(2*i, 2*j, VERTEX_C)] = v_c[index<Level>(i, j, VERTEX_C)];
+      v_f[index<Level+1>(2*i - 1, 2*j - 1, VERTEX_C)] = 0.5 * (v_c[index<Level>(i-1, j, VERTEX_C)] + v_c[index<Level>(i, j-1, VERTEX_C)]);
+      v_f[index<Level+1>(2*i - 1, 2*j, VERTEX_C)] = 0.5 * (v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i-1, j, VERTEX_C)]);
+      v_f[index<Level+1>(2*i, 2*j - 1, VERTEX_C)] = 0.5 * (v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i, j-1, VERTEX_C)]);
     }
 
-    v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i-1, j, C)] + v_c[index<Level>(i, j-1, C)]);
-    v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i-1, j, C)]);
-    v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j-1, C)]);
+    v_f[index<Level+1>(2*i - 1, 2*j - 1, VERTEX_C)] = 0.5 * (v_c[index<Level>(i-1, j, VERTEX_C)] + v_c[index<Level>(i, j-1, VERTEX_C)]);
+    v_f[index<Level+1>(2*i - 1, 2*j, VERTEX_C)] = 0.5 * (v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i-1, j, VERTEX_C)]);
+    v_f[index<Level+1>(2*i, 2*j - 1, VERTEX_C)] = 0.5 * (v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i, j-1, VERTEX_C)]);
 
     --N_c_i;
   }
@@ -449,14 +470,14 @@ inline void restrict_tmpl(Face& face, size_t memory_id)
   {
     for (size_t j = 1; j < N_c_i - 2; ++j)
     {
-      tmp = v_f[index<Level>(2*i, 2*j, C)];
+      tmp = v_f[index<Level>(2*i, 2*j, VERTEX_C)];
 
-      for (auto neighbor : neighbors)
+      for (auto neighbor : vertex_neighbors)
       {
         tmp += 0.5 * v_f[index<Level>(2*i, 2*j, neighbor)];
       }
 
-      v_c[index<Level-1>(i, j, C)] = tmp;
+      v_c[index<Level-1>(i, j, VERTEX_C)] = tmp;
     }
 
     --N_c_i;
