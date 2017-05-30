@@ -47,7 +47,9 @@ enum MemoryType
 { 
   Base,
   Stencil,
-  P1 
+  P1,
+  P1BubbleFunctionMemory,
+  P1BubbleStencil
 };
 
 } // namespace hhg

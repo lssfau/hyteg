@@ -100,7 +100,7 @@ namespace hhg
     :public EdgeMemory
   {
   public:
-    EdgeP1BubbleStencilMemory() : EdgeMemory(Stencil) { ; }
+    EdgeP1BubbleStencilMemory() : EdgeMemory(P1BubbleStencil) { ; }
 
     std::map<size_t, real_t*> data;
 
@@ -141,34 +141,47 @@ namespace hhg
   public:
     EdgeP1BubbleMemory() : EdgeMemory(P1) { ; }
 
-    std::map<size_t, real_t*> data;
-    size_t num_deps;
+    typedef std::array<real_t*, 3> StencilStack;
+
+    std::map<size_t, StencilStack> data;
 
     virtual void free()
     {
       for (auto el : data)
       {
-        delete[] el.second;
+        delete[] el.second[0];
+        delete[] el.second[1];
+        delete[] el.second[2];
       }
       data.clear();
     }
 
-    inline real_t* addlevel(size_t level, size_t num_deps)
+    inline StencilStack addlevel(size_t level, size_t num_deps)
     {
       if (data.count(level)>0)
-        WALBERLA_LOG_WARNING("Level already exists.")
+      WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        this->num_deps = num_deps;
-        data[level] = new real_t[getSize(level)]();
+        data[level] = StencilStack{new real_t[getVertexStencilSize(level)](),
+                                   new real_t[getGrayStencilSize(level)](),
+                                   new real_t[getBlueStencilSize(level)]()};
       }
       return data[level];
     }
 
-    inline size_t getSize(size_t level)
+    inline size_t getVertexStencilSize(size_t level)
     {
-      size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-      return num_dofs_per_edge + num_deps*(num_dofs_per_edge-1);
+      return 13;
+    }
+
+    inline size_t getGrayStencilSize(size_t level)
+    {
+      return 4;
+    }
+
+    inline size_t getBlueStencilSize(size_t level)
+    {
+      return 4;
     }
 
     ~EdgeP1BubbleMemory() { free(); }
@@ -179,45 +192,60 @@ namespace hhg
     :public FaceMemory
   {
   public:
-    FaceP1BubbleStencilMemory() : FaceMemory(Stencil) { ; }
+    FaceP1BubbleStencilMemory() : FaceMemory(P1BubbleStencil) { ; }
 
-    std::map<size_t, real_t*> data;
+    typedef std::array<real_t*, 3> StencilStack;
+
+    std::map<size_t, StencilStack> data;
 
     virtual void free()
     {
       for (auto el : data)
       {
-        delete[] el.second;
+        delete[] el.second[0];
+        delete[] el.second[1];
+        delete[] el.second[2];
       }
       data.clear();
     }
 
-    inline real_t* addlevel(size_t level)
+    inline StencilStack addlevel(size_t level)
     {
       if (data.count(level)>0)
         WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        data[level] = new real_t[getSize(level)]();
+        data[level] = StencilStack{new real_t[getVertexStencilSize(level)](),
+                                    new real_t[getGrayStencilSize(level)](),
+                                    new real_t[getBlueStencilSize(level)]()};
       }
       return data[level];
     }
 
-    inline size_t getSize(size_t level)
+    inline size_t getVertexStencilSize(size_t level)
     {
-      return 7;
+      return 13;
+    }
+
+    inline size_t getGrayStencilSize(size_t level)
+    {
+      return 4;
+    }
+
+    inline size_t getBlueStencilSize(size_t level)
+    {
+      return 4;
     }
 
     ~FaceP1BubbleStencilMemory() { free(); }
-
   };
 
 
-  class FaceP1BubbleMemory
+  class FaceP1BubbleFunctionMemory
     :public FaceMemory
   {
   public:
-    FaceP1BubbleMemory() : FaceMemory(P1) { ; }
+    FaceP1BubbleFunctionMemory() : FaceMemory(P1BubbleFunctionMemory) { ; }
 
     std::map<size_t, real_t*> data;
 
@@ -243,11 +271,11 @@ namespace hhg
 
     inline size_t getSize(size_t level)
     {
-      return levelinfo::num_microfaces_per_face(level);
+      return levelinfo::num_microvertices_per_face(level) + levelinfo::num_microfaces_per_face(level);
     }
 
 
-    ~FaceP1BubbleMemory() { free(); }
+    ~FaceP1BubbleFunctionMemory() { free(); }
   };
 
 
@@ -287,8 +315,8 @@ namespace hhg
     return static_cast<FaceP1BubbleStencilMemory*>(face.memory[id]);
   }
 
-  inline FaceP1BubbleMemory* getFaceP1BubbleMemory(const Face& face, size_t id)
+  inline FaceP1BubbleFunctionMemory* getFaceP1BubbleFunctionMemory(const Face& face, size_t id)
   {
-    return static_cast<FaceP1BubbleMemory*>(face.memory[id]);
+    return static_cast<FaceP1BubbleFunctionMemory*>(face.memory[id]);
   }
 }

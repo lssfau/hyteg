@@ -14,9 +14,27 @@ namespace hhg
 {
 
 namespace P1Bubble {
+
+enum Dir
+{
+  VERTEX_S  = 0,
+  VERTEX_SE = 1,
+  VERTEX_W  = 2,
+  VERTEX_C  = 3,
+  VERTEX_E  = 4,
+  VERTEX_NW = 5,
+  VERTEX_N  = 6,
+  CELL_GRAY_SE = 7,
+  CELL_GRAY_NW = 8,
+  CELL_GRAY_NE = 9,
+  CELL_BLUE_SW = 10,
+  CELL_BLUE_SE = 11,
+  CELL_BLUE_NW = 12
+};
+
 enum ElementType {
-  UPWARD,
-  DOWNWARD
+  GRAY,
+  BLUE
 };
 
 void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
@@ -26,7 +44,7 @@ void compute_micro_coords(const Face &face, size_t level, real_t coords[6], Elem
 
   real_t orientation = 1.0;
 
-  if (element_type == DOWNWARD) {
+  if (element_type == BLUE) {
     orientation = -1.0;
   }
 
@@ -111,7 +129,7 @@ public:
       WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
 
-    WALBERLA_LOG_DEVEL("Created Operator with ID " + std::to_string(memory_id))
+    WALBERLA_LOG_DEVEL("Created P1Bubble Operator with ID " + std::to_string(memory_id))
 
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
@@ -129,29 +147,53 @@ public:
           face.memory.push_back(new FaceStencilMemory());
         }
 
-        real_t* face_stencil = getFaceStencilMemory(face, memory_id)->addlevel(level);
+        auto face_stencil_stack = getFaceP1BubbleStencilMemory(face, memory_id)->addlevel(level);
+
+        real_t* face_vertex_stencil = face_stencil_stack[0];
+        real_t* face_gray_stencil = face_stencil_stack[1];
+        real_t* face_blue_stencil = face_stencil_stack[2];
 
         real_t local_stiffness_up[4][4];
         real_t local_stiffness_down[4][4];
-        P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, P1Bubble::UPWARD);
-        P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, P1Bubble::DOWNWARD);
+        P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, P1Bubble::GRAY);
+        P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, P1Bubble::BLUE);
 
+        face_vertex_stencil[P1Bubble::VERTEX_S] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
+        face_vertex_stencil[P1Bubble::VERTEX_SE] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
+        face_vertex_stencil[P1Bubble::VERTEX_W] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
 
+        face_vertex_stencil[P1Bubble::VERTEX_E] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
+        face_vertex_stencil[P1Bubble::VERTEX_NW] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
+        face_vertex_stencil[P1Bubble::VERTEX_N] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
 
-        face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
-        face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
-        face_stencil[2] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
-
-        face_stencil[4] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
-        face_stencil[5] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
-        face_stencil[6] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
-
-        face_stencil[3] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
+        face_vertex_stencil[P1Bubble::VERTEX_C] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
                             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
 
+        face_vertex_stencil[P1Bubble::CELL_GRAY_SE] = local_stiffness_up[2][3];
+        face_vertex_stencil[P1Bubble::CELL_GRAY_NW] = local_stiffness_up[1][3];
+        face_vertex_stencil[P1Bubble::CELL_GRAY_NE] = local_stiffness_up[0][3];
 
-//        fmt::printf("&face = %p\n", (void*) &fs.mesh.faces[0]);
-//        fmt::print("face_stencil = {}\n", PointND<real_t, 7>(face_stencil));
+        face_vertex_stencil[P1Bubble::CELL_BLUE_SW] = local_stiffness_down[0][3];
+        face_vertex_stencil[P1Bubble::CELL_BLUE_SE] = local_stiffness_down[1][3];
+        face_vertex_stencil[P1Bubble::CELL_BLUE_NW] = local_stiffness_down[2][3];
+
+        // 0 = GRAY_VERTEX_SW
+        // 1 = GRAY_VERTEX_SE
+        // 2 = GRAY_VERTEX_NW
+        // 3 = GRAY_GRAY_C
+        face_gray_stencil[0] = local_stiffness_up[3][0];
+        face_gray_stencil[1] = local_stiffness_up[3][1];
+        face_gray_stencil[2] = local_stiffness_up[3][2];
+        face_gray_stencil[3] = local_stiffness_up[3][3];
+
+        // 0 = BLUE_VERTEX_SE
+        // 1 = BLUE_VERTEX_NW
+        // 2 = BLUE_VERTEX_NE
+        // 3 = BLUE_BLUE_C
+        face_blue_stencil[0] = local_stiffness_down[3][2];
+        face_blue_stencil[1] = local_stiffness_down[3][1];
+        face_blue_stencil[2] = local_stiffness_down[3][0];
+        face_blue_stencil[3] = local_stiffness_down[3][3];
       }
 
       for (Edge& edge : mesh.edges)
@@ -173,8 +215,8 @@ public:
         real_t local_stiffness_down[4][4];
         // first face
         Face* face = edge.faces[0];
-        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::UPWARD);
-        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::DOWNWARD);
+        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::GRAY);
+        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::BLUE);
 
         size_t start_id = face->vertex_index(*edge.v0);
         size_t end_id = face->vertex_index(*edge.v1);
@@ -192,8 +234,8 @@ public:
         {
           // second face
           Face* face = edge.faces[1];
-          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::UPWARD);
-          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::DOWNWARD);
+          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::GRAY);
+          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::BLUE);
 
           size_t start_id = face->vertex_index(*edge.v0);
           size_t end_id = face->vertex_index(*edge.v1);
@@ -228,7 +270,7 @@ public:
         for (Face* face : vertex.faces)
         {
           real_t local_stiffness[4][4];
-          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, P1Bubble::UPWARD);
+          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, P1Bubble::GRAY);
 
           size_t v_i = face->vertex_index(vertex);
 
@@ -325,91 +367,91 @@ public:
     }
   }
 
-  void smooth_gs(P1BubbleFunction& dst, const P1BubbleFunction& rhs, size_t level, DoFType flag)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::pull_halos(vertex, dst.memory_id, level);
-      }
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1BubbleEdge::pull_vertices(edge, dst.memory_id, level);
-      if (testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::pull_halos(edge, dst.memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1BubbleFace::pull_edges(face, dst.memory_id, level);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1BubbleFace::smooth_gs(level, face, this->memory_id, dst.memory_id, rhs.memory_id);
-      }
-    }
-  }
-
-  void printmatrix(const P1BubbleFunction& src, size_t level, DoFType flag = All)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::printmatrix(vertex, this->memory_id, src.memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1BubbleEdge::pull_halos(edge, src.memory_id, level);
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::printmatrix(edge, this->memory_id, src.memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1BubbleFace::printmatrix(face, this->memory_id, src.memory_id, level);
-      }
-    }
-  }
+//  void smooth_gs(P1BubbleFunction& dst, const P1BubbleFunction& rhs, size_t level, DoFType flag)
+//  {
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::pull_halos(vertex, dst.memory_id, level);
+//      }
+//    }
+//
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (vertex.rank == rank && testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      P1BubbleEdge::pull_vertices(edge, dst.memory_id, level);
+//      if (testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::pull_halos(edge, dst.memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      if (edge.rank == rank && testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
+//      }
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      P1BubbleFace::pull_edges(face, dst.memory_id, level);
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      if (face.rank == rank && testFlag(face.type, flag))
+//      {
+//        P1BubbleFace::smooth_gs(level, face, this->memory_id, dst.memory_id, rhs.memory_id);
+//      }
+//    }
+//  }
+//
+//  void printmatrix(const P1BubbleFunction& src, size_t level, DoFType flag = All)
+//  {
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
+//    }
+//
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (vertex.rank == rank && testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::printmatrix(vertex, this->memory_id, src.memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      P1BubbleEdge::pull_halos(edge, src.memory_id, level);
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      if (edge.rank == rank && testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::printmatrix(edge, this->memory_id, src.memory_id, level);
+//      }
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      if (face.rank == rank && testFlag(face.type, flag))
+//      {
+//        P1BubbleFace::printmatrix(face, this->memory_id, src.memory_id, level);
+//      }
+//    }
+//  }
 
 };
 

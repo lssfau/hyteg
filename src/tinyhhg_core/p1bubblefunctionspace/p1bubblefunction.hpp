@@ -276,91 +276,91 @@ public:
 #endif
   }
 
-  void prolongate(size_t level, DoFType flag = All)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::prolongate(vertex, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1BubbleEdge::pull_vertices(edge, memory_id, level+1);
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::prolongate(edge, memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1BubbleFace::pull_edges(face, memory_id, level+1);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1BubbleFace::prolongate(level, face, memory_id);
-      }
-    }
-  }
-
-  void restrict(size_t level, DoFType flag = All)
-  {
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::pull_halos(vertex, memory_id, level);
-      }
-    }
-
-    for (Vertex& vertex : mesh.vertices)
-    {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
-      {
-        P1BubbleVertex::restrict(vertex, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      P1BubbleEdge::pull_vertices(edge, memory_id, level-1);
-      if (testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::pull_halos(edge, memory_id, level);
-      }
-    }
-
-    for (Edge& edge : mesh.edges)
-    {
-      if (edge.rank == rank && testFlag(edge.type, flag))
-      {
-        P1BubbleEdge::restrict(edge, memory_id, level);
-      }
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      P1BubbleFace::pull_edges(face, memory_id, level-1);
-    }
-
-    for (Face& face : mesh.faces)
-    {
-      if (face.rank == rank && testFlag(face.type, flag))
-      {
-        P1BubbleFace::restrict(level, face, memory_id);
-      }
-    }
-  }
+//  void prolongate(size_t level, DoFType flag = All)
+//  {
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (vertex.rank == rank && testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::prolongate(vertex, memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      P1BubbleEdge::pull_vertices(edge, memory_id, level+1);
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      if (edge.rank == rank && testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::prolongate(edge, memory_id, level);
+//      }
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      P1BubbleFace::pull_edges(face, memory_id, level+1);
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      if (face.rank == rank && testFlag(face.type, flag))
+//      {
+//        P1BubbleFace::prolongate(level, face, memory_id);
+//      }
+//    }
+//  }
+//
+//  void restrict(size_t level, DoFType flag = All)
+//  {
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::pull_halos(vertex, memory_id, level);
+//      }
+//    }
+//
+//    for (Vertex& vertex : mesh.vertices)
+//    {
+//      if (vertex.rank == rank && testFlag(vertex.type, flag))
+//      {
+//        P1BubbleVertex::restrict(vertex, memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      P1BubbleEdge::pull_vertices(edge, memory_id, level-1);
+//      if (testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::pull_halos(edge, memory_id, level);
+//      }
+//    }
+//
+//    for (Edge& edge : mesh.edges)
+//    {
+//      if (edge.rank == rank && testFlag(edge.type, flag))
+//      {
+//        P1BubbleEdge::restrict(edge, memory_id, level);
+//      }
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      P1BubbleFace::pull_edges(face, memory_id, level-1);
+//    }
+//
+//    for (Face& face : mesh.faces)
+//    {
+//      if (face.rank == rank && testFlag(face.type, flag))
+//      {
+//        P1BubbleFace::restrict(level, face, memory_id);
+//      }
+//    }
+//  }
 };
 
 }
