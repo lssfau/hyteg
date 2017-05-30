@@ -99,7 +99,6 @@ inline size_t index(size_t row, size_t col, Dir dir) {
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t blueBaseLength = vertexBaseLength -2;
   const size_t center = totalVertices + totalGray - (grayBaseLength - row) * (grayBaseLength - row  + 1) / 2 + col;
   switch(dir){
     case CELL_GRAY_C:
@@ -109,7 +108,7 @@ inline size_t index(size_t row, size_t col, Dir dir) {
     case VERTEX_SW:
       return center - totalVertices + row;
     case VERTEX_NW:
-      return center - totalVertices + grayBaseLength + 1;
+      return center - totalVertices + row + vertexBaseLength - row;
   }
   return std::numeric_limits<size_t>::max();
 }
@@ -118,12 +117,39 @@ inline size_t index(size_t row, size_t col, Dir dir) {
 }//namesapce CoordsCellGray
 
 namespace CoordsCellBlue {
-enum DirCellBlue {
+enum Dir {
     CELL_BLUE_C,
     VERTEX_SE,
-    VERTEX_NW,
-    VERTEX_NE
+    VERTEX_NE,
+    VERTEX_NW
 };
+
+const Dir neighbors[3] = {VERTEX_SE,VERTEX_NE,VERTEX_NW};
+const Dir neighbors_with_center[4] = {CELL_BLUE_C,VERTEX_SE,VERTEX_NE,VERTEX_NW};
+
+
+template<size_t Level>
+inline size_t index(size_t row, size_t col, Dir dir) {
+  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
+  const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
+  const size_t grayBaseLength = vertexBaseLength -1;
+  const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
+  const size_t blueBaseLength = vertexBaseLength -2;
+  const size_t totalBlue = blueBaseLength * (blueBaseLength + 1) / 2;
+  const size_t center = totalVertices + totalGray + totalBlue - (blueBaseLength - row) * (blueBaseLength - row  + 1) / 2 + col;
+  switch(dir){
+    case CELL_BLUE_C:
+      return center;
+    case VERTEX_SE:
+      return center - totalVertices + row - totalGray + row + 1;
+    case VERTEX_NE:
+      return center - totalVertices + row - totalGray + row + vertexBaseLength - row + 1;
+    case VERTEX_NW:
+      return center - totalVertices + row - totalGray + row + vertexBaseLength - row;
+  }
+  return std::numeric_limits<size_t>::max();
+}
+
 }//namespace CoordsCellBlue
 
 

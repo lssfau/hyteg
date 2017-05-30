@@ -71,6 +71,29 @@ int main(int argc, char* argv[])
   for(size_t i = 0; i < refGraySevenZero.size(); ++i){
     WALBERLA_CHECK_EQUAL_3(refGraySevenZero[i],result[i],"i: " << i);
   }
+  result.clear();
+  /// CHECK CELL BLUE ///
+  std::vector<size_t> refBlueOneFour = {104,32,37,36};
+  std::vector<size_t> refBlueThreeZero = {84,4,13,12};
+  for(auto n : CoordsCellBlue::neighbors_with_center)
+  {
+    size_t idx = CoordsCellBlue::index<3>(4, 1, n);
+    result.push_back(idx);
+    //WALBERLA_LOG_INFO_ON_ROOT(idx);
+  }
+  for(size_t i = 0; i < refBlueOneFour.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refBlueOneFour[i],result[i],"i: " << i);
+  }
+  result.clear();
+  for(auto n : CoordsCellBlue::neighbors_with_center)
+  {
+    size_t idx = CoordsCellBlue::index<3>(0, 3, n);
+    result.push_back(idx);
+    //WALBERLA_LOG_INFO_ON_ROOT(idx);
+  }
+  for(size_t i = 0; i < refBlueThreeZero.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refBlueThreeZero[i],result[i],"i: " << i);
+  }
 
 
 }
