@@ -78,7 +78,7 @@ inline size_t index(size_t row, size_t col, DirVertex dir) {
   }
   return std::numeric_limits<size_t>::max();
 }
-}//namespace DirectionsVertex
+}//namespace CoordsVertex
 
 namespace CoordsCellGray {
 enum Dir {
