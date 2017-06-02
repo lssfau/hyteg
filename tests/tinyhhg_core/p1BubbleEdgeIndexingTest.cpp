@@ -26,8 +26,8 @@ int main(int argc, char* argv[])
 //  };
 
   /// CHECK VERTEX ///
-  std::vector<size_t> refOneOne = {10,1,2,11,18,17,9,46,54,53,82,88,81};
-  std::vector<size_t> refFiveTwo = {37,32,33,38,41,40,36,73,77,76,105,107,104};
+  std::vector<size_t> refOne = {1,9,10,2,33,32,0,18,42,40,19,41,17};
+  std::vector<size_t> refFive = {5,13,14,6,37,36,4,26,50,48,27,49,25};
   std::vector<size_t> result;
   for(auto n : EdgeCoordsVertex::neighbors_with_center)
   {
@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
-  for(size_t i = 0; i < refOneOne.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refOneOne[i],result[i],"i: " << i);
+  for(size_t i = 0; i < refOne.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refOne[i],result[i],"i: " << i);
   }
   result.clear();
   for(auto n : EdgeCoordsVertex::neighbors_with_center)
@@ -45,8 +45,8 @@ int main(int argc, char* argv[])
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
-  for(size_t i = 0; i < refFiveTwo.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refFiveTwo[i],result[i],"i: " << i);
+  for(size_t i = 0; i < refFive.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refFive[i],result[i],"i: " << i);
   }
   result.clear();
 }
