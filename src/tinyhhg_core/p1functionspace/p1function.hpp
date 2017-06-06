@@ -314,6 +314,43 @@ public:
     }
   }
 
+  void prolongateQuadratic(size_t level, DoFType flag = All)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::prolongateQuadratic(vertex, memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, memory_id, level+1);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::prolongateQuadratic(edge, memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, memory_id, level+1);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::prolongateQuadratic(level, face, memory_id);
+      }
+    }
+  }
+
   void restrict(size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)

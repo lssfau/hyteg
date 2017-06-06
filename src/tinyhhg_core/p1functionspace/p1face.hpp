@@ -436,6 +436,97 @@ inline void prolongate_tmpl(Face& face, size_t memory_id)
 SPECIALIZE(void, prolongate_tmpl, prolongate)
 
 template<size_t Level>
+inline void prolongateQuadratic_tmpl(Face& face, size_t memory_id)
+{
+  size_t N_c = levelinfo::num_microvertices_per_edge(Level);
+  size_t N_c_i = N_c;
+  real_t* v_f = getFaceP1Memory(face, memory_id)->data[Level+1];
+  real_t* v_c = getFaceP1Memory(face, memory_id)->data[Level];
+
+  size_t i, j;
+  real_t linearx, lineary, linearxy, offx, offy, offxy;
+  i = 0;
+  for (j = 2; j <= N_c-1; j += 2)
+  {
+// upper triangle inner points
+//calculate offsets
+    linearx = 0.5 * (v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+    lineary = 0.5 * (v_c[index<Level>(i + 2, j - 2 , C)] + v_c[index<Level>(i, j - 2, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i + 2, j -2, C)] + v_c[index<Level>(i, j, C)]);
+
+    offx =  v_c[index<Level>(i, j - 1, C)] - linearx;
+    offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
+    offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+
+// left bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 3, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy + 0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i + 2, 2*j - 3, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+  }
+
+  N_c_i -= 1;
+
+  for (i = 2; i < N_c-1; i += 2)
+  {
+    for (j = 2; j < N_c_i-1; j += 2)
+    {
+// upper triangle inner points
+//calculate offsets
+    linearx = 0.5 * (v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+    lineary = 0.5 * (v_c[index<Level>(i + 2, j - 2 , C)] + v_c[index<Level>(i, j - 2, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i + 2, j -2, C)] + v_c[index<Level>(i, j, C)]);
+
+    offx =  v_c[index<Level>(i, j - 1, C)] - linearx;
+    offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
+    offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+// left bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 3, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy +  0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i + 2, 2*j - 3, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+
+// lower triangle all points
+//calculate offsets
+    lineary = 0.5 * (v_c[index<Level>(i - 2, j , C)] + v_c[index<Level>(i, j, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i - 2, j, C)] + v_c[index<Level>(i, j - 2, C)]);
+
+    offy = v_c[index<Level>(i - 1, j, C)] - lineary;
+    offxy = v_c[index<Level>(i - 1, j - 1, C)] - linearxy;
+// first inner points
+// left bottom corner
+    v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy + 0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i - 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i - 2, 2*j - 1, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+
+// boundary points
+// x-direction
+    v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (linearx + v_c[index<Level>(i, j, C)]) + 0.75 * offx;
+    v_f[index<Level+1>(2*i, 2*j - 3, C)] = 0.5 * (linearx + v_c[index<Level>(i, j - 2, C)]) + 0.75 * offx;
+//y-direction
+    v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + lineary) + 0.75 * offy;
+    v_f[index<Level+1>(2*i - 3, 2*j, C)] = 0.5 * (v_c[index<Level>(i - 2, j, C)] + lineary) + 0.75 * offy;
+//xy-direction
+    v_f[index<Level+1>(2*i - 1, 2*j - 3, C)] = 0.5 * (v_c[index<Level>(i, j - 2, C)] + linearxy) + 0.75 * offxy;
+    v_f[index<Level+1>(2*i - 3, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i - 2, j, C)] + linearxy) + 0.75 * offxy;
+// coarse points
+    v_f[index<Level+1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
+    v_f[index<Level+1>(2*i, 2*j-2, C)] = v_c[index<Level>(i, j-1, C)];
+    v_f[index<Level+1>(2*i-2, 2*j, C)] = v_c[index<Level>(i-1, j, C)];
+    v_f[index<Level+1>(2*i-2, 2*j-2, C)] = v_c[index<Level>(i-1, j-1, C)];
+    }
+    N_c_i -= 2;
+
+  }
+}
+
+SPECIALIZE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
+
+template<size_t Level>
 inline void restrict_tmpl(Face& face, size_t memory_id)
 {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level-1);

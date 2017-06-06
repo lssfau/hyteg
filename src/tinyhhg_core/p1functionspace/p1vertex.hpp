@@ -203,6 +203,12 @@ inline void prolongate(Vertex& vertex, size_t memory_id, size_t level)
   getVertexP1Memory(vertex, memory_id)->data[level+1][0] = getVertexP1Memory(vertex, memory_id)->data[level][0];
 }
 
+inline void prolongateQuadratic(Vertex& vertex, size_t memory_id, size_t level)
+{
+//  getVertexP1Memory(vertex, memory_id)->data[level+1][0] = getVertexP1Memory(vertex, memory_id)->data[level][0];
+  prolongate(vertex, memory_id, level);
+}
+
 inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
 {
   real_t* vertex_data_f = getVertexP1Memory(vertex, memory_id)->data[level];

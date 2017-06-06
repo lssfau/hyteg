@@ -290,6 +290,29 @@ inline void prolongate(Edge& edge, size_t memory_id, size_t level)
   }
 }
 
+inline void prolongateQuadratic(Edge& edge, size_t memory_id, size_t level)
+{
+
+  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
+  size_t i_fine = 1;
+  real_t invtemp = 1/8.;
+  const real_t s1[3] = {3*invtemp,6*invtemp,-invtemp};
+  const real_t s2[3] = {-invtemp,6*invtemp,3*invtemp};
+
+  real_t* edge_data_f = getEdgeP1Memory(edge, memory_id)->data[level+1];
+  real_t* edge_data_c = getEdgeP1Memory(edge, memory_id)->data[level];
+  size_t i_coarse;
+  for (i_coarse = 0; i_coarse < rowsize_coarse-2; ++i_coarse)
+  {
+    edge_data_f[i_fine] = (s1[0]*edge_data_c[i_coarse] + s1[1]*edge_data_c[i_coarse+1] + s1[2]*edge_data_c[i_coarse+2]);
+    edge_data_f[i_fine+1] = edge_data_c[i_coarse+1];
+    i_fine += 2;
+  }
+  i_coarse--; 
+  edge_data_f[i_fine] = (s2[0]*edge_data_c[i_coarse] + s2[1]*edge_data_c[i_coarse+1] + s2[2]*edge_data_c[i_coarse+2]);
+
+}
+
 inline void restrict(Edge& edge, size_t memory_id, size_t level)
 {
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
