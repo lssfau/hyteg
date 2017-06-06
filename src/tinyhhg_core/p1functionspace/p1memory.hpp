@@ -241,7 +241,7 @@ namespace hhg
 
     inline size_t getSize(size_t level)
     {
-      return levelinfo::num_microfaces_per_face(level);
+      return levelinfo::num_microvertices_per_face(level);
     }
 
 
