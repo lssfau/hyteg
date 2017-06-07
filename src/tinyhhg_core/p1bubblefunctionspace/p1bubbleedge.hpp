@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
+#include "p1bubbleedgecomm.hpp"
 
 namespace hhg
 {
