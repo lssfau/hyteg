@@ -21,11 +21,11 @@ void packData( Edge& edge, uint_t memory_id, walberla::mpi::SendBuffer & sendBuf
   real_t* edge_data = getEdgeP1BubbleMemory(edge, memory_id)->data[level];
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   if(reverse) {
-    for (uin_t i = rowsize-1; i >= 0; --i) {
+    for (uint_t i = rowsize-1; i >= 0; --i) {
       sendBuffer << edge_data[i];
     }
   } else {
-    for (uin_t i = 0; i < rowsize; ++i) {
+    for (uint_t i = 0; i < rowsize; ++i) {
       sendBuffer << edge_data[i];
     }
   }

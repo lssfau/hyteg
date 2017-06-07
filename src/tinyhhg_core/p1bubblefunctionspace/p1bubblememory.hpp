@@ -141,47 +141,31 @@ namespace hhg
   public:
     EdgeP1BubbleMemory() : EdgeMemory(P1) { ; }
 
-    typedef std::array<real_t*, 3> StencilStack;
-
-    std::map<size_t, StencilStack> data;
+    std::map<size_t, real_t*> data;
 
     virtual void free()
     {
       for (auto el : data)
       {
-        delete[] el.second[0];
-        delete[] el.second[1];
-        delete[] el.second[2];
+        delete[] el.second;
       }
       data.clear();
     }
 
-    inline StencilStack addlevel(size_t level, size_t num_deps)
+    inline real_t* addlevel(size_t level, size_t num_deps)
     {
       if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
       else
       {
-        data[level] = StencilStack{new real_t[getVertexStencilSize(level)](),
-                                   new real_t[getGrayStencilSize(level)](),
-                                   new real_t[getBlueStencilSize(level)]()};
+        data[level] = new real_t[getSize(level)]();
       }
       return data[level];
     }
 
-    inline size_t getVertexStencilSize(size_t level)
+    inline size_t getSize(size_t level)
     {
-      return 13;
-    }
-
-    inline size_t getGrayStencilSize(size_t level)
-    {
-      return 4;
-    }
-
-    inline size_t getBlueStencilSize(size_t level)
-    {
-      return 4;
+      return levelinfo::num_microvertices_per_face(level) + levelinfo::num_microfaces_per_face(level);
     }
 
     ~EdgeP1BubbleMemory() { free(); }
