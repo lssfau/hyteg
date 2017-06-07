@@ -14,7 +14,7 @@ int main (int argc, char ** argv )
 
   walberla::mpi::Environment MPIenv( argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::Mesh mesh("./tri_1el.msh");
+  hhg::Mesh mesh("../../data/meshes/tri_1el.msh");
 
 
   size_t minLevel = 2;
