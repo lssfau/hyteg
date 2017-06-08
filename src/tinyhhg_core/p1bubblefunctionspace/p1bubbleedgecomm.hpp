@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
+#include "p1bubbleedge.hpp"
 
 namespace hhg {
 namespace P1BubbleEdge {
@@ -15,19 +16,13 @@ using walberla::uint_t;
  * @param sendBuffer Buffer to pack into
  * @param memory_id Memory id of the data
  * @param level Multigrid level
- * @param reverse if set to TRUE the data will be packed onto the buffer in reverse order
  */
-void packData( Edge& edge, uint_t memory_id, walberla::mpi::SendBuffer & sendBuffer, uint_t level, bool reverse){
+inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, uint_t level) {
   real_t* edge_data = getEdgeP1BubbleMemory(edge, memory_id)->data[level];
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  if(reverse) {
-    for (uint_t i = rowsize-1; i >= 0; --i) {
-      sendBuffer << edge_data[i];
-    }
-  } else {
-    for (uint_t i = 0; i < rowsize; ++i) {
-      sendBuffer << edge_data[i];
-    }
+  //TODO change to index function
+  for (uint_t i = 0; i < rowsize; ++i) {
+    sendBuffer << edge_data[i];
   }
 }
 
