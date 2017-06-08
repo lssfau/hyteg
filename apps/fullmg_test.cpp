@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
       }
       if(ll < maxLevel)
       {
-          x.prolongate(ll, hhg::Inner);
+          x.prolongateQuadratic(ll, hhg::Inner);
       }
 
   }
