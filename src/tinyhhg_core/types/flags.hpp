@@ -43,11 +43,10 @@ inline bool testFlag(DoFType a, DoFType b)
   return (a & b) != 0;
 }
 
-enum MemoryType 
-{ 
+enum class MemoryType {
   Base,
-  Stencil,
-  P1 
+  P1Stencil,
+  P1Function
 };
 
 } // namespace hhg
