@@ -53,11 +53,11 @@ inline size_t index(size_t row, size_t col, Dir dir) {
 
 inline void allocate(Face& face, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  face.memory.push_back(new FaceP1Memory());
+  face.memory.push_back(new FaceP1FunctionMemory());
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
-    getFaceP1Memory(face, memory_id)->addlevel(level);
+    P1::getFaceFunctionMemory(face, memory_id)->addlevel(level);
   }
 }
 
@@ -94,7 +94,7 @@ inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const
 
     for (size_t j = 0; j < inner_rowsize-3; ++j)
     {
-      getFaceP1Memory(face, memory_id)->data[level][mr_c] = expr(x);
+      P1::getFaceFunctionMemory(face, memory_id)->data[level][mr_c] = expr(x);
       x += d0;
       mr_c += 1;
     }
@@ -121,11 +121,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_0 = getEdgeP1Memory(*face.edges[0], memory_id)->data[level];
+      edge_data_0 = P1::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level];
     }
     else
     {
-      MPI_Send(&getEdgeP1Memory(*face.edges[0], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[0]->id, MPI_COMM_WORLD);
+      MPI_Send(&P1::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[0]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -138,11 +138,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_1 = getEdgeP1Memory(*face.edges[1], memory_id)->data[level];
+      edge_data_1 = P1::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level];
     }
     else
     {
-      MPI_Send(&getEdgeP1Memory(*face.edges[1], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[1]->id, MPI_COMM_WORLD);
+      MPI_Send(&P1::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[1]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -155,11 +155,11 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_2 = getEdgeP1Memory(*face.edges[2], memory_id)->data[level];
+      edge_data_2 = P1::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level];
     }
     else
     {
-      MPI_Send(&getEdgeP1Memory(*face.edges[2], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[2]->id, MPI_COMM_WORLD);
+      MPI_Send(&P1::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[2]->id, MPI_COMM_WORLD);
     }
   }
   else if (face.rank == rk)
@@ -170,7 +170,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
   if (face.rank == rk)
   {
-    real_t* face_data = getFaceP1Memory(face, memory_id)->data[level];
+    real_t* face_data = P1::getFaceFunctionMemory(face, memory_id)->data[level];
 
     if (face.edges[0]->rank != rk)
     {
@@ -271,13 +271,13 @@ inline void assign(Face& face, const std::vector<real_t>& scalars, const std::ve
   {
     for (size_t j = 0; j < inner_rowsize - 3; ++j)
     {
-      real_t tmp = scalars[0] * getFaceP1Memory(face, src_ids[0])->data[level][mr];
+      real_t tmp = scalars[0] * P1::getFaceFunctionMemory(face, src_ids[0])->data[level][mr];
 
       for (size_t k = 1; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * getFaceP1Memory(face, src_ids[k])->data[level][mr];
+        tmp += scalars[k] * P1::getFaceFunctionMemory(face, src_ids[k])->data[level][mr];
       }
-      getFaceP1Memory(face, dst_id)->data[level][mr] = tmp;
+      P1::getFaceFunctionMemory(face, dst_id)->data[level][mr] = tmp;
 
       mr += 1;
     }
@@ -302,10 +302,10 @@ inline void add(Face& face, const std::vector<real_t>& scalars, const std::vecto
 
       for (size_t k = 0; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * getFaceP1Memory(face, src_ids[k])->data[level][mr];
+        tmp += scalars[k] * P1::getFaceFunctionMemory(face, src_ids[k])->data[level][mr];
       }
 
-      getFaceP1Memory(face, dst_id)->data[level][mr] += tmp;
+      P1::getFaceFunctionMemory(face, dst_id)->data[level][mr] += tmp;
 
       mr += 1;
     }
@@ -327,7 +327,7 @@ inline real_t dot(Face& face, size_t lhs_id, size_t rhs_id, size_t level)
   {
     for (size_t j = 0; j < inner_rowsize - 3; ++j)
     {
-      sp += getFaceP1Memory(face, lhs_id)->data[level][mr] * getFaceP1Memory(face, rhs_id)->data[level][mr];
+      sp += P1::getFaceFunctionMemory(face, lhs_id)->data[level][mr] * P1::getFaceFunctionMemory(face, rhs_id)->data[level][mr];
       mr += 1;
     }
 
@@ -344,9 +344,9 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = getFaceStencilMemory(face, opr_id)->data[Level];
-  real_t* src = getFaceP1Memory(face, src_id)->data[Level];
-  real_t* dst = getFaceP1Memory(face, dst_id)->data[Level];
+  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
+  real_t* src = P1::getFaceFunctionMemory(face, src_id)->data[Level];
+  real_t* dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
 
   real_t tmp;
 
@@ -379,9 +379,9 @@ inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = getFaceStencilMemory(face, opr_id)->data[Level];
-  real_t* dst = getFaceP1Memory(face, dst_id)->data[Level];
-  real_t* rhs = getFaceP1Memory(face, rhs_id)->data[Level];
+  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
+  real_t* dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
+  real_t* rhs = P1::getFaceFunctionMemory(face, rhs_id)->data[Level];
 
   real_t tmp;
 
@@ -410,8 +410,8 @@ inline void prolongate_tmpl(Face& face, size_t memory_id)
   size_t N_c = levelinfo::num_microvertices_per_edge(Level);
   size_t N_c_i = N_c;
 
-  real_t* v_f = getFaceP1Memory(face, memory_id)->data[Level+1];
-  real_t* v_c = getFaceP1Memory(face, memory_id)->data[Level];
+  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
+  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
 
   size_t j;
 
@@ -436,13 +436,104 @@ inline void prolongate_tmpl(Face& face, size_t memory_id)
 SPECIALIZE(void, prolongate_tmpl, prolongate)
 
 template<size_t Level>
+inline void prolongateQuadratic_tmpl(Face& face, size_t memory_id)
+{
+  size_t N_c = levelinfo::num_microvertices_per_edge(Level);
+  size_t N_c_i = N_c;
+  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
+  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+
+  size_t i, j;
+  real_t linearx, lineary, linearxy, offx, offy, offxy;
+  i = 0;
+  for (j = 2; j <= N_c-1; j += 2)
+  {
+// upper triangle inner points
+//calculate offsets
+    linearx = 0.5 * (v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+    lineary = 0.5 * (v_c[index<Level>(i + 2, j - 2 , C)] + v_c[index<Level>(i, j - 2, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i + 2, j -2, C)] + v_c[index<Level>(i, j, C)]);
+
+    offx =  v_c[index<Level>(i, j - 1, C)] - linearx;
+    offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
+    offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+
+// left bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 3, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy + 0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i + 2, 2*j - 3, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+  }
+
+  N_c_i -= 1;
+
+  for (i = 2; i < N_c-1; i += 2)
+  {
+    for (j = 2; j < N_c_i-1; j += 2)
+    {
+// upper triangle inner points
+//calculate offsets
+    linearx = 0.5 * (v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+    lineary = 0.5 * (v_c[index<Level>(i + 2, j - 2 , C)] + v_c[index<Level>(i, j - 2, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i + 2, j -2, C)] + v_c[index<Level>(i, j, C)]);
+
+    offx =  v_c[index<Level>(i, j - 1, C)] - linearx;
+    offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
+    offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+// left bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 3, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy +  0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i + 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i + 2, 2*j - 3, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+
+// lower triangle all points
+//calculate offsets
+    lineary = 0.5 * (v_c[index<Level>(i - 2, j , C)] + v_c[index<Level>(i, j, C)]);
+    linearxy = 0.5 * (v_c[index<Level>(i - 2, j, C)] + v_c[index<Level>(i, j - 2, C)]);
+
+    offy = v_c[index<Level>(i - 1, j, C)] - lineary;
+    offxy = v_c[index<Level>(i - 1, j - 1, C)] - linearxy;
+// first inner points
+// left bottom corner
+    v_f[index<Level+1>(2*i - 1, 2*j - 1, C)] = 0.5 * (linearx + lineary) + 0.5 * offx + 0.5 * offy + 0.25 * offxy;
+// right bottom corner
+    v_f[index<Level+1>(2*i - 1, 2*j - 2, C)] = 0.5 * (linearx + linearxy) + 0.5 * offx + 0.25 * offy + 0.5 * offxy;
+// top corner
+    v_f[index<Level+1>(2*i - 2, 2*j - 1, C)] = 0.5 * (linearxy + lineary) + 0.25 * offx + 0.5 * offy + 0.5 * offxy;
+
+// boundary points
+// x-direction
+    v_f[index<Level+1>(2*i, 2*j - 1, C)] = 0.5 * (linearx + v_c[index<Level>(i, j, C)]) + 0.75 * offx;
+    v_f[index<Level+1>(2*i, 2*j - 3, C)] = 0.5 * (linearx + v_c[index<Level>(i, j - 2, C)]) + 0.75 * offx;
+//y-direction
+    v_f[index<Level+1>(2*i - 1, 2*j, C)] = 0.5 * (v_c[index<Level>(i, j, C)] + lineary) + 0.75 * offy;
+    v_f[index<Level+1>(2*i - 3, 2*j, C)] = 0.5 * (v_c[index<Level>(i - 2, j, C)] + lineary) + 0.75 * offy;
+//xy-direction
+    v_f[index<Level+1>(2*i - 1, 2*j - 3, C)] = 0.5 * (v_c[index<Level>(i, j - 2, C)] + linearxy) + 0.75 * offxy;
+    v_f[index<Level+1>(2*i - 3, 2*j - 1, C)] = 0.5 * (v_c[index<Level>(i - 2, j, C)] + linearxy) + 0.75 * offxy;
+// coarse points
+    v_f[index<Level+1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
+    v_f[index<Level+1>(2*i, 2*j-2, C)] = v_c[index<Level>(i, j-1, C)];
+    v_f[index<Level+1>(2*i-2, 2*j, C)] = v_c[index<Level>(i-1, j, C)];
+    v_f[index<Level+1>(2*i-2, 2*j-2, C)] = v_c[index<Level>(i-1, j-1, C)];
+    }
+    N_c_i -= 2;
+
+  }
+}
+
+SPECIALIZE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
+
+template<size_t Level>
 inline void restrict_tmpl(Face& face, size_t memory_id)
 {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level-1);
   size_t N_c_i = N_c;
 
-  real_t* v_f = getFaceP1Memory(face, memory_id)->data[Level];
-  real_t* v_c = getFaceP1Memory(face, memory_id)->data[Level-1];
+  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level-1];
 
   real_t tmp;
 
@@ -484,8 +575,8 @@ inline void printmatrix(Face& face, size_t opr_id, size_t src_id, size_t level)
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = getFaceStencilMemory(face, opr_id)->data[level];
-  real_t* src = getFaceP1Memory(face, src_id)->data[level];
+  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[level];
+  real_t* src = P1::getFaceFunctionMemory(face, src_id)->data[level];
   size_t br = 1;
   size_t mr = 1 + rowsize ;
   size_t tr = mr + (rowsize - 1);

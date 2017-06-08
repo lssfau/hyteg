@@ -52,8 +52,8 @@ int main (int argc, char ** argv )
   }
 
 
-  real_t* face0 = getFaceP1BubbleFunctionMemory(mesh.faces[0], 0)->data[maxLevel];
-  real_t* face1 = getFaceP1BubbleFunctionMemory(mesh.faces[1], 0)->data[maxLevel];
+  real_t* face0 = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], 0)->data[maxLevel];
+  real_t* face1 = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[1], 0)->data[maxLevel];
   real_t sumFace0 = 0;
   real_t sumFace1 = 0;
   std::cout << "Face 0: " << std::endl;

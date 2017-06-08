@@ -6,6 +6,7 @@
 
 #include "p1functionspace/p1function.hpp"
 #include "p1functionspace/p1operator.hpp"
+#include "p1functionspace/p1memory.hpp"
 
 #include "p1bubblefunctionspace/p1bubblefunction.hpp"
 #include "p1bubblefunctionspace/p1bubbleoperator.hpp"

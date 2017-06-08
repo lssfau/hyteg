@@ -24,7 +24,7 @@ using walberla::uint_c;
  */
 template<size_t Level>
 inline void unpackData( Face& face, uint_t memory_id, walberla::mpi::RecvBuffer & recvBuffer,  const Edge& edge){
-  real_t* face_data = getFaceP1BubbleFunctionMemory(face, memory_id)->data[Level];
+  real_t* face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
   uint_t edge_index = face.edge_index(edge);
   uint_t edge_orientation = uint_c(face.edge_orientation[edge_index]);
   size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(Level);
