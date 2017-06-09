@@ -3,7 +3,7 @@
 
 #define SPECIALIZE(type, func_tmpl, func)                     \
 template<typename... Args>                                    \
-inline type func(size_t level, Args... args)                  \
+inline type func(size_t level, Args&&... args)                  \
 {                                                             \
   switch(level)                                               \
   {                                                           \

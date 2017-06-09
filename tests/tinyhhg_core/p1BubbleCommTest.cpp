@@ -42,13 +42,13 @@ int main (int argc, char ** argv )
     walberla::mpi::SendBuffer sb;
     hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
     walberla::mpi::RecvBuffer rb(sb);
-    hhg::P1BubbleFace::unpackData<maxLevel>(mesh.faces[0], 0, rb, mesh.edges[i]);
+    hhg::P1BubbleFace::unpackData(maxLevel,mesh.faces[0], 0, rb, mesh.edges[i]);
   }
   for(uint_t i = 0; i < mesh.edges.size(); ++i) {
     walberla::mpi::SendBuffer sb;
     hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
     walberla::mpi::RecvBuffer rb(sb);
-    hhg::P1BubbleFace::unpackData<maxLevel>(mesh.faces[1], 0, rb, mesh.edges[i]);
+    hhg::P1BubbleFace::unpackData(maxLevel,mesh.faces[1], 0, rb, mesh.edges[i]);
   }
 
 

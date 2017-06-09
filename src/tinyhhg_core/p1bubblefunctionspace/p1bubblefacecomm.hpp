@@ -23,10 +23,10 @@ using walberla::uint_c;
  * @param edge Index of the corresponding edge
  */
 template<size_t Level>
-inline void unpackData( Face& face, uint_t memory_id, walberla::mpi::RecvBuffer & recvBuffer,  const Edge& edge){
+inline void unpackData_tmpl( Face& face, uint_t memory_id, walberla::mpi::RecvBuffer & recvBuffer, const Edge& edge){
   real_t* face_data = getFaceP1BubbleFunctionMemory(face, memory_id)->data[Level];
   uint_t edge_index = face.edge_index(edge);
-  uint_t edge_orientation = uint_c(face.edge_orientation[edge_index]);
+  int edge_orientation = face.edge_orientation[edge_index];
   size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(Level);
   uint_t j;
   switch(edge_index){
@@ -52,5 +52,6 @@ inline void unpackData( Face& face, uint_t memory_id, walberla::mpi::RecvBuffer 
   }
 }
 
+SPECIALIZE(void, unpackData_tmpl, unpackData)
 }
 }
