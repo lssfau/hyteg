@@ -18,3 +18,6 @@ waLBerla_execute_test(NAME p1BubbleCommTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME PrimitiveIDTest)
+
+waLBerla_compile_test(FILES PrimitiveDataTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME PrimitiveDataTest)

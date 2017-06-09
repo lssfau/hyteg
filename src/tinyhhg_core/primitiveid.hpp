@@ -4,6 +4,8 @@
 #include <blockforest/Utility.h>
 #include <core/debug/Debug.h>
 #include <core/math/Uint.h>
+#include <core/mpi/SendBuffer.h>
+#include <core/mpi/RecvBuffer.h>
 #include <domain_decomposition/IBlockID.h>
 
 namespace walberla {
@@ -16,21 +18,23 @@ namespace hhg {
 *   It serves as a (global) unique identifier of a primitive.
 */
 //**********************************************************************************************************************
-class PrimitiveID : public IBlockID
+class PrimitiveID
 {
 public:
+
+  typedef uint64_t IDType;
 
   inline PrimitiveID() : id_( uint64_c( 0 ) ) {}
   inline PrimitiveID( const PrimitiveID& id ) : id_( id.id_ ) {}
   inline PrimitiveID( const uint64_t id ) : id_( id ) {}
 
-  bool operator< ( const IBlockID& rhs ) const
+  bool operator< ( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ <  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator> ( const IBlockID& rhs ) const
+  bool operator> ( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ >  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator==( const IBlockID& rhs ) const
+  bool operator==( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ == static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator!=( const IBlockID& rhs ) const
+  bool operator!=( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ != static_cast< const PrimitiveID* >( &rhs )->id_; }
 
   uint_t getUsedBits()  const { return math::uintMSBPosition( id_ ); }
@@ -52,7 +56,7 @@ private:
 
 inline IBlockID::IDType PrimitiveID::getID() const
 {
-  return numeric_cast< IBlockID::IDType > ( id_ );
+  return numeric_cast< PrimitiveID::IDType > ( id_ );
 }
 
 
