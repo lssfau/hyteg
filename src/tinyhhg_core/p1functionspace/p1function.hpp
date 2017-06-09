@@ -267,14 +267,17 @@ public:
       }
     }
 
-#ifdef WALBERLA_BUILD_WITH_MPI
-    real_t sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< real_t >::type(), MPI_SUM, MPI_COMM_WORLD);
+    WALBERLA_MPI_SECTION()
+    {
+      real_t sp_g = 0.0;
+      MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< real_t >::type(), MPI_SUM, MPI_COMM_WORLD);
 
-    return sp_g;
-#else // WALBERLA_BUILD_WITH_MPI
-    return sp_l;
-#endif
+      return sp_g;
+    }
+    WALBERLA_NON_MPI_SECTION()
+    {
+      return sp_l;
+    }
   }
 
   void prolongate(size_t level, DoFType flag = All)
@@ -310,6 +313,43 @@ public:
       if (face.rank == rank && testFlag(face.type, flag))
       {
         P1Face::prolongate(level, face, memory_id);
+      }
+    }
+  }
+
+  void prolongateQuadratic(size_t level, DoFType flag = All)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      {
+        P1Vertex::prolongateQuadratic(vertex, memory_id, level);
+      }
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1Edge::pull_vertices(edge, memory_id, level+1);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      if (edge.rank == rank && testFlag(edge.type, flag))
+      {
+        P1Edge::prolongateQuadratic(edge, memory_id, level);
+      }
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1Face::pull_edges(face, memory_id, level+1);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      if (face.rank == rank && testFlag(face.type, flag))
+      {
+        P1Face::prolongateQuadratic(level, face, memory_id);
       }
     }
   }
