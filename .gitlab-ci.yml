@@ -675,15 +675,15 @@ msvc-14_Hybrid_Dbg:
       WALBERLA_BUILD_WITH_OPENMP: "ON"
       WALBERLA_DOUBLE_ACCURACY: "ON"
 
-msvc-14_Hybrid_SP_Dbg:
-   <<: *win_build_definition
-   variables:
-      CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
-      BUILD_CONFIGURATION: "DebugOptimized"
-      CTEST_EXCLUDE_LABELS: "longrun"
-      WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BUILD_WITH_OPENMP: "ON"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
+#msvc-14_Hybrid_SP_Dbg:
+#   <<: *win_build_definition
+#   variables:
+#      CMAKE_GENERATOR: "Visual Studio 14 2015 Win64"
+#      BUILD_CONFIGURATION: "DebugOptimized"
+#      CTEST_EXCLUDE_LABELS: "longrun"
+#      WALBERLA_BUILD_WITH_MPI: "ON"
+#      WALBERLA_BUILD_WITH_OPENMP: "ON"
+#      WALBERLA_DOUBLE_ACCURACY: "OFF"
 
 msvc-14_Hybrid:
    <<: *win_build_definition

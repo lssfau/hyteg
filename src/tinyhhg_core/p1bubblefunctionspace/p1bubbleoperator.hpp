@@ -144,10 +144,10 @@ public:
 
         if (level == minLevel)
         {
-          face.memory.push_back(new FaceStencilMemory());
+          face.memory.push_back(new FaceP1BubbleStencilMemory());
         }
 
-        auto face_stencil_stack = getFaceP1BubbleStencilMemory(face, memory_id)->addlevel(level);
+        auto face_stencil_stack = P1Bubble::getFaceStencilMemory(face, memory_id)->addlevel(level);
 
         real_t* face_vertex_stencil = face_stencil_stack[0];
         real_t* face_gray_stencil = face_stencil_stack[1];
@@ -205,11 +205,11 @@ public:
 
         if (level == minLevel)
         {
-          edge.memory.push_back(new EdgeStencilMemory());
+          edge.memory.push_back(new EdgeP1BubbleStencilMemory());
         }
         //WALBERLA_LOG_DEVEL("Edge.memory.size() = " + std::to_string(edge.memory.size()));
 
-        real_t* edge_stencil = getEdgeStencilMemory(edge, memory_id)->addlevel(level);
+        real_t* edge_stencil = P1Bubble::getEdgeStencilMemory(edge, memory_id)->addlevel(level);
 
         real_t local_stiffness_up[4][4];
         real_t local_stiffness_down[4][4];
@@ -261,10 +261,10 @@ public:
         // allocate new level-vector if first level
         if (level == minLevel)
         {
-          vertex.memory.push_back(new VertexStencilMemory());
+          vertex.memory.push_back(new VertexP1BubbleStencilMemory());
         }
 
-        real_t* vertex_stencil = getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
+        real_t* vertex_stencil = P1Bubble::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)

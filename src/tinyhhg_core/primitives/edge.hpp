@@ -48,14 +48,10 @@ public:
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 };
 
-
-
 class EdgeMemory
 {
 public:
-
   const MemoryType type;
-
   virtual void free() = 0;
 
 protected:

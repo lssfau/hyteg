@@ -83,11 +83,11 @@ inline size_t index(size_t pos, DirVertex dir) {
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
-  edge.memory.push_back(new EdgeP1Memory());
+  edge.memory.push_back(new EdgeP1BubbleFunctionMemory());
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
-    getEdgeP1Memory(edge, memory_id)->addlevel(level, edge.faces.size());
+    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->addlevel(level, edge.faces.size());
   }
 }
 
@@ -106,7 +106,7 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<real_t(const
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    getEdgeP1Memory(edge, memory_id)->data[level][i] = expr(x);
+    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = expr(x);
     x += dx;
   }
 }
@@ -120,16 +120,16 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     // local information
     if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
-      getEdgeP1Memory(edge, memory_id)->data[level][0] = getVertexP1Memory(*edge.v0, memory_id)->data[level][0];
+      P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][0] = P1Bubble::getVertexFunctionMemory(*edge.v0, memory_id)->data[level][0];
     }
     else
     {
-      MPI_Send(&getVertexP1Memory(*edge.v0, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&P1Bubble::getVertexFunctionMemory(*edge.v0, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 
   if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
@@ -137,16 +137,16 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     // local information
     if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
     {
-      getEdgeP1Memory(edge, memory_id)->data[level][rowsize-1] = getVertexP1Memory(*edge.v1, memory_id)->data[level][0];
+      P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][rowsize-1] = P1Bubble::getVertexFunctionMemory(*edge.v1, memory_id)->data[level][0];
     }
     else
     {
-      MPI_Send(&getVertexP1Memory(*edge.v1, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
+      MPI_Send(&P1Bubble::getVertexFunctionMemory(*edge.v1, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
     }
   }
   else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
   {
-    MPI_Recv(&getEdgeP1Memory(edge, memory_id)->data[level][rowsize-1], 1, walberla::MPITrait< real_t >::type(), edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][rowsize-1], 1, walberla::MPITrait< real_t >::type(), edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
   }
 }
 
@@ -156,14 +156,14 @@ inline void assign(Edge& edge, const std::vector<real_t>& scalars, const std::ve
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    real_t tmp = scalars[0] * getEdgeP1Memory(edge, src_ids[0])->data[level][i];
+    real_t tmp = scalars[0] * P1Bubble::getEdgeFunctionMemory(edge, src_ids[0])->data[level][i];
 
     for (size_t k = 1; k < src_ids.size(); ++k)
     {
-      tmp += scalars[k] * getEdgeP1Memory(edge, src_ids[k])->data[level][i];
+      tmp += scalars[k] * P1Bubble::getEdgeFunctionMemory(edge, src_ids[k])->data[level][i];
     }
 
-    getEdgeP1Memory(edge, dst_id)->data[level][i] = tmp;
+    P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level][i] = tmp;
   }
 }
 
@@ -177,10 +177,10 @@ inline void add(Edge& edge, const std::vector<real_t>& scalars, const std::vecto
 
     for (size_t k = 0; k < src_ids.size(); ++k)
     {
-      tmp += scalars[k] * getEdgeP1Memory(edge, src_ids[k])->data[level][i];
+      tmp += scalars[k] * P1Bubble::getEdgeFunctionMemory(edge, src_ids[k])->data[level][i];
     }
 
-    getEdgeP1Memory(edge, dst_id)->data[level][i] += tmp;
+    P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level][i] += tmp;
   }
 }
 
@@ -191,7 +191,7 @@ inline real_t dot(Edge& edge, size_t lhs_id, size_t rhs_id, size_t level)
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    sp += getEdgeP1Memory(edge, lhs_id)->data[level][i] * getEdgeP1Memory(edge, rhs_id)->data[level][i];
+    sp += P1Bubble::getEdgeFunctionMemory(edge, lhs_id)->data[level][i] * P1Bubble::getEdgeFunctionMemory(edge, rhs_id)->data[level][i];
   }
 
   return sp;
@@ -201,9 +201,9 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  real_t* opr_data = getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* src = getEdgeP1Memory(edge, src_id)->data[level];
-  real_t* dst = getEdgeP1Memory(edge, dst_id)->data[level];
+  real_t* opr_data = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[level];
+  real_t* src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[level];
+  real_t* dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -222,27 +222,27 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
   }
 }
 
-inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, size_t level)
-{
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-
-  real_t* opr_data = getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* dst = getEdgeP1Memory(edge, dst_id)->data[level];
-  real_t* rhs = getEdgeP1Memory(edge, rhs_id)->data[level];
-
-  for (size_t i = 1; i < rowsize-1; ++i)
-  {
-    dst[i] = rhs[i] - opr_data[2] * dst[i-1] - opr_data[4] * dst[i+1];
-    dst[i] -= opr_data[0] * dst[rowsize + i - 1] + opr_data[1] * dst[rowsize + i];
-
-    if (edge.faces.size() == 2)
-    {
-      dst[i] -= opr_data[5] * dst[rowsize + rowsize - 1 + i - 1] + opr_data[6] * dst[rowsize + rowsize - 1 + i];
-    }
-
-    dst[i] /= opr_data[3];
-  }
-}
+//inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, size_t level)
+//{
+//  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+//
+//  real_t* opr_data = getEdgeStencilMemory(edge, opr_id)->data[level];
+//  real_t* dst = getEdgeP1Memory(edge, dst_id)->data[level];
+//  real_t* rhs = getEdgeP1Memory(edge, rhs_id)->data[level];
+//
+//  for (size_t i = 1; i < rowsize-1; ++i)
+//  {
+//    dst[i] = rhs[i] - opr_data[2] * dst[i-1] - opr_data[4] * dst[i+1];
+//    dst[i] -= opr_data[0] * dst[rowsize + i - 1] + opr_data[1] * dst[rowsize + i];
+//
+//    if (edge.faces.size() == 2)
+//    {
+//      dst[i] -= opr_data[5] * dst[rowsize + rowsize - 1 + i - 1] + opr_data[6] * dst[rowsize + rowsize - 1 + i];
+//    }
+//
+//    dst[i] /= opr_data[3];
+//  }
+//}
 
 inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
 {
@@ -319,11 +319,11 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   {
     if (edge.rank == rk)
     {
-      real_t* edge_data = getEdgeP1Memory(edge, memory_id)->data[level];
+      real_t* edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
 
       if (face->rank == rk)
       {
-        real_t* face_data = getFaceP1Memory(*face, memory_id)->data[level];
+        real_t* face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
@@ -335,7 +335,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     else if (face->rank == rk)
     {
-      real_t* face_data = getFaceP1Memory(*face, memory_id)->data[level];
+      real_t* face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
       real_t* tmp = new real_t[rowsize_halo];
       pull(edge, tmp, face, face_data);
       MPI_Send(tmp, rowsize_halo, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
@@ -344,72 +344,72 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   }
 }
 
-inline void prolongate(Edge& edge, size_t memory_id, size_t level)
-{
-  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
-  size_t i_fine = 1;
+//inline void prolongate(Edge& edge, size_t memory_id, size_t level)
+//{
+//  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
+//  size_t i_fine = 1;
+//
+//  real_t* edge_data_f = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level+1];
+//  real_t* edge_data_c = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
+//
+//  for (size_t i_coarse = 0; i_coarse < rowsize_coarse-1; ++i_coarse)
+//  {
+//    edge_data_f[i_fine] = 0.5 * (edge_data_c[i_coarse] + edge_data_c[i_coarse+1]);
+//    edge_data_f[i_fine+1] = edge_data_c[i_coarse+1];
+//    i_fine += 2;
+//  }
+//}
 
-  real_t* edge_data_f = getEdgeP1Memory(edge, memory_id)->data[level+1];
-  real_t* edge_data_c = getEdgeP1Memory(edge, memory_id)->data[level];
+//inline void restrict(Edge& edge, size_t memory_id, size_t level)
+//{
+//  size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
+//  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
+//
+//  real_t* edge_data_f = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
+//  real_t* edge_data_c = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level-1];
+//
+//  size_t i_fine = 2;
+//  size_t i_off = 1;
+//
+//  for (size_t i_coarse = 1; i_coarse < rowsize_coarse-1; ++i_coarse)
+//  {
+//    // mid edge
+//    edge_data_c[i_coarse] = 0.5 * edge_data_f[i_fine - 1] + edge_data_f[i_fine] + 0.5 * edge_data_f[i_fine + 1];
+//
+//    for (size_t off_edge = 0; off_edge < edge.faces.size(); ++off_edge)
+//    {
+//      edge_data_c[i_coarse] += 0.5 * edge_data_f[rowsize_fine + off_edge * (rowsize_fine-1) + i_off] + 0.5 * edge_data_f[rowsize_fine + off_edge * (rowsize_fine-1) + i_off + 1];
+//    }
+//
+//    i_fine += 2;
+//    i_off += 2;
+//  }
+//}
 
-  for (size_t i_coarse = 0; i_coarse < rowsize_coarse-1; ++i_coarse)
-  {
-    edge_data_f[i_fine] = 0.5 * (edge_data_c[i_coarse] + edge_data_c[i_coarse+1]);
-    edge_data_f[i_fine+1] = edge_data_c[i_coarse+1];
-    i_fine += 2;
-  }
-}
-
-inline void restrict(Edge& edge, size_t memory_id, size_t level)
-{
-  size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
-  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
-
-  real_t* edge_data_f = getEdgeP1Memory(edge, memory_id)->data[level];
-  real_t* edge_data_c = getEdgeP1Memory(edge, memory_id)->data[level-1];
-
-  size_t i_fine = 2;
-  size_t i_off = 1;
-
-  for (size_t i_coarse = 1; i_coarse < rowsize_coarse-1; ++i_coarse)
-  {
-    // mid edge
-    edge_data_c[i_coarse] = 0.5 * edge_data_f[i_fine - 1] + edge_data_f[i_fine] + 0.5 * edge_data_f[i_fine + 1];
-
-    for (size_t off_edge = 0; off_edge < edge.faces.size(); ++off_edge)
-    {
-      edge_data_c[i_coarse] += 0.5 * edge_data_f[rowsize_fine + off_edge * (rowsize_fine-1) + i_off] + 0.5 * edge_data_f[rowsize_fine + off_edge * (rowsize_fine-1) + i_off + 1];
-    }
-
-    i_fine += 2;
-    i_off += 2;
-  }
-}
-
-inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id, size_t level)
-{
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-
-  real_t* opr_data = getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* src = getEdgeP1Memory(edge, src_id)->data[level];
-
-  for (size_t i = 1; i < rowsize-1; ++i)
-  {
-
-    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i-1], opr_data[2]);
-    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i], opr_data[3]);
-    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i+1], opr_data[4]);
-
-    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i - 1], opr_data[0]);
-    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i], opr_data[1]);
-
-    if (edge.faces.size() == 2)
-    {
-      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i - 1], opr_data[5]);
-      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i], opr_data[6]);
-    }
-  }
-}
+//inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id, size_t level)
+//{
+//  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+//
+//  real_t* opr_data = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[level];
+//  real_t* src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[level];
+//
+//  for (size_t i = 1; i < rowsize-1; ++i)
+//  {
+//
+//    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i-1], opr_data[2]);
+//    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i], opr_data[3]);
+//    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[i+1], opr_data[4]);
+//
+//    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i - 1], opr_data[0]);
+//    fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + i], opr_data[1]);
+//
+//    if (edge.faces.size() == 2)
+//    {
+//      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i - 1], opr_data[5]);
+//      fmt::printf("%d\t%d\t%e\n", (size_t)src[i], (size_t)src[rowsize + rowsize - 1 + i], opr_data[6]);
+//    }
+//  }
+//}
 
 }
 }
