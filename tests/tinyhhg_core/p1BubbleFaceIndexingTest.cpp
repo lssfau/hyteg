@@ -5,7 +5,7 @@ using namespace hhg::P1BubbleFace;
 
 int main(int argc, char* argv[])
 {
-
+  //this test is written for level 3
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
@@ -95,5 +95,33 @@ int main(int argc, char* argv[])
     WALBERLA_CHECK_EQUAL_3(refBlueThreeZero[i],result[i],"i: " << i);
   }
 
-
+  /// CHECK ITERATOR ///
+  std::vector<size_t> vertexface0 = {0,1,2,3,4,5,6,7,8};
+  std::vector<size_t> vertexface1 = {8,16,23,29,34,38,41,43,44};
+  std::vector<size_t> vertexface2 = {44,42,39,35,30,24,17,9,0};
+  uint_t counter = 0;
+  for(auto it = indexIterator(0,1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface0[counter++],*it,"counter: " << counter);
+  }
+  counter = 0;
+  for(auto it = indexIterator(1,1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface1[counter++],*it,"counter: " << counter);
+  }
+  counter = 0;
+  for(auto it = indexIterator(2,1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface2[counter++],*it,"counter: " << counter);
+  }
+  /// CHECK REVERSE ///
+  counter = 8;
+  for(auto it = indexIterator(0,-1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface0[counter--],*it,"counter: " << counter);
+  }
+  counter = 8;
+  for(auto it = indexIterator(1,-1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface1[counter--],*it,"counter: " << counter);
+  }
+  counter = 8;
+  for(auto it = indexIterator(2,-1, VERTEX, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexface2[counter--],*it,"counter: " << counter);
+  }
 }
