@@ -1,1 +1,0 @@
-waLBerla_add_module( DEPENDS tinyhhg_core )
