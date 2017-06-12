@@ -131,9 +131,9 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  real_t* opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* src = P1::getEdgeFunctionMemory(edge, src_id)->data[level];
-  real_t* dst = P1::getEdgeFunctionMemory(edge, dst_id)->data[level];
+  auto& opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
+  auto& src = P1::getEdgeFunctionMemory(edge, src_id)->data[level];
+  auto& dst = P1::getEdgeFunctionMemory(edge, dst_id)->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -156,9 +156,9 @@ inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, s
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  real_t* opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* dst = P1::getEdgeFunctionMemory(edge, dst_id)->data[level];
-  real_t* rhs = P1::getEdgeFunctionMemory(edge, rhs_id)->data[level];
+  auto& opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
+  auto& dst = P1::getEdgeFunctionMemory(edge, dst_id)->data[level];
+  auto& rhs = P1::getEdgeFunctionMemory(edge, rhs_id)->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -182,7 +182,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   size_t offset = rowsize;
   int rk = walberla::mpi::MPIManager::instance()->rank();
 
-  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, real_t* face_data)
+  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, std::unique_ptr<real_t[]>& face_data)
   {
     if (&edge == face->edges[0])
     {
@@ -249,11 +249,11 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   {
     if (edge.rank == rk)
     {
-      real_t* edge_data = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
+      auto& edge_data = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
 
       if (face->rank == rk)
       {
-        real_t* face_data = P1::getFaceFunctionMemory(*face, memory_id)->data[level];
+        auto& face_data = P1::getFaceFunctionMemory(*face, memory_id)->data[level];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
@@ -265,7 +265,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     else if (face->rank == rk)
     {
-      real_t* face_data = P1::getFaceFunctionMemory(*face, memory_id)->data[level];
+      auto& face_data = P1::getFaceFunctionMemory(*face, memory_id)->data[level];
       real_t* tmp = new real_t[rowsize_halo];
       pull(edge, tmp, face, face_data);
       MPI_Send(tmp, rowsize_halo, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
@@ -279,8 +279,8 @@ inline void prolongate(Edge& edge, size_t memory_id, size_t level)
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
   size_t i_fine = 1;
 
-  real_t* edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level+1];
-  real_t* edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
+  auto& edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level+1];
+  auto& edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
 
   for (size_t i_coarse = 0; i_coarse < rowsize_coarse-1; ++i_coarse)
   {
@@ -299,8 +299,8 @@ inline void prolongateQuadratic(Edge& edge, size_t memory_id, size_t level)
   const real_t s1[3] = {3*invtemp,6*invtemp,-invtemp};
   const real_t s2[3] = {-invtemp,6*invtemp,3*invtemp};
 
-  real_t* edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level+1];
-  real_t* edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
+  auto& edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level+1];
+  auto& edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
   size_t i_coarse;
   for (i_coarse = 0; i_coarse < rowsize_coarse-2; ++i_coarse)
   {
@@ -318,8 +318,8 @@ inline void restrict(Edge& edge, size_t memory_id, size_t level)
   size_t rowsize_fine = levelinfo::num_microvertices_per_edge(level);
   size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level-1);
 
-  real_t* edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
-  real_t* edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level-1];
+  auto& edge_data_f = P1::getEdgeFunctionMemory(edge, memory_id)->data[level];
+  auto& edge_data_c = P1::getEdgeFunctionMemory(edge, memory_id)->data[level-1];
 
   size_t i_fine = 2;
   size_t i_off = 1;
@@ -343,8 +343,8 @@ inline void printmatrix(Edge& edge, size_t opr_id, size_t src_id, size_t level)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  real_t* opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* src = P1::getEdgeFunctionMemory(edge, src_id)->data[level];
+  auto& opr_data = P1::getEdgeStencilMemory(edge, opr_id)->data[level];
+  auto& src = P1::getEdgeFunctionMemory(edge, src_id)->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
