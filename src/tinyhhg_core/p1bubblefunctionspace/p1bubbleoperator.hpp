@@ -10,6 +10,7 @@
 
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblefaceindex.hpp"
+#include "tinyhhg_core/p1bubblefunctionspace/p1bubbleedge.hpp"
 
 namespace hhg
 {
@@ -187,43 +188,51 @@ public:
 
         real_t* edge_stencil = P1Bubble::getEdgeStencilMemory(edge, memory_id)->addlevel(level);
 
-        real_t local_stiffness_up[4][4];
-        real_t local_stiffness_down[4][4];
+        real_t local_stiffness_gray[4][4];
+        real_t local_stiffness_blue[4][4];
         // first face
         Face* face = edge.faces[0];
-        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::GRAY);
-        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::BLUE);
+        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_gray, P1Bubble::GRAY);
+        P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_blue, P1Bubble::BLUE);
 
         size_t start_id = face->vertex_index(*edge.v0);
         size_t end_id = face->vertex_index(*edge.v1);
         size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
 
-        edge_stencil[0] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-        edge_stencil[1] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_S] = local_stiffness_gray[end_id][opposite_id] + local_stiffness_blue[opposite_id][end_id];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_SE] = local_stiffness_gray[start_id][opposite_id] + local_stiffness_blue[opposite_id][start_id];
 
-        edge_stencil[2] = local_stiffness_up[end_id][start_id];
-        edge_stencil[4] = local_stiffness_up[start_id][end_id];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_W] = local_stiffness_gray[end_id][start_id];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_E] = local_stiffness_gray[start_id][end_id];
 
-        edge_stencil[3] = local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_C] = local_stiffness_gray[start_id][start_id] + local_stiffness_gray[end_id][end_id] + local_stiffness_blue[opposite_id][opposite_id];
+
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_GRAY_SW] = local_stiffness_gray[end_id][3];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[opposite_id][3];
+        edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[start_id][3];
 
         if (edge.faces.size() == 2)
         {
           // second face
           Face* face = edge.faces[1];
-          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Bubble::GRAY);
-          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Bubble::BLUE);
+          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_gray, P1Bubble::GRAY);
+          P1Bubble::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_blue, P1Bubble::BLUE);
 
           size_t start_id = face->vertex_index(*edge.v0);
           size_t end_id = face->vertex_index(*edge.v1);
           size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
 
-          edge_stencil[5] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-          edge_stencil[6] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_NW] = local_stiffness_gray[end_id][opposite_id] + local_stiffness_blue[opposite_id][end_id];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_N] = local_stiffness_gray[start_id][opposite_id] + local_stiffness_blue[opposite_id][start_id];
 
-          edge_stencil[2] += local_stiffness_up[end_id][start_id];
-          edge_stencil[4] += local_stiffness_up[start_id][end_id];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_W] += local_stiffness_gray[end_id][start_id];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_E] += local_stiffness_gray[start_id][end_id];
 
-          edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_C] += local_stiffness_gray[start_id][start_id] + local_stiffness_gray[end_id][end_id] + local_stiffness_blue[opposite_id][opposite_id];
+
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[end_id][3];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[opposite_id][3];
+          edge_stencil[P1BubbleEdge::EdgeCoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[start_id][3];
         }
       }
 

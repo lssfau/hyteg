@@ -23,7 +23,7 @@ enum DirVertex {
   CELL_GRAY_SE = 7,
   CELL_GRAY_NW = 8,
   CELL_GRAY_NE = 9,
-  CELL_BLUE_SW = 10,
+  CELL_GRAY_SW = 10,
   CELL_BLUE_SE = 11,
   CELL_BLUE_NW = 12
 };
@@ -32,11 +32,11 @@ const DirVertex neighbors_with_center[13] =
     {VERTEX_C,
      VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
 const DirVertex neighbors[12] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
 
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
@@ -74,7 +74,7 @@ inline size_t index(size_t pos, DirVertex dir) {
       return startFaceS + (vertexOnEdge -1) + pos * 2;
     case CELL_BLUE_NW:
       return startFaceN + (vertexOnEdge -1) + pos * 2 - 1;
-    case CELL_BLUE_SW:
+    case CELL_GRAY_SW:
       return startFaceS + (vertexOnEdge -1) + (pos -1) * 2;
   }
   return std::numeric_limits<size_t>::max();
