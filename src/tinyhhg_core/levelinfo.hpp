@@ -19,6 +19,11 @@ inline size_t num_microvertices_per_edge(size_t level)
   return (size_t) std::pow(2, level) + 1;
 }
 
+inline size_t num_microedges_per_edge(size_t level)
+{
+  return num_microvertices_per_edge(level) - 1;
+}
+
 inline size_t num_microvertices_per_face(size_t level)
 {
   return (size_t) ((std::pow(2, level)+1) * (std::pow(2, level-1) + 1));

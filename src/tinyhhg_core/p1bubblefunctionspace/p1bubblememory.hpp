@@ -125,7 +125,7 @@ public:
 
   inline size_t getSize(size_t level)
   {
-    return 7;
+    return 13;
   }
 
   ~EdgeP1BubbleStencilMemory() { free(); }
@@ -140,6 +140,7 @@ public:
   EdgeP1BubbleFunctionMemory() : EdgeMemory(MemoryType::P1BubbleFunction) { ; }
 
   std::map<size_t, real_t*> data;
+  size_t num_deps;
 
   virtual void free()
   {
@@ -156,6 +157,7 @@ public:
     WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
+      this->num_deps = num_deps;
       data[level] = new real_t[getSize(level)]();
     }
     return data[level];
@@ -163,7 +165,12 @@ public:
 
   inline size_t getSize(size_t level)
   {
-    return levelinfo::num_microvertices_per_face(level) + levelinfo::num_microfaces_per_face(level);
+    size_t num_vertex_dofs = levelinfo::num_microvertices_per_edge(level);
+    num_vertex_dofs = num_vertex_dofs + num_deps*(num_vertex_dofs-1);
+
+    size_t num_cell_dofs = num_deps * (2 * levelinfo::num_microedges_per_edge(level) - 1);
+
+    return num_vertex_dofs + num_cell_dofs;
   }
 
   ~EdgeP1BubbleFunctionMemory() { free(); }
