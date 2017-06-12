@@ -84,7 +84,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_0 = P1Bubble::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level];
+      edge_data_0 = P1Bubble::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level].get();
     }
     else
     {
@@ -101,7 +101,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_1 = P1Bubble::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level];
+      edge_data_1 = P1Bubble::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level].get();
     }
     else
     {
@@ -118,7 +118,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_2 = P1Bubble::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level];
+      edge_data_2 = P1Bubble::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level].get();
     }
     else
     {
@@ -133,7 +133,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
   if (face.rank == rk)
   {
-    real_t* face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[level];
+    auto& face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[level];
 
     if (face.edges[0]->rank != rk)
     {
@@ -307,14 +307,14 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  auto opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
+  auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
 
-  real_t* face_vertex_stencil = opr_data[0];
-  real_t* face_gray_stencil = opr_data[1];
-  real_t* face_blue_stencil = opr_data[2];
+  auto& face_vertex_stencil = opr_data[0];
+  auto& face_gray_stencil = opr_data[1];
+  auto& face_blue_stencil = opr_data[2];
 
-  real_t* src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
-  real_t* dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
+  auto& src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
 
   real_t tmp;
 

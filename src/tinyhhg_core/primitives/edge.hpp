@@ -52,7 +52,7 @@ class EdgeMemory
 {
 public:
   const MemoryType type;
-  virtual void free() = 0;
+  virtual ~EdgeMemory() { }
 
 protected:
   EdgeMemory(MemoryType t) : type(t) { ; }
