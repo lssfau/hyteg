@@ -21,3 +21,6 @@ waLBerla_execute_test(NAME PrimitiveIDTest)
 
 waLBerla_compile_test(FILES PrimitiveDataTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME PrimitiveDataTest)
+
+waLBerla_compile_test(FILES PrimitiveStorageTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME PrimitiveStorageTest)

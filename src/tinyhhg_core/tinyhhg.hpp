@@ -21,4 +21,6 @@
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
 
+#include "primitiveforest/PrimitiveStorage.hpp"
+
 #endif /* TINYHHG_HPP */

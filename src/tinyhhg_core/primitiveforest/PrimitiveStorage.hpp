@@ -1,31 +1,54 @@
 
 #pragma once
 
-#include "primitives/face.hpp"
-#include "primitives/edge.hpp"
+#include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
+#include <map>
 #include <vector>
 
 namespace walberla {
 namespace hhg {
 
-class PrimitiveStorage : private walberla::NonCopyable
+class PrimitiveStorage : private NonCopyable
 {
 public:
 
-  /// Iterators for traversing all locally allocated faces, edges and vertices
-  std::iterator beginFaces()    { return faces_.begin(); }
-  std::iterator endFaces()      { return faces_.end(); }
-  std::iterator beginEdges()    { return edges_.begin(); }
-  std::iterator endEdges()      { return edges_.end(); }
-  std::iterator beginVertices() { return edges_.begin(); }
-  std::iterator endVertices()   { return edges_.end(); }
+  PrimitiveStorage() : primitiveDataHandlers_( uint_c( 0 ) ) {}
+
+        PrimitiveID addPrimitive();
+
+  const Primitive* getPrimitive( const PrimitiveID & id ) const;
+        Primitive* getPrimitive( const PrimitiveID & id );
+
+  bool primitiveExistsLocally( const PrimitiveID & id ) const;
+
+  template< typename DataType >
+  PrimitiveDataID< DataType > addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier )
+  {
+    WALBERLA_LOG_PROGRESS( "Adding block data (\"" << identifier << "\")" );
+
+#ifndef NDEBUG
+    for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
+    {
+      WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfPrimitiveDataEntries() );
+    }
+#endif
+
+    PrimitiveDataID< DataType > dataID( primitiveDataHandlers_++ );
+
+    for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
+    {
+      it->second->addData( dataID, dataHandling );
+    }
+
+    return dataID;
+  }
 
 private:
 
-  std::map< PrimitiveID::IDType, ::hhg::Face* >   faces_;
-  std::map< PrimitiveID::IDType, ::hhg::Edge* >   edges_;
-  std::map< PrimitiveID::IDType, ::hhg::Vertex* > vertices_;
+  std::map< PrimitiveID::IDType, Primitive* > primitives_;
+  uint_t primitiveDataHandlers_;
 
 };
 
