@@ -185,7 +185,7 @@ public:
 private:
     int idx_;
     int counter_;
-    int v_perEdge_;
+    int num_perEdge_;
     int offset_;
     int offsetOffset_;
     int edge_orientation_;
@@ -200,43 +200,63 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
       offsetOffset_(0),
       edge_orientation_(edgeOrientation),
       edge_index_(edgeIndex),
-      v_perEdge_(0),
+      num_perEdge_(0),
       ended_(false)
 {
   WALBERLA_ASSERT(edge_orientation_ == -1 || edge_orientation_ == 1,"Invalid edge Orientation: " << edge_orientation_);
-  v_perEdge_ = hhg::levelinfo::num_microvertices_per_edge(level);
-  int v_perFace = walberla::uint_c(hhg::levelinfo::num_microvertices_per_face(level));
+
+  num_perEdge_ = walberla::int_c(hhg::levelinfo::num_microvertices_per_edge(level));
+  int maximum = walberla::int_c(hhg::levelinfo::num_microvertices_per_face(level)) - 1;
+  switch(type){
+    case CELL_GRAY:
+      num_perEdge_ -= 1;
+      idx_ = maximum + 1;
+      maximum =  num_perEdge_ * (num_perEdge_ + 1) / 2 - 1;
+      break;
+    case CELL_BLUE:
+      num_perEdge_ -= 1;
+      maximum += num_perEdge_ * (num_perEdge_ + 1) / 2;
+      idx_ = maximum + 1;
+      num_perEdge_ -= 1;
+      maximum = num_perEdge_ * (num_perEdge_ + 1) / 2 - 1;
+      break;
+    case VERTEX:
+      break;
+    default:
+      WALBERLA_LOG_WARNING("Wrong DofType: " << type);
+  }
+
   switch (edge_index_) {
     case 0:
       if (edge_orientation_ == 1) {
-        idx_ = 0;
+        idx_ += 0;
         offset_ = 1;
         offsetOffset_ = 0;
       } else {
-        idx_ = v_perEdge_ - 1;
+        idx_ += num_perEdge_ - 1;
         offset_ = -1;
         offsetOffset_ = 0;
       }
       break;
     case 1:
       if (edge_orientation_ == 1) {
-        idx_ = v_perEdge_ - 1;
-        offset_ = v_perEdge_ - 1;
+        idx_ += num_perEdge_ - 1;
+        offset_ = num_perEdge_ - 1;
         offsetOffset_ = -1;
       } else {
-        idx_ = v_perFace -1;
+        idx_ += maximum;
         offset_ = -1;
         offsetOffset_ = -1;
       }
       break;
     case 2:
       if (edge_orientation_ == 1) {
-        idx_ = v_perFace - 1;
+        idx_ += maximum;
         offset_ = -2;
         offsetOffset_ = -1;
       } else {
-        idx_ = 0;
-        offset_ = 9;
+        idx_ += 0;
+        offset_ = num_perEdge_;
         offsetOffset_ = -1;
       }
       break;
@@ -250,7 +270,7 @@ indexIterator &indexIterator::operator++()
   idx_ += offset_;
   offset_ += offsetOffset_;
   counter_++;
-  if(counter_ == v_perEdge_) ended_ = true;
+  if(counter_ == num_perEdge_) ended_ = true;
   return *this;
 }
 
@@ -262,7 +282,7 @@ indexIterator indexIterator::operator++(int)
 }
 
 walberla::uint_t indexIterator::operator*() const {
-  return idx_;
+  return walberla::uint_c(idx_);
 }
 
 bool indexIterator::operator==(const indexIterator &other) const {
