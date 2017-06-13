@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "core/logging/Logging.h"
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
@@ -23,26 +24,7 @@ public:
   bool primitiveExistsLocally( const PrimitiveID & id ) const;
 
   template< typename DataType >
-  PrimitiveDataID< DataType > addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier )
-  {
-    WALBERLA_LOG_PROGRESS( "Adding block data (\"" << identifier << "\")" );
-
-#ifndef NDEBUG
-    for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
-    {
-      WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfPrimitiveDataEntries() );
-    }
-#endif
-
-    PrimitiveDataID< DataType > dataID( primitiveDataHandlers_++ );
-
-    for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
-    {
-      it->second->addData( dataID, dataHandling );
-    }
-
-    return dataID;
-  }
+  inline PrimitiveDataID< DataType > addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier );
 
 private:
 
@@ -50,6 +32,29 @@ private:
   uint_t primitiveDataHandlers_;
 
 };
+
+template< typename DataType >
+PrimitiveDataID< DataType > PrimitiveStorage::addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier )
+{
+  WALBERLA_LOG_PROGRESS( "Adding block data (\"" << identifier << "\")" );
+
+#ifndef NDEBUG
+  for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
+  {
+    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfPrimitiveDataEntries() );
+  }
+#endif
+
+  PrimitiveDataID< DataType > dataID( primitiveDataHandlers_++ );
+
+  for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
+  {
+    it->second->addData( dataID, dataHandling );
+  }
+
+  return dataID;
+}
+
 
 } // namespace hhg
 
