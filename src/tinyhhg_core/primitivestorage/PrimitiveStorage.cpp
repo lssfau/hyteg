@@ -1,7 +1,7 @@
 
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
-#include "tinyhhg_core/primitiveforest/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
 #include <map>
