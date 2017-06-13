@@ -334,7 +334,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1BubbleEdge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+        P1BubbleEdge::apply(level, edge, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
     }
 

@@ -10,10 +10,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
 
-  hhg::Mesh mesh("../data/meshes/tri_1el.msh");
+  hhg::Mesh mesh("../data/meshes/tri_2el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 4;
+  size_t maxLevel = 3;
   size_t maxiter = 10000;
 
   hhg::P1BubbleFunction r("r", mesh, minLevel, maxLevel);
