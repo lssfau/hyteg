@@ -24,7 +24,7 @@ using walberla::uint_c;
  */
 template<size_t Level>
 inline void unpackEdgeData_tmpl(Face &face, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Edge &edge){
-  real_t* face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto& face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
   int edgeIndex = face.edge_index(edge);
   for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], VERTEX, Level); it != indexIterator(); ++it){
     recvBuffer >> face_data[*it];
