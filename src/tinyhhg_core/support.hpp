@@ -1,16 +1,12 @@
 #ifndef TINYHHG_SUPPORT_HPP
 #define TINYHHG_SUPPORT_HPP
 
-#if __cplusplus <= 199711L
-#error This library needs at least a C++11 compliant compiler
-#endif
-
 #include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <utility>
 
-#if __cplusplus <= 201103L
+#if __cplusplus != 201402L // C++14
 namespace std {
 template<class T> struct _Unique_if {
   typedef unique_ptr<T> _Single_object;
