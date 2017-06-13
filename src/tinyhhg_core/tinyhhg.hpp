@@ -1,6 +1,8 @@
 #ifndef TINYHHG_HPP
 #define TINYHHG_HPP
 
+#include "support.hpp"
+
 #include "mesh.hpp"
 #include "vtkwriter.hpp"
 

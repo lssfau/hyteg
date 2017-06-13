@@ -31,11 +31,7 @@ inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t m
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
-    size_t num_deps = vertex.edges.size();
-    size_t total_n_dofs = levelinfo::num_microvertices_per_vertex(level) + num_deps;
-    real_t* new_data = new real_t[total_n_dofs];
-    memset(new_data, 0, total_n_dofs * sizeof(real_t));
-    P1::getVertexFunctionMemory(vertex, memory_id)->data[level] = new_data;
+    P1::getVertexFunctionMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
   }
 }
 
@@ -82,9 +78,9 @@ inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
 
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
-  real_t* opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
-  real_t* src = P1::getVertexFunctionMemory(vertex, src_id)->data[level];
-  real_t* dst = P1::getVertexFunctionMemory(vertex, dst_id)->data[level];
+  auto& opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& src = P1::getVertexFunctionMemory(vertex, src_id)->data[level];
+  auto& dst = P1::getVertexFunctionMemory(vertex, dst_id)->data[level];
 
   if (update == Replace) {
     dst[0] = opr_data[0] * src[0];
@@ -102,9 +98,9 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)
 {
-  real_t* opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
-  real_t* dst = P1::getVertexFunctionMemory(vertex, f_id)->data[level];
-  real_t* rhs = P1::getVertexFunctionMemory(vertex, rhs_id)->data[level];
+  auto& opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& dst = P1::getVertexFunctionMemory(vertex, f_id)->data[level];
+  auto& rhs = P1::getVertexFunctionMemory(vertex, rhs_id)->data[level];
 
   dst[0] = rhs[0];
 
@@ -210,8 +206,8 @@ inline void prolongateQuadratic(Vertex& vertex, size_t memory_id, size_t level)
 
 inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
 {
-  real_t* vertex_data_f = P1::getVertexFunctionMemory(vertex, memory_id)->data[level];
-  real_t* vertex_data_c = P1::getVertexFunctionMemory(vertex, memory_id)->data[level-1];
+  auto& vertex_data_f = P1::getVertexFunctionMemory(vertex, memory_id)->data[level];
+  auto& vertex_data_c = P1::getVertexFunctionMemory(vertex, memory_id)->data[level-1];
 
   vertex_data_c[0] = vertex_data_f[0];
 
@@ -225,8 +221,8 @@ inline void restrict(Vertex& vertex, size_t memory_id, size_t level)
 
 inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id, size_t level)
 {
-  real_t* opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
-  real_t* src = P1::getVertexFunctionMemory(vertex, src_id)->data[level];
+  auto& opr_data = P1::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& src = P1::getVertexFunctionMemory(vertex, src_id)->data[level];
 
   fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
 
