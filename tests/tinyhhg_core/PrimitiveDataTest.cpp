@@ -6,7 +6,6 @@
 #include "core/mpi/RecvBuffer.h"
 
 
-namespace walberla {
 namespace hhg {
 
 class TestData
@@ -67,7 +66,6 @@ static void testPrimitiveData()
 }
 
 } // namespace hhg
-} // namespace walberla
 
 
 int main(int argc, char* argv[])
@@ -76,7 +74,7 @@ int main(int argc, char* argv[])
 
    walberla::Environment walberlaEnv(argc, argv);
    walberla::MPIManager::instance()->useWorldComm();
-   walberla::hhg::testPrimitiveData();
+   hhg::testPrimitiveData();
 
    return EXIT_SUCCESS;
 }

@@ -5,7 +5,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "tinyhhg_core/tinyhhg.hpp"
 
-namespace walberla {
 namespace hhg {
 
 static void testPrimitiveStorage()
@@ -16,14 +15,13 @@ static void testPrimitiveStorage()
 }
 
 } // namespace hhg
-} // namespace walberla
 
 
 int main()
 {
    walberla::debug::enterTestMode();
 
-   walberla::hhg::testPrimitiveStorage();
+   hhg::testPrimitiveStorage();
 
    return EXIT_SUCCESS;
 }

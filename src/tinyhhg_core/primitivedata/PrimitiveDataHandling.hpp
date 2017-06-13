@@ -7,8 +7,10 @@
 
 #include <memory>
 
-namespace walberla {
 namespace hhg {
+
+using walberla::mpi::SendBuffer;
+using walberla::mpi::RecvBuffer;
 
 class Primitive;
 
@@ -25,10 +27,10 @@ public:
   virtual DataType * initialize( Primitive * const primitive ) = 0;
 
   /// must be thread-safe !
-  virtual void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, mpi::SendBuffer & buffer ) = 0;
+  virtual void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) = 0;
 
   /// must be thread-safe !
-  virtual void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, mpi::RecvBuffer & buffer ) = 0;
+  virtual void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) = 0;
 };
 
 
@@ -39,8 +41,8 @@ public:
 
   ~NoSerializePrimitiveDataHandling() {}
 
-  void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, mpi::SendBuffer & buffer ) {};
-  void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, mpi::RecvBuffer & buffer ) {};
+  void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) {};
+  void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) {};
 
 };
 
@@ -48,4 +50,4 @@ public:
 
 
 } // namespace hhg
-} // namespace walberla
+

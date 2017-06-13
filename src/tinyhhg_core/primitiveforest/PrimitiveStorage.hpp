@@ -7,10 +7,9 @@
 #include <map>
 #include <vector>
 
-namespace walberla {
 namespace hhg {
 
-class PrimitiveStorage : private NonCopyable
+class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
@@ -53,5 +52,5 @@ private:
 };
 
 } // namespace hhg
-} // namespace walberla
+
 

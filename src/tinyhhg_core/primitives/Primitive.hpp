@@ -9,8 +9,10 @@
 #include <memory>
 #include <vector>
 
-namespace walberla {
 namespace hhg {
+
+// to removed when moving to walberla namespace
+using walberla::NonCopyable;
 
 namespace internal {
 
@@ -92,5 +94,5 @@ private:
 
 
 
-}
-}
+} // namespace hhg
+

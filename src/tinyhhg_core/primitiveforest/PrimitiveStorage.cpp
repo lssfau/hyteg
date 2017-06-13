@@ -7,7 +7,6 @@
 #include <map>
 #include <vector>
 
-namespace walberla {
 namespace hhg {
 
   PrimitiveID PrimitiveStorage::addPrimitive()
@@ -34,4 +33,4 @@ namespace hhg {
 
 
 } // namespace hhg
-} // namespace walberla
+

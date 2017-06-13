@@ -5,8 +5,11 @@
 #include "core/mpi/RecvBuffer.h"
 #include "tinyhhg_core/primitiveid.hpp"
 
-namespace walberla {
 namespace hhg {
+
+// to be removed when moving to walberla namespace
+using walberla::mpi::SendBuffer;
+using walberla::mpi::RecvBuffer;
 
 static void testPrimitiveID()
 {
@@ -19,13 +22,13 @@ static void testPrimitiveID()
   WALBERLA_CHECK_EQUAL( id1.getID(), uint_t(42) );
   WALBERLA_CHECK_EQUAL( id2.getID(), uint_t(42) );
 
-  mpi::SendBuffer sendBuffer;
+  SendBuffer sendBuffer;
 
   PrimitiveID id3, id4, id5;
 
   sendBuffer << id0 << id1 << id2;
 
-  mpi::RecvBuffer recvBuffer( sendBuffer );
+  RecvBuffer recvBuffer( sendBuffer );
 
   recvBuffer >> id3 >> id4 >> id5;
 
@@ -45,14 +48,13 @@ static void testPrimitiveID()
 }
 
 } // namespace hhg
-} // namespace walberla
 
 
 int main()
 {
    walberla::debug::enterTestMode();
 
-   walberla::hhg::testPrimitiveID();
+   hhg::testPrimitiveID();
 
    return EXIT_SUCCESS;
 }
