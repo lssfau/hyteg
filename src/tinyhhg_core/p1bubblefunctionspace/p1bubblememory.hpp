@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
@@ -21,26 +22,17 @@ class VertexP1BubbleStencilMemory
 public:
   VertexP1BubbleStencilMemory() : VertexMemory(MemoryType::P1BubbleFunction) { ; }
 
-  std::map<size_t, real_t*> data;
+  std::map<size_t, std::unique_ptr<real_t[]>> data;
   size_t num_deps;
 
-  inline virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second;
-    }
-    data.clear();
-  }
-
-  inline real_t* addlevel(size_t level, size_t num_deps)
+  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
       this->num_deps = num_deps;
-      data[level] = new real_t[getSize(level)]();
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -49,9 +41,6 @@ public:
   {
     return levelinfo::num_microvertices_per_vertex(level) + num_deps;
   }
-
-  ~VertexP1BubbleStencilMemory() { free(); }
-
 };
 
 
@@ -61,26 +50,17 @@ class VertexP1BubbleFunctionMemory
 public:
   VertexP1BubbleFunctionMemory() : VertexMemory(MemoryType::P1BubbleStencil) { ; }
 
-  std::map<size_t, real_t*> data;
+  std::map<size_t, std::unique_ptr<real_t[]>> data;
   size_t num_deps;
 
-  inline virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second;
-    }
-    data.clear();
-  }
-
-  inline real_t* addlevel(size_t level, size_t num_deps)
+  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
       this->num_deps = num_deps;
-      data[level] = new real_t[getSize(level)]();
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -89,8 +69,6 @@ public:
   {
     return levelinfo::num_microvertices_per_vertex(level) + num_deps;
   }
-
-  ~VertexP1BubbleFunctionMemory() { free(); }
 };
 
 
@@ -100,36 +78,24 @@ class EdgeP1BubbleStencilMemory
 public:
   EdgeP1BubbleStencilMemory() : EdgeMemory(MemoryType::P1BubbleStencil) { ; }
 
-  std::map<size_t, real_t*> data;
+  std::map<size_t, std::unique_ptr<real_t[]>> data;
 
-  virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second;
-    }
-    data.clear();
-  }
-
-  inline real_t* addlevel(size_t level)
+  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
   {
     //WALBERLA_LOG_DEVEL("EdgeStencilMemory, kind = " + std::to_string(this->type));
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = new real_t[getSize(level)]();
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
 
   inline size_t getSize(size_t level)
   {
-    return 7;
+    return 13;
   }
-
-  ~EdgeP1BubbleStencilMemory() { free(); }
-
 };
 
 
@@ -139,34 +105,30 @@ class EdgeP1BubbleFunctionMemory
 public:
   EdgeP1BubbleFunctionMemory() : EdgeMemory(MemoryType::P1BubbleFunction) { ; }
 
-  std::map<size_t, real_t*> data;
+  std::map<size_t, std::unique_ptr<real_t[]>> data;
+  size_t num_deps;
 
-  virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second;
-    }
-    data.clear();
-  }
-
-  inline real_t* addlevel(size_t level, size_t num_deps)
+  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
     if (data.count(level)>0)
     WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = new real_t[getSize(level)]();
+      this->num_deps = num_deps;
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
 
   inline size_t getSize(size_t level)
   {
-    return levelinfo::num_microvertices_per_face(level) + levelinfo::num_microfaces_per_face(level);
-  }
+    size_t num_vertex_dofs = levelinfo::num_microvertices_per_edge(level);
+    num_vertex_dofs = num_vertex_dofs + num_deps*(num_vertex_dofs-1);
 
-  ~EdgeP1BubbleFunctionMemory() { free(); }
+    size_t num_cell_dofs = num_deps * (2 * levelinfo::num_microedges_per_edge(level) - 1);
+
+    return num_vertex_dofs + num_cell_dofs;
+  }
 };
 
 
@@ -176,30 +138,19 @@ class FaceP1BubbleStencilMemory
 public:
   FaceP1BubbleStencilMemory() : FaceMemory(MemoryType::P1BubbleStencil) { ; }
 
-  typedef std::array<real_t*, 3> StencilStack;
+  typedef std::array<std::unique_ptr<real_t[]>, 3> StencilStack;
 
   std::map<size_t, StencilStack> data;
 
-  virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second[0];
-      delete[] el.second[1];
-      delete[] el.second[2];
-    }
-    data.clear();
-  }
-
-  inline StencilStack addlevel(size_t level)
+  inline StencilStack& addlevel(size_t level)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = StencilStack{new real_t[getVertexStencilSize(level)](),
-                                  new real_t[getGrayStencilSize(level)](),
-                                  new real_t[getBlueStencilSize(level)]()};
+      data[level] = StencilStack{hhg::make_unique<real_t[]>(getVertexStencilSize(level)),
+                                 hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
+                                 hhg::make_unique<real_t[]>(getBlueStencilSize(level))};
     }
     return data[level];
   }
@@ -218,8 +169,6 @@ public:
   {
     return 4;
   }
-
-  ~FaceP1BubbleStencilMemory() { free(); }
 };
 
 
@@ -229,24 +178,15 @@ class FaceP1BubbleFunctionMemory
 public:
   FaceP1BubbleFunctionMemory() : FaceMemory(MemoryType::P1BubbleFunction) { ; }
 
-  std::map<size_t, real_t*> data;
+  std::map<size_t, std::unique_ptr<real_t[]>> data;
 
-  virtual void free()
-  {
-    for (auto el : data)
-    {
-      delete[] el.second;
-    }
-    data.clear();
-  }
-
-  inline real_t* addlevel(size_t level)
+  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = new real_t[getSize(level)]();
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -255,9 +195,6 @@ public:
   {
     return levelinfo::num_microvertices_per_face(level) + levelinfo::num_microfaces_per_face(level);
   }
-
-
-  ~FaceP1BubbleFunctionMemory() { free(); }
 };
 
 namespace P1Bubble {

@@ -78,7 +78,7 @@ class VertexMemory
 {
 public:
   const MemoryType type;
-  virtual void free() = 0;
+  virtual ~VertexMemory() { }
 
 protected:
   VertexMemory(MemoryType t) : type(t) { ; }

@@ -134,7 +134,7 @@ public:
           face.memory.push_back(new FaceP1StencilMemory());
         }
 
-        real_t* face_stencil = P1::getFaceStencilMemory(face, memory_id)->addlevel(level);
+        auto& face_stencil = P1::getFaceStencilMemory(face, memory_id)->addlevel(level);
 
         real_t local_stiffness_up[3][3];
         real_t local_stiffness_down[3][3];
@@ -172,7 +172,7 @@ public:
         }
         //WALBERLA_LOG_DEVEL("Edge.memory.size() = " + std::to_string(edge.memory.size()));
 
-        real_t* edge_stencil = P1::getEdgeStencilMemory(edge, memory_id)->addlevel(level);
+        auto& edge_stencil = P1::getEdgeStencilMemory(edge, memory_id)->addlevel(level);
 
         real_t local_stiffness_up[3][3];
         real_t local_stiffness_down[3][3];
@@ -227,7 +227,7 @@ public:
           vertex.memory.push_back(new VertexP1StencilMemory());
         }
 
-        real_t* vertex_stencil = P1::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
+        auto& vertex_stencil = P1::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
 
         // iterate over adjacent faces
         for (Face* face : vertex.faces)

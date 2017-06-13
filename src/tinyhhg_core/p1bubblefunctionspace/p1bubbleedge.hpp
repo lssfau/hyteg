@@ -23,7 +23,7 @@ enum DirVertex {
   CELL_GRAY_SE = 7,
   CELL_GRAY_NW = 8,
   CELL_GRAY_NE = 9,
-  CELL_BLUE_SW = 10,
+  CELL_GRAY_SW = 10,
   CELL_BLUE_SE = 11,
   CELL_BLUE_NW = 12
 };
@@ -32,11 +32,11 @@ const DirVertex neighbors_with_center[13] =
     {VERTEX_C,
      VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
 const DirVertex neighbors[12] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
 
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
@@ -74,7 +74,7 @@ inline size_t index(size_t pos, DirVertex dir) {
       return startFaceS + (vertexOnEdge -1) + pos * 2;
     case CELL_BLUE_NW:
       return startFaceN + (vertexOnEdge -1) + pos * 2 - 1;
-    case CELL_BLUE_SW:
+    case CELL_GRAY_SW:
       return startFaceS + (vertexOnEdge -1) + (pos -1) * 2;
   }
   return std::numeric_limits<size_t>::max();
@@ -201,9 +201,9 @@ inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
-  real_t* opr_data = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[level];
-  real_t* src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[level];
-  real_t* dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level];
+  auto& opr_data = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[level];
+  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[level];
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level];
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
@@ -252,7 +252,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   size_t offset = rowsize;
   int rk = walberla::mpi::MPIManager::instance()->rank();
 
-  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, real_t* face_data)
+  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, std::unique_ptr<real_t[]>& face_data)
   {
     if (&edge == face->edges[0])
     {
@@ -319,11 +319,11 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
   {
     if (edge.rank == rk)
     {
-      real_t* edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
+      auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
 
       if (face->rank == rk)
       {
-        real_t* face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
+        auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
         pull(edge, &edge_data[offset], face, face_data);
         offset += rowsize_halo;
       }
@@ -335,7 +335,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     else if (face->rank == rk)
     {
-      real_t* face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
+      auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
       real_t* tmp = new real_t[rowsize_halo];
       pull(edge, tmp, face, face_data);
       MPI_Send(tmp, rowsize_halo, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);

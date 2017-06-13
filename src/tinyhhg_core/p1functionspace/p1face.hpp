@@ -121,7 +121,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_0 = P1::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level];
+      edge_data_0 = P1::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level].get();
     }
     else
     {
@@ -138,7 +138,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_1 = P1::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level];
+      edge_data_1 = P1::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level].get();
     }
     else
     {
@@ -155,7 +155,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   {
     if (face.rank == rk)
     {
-      edge_data_2 = P1::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level];
+      edge_data_2 = P1::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level].get();
     }
     else
     {
@@ -170,7 +170,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
   if (face.rank == rk)
   {
-    real_t* face_data = P1::getFaceFunctionMemory(face, memory_id)->data[level];
+    auto& face_data = P1::getFaceFunctionMemory(face, memory_id)->data[level];
 
     if (face.edges[0]->rank != rk)
     {
@@ -344,9 +344,9 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
-  real_t* src = P1::getFaceFunctionMemory(face, src_id)->data[Level];
-  real_t* dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
+  auto& opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
+  auto& src = P1::getFaceFunctionMemory(face, src_id)->data[Level];
+  auto& dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
 
   real_t tmp;
 
@@ -379,9 +379,9 @@ inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
-  real_t* dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
-  real_t* rhs = P1::getFaceFunctionMemory(face, rhs_id)->data[Level];
+  auto& opr_data = P1::getFaceStencilMemory(face, opr_id)->data[Level];
+  auto& dst = P1::getFaceFunctionMemory(face, dst_id)->data[Level];
+  auto& rhs = P1::getFaceFunctionMemory(face, rhs_id)->data[Level];
 
   real_t tmp;
 
@@ -410,8 +410,8 @@ inline void prolongate_tmpl(Face& face, size_t memory_id)
   size_t N_c = levelinfo::num_microvertices_per_edge(Level);
   size_t N_c_i = N_c;
 
-  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
-  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto& v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
+  auto& v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
 
   size_t j;
 
@@ -440,8 +440,8 @@ inline void prolongateQuadratic_tmpl(Face& face, size_t memory_id)
 {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level);
   size_t N_c_i = N_c;
-  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
-  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto& v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level+1];
+  auto& v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
 
   size_t i, j;
   real_t linearx, lineary, linearxy, offx, offy, offxy;
@@ -532,8 +532,8 @@ inline void restrict_tmpl(Face& face, size_t memory_id)
   size_t N_c = levelinfo::num_microvertices_per_edge(Level-1);
   size_t N_c_i = N_c;
 
-  real_t* v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
-  real_t* v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level-1];
+  auto& v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto& v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level-1];
 
   real_t tmp;
 
@@ -575,8 +575,8 @@ inline void printmatrix(Face& face, size_t opr_id, size_t src_id, size_t level)
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
 
-  real_t* opr_data = P1::getFaceStencilMemory(face, opr_id)->data[level];
-  real_t* src = P1::getFaceFunctionMemory(face, src_id)->data[level];
+  auto& opr_data = P1::getFaceStencilMemory(face, opr_id)->data[level];
+  auto& src = P1::getFaceFunctionMemory(face, src_id)->data[level];
   size_t br = 1;
   size_t mr = 1 + rowsize ;
   size_t tr = mr + (rowsize - 1);
