@@ -30,7 +30,7 @@ public:
     else
     {
       this->num_deps = num_deps;
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -59,7 +59,7 @@ public:
     else
     {
       this->num_deps = num_deps;
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -87,7 +87,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -116,7 +116,7 @@ public:
     else
     {
       this->num_deps = num_deps;
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -143,7 +143,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
@@ -170,7 +170,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = std::make_unique<real_t[]>(getSize(level));
+      data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
   }
