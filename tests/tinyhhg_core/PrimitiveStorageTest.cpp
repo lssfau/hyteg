@@ -10,7 +10,7 @@ namespace hhg {
 static void testPrimitiveStorage()
 {
 
-  PrimitiveStorage storage;
+  PrimitiveStorage storage("");
 
 }
 

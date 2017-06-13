@@ -5,7 +5,6 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 
-
 namespace hhg {
 
 class TestData
@@ -28,7 +27,7 @@ class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData >
 {
 public:
 
-  TestData * initialize( Primitive * const block )
+  TestData * initialize( Primitive * const block ) const
   {
     TestData * testData = new TestData();
     testData->i = 7777;
@@ -41,7 +40,7 @@ static void testPrimitiveData()
 {
 
 
-  PrimitiveStorage storage;
+  PrimitiveStorage storage("");
 
   PrimitiveID primitiveID = storage.addPrimitive();
   Primitive *primitive = storage.getPrimitive( primitiveID );

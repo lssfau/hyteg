@@ -14,7 +14,9 @@ class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
-  PrimitiveStorage() : primitiveDataHandlers_( uint_c( 0 ) ) {}
+  PrimitiveStorage( const std::string & meshFile ) :
+    meshFile_( meshFile ), primitiveDataHandlers_( uint_c( 0 ) )
+  {}
 
         PrimitiveID addPrimitive();
 
@@ -24,9 +26,14 @@ public:
   bool primitiveExistsLocally( const PrimitiveID & id ) const;
 
   template< typename DataType >
-  inline PrimitiveDataID< DataType > addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier );
+  inline PrimitiveDataID< DataType > addPrimitiveData( const PrimitiveDataHandling< DataType > & dataHandling,
+						       const std::string & identifier );
 
 private:
+
+  PrimitiveStorage();
+
+  const std::string meshFile_;
 
   std::map< PrimitiveID::IDType, Primitive* > primitives_;
   uint_t primitiveDataHandlers_;
@@ -34,7 +41,8 @@ private:
 };
 
 template< typename DataType >
-PrimitiveDataID< DataType > PrimitiveStorage::addPrimitiveData( PrimitiveDataHandling< DataType > & dataHandling, const std::string & identifier )
+PrimitiveDataID< DataType > PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType > & dataHandling,
+								const std::string & identifier )
 {
   WALBERLA_LOG_PROGRESS( "Adding block data (\"" << identifier << "\")" );
 

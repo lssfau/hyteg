@@ -38,6 +38,28 @@ private:
 
 };
 
+class ConstPrimitiveData : private NonCopyable
+{
+public:
+
+  template< typename DataType >
+  ConstPrimitiveData( const DataType* ptr ) : ptr_( ptr )
+  {
+    WALBERLA_ASSERT_NOT_NULLPTR( ptr );
+  }
+
+  template< typename DataType >
+  const DataType* get()
+  {
+    return static_cast< const DataType* >( ptr_ );
+  }
+
+private:
+
+  const void *ptr_;
+
+};
+
 }
 
 class PrimitiveID;
@@ -49,6 +71,7 @@ public:
   friend class PrimitiveStorage;
 
   typedef internal::PrimitiveData PrimitiveData;
+  typedef internal::ConstPrimitiveData ConstPrimitiveData;
 
   template< typename DataType >
   DataType* getData( const PrimitiveDataID< DataType > & index )
@@ -72,25 +95,29 @@ private:
   /// Must stay private in order to guarantee that data is only added through the governing structure.
   /// This ensures valid DataIDs.
   template< typename DataType >
-  void addData( const PrimitiveDataID< DataType > & index,
-		      PrimitiveDataHandling< DataType > & dataHandling )
-  {
-    if( data_.size() <= index )
-    {
-      data_.resize( index + 1, std::pair< PrimitiveData*, PrimitiveData* >( NULL, NULL ) );
-    }
-
-    data_[index].first = new PrimitiveData( dataHandling.initialize( NULL ) );
-    data_[index].second = new PrimitiveData( &dataHandling );
-  }
+  inline void addData( const PrimitiveDataID< DataType > & index,
+                       const PrimitiveDataHandling< DataType > & dataHandling );
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
   /// This way it is possible to loop over the data to for example serialize all registered data.
-  std::vector< std::pair< PrimitiveData*, PrimitiveData* > > data_;
+  std::vector< std::pair< PrimitiveData*, ConstPrimitiveData* > > data_;
 
   PrimitiveID primitiveID_;
 
 };
+
+template< typename DataType >
+void Primitive::addData( const PrimitiveDataID< DataType > & index,
+		         const PrimitiveDataHandling< DataType > & dataHandling )
+{
+ if( data_.size() <= index )
+ {
+   data_.resize( index + 1, std::pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
+ }
+
+ data_[index].first = new PrimitiveData( dataHandling.initialize( NULL ) );
+ data_[index].second = new ConstPrimitiveData( &dataHandling );
+}
 
 
 

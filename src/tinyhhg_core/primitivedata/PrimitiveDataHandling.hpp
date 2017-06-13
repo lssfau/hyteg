@@ -24,13 +24,13 @@ public:
   virtual ~PrimitiveDataHandling() {}
 
   /// must be thread-safe !
-  virtual DataType * initialize( Primitive * const primitive ) = 0;
+  virtual DataType * initialize( Primitive * const primitive ) const = 0;
 
   /// must be thread-safe !
-  virtual void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) = 0;
+  virtual void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) const = 0;
 
   /// must be thread-safe !
-  virtual void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) = 0;
+  virtual void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) const = 0;
 };
 
 
@@ -41,8 +41,8 @@ public:
 
   ~NoSerializePrimitiveDataHandling() {}
 
-  void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) {};
-  void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) {};
+  void serialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) const {};
+  void deserialize( Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) const {};
 
 };
 
