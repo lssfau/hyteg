@@ -20,12 +20,12 @@ enum DirVertex {
   VERTEX_E  = 4,
   VERTEX_NW = 5,
   VERTEX_N  = 6,
-  CELL_GRAY_SE = 7,
-  CELL_GRAY_NW = 8,
-  CELL_GRAY_NE = 9,
-  CELL_GRAY_SW = 10,
-  CELL_BLUE_SE = 11,
-  CELL_BLUE_NW = 12
+  CELL_GRAY_SW = 7,
+  CELL_BLUE_SE = 8,
+  CELL_GRAY_SE = 9,
+  CELL_GRAY_NW = 10,
+  CELL_BLUE_NW = 11,
+  CELL_GRAY_NE = 12
 };
 
 const DirVertex neighbors_with_center[13] =
@@ -37,6 +37,15 @@ const DirVertex neighbors[12] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
      CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
+
+const DirVertex neighbors_edge[] =
+    {VERTEX_E, VERTEX_W};
+
+const DirVertex neighbors_south[] =
+    {VERTEX_S, VERTEX_SE, CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE};
+
+const DirVertex neighbors_north[] =
+    {VERTEX_NW, VERTEX_N, CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE};
 
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
@@ -64,13 +73,13 @@ inline size_t index(size_t pos, DirVertex dir) {
       return startFaceN + pos - 1;
     case VERTEX_W:
       return center - 1;
-    case CELL_GRAY_SE:
+    case CELL_BLUE_SE:
       return startFaceS + (vertexOnEdge -1) + pos * 2 -1;
     case CELL_GRAY_NE:
       return startFaceN + (vertexOnEdge -1) + pos * 2;
     case CELL_GRAY_NW:
       return startFaceN + (vertexOnEdge -1) + pos * 2 - 2;
-    case CELL_BLUE_SE:
+    case CELL_GRAY_SE:
       return startFaceS + (vertexOnEdge -1) + pos * 2;
     case CELL_BLUE_NW:
       return startFaceN + (vertexOnEdge -1) + pos * 2 - 1;
@@ -197,30 +206,48 @@ inline real_t dot(Edge& edge, size_t lhs_id, size_t rhs_id, size_t level)
   return sp;
 }
 
-inline void apply(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
+template<size_t Level>
+inline void apply_tmpl(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto& opr_data = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[level];
-  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[level];
-  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[level];
+  auto& edge_vertex_stencil = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[Level];
+  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[Level];
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[Level];
+
+  real_t tmp;
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    if (update == Replace) {
-      dst[i] = opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+    tmp = edge_vertex_stencil[EdgeCoordsVertex::VERTEX_C] * src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)];
+
+    for (auto neighbor : EdgeCoordsVertex::neighbors_edge)
+    {
+      tmp += edge_vertex_stencil[neighbor] * src[EdgeCoordsVertex::index<Level>(i, neighbor)];
     }
-    else if (update == Add) {
-      dst[i] += opr_data[2] * src[i - 1] + opr_data[3] * src[i] + opr_data[4] * src[i + 1];
+
+    for (auto neighbor : EdgeCoordsVertex::neighbors_south)
+    {
+      tmp += edge_vertex_stencil[neighbor] * src[EdgeCoordsVertex::index<Level>(i, neighbor)];
     }
-    dst[i] += opr_data[0] * src[rowsize + i - 1] + opr_data[1] * src[rowsize + i];
 
     if (edge.faces.size() == 2)
     {
-      dst[i] += opr_data[5] * src[rowsize + rowsize - 1 + i - 1] + opr_data[6] * src[rowsize + rowsize - 1 + i];
+      for (auto neighbor : EdgeCoordsVertex::neighbors_north)
+      {
+        tmp += edge_vertex_stencil[neighbor] * src[EdgeCoordsVertex::index<Level>(i, neighbor)];
+      }
+    }
+
+    if (update == Replace) {
+      dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)] = tmp;
+    } else if (update == Add) {
+      dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)] += tmp;
     }
   }
 }
+
+SPECIALIZE(void, apply_tmpl, apply)
 
 //inline void smooth_gs(Edge& edge, size_t opr_id, size_t dst_id, size_t rhs_id, size_t level)
 //{
