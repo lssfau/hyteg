@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
-#include "p1bubbleedge.hpp"
+#include "p1bubbleedgeindex.hpp"
 
 namespace hhg {
 namespace P1BubbleEdge {
@@ -26,5 +26,28 @@ inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &se
   }
 }
 
-}// namespace P1BubbleEdge
+template<size_t Level>
+inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Face &face)
+{
+  auto &edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[Level];
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t pos = edge.face_index(face);
+  EdgeCoordsVertex::DirVertex dir;
+  //the first edge is the south edge and the second the north edge
+  if(pos == 0)
+  {
+    dir = EdgeCoordsVertex::VERTEX_SE;
+  }
+  else if(pos == 1)
+  {
+    dir = EdgeCoordsVertex::VERTEX_N;
+  }
+  for (uint_t i = 0; i < rowsize -1; ++i)
+  {
+    recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dir)];
+  }
+}
+SPECIALIZE(void, unpackFaceData_tmpl, unpackFaceData)
+
+}// namespace P1BubbleEdg8e
 }// namespace hhg

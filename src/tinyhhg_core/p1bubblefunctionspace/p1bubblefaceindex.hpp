@@ -232,6 +232,7 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
         idx_ += 0;
         offset_ = 1;
         offsetOffset_ = 0;
+
       } else {
         idx_ += num_perEdge_ - 1;
         offset_ = -1;
@@ -288,14 +289,7 @@ walberla::uint_t indexIterator::operator*() const {
 bool indexIterator::operator==(const indexIterator &other) const {
   if (ended_ || other.ended_)
   {
-    if (ended_ == other.ended_)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return (ended_ == other.ended_);
   }
   return (idx_ == other.idx_);
 }
