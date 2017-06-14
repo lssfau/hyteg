@@ -113,9 +113,11 @@ private:
 
 };
 
+
 template< typename DataType >
 DataType* Primitive::getData( const PrimitiveDataID< DataType > & index ) const
 {
+  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data available for the specified index" );
   return data_[ index ].first->template get< DataType >();
 }
 
@@ -123,6 +125,7 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType > & index ) const
 template< typename DataType >
 PrimitiveDataHandling< DataType >* Primitive::getDataHandling( const PrimitiveDataID< DataType > & index ) const
 {
+  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data handling available for the specified index" );
   return data_[ index ].second->template get< PrimitiveDataHandling< DataType > >();
 }
 
@@ -133,13 +136,12 @@ void Primitive::addData( const PrimitiveDataID< DataType > & index,
 {
  if( data_.size() <= index )
  {
-   data_.resize( index + 1, std::pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
+   data_.resize( index + 1, std::make_pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
  }
 
  data_[index].first = new PrimitiveData( dataHandling.initialize( NULL ) );
  data_[index].second = new ConstPrimitiveData( &dataHandling );
 }
-
 
 
 } // namespace hhg

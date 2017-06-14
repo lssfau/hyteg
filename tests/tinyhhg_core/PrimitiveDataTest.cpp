@@ -23,6 +23,14 @@ public:
   std::vector<bool> aa;
 };
 
+class EdgeTestData
+{
+public:
+  bool a = false;
+  int i = 300;
+  std::vector<bool> aa;
+};
+
 class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData >
 {
 public:
@@ -49,6 +57,19 @@ public:
 
 };
 
+class EdgeTestDataHandling : public NoSerializePrimitiveDataHandling< EdgeTestData >
+{
+public:
+
+  EdgeTestData * initialize( const Primitive * const block ) const
+  {
+    EdgeTestData * testData = new EdgeTestData();
+    testData->i = 9999;
+    return testData;
+  }
+
+};
+
 static void testPrimitiveData()
 {
 
@@ -56,11 +77,12 @@ static void testPrimitiveData()
   PrimitiveStorage storage("");
 
   PrimitiveID primitiveID = storage.addVertex();
-  Primitive *primitive = storage.getVertex( primitiveID );
+  Vertex *primitive = storage.getVertex( primitiveID );
 
 
   TestDataHandling testDataHandling;
   VertexTestDataHandling vertexTestDataHandling;
+  EdgeTestDataHandling edgeTestDataHandling;
 
   PrimitiveDataID< TestData > testDataID = storage.addPrimitiveData( testDataHandling, "primitive data" );
   TestData * testData = primitive->getData( testDataID );
@@ -88,7 +110,7 @@ int main(int argc, char* argv[])
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv(argc, argv);
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::TRACING );
    walberla::MPIManager::instance()->useWorldComm();
    hhg::testPrimitiveData();
 
