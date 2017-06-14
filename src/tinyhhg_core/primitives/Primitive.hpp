@@ -67,11 +67,11 @@ class PrimitiveID;
 /// \brief Base class for primitive geometries
 /// \author Nils Kohl (nils.kohl@fau.de)
 ///
-/// The Primitive class is intended to be used as a base class for primitives like vertices or edges.
+/// The \ref Primitive class is intended to be used as a base class for primitives like vertices or edges.
 ///
 /// It is able to store arbitrary data structures (e.g. from the standard library or custom classes)
 /// that can, however only be added through a governing structure, for example the \ref PrimitiveStorage class.
-/// Using the respective \ref PrimitiveDataID a pointer to the data can be obtained.
+/// Using the respective \ref PrimitiveDataID a pointer to the data or the associated \ref PrimitiveDataHandling can be obtained.
 ///
 /// For more details on the data handling refer to \ref PrimitiveDataHandling.
 ///
@@ -87,7 +87,7 @@ public:
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
-  DataType* getData( const PrimitiveDataID< DataType > & index )
+  DataType* getData( const PrimitiveDataID< DataType > & index ) const
   {
     return data_[ index ].first->template get< DataType >();
   }
@@ -95,7 +95,7 @@ public:
   /// Returns a pointer to the \ref PrimitiveDataHandling that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data handling that should be returned
   template< typename DataType >
-  PrimitiveDataHandling< DataType >* getDataHandling( const PrimitiveDataID< DataType > & index )
+  PrimitiveDataHandling< DataType >* getDataHandling( const PrimitiveDataID< DataType > & index ) const
   {
     return data_[ index ].second->template get< PrimitiveDataHandling< DataType > >();
   }

@@ -27,7 +27,7 @@ class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData >
 {
 public:
 
-  TestData * initialize( Primitive * const block ) const
+  TestData * initialize( const Primitive * const block ) const
   {
     TestData * testData = new TestData();
     testData->i = 7777;
