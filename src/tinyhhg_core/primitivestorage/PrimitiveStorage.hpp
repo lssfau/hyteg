@@ -7,6 +7,7 @@
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include <map>
 #include <vector>
@@ -17,7 +18,9 @@ class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
-  PrimitiveStorage( const std::string & meshFile );
+        PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
+          primitiveDataHandlers_( 0 )
+        {}
 
         PrimitiveID addVertex();
 
@@ -43,8 +46,6 @@ public:
   						  const std::string & identifier );
 
 private:
-
-  void readMeshFile( const std::string & meshFile );
 
   template< typename DataType >
   inline PrimitiveDataID< DataType > generateDataID();

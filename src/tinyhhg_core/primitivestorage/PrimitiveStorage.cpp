@@ -14,12 +14,6 @@ namespace hhg {
 
 using walberla::uint_t;
 
-PrimitiveStorage::PrimitiveStorage( const std::string & meshFile ) :
-    primitiveDataHandlers_( uint_c( 0 ) )
-{
-  readMeshFile( meshFile );
-}
-
 
 PrimitiveID PrimitiveStorage::addVertex()
 {
@@ -46,11 +40,6 @@ bool PrimitiveStorage::primitiveExistsLocally( const PrimitiveID & id ) const
   return false;
 }
 
-
-void PrimitiveStorage::readMeshFile( const std::string & meshFileName )
-{
-
-}
 
 } // namespace hhg
 
