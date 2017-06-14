@@ -87,23 +87,15 @@ public:
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
-  DataType* getData( const PrimitiveDataID< DataType > & index ) const
-  {
-    return data_[ index ].first->template get< DataType >();
-  }
+  inline DataType* getData( const PrimitiveDataID< DataType > & index ) const;
 
   /// Returns a pointer to the \ref PrimitiveDataHandling that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data handling that should be returned
   template< typename DataType >
-  PrimitiveDataHandling< DataType >* getDataHandling( const PrimitiveDataID< DataType > & index ) const
-  {
-    return data_[ index ].second->template get< PrimitiveDataHandling< DataType > >();
-  }
+  inline PrimitiveDataHandling< DataType >* getDataHandling( const PrimitiveDataID< DataType > & index ) const;
 
-  uint_t getNumberOfDataEntries() const
-  {
-    return data_.size();
-  }
+  /// Returns the number of registered data / data handling pairs.
+  uint_t getNumberOfDataEntries() const { return data_.size(); }
 
 private:
 
@@ -120,6 +112,20 @@ private:
   PrimitiveID primitiveID_;
 
 };
+
+template< typename DataType >
+DataType* Primitive::getData( const PrimitiveDataID< DataType > & index ) const
+{
+  return data_[ index ].first->template get< DataType >();
+}
+
+
+template< typename DataType >
+PrimitiveDataHandling< DataType >* Primitive::getDataHandling( const PrimitiveDataID< DataType > & index ) const
+{
+  return data_[ index ].second->template get< PrimitiveDataHandling< DataType > >();
+}
+
 
 template< typename DataType >
 void Primitive::addData( const PrimitiveDataID< DataType > & index,
