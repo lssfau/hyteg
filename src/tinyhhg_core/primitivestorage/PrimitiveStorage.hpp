@@ -49,7 +49,7 @@ PrimitiveDataID< DataType > PrimitiveStorage::addPrimitiveData( const PrimitiveD
 #ifndef NDEBUG
   for ( auto it = primitives_.begin(); it != primitives_.end(); it++ )
   {
-    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfPrimitiveDataEntries() );
+    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
   }
 #endif
 
