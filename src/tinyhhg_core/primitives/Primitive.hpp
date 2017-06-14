@@ -97,6 +97,11 @@ public:
   /// Returns the number of registered data / data handling pairs.
   uint_t getNumberOfDataEntries() const { return data_.size(); }
 
+protected:
+
+  /// Only subclasses shall be constructable
+  Primitive() {};
+
 private:
 
   /// Must stay private in order to guarantee that data is only added through the governing structure.
