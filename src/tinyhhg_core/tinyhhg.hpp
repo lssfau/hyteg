@@ -24,5 +24,6 @@
 #include "composites/p1stokesoperator.hpp"
 
 #include "primitivestorage/PrimitiveStorage.hpp"
+#include "primitivestorage/SetupPrimitiveStorage.hpp"
 
 #endif /* TINYHHG_HPP */
