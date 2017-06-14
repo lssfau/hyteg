@@ -75,7 +75,7 @@ class PrimitiveID;
 ///
 /// For more details on the data handling refer to \ref PrimitiveDataHandling.
 ///
-class Primitive : private NonCopyable
+class Primitive
 {
 public:
 

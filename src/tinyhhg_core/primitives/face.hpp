@@ -3,6 +3,7 @@
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
 #include <core/DataTypes.h>
 
 #include <array>
@@ -14,7 +15,7 @@ namespace hhg
 class Edge;
 class FaceMemory;
 
-class Face
+class Face : public Primitive
 {
 public:
   Face(size_t id, Edge* edges[3]);

@@ -5,6 +5,7 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
 
 #include <vector>
 
@@ -23,7 +24,7 @@ class VertexMemory;
 ///
 /// The Vertex class represents a Macro-Vertex primitve. It saves geometrical and topological information
 /// as well as pointers to memory reserved for \ref Function and \ref Operator.
-class Vertex
+class Vertex : public Primitive
 {
 public:
   /// Constructs a vertex with given id and coordinates

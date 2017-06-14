@@ -7,6 +7,7 @@
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
 
 #include <core/DataTypes.h>
 
@@ -18,7 +19,7 @@ class Face;
 
 class EdgeMemory;
 
-class Edge
+class Edge : public Primitive
 {
 public:
 
