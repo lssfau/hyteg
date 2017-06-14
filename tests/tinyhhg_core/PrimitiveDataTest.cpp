@@ -7,6 +7,35 @@
 
 namespace hhg {
 
+std::string getExampleMeshFileContent()
+{
+  std::string content =
+  "$MeshFormat\n"
+  "2.2 0 8\n"
+  "$EndMeshFormat\n"
+  "$Nodes\n"
+  "4\n"
+  "1 0 0 0\n"
+  "2 1 0 0\n"
+  "3 0 1 0\n"
+  "4 1 1 0\n"
+  "$EndNodes\n"
+  "$Elements\n"
+  "9\n"
+  "1 15 2 1 1 1\n"
+  "2 15 2 1 2 2\n"
+  "3 15 2 1 3 3\n"
+  "4 1 2 1 1 1 2\n"
+  "5 1 2 1 2 2 4\n"
+  "6 1 2 1 2 4 3\n"
+  "7 1 2 1 3 3 1\n"
+  "8 2 2 0 5 2 4 1\n"
+  "9 2 2 0 5 1 4 3\n"
+  "$EndElements\n";
+
+  return content;
+}
+
 class TestData
 {
 public:
@@ -73,8 +102,15 @@ public:
 static void testPrimitiveData()
 {
 
+  std::string meshFileName = "./tmpMeshFile.msh";
+  std::string meshFileContent = getExampleMeshFileContent();
+  std::ofstream file( meshFileName );
+  file << meshFileContent;
+  file.close();
 
-  PrimitiveStorage storage("");
+  MeshInfo meshInfo( meshFileName );
+  SetupPrimitiveStorage setupStorage( meshInfo );
+  PrimitiveStorage storage( setupStorage );
 
   PrimitiveID primitiveID = storage.addVertex();
   Vertex *primitive = storage.getVertex( primitiveID );
