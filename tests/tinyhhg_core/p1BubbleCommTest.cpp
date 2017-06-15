@@ -27,11 +27,12 @@ int main (int argc, char ** argv )
 
   hhg::P1BubbleFunction x("x", mesh, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D& xx) { return 0; };
+  std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D& xx) { return 8; };
+  std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D& xx) { return 9; };
 
-  for(auto face : mesh.faces){
-    hhg::P1BubbleFace::interpolate(face,0,zero,maxLevel);
-  }
+  hhg::P1BubbleFace::interpolate(mesh.faces[0],0,eight,maxLevel);
+  hhg::P1BubbleFace::interpolate(mesh.faces[1],0,nine,maxLevel);
+
   int counter = 1;
   for(auto edge : mesh.edges){
     std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D& xx) { return counter; };
@@ -58,8 +59,18 @@ int main (int argc, char ** argv )
     }
   }
 
+  packData(maxLevel, face0, 0, sb, mesh.edges[4]);
+  walberla::mpi::RecvBuffer rb(sb);
+  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb,face0);
+
+  packData(maxLevel, face1, 0, sb, mesh.edges[4]);
+  walberla::mpi::RecvBuffer rb2(sb);
+  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb2,face1);
+
+
   auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(face0, 0)->data[maxLevel];
   auto& face1mem = hhg::P1Bubble::getFaceFunctionMemory(face1, 0)->data[maxLevel];
+  auto& edge5mem = hhg::P1Bubble::getEdgeFunctionMemory(mesh.edges[4], 0)->data[maxLevel];
   real_t sumFace0 = 0;
   real_t sumFace1 = 0;
   std::cout << "Face 0: " << std::endl;
@@ -81,6 +92,20 @@ int main (int argc, char ** argv )
     }
     std::cout << std::endl;
   }
+  std::cout << "=======================================" << std::endl;
+  std::cout << "Edge 5: " << std::endl;
+  for(size_t i = 0; i < v_perEdge - 1; ++i) {
+    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_N)]);
+  }
+  std::cout << std::endl;
+  for(size_t i = 0; i < v_perEdge; ++i) {
+    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)]);
+  }
+  std::cout << std::endl;
+  for(size_t i = 0; i < v_perEdge -1 ; ++i) {
+    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_SE)]);
+  }
+  std::cout << std::endl;
   std::cout << "=======================================" << std::endl;
 
 

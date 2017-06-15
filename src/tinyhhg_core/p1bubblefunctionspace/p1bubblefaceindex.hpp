@@ -171,7 +171,7 @@ public:
      * @param type Doftype can be VERTEX,CELL_GRAY,CELL_BLUE, VERTEX_INNER
      * @param level multigrid level
      */
-    inline indexIterator(int edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level);
+    inline indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level);
     /*!
      * @brief end iterator
      */
@@ -191,11 +191,11 @@ private:
     int offset_;
     int offsetOffset_;
     int edge_orientation_;
-    int edge_index_;
+    uint_t edge_index_;
     bool ended_;
 };
 
-indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level)
+indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level)
     : counter_(0),
       idx_(0),
       offset_(0),
