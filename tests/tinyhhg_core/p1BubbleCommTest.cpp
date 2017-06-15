@@ -20,7 +20,7 @@ int main (int argc, char ** argv )
   size_t minLevel = 2;
   const size_t maxLevel = 3;
 
-  size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
+  //size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
   size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
   //size_t nbr_v_perEdge = v_perEdge - 1;
   //size_t v_perVertex = hhg::levelinfo::num_microvertices_per_vertex(maxLevel);
@@ -82,10 +82,6 @@ int main (int argc, char ** argv )
     std::cout << std::endl;
   }
   std::cout << "=======================================" << std::endl;
-  WALBERLA_LOG_INFO_ON_ROOT(v_perFace);
-  WALBERLA_LOG_INFO_ON_ROOT(v_perEdge);
-  WALBERLA_LOG_INFO_ON_ROOT(sumFace0);
-  WALBERLA_LOG_INFO_ON_ROOT(sumFace1);
 
 
   return 0;
