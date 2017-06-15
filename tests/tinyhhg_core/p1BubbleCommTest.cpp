@@ -27,15 +27,15 @@ int main (int argc, char ** argv )
 
   hhg::P1BubbleFunction x("x", mesh, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D& xx) { return 8; };
-  std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D& xx) { return 9; };
+  std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
+  std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
   hhg::P1BubbleFace::interpolate(mesh.faces[0],0,eight,maxLevel);
   hhg::P1BubbleFace::interpolate(mesh.faces[1],0,nine,maxLevel);
 
   int counter = 1;
   for(auto edge : mesh.edges){
-    std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D& xx) { return counter; };
+    std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
     hhg::P1BubbleEdge::interpolate(edge,0,exact,maxLevel);
     counter++;
   }
