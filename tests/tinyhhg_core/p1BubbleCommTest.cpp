@@ -43,20 +43,24 @@ int main (int argc, char ** argv )
   walberla::mpi::SendBuffer sb;
   auto& face0 = mesh.faces[0];
   auto& face1 = mesh.faces[1];
-
-  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
-    if(face0.edge_index(mesh.edges[i]) <= 2){
-      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
-      walberla::mpi::RecvBuffer rb(sb);
-      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face0, 0, rb, mesh.edges[i]);
-    }
-  }
-  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
-    if(face1.edge_index(mesh.edges[i]) <= 2){
-      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
-      walberla::mpi::RecvBuffer rb(sb);
-      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face1, 0, rb, mesh.edges[i]);
-    }
+//
+//  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
+//    if(face0.edge_index(mesh.edges[i]) <= 2){
+//      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
+//      walberla::mpi::RecvBuffer rb(sb);
+//      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face0, 0, rb, mesh.edges[i]);
+//    }
+//  }
+//  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
+//    if(face1.edge_index(mesh.edges[i]) <= 2){
+//      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
+//      walberla::mpi::RecvBuffer rb(sb);
+//      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face1, 0, rb, mesh.edges[i]);
+//    }
+//  }
+  for(hhg::Face& face : mesh.faces)
+  {
+    pull_edges(face,0,maxLevel);
   }
 
   packData(maxLevel, face0, 0, sb, mesh.edges[4]);

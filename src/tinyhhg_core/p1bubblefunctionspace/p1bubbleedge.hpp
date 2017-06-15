@@ -3,6 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 #include "p1bubbleedgecomm.hpp"
+#include "p1bubblefacecomm.hpp"
 
 namespace hhg
 {
@@ -194,101 +195,15 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  size_t rowsize_halo = rowsize - 1;
-
-  size_t offset = rowsize;
-  int rk = walberla::mpi::MPIManager::instance()->rank();
-
-  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, std::unique_ptr<real_t[]>& face_data)
-  {
-    if (&edge == face->edges[0])
-    {
-      if (face->edge_orientation[0] == 1)
-      {
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[rowsize + i];
-        }
-      }
-      else
-      {
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[rowsize + rowsize_halo - 1 - i];
-        }
-      }
-    }
-    else if (&edge == face->edges[1])
-    {
-      if (face->edge_orientation[1] == 1)
-      {
-        size_t idx = rowsize - 2;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx += rowsize - 1 - i;
-        }
-      }
-      else
-      {
-        size_t idx = levelinfo::num_microvertices_per_face(level) - 3;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx -= i + 2;
-        }
-      }
-    }
-    else
-    {
-      if (face->edge_orientation[2] == 1)
-      {
-        size_t idx = levelinfo::num_microvertices_per_face(level) - 2;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx -= i+3;
-        }
-      }
-      else
-      {
-        size_t idx = 1;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx += rowsize-i;
-        }
-      }
-    }
-  };
-
-  for (Face* face : edge.faces)
-  {
-    if (edge.rank == rk)
-    {
-      auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
-
-      if (face->rank == rk)
-      {
-        auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
-        pull(edge, &edge_data[offset], face, face_data);
-        offset += rowsize_halo;
-      }
-      else
-      {
-        MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< real_t >::type(), face->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-        offset += rowsize_halo;
-      }
-    }
-    else if (face->rank == rk)
-    {
-      auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
-      real_t* tmp = new real_t[rowsize_halo];
-      pull(edge, tmp, face, face_data);
-      MPI_Send(tmp, rowsize_halo, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
-      delete[] tmp;
-    }
+  //TODO this is WIP only works with one mpi rank!
+  walberla::mpi::SendBuffer sb;
+  uint_t numberOfFaces = edge.faces.size();
+  for(uint_t i = 0; i < numberOfFaces; ++i){
+    hhg::P1BubbleFace::packData(level,*edge.faces[i],memory_id,sb,edge);
+  }
+  walberla::mpi::RecvBuffer rb(sb);
+  for(uint_t i = 0; i < numberOfFaces; ++i){
+    unpackFaceData(level,edge,memory_id,rb,*edge.faces[i]);
   }
 }
 

@@ -69,158 +69,17 @@ inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const
 
 inline void pull_edges(Face& face, size_t memory_id, size_t level)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  real_t* edge_data_0 = NULL;
-  real_t* edge_data_1 = NULL;
-  real_t* edge_data_2 = NULL;
+  //TODO this is WIP only works with one mpi rank!
+  walberla::mpi::SendBuffer sb;
+  for(uint_t i = 0; i < 3; ++i){
 
-  MPI_Request req0;
-  MPI_Request req1;
-  MPI_Request req2;
-
-  int rk = walberla::mpi::MPIManager::instance()->rank();
-
-  if (face.edges[0]->rank == rk)
-  {
-    if (face.rank == rk)
-    {
-      edge_data_0 = P1Bubble::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level].get();
-    }
-    else
-    {
-      MPI_Send(&P1Bubble::getEdgeFunctionMemory(*face.edges[0], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[0]->id, MPI_COMM_WORLD);
-    }
+    P1BubbleEdge::packData(*face.edges[i],memory_id,sb,level);
   }
-  else if (face.rank == rk)
-  {
-    edge_data_0 = new real_t[rowsize];
-    MPI_Irecv(edge_data_0, rowsize, walberla::MPITrait< real_t >::type(), face.edges[0]->rank, face.edges[0]->id, MPI_COMM_WORLD, &req0);
+  walberla::mpi::RecvBuffer rb(sb);
+  for(uint_t i = 0; i < 3; ++i){
+    unpackEdgeData(level,face,memory_id,rb,*face.edges[i]);
   }
 
-  if (face.edges[1]->rank == rk)
-  {
-    if (face.rank == rk)
-    {
-      edge_data_1 = P1Bubble::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level].get();
-    }
-    else
-    {
-      MPI_Send(&P1Bubble::getEdgeFunctionMemory(*face.edges[1], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[1]->id, MPI_COMM_WORLD);
-    }
-  }
-  else if (face.rank == rk)
-  {
-    edge_data_1 = new real_t[rowsize];
-    MPI_Irecv(edge_data_1, rowsize, walberla::MPITrait< real_t >::type(), face.edges[1]->rank, face.edges[1]->id, MPI_COMM_WORLD, &req1);
-  }
-
-  if (face.edges[2]->rank == rk)
-  {
-    if (face.rank == rk)
-    {
-      edge_data_2 = P1Bubble::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level].get();
-    }
-    else
-    {
-      MPI_Send(&P1Bubble::getEdgeFunctionMemory(*face.edges[2], memory_id)->data[level][0], rowsize, walberla::MPITrait< real_t >::type(), face.rank, face.edges[2]->id, MPI_COMM_WORLD);
-    }
-  }
-  else if (face.rank == rk)
-  {
-    edge_data_2 = new real_t[rowsize];
-    MPI_Irecv(edge_data_2, rowsize, walberla::MPITrait< real_t >::type(), face.edges[2]->rank, face.edges[2]->id, MPI_COMM_WORLD, &req2);
-  }
-
-  if (face.rank == rk)
-  {
-    auto& face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[level];
-
-    if (face.edges[0]->rank != rk)
-    {
-      MPI_Wait(&req0, MPI_STATUS_IGNORE);
-    }
-
-    if (face.edges[1]->rank != rk)
-    {
-      MPI_Wait(&req1, MPI_STATUS_IGNORE);
-    }
-
-    if (face.edges[2]->rank != rk)
-    {
-      MPI_Wait(&req2, MPI_STATUS_IGNORE);
-    }
-
-    // edge 0
-    if (face.edge_orientation[0] == 1)
-    {
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[i] = edge_data_0[i];
-      }
-    }
-    else
-    {
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[i] = edge_data_0[rowsize - 1 - i];
-      }
-    }
-
-    if (face.edges[0]->rank != rk)
-    {
-      delete[] edge_data_0;
-    }
-
-    // edge 1
-    if (face.edge_orientation[1] == 1)
-    {
-      size_t idx = rowsize - 1;
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[idx] = edge_data_1[i];
-        idx += rowsize - 1 - i;
-      }
-    }
-    else
-    {
-      size_t idx = levelinfo::num_microvertices_per_face(level) - 1;
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[idx] = edge_data_1[i];
-        idx -= i + 1;
-      }
-    }
-
-    if (face.edges[1]->rank != rk)
-    {
-      delete[] edge_data_1;
-    }
-
-    // edge 2
-    if (face.edge_orientation[2] == 1)
-    {
-      size_t idx = levelinfo::num_microvertices_per_face(level) - 1;
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[idx] = edge_data_2[i];
-        idx -= i+2;
-      }
-    }
-    else
-    {
-      size_t idx = 0;
-      for (size_t i = 0; i < rowsize; ++i)
-      {
-        face_data[idx] = edge_data_2[i];
-        idx += rowsize-i;
-      }
-    }
-
-    if (face.edges[2]->rank != rk)
-    {
-      delete[] edge_data_2;
-    }
-  }
 }
 
 inline void assign(Face& face, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
