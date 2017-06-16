@@ -10,6 +10,7 @@ namespace hhg {
 
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
+using walberla::uint_t;
 
 template< typename DataType >
 class PrimitiveDataID
@@ -29,11 +30,11 @@ public:
   bool operator!=( const PrimitiveDataID& id ) const { return id_ != id.id_; }
   bool operator< ( const PrimitiveDataID& id ) const { return id_ <  id.id_; }
 
-  operator walberla::uint_t() const { return id_; }
+  operator uint_t() const { return id_; }
 
 private:
 
-  walberla::uint_t id_;
+  uint_t id_;
 
 }; // class DataID
 
