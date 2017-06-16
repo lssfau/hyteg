@@ -36,6 +36,14 @@ std::string getExampleMeshFileContent()
   return content;
 }
 
+void writeTestMeshFile( const std::string & meshFileName )
+{
+  std::string meshFileContent = getExampleMeshFileContent();
+  std::ofstream file( meshFileName );
+  file << meshFileContent;
+  file.close();
+}
+
 class TestData
 {
 public:
@@ -101,14 +109,10 @@ public:
 
 static void testPrimitiveData()
 {
-
   std::string meshFileName = "./tmpMeshFile.msh";
-  std::string meshFileContent = getExampleMeshFileContent();
-  std::ofstream file( meshFileName );
-  file << meshFileContent;
-  file.close();
+  writeTestMeshFile( meshFileName );
 
-  MeshInfo meshInfo( meshFileName );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo );
   PrimitiveStorage storage( setupStorage );
 

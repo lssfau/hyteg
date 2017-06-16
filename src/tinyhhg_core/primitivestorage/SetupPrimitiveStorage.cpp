@@ -3,11 +3,17 @@
 
 #include "core/logging/Logging.h"
 #include "core/debug/CheckFunctions.h"
+#include "core/debug/Debug.h"
+
+#include <array>
 
 namespace hhg {
 
-MeshInfo::MeshInfo( const std::string & meshFileName )
+MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
+  MeshInfo meshInfo;
+  const std::array< DoFType, 3 > BOUNDARY_TYPE_TO_FLAG = { Inner, DirichletBoundary, NeumannBoundary };
+
   WALBERLA_LOG_INFO_ON_ROOT( "[Mesh] Opening mesh file: " << meshFileName );
 
   std::ifstream meshFile;
@@ -43,65 +49,65 @@ MeshInfo::MeshInfo( const std::string & meshFileName )
     meshFile >> x[1];
     meshFile >> x[2];
 
-    vertices_[id] = Point3D( x );
+    meshInfo.vertices_[id] = Point3D( x );
   }
 
-  WALBERLA_ASSERT_EQUAL( vertices_.size(), numVertices );
+  WALBERLA_ASSERT_EQUAL( meshInfo.vertices_.size(), numVertices );
 
   meshFile >> token; // $EndNodes
   meshFile >> token; // $Elements
 
   WALBERLA_CHECK_EQUAL( token, "$Elements", "[Mesh] Missing: $Elements" )
 
-  uint_t numElements;
-  meshFile >> numElements;
+  uint_t numPrimitives;
+  meshFile >> numPrimitives;
 
-#if 0
-  Mesh::EdgeMap map;
-  std::vector<std::array<size_t, 3> > face_edge_indices;
 
-  for (size_t i=0; i < numElements; ++i)
+
+  for ( uint_t primitive = 0; primitive < numPrimitives; ++primitive )
   {
-    size_t ig;
+    uint_t ig;
     meshFile >> ig; // ignore
 
-    size_t elemType;
-    meshFile >> elemType;
+    uint_t primitiveType;
+    meshFile >> primitiveType;
 
-    if (elemType == 1) // edge
+    if (primitiveType == 1) // edge
     {
-      size_t type;
-      size_t v0, v1;
+      uint_t type;
+      uint_t v0, v1;
       meshFile >> ig; // ignore
       meshFile >> type;
       meshFile >> ig; // ignore
       meshFile >> v0;
-      --v0;
       meshFile >> v1;
-      --v1;
 
-      addEdge(v0, v1, type, map);
+      WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
+      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
+
+      meshInfo.addEdge( v0, v1, dofType );
     }
-    else if (elemType == 2) // triangle
+
+    else if (primitiveType == 2) // triangle
     {
-      size_t v0, v1, v2;
+      uint_t v0, v1, v2;
       meshFile >> ig; // ignore
       meshFile >> ig; // ignore
       meshFile >> ig; // ignore
       meshFile >> v0;
-      --v0;
       meshFile >> v1;
-      --v1;
       meshFile >> v2;
-      --v2;
 
-      size_t e0 = addEdge(v0, v1, 0, map);
-      size_t e1 = addEdge(v1, v2, 0, map);
-      size_t e2 = addEdge(v2, v0, 0, map);
+      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[0];
 
-      face_edge_indices.push_back({{e0, e1, e2}});
+      meshInfo.addEdge( v0, v1, dofType );
+      meshInfo.addEdge( v1, v2, dofType );
+      meshInfo.addEdge( v2, v0, dofType );
+
+      meshInfo.faces_.insert( std::make_tuple( v0, v1, v2 ) );
     }
-    else if (elemType == 15) // vertex
+
+    else if (primitiveType == 15) // vertex
     {
       // do nothing
       meshFile >> ig;
@@ -109,14 +115,35 @@ MeshInfo::MeshInfo( const std::string & meshFileName )
       meshFile >> ig;
       meshFile >> ig;
     }
+
     else
     {
-      fmt::print("[Mesh] Unknown element type: {}\n", elemType);
-      std::exit(-1);
+      WALBERLA_ABORT( "[Mesh] Unknown element type: " << primitiveType );
     }
   }
-#endif
+
   meshFile.close();
+
+  return meshInfo;
 }
+
+
+void MeshInfo::addEdge( uint_t v0, uint_t v1, DoFType dofType )
+{
+  WALBERLA_CHECK_UNEQUAL( v0, v1, "[Mesh] File contains edge with zero size." );
+
+  std::pair< uint_t, uint_t > edge;
+  if ( v0 < v1 )
+  {
+    edge = std::make_pair( v0, v1 );
+  }
+  else if ( v1 < v0 )
+  {
+  edge = std::make_pair( v1, v0 );
+  }
+
+  edges_.insert( std::make_pair( edge, dofType ) );
+}
+
 
 }
