@@ -17,6 +17,11 @@ public:
     edgeID1_( edgeID1 ), edgeID2_( edgeID2 )
   {}
 
+  const PrimitiveID & getEdgeID0() const { return edgeID0_; }
+  const PrimitiveID & getEdgeID1() const { return edgeID1_; }
+  const PrimitiveID & getEdgeID2() const { return edgeID2_; }
+
+
 private:
 
   PrimitiveID edgeID0_;

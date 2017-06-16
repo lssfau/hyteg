@@ -17,6 +17,11 @@ public:
     dofType_( dofType )
   {}
 
+  const PrimitiveID & getVertexID0() const { return vertexID0_; }
+  const PrimitiveID & getVertexID1() const { return vertexID1_; }
+
+  const DoFType & getDoFType() const { return dofType_; }
+
 private:
 
   PrimitiveID vertexID0_;
