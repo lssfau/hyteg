@@ -6,6 +6,7 @@
 #include "core/debug/Debug.h"
 
 #include <array>
+#include <vector>
 
 namespace hhg {
 
@@ -62,7 +63,12 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
   uint_t numPrimitives;
   meshFile >> numPrimitives;
 
+  // Two pass approach:
+  // First we parse the file and store the information plainly into vector.
+  // This way, we can then first process the edges and then all faces.
 
+  std::vector< std::pair< std::array< uint_t, 2 >, DoFType > > parsedEdges;
+  std::vector< std::array< uint_t, 3 > >                       parsedFaces;
 
   for ( uint_t primitive = 0; primitive < numPrimitives; ++primitive )
   {
@@ -85,7 +91,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
       DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
 
-      meshInfo.addEdge( v0, v1, dofType );
+      parsedEdges.push_back( std::make_pair( std::array< uint_t, 2>( { v0, v1 } ), dofType ) );
     }
 
     else if (primitiveType == 2) // triangle
@@ -98,13 +104,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> v1;
       meshFile >> v2;
 
-      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[0];
-
-      meshInfo.addEdge( v0, v1, dofType );
-      meshInfo.addEdge( v1, v2, dofType );
-      meshInfo.addEdge( v2, v0, dofType );
-
-      meshInfo.faces_.insert( std::make_tuple( v0, v1, v2 ) );
+      parsedFaces.push_back( { v0, v1, v2 } );
     }
 
     else if (primitiveType == 15) // vertex
@@ -122,6 +122,22 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     }
   }
 
+  for ( auto it = parsedEdges.begin(); it != parsedEdges.end(); it++ )
+  {
+    meshInfo.addEdge( it->first[0], it->first[1], it->second );
+  }
+
+  for ( auto it = parsedFaces.begin(); it != parsedFaces.end(); it++ )
+  {
+    std::array< uint_t, 3 > faceCoordinates( (*it) );
+
+    // If the corresponding edge was not already added, add an edge of type Inner
+    meshInfo.addEdge( faceCoordinates[0], faceCoordinates[1], Inner );
+    meshInfo.addEdge( faceCoordinates[1], faceCoordinates[2], Inner );
+    meshInfo.addEdge( faceCoordinates[2], faceCoordinates[0], Inner );
+    meshInfo.faces_.insert( { faceCoordinates[0], faceCoordinates[1], faceCoordinates[2] } );
+  }
+
   meshFile.close();
 
   return meshInfo;
@@ -130,7 +146,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 
 void MeshInfo::addEdge( uint_t v0, uint_t v1, DoFType dofType )
 {
-  WALBERLA_CHECK_UNEQUAL( v0, v1, "[Mesh] File contains edge with zero size." );
+  WALBERLA_CHECK_UNEQUAL( v0, v1, "[Mesh] File contains edge with zero length." );
 
   std::pair< uint_t, uint_t > edge;
   if ( v0 < v1 )
@@ -139,10 +155,13 @@ void MeshInfo::addEdge( uint_t v0, uint_t v1, DoFType dofType )
   }
   else if ( v1 < v0 )
   {
-  edge = std::make_pair( v1, v0 );
+    edge = std::make_pair( v1, v0 );
   }
 
-  edges_.insert( std::make_pair( edge, dofType ) );
+  if (edges_.count( edge ) == 0)
+  {
+    edges_[edge] = dofType;
+  }
 }
 
 } // namespace hhg

@@ -19,19 +19,31 @@ class SetupPrimitiveStorage
 {
 public:
 
-  SetupPrimitiveStorage( const MeshInfo & meshInfo )
-  {
+  SetupPrimitiveStorage( const MeshInfo & meshInfo );
 
-  }
+  void toStream( std::ostream & os ) const;
+
+  /// Searches an edge with the respective vertices by ID\n
+  /// \param edge is set to the ID of the edge if one was found
+  /// \return true, if an edge was found, false otherwise
+  bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
 
 private:
 
-  void generatePrimitiveID();
+  PrimitiveID generatePrimitiveID();
+
+  void checkIDConsistency() {};
 
   std::map< PrimitiveID::IDType, SetupVertex* > vertices_;
   std::map< PrimitiveID::IDType, SetupEdge*  >  edges_;
   std::map< PrimitiveID::IDType, SetupFace* >   faces_;
 
 };
+
+inline std::ostream & operator<<( std::ostream & os, const SetupPrimitiveStorage & storage )
+{
+  storage.toStream( os );
+  return os;
+}
 
 } // namespace hhg

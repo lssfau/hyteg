@@ -114,6 +114,9 @@ static void testPrimitiveData()
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo );
+
+  WALBERLA_LOG_INFO( setupStorage );
+
   PrimitiveStorage storage( setupStorage );
 
   PrimitiveID primitiveID = storage.addVertex();

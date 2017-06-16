@@ -5,9 +5,9 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
+#include <array>
 #include <map>
 #include <set>
-#include <tuple>
 #include <vector>
 
 namespace hhg {
@@ -29,11 +29,13 @@ class MeshInfo
 public:
 
   /// Vertices: ( ID, coordinate )
-  typedef std::map< uint_t, Point3D >                                   VertexContainer;
+  typedef std::map< uint_t, Point3D >                       VertexContainer;
   /// Edges: ( ( VertexID_0, VertexID_1 ), DoFType )
-  typedef std::set< std::pair< std::pair< uint_t, uint_t >, DoFType > > EdgeContainer;
-  /// Faces: ( VertexID_0, VertexID_1, VertexID_2 )
-  typedef std::set< std::tuple< uint_t, uint_t, uint_t > >              FaceContainer;
+  typedef std::map< std::pair< uint_t, uint_t >, DoFType >  EdgeContainer;
+  /// Faces: ( ( VertexID_0, VertexID_1 ),\n
+  ///          ( VertexID_1, VertexID_2 ),\n
+  ///          ( VertexID_2, VertexID_0 ))
+  typedef std::set< std::array< uint_t, 3 > >               FaceContainer;
 
   /// Construct a MeshInfo from a file in Gmsh format
   static MeshInfo fromGmshFile( const std::string & meshFileName );
@@ -43,9 +45,9 @@ public:
   const VertexContainer & getVertices() const { return vertices_; };
 
   /// Returns edges of the mesh
-  /// \return Set of a pair of \n
+  /// \return Map that maps \n
   ///         - a pair of vertex indices (matching indices from the vertices from \ref getVertices \n
-  ///         - and the corresponding \ref DoFType
+  ///         - to the corresponding \ref DoFType
   const EdgeContainer & getEdges() const { return edges_; };
 
   /// Returns faces of the mesh
