@@ -4,6 +4,10 @@
 #include "core/debug/Debug.h"
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
+#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/primitives/SetupEdge.hpp"
+#include "tinyhhg_core/primitives/SetupFace.hpp"
+#include "tinyhhg_core/primitives/SetupVertex.hpp"
 
 #include <map>
 #include <set>
@@ -72,6 +76,14 @@ public:
   {
 
   }
+
+private:
+
+  void generatePrimitiveID();
+
+  std::map< PrimitiveID::IDType, SetupVertex* > vertices_;
+  std::map< PrimitiveID::IDType, SetupEdge*  >  edges_;
+  std::map< PrimitiveID::IDType, SetupFace* >   faces_;
 
 };
 
