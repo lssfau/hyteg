@@ -3,6 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 #include "p1bubbleedgecomm.hpp"
+#include "p1bubblefacecomm.hpp"
 
 namespace hhg
 {
@@ -10,85 +11,6 @@ namespace P1BubbleEdge
 {
 //FIXME this can be removed after we moved into walberla namespace
 using namespace walberla::mpistubs;
-
-namespace EdgeCoordsVertex {
-enum DirVertex {
-  VERTEX_S  = 0,
-  VERTEX_SE = 1,
-  VERTEX_W  = 2,
-  VERTEX_C  = 3,
-  VERTEX_E  = 4,
-  VERTEX_NW = 5,
-  VERTEX_N  = 6,
-  CELL_GRAY_SW = 7,
-  CELL_BLUE_SE = 8,
-  CELL_GRAY_SE = 9,
-  CELL_GRAY_NW = 10,
-  CELL_BLUE_NW = 11,
-  CELL_GRAY_NE = 12
-};
-
-const DirVertex neighbors_with_center[13] =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
-     CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
-const DirVertex neighbors[12] =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
-     CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_GRAY_SW};
-
-const DirVertex neighbors_edge[] =
-    {VERTEX_E, VERTEX_W};
-
-const DirVertex neighbors_south[] =
-    {VERTEX_S, VERTEX_SE, CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE};
-
-const DirVertex neighbors_north[] =
-    {VERTEX_NW, VERTEX_N, CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE};
-
-template<size_t Level>
-inline size_t index(size_t pos, DirVertex dir) {
-  const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  //const size_t grayBaseLength = vertexOnEdge -1;
-  //const size_t blueBaseLength = vertexOnEdge -2;
-  const size_t startFaceS = vertexOnEdge;
-  const size_t startFaceN = 4 * (vertexOnEdge - 1);
-  //const size_t totalCellGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t center = pos;
-  //const size_t cellGrayNE = center + totalVertices - row;
-  //const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) -1;
-  switch (dir) {
-    case VERTEX_C:
-      return center;
-    case VERTEX_S:
-      return startFaceS + pos - 1;
-    case VERTEX_SE:
-      return startFaceS + pos;
-    case VERTEX_E:
-      return center + 1;
-    case VERTEX_N:
-      return startFaceN + pos;
-    case VERTEX_NW:
-      return startFaceN + pos - 1;
-    case VERTEX_W:
-      return center - 1;
-    case CELL_BLUE_SE:
-      return startFaceS + (vertexOnEdge -1) + pos * 2 -1;
-    case CELL_GRAY_NE:
-      return startFaceN + (vertexOnEdge -1) + pos * 2;
-    case CELL_GRAY_NW:
-      return startFaceN + (vertexOnEdge -1) + pos * 2 - 2;
-    case CELL_GRAY_SE:
-      return startFaceS + (vertexOnEdge -1) + pos * 2;
-    case CELL_BLUE_NW:
-      return startFaceN + (vertexOnEdge -1) + pos * 2 - 1;
-    case CELL_GRAY_SW:
-      return startFaceS + (vertexOnEdge -1) + (pos -1) * 2;
-  }
-  return std::numeric_limits<size_t>::max();
-}
-}//namespace EdgeCoordsVertex
 
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
@@ -273,101 +195,15 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  size_t rowsize_halo = rowsize - 1;
-
-  size_t offset = rowsize;
-  int rk = walberla::mpi::MPIManager::instance()->rank();
-
-  auto pull = [rowsize, rowsize_halo, level](Edge& edge, real_t* edge_data, Face* face, std::unique_ptr<real_t[]>& face_data)
-  {
-    if (&edge == face->edges[0])
-    {
-      if (face->edge_orientation[0] == 1)
-      {
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[rowsize + i];
-        }
-      }
-      else
-      {
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[rowsize + rowsize_halo - 1 - i];
-        }
-      }
-    }
-    else if (&edge == face->edges[1])
-    {
-      if (face->edge_orientation[1] == 1)
-      {
-        size_t idx = rowsize - 2;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx += rowsize - 1 - i;
-        }
-      }
-      else
-      {
-        size_t idx = levelinfo::num_microvertices_per_face(level) - 3;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx -= i + 2;
-        }
-      }
-    }
-    else
-    {
-      if (face->edge_orientation[2] == 1)
-      {
-        size_t idx = levelinfo::num_microvertices_per_face(level) - 2;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx -= i+3;
-        }
-      }
-      else
-      {
-        size_t idx = 1;
-        for (size_t i = 0; i < rowsize_halo; ++i)
-        {
-          edge_data[i] = face_data[idx];
-          idx += rowsize-i;
-        }
-      }
-    }
-  };
-
-  for (Face* face : edge.faces)
-  {
-    if (edge.rank == rk)
-    {
-      auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
-
-      if (face->rank == rk)
-      {
-        auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
-        pull(edge, &edge_data[offset], face, face_data);
-        offset += rowsize_halo;
-      }
-      else
-      {
-        MPI_Recv(&edge_data[offset], rowsize_halo, walberla::MPITrait< real_t >::type(), face->rank, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-        offset += rowsize_halo;
-      }
-    }
-    else if (face->rank == rk)
-    {
-      auto& face_data = P1Bubble::getFaceFunctionMemory(*face, memory_id)->data[level];
-      real_t* tmp = new real_t[rowsize_halo];
-      pull(edge, tmp, face, face_data);
-      MPI_Send(tmp, rowsize_halo, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
-      delete[] tmp;
-    }
+  //TODO this is WIP only works with one mpi rank!
+  walberla::mpi::SendBuffer sb;
+  uint_t numberOfFaces = edge.faces.size();
+  for(uint_t i = 0; i < numberOfFaces; ++i){
+    hhg::P1BubbleFace::packData(level,*edge.faces[i],memory_id,sb,edge);
+  }
+  walberla::mpi::RecvBuffer rb(sb);
+  for(uint_t i = 0; i < numberOfFaces; ++i){
+    unpackFaceData(level,edge,memory_id,rb,*edge.faces[i]);
   }
 }
 

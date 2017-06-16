@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   std::vector<size_t> vertexface0 = {0,1,2,3,4,5,6,7,8};
   std::vector<size_t> vertexface1 = {8,16,23,29,34,38,41,43,44};
   std::vector<size_t> vertexface2 = {44,42,39,35,30,24,17,9,0};
-  int counter = 0;
+  uint_t counter = 0;
   for(auto it = indexIterator(0,1, VERTEX, 3); it != indexIterator(); ++it){
     WALBERLA_CHECK_EQUAL_3(vertexface0[counter++],*it,"counter: " << counter);
   }
@@ -119,17 +119,17 @@ int main(int argc, char* argv[])
   for(auto it = indexIterator(0,-1, VERTEX, 3); it != indexIterator(); ++it){
     WALBERLA_CHECK_EQUAL_3(vertexface0[counter--],*it,"counter: " << counter);
   }
-  WALBERLA_CHECK_EQUAL_2(counter, -1);
+  WALBERLA_CHECK_EQUAL_2(counter, std::numeric_limits<size_t>::max());
   counter = 8;
   for(auto it = indexIterator(1,-1, VERTEX, 3); it != indexIterator(); ++it){
     WALBERLA_CHECK_EQUAL_3(vertexface1[counter--],*it,"counter: " << counter);
   }
-  WALBERLA_CHECK_EQUAL_2(counter, -1);
+  WALBERLA_CHECK_EQUAL_2(counter, std::numeric_limits<size_t>::max());
   counter = 8;
   for(auto it = indexIterator(2,-1, VERTEX, 3); it != indexIterator(); ++it){
     WALBERLA_CHECK_EQUAL_3(vertexface2[counter--],*it,"counter: " << counter);
   }
-  WALBERLA_CHECK_EQUAL_2(counter, -1);
+  WALBERLA_CHECK_EQUAL_2(counter, std::numeric_limits<size_t>::max());
 
   /// CHECK GRAY CELL ITERATOR ///
   std::vector<size_t> celledge0 = {45,46,47,48,49,50,51,52};
@@ -197,6 +197,41 @@ int main(int argc, char* argv[])
   counter = 6;
   for(auto it = indexIterator(2,-1, CELL_BLUE, 3); it != indexIterator(); ++it){
     WALBERLA_CHECK_EQUAL_3(cellblueedge2[counter],*it,"counter: " << counter);
+    counter--;
+  }
+  /// CHECK VERTEX_INNTER ITERATOR ///
+  std::vector<size_t> vertexinnerdge0 = {9,10,11,12,13,14,15,16};
+  std::vector<size_t> vertexinnerdge1 = {7,15,22,28,33,37,40,42};
+  std::vector<size_t> vertexinnerdge2 = {43,40,36,31,25,18,10,1};
+  counter = 0;
+  for(auto it = indexIterator(0,1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge0[counter],*it,"counter: " << counter);
+    counter++;
+  }
+  counter = 0;
+  for(auto it = indexIterator(1,1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge1[counter],*it,"counter: " << counter);
+    counter++;
+  }
+  counter = 0;
+  for(auto it = indexIterator(2,1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge2[counter],*it,"counter: " << counter);
+    counter++;
+  }
+  /// CHECK REVERSE ///
+  counter = 7;
+  for(auto it = indexIterator(0,-1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge0[counter],*it,"counter: " << counter);
+    counter--;
+  }
+  counter = 7;
+  for(auto it = indexIterator(1,-1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge1[counter],*it,"counter: " << counter);
+    counter--;
+  }
+  counter = 7;
+  for(auto it = indexIterator(2,-1, VERTEX_INNER, 3); it != indexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL_3(vertexinnerdge2[counter],*it,"counter: " << counter);
     counter--;
   }
 }

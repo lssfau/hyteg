@@ -150,9 +150,11 @@ inline size_t index(size_t row, size_t col, Dir dir) {
 
 
 enum DofType {
-    VERTEX = 0,
-    CELL_GRAY = 1,
-    CELL_BLUE = 2
+  VERTEX = 0,
+  CELL_GRAY = 1,
+  CELL_BLUE = 2,
+  VERTEX_INNER = 3
+  //VERTEX_INNER: vertex dofs that are connected to the boundary
 };
 
 /// Iterator to get the indices for one specific edge and DofType in the face memory
@@ -166,10 +168,10 @@ public:
      * @brief begin iterator
      * @param face
      * @param edge corresponding edge
-     * @param type Doftype can be VERTEX,CELL_GRAY,CELL_BLUE
+     * @param type Doftype can be VERTEX,CELL_GRAY,CELL_BLUE, VERTEX_INNER
      * @param level multigrid level
      */
-    inline indexIterator(int edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level);
+    inline indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level);
     /*!
      * @brief end iterator
      */
@@ -189,11 +191,11 @@ private:
     int offset_;
     int offsetOffset_;
     int edge_orientation_;
-    int edge_index_;
+    uint_t edge_index_;
     bool ended_;
 };
 
-indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level)
+indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level)
     : counter_(0),
       idx_(0),
       offset_(0),
@@ -222,6 +224,9 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
       break;
     case VERTEX:
       break;
+    case VERTEX_INNER:
+      //This is handled in the next switch
+      break;
     default:
       WALBERLA_LOG_WARNING("Wrong DofType: " << type);
   }
@@ -232,10 +237,18 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
         idx_ += 0;
         offset_ = 1;
         offsetOffset_ = 0;
+        if(type == VERTEX_INNER){
+          idx_ += num_perEdge_;
+          num_perEdge_--;
+        }
       } else {
         idx_ += num_perEdge_ - 1;
         offset_ = -1;
         offsetOffset_ = 0;
+        if(type == VERTEX_INNER){
+          idx_ += num_perEdge_ -1;
+          num_perEdge_--;
+        }
       }
       break;
     case 1:
@@ -243,10 +256,19 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
         idx_ += num_perEdge_ - 1;
         offset_ = num_perEdge_ - 1;
         offsetOffset_ = -1;
+        if(type == VERTEX_INNER){
+          idx_--;
+          num_perEdge_--;
+        }
       } else {
         idx_ += maximum;
         offset_ = -1;
         offsetOffset_ = -1;
+        if(type == VERTEX_INNER){
+          idx_-=2;
+          num_perEdge_--;
+          offset_ += offsetOffset_;
+        }
       }
       break;
     case 2:
@@ -254,10 +276,19 @@ indexIterator::indexIterator(int edgeIndex, int edgeOrientation, DofType type, w
         idx_ += maximum;
         offset_ = -2;
         offsetOffset_ = -1;
+        if(type == VERTEX_INNER){
+          idx_--;
+          num_perEdge_--;
+          offset_ += offsetOffset_;
+        }
       } else {
         idx_ += 0;
         offset_ = num_perEdge_;
         offsetOffset_ = -1;
+        if(type == VERTEX_INNER){
+          idx_++;
+          num_perEdge_--;
+        }
       }
       break;
     default: WALBERLA_LOG_WARNING("invalid edge index");
@@ -288,14 +319,7 @@ walberla::uint_t indexIterator::operator*() const {
 bool indexIterator::operator==(const indexIterator &other) const {
   if (ended_ || other.ended_)
   {
-    if (ended_ == other.ended_)
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+    return (ended_ == other.ended_);
   }
   return (idx_ == other.idx_);
 }

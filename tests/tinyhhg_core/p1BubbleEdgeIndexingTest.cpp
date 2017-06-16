@@ -26,8 +26,8 @@ int main(int argc, char* argv[])
 //  };
 
   /// CHECK VERTEX ///
-  std::vector<size_t> refOne = {1,9,10,2,33,32,0,18,42,40,19,41,17};
-  std::vector<size_t> refFive = {5,13,14,6,37,36,4,26,50,48,27,49,25};
+  std::vector<size_t> refOne = {1,9,10,2,33,32,0,19,42,40,17,18,41};
+  std::vector<size_t> refFive = {5,13,14,6,37,36,4,27,50,48,25,26,49};
   std::vector<size_t> result;
   for(auto n : EdgeCoordsVertex::neighbors_with_center)
   {
