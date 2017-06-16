@@ -26,4 +26,6 @@
 #include "primitivestorage/PrimitiveStorage.hpp"
 #include "primitivestorage/SetupPrimitiveStorage.hpp"
 
+#include "mesh/MeshInfo.hpp"
+
 #endif /* TINYHHG_HPP */
