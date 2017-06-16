@@ -64,7 +64,7 @@ class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData >
 {
 public:
 
-  TestData * initialize( const Primitive * const block ) const
+  TestData * initialize( const Primitive * const ) const
   {
     TestData * testData = new TestData();
     testData->i = 7777;
@@ -77,7 +77,7 @@ class VertexTestDataHandling : public NoSerializePrimitiveDataHandling< VertexTe
 {
 public:
 
-  VertexTestData * initialize( const Primitive * const block ) const
+  VertexTestData * initialize( const Primitive * const ) const
   {
     VertexTestData * testData = new VertexTestData();
     testData->i = 8888;
@@ -90,7 +90,7 @@ class EdgeTestDataHandling : public NoSerializePrimitiveDataHandling< EdgeTestDa
 {
 public:
 
-  EdgeTestData * initialize( const Primitive * const block ) const
+  EdgeTestData * initialize( const Primitive * const ) const
   {
     EdgeTestData * testData = new EdgeTestData();
     testData->i = 9999;

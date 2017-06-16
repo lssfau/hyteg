@@ -23,7 +23,7 @@ PrimitiveID PrimitiveStorage::addVertex()
 }
 
 
-const Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id ) const
+const Vertex* PrimitiveStorage::getVertex( const PrimitiveID & ) const
 {
   return NULL;
 }
@@ -35,7 +35,7 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id )
 }
 
 
-bool PrimitiveStorage::primitiveExistsLocally( const PrimitiveID & id ) const
+bool PrimitiveStorage::primitiveExistsLocally( const PrimitiveID & ) const
 {
   return false;
 }
