@@ -31,6 +31,20 @@ public:
   /// Construct a MeshInfo from a file in Gmsh format
   static MeshInfo fromGmshFile( const std::string & meshFileName );
 
+  /// Returns vertices of the mesh
+  /// \return map that maps ( vertex ID -> vertex coordinate )
+  const std::map< uint_t, Point3D > & getVertices() const { return vertices_; };
+
+  /// Returns edges of the mesh
+  /// \return set of a pair of \n
+  ///         - a pair of vertex indices (matching indices from the vertices from \ref getVertices \n
+  ///         - and the corresponding \ref DoFType
+  const std::set< std::pair< std::pair< uint_t, uint_t >, DoFType > > & getEdges() const { return edges_; };
+
+  /// Returns faces of the mesh
+  /// \return set of 3-tuples of vertex indices from the vertices from \ref getVertices
+  const std::set< std::tuple< uint_t, uint_t, uint_t > > & getFaces() const { return faces_; }
+
 private:
 
   MeshInfo() {};
