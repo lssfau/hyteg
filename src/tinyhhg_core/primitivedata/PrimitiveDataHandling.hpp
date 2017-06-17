@@ -25,7 +25,7 @@ class Primitive;
 /// implementation of \ref PrimitiveDataHandling. This way it is assured, that the \ref Primitive is
 /// able to initialize the data structure and to serialize and deserialize the data.
 ///
-template< typename DataType >
+template< typename DataType, typename PrimitiveType >
 class PrimitiveDataHandling
 {
 public:
@@ -37,21 +37,21 @@ public:
   /// Initializes the data of type \ref DataType and returns a pointer to the initialized data
   /// Must be thread-safe !
   /// \param primitive the primitive the data is initialized on
-  virtual DataType * initialize( const Primitive * const primitive ) const = 0;
+  virtual DataType * initialize( const PrimitiveType * const primitive ) const = 0;
 
   /// Serializes the data of type \ref DataType to a \ref SendBuffer
   /// Must be thread-safe !
   /// \param primitive the primitive the data is taken from
   /// \param id the data index of the data that shall be serialized
   /// \param buffer the buffer it is serialized to
-  virtual void serialize( const Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) const = 0;
+  virtual void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const = 0;
 
   /// Deserializes the data of type \ref DataType from a \ref RecvBuffer
   /// Must be thread-safe !
   /// \param primitive the primitive the data shall be written to
   /// \param id the data index of the data that shall be deserialized
   /// \param buffer the buffer it is deserialized from
-  virtual void deserialize( const Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) const = 0;
+  virtual void deserialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, RecvBuffer & buffer ) const = 0;
 };
 
 
@@ -60,18 +60,18 @@ public:
 ///
 /// Contains empty implementations for serialize and deserialize
 ///
-template< typename DataType >
-class NoSerializePrimitiveDataHandling : public PrimitiveDataHandling< DataType >
+template< typename DataType, typename PrimitiveType >
+class NoSerializePrimitiveDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
 {
 public:
 
   ~NoSerializePrimitiveDataHandling() {}
 
   /// Does nothing
-  void serialize( const Primitive * const primitive, const PrimitiveDataID< DataType > & id, SendBuffer & buffer ) const {};
+  void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const {};
 
   /// Does nothing
-  void deserialize( const Primitive * const primitive, const PrimitiveDataID< DataType > & id, RecvBuffer & buffer ) const {};
+  void deserialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, RecvBuffer & buffer ) const {};
 
 };
 

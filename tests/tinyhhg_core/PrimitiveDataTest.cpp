@@ -68,7 +68,7 @@ public:
   std::vector<bool> aa;
 };
 
-class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData >
+class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData, Primitive >
 {
 public:
 
@@ -81,11 +81,11 @@ public:
 
 };
 
-class VertexTestDataHandling : public NoSerializePrimitiveDataHandling< VertexTestData >
+class VertexTestDataHandling : public NoSerializePrimitiveDataHandling< VertexTestData, Vertex >
 {
 public:
 
-  VertexTestData * initialize( const Primitive * const ) const
+  VertexTestData * initialize( const Vertex * const ) const
   {
     VertexTestData * testData = new VertexTestData();
     testData->i = 8888;
@@ -94,11 +94,11 @@ public:
 
 };
 
-class EdgeTestDataHandling : public NoSerializePrimitiveDataHandling< EdgeTestData >
+class EdgeTestDataHandling : public NoSerializePrimitiveDataHandling< EdgeTestData, Edge >
 {
 public:
 
-  EdgeTestData * initialize( const Primitive * const ) const
+  EdgeTestData * initialize( const Edge * const ) const
   {
     EdgeTestData * testData = new EdgeTestData();
     testData->i = 9999;
@@ -120,20 +120,28 @@ static void testPrimitiveData()
   PrimitiveStorage storage( setupStorage );
 
   PrimitiveID primitiveID = storage.addVertex();
-  Vertex *primitive = storage.getVertex( primitiveID );
-
+  Vertex *vertex = storage.getVertex( primitiveID );
 
   TestDataHandling testDataHandling;
   VertexTestDataHandling vertexTestDataHandling;
   EdgeTestDataHandling edgeTestDataHandling;
 
-  PrimitiveDataID< TestData > testDataID = storage.addPrimitiveData( testDataHandling, "primitive data" );
-  TestData * testData = primitive->getData( testDataID );
-  WALBERLA_CHECK_EQUAL( testData->i, 7777 );
+  // Adding data to all primitives
+  PrimitiveDataID< TestData, Primitive > testDataID = storage.addPrimitiveData( testDataHandling, "primitive data" );
+  // Adding data only to vertices
+  PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID = storage.addVertexData( vertexTestDataHandling, "vertex data" );
 
-  PrimitiveDataID< VertexTestData > vertexTestDataID = storage.addVertexData( vertexTestDataHandling, "vertex data" );
-  VertexTestData * vertexTestData = primitive->getData( vertexTestDataID );
+  // Obtaining initialized vertex data from a vertex
+  VertexTestData * vertexTestData = vertex->getData( vertexTestDataID );
   WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
+
+#if 0
+  // Will (and shall) not compile since we would try to obtain primitive data from a vertex
+  // It is also not possible to obtain vertex data from a primitive TODO: add example.
+  TestData * testData = vertex->getData( testDataID );
+  WALBERLA_CHECK_EQUAL( testData->i, 7777 );
+#endif
+  WALBERLA_UNUSED( testDataID );
 
 
 #if 0

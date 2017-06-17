@@ -72,6 +72,15 @@ public:
 
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Vertex > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
+
 };
 
 

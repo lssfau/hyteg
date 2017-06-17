@@ -25,7 +25,7 @@ using walberla::uint_t;
 ///
 /// \ref PrimitiveDataIDs are generated when data is added to primitives via a storage instance
 /// like \ref PrimitiveStorage.
-template< typename DataType >
+template< typename DataType, typename PrimitiveType >
 class PrimitiveDataID
 {
 public:

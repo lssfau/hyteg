@@ -47,6 +47,14 @@ public:
   std::vector<EdgeMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Edge > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
 };
 
 class EdgeMemory

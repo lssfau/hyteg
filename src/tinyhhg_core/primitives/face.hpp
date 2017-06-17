@@ -38,6 +38,14 @@ public:
   std::vector<FaceMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Face > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
 };
 
 class FaceMemory
