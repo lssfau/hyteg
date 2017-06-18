@@ -23,6 +23,10 @@ public:
 
   void toStream( std::ostream & os ) const;
 
+  void getVertices( std::map< PrimitiveID::IDType, SetupVertex* > & vertices ) const { vertices = vertices_; }
+  void getEdges( std::map< PrimitiveID::IDType, SetupEdge* > & edges ) const { edges = edges_; }
+  void getFaces( std::map< PrimitiveID::IDType, SetupFace* > & faces ) const { faces = faces_; }
+
   /// Searches an edge with the respective vertices by ID\n
   /// \param edge is set to the ID of the edge if one was found
   /// \return true, if an edge was found, false otherwise
