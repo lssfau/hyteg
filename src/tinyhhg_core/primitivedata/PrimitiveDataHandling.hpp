@@ -2,7 +2,6 @@
 #pragma once
 
 #include "core/debug/Debug.h"
-#include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
 #include <memory>
