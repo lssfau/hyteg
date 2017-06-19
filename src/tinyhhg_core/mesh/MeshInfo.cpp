@@ -81,30 +81,30 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     if (primitiveType == 1) // edge
     {
       uint_t type;
-      uint_t v0, v1;
+      std::array< uint_t, 2 > edgeVertices;
       meshFile >> ig; // ignore
       meshFile >> type;
       meshFile >> ig; // ignore
-      meshFile >> v0;
-      meshFile >> v1;
+      meshFile >> edgeVertices[0];
+      meshFile >> edgeVertices[1];
 
       WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
       DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
 
-      parsedEdges.push_back( std::make_pair( std::array< uint_t, 2>( {{ v0, v1 }} ), dofType ) );
+      parsedEdges.push_back( std::make_pair( edgeVertices, dofType ) );
     }
 
     else if (primitiveType == 2) // triangle
     {
-      uint_t v0, v1, v2;
+      std::array< uint_t, 3 > triangleVertices;
       meshFile >> ig; // ignore
       meshFile >> ig; // ignore
       meshFile >> ig; // ignore
-      meshFile >> v0;
-      meshFile >> v1;
-      meshFile >> v2;
+      meshFile >> triangleVertices[0];
+      meshFile >> triangleVertices[1];
+      meshFile >> triangleVertices[2];
 
-      parsedFaces.push_back( {{ v0, v1, v2 }} );
+      parsedFaces.push_back( triangleVertices );
     }
 
     else if (primitiveType == 15) // vertex
@@ -135,7 +135,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     meshInfo.addEdge( faceCoordinates[0], faceCoordinates[1], Inner );
     meshInfo.addEdge( faceCoordinates[1], faceCoordinates[2], Inner );
     meshInfo.addEdge( faceCoordinates[2], faceCoordinates[0], Inner );
-    meshInfo.faces_.insert( {{ faceCoordinates[0], faceCoordinates[1], faceCoordinates[2] }} );
+    meshInfo.faces_.insert( faceCoordinates );
   }
 
   meshFile.close();
