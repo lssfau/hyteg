@@ -1,7 +1,8 @@
 
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
@@ -14,8 +15,8 @@ namespace hhg {
 
 using walberla::uint_t;
 
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
-  primitiveDataHandlers_( 0 )
+PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage ) :
+  rank_( rank ), primitiveDataHandlers_( 0 )
 {
   std::map< PrimitiveID::IDType, SetupVertex* > setupVertices;
   std::map< PrimitiveID::IDType, SetupEdge* >   setupEdges;

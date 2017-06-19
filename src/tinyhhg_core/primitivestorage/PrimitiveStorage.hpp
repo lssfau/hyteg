@@ -23,13 +23,15 @@ public:
   typedef std::map< PrimitiveID::IDType, Edge* >   EdgeMap;
   typedef std::map< PrimitiveID::IDType, Face* >   FaceMap;
 
-  PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
+  PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage );
+
+  uint_t getRank() const { return rank_; }
 
   PrimitiveID addVertex();
 
-  ////////////////////
-  // Access methods //
-  ////////////////////
+  //////////////////////////////
+  // Primitive access methods //
+  //////////////////////////////
 
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
   bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ); }
@@ -111,6 +113,7 @@ private:
   EdgeMap   edges_;
   FaceMap   faces_;
 
+  uint_t rank_;
   uint_t primitiveDataHandlers_;
 
 };
