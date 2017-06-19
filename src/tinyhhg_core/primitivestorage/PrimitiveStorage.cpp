@@ -23,23 +23,5 @@ PrimitiveID PrimitiveStorage::addVertex()
 }
 
 
-const Vertex* PrimitiveStorage::getVertex( const PrimitiveID & ) const
-{
-  return NULL;
-}
-
-
-Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id )
-{
-  return vertices_[ id.getID() ];
-}
-
-
-bool PrimitiveStorage::primitiveExistsLocally( const PrimitiveID & ) const
-{
-  return false;
-}
-
-
 } // namespace hhg
 
