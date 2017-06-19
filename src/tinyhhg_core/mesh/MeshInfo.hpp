@@ -37,6 +37,8 @@ public:
   ///          ( VertexID_2, VertexID_0 ))
   typedef std::set< std::array< uint_t, 3 > >               FaceContainer;
 
+  /// Construct empty MeshInfo (for testing)
+  static MeshInfo emptyMeshInfo() { return MeshInfo(); }
   /// Construct a MeshInfo from a file in Gmsh format
   static MeshInfo fromGmshFile( const std::string & meshFileName );
 
