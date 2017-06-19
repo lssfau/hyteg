@@ -13,7 +13,7 @@ namespace hhg {
 MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
   MeshInfo meshInfo;
-  const std::array< DoFType, 3 > BOUNDARY_TYPE_TO_FLAG = { Inner, DirichletBoundary, NeumannBoundary };
+  const std::array< DoFType, 3 > BOUNDARY_TYPE_TO_FLAG = {{ Inner, DirichletBoundary, NeumannBoundary }}; // double-braces to silence warning
 
   WALBERLA_LOG_INFO_ON_ROOT( "[Mesh] Opening mesh file: " << meshFileName );
 
@@ -91,7 +91,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
       DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
 
-      parsedEdges.push_back( std::make_pair( std::array< uint_t, 2>( { v0, v1 } ), dofType ) );
+      parsedEdges.push_back( std::make_pair( std::array< uint_t, 2>( {{ v0, v1 }} ), dofType ) );
     }
 
     else if (primitiveType == 2) // triangle
@@ -104,7 +104,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> v1;
       meshFile >> v2;
 
-      parsedFaces.push_back( { v0, v1, v2 } );
+      parsedFaces.push_back( {{ v0, v1, v2 }} );
     }
 
     else if (primitiveType == 15) // vertex
@@ -135,7 +135,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     meshInfo.addEdge( faceCoordinates[0], faceCoordinates[1], Inner );
     meshInfo.addEdge( faceCoordinates[1], faceCoordinates[2], Inner );
     meshInfo.addEdge( faceCoordinates[2], faceCoordinates[0], Inner );
-    meshInfo.faces_.insert( { faceCoordinates[0], faceCoordinates[1], faceCoordinates[2] } );
+    meshInfo.faces_.insert( {{ faceCoordinates[0], faceCoordinates[1], faceCoordinates[2] }} );
   }
 
   meshFile.close();

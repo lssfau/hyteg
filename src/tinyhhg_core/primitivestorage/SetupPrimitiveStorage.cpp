@@ -1,9 +1,11 @@
 
+#include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include <algorithm>
+#include <iomanip>
 #include <set>
 
 namespace hhg {
