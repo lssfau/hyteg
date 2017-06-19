@@ -4,6 +4,7 @@
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 
@@ -13,13 +14,14 @@
 namespace hhg
 {
 
+class Vertex;
 class Edge;
 class FaceMemory;
 
 class Face : public Primitive
 {
 public:
-  WALBERLA_DEPRECATED( Face(size_t id, Edge* edges[3]) );
+  Face(size_t id, Edge* edges[3]);
 
   size_t vertex_index(const Vertex& vertex) const;
   size_t edge_index(const Edge& edge) const;

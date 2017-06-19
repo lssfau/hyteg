@@ -4,9 +4,9 @@
 #include "core/logging/Logging.h"
 #include "tinyhhg_core/primitiveid.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/primitives/face.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
-#include "tinyhhg_core/primitives/face.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -28,6 +28,8 @@ public:
   uint_t getRank() const { return rank_; }
 
   PrimitiveID addVertex();
+
+  void checkConsistency();
 
   //////////////////////////////
   // Primitive access methods //
@@ -172,20 +174,8 @@ template< typename DataType, typename PrimitiveType >
 PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 {
 #ifndef NDEBUG
-  for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
-  {
-    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
-  }
-  for ( auto it = edges_.begin(); it != edges_.end(); it++ )
-  {
-    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
-  }
-  for ( auto it = faces_.begin(); it != faces_.end(); it++ )
-  {
-    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
-  }
+  checkConsistency();
 #endif
-
   return PrimitiveDataID< DataType, PrimitiveType >( primitiveDataHandlers_++ );
 }
 

@@ -24,7 +24,7 @@ class Edge : public Primitive
 {
 public:
 
-  WALBERLA_DEPRECATED( Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1) );
+  Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;

@@ -7,6 +7,8 @@
 #include <core/Deprecated.h>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitives/SetupVertex.hpp>
+#include <tinyhhg_core/mesh/MeshInfo.hpp>
 
 #include <vector>
 
@@ -31,7 +33,8 @@ public:
   /// Constructs a vertex with given id and coordinates
   /// \param id Id of vertex
   /// \param coords Spatial coordinates of vertex
-  WALBERLA_DEPRECATED( Vertex(size_t id, const Point3D& coords) );
+  Vertex(size_t id, const Point3D& coords);
+  Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex );
 
   /// Adds given edge to \ref edges
   /// \param edge Pointer to edge which will be added

@@ -1,10 +1,12 @@
 #include <fmt/ostream.h>
 
-#include "edge.hpp"
 #include "face.hpp"
+#include "edge.hpp"
 #include "vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/math.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include <core/mpi/MPIManager.h>
 
@@ -15,7 +17,7 @@ namespace hhg
 using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
-  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
+  : Primitive( PrimitiveStorage( 0, MeshInfo::emptyMeshInfo()), SetupFace(0, 0, 0, 0) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {

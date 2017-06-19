@@ -1,6 +1,7 @@
 
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
+#include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
@@ -60,6 +61,31 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
       faces_[ faceID.getID() ] = new Face( faceID.getID(), faceEdges );
     }
   }
+}
+
+
+void PrimitiveStorage::checkConsistency()
+{
+  // 1. Number of data handlers equal to local counter
+  // 2. PrimitiveIDs of maps match IDs of Primtives
+  for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
+  {
+    WALBERLA_CHECK_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+  }
+  for ( auto it = edges_.begin(); it != edges_.end(); it++ )
+  {
+    WALBERLA_CHECK_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+  }
+  for ( auto it = faces_.begin(); it != faces_.end(); it++ )
+  {
+    WALBERLA_CHECK_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+  }
+
+
+
 }
 
 

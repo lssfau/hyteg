@@ -5,6 +5,7 @@
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/primitives/SetupPrimitive.hpp"
 
 #include <memory>
 #include <vector>
@@ -63,6 +64,7 @@ private:
 }
 
 class PrimitiveID;
+class PrimitiveStorage;
 
 /// \brief Base class for primitive geometries
 /// \author Nils Kohl (nils.kohl@fau.de)
@@ -97,10 +99,12 @@ public:
   /// Returns the number of registered data / data handling pairs.
   uint_t getNumberOfDataEntries() const { return data_.size(); }
 
+  const PrimitiveID & getID() const { return primitiveID_; }
+
 protected:
 
   /// Only subclasses shall be constructable
-  Primitive() {};
+  Primitive( const PrimitiveStorage & storage, const SetupPrimitive & setupPrimitive ) : storage_( storage ) {} ;
 
   template< typename DataType, typename PrimitiveType >
   inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
@@ -120,6 +124,7 @@ private:
   /// This way it is possible to loop over the data to for example serialize all registered data.
   std::vector< std::pair< PrimitiveData*, ConstPrimitiveData* > > data_;
 
+  const PrimitiveStorage & storage_;
   PrimitiveID primitiveID_;
 
 };
