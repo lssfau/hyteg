@@ -10,6 +10,7 @@
 #include <tinyhhg_core/primitives/Primitive.hpp>
 
 #include <core/DataTypes.h>
+#include <core/Deprecated.h>
 
 namespace hhg
 {
@@ -23,7 +24,7 @@ class Edge : public Primitive
 {
 public:
 
-  Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
+  WALBERLA_DEPRECATED( Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1) );
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;
