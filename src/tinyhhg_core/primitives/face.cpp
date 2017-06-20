@@ -90,6 +90,81 @@ Face::Face(size_t _id, Edge* _edges[3])
   area = std::abs(0.5 * math::det2(B));
 }
 
+Face::Face( PrimitiveStorage & storage, const SetupFace & setupFace )
+  : Primitive( storage, setupFace ), id( setupFace.getPrimitiveID().getID() ),
+    rank(setupFace.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+    type(Inner)
+{
+  edges[0] = storage.getEdge( setupFace.getEdgeID0() );
+  edges[1] = storage.getEdge( setupFace.getEdgeID1() );
+  edges[2] = storage.getEdge( setupFace.getEdgeID2() );
+
+  Vertex* v0_0 = edges[0]->v0;
+  Vertex* v0_1 = edges[0]->v1;
+  Vertex* v1_0 = edges[1]->v0;
+  Vertex* v1_1 = edges[1]->v1;
+  Vertex* v2_0 = edges[2]->v0;
+  Vertex* v2_1 = edges[2]->v1;
+
+  if (v0_1 == v1_0 && v1_1 == v2_0 && v2_1 == v0_0)
+  {
+    edge_orientation = {{1, 1, 1}};
+  }
+  else if (v0_1 == v1_0 && v1_1 == v2_1 && v2_0 == v0_0)
+  {
+    edge_orientation = {{1, 1, -1}};
+  }
+  else if (v0_1 == v1_1 && v1_0 == v2_0 && v2_1 == v0_0)
+  {
+    edge_orientation = {{1, -1, 1}};
+  }
+  else if (v0_1 == v1_1 && v1_0 == v2_1 && v2_0 == v0_0)
+  {
+    edge_orientation = {{1, -1, -1}};
+  }
+  else if (v0_0 == v1_0 && v1_1 == v2_0 && v2_1 == v0_1)
+  {
+    edge_orientation = {{-1, 1, 1}};
+  }
+  else if (v0_0 == v1_0 && v1_1 == v2_1 && v2_0 == v0_1)
+  {
+    edge_orientation = {{-1, 1, -1}};
+  }
+  else if (v0_0 == v1_1 && v1_0 == v2_0 && v2_1 == v0_1)
+  {
+    edge_orientation = {{-1, -1, 1}};
+  }
+  else if (v0_0 == v1_1 && v1_0 == v2_1 && v2_0 == v0_1)
+  {
+    edge_orientation = {{-1, -1, -1}};
+  }
+
+  if (edge_orientation[0] == 1)
+  {
+    vertices.push_back(v0_0);
+    vertices.push_back(v0_1);
+  }
+  else
+  {
+    vertices.push_back(v0_1);
+    vertices.push_back(v0_0);
+  }
+
+  if (edge_orientation[1] == 1)
+  {
+    vertices.push_back(v1_1);
+  }
+  else
+  {
+    vertices.push_back(v1_0);
+  }
+
+  coords = {{vertices[0]->coords, vertices[1]->coords, vertices[2]->coords}};
+
+  std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
+  area = std::abs(0.5 * math::det2(B));
+}
+
 size_t Face::vertex_index(const Vertex& vertex) const
 {
   for (size_t i = 0; i < 3; ++i)
