@@ -21,7 +21,7 @@ public:
   VertexP1StencilMemory() : VertexMemory(MemoryType::P1Stencil) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps;
+  size_t num_deps_;
 
   inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
@@ -29,7 +29,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      this->num_deps = num_deps;
+      this->num_deps_ = num_deps;
       data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
@@ -37,7 +37,7 @@ public:
 
   inline size_t getSize(size_t level)
   {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps;
+    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
   }
 
 };
@@ -50,7 +50,7 @@ public:
   VertexP1FunctionMemory() : VertexMemory(MemoryType::P1Function) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps;
+  size_t num_deps_;
 
   inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
@@ -58,7 +58,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      this->num_deps = num_deps;
+      this->num_deps_ = num_deps;
       data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
@@ -66,7 +66,7 @@ public:
 
   inline size_t getSize(size_t level)
   {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps;
+    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
   }
 
 };
