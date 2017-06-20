@@ -39,12 +39,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   {
     if ( rank_ == it->second->getTargetRank() )
     {
-      PrimitiveID faceID = it->first;
-      Edge* faceEdges[3];
-      faceEdges[0] = edges_[ it->second->getEdgeID0().getID() ];
-      faceEdges[1] = edges_[ it->second->getEdgeID1().getID() ];
-      faceEdges[2] = edges_[ it->second->getEdgeID2().getID() ];
-      faces_[ faceID.getID() ] = new Face( faceID.getID(), faceEdges );
+      faces_[ it->first ] = new Face( *this, *(it->second) );
     }
   }
 
