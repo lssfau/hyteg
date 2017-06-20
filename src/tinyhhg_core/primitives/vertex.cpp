@@ -14,7 +14,9 @@ Vertex::Vertex(size_t _id, const Point3D& _coords)
 }
 
 Vertex::Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex ) :
-  Primitive( storage, setupVertex ), id( 0 ), rank( 0 ), type( Inner ), coords( setupVertex.getCoordinates() )
+  Primitive( storage, setupVertex ), id( setupVertex.getPrimitiveID().getID() ),
+  rank( setupVertex.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses()) ),
+  type( Inner ), coords( setupVertex.getCoordinates() )
 {
 }
 
