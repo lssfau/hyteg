@@ -131,34 +131,25 @@ static void testPrimitiveData()
   // Obtaining initialized vertex data from a vertex
   for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
   {
-    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID " << it->second->getID().getID() );
+    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it->second->getID().getID() );
     VertexTestData * vertexTestData = it->second->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
   }
 
-
 #if 0
   // Will (and shall) not compile since we would try to obtain primitive data from a vertex
-  // It is also not possible to obtain vertex data from a primitive TODO: add example.
+  // It is also not possible to obtain vertex data from a primitive
   TestData * testData = vertex->getData( testDataID );
   WALBERLA_CHECK_EQUAL( testData->i, 7777 );
 #endif
   WALBERLA_UNUSED( testDataID );
 
-
-#if 0
-  TestData *p_testData = primitive.getData( testDataID );
-  OtherTestData *p_otherTestData = primitive.getData( otherTestDataID );
-
-  WALBERLA_CHECK_EQUAL( p_testData->i, 100 );
-  WALBERLA_CHECK_EQUAL( p_otherTestData->i, 200 );
-#endif
 }
 
 } // namespace hhg
 
 
-int main(int argc, char* argv[])
+int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
 
