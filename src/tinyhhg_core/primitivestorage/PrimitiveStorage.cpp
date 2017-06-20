@@ -19,27 +19,17 @@ using walberla::uint_t;
 PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage ) :
   rank_( rank ), primitiveDataHandlers_( 0 )
 {
-  std::map< PrimitiveID::IDType, SetupVertex* > setupVertices;
-  std::map< PrimitiveID::IDType, SetupEdge* >   setupEdges;
-  std::map< PrimitiveID::IDType, SetupFace* >   setupFaces;
-
-  setupStorage.getVertices( setupVertices );
-  setupStorage.getEdges( setupEdges );
-  setupStorage.getFaces( setupFaces );
-
-  uint_t processRank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-
-  for ( auto it = setupVertices.begin(); it != setupVertices.end(); it++  )
+  for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
   {
-    if ( processRank == it->second->getTargetRank() )
+    if ( rank_ == it->second->getTargetRank() )
     {
-      vertices_[ it->first ] = new Vertex( it->first, it->second->getCoordinates() );
+      vertices_[ it->first ] = new Vertex( *this, *(it->second) );
     }
   }
 
-  for ( auto it = setupEdges.begin(); it != setupEdges.end(); it++ )
+  for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
   {
-    if ( processRank == it->second->getTargetRank() )
+    if ( rank_ == it->second->getTargetRank() )
     {
       PrimitiveID edgeID = it->first;
       DoFType edgeType = it->second->getDoFType();
@@ -49,9 +39,9 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
     }
   }
 
-  for ( auto it = setupFaces.begin(); it != setupFaces.end(); it++ )
+  for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
   {
-    if ( processRank == it->second->getTargetRank() )
+    if ( rank_ == it->second->getTargetRank() )
     {
       PrimitiveID faceID = it->first;
       Edge* faceEdges[3];
