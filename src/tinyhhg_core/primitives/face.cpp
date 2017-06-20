@@ -17,7 +17,7 @@ namespace hhg
 using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
-  : Primitive( PrimitiveStorage( 0, MeshInfo::emptyMeshInfo()), SetupFace(0, 0, 0, 0) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
+  : Primitive( PrimitiveStorage( 0, MeshInfo::emptyMeshInfo()), SetupFace(_id, 0, 0, 0) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {

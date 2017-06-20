@@ -119,8 +119,7 @@ static void testPrimitiveData()
 
   PrimitiveStorage storage( uint_c( walberla::mpi::MPIManager::instance()->rank() ), setupStorage );
 
-  PrimitiveID primitiveID = storage.addVertex();
-  Vertex *vertex = storage.getVertex( primitiveID );
+  Vertex *vertex = storage.getVertex( PrimitiveID( 1 ) );
 
   TestDataHandling testDataHandling;
   VertexTestDataHandling vertexTestDataHandling;
@@ -132,8 +131,13 @@ static void testPrimitiveData()
   PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID = storage.addVertexData( vertexTestDataHandling, "vertex data" );
 
   // Obtaining initialized vertex data from a vertex
-  VertexTestData * vertexTestData = vertex->getData( vertexTestDataID );
-  WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
+  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  {
+    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID " << it->second->getID().getID() );
+    VertexTestData * vertexTestData = vertex->getData( vertexTestDataID );
+    WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
+  }
+
 
 #if 0
   // Will (and shall) not compile since we would try to obtain primitive data from a vertex
@@ -161,7 +165,7 @@ int main(int argc, char* argv[])
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv(argc, argv);
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::TRACING );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    hhg::testPrimitiveData();
 

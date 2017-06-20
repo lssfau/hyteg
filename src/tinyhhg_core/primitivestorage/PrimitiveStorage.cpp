@@ -61,6 +61,10 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
       faces_[ faceID.getID() ] = new Face( faceID.getID(), faceEdges );
     }
   }
+
+#ifndef NDEBUG
+  checkConsistency();
+#endif
 }
 
 
@@ -86,14 +90,6 @@ void PrimitiveStorage::checkConsistency()
 
 
 
-}
-
-
-PrimitiveID PrimitiveStorage::addVertex()
-{
-  PrimitiveID id(0);
-  vertices_[ id.getID() ] = new Vertex( 0, Point3D() );
-  return id;
 }
 
 
