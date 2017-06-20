@@ -4,6 +4,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
+#include "p1bubblevertexcomm.hpp"
 
 #include <core/mpi/MPIWrapper.h>
 
