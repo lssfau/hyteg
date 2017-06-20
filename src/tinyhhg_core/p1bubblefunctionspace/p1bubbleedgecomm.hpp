@@ -49,5 +49,37 @@ inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::Rec
 }
 SPECIALIZE(void, unpackFaceData_tmpl, unpackFaceData)
 
+template<size_t Level>
+inline void unpackVertexData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Vertex &vertex)
+{
+  auto &edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[Level];
+  uint_t nbr_edges = vertex.edges.size();
+  uint_t edge_id = vertex.edge_index(edge);
+  //position in edge memory
+  uint_t pos;
+  EdgeCoordsVertex::DirVertex dir1;
+  EdgeCoordsVertex::DirVertex dir2;
+  if(edge_id == 0){
+    dir1 = EdgeCoordsVertex::CELL_GRAY_NE;
+    pos = 0;
+  } else {
+    pos = levelinfo::num_microvertices_per_edge(Level);
+  }
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
+  //remove unneeded data
+  if(edge_id > 1) {
+    for (uint_t i = 0; i < edge_id - 1; ++i) {
+      auto dump;
+      recvBuffer >> dump;
+    }
+  }
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
+
+
+}
+
+SPECIALIZE(void, unpackVertexData_tmpl, unpackVertexData)
+
 }// namespace P1BubbleEdg8e
 }// namespace hhg
