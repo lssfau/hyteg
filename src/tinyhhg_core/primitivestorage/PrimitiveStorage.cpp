@@ -27,7 +27,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   setupStorage.getEdges( setupEdges );
   setupStorage.getFaces( setupFaces );
 
-  uint_t processRank = walberla::mpi::MPIManager::instance()->rank();
+  uint_t processRank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
   for ( auto it = setupVertices.begin(); it != setupVertices.end(); it++  )
   {
