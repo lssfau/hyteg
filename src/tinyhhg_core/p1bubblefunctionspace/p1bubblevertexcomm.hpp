@@ -27,13 +27,12 @@ inline void packData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::m
   }
 }
 
-inline void unpackEdgeData(Face &face, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Edge &edge) {
-//  auto& face_data = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
-//  uint_t edgeIndex = face.edge_index(edge);
-//  for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], VERTEX, Level); it != indexIterator(); ++it){
-//    recvBuffer >> face_data[*it];
-//  }
+inline void unpackEdgeData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Edge &edge) {
+  auto &vertex_data = P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level];
+  uint_t edge_id = vertex.edge_index(edge);
+  //the first index is the middle vertex therefore no +1 to edge_id is required
+  recvBuffer >> vertex_data[edge_id];
 }
 
-}
-}
+} // P1BubbleVertex
+} // hhg

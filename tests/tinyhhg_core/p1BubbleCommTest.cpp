@@ -33,10 +33,18 @@ int main (int argc, char ** argv )
   hhg::P1BubbleFace::interpolate(mesh.faces[0],0,eight,maxLevel);
   hhg::P1BubbleFace::interpolate(mesh.faces[1],0,nine,maxLevel);
 
+
   int counter = 1;
   for(auto edge : mesh.edges){
     std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
     hhg::P1BubbleEdge::interpolate(edge,0,exact,maxLevel);
+    counter++;
+  }
+
+  counter = 1;
+  for(auto vertex : mesh.vertices){
+    std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
+    hhg::P1BubbleVertex::interpolate(vertex,0,exact,maxLevel);
     counter++;
   }
 
@@ -62,15 +70,26 @@ int main (int argc, char ** argv )
   {
     pull_edges(face,0,maxLevel);
   }
+//
+//  packData(maxLevel, face0, 0, sb, mesh.edges[4]);
+//  walberla::mpi::RecvBuffer rb(sb);
+//  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb,face0);
+//
+//  packData(maxLevel, face1, 0, sb, mesh.edges[4]);
+//  walberla::mpi::RecvBuffer rb2(sb);
+//  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb2,face1);
 
-  packData(maxLevel, face0, 0, sb, mesh.edges[4]);
+  hhg::P1BubbleEdge::pull_halos(mesh.edges[4],0,maxLevel);
+
+  hhg::P1BubbleVertex::packData(maxLevel,mesh.vertices[0],0,sb);
   walberla::mpi::RecvBuffer rb(sb);
-  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb,face0);
+  hhg::P1BubbleEdge::unpackVertexData(maxLevel, mesh.edges[4],0,rb,mesh.vertices[0]);
 
-  packData(maxLevel, face1, 0, sb, mesh.edges[4]);
+  hhg::P1BubbleVertex::packData(maxLevel,mesh.vertices[3],0,sb);
   walberla::mpi::RecvBuffer rb2(sb);
-  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb2,face1);
+  hhg::P1BubbleEdge::unpackVertexData(maxLevel, mesh.edges[4],0,rb2,mesh.vertices[3]);
 
+  hhg::P1BubbleVertex::print(mesh.vertices[3],0,maxLevel);
 
   auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(face0, 0)->data[maxLevel];
   auto& face1mem = hhg::P1Bubble::getFaceFunctionMemory(face1, 0)->data[maxLevel];
@@ -112,6 +131,7 @@ int main (int argc, char ** argv )
   std::cout << std::endl;
   std::cout << "=======================================" << std::endl;
 
+  hhg::VTKWriter({ &x }, maxLevel, "output", "P1BubbleCommTest");
 
   return 0;
 }

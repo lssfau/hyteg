@@ -194,6 +194,16 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
   }
 }
 
+inline void print(Vertex & vertex, size_t memory_id, size_t level) {
+  auto &vertexData = P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level];
+  fmt::print("Center dof: {}\n" , vertexData[0]);
+  fmt::print("{:<8} {:<8} {:<8} {:<8}\n","inner","outer","localID","globalID");
+  for(size_t i = 0; i < vertex.edges.size(); ++i){
+    fmt::print("{:<8} {:<8} {:<8} {:<8}\n",vertexData[i + 1],vertexData[vertex.edges.size() + i],i,vertex.edges[i]->id);
+  }
+}
+
+
 //inline void prolongate(Vertex& vertex, size_t memory_id, size_t level)
 //{
 //  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level+1][0] = P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0];
