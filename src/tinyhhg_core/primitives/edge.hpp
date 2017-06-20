@@ -26,7 +26,7 @@ class Edge : public Primitive
 public:
 
   Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
-  Edge( PrimitiveStorage & storage, const SetupEdge & setupVertex );
+  Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge );
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;
