@@ -27,8 +27,6 @@ public:
 
   uint_t getRank() const { return rank_; }
 
-  PrimitiveID addVertex();
-
   void checkConsistency();
 
   //////////////////////////////
