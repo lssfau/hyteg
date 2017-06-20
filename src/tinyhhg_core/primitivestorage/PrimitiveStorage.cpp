@@ -31,11 +31,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   {
     if ( rank_ == it->second->getTargetRank() )
     {
-      PrimitiveID edgeID = it->first;
-      DoFType edgeType = it->second->getDoFType();
-      Vertex* edgeVertex0 = vertices_[ it->second->getVertexID0().getID() ];
-      Vertex* edgeVertex1 = vertices_[ it->second->getVertexID1().getID() ];
-      edges_[ edgeID.getID() ] = new Edge( edgeID.getID(), edgeType, edgeVertex0, edgeVertex1 );
+      edges_[ it->first ] = new Edge( *this, *(it->second) );
     }
   }
 
