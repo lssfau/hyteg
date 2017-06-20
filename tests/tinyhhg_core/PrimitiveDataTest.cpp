@@ -119,8 +119,6 @@ static void testPrimitiveData()
 
   PrimitiveStorage storage( uint_c( walberla::mpi::MPIManager::instance()->rank() ), setupStorage );
 
-  Vertex *vertex = storage.getVertex( PrimitiveID( 1 ) );
-
   TestDataHandling testDataHandling;
   VertexTestDataHandling vertexTestDataHandling;
   EdgeTestDataHandling edgeTestDataHandling;
@@ -134,7 +132,7 @@ static void testPrimitiveData()
   for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
   {
     WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID " << it->second->getID().getID() );
-    VertexTestData * vertexTestData = vertex->getData( vertexTestDataID );
+    VertexTestData * vertexTestData = it->second->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
   }
 
