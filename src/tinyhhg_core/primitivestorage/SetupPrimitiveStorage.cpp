@@ -90,8 +90,18 @@ bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, 
 }
 
 
+void SetupPrimitiveStorage::balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
+					 const uint_t & numberOfProcesses,
+					 const memory_t & perProcessMemoryLimit )
+{
+  loadbalanceCallback( *this, numberOfProcesses, perProcessMemoryLimit );
+}
+
+
 void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 {
+  os << "\n";
+  os << "SetupPrimitiveStorage:\n";
   os << "\n";
 
   os << "Vertices:   ID | Position\n"
@@ -124,6 +134,17 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
        << std::setw(8) << it->second->getEdgeID2().getID() << "\n";
   }
 }
+
+
+void SetupPrimitiveStorage::getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const
+{
+  setupPrimitiveMap.insert( beginVertices(), endVertices() );
+  setupPrimitiveMap.insert( beginEdges(), endEdges() );
+  setupPrimitiveMap.insert( beginFaces(), endFaces() );
+
+  WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+}
+
 
 PrimitiveID SetupPrimitiveStorage::generatePrimitiveID()
 {
