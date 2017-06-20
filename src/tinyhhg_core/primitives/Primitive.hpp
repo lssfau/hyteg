@@ -101,6 +101,9 @@ public:
 
   const PrimitiveID & getID() const { return primitiveID_; }
 
+  /// Returns the rank of the \ref PrimitiveStorage this primitive is located at
+  uint_t getRank() const;
+
 protected:
 
   /// Only subclasses shall be constructable
