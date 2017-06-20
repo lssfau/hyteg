@@ -135,7 +135,7 @@ int main (int argc, char ** argv )
   std::cout << std::endl;
   std::cout << "=======================================" << std::endl;
 
-  hhg::VTKWriter({ &x }, maxLevel, "output", "P1BubbleCommTest");
+  //hhg::VTKWriter({ &x }, maxLevel, "output", "P1BubbleCommTest");
 
   return 0;
 }
