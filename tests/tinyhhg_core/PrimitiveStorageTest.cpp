@@ -75,7 +75,7 @@ static void testPrimitiveStorage()
 
   for ( auto it = storage.beginFaces(); it != storage.endFaces(); it++ )
   {
-    // WALBERLA_CHECK_EQUAL( it->second->getRank(), balanceRank, "A face is not correctly balanced." );
+    WALBERLA_CHECK_EQUAL( it->second->getRank(), balanceRank, "A face is not correctly balanced." );
   }
 
 
