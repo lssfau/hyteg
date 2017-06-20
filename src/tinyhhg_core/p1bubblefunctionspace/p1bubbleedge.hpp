@@ -44,41 +44,13 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<real_t(const
 
 inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-
-  if (edge.v0->rank == walberla::mpi::MPIManager::instance()->rank())
-  {
-    // local information
-    if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
-    {
-      P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][0] = P1Bubble::getVertexFunctionMemory(*edge.v0, memory_id)->data[level][0];
-    }
-    else
-    {
-      MPI_Send(&P1Bubble::getVertexFunctionMemory(*edge.v0, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
-    }
-  }
-  else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
-  {
-    MPI_Recv(&P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.v0->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  }
-
-  if (edge.v1->rank == walberla::mpi::MPIManager::instance()->rank())
-  {
-    // local information
-    if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
-    {
-      P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][rowsize-1] = P1Bubble::getVertexFunctionMemory(*edge.v1, memory_id)->data[level][0];
-    }
-    else
-    {
-      MPI_Send(&P1Bubble::getVertexFunctionMemory(*edge.v1, memory_id)->data[level][0], 1, walberla::MPITrait< real_t >::type(), edge.rank, 0, MPI_COMM_WORLD);
-    }
-  }
-  else if (edge.rank == walberla::mpi::MPIManager::instance()->rank())
-  {
-    MPI_Recv(&P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][rowsize-1], 1, walberla::MPITrait< real_t >::type(), edge.v1->rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-  }
+  //TODO this is WIP only works with one mpi rank!
+  walberla::mpi::SendBuffer sb;
+  hhg::P1BubbleVertex::packData(level,*edge.v0,0,sb);
+  hhg::P1BubbleVertex::packData(level,*edge.v1,0,sb);
+  walberla::mpi::RecvBuffer rb(sb);
+  unpackVertexData(level,edge,memory_id,rb,*edge.v0);
+  unpackVertexData(level,edge,memory_id,rb,*edge.v1);
 }
 
 inline void assign(Edge& edge, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)

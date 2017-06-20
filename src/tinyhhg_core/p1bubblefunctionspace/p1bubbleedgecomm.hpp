@@ -39,9 +39,9 @@ inline void packDataforVertex(Edge &edge, uint_t memory_id, walberla::mpi::SendB
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t vertex_id = edge.vertex_index(vertex);
   if(vertex_id == 0){
-    sendBuffer << edge_data[0];
+    sendBuffer << edge_data[1];
   } else if(vertex_id == 1){
-    sendBuffer << edge_data[levelinfo::num_microvertices_per_edge(level)-1];
+    sendBuffer << edge_data[levelinfo::num_microvertices_per_edge(level)-2];
   } else {
     WALBERLA_LOG_WARNING("Vertex: " << vertex << " is not contained in Edge: " << edge);
   }

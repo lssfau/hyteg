@@ -5,6 +5,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 #include "p1bubblevertexcomm.hpp"
+#include "p1bubbleedgecomm.hpp"
 
 #include <core/mpi/MPIWrapper.h>
 
@@ -152,45 +153,13 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
-  size_t i = 1;
-  auto MPIManager = walberla::mpi::MPIManager::instance();
-  int rk = MPIManager->rank();
-  walberla::mpi::BufferSystem bs ( MPIManager->comm() );
-
-
-  for (Edge* edge : vertex.edges)
-  {
-    if (vertex.rank == rk)
-    {
-      if (edge->rank == rk)
-      {
-        if(edge->vertex_index(vertex) == 0)
-        {
-          P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][i] = P1Bubble::getEdgeFunctionMemory(*edge, memory_id)->data[level][1];
-        }
-        else
-        {
-          P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][i] = P1Bubble::getEdgeFunctionMemory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2];
-        }
-      }
-      else
-      {
-        MPI_Recv(&P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][i], 1, walberla::MPITrait< real_t >::type(), edge->rank, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-      }
-    }
-    else if (edge->rank == rk)
-    {
-      if(edge->vertex_index(vertex) == 0)
-      {
-        MPI_Send(&P1Bubble::getEdgeFunctionMemory(*edge, memory_id)->data[level][1], 1, walberla::MPITrait< real_t >::type(), vertex.rank, i, MPI_COMM_WORLD);
-      }
-      else
-      {
-        MPI_Send(&P1Bubble::getEdgeFunctionMemory(*edge, memory_id)->data[level][levelinfo::num_microvertices_per_edge(level) - 2], 1, walberla::MPITrait< real_t >::type(), vertex.rank, i, MPI_COMM_WORLD);
-      }
-    }
-
-    i += 1;
+  walberla::mpi::SendBuffer sb;
+  for(hhg::Edge* edge : vertex.edges){
+    hhg::P1BubbleEdge::packDataforVertex(*edge,0,sb,level,vertex);
+  }
+  walberla::mpi::RecvBuffer rb(sb);
+  for(hhg::Edge* edge : vertex.edges) {
+    unpackEdgeData(level,vertex,0,rb,*edge);
   }
 }
 
