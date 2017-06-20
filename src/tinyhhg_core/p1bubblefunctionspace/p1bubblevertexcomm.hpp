@@ -30,8 +30,7 @@ inline void packData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::m
 inline void unpackEdgeData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Edge &edge) {
   auto &vertex_data = P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level];
   uint_t edge_id = vertex.edge_index(edge);
-  //the first index is the middle vertex therefore no +1 to edge_id is required
-  recvBuffer >> vertex_data[edge_id];
+  recvBuffer >> vertex_data[edge_id + 1];
 }
 
 } // P1BubbleVertex

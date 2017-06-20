@@ -89,6 +89,10 @@ int main (int argc, char ** argv )
   walberla::mpi::RecvBuffer rb2(sb);
   hhg::P1BubbleEdge::unpackVertexData(maxLevel, mesh.edges[4],0,rb2,mesh.vertices[3]);
 
+  hhg::P1BubbleEdge::packDataforVertex(mesh.edges[4],0,sb,maxLevel,mesh.vertices[3]);
+  walberla::mpi::RecvBuffer rb3(sb);
+  hhg::P1BubbleVertex::unpackEdgeData(maxLevel,mesh.vertices[3],0,rb3,mesh.edges[4]);
+
   hhg::P1BubbleVertex::print(mesh.vertices[3],0,maxLevel);
 
   auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(face0, 0)->data[maxLevel];
