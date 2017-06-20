@@ -8,6 +8,7 @@
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitives/SetupEdge.hpp>
 
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
@@ -25,6 +26,7 @@ class Edge : public Primitive
 public:
 
   Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
+  Edge( PrimitiveStorage & storage, const SetupEdge & setupVertex );
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;

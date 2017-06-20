@@ -29,6 +29,25 @@ Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
   // fmt::print("normal_2d = {}\n", normal_2d);
 }
 
+Edge::Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge )
+  : Primitive( storage, setupEdge ), id( setupEdge.getPrimitiveID().getID() ),
+    rank(setupEdge.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+    type(setupEdge.getDoFType())
+{
+  v0 = storage.getVertex( setupEdge.getVertexID0() );
+  v1 = storage.getVertex( setupEdge.getVertexID1() );
+  direction = v1->coords - v0->coords;
+  length = direction.norm();
+  tangent = direction / length;
+  const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
+  normal_2d = Point3D(init);
+
+  // fmt::print("direction = {}\n", direction);
+  // fmt::print("length = {}\n", length);
+  // fmt::print("tangent = {}\n", tangent);
+  // fmt::print("normal_2d = {}\n", normal_2d);
+}
+
 void Edge::addFace(Face* face)
 {
   faces.push_back(face);
