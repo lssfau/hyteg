@@ -23,4 +23,6 @@
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
 
+#include "communication/PackInfo.hpp"
+
 #endif /* TINYHHG_HPP */
