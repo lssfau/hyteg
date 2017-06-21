@@ -33,6 +33,7 @@ int main (int argc, char ** argv )
   hhg::P1BubbleFace::interpolate(mesh.faces[0],0,eight,maxLevel);
   hhg::P1BubbleFace::interpolate(mesh.faces[1],0,nine,maxLevel);
 
+
   int counter = 1;
   for(auto edge : mesh.edges){
     std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
@@ -40,37 +41,32 @@ int main (int argc, char ** argv )
     counter++;
   }
 
+  counter = 1;
+  for(auto vertex : mesh.vertices){
+    std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
+    hhg::P1BubbleVertex::interpolate(vertex,0,exact,maxLevel);
+    counter++;
+  }
+
   walberla::mpi::SendBuffer sb;
   auto& face0 = mesh.faces[0];
   auto& face1 = mesh.faces[1];
-//
-//  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
-//    if(face0.edge_index(mesh.edges[i]) <= 2){
-//      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
-//      walberla::mpi::RecvBuffer rb(sb);
-//      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face0, 0, rb, mesh.edges[i]);
-//    }
-//  }
-//  for(uint_t i = 0; i < mesh.edges.size(); ++i) {
-//    if(face1.edge_index(mesh.edges[i]) <= 2){
-//      hhg::P1BubbleEdge::packData(mesh.edges[i], 0, sb, maxLevel);
-//      walberla::mpi::RecvBuffer rb(sb);
-//      hhg::P1BubbleFace::unpackEdgeData(maxLevel, face1, 0, rb, mesh.edges[i]);
-//    }
-//  }
+
   for(hhg::Face& face : mesh.faces)
   {
     pull_edges(face,0,maxLevel);
   }
 
-  packData(maxLevel, face0, 0, sb, mesh.edges[4]);
-  walberla::mpi::RecvBuffer rb(sb);
-  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb,face0);
+  hhg::P1BubbleEdge::pull_halos(mesh.edges[4],0,maxLevel);
 
-  packData(maxLevel, face1, 0, sb, mesh.edges[4]);
-  walberla::mpi::RecvBuffer rb2(sb);
-  hhg::P1BubbleEdge::unpackFaceData(maxLevel, mesh.edges[4],0,rb2,face1);
+  hhg::P1BubbleEdge::pull_vertices(mesh.edges[4],0,maxLevel);
 
+  hhg::P1BubbleVertex::pull_halos(mesh.vertices[3],0,maxLevel);
+//  hhg::P1BubbleEdge::packDataforVertex(mesh.edges[4],0,sb,maxLevel,mesh.vertices[3]);
+//  walberla::mpi::RecvBuffer rb3(sb);
+//  hhg::P1BubbleVertex::unpackEdgeData(maxLevel,mesh.vertices[3],0,rb3,mesh.edges[4]);
+
+  hhg::P1BubbleVertex::print(mesh.vertices[3],0,maxLevel);
 
   auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(face0, 0)->data[maxLevel];
   auto& face1mem = hhg::P1Bubble::getFaceFunctionMemory(face1, 0)->data[maxLevel];
@@ -112,6 +108,7 @@ int main (int argc, char ** argv )
   std::cout << std::endl;
   std::cout << "=======================================" << std::endl;
 
+  //hhg::VTKWriter({ &x }, maxLevel, "output", "P1BubbleCommTest");
 
   return 0;
 }

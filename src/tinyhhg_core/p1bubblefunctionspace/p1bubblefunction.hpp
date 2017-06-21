@@ -61,7 +61,7 @@ public:
       std::exit(-1);
     }
 
-    WALBERLA_LOG_DEVEL("Created Function with ID " + std::to_string(memory_id))
+    WALBERLA_LOG_PROGRESS("Created Function with ID " + std::to_string(memory_id))
 
     for (Vertex& vertex : mesh.vertices)
     {

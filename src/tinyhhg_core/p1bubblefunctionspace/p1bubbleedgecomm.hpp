@@ -26,6 +26,28 @@ inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &se
   }
 }
 
+/*!
+ * Packs for \ref vertex data on the edge into the \ref sendBuffer.
+ * @param edge Edge
+ * @param sendBuffer Buffer to pack into
+ * @param memory_id Memory id of the data
+ * @param level Multigrid level
+ * @param vertex Vertex to send to
+ */
+inline void packDataforVertex(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, uint_t level, const Vertex &vertex) {
+  auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t vertex_id = edge.vertex_index(vertex);
+  if(vertex_id == 0){
+    sendBuffer << edge_data[1];
+  } else if(vertex_id == 1){
+    sendBuffer << edge_data[levelinfo::num_microvertices_per_edge(level)-2];
+  } else {
+    WALBERLA_LOG_WARNING("Vertex: " << vertex << " is not contained in Edge: " << edge);
+  }
+}
+
+
 template<size_t Level>
 inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Face &face)
 {
@@ -48,6 +70,42 @@ inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::Rec
   }
 }
 SPECIALIZE(void, unpackFaceData_tmpl, unpackFaceData)
+
+template<size_t Level>
+inline void unpackVertexData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::RecvBuffer &recvBuffer, const Vertex &vertex)
+{
+  auto &edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[Level];
+  uint_t nbr_edges = vertex.edges.size();
+  uint_t edge_id = vertex.edge_index(edge);
+  uint_t vertex_id = edge.vertex_index(vertex);
+  //position in edge memory
+  uint_t pos;
+  EdgeCoordsVertex::DirVertex dir1;
+  EdgeCoordsVertex::DirVertex dir2;
+  if(vertex_id == 0){
+    dir1 = EdgeCoordsVertex::CELL_GRAY_NE;
+    dir2 = EdgeCoordsVertex::CELL_GRAY_SE;
+    pos = 0;
+  } else if(vertex_id == 1) {
+    pos = levelinfo::num_microvertices_per_edge(Level) - 1;
+    dir1 = EdgeCoordsVertex::CELL_GRAY_NW;
+    dir2 = EdgeCoordsVertex::CELL_GRAY_SW;
+  } else {
+    WALBERLA_LOG_WARNING("vertex " << vertex << " is not contained in edge")
+  }
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
+  //remove unneeded data
+  if(edge_id > 1) {
+    for (uint_t i = 0; i < edge_id - 1; ++i) {
+      auto dump = NULL;
+      recvBuffer >> dump;
+    }
+  }
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir1)];
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir2)];
+}
+
+SPECIALIZE(void, unpackVertexData_tmpl, unpackVertexData)
 
 }// namespace P1BubbleEdg8e
 }// namespace hhg
