@@ -33,6 +33,10 @@ public:
   // Primitive access methods //
   //////////////////////////////
 
+  uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
+  uint_t getNumberOfLocalEdges()    const { return edges_.size(); }
+  uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
+
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
   bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
