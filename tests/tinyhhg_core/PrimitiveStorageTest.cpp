@@ -51,7 +51,7 @@ static void testPrimitiveStorage()
   writeTestMeshFile( meshFileName );
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
-  SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   uint_t balanceRank = 2;
   AllBlocksOnOneRank loadbalancer( 2 );
