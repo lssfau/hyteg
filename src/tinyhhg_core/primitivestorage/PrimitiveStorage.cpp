@@ -48,6 +48,17 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 #endif
 }
 
+void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
+{
+  primitiveMap.clear();
+
+  primitiveMap.insert( beginVertices(), endVertices() );
+  primitiveMap.insert( beginEdges(), endEdges() );
+  primitiveMap.insert( beginFaces(), endFaces() );
+
+  WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+}
+
 
 void PrimitiveStorage::checkConsistency()
 {

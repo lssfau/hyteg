@@ -19,9 +19,10 @@ class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
-  typedef std::map< PrimitiveID::IDType, Vertex* > VertexMap;
-  typedef std::map< PrimitiveID::IDType, Edge* >   EdgeMap;
-  typedef std::map< PrimitiveID::IDType, Face* >   FaceMap;
+  typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
+  typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;
+  typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
+  typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
 
   PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage );
 
@@ -45,6 +46,9 @@ public:
   bool edgeExistsLocally( const PrimitiveID & id )      const { return edges_.find( id.getID() ) != edges_.end(); }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.find( id.getID() ) != faces_.end(); }
+
+  /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
+  void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL otherwise.
