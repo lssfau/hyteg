@@ -77,8 +77,8 @@ namespace hhg {
 
 void PrimitiveStorageTutorial()
 {
-  uint_t rank         = walberla::mpi::MPIManager::instance()->rank();
-  uint_t numProcesses = walberla::mpi::MPIManager::instance()->numProcesses();
+  uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   /// [MeshInfo]
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );

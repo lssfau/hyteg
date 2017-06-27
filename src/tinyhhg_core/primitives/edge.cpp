@@ -14,7 +14,7 @@ namespace hhg
 using walberla::uint_c;
 
 Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
-  : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), walberla::mpi::MPIManager::instance()->numProcesses())),
+  : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
 	       SetupEdge(_id, 0, 0, Inner) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
 	       type(_type), v0(_v0), v1(_v1)
 {
