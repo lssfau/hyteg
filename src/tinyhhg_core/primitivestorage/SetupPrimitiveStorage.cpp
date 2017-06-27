@@ -224,6 +224,8 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 
 void SetupPrimitiveStorage::getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const
 {
+  setupPrimitiveMap.clear();
+
   setupPrimitiveMap.insert( beginVertices(), endVertices() );
   setupPrimitiveMap.insert( beginEdges(), endEdges() );
   setupPrimitiveMap.insert( beginFaces(), endFaces() );
