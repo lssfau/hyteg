@@ -9,7 +9,9 @@ namespace hhg
 using walberla::uint_c;
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : Primitive( PrimitiveStorage(0, MeshInfo::emptyMeshInfo()), SetupVertex(_id, Point3D()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner), coords(_coords)
+  : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), walberla::mpi::MPIManager::instance()->numProcesses())),
+				SetupVertex(_id, Point3D()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+				type(Inner), coords(_coords)
 {
 }
 

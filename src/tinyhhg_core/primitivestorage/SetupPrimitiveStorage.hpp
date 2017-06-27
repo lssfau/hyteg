@@ -24,8 +24,9 @@ public:
   /// \param numberOfProcesses the overall number of processes available
   /// \param perProcessMemoryLimit the main memory limit per process
   /// \return number of processes that have been assigned at least one \ref Primitive, \n
-  ///         this number can be less than numberOfProcesses if some processes do not obtain a primitive
-  typedef std::function< uint_t ( SetupPrimitiveStorage & storage, const uint_t & numberOfProcesses,
+  ///         this number can be less than numberOfProcesses
+  typedef std::function< uint_t ( SetupPrimitiveStorage & storage,
+				  const uint_t & numberOfProcesses,
 				  const memory_t & perProcessMemoryLimit ) >
           TargetProcessAssignmentFunction;
 
@@ -34,11 +35,14 @@ public:
   typedef std::map< PrimitiveID::IDType, SetupEdge* >      SetupEdgeMap;
   typedef std::map< PrimitiveID::IDType, SetupFace* >      SetupFaceMap;
 
-  SetupPrimitiveStorage( const MeshInfo & meshInfo );
+  SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
   void toStream( std::ostream & os ) const;
 
+  uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
+
   void getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const;
+  uint_t getNumberOfPrimitives() const;
 
   SetupVertexMap::iterator beginVertices() { return vertices_.begin(); }
   SetupVertexMap::iterator endVertices()   { return vertices_.end(); }
@@ -64,12 +68,20 @@ public:
   bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
 
   void balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
-		    const uint_t & numberOfProcesses,
 		    const memory_t & perProcessMemoryLimit );
 
 private:
 
-  PrimitiveID generatePrimitiveID();
+  PrimitiveID generatePrimitiveID() const;
+
+  /// Returns the number of primitives on the target rank with the least number of primitives
+  uint_t getMinPrimitivesPerRank() const;
+  /// Returns the number of primitives on the target rank with the largest number of primitives
+  uint_t getMaxPrimitivesPerRank() const;
+  /// Returns the average number of primitives per rank
+  real_t getAvgPrimitivesPerRank() const;
+
+  uint_t numberOfProcesses_;
 
   SetupVertexMap vertices_;
   SetupEdgeMap   edges_;

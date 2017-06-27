@@ -113,7 +113,7 @@ static void testPrimitiveData()
   writeTestMeshFile( meshFileName );
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
-  SetupPrimitiveStorage setupStorage( meshInfo );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   WALBERLA_LOG_INFO( setupStorage );
 

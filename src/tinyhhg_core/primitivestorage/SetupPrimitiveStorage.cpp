@@ -10,8 +10,11 @@
 
 namespace hhg {
 
-SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo )
+SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses ) :
+    numberOfProcesses_( numberOfProcesses )
 {
+  WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
+
   // Adding vertices to storage
   MeshInfo::VertexContainer vertices = meshInfo.getVertices();
   for ( auto it = vertices.begin(); it != vertices.end(); it++ )
@@ -91,48 +94,78 @@ bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, 
 
 
 void SetupPrimitiveStorage::balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
-					 const uint_t & numberOfProcesses,
 					 const memory_t & perProcessMemoryLimit )
 {
-  loadbalanceCallback( *this, numberOfProcesses, perProcessMemoryLimit );
+  loadbalanceCallback( *this, numberOfProcesses_, perProcessMemoryLimit );
+}
+
+uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
+{
+  return vertices_.size() + edges_.size() + faces_.size();
+}
+
+uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
+{
+  return 234;
+}
+
+uint_t SetupPrimitiveStorage::getMaxPrimitivesPerRank() const
+{
+  return 45678;
+}
+
+real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
+{
+  return real_t( getNumberOfPrimitives() ) / real_t( numberOfProcesses_ );
 }
 
 
 void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 {
-  os << "\n";
   os << "SetupPrimitiveStorage:\n";
-  os << "\n";
 
-  os << "Vertices:   ID | Position\n"
-     << "-------------------------\n";
+  os << " - Number of...\n"
+     << "   + Vertices: " << std::setw(10) << vertices_.size() << "\n"
+     << "   +    Edges: " << std::setw(10) << edges_.size() << "\n"
+     << "   +    Faces: " << std::setw(10) << faces_.size() << "\n";
+  os << " - Primitives per rank...\n"
+     << "   + min: " << getMinPrimitivesPerRank();
+
+#ifndef NDEBUG
+  os << "Vertices:   ID | Target Rank | Position\n"
+     << "---------------------------------------\n";
   for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
   {
     Point3D coordinates = it->second->getCoordinates();
-    os << "          " << std::setw(4) << it->first << " | "  << coordinates << "\n";
+    os << "          " << std::setw(4) << it->first << " | "
+       << std::setw(11) << it->second->getTargetRank() << " | "
+       << coordinates << "\n";
   }
   os << "\n";
 
-  os << "Edges:      ID | VertexID_0 | VertexID_1 | DoF Type            \n"
-     << "---------------------------------------------------------------\n";
+  os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | DoF Type            \n"
+     << "-----------------------------------------------------------------------------\n";
   for ( auto it = edges_.begin(); it != edges_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
+       << std::setw(11) << it->second->getTargetRank() << " | "
        << std::setw(10) << it->second->getVertexID0().getID() << " | "
        << std::setw(10) << it->second->getVertexID1().getID() << " | "
        << std::setw(20) << it->second->getDoFType() << "\n";
   }
   os << "\n";
 
-  os << "Faces:      ID | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
+  os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
      << "-----------------------------------------------------\n";
   for ( auto it = faces_.begin(); it != faces_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
+       << std::setw(11) << it->second->getTargetRank() << " | "
        << std::setw(8) << it->second->getEdgeID0().getID() << " | "
        << std::setw(8) << it->second->getEdgeID1().getID() << " | "
        << std::setw(8) << it->second->getEdgeID2().getID() << "\n";
   }
+#endif
 }
 
 
@@ -146,7 +179,7 @@ void SetupPrimitiveStorage::getSetupPrimitives( SetupPrimitiveMap & setupPrimiti
 }
 
 
-PrimitiveID SetupPrimitiveStorage::generatePrimitiveID()
+PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
 {
   uint_t maxIDVertices = vertices_.size() == 0 ? 0 : vertices_.rbegin()->first;
   uint_t maxIDEdges    = edges_.size() == 0 ? 0 : edges_.rbegin()->first;
