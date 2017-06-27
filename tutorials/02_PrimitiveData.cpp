@@ -75,6 +75,7 @@ namespace hhg {
  *
  */
 
+
 /// [SimulationData]
 class SimulationData
 {
@@ -90,6 +91,7 @@ public:
 
 };
 /// [SimulationData]
+
 
 /// [SimulationDataHandling]
 class SimulationDataHandling : public PrimitiveDataHandling< SimulationData, Primitive >
@@ -118,6 +120,20 @@ public:
   }
 };
 
+
+class VertexSimulationDataHandling : public NoSerializePrimitiveDataHandling< SimulationData, Vertex >
+{
+public:
+
+  SimulationData * initialize( const Vertex * const primitive ) const
+  {
+    WALBERLA_UNUSED( primitive );
+    return new SimulationData( 4711 );
+  }
+
+};
+
+
 void PrimitiveStorageTutorial()
 {
 
@@ -145,9 +161,14 @@ void PrimitiveStorageTutorial()
   //-----------------//
 
   /// [AddingData]
+  // Adding some data to all primitives
   SimulationDataHandling simulationDataHandling;
   PrimitiveDataID< SimulationData, Primitive > simulationDataID = storage.addPrimitiveData( simulationDataHandling, "simulation data" );
   /// [AddingData]
+
+  // Adding some data only to vertices
+  VertexSimulationDataHandling vertexSimulationDataHandling;
+  PrimitiveDataID< SimulationData, Vertex > vertexSimulationDataID = storage.addVertexData( vertexSimulationDataHandling, "simulation data (vertices)" );
 
   /// [DataRetrieval]
   // Gather all the primitives
@@ -164,6 +185,20 @@ void PrimitiveStorageTutorial()
     WALBERLA_ASSERT_EQUAL( data->size_, 42 );
   }
   /// [DataRetrieval]
+
+  // For nicer output
+  WALBERLA_MPI_BARRIER();
+
+  // Check data of the vertices
+  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  {
+      WALBERLA_LOG_INFO( "Checking data from Vertex with ID: " << it->first );
+
+      // Getting the data via the respective ID
+      SimulationData * data = it->second->getData( vertexSimulationDataID );
+
+      WALBERLA_ASSERT_EQUAL( data->size_, 4711 );
+  }
 
 }
 
