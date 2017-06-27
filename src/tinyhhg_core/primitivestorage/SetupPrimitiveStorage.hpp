@@ -40,6 +40,8 @@ public:
   void toStream( std::ostream & os ) const;
 
   uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
+  uint_t getNumberOfEmptyProcesses() const;
+
 
   void getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const;
   uint_t getNumberOfPrimitives() const;
@@ -72,7 +74,11 @@ public:
 
 private:
 
+  typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
+
   PrimitiveID generatePrimitiveID() const;
+
+  void assembleRankToSetupPrimitivesMap();
 
   /// Returns the number of primitives on the target rank with the least number of primitives
   uint_t getMinPrimitivesPerRank() const;
@@ -86,6 +92,8 @@ private:
   SetupVertexMap vertices_;
   SetupEdgeMap   edges_;
   SetupFaceMap   faces_;
+
+  RankToSetupPrimitivesMap rankToSetupPrimitivesMap_;
 
 };
 

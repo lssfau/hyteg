@@ -1,6 +1,7 @@
 
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
+#include "core/logging/Logging.h"
 
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -97,6 +98,41 @@ void SetupPrimitiveStorage::balanceLoad( const TargetProcessAssignmentFunction &
 					 const memory_t & perProcessMemoryLimit )
 {
   loadbalanceCallback( *this, numberOfProcesses_, perProcessMemoryLimit );
+  assembleRankToSetupPrimitivesMap();
+}
+
+void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap()
+{
+  rankToSetupPrimitivesMap_.clear();
+
+  SetupPrimitiveMap setupPrimitives;
+  getSetupPrimitives( setupPrimitives );
+  for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
+  {
+    rankToSetupPrimitivesMap_[ rank ] = std::vector< PrimitiveID::IDType >();
+    for ( auto setupPrimitive : setupPrimitives )
+    {
+      if ( rank == setupPrimitive.second->getTargetRank() )
+      {
+	rankToSetupPrimitivesMap_[ rank ].push_back( setupPrimitive.first );
+      }
+    }
+  }
+
+  WALBERLA_ASSERT_LESS_EQUAL( rankToSetupPrimitivesMap_.size(), numberOfProcesses_ );
+}
+
+uint_t SetupPrimitiveStorage::getNumberOfEmptyProcesses() const
+{
+  uint_t numberOfEmptyProcesses = 0;
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  {
+    if ( rankToSetupPrimitives.second.size() == 0 )
+    {
+      numberOfEmptyProcesses++;
+    }
+  }
+  return numberOfEmptyProcesses;
 }
 
 uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
@@ -106,12 +142,22 @@ uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
 
 uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
 {
-  return 234;
+  uint_t minNumberOfPrimitives = std::numeric_limits< uint_t >::max();
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  {
+    minNumberOfPrimitives = std::min( rankToSetupPrimitives.second.size(), minNumberOfPrimitives );
+  }
+  return minNumberOfPrimitives;
 }
 
 uint_t SetupPrimitiveStorage::getMaxPrimitivesPerRank() const
 {
-  return 45678;
+  uint_t maxNumberOfPrimitives = 0;
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  {
+    maxNumberOfPrimitives = std::max( rankToSetupPrimitives.second.size(), maxNumberOfPrimitives );
+  }
+  return maxNumberOfPrimitives;
 }
 
 real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
@@ -124,14 +170,21 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 {
   os << "SetupPrimitiveStorage:\n";
 
+  os << " - Processes (overall): " << std::setw(10) << numberOfProcesses_ << "\n";
+  os << " - Processes (empty)  : " << std::setw(10) << getNumberOfEmptyProcesses() << "\n";
+
   os << " - Number of...\n"
-     << "   + Vertices: " << std::setw(10) << vertices_.size() << "\n"
-     << "   +    Edges: " << std::setw(10) << edges_.size() << "\n"
-     << "   +    Faces: " << std::setw(10) << faces_.size() << "\n";
-  os << " - Primitives per rank...\n"
-     << "   + min: " << getMinPrimitivesPerRank();
+     << "   +  Vertices: " << std::setw(10) << vertices_.size() << "\n"
+     << "   +     Edges: " << std::setw(10) << edges_.size() << "\n"
+     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n";
+
+  os << " - Primitives per process...\n"
+     << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
+     << "   +      max: " << std::setw(10) << getMaxPrimitivesPerRank() << "\n"
+     << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "\n";
 
 #ifndef NDEBUG
+  os << "\n";
   os << "Vertices:   ID | Target Rank | Position\n"
      << "---------------------------------------\n";
   for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
