@@ -32,9 +32,7 @@ public:
   typedef std::map< uint_t, Point3D >                       VertexContainer;
   /// Edges: ( ( VertexID_0, VertexID_1 ), DoFType )
   typedef std::map< std::pair< uint_t, uint_t >, DoFType >  EdgeContainer;
-  /// Faces: ( ( VertexID_0, VertexID_1 ),\n
-  ///          ( VertexID_1, VertexID_2 ),\n
-  ///          ( VertexID_2, VertexID_0 ))
+  /// Faces: ( ( VertexID_0, VertexID_1, VertexID_2 )
   typedef std::set< std::array< uint_t, 3 > >               FaceContainer;
 
   /// Construct empty MeshInfo (for testing)
