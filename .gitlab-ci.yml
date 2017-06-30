@@ -738,3 +738,22 @@ msvc-14_MpiOnly:
       WALBERLA_DOUBLE_ACCURACY: "ON"
    only:
       - triggers
+
+pages:
+  stage: build
+  image: walberla/buildenv-ubuntu-basic:16.04
+  script:
+   - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
+   - export CCACHE_BASEDIR=$CI_PROJECT_DIR
+   - mkdir $CI_PROJECT_DIR/build
+   - cd $CI_PROJECT_DIR/build
+   - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla
+   - make doc_tinyhhg
+   - mkdir $CI_PROJECT_DIR/public
+   - mv doc/html/* $CI_PROJECT_DIR/public/
+  artifacts:
+    paths:
+    - public
+  tags:
+   - docker
+
