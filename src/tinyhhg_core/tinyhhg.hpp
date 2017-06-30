@@ -29,4 +29,7 @@
 
 #include "mesh/MeshInfo.hpp"
 
+#include "communication/PackInfo.hpp"
+
+
 #endif /* TINYHHG_HPP */
