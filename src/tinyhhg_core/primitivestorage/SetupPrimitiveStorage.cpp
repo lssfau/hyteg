@@ -97,7 +97,7 @@ bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, 
 void SetupPrimitiveStorage::balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
 					 const memory_t & perProcessMemoryLimit )
 {
-  loadbalanceCallback( *this, numberOfProcesses_, perProcessMemoryLimit );
+  loadbalanceCallback( *this, perProcessMemoryLimit );
 }
 
 void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const

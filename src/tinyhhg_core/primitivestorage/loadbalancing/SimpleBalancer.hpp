@@ -14,7 +14,7 @@ public:
 
   AllBlocksOnOneRank( uint_t targetRank ) : targetRank_( targetRank ) {}
 
-  uint_t operator()( SetupPrimitiveStorage & storage, const uint_t & numberOfProcesses, const memory_t & perProcessMemoryLimit ) const
+  uint_t operator()( SetupPrimitiveStorage & storage, const memory_t & perProcessMemoryLimit ) const
   {
     SetupPrimitiveStorage::SetupPrimitiveMap setupPrimitives;
     storage.getSetupPrimitives( setupPrimitives );
@@ -46,7 +46,7 @@ public:
 class RoundRobin
 {
 public:
-  uint_t operator()( SetupPrimitiveStorage & storage, const uint_t & numberOfProcesses, const memory_t & perProcessMemoryLimit ) const
+  uint_t operator()( SetupPrimitiveStorage & storage, const memory_t & perProcessMemoryLimit ) const
   {
     uint_t currentRank = 0;
 
@@ -55,11 +55,11 @@ public:
 
     for ( auto it : setupPrimitives )
     {
-      it.second->setTargetRank( uint_c( currentRank % numberOfProcesses ) );
+      it.second->setTargetRank( uint_c( currentRank % storage.getNumberOfProcesses() ) );
       currentRank++;
     }
 
-    return std::min( currentRank + 1, numberOfProcesses );
+    return std::min( currentRank + 1, storage.getNumberOfProcesses() );
   }
 };
 

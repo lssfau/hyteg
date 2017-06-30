@@ -26,7 +26,6 @@ public:
   /// \return number of processes that have been assigned at least one \ref Primitive, \n
   ///         this number can be less than numberOfProcesses
   typedef std::function< uint_t ( SetupPrimitiveStorage & storage,
-				  const uint_t & numberOfProcesses,
 				  const memory_t & perProcessMemoryLimit ) >
           TargetProcessAssignmentFunction;
 
