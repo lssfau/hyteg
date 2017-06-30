@@ -49,7 +49,7 @@ void writeTestMeshFile( const std::string & meshFileName )
 
 static void testPrimitiveStorage()
 {
-  uint_t rank = walberla::mpi::MPIManager::instance()->rank();
+  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
   std::string meshFileName = "./tmpMeshFile.msh";
   writeTestMeshFile( meshFileName );
