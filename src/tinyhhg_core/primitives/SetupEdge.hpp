@@ -9,6 +9,8 @@ class SetupEdge : public SetupPrimitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
+
   SetupEdge( const PrimitiveID & id,
 	     const PrimitiveID & vertexID0,
 	     const PrimitiveID & vertexID1,
@@ -29,6 +31,8 @@ public:
   virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const { return faceIDs_.end(); }
 
 private:
+
+  void addFace( const PrimitiveID & faceID ) { faceIDs_.push_back( faceID ); }
 
   std::vector< PrimitiveID > vertexIDs_;
   std::vector< PrimitiveID > faceIDs_;

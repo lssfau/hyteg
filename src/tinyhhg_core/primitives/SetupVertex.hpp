@@ -9,6 +9,8 @@ class SetupVertex : public SetupPrimitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
+
   SetupVertex( const PrimitiveID & id, const Point3D& coordinates ) :
     SetupPrimitive( id ), coordinates_( coordinates )
   {}
@@ -25,6 +27,8 @@ public:
   virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const { return edgeIDs_.end(); }
 
 private:
+
+  void addEdge( const PrimitiveID & edgeID ) { edgeIDs_.push_back( edgeID ); }
 
   Point3D coordinates_;
 

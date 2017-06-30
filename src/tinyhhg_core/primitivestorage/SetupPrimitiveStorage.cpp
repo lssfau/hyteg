@@ -29,7 +29,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   MeshInfo::EdgeContainer edges = meshInfo.getEdges();
   for ( auto it = edges.begin(); it != edges.end(); it++ )
   {
-    // Generating edgeID using the largest
     PrimitiveID edgeID = generatePrimitiveID();
     PrimitiveID vertexID0 = PrimitiveID( it->first.first  );
     PrimitiveID vertexID1 = PrimitiveID( it->first.second );
@@ -38,6 +37,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     edges_[ edgeID.getID() ] = new SetupEdge( edgeID, vertexID0, vertexID1, dofType );
+
+    // Adding edge ID as neighbor to SetupVertices
+    vertices_[ vertexID0.getID() ]->addEdge( edgeID );
+    vertices_[ vertexID1.getID() ]->addEdge( edgeID );
   }
 
   // Adding faces to storage
@@ -69,6 +72,11 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID2.getID() ), 1 );
 
     faces_[ faceID.getID() ] = new SetupFace( faceID, edgeID0, edgeID1, edgeID2 );
+
+    // Adding face ID to edges as neighbors
+    edges_[ edgeID0.getID() ]->addFace( faceID );
+    edges_[ edgeID1.getID() ]->addFace( faceID );
+    edges_[ edgeID2.getID() ]->addFace( faceID );
   }
 }
 
@@ -190,31 +198,46 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 
 #ifndef NDEBUG
   os << "\n";
-  os << "Vertices:   ID | Target Rank | Position\n"
-     << "---------------------------------------\n";
+  os << "Vertices:   ID | Target Rank | Position  | Neighbor Edges \n"
+     << "---------------------------------------------------------\n";
   for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
   {
     Point3D coordinates = it->second->getCoordinates();
     os << "          " << std::setw(4) << it->first << " | "
        << std::setw(11) << it->second->getTargetRank() << " | "
-       << coordinates << "\n";
+       << coordinates << " | ";
+    for ( auto neighborEdgeID =  it->second->beginHigherDimNeighbors();
+	       neighborEdgeID != it->second->endHigherDimNeighbors();
+	       neighborEdgeID++ )
+    {
+      os << neighborEdgeID->getID() << " ";
+    }
+    os << "\n";
+
   }
   os << "\n";
 
-  os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | DoF Type            \n"
-     << "-----------------------------------------------------------------------------\n";
+  os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | DoF Type             | Neighbor Faces \n"
+     << "----------------------------------------------------------------------------------------------\n";
   for ( auto it = edges_.begin(); it != edges_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
        << std::setw(11) << it->second->getTargetRank() << " | "
        << std::setw(10) << it->second->getVertexID0().getID() << " | "
        << std::setw(10) << it->second->getVertexID1().getID() << " | "
-       << std::setw(20) << it->second->getDoFType() << "\n";
+       << std::setw(20) << it->second->getDoFType() << " | ";
+    for ( auto neighborFaceID =  it->second->beginHigherDimNeighbors();
+    	       neighborFaceID != it->second->endHigherDimNeighbors();
+    	       neighborFaceID++ )
+        {
+          os << neighborFaceID->getID() << " ";
+        }
+        os << "\n";
   }
   os << "\n";
 
   os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
-     << "-----------------------------------------------------\n";
+     << "-------------------------------------------------------------\n";
   for ( auto it = faces_.begin(); it != faces_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
