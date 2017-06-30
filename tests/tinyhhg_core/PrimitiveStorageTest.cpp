@@ -38,44 +38,75 @@ std::string getExampleMeshFileContent()
 
 void writeTestMeshFile( const std::string & meshFileName )
 {
-  std::string meshFileContent = getExampleMeshFileContent();
-  std::ofstream file( meshFileName );
-  file << meshFileContent;
-  file.close();
+  WALBERLA_ROOT_SECTION()
+  {
+    std::string meshFileContent = getExampleMeshFileContent();
+    std::ofstream file( meshFileName );
+    file << meshFileContent;
+    file.close();
+  }
 }
 
 static void testPrimitiveStorage()
 {
+  uint_t rank = walberla::mpi::MPIManager::instance()->rank();
 
   std::string meshFileName = "./tmpMeshFile.msh";
   writeTestMeshFile( meshFileName );
 
+  WALBERLA_MPI_BARRIER();
+
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  uint_t balanceRank = 2;
-  AllBlocksOnOneRank loadbalancer( 2 );
+  // uint_t balanceRank = 2;
+  // AllBlocksOnOneRank loadbalancer( 2 );
+  RoundRobin loadbalancer;
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   WALBERLA_LOG_INFO( setupStorage );
 
-  PrimitiveStorage storage( balanceRank, setupStorage );
+  WALBERLA_MPI_BARRIER();
+  WALBERLA_LOG_INFO( "Building PrimitiveStorage" );
+
+  PrimitiveStorage storage( rank, setupStorage );
 
   WALBERLA_LOG_PROGRESS( "Checking that all primitives have been loadbalanced as expected" );
 
-  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++ )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getRank(), balanceRank, "A vertex is not correctly balanced." );
+    if ( it->second->getTargetRank() == rank )
+    {
+      WALBERLA_CHECK( storage.vertexExistsLocally( it->first ) );
+    }
+    else
+    {
+      WALBERLA_CHECK( !storage.vertexExistsLocally( it->first ) );
+    }
   }
 
-  for ( auto it = storage.beginEdges(); it != storage.endEdges(); it++ )
+  for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getRank(), balanceRank, "An edge is not correctly balanced." );
+    if ( it->second->getTargetRank() == rank )
+    {
+      WALBERLA_CHECK( storage.edgeExistsLocally( it->first ) );
+    }
+    else
+    {
+      WALBERLA_CHECK( !storage.edgeExistsLocally( it->first ) );
+    }
   }
 
-  for ( auto it = storage.beginFaces(); it != storage.endFaces(); it++ )
+  for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getRank(), balanceRank, "A face is not correctly balanced." );
+    if ( it->second->getTargetRank() == rank )
+    {
+      WALBERLA_CHECK( storage.faceExistsLocally( it->first ) );
+    }
+    else
+    {
+      WALBERLA_CHECK( !storage.faceExistsLocally( it->first ) );
+    }
   }
 
 
