@@ -740,7 +740,6 @@ msvc-14_MpiOnly:
       - triggers
 
 pages:
-  stage: build
   image: walberla/buildenv-ubuntu-basic:16.04
   script:
    - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
