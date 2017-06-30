@@ -4,10 +4,21 @@
 #include <blockforest/Utility.h>
 #include <core/debug/Debug.h>
 #include <core/math/Uint.h>
+#include <core/mpi/SendBuffer.h>
+#include <core/mpi/RecvBuffer.h>
 #include <domain_decomposition/IBlockID.h>
 
-namespace walberla {
 namespace hhg {
+
+// to be removed when moving to walberla namespace
+using walberla::uint8_c;
+using walberla::uint64_c;
+using walberla::uint_c;
+using walberla::uint_t;
+using walberla::math::uintMSBPosition;
+using walberla::numeric_cast;
+using walberla::blockforest::uintToBitString;
+using walberla::UINT_BYTES;
 
 //**********************************************************************************************************************
 /*!
@@ -16,24 +27,26 @@ namespace hhg {
 *   It serves as a (global) unique identifier of a primitive.
 */
 //**********************************************************************************************************************
-class PrimitiveID : public IBlockID
+class PrimitiveID
 {
 public:
+
+  typedef uint64_t IDType;
 
   inline PrimitiveID() : id_( uint64_c( 0 ) ) {}
   inline PrimitiveID( const PrimitiveID& id ) : id_( id.id_ ) {}
   inline PrimitiveID( const uint64_t id ) : id_( id ) {}
 
-  bool operator< ( const IBlockID& rhs ) const
+  bool operator< ( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ <  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator> ( const IBlockID& rhs ) const
+  bool operator> ( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ >  static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator==( const IBlockID& rhs ) const
+  bool operator==( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ == static_cast< const PrimitiveID* >( &rhs )->id_; }
-  bool operator!=( const IBlockID& rhs ) const
+  bool operator!=( const PrimitiveID& rhs ) const
     { WALBERLA_ASSERT_EQUAL( dynamic_cast< const PrimitiveID* >( &rhs ), &rhs ); return id_ != static_cast< const PrimitiveID* >( &rhs )->id_; }
 
-  uint_t getUsedBits()  const { return math::uintMSBPosition( id_ ); }
+  uint_t getUsedBits()  const { return uintMSBPosition( id_ ); }
   uint_t getUsedBytes() const { const uint_t bits( getUsedBits() ); return ( bits >> uint_c(3) ) + ( ( bits & uint_c(7) ) ? uint_c(1) : uint_c(0) ); }
 
   inline IDType getID() const;
@@ -50,15 +63,15 @@ private:
 };
 
 
-inline IBlockID::IDType PrimitiveID::getID() const
+inline PrimitiveID::IDType PrimitiveID::getID() const
 {
-  return numeric_cast< IBlockID::IDType > ( id_ );
+  return numeric_cast< PrimitiveID::IDType > ( id_ );
 }
 
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
 {
-  os << blockforest::uintToBitString( id_ ) << " (" << id_ << ")";
+  os << uintToBitString( id_ ) << " (" << id_ << ")";
   return os;
 }
 
@@ -91,7 +104,6 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer ) {
 
 
 } // namespace hhg
-} // namespace walberla
 
 
 //======================================================================================================================
@@ -123,8 +135,8 @@ inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer
 template<>
 struct BufferSizeTrait< hhg::PrimitiveID > { static const bool constantSize = false; };
 
-}
-}
+} // namespace mpi
+} // namespace walberla
 
 
 

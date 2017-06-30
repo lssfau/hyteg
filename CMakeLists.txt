@@ -31,6 +31,7 @@ add_subdirectory (extern/fmt-3.0.1)
 add_subdirectory( src )
 add_subdirectory( apps )
 add_subdirectory( tests )
+add_subdirectory( tutorials )
 
 
 ############################################################################################################################

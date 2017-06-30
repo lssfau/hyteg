@@ -23,6 +23,13 @@
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
 
+#include "primitivestorage/PrimitiveStorage.hpp"
+#include "primitivestorage/SetupPrimitiveStorage.hpp"
+#include "primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "mesh/MeshInfo.hpp"
+
 #include "communication/PackInfo.hpp"
+
 
 #endif /* TINYHHG_HPP */

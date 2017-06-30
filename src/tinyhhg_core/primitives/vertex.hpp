@@ -4,7 +4,11 @@
 #include <fmt/ostream.h>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
+#include <core/Deprecated.h>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitives/SetupVertex.hpp>
+#include <tinyhhg_core/mesh/MeshInfo.hpp>
 
 #include <vector>
 
@@ -23,13 +27,14 @@ class VertexMemory;
 ///
 /// The Vertex class represents a Macro-Vertex primitve. It saves geometrical and topological information
 /// as well as pointers to memory reserved for \ref Function and \ref Operator.
-class Vertex
+class Vertex : public Primitive
 {
 public:
   /// Constructs a vertex with given id and coordinates
   /// \param id Id of vertex
   /// \param coords Spatial coordinates of vertex
   Vertex(size_t id, const Point3D& coords);
+  Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex );
 
   /// Adds given edge to \ref edges
   /// \param edge Pointer to edge which will be added
@@ -71,6 +76,15 @@ public:
 
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Vertex > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
+
 };
 
 

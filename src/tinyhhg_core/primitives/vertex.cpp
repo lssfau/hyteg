@@ -1,4 +1,5 @@
 #include "vertex.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include <core/mpi/MPIManager.h>
 
@@ -8,7 +9,16 @@ namespace hhg
 using walberla::uint_c;
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner), coords(_coords)
+  : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
+				SetupVertex(_id, Point3D()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+				type(Inner), coords(_coords)
+{
+}
+
+Vertex::Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex ) :
+  Primitive( storage, setupVertex ), id( setupVertex.getPrimitiveID().getID() ),
+  rank( setupVertex.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses()) ),
+  type( Inner ), coords( setupVertex.getCoordinates() )
 {
 }
 

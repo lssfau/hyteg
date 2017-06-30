@@ -7,8 +7,11 @@
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitives/SetupEdge.hpp>
 
 #include <core/DataTypes.h>
+#include <core/Deprecated.h>
 
 namespace hhg
 {
@@ -18,11 +21,12 @@ class Face;
 
 class EdgeMemory;
 
-class Edge
+class Edge : public Primitive
 {
 public:
 
   Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
+  Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge );
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;
@@ -46,6 +50,14 @@ public:
   std::vector<EdgeMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Edge > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
 };
 
 class EdgeMemory

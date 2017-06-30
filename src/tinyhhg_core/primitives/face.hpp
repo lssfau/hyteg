@@ -3,7 +3,11 @@
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
+#include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/primitives/SetupFace.hpp>
+#include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 #include <core/DataTypes.h>
+#include <core/Deprecated.h>
 
 #include <array>
 #include <vector>
@@ -11,13 +15,15 @@
 namespace hhg
 {
 
+class Vertex;
 class Edge;
 class FaceMemory;
 
-class Face
+class Face : public Primitive
 {
 public:
   Face(size_t id, Edge* edges[3]);
+  Face( PrimitiveStorage & storage, const SetupFace & setupFace );
 
   size_t vertex_index(const Vertex& vertex) const;
   size_t edge_index(const Edge& edge) const;
@@ -37,6 +43,14 @@ public:
   std::vector<FaceMemory*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
+
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Face > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
 };
 
 class FaceMemory
