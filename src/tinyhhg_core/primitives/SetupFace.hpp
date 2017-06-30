@@ -13,20 +13,23 @@ public:
 	     const PrimitiveID & edgeID0,
 	     const PrimitiveID & edgeID1,
 	     const PrimitiveID & edgeID2 ) :
-    SetupPrimitive( id ), edgeID0_( edgeID0 ),
-    edgeID1_( edgeID1 ), edgeID2_( edgeID2 )
+    SetupPrimitive( id ), edgeIDs_( { edgeID0, edgeID1, edgeID2 } )
   {}
 
-  const PrimitiveID & getEdgeID0() const { return edgeID0_; }
-  const PrimitiveID & getEdgeID1() const { return edgeID1_; }
-  const PrimitiveID & getEdgeID2() const { return edgeID2_; }
+  const PrimitiveID & getEdgeID0() const { return edgeIDs_[0]; }
+  const PrimitiveID & getEdgeID1() const { return edgeIDs_[1]; }
+  const PrimitiveID & getEdgeID2() const { return edgeIDs_[2]; }
 
+  virtual PrimitiveID::const_iterator beginLowerDimNeighbors() const { return edgeIDs_.begin(); }
+  virtual PrimitiveID::const_iterator endLowerDimNeighbors()   const { return edgeIDs_.end(); }
+
+  virtual PrimitiveID::const_iterator beginHigherDimNeighbors() const { return volumeIDs_.begin(); }
+  virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const { return volumeIDs_.end(); }
 
 private:
 
-  PrimitiveID edgeID0_;
-  PrimitiveID edgeID1_;
-  PrimitiveID edgeID2_;
+  std::vector< PrimitiveID > edgeIDs_;
+  std::vector< PrimitiveID > volumeIDs_;
 
 };
 

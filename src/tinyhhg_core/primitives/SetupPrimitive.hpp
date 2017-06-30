@@ -13,6 +13,8 @@ class SetupPrimitive : private walberla::NonCopyable
 {
 public:
 
+  virtual ~SetupPrimitive() {}
+
   const PrimitiveID getPrimitiveID() const { return primitiveID_; }
 
         uint_t      getTargetRank()  const { return targetRank_; }
@@ -23,6 +25,12 @@ public:
 
         memory_t getMemory() const { return memory_; }
         void     setMemory( const memory_t m ) { WALBERLA_ASSERT_GREATER_EQUAL( m, static_cast< memory_t >(0) ); memory_ = m; }
+
+  virtual PrimitiveID::const_iterator beginLowerDimNeighbors() const  = 0;
+  virtual PrimitiveID::const_iterator endLowerDimNeighbors()   const  = 0;
+
+  virtual PrimitiveID::const_iterator beginHigherDimNeighbors() const = 0;
+  virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const = 0;
 
 protected:
 

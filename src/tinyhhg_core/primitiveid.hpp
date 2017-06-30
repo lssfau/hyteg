@@ -32,6 +32,7 @@ class PrimitiveID
 public:
 
   typedef uint64_t IDType;
+  typedef std::vector< PrimitiveID >::const_iterator const_iterator;
 
   inline PrimitiveID() : id_( uint64_c( 0 ) ) {}
   inline PrimitiveID( const PrimitiveID& id ) : id_( id.id_ ) {}
