@@ -60,11 +60,11 @@ public:
 /// Contains empty implementations for serialize and deserialize
 ///
 template< typename DataType, typename PrimitiveType >
-class NoSerializePrimitiveDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
+class OnlyInitializeDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
 {
 public:
 
-  ~NoSerializePrimitiveDataHandling() {}
+  ~OnlyInitializeDataHandling() {}
 
   /// Does nothing
   void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const {};

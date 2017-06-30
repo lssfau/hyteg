@@ -68,7 +68,7 @@ public:
   std::vector<bool> aa;
 };
 
-class TestDataHandling : public NoSerializePrimitiveDataHandling< TestData, Primitive >
+class TestDataHandling : public OnlyInitializeDataHandling< TestData, Primitive >
 {
 public:
 
@@ -81,7 +81,7 @@ public:
 
 };
 
-class VertexTestDataHandling : public NoSerializePrimitiveDataHandling< VertexTestData, Vertex >
+class VertexTestDataHandling : public OnlyInitializeDataHandling< VertexTestData, Vertex >
 {
 public:
 
@@ -94,7 +94,7 @@ public:
 
 };
 
-class EdgeTestDataHandling : public NoSerializePrimitiveDataHandling< EdgeTestData, Edge >
+class EdgeTestDataHandling : public OnlyInitializeDataHandling< EdgeTestData, Edge >
 {
 public:
 

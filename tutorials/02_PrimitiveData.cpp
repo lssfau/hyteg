@@ -121,7 +121,7 @@ public:
 };
 
 
-class VertexSimulationDataHandling : public NoSerializePrimitiveDataHandling< SimulationData, Vertex >
+class VertexSimulationDataHandling : public OnlyInitializeDataHandling< SimulationData, Vertex >
 {
 public:
 
