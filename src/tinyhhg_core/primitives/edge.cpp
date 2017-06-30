@@ -15,7 +15,7 @@ using walberla::uint_c;
 
 Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
   : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-	       SetupEdge(_id, 0, 0, Inner) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+	       SetupEdge(_id, 0, 0, Inner, Point3D()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
 	       type(_type), v0(_v0), v1(_v1)
 {
 
@@ -38,7 +38,7 @@ Edge::Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge )
 {
   v0 = storage.getVertex( setupEdge.getVertexID0() );
   v1 = storage.getVertex( setupEdge.getVertexID1() );
-  direction = v1->coords - v0->coords;
+  direction = setupEdge.getDirection();
   length = direction.norm();
   tangent = direction / length;
   const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};

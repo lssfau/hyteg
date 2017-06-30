@@ -14,15 +14,17 @@ public:
   SetupEdge( const PrimitiveID & id,
 	     const PrimitiveID & vertexID0,
 	     const PrimitiveID & vertexID1,
-	     const DoFType & dofType ) :
+	     const DoFType & dofType,
+	     const Point3D & direction ) :
     SetupPrimitive( id ), vertexIDs_( { vertexID0, vertexID1 } ),
-    dofType_( dofType )
+    dofType_( dofType ), direction_( direction )
   {}
 
   const PrimitiveID & getVertexID0() const { return vertexIDs_[0]; }
   const PrimitiveID & getVertexID1() const { return vertexIDs_[1]; }
 
-  const DoFType & getDoFType() const { return dofType_; }
+  const DoFType & getDoFType() const   { return dofType_; }
+  const Point3D & getDirection() const { return direction_; }
 
   virtual PrimitiveID::const_iterator beginLowerDimNeighbors() const { return vertexIDs_.begin(); }
   virtual PrimitiveID::const_iterator endLowerDimNeighbors()   const { return vertexIDs_.end(); }
@@ -38,6 +40,7 @@ private:
   std::vector< PrimitiveID > faceIDs_;
 
   DoFType dofType_;
+  Point3D direction_;
 };
 
 }

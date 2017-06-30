@@ -18,7 +18,7 @@ using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
   : Primitive( PrimitiveStorage( 0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-	       SetupFace(_id, 0, 0, 0) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
+	       SetupFace(_id, 0, 0, 0, std::array< int, 3 >(), std::array< Point3D, 3 >()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {
@@ -100,67 +100,8 @@ Face::Face( PrimitiveStorage & storage, const SetupFace & setupFace )
   edges[1] = storage.getEdge( setupFace.getEdgeID1() );
   edges[2] = storage.getEdge( setupFace.getEdgeID2() );
 
-  Vertex* v0_0 = edges[0]->v0;
-  Vertex* v0_1 = edges[0]->v1;
-  Vertex* v1_0 = edges[1]->v0;
-  Vertex* v1_1 = edges[1]->v1;
-  Vertex* v2_0 = edges[2]->v0;
-  Vertex* v2_1 = edges[2]->v1;
-
-  if (v0_1 == v1_0 && v1_1 == v2_0 && v2_1 == v0_0)
-  {
-    edge_orientation = {{1, 1, 1}};
-  }
-  else if (v0_1 == v1_0 && v1_1 == v2_1 && v2_0 == v0_0)
-  {
-    edge_orientation = {{1, 1, -1}};
-  }
-  else if (v0_1 == v1_1 && v1_0 == v2_0 && v2_1 == v0_0)
-  {
-    edge_orientation = {{1, -1, 1}};
-  }
-  else if (v0_1 == v1_1 && v1_0 == v2_1 && v2_0 == v0_0)
-  {
-    edge_orientation = {{1, -1, -1}};
-  }
-  else if (v0_0 == v1_0 && v1_1 == v2_0 && v2_1 == v0_1)
-  {
-    edge_orientation = {{-1, 1, 1}};
-  }
-  else if (v0_0 == v1_0 && v1_1 == v2_1 && v2_0 == v0_1)
-  {
-    edge_orientation = {{-1, 1, -1}};
-  }
-  else if (v0_0 == v1_1 && v1_0 == v2_0 && v2_1 == v0_1)
-  {
-    edge_orientation = {{-1, -1, 1}};
-  }
-  else if (v0_0 == v1_1 && v1_0 == v2_1 && v2_0 == v0_1)
-  {
-    edge_orientation = {{-1, -1, -1}};
-  }
-
-  if (edge_orientation[0] == 1)
-  {
-    vertices.push_back(v0_0);
-    vertices.push_back(v0_1);
-  }
-  else
-  {
-    vertices.push_back(v0_1);
-    vertices.push_back(v0_0);
-  }
-
-  if (edge_orientation[1] == 1)
-  {
-    vertices.push_back(v1_1);
-  }
-  else
-  {
-    vertices.push_back(v1_0);
-  }
-
-  coords = {{vertices[0]->coords, vertices[1]->coords, vertices[2]->coords}};
+  edge_orientation = setupFace.getEdgeOrientation();
+  coords = setupFace.getCoordinates();
 
   std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
   area = std::abs(0.5 * math::det2(B));

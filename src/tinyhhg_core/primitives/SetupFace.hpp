@@ -12,9 +12,15 @@ public:
   SetupFace( const PrimitiveID & id,
 	     const PrimitiveID & edgeID0,
 	     const PrimitiveID & edgeID1,
-	     const PrimitiveID & edgeID2 ) :
-    SetupPrimitive( id ), edgeIDs_( { edgeID0, edgeID1, edgeID2 } )
+	     const PrimitiveID & edgeID2,
+	     const std::array< int, 3 > edgeOrientation,
+	     const std::array< Point3D, 3 > coordinates ) :
+    SetupPrimitive( id ), edgeIDs_( { edgeID0, edgeID1, edgeID2 } ),
+    edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
   {}
+
+  std::array< int, 3 >     getEdgeOrientation() const { return edgeOrientation_; }
+  std::array< Point3D, 3 > getCoordinates()     const { return coordinates_; }
 
   const PrimitiveID & getEdgeID0() const { return edgeIDs_[0]; }
   const PrimitiveID & getEdgeID1() const { return edgeIDs_[1]; }
@@ -27,6 +33,9 @@ public:
   virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const { return volumeIDs_.end(); }
 
 private:
+
+  std::array< int, 3 >     edgeOrientation_;
+  std::array< Point3D, 3 > coordinates_;
 
   std::vector< PrimitiveID > edgeIDs_;
   std::vector< PrimitiveID > volumeIDs_;
