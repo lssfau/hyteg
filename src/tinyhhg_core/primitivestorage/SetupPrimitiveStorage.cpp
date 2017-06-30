@@ -98,34 +98,35 @@ void SetupPrimitiveStorage::balanceLoad( const TargetProcessAssignmentFunction &
 					 const memory_t & perProcessMemoryLimit )
 {
   loadbalanceCallback( *this, numberOfProcesses_, perProcessMemoryLimit );
-  assembleRankToSetupPrimitivesMap();
 }
 
-void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap()
+void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const
 {
-  rankToSetupPrimitivesMap_.clear();
+  rankToSetupPrimitivesMap.clear();
 
   SetupPrimitiveMap setupPrimitives;
   getSetupPrimitives( setupPrimitives );
   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
   {
-    rankToSetupPrimitivesMap_[ rank ] = std::vector< PrimitiveID::IDType >();
+    rankToSetupPrimitivesMap[ rank ] = std::vector< PrimitiveID::IDType >();
     for ( auto setupPrimitive : setupPrimitives )
     {
       if ( rank == setupPrimitive.second->getTargetRank() )
       {
-	rankToSetupPrimitivesMap_[ rank ].push_back( setupPrimitive.first );
+	rankToSetupPrimitivesMap[ rank ].push_back( setupPrimitive.first );
       }
     }
   }
 
-  WALBERLA_ASSERT_LESS_EQUAL( rankToSetupPrimitivesMap_.size(), numberOfProcesses_ );
+  WALBERLA_ASSERT_LESS_EQUAL( rankToSetupPrimitivesMap.size(), numberOfProcesses_ );
 }
 
 uint_t SetupPrimitiveStorage::getNumberOfEmptyProcesses() const
 {
   uint_t numberOfEmptyProcesses = 0;
-  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  RankToSetupPrimitivesMap rankToSetupPrimitivesMap;
+  assembleRankToSetupPrimitivesMap( rankToSetupPrimitivesMap );
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap )
   {
     if ( rankToSetupPrimitives.second.size() == 0 )
     {
@@ -143,7 +144,9 @@ uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
 uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
 {
   uint_t minNumberOfPrimitives = std::numeric_limits< uint_t >::max();
-  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  RankToSetupPrimitivesMap rankToSetupPrimitivesMap;
+  assembleRankToSetupPrimitivesMap( rankToSetupPrimitivesMap );
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap )
   {
     minNumberOfPrimitives = std::min( rankToSetupPrimitives.second.size(), minNumberOfPrimitives );
   }
@@ -153,7 +156,9 @@ uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
 uint_t SetupPrimitiveStorage::getMaxPrimitivesPerRank() const
 {
   uint_t maxNumberOfPrimitives = 0;
-  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap_ )
+  RankToSetupPrimitivesMap rankToSetupPrimitivesMap;
+  assembleRankToSetupPrimitivesMap( rankToSetupPrimitivesMap );
+  for ( auto const & rankToSetupPrimitives : rankToSetupPrimitivesMap )
   {
     maxNumberOfPrimitives = std::max( rankToSetupPrimitives.second.size(), maxNumberOfPrimitives );
   }

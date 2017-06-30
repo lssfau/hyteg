@@ -78,7 +78,7 @@ private:
 
   PrimitiveID generatePrimitiveID() const;
 
-  void assembleRankToSetupPrimitivesMap();
+  void assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const;
 
   /// Returns the number of primitives on the target rank with the least number of primitives
   uint_t getMinPrimitivesPerRank() const;
@@ -92,8 +92,6 @@ private:
   SetupVertexMap vertices_;
   SetupEdgeMap   edges_;
   SetupFaceMap   faces_;
-
-  RankToSetupPrimitivesMap rankToSetupPrimitivesMap_;
 
 };
 
