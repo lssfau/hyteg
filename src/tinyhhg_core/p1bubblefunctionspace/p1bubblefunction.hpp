@@ -8,6 +8,7 @@
 #include "p1bubblevertex.hpp"
 #include "p1bubbleedge.hpp"
 #include "p1bubbleface.hpp"
+#include "P1BubblePackInfo.hpp"
 
 namespace hhg
 {
