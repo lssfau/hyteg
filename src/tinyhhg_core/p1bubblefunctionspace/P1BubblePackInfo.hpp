@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/communication/PackInfo.hpp"
+#include "p1bubblememory.hpp"
 
 namespace hhg {
 namespace communication {

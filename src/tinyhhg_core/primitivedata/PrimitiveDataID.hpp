@@ -32,6 +32,9 @@ public:
 
   friend class PrimitiveStorage;
 
+  PrimitiveDataID()                            : id_( 0 ) {}
+  explicit PrimitiveDataID( const walberla::uint_t id ) : id_( id ) {}
+
   /// Copy-constructor
   PrimitiveDataID( const PrimitiveDataID& id ) : id_( id.id_ ) {}
 
@@ -49,9 +52,6 @@ public:
   operator uint_t() const { return id_; }
 
 private:
-
-           PrimitiveDataID()                            : id_( 0 ) {}
-  explicit PrimitiveDataID( const walberla::uint_t id ) : id_( id ) {}
 
   uint_t id_;
 
