@@ -105,6 +105,10 @@ Face::Face( PrimitiveStorage & storage, const SetupFace & setupFace )
 
   std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
   area = std::abs(0.5 * math::det2(B));
+
+  WALBERLA_ASSERT_EQUAL( setupFace.getNumLowerDimNeighbors(), 3 );
+  lowerDimNeighbors_.assign( setupFace.beginLowerDimNeighbors(), setupFace.endLowerDimNeighbors() );
+  higherDimNeighbors_.assign( setupFace.beginHigherDimNeighbors(), setupFace.endHigherDimNeighbors() );
 }
 
 size_t Face::vertex_index(const Vertex& vertex) const

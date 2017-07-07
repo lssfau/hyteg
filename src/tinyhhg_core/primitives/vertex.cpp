@@ -21,6 +21,9 @@ Vertex::Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex ) :
   rank( setupVertex.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses()) ),
   type( Inner ), coords( setupVertex.getCoordinates() )
 {
+  WALBERLA_ASSERT_EQUAL( setupVertex.getNumLowerDimNeighbors(), 0 );
+  lowerDimNeighbors_.assign( setupVertex.beginLowerDimNeighbors(),  setupVertex.endLowerDimNeighbors() );
+  higherDimNeighbors_.assign( setupVertex.beginHigherDimNeighbors(), setupVertex.endHigherDimNeighbors() );
 }
 
 void Vertex::addEdge(Edge* edge)

@@ -45,6 +45,10 @@ Edge::Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge )
   const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
   normal_2d = Point3D(init);
 
+  WALBERLA_ASSERT_EQUAL( setupEdge.getNumLowerDimNeighbors(), 2 );
+  lowerDimNeighbors_.assign( setupEdge.beginLowerDimNeighbors(), setupEdge.endLowerDimNeighbors() );
+  higherDimNeighbors_.assign( setupEdge.beginHigherDimNeighbors(), setupEdge.endHigherDimNeighbors() );
+
   // fmt::print("direction = {}\n", direction);
   // fmt::print("length = {}\n", length);
   // fmt::print("tangent = {}\n", tangent);

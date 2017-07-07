@@ -104,6 +104,15 @@ public:
   /// Returns the rank of the \ref PrimitiveStorage this primitive is located at
   uint_t getRank() const;
 
+  PrimitiveID::const_iterator beginLowerDimNeighbors() const { return lowerDimNeighbors_.begin(); }
+  PrimitiveID::const_iterator endLowerDimNeighbors()   const { return lowerDimNeighbors_.end(); }
+
+  PrimitiveID::const_iterator beginHigherDimNeighbors() const { return higherDimNeighbors_.begin(); }
+  PrimitiveID::const_iterator endHigherDimNeighbors()   const { return higherDimNeighbors_.end(); }
+
+  uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
+  uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
+
 protected:
 
   /// Only subclasses shall be constructable
@@ -114,6 +123,9 @@ protected:
 
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataHandling< DataType, PrimitiveType >* getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
+
+  std::vector< PrimitiveID > lowerDimNeighbors_;
+  std::vector< PrimitiveID > higherDimNeighbors_;
 
 private:
 

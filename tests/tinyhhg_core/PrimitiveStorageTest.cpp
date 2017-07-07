@@ -54,6 +54,7 @@ static void testPrimitiveStorage()
   std::string meshFileName = "./tmpMeshFile.msh";
   writeTestMeshFile( meshFileName );
 
+  // For mesh file
   WALBERLA_MPI_BARRIER();
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
@@ -64,14 +65,13 @@ static void testPrimitiveStorage()
   RoundRobin loadbalancer;
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
-  WALBERLA_LOG_INFO( setupStorage );
+  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  WALBERLA_MPI_BARRIER();
-  WALBERLA_LOG_INFO( "Building PrimitiveStorage" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
 
   PrimitiveStorage storage( rank, setupStorage );
 
-  WALBERLA_LOG_PROGRESS( "Checking that all primitives have been loadbalanced as expected" );
+  WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking that all primitives have been loadbalanced as expected, checking neighborhood on SetupStorage" );
 
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++ )
   {
@@ -116,7 +116,23 @@ static void testPrimitiveStorage()
 
     WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
     WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
+  }
 
+  WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
+  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  {
+	WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 0 );
+	WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+  }
+  for ( auto it = storage.beginEdges(); it != storage.endEdges(); it++ )
+  {
+    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 2 );
+    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+  }
+  for ( auto it = storage.beginFaces(); it != storage.endFaces(); it++ )
+  {
+    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
   }
 
 
