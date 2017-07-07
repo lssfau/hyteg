@@ -11,8 +11,9 @@ public:
 
   friend class SetupPrimitiveStorage;
 
-  SetupVertex( const PrimitiveID & id, const Point3D& coordinates ) :
-    SetupPrimitive( id ), coordinates_( coordinates )
+  SetupVertex( const SetupPrimitiveStorage & storage,
+		       const PrimitiveID & id, const Point3D& coordinates ) :
+    SetupPrimitive( storage, id ), coordinates_( coordinates )
   {}
 
   const Point3D & getCoordinates() const

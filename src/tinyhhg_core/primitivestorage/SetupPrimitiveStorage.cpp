@@ -22,7 +22,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   {
     PrimitiveID vertexID( it->first );
     Point3D coordinates( it->second );
-    vertices_[ vertexID.getID() ] = new SetupVertex( vertexID, coordinates );
+    vertices_[ vertexID.getID() ] = new SetupVertex( *this, vertexID, coordinates );
   }
 
   // Adding edges to storage
@@ -37,7 +37,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
-    edges_[ edgeID.getID() ] = new SetupEdge( edgeID, vertexID0, vertexID1, dofType, direction );
+    edges_[ edgeID.getID() ] = new SetupEdge( *this, edgeID, vertexID0, vertexID1, dofType, direction );
 
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
@@ -138,7 +138,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       coordinates[2] = vertices_[ edge1Vertex0.getID() ]->getCoordinates();
     }
 
-    faces_[ faceID.getID() ] = new SetupFace( faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
+    faces_[ faceID.getID() ] = new SetupFace( *this, faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
 
     // Adding face ID to edges as neighbors
     edges_[ edgeID0.getID() ]->addFace( faceID );

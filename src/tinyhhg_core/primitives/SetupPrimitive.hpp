@@ -9,6 +9,8 @@ using walberla::uint_t;
 using walberla::blockforest::workload_t;
 using walberla::blockforest::memory_t;
 
+class SetupPrimitiveStorage;
+
 class SetupPrimitive : private walberla::NonCopyable
 {
 public:
@@ -34,11 +36,14 @@ public:
 
 protected:
 
-  SetupPrimitive( const PrimitiveID & id ) :
-    primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
+  SetupPrimitive( const SetupPrimitiveStorage & storage,
+		          const PrimitiveID & id ) :
+    storage_( storage ), primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
   {}
 
 private:
+
+  const SetupPrimitiveStorage & storage_;
 
   PrimitiveID primitiveID_;
   uint_t      targetRank_;

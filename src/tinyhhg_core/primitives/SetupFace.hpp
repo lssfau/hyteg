@@ -9,13 +9,14 @@ class SetupFace : public SetupPrimitive
 {
 public:
 
-  SetupFace( const PrimitiveID & id,
-	     const PrimitiveID & edgeID0,
-	     const PrimitiveID & edgeID1,
-	     const PrimitiveID & edgeID2,
-	     const std::array< int, 3 > edgeOrientation,
-	     const std::array< Point3D, 3 > coordinates ) :
-    SetupPrimitive( id ), edgeIDs_( { edgeID0, edgeID1, edgeID2 } ),
+  SetupFace( const SetupPrimitiveStorage & storage,
+		     const PrimitiveID & id,
+             const PrimitiveID & edgeID0,
+             const PrimitiveID & edgeID1,
+             const PrimitiveID & edgeID2,
+             const std::array< int, 3 > edgeOrientation,
+             const std::array< Point3D, 3 > coordinates ) :
+    SetupPrimitive( storage, id ), edgeIDs_( { edgeID0, edgeID1, edgeID2 } ),
     edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
   {}
 
