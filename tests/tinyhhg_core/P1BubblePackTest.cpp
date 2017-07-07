@@ -43,13 +43,13 @@ int main (int argc, char** argv) {
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
   hhg::Face *face0 = storage.beginFaces()->second;
+//
+//  walberla::mpi::SendBuffer sb;
+//  hhg::P1BubbleVertex::packData(level,*edge.v0,0,sb);
+//  hhg::P1BubbleVertex::packData(level,*edge.v1,0,sb);
+//  walberla::mpi::RecvBuffer rb(sb);
+//  unpackVertexData(level,edge,memory_id,rb,*edge.v0);
 
-  walberla::mpi::SendBuffer sb;
-  hhg::P1BubbleVertex::packData(level,*edge.v0,0,sb);
-  hhg::P1BubbleVertex::packData(level,*edge.v1,0,sb);
-  walberla::mpi::RecvBuffer rb(sb);
-  unpackVertexData(level,edge,memory_id,rb,*edge.v0);
-  
   hhg::P1BubbleFace::interpolate(*face0,0,eight,maxLevel);
 
   WALBERLA_UNUSED(face0);

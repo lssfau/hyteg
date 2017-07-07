@@ -45,8 +45,8 @@ void P1BubblePackInfo::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &s
       buffer >> dump;
     }
   }
-  buffer >> data[hhg::P1BubbleEdge::EdgeCoordsVertex::index<level_>(pos,dir1)];
-  buffer >> data[hhg::P1BubbleEdge::EdgeCoordsVertex::index<level_>(pos,dir2)];
+  buffer >> data[hhg::P1BubbleEdge::EdgeCoordsVertex::edge_index(level_,pos,dir1)];
+  buffer >> data[hhg::P1BubbleEdge::EdgeCoordsVertex::edge_index(level_,pos,dir2)];
 }
 
 void P1BubblePackInfo::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver){
