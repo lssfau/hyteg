@@ -28,6 +28,9 @@ public:
         memory_t getMemory() const { return memory_; }
         void     setMemory( const memory_t m ) { WALBERLA_ASSERT_GREATER_EQUAL( m, static_cast< memory_t >(0) ); memory_ = m; }
 
+  /// @name Neighborhood
+  /// Access to neighbors of either lower or higher dimension.
+  ///@{
   PrimitiveID::const_iterator beginLowerDimNeighbors() const { return lowerDimNeighbors_.begin(); }
   PrimitiveID::const_iterator endLowerDimNeighbors()   const { return lowerDimNeighbors_.end(); }
 
@@ -36,7 +39,9 @@ public:
 
   uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
   uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
+  ///@}
 
+  /// Returns a reference to the governing \ref SetupPrimitiveStorage
   const SetupPrimitiveStorage & getStorage() const { return storage_; }
 
 protected:
