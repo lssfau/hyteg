@@ -82,6 +82,8 @@ inline size_t index(size_t pos, DirVertex dir) {
   }
   return std::numeric_limits<size_t>::max();
 }
+SPECIALIZE(size_t, index, edge_index);
+
 }//namespace EdgeCoordsVertex
 }//namespace P1BubbleEdge
 }//namespace hhg
