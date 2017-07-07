@@ -6,6 +6,22 @@
 using namespace hhg::communication;
 using namespace hhg;
 
+class FaceP1BubbleFunctionMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1BubbleFunctionMemory, Face >{
+public:
+    FaceP1BubbleFunctionMemory * initialize(const Face * const face) const
+    {
+      WALBERLA_UNUSED(face);
+      FaceP1BubbleFunctionMemory *mem = new FaceP1BubbleFunctionMemory();
+
+      for (size_t level = 1; level <= 5; ++level)
+      {
+        mem->addlevel(level);
+      }
+      return mem;
+    }
+
+};
+
 int main (int argc, char** argv) {
   walberla::mpi::Environment MPIenv( argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
@@ -21,5 +37,11 @@ int main (int argc, char** argv) {
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, 1 );
 
   hhg::PrimitiveStorage storage(walberla::MPIManager::instance()->rank() , setupStorage);
-  
+
+  FaceP1BubbleFunctionMemoryDataHandling faceP1BubbleFunctionMemoryDataHandling;
+  storage.addFaceData(faceP1BubbleFunctionMemoryDataHandling,"data");
+
+  auto face0 = storage.getFace(0);
+  WALBERLA_UNUSED(face0);
+
 }
