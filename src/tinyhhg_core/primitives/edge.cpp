@@ -46,8 +46,24 @@ Edge::Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge )
   normal_2d = Point3D(init);
 
   WALBERLA_ASSERT_EQUAL( setupEdge.getNumLowerDimNeighbors(), 2 );
-  lowerDimNeighbors_.assign( setupEdge.beginLowerDimNeighbors(), setupEdge.endLowerDimNeighbors() );
-  higherDimNeighbors_.assign( setupEdge.beginHigherDimNeighbors(), setupEdge.endHigherDimNeighbors() );
+
+  const SetupPrimitiveStorage & setupStorage = setupEdge.getStorage();
+
+  for ( auto lowerDimNeighbor  = setupEdge.beginLowerDimNeighbors();
+			 lowerDimNeighbor != setupEdge.endLowerDimNeighbors();
+			 lowerDimNeighbor++ )
+  {
+	WALBERLA_ASSERT( setupStorage.vertexExists( *lowerDimNeighbor ) );
+	lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getVertex( *lowerDimNeighbor )->getTargetRank();
+  }
+
+  for ( auto higherDimNeighbor  = setupEdge.beginHigherDimNeighbors();
+			 higherDimNeighbor != setupEdge.endHigherDimNeighbors();
+			 higherDimNeighbor++ )
+  {
+    WALBERLA_ASSERT( setupStorage.faceExists( *higherDimNeighbor ) );
+    higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getFace( *higherDimNeighbor )->getTargetRank();
+  }
 
   // fmt::print("direction = {}\n", direction);
   // fmt::print("length = {}\n", length);

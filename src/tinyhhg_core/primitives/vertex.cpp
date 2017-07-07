@@ -22,8 +22,16 @@ Vertex::Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex ) :
   type( Inner ), coords( setupVertex.getCoordinates() )
 {
   WALBERLA_ASSERT_EQUAL( setupVertex.getNumLowerDimNeighbors(), 0 );
-  lowerDimNeighbors_.assign( setupVertex.beginLowerDimNeighbors(),  setupVertex.endLowerDimNeighbors() );
-  higherDimNeighbors_.assign( setupVertex.beginHigherDimNeighbors(), setupVertex.endHigherDimNeighbors() );
+
+  const SetupPrimitiveStorage & setupStorage = setupVertex.getStorage();
+
+  for ( auto higherDimNeighbor  = setupVertex.beginHigherDimNeighbors();
+		     higherDimNeighbor != setupVertex.endHigherDimNeighbors();
+		     higherDimNeighbor++ )
+  {
+	WALBERLA_ASSERT( setupStorage.edgeExists( *higherDimNeighbor ) );
+	higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getEdge( *higherDimNeighbor )->getTargetRank();
+  }
 }
 
 void Vertex::addEdge(Edge* edge)

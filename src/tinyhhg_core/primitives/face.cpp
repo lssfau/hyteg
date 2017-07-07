@@ -107,8 +107,17 @@ Face::Face( PrimitiveStorage & storage, const SetupFace & setupFace )
   area = std::abs(0.5 * math::det2(B));
 
   WALBERLA_ASSERT_EQUAL( setupFace.getNumLowerDimNeighbors(), 3 );
-  lowerDimNeighbors_.assign( setupFace.beginLowerDimNeighbors(), setupFace.endLowerDimNeighbors() );
-  higherDimNeighbors_.assign( setupFace.beginHigherDimNeighbors(), setupFace.endHigherDimNeighbors() );
+  WALBERLA_ASSERT_EQUAL( setupFace.getNumHigherDimNeighbors(), 0 ); // should fail when moving to 3D, let's wait and see...
+
+  const SetupPrimitiveStorage & setupStorage = setupFace.getStorage();
+
+  for ( auto lowerDimNeighbor  = setupFace.beginLowerDimNeighbors();
+	         lowerDimNeighbor != setupFace.endLowerDimNeighbors();
+		     lowerDimNeighbor++ )
+  {
+    WALBERLA_ASSERT( setupStorage.edgeExists( *lowerDimNeighbor ) );
+    lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getEdge( *lowerDimNeighbor )->getTargetRank();
+  }
 }
 
 size_t Face::vertex_index(const Vertex& vertex) const
