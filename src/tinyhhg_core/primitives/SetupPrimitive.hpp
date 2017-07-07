@@ -28,11 +28,14 @@ public:
         memory_t getMemory() const { return memory_; }
         void     setMemory( const memory_t m ) { WALBERLA_ASSERT_GREATER_EQUAL( m, static_cast< memory_t >(0) ); memory_ = m; }
 
-  virtual PrimitiveID::const_iterator beginLowerDimNeighbors() const  = 0;
-  virtual PrimitiveID::const_iterator endLowerDimNeighbors()   const  = 0;
+  PrimitiveID::const_iterator beginLowerDimNeighbors() const { return lowerDimNeighbors_.begin(); }
+  PrimitiveID::const_iterator endLowerDimNeighbors()   const { return lowerDimNeighbors_.end(); }
 
-  virtual PrimitiveID::const_iterator beginHigherDimNeighbors() const = 0;
-  virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const = 0;
+  PrimitiveID::const_iterator beginHigherDimNeighbors() const { return higherDimNeighbors_.begin(); }
+  PrimitiveID::const_iterator endHigherDimNeighbors()   const { return higherDimNeighbors_.end(); }
+
+  uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
+  uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
 
 protected:
 
@@ -40,6 +43,9 @@ protected:
 		          const PrimitiveID & id ) :
     storage_( storage ), primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
   {}
+
+  std::vector< PrimitiveID > lowerDimNeighbors_;
+  std::vector< PrimitiveID > higherDimNeighbors_;
 
 private:
 

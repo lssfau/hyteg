@@ -83,6 +83,9 @@ static void testPrimitiveStorage()
     {
       WALBERLA_CHECK( !storage.vertexExistsLocally( it->first ) );
     }
+
+    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 0 );
+    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
   }
 
   for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
@@ -95,6 +98,9 @@ static void testPrimitiveStorage()
     {
       WALBERLA_CHECK( !storage.edgeExistsLocally( it->first ) );
     }
+
+    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 2 );
+    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
   }
 
   for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
@@ -107,6 +113,10 @@ static void testPrimitiveStorage()
     {
       WALBERLA_CHECK( !storage.faceExistsLocally( it->first ) );
     }
+
+    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
+
   }
 
 

@@ -21,20 +21,11 @@ public:
     return coordinates_;
   }
 
-  virtual PrimitiveID::const_iterator beginLowerDimNeighbors() const { return empty_.begin(); }
-  virtual PrimitiveID::const_iterator endLowerDimNeighbors()   const { return empty_.end(); }
-
-  virtual PrimitiveID::const_iterator beginHigherDimNeighbors() const { return edgeIDs_.begin(); }
-  virtual PrimitiveID::const_iterator endHigherDimNeighbors()   const { return edgeIDs_.end(); }
-
 private:
 
-  void addEdge( const PrimitiveID & edgeID ) { edgeIDs_.push_back( edgeID ); }
+  void addEdge( const PrimitiveID & edgeID ) { higherDimNeighbors_.push_back( edgeID ); }
 
   Point3D coordinates_;
-
-  std::vector< PrimitiveID > edgeIDs_;
-  const std::vector< PrimitiveID > empty_;
 
 };
 
