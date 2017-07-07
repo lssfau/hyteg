@@ -30,6 +30,7 @@
 #include "mesh/MeshInfo.hpp"
 
 #include "communication/PackInfo.hpp"
+#include "communication/BufferedCommunication.hpp"
 
 
 #endif /* TINYHHG_HPP */
