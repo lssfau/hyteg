@@ -86,6 +86,9 @@ public:
   typedef internal::PrimitiveData PrimitiveData;
   typedef internal::ConstPrimitiveData ConstPrimitiveData;
 
+  /// Map from a \ref PrimitiveID to the rank of the process it is located on
+  typedef std::map< PrimitiveID::IDType, uint_t > NeighborToProcessMap;
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
@@ -104,6 +107,21 @@ public:
   /// Returns the rank of the \ref PrimitiveStorage this primitive is located at
   uint_t getRank() const;
 
+  /// @name Neighborhood
+  /// Access to neighbors of either lower or higher dimension.
+  /// The iterators iterate over maps of type \ref NeighborToProcessMap.
+  /// Therefore it is possible to get the rank of the respective neighboring \ref Primitive.
+  ///@{
+  NeighborToProcessMap::const_iterator beginLowerDimNeighbors() const { return lowerDimNeighbors_.begin(); }
+  NeighborToProcessMap::const_iterator endLowerDimNeighbors()   const { return lowerDimNeighbors_.end(); }
+
+  NeighborToProcessMap::const_iterator beginHigherDimNeighbors() const { return higherDimNeighbors_.begin(); }
+  NeighborToProcessMap::const_iterator endHigherDimNeighbors()   const { return higherDimNeighbors_.end(); }
+
+  uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
+  uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
+  /// @}
+
 protected:
 
   /// Only subclasses shall be constructable
@@ -114,6 +132,9 @@ protected:
 
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataHandling< DataType, PrimitiveType >* getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
+
+  NeighborToProcessMap lowerDimNeighbors_;
+  NeighborToProcessMap higherDimNeighbors_;
 
 private:
 

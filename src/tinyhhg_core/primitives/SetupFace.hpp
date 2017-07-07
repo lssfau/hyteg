@@ -9,24 +9,31 @@ class SetupFace : public SetupPrimitive
 {
 public:
 
-  SetupFace( const PrimitiveID & id,
-	     const PrimitiveID & edgeID0,
-	     const PrimitiveID & edgeID1,
-	     const PrimitiveID & edgeID2 ) :
-    SetupPrimitive( id ), edgeID0_( edgeID0 ),
-    edgeID1_( edgeID1 ), edgeID2_( edgeID2 )
-  {}
+  SetupFace( const SetupPrimitiveStorage & storage,
+		     const PrimitiveID & id,
+             const PrimitiveID & edgeID0,
+             const PrimitiveID & edgeID1,
+             const PrimitiveID & edgeID2,
+             const std::array< int, 3 > edgeOrientation,
+             const std::array< Point3D, 3 > coordinates ) :
+    SetupPrimitive( storage, id ), edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
+  {
+	lowerDimNeighbors_.push_back( edgeID0 );
+	lowerDimNeighbors_.push_back( edgeID1 );
+	lowerDimNeighbors_.push_back( edgeID2 );
+  }
 
-  const PrimitiveID & getEdgeID0() const { return edgeID0_; }
-  const PrimitiveID & getEdgeID1() const { return edgeID1_; }
-  const PrimitiveID & getEdgeID2() const { return edgeID2_; }
+  std::array< int, 3 >     getEdgeOrientation() const { return edgeOrientation_; }
+  std::array< Point3D, 3 > getCoordinates()     const { return coordinates_; }
 
+  const PrimitiveID & getEdgeID0() const { WALBERLA_ASSERT_EQUAL( lowerDimNeighbors_.size(), 3 ); return lowerDimNeighbors_[0]; }
+  const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( lowerDimNeighbors_.size(), 3 ); return lowerDimNeighbors_[1]; }
+  const PrimitiveID & getEdgeID2() const { WALBERLA_ASSERT_EQUAL( lowerDimNeighbors_.size(), 3 ); return lowerDimNeighbors_[2]; }
 
 private:
 
-  PrimitiveID edgeID0_;
-  PrimitiveID edgeID1_;
-  PrimitiveID edgeID2_;
+  std::array< int, 3 >     edgeOrientation_;
+  std::array< Point3D, 3 > coordinates_;
 
 };
 
