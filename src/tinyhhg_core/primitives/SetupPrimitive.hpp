@@ -37,6 +37,8 @@ public:
   uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
   uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
 
+  const SetupPrimitiveStorage & getStorage() const { return storage_; }
+
 protected:
 
   SetupPrimitive( const SetupPrimitiveStorage & storage,
