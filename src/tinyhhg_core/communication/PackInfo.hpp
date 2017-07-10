@@ -24,8 +24,8 @@ public:
 
 /// pack data from Vertex into SendBuffer for Edge
   virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) = 0;
-/// unpack data into Vertex from RecvBuffer from Edge
-  virtual void unpackVertexFromEdge(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) = 0;
+/// unpack data into Edge from RecvBuffer from Vertex
+  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) = 0;
 /// transfer data locally (meaning both are on the same MPI Process) from Vertex to Edge
   virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) = 0;
   ///@}
