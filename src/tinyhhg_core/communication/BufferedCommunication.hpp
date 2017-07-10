@@ -30,7 +30,7 @@ public:
 	NUM_COMMUNICATION_DIRECTIONS
   };
 
-  BufferedCommunicator();
+  BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
   void addPackInfo( const PackInfo & packInfo );
 
