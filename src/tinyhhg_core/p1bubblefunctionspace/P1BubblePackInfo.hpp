@@ -13,7 +13,7 @@ public:
                    PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> dataIDVertex,
                    PrimitiveDataID<EdgeP1BubbleFunctionMemory, Edge> dataIDEdge,
                    PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> dataIDFace,
-                   PrimitiveStorage *storage)
+                   std::weak_ptr<PrimitiveStorage> storage)
           : level_(level),
             dataIDVertex_(dataIDVertex),
             dataIDEdge_(dataIDEdge),
@@ -51,7 +51,7 @@ private:
   PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> dataIDVertex_;
   PrimitiveDataID<EdgeP1BubbleFunctionMemory, Edge> dataIDEdge_;
   PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> dataIDFace_;
-  hhg::PrimitiveStorage *storage_;
+  std::weak_ptr<hhg::PrimitiveStorage> storage_;
 };
 
 } //namespace communication

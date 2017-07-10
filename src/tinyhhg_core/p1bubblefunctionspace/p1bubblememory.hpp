@@ -206,8 +206,9 @@ inline VertexP1BubbleStencilMemory *getVertexStencilMemory(const Vertex &vertex,
 inline VertexP1BubbleFunctionMemory *getVertexFunctionMemory(Vertex &vertex, size_t id) {
 #ifndef NDEBUG
   if (vertex.memory.size() <= id) WALBERLA_LOG_WARNING("Memory ID is out of range");
-  if (vertex.memory[id]->type != MemoryType::P1BubbleFunction)
-      WALBERLA_LOGLEVEL_WARNING("Trying to convert something to VertexP1Memory which is not of the right type");
+  if (vertex.memory[id]->type != MemoryType::P1BubbleFunction) {
+    WALBERLA_LOG_WARNING("Trying to convert something to VertexP1Memory which is not of the right type");
+  }
 #endif // !
 
   return static_cast<VertexP1BubbleFunctionMemory *>(vertex.memory[id]);
