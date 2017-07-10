@@ -32,7 +32,7 @@ public:
 
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
-  void addPackInfo( const PackInfo & packInfo );
+  void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
 
   void startCommunicationVertexToEdge();
   void endCommunicationVertexToEdge();
@@ -40,7 +40,7 @@ public:
 private:
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
-  std::vector< PackInfo > packInfos_;
+  std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
 
