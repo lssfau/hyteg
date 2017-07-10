@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tinyhhg_core/macros.hpp"
+
 namespace hhg{
 namespace P1BubbleEdge{
 //FIXME this can be removed after we moved into walberla namespace
@@ -82,6 +84,9 @@ inline size_t index(size_t pos, DirVertex dir) {
   }
   return std::numeric_limits<size_t>::max();
 }
+
+SPECIALIZE(size_t, index, edge_index);
+
 }//namespace EdgeCoordsVertex
 }//namespace P1BubbleEdge
 }//namespace hhg
