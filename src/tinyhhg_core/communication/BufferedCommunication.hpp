@@ -10,6 +10,8 @@
 namespace hhg {
 namespace communication {
 
+using walberla::int_c;
+
 class BufferedCommunicator
 {
 public:
