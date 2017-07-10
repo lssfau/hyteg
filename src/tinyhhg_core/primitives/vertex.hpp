@@ -30,6 +30,9 @@ class VertexMemory;
 class Vertex : public Primitive
 {
 public:
+
+  friend class PrimitiveStorage;
+
   /// Constructs a vertex with given id and coordinates
   /// \param id Id of vertex
   /// \param coords Spatial coordinates of vertex
@@ -83,6 +86,17 @@ public:
   DataType* getData( const PrimitiveDataID< DataType, Vertex > & index ) const
   {
     return genericGetData< DataType >( index );
+  }
+
+protected:
+
+  /// Not public in order to guarantee that data is only added through the governing structure.
+  /// This ensures valid DataIDs.
+  template< typename DataType >
+  inline void addData( const PrimitiveDataID< DataType, Vertex > & index,
+	               const PrimitiveDataHandling< DataType, Vertex > & dataHandling )
+  {
+    genericAddData( index, dataHandling, this );
   }
 
 };

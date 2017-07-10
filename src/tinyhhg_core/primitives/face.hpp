@@ -22,6 +22,9 @@ class FaceMemory;
 class Face : public Primitive
 {
 public:
+
+  friend class PrimitiveStorage;
+
   Face(size_t id, Edge* edges[3]);
   Face( PrimitiveStorage & storage, const SetupFace & setupFace );
 
@@ -51,6 +54,18 @@ public:
   {
     return genericGetData< DataType >( index );
   }
+
+protected:
+
+  /// Not public in order to guarantee that data is only added through the governing structure.
+  /// This ensures valid DataIDs.
+  template< typename DataType >
+  inline void addData( const PrimitiveDataID< DataType, Face > & index,
+		       const PrimitiveDataHandling< DataType, Face > & dataHandling )
+  {
+    genericAddData( index, dataHandling, this );
+  }
+
 };
 
 class FaceMemory

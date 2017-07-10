@@ -133,16 +133,21 @@ protected:
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataHandling< DataType, PrimitiveType >* getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
 
+  /// Not public in order to guarantee that data is only added through the governing structure.
+  /// This ensures valid DataIDs.
+  template< typename DataType >
+  inline void addData( const PrimitiveDataID< DataType, Primitive > & index,
+	               const PrimitiveDataHandling< DataType, Primitive > & dataHandling );
+
+  template< typename DataType, typename PrimitiveType >
+  inline void genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
+		              const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
+		              const PrimitiveType * primitive );
+
   NeighborToProcessMap lowerDimNeighbors_;
   NeighborToProcessMap higherDimNeighbors_;
 
 private:
-
-  /// Must stay private in order to guarantee that data is only added through the governing structure.
-  /// This ensures valid DataIDs.
-  template< typename DataType, typename PrimitiveType >
-  inline void addData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-                       const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling );
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
   /// This way it is possible to loop over the data to for example serialize all registered data.
@@ -184,17 +189,27 @@ PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const 
 }
 /////////////////////////////////////////////////////////////
 
-template< typename DataType, typename PrimitiveType >
-void Primitive::addData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-		         const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling )
+template< typename DataType >
+void Primitive::addData( const PrimitiveDataID< DataType, Primitive > & index,
+                         const PrimitiveDataHandling< DataType, Primitive > & dataHandling )
 {
- if( data_.size() <= index )
- {
-   data_.resize( index + 1, std::make_pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
- }
+  genericAddData( index, dataHandling, this );
+}
 
- data_[index].first = new PrimitiveData( dataHandling.initialize( NULL ) );
- data_[index].second = new ConstPrimitiveData( &dataHandling );
+template< typename DataType, typename PrimitiveType >
+void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
+                                const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
+	                        const PrimitiveType * const primitive )
+{
+  if( data_.size() <= index )
+  {
+    data_.resize( index + 1, std::make_pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
+  }
+
+  WALBERLA_ASSERT_NOT_NULLPTR( primitive );
+
+  data_[index].first = new PrimitiveData( dataHandling.initialize( primitive ) );
+  data_[index].second = new ConstPrimitiveData( &dataHandling );
 }
 
 
