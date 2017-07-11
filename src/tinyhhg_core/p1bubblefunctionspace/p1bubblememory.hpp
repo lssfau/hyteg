@@ -148,9 +148,9 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = StencilStack{hhg::make_unique<real_t[]>(getVertexStencilSize(level)),
-                                 hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
-                                 hhg::make_unique<real_t[]>(getBlueStencilSize(level))};
+      data[level] = StencilStack{{hhg::make_unique<real_t[]>(getVertexStencilSize(level)),
+                                     hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
+                                     hhg::make_unique<real_t[]>(getBlueStencilSize(level))}};
     }
     return data[level];
   }
