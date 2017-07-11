@@ -197,7 +197,7 @@ void PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType, 
 #ifndef NDEBUG
   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
   {
-    WALBERLA_ASSERT_EQUAL( primitiveDataHandlers_ - 1, it->second->getNumberOfDataEntries() );
+    WALBERLA_ASSERT_GREATER( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
   }
 #endif
 

@@ -25,6 +25,8 @@ class Edge : public Primitive
 {
 public:
 
+  friend class PrimitiveStorage;
+
   Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
   Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge );
   void addFace(Face* face);
@@ -58,6 +60,18 @@ public:
   {
     return genericGetData< DataType >( index );
   }
+
+protected:
+
+  /// Not public in order to guarantee that data is only added through the governing structure.
+  /// This ensures valid DataIDs.
+  template< typename DataType >
+  inline void addData( const PrimitiveDataID< DataType, Edge > & index,
+		       const PrimitiveDataHandling< DataType, Edge > & dataHandling )
+  {
+    genericAddData( index, dataHandling, this );
+  }
+
 };
 
 class EdgeMemory
