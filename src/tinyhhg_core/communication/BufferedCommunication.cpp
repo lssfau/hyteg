@@ -1,5 +1,6 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
+#include "core/logging/Logging.h"
 
 namespace hhg {
 namespace communication {
@@ -18,6 +19,18 @@ void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & pack
   packInfos_.push_back( packInfo );
 }
 
+void BufferedCommunicator::writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID )
+{
+  WALBERLA_LOG_INFO( "Writing Header | " << senderID.getID() << ", " << receiverID.getID() );
+  sendBuffer << senderID << receiverID;
+}
+
+void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID )
+{
+  recvBuffer >> senderID >> receiverID;
+  WALBERLA_LOG_INFO( "Reading Header | " << senderID.getID() << ", " << receiverID.getID() );
+}
+
 void BufferedCommunicator::startCommunicationVertexToEdge()
 {
   if ( packInfos_.empty() )
@@ -30,6 +43,8 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
   std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
 
   std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;
+  std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
+
 
   // Send functions
   for ( auto it  = storage->beginVertices();
@@ -44,15 +59,32 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
       PrimitiveID neighborID   = neighbor->first;
       uint_t      neighborRank = neighbor->second;
 
-      for ( auto & packInfo : packInfos_ )
+      if ( storage->edgeExistsLocally( neighborID ) )
       {
-        auto sendFunction = [ packInfo, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { packInfo->packVertexForEdge( vertex, neighborID, sendBuffer ); };
-        sendFunctionsMap[ neighborRank ].push_back( sendFunction );
+        Edge * edge = storage->getEdge( neighborID );
+        for ( auto & packInfo : packInfos_ )
+	{
+	  packInfo->communicateLocalVertexToEdge( vertex, edge );
+	}
+      }
+      else
+      {
+	if ( !packInfos_.empty() )
+	{
+	  auto headerWriter = [ this, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, vertex->getID(), neighborID ); };
+	  sendFunctionsMap[ neighborRank ].push_back( headerWriter );
+	}
+
+	for ( auto & packInfo : packInfos_ )
+	{
+	  auto sendFunction = [ packInfo, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { packInfo->packVertexForEdge( vertex, neighborID, sendBuffer ); };
+	  sendFunctionsMap[ neighborRank ].push_back( sendFunction );
+	}
       }
     }
   }
 
-  // Recv functions
+  // Receive functions
   for ( auto it  = storage->beginEdges();
 	     it != storage->endEdges();
 	     it++ )
@@ -65,10 +97,16 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
       PrimitiveID neighborID   = neighbor->first;
       uint_t      neighborRank = neighbor->second;
 
-      for ( auto & packInfo : packInfos_ )
+      if ( !storage->vertexExistsLocally( neighborID ) )
       {
-	auto recvFunction = [ packInfo, edge, neighborID ]( RecvBuffer & recvBuffer ) -> void { packInfo->unpackEdgeFromVertex( edge, neighborID, recvBuffer ); };
-	// bufferSystem->addReceivingFunction( int_c( neighborRank ), recvFunction );
+	if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
+	{
+	  ranksToReceiveFrom[ neighborRank ] = 1;
+	}
+	else
+	{
+	  ranksToReceiveFrom[ neighborRank ] += 1;
+	}
       }
     }
   }
@@ -81,6 +119,35 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
     auto sendFunction = [ sendFunctions ]( SendBuffer & sendBuffer ) -> void { for ( auto & f : sendFunctions ) f( sendBuffer ); };
 
     bufferSystem->addSendingFunction( int_c( receiverRank ), sendFunction );
+  }
+
+
+  for ( const auto rankToReceiveFrom : ranksToReceiveFrom )
+  {
+    const uint_t senderRank       = rankToReceiveFrom.first;
+    const uint_t numberOfMessages = rankToReceiveFrom.second;
+
+    auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void {
+      for ( uint_t message = 0; message < numberOfMessages; message++ )
+      {
+	PrimitiveID senderID;
+	PrimitiveID receiverID;
+	readHeader( recvBuffer, senderID, receiverID );
+
+	std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+	WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+
+	WALBERLA_ASSERT( storage->edgeExistsLocally( receiverID ), " receiverID: " << receiverID.getID() );
+	Edge * receivingEdge = storage->getEdge( receiverID );
+
+	for ( auto & packInfo : packInfos_ )
+	{
+          packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
+	}
+      }
+    };
+
+    bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
   }
 
   bufferSystem->startCommunication();
