@@ -196,13 +196,13 @@ private:
 };
 
 indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level)
-    : counter_(0),
-      idx_(0),
+    : idx_(0),
+      counter_(0),
+      num_perEdge_(0),
       offset_(0),
       offsetOffset_(0),
       edge_orientation_(edgeOrientation),
       edge_index_(edgeIndex),
-      num_perEdge_(0),
       ended_(false)
 {
   WALBERLA_ASSERT(edge_orientation_ == -1 || edge_orientation_ == 1,"Invalid edge Orientation: " << edge_orientation_);
