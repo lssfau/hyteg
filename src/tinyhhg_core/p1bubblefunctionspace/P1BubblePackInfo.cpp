@@ -7,8 +7,7 @@ namespace communication {
 
 using namespace hhg::P1BubbleEdge;
 
-/// @name Vertex to Edge
-///@{
+///Vertex to Edge
 
 void P1BubblePackInfo::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer){
   uint_t nbr_neighbours = sender->edges.size();
@@ -78,9 +77,7 @@ void P1BubblePackInfo::communicateLocalVertexToEdge(const Vertex *sender, Edge *
   edgeData[EdgeCoordsVertex::edge_index(level_,pos,dir2)] = vertexData[1 + sender->edge_index(*receiver) + 1];
 }
 
-///@}
-/// @name Edge to Vertex
-///@{
+///Edge to Vertex
 
 void P1BubblePackInfo::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   real_t *data = sender->getData(dataIDEdge_)->data[level_].get();
@@ -116,9 +113,7 @@ void P1BubblePackInfo::communicateLocalEdgeToVertex(const Edge *sender, Vertex *
   }
 }
 
-///@}
-/// @name Edge to Face
-///@{
+/// Edge to Face
 
 void P1BubblePackInfo::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) {
   real_t *data = sender->getData(dataIDEdge_)->data[level_].get();
@@ -149,9 +144,7 @@ void P1BubblePackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *rece
   }
 }
 
-///@}
-/// @name Face to Edge
-///@{
+///Face to Edge
 
 void P1BubblePackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   using namespace hhg::P1BubbleFace;
@@ -202,8 +195,6 @@ void P1BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *rece
     idx++;
   }
 }
-
-///@}
 
 } //namespace communication
 } //namespace hhg

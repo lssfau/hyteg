@@ -56,7 +56,7 @@ int main (int argc, char** argv) {
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, 1  );
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(walberla::MPIManager::instance()->rank() , setupStorage));
+  std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(uint_c(walberla::MPIManager::instance()->rank()) , setupStorage));
 
   FaceP1BubbleFunctionMemoryDataHandling faceP1BubbleFunctionMemoryDataHandling;
   EdgeP1BubbleFunctionMemoryDataHandling edgeP1BubbleFunctionMemoryDataHandling;
