@@ -21,14 +21,12 @@ void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & pack
 
 void BufferedCommunicator::writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID )
 {
-  WALBERLA_LOG_INFO( "Writing Header | " << senderID.getID() << ", " << receiverID.getID() );
   sendBuffer << senderID << receiverID;
 }
 
 void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID )
 {
   recvBuffer >> senderID >> receiverID;
-  WALBERLA_LOG_INFO( "Reading Header | " << senderID.getID() << ", " << receiverID.getID() );
 }
 
 void BufferedCommunicator::startCommunicationVertexToEdge()
