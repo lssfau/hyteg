@@ -48,6 +48,8 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 #endif
 }
 
+
+
 void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {
   primitiveMap.clear();
@@ -57,6 +59,29 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
   primitiveMap.insert( beginFaces(), endFaces() );
 
   WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+}
+
+
+const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
+{
+  WALBERLA_ASSERT_LESS_EQUAL(   vertices_.count( id.getID() )
+                              +    edges_.count( id.getID() )
+                              +    faces_.count( id.getID() ), uint_c( 1 ) );
+  if ( vertexExistsLocally( id ) ) return getVertex( id );
+  if (   edgeExistsLocally( id ) ) return   getEdge( id );
+  if (   faceExistsLocally( id ) ) return   getFace( id );
+  return NULL;
+}
+
+Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id )
+{
+  WALBERLA_ASSERT_LESS_EQUAL(   vertices_.count( id.getID() )
+                              +    edges_.count( id.getID() )
+                              +    faces_.count( id.getID() ), uint_c( 1 ) );
+  if ( vertexExistsLocally( id ) ) return getVertex( id );
+  if (   edgeExistsLocally( id ) ) return   getEdge( id );
+  if (   faceExistsLocally( id ) ) return   getFace( id );
+  return NULL;
 }
 
 
