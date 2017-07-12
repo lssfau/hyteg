@@ -29,6 +29,40 @@ void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       Primitive
   recvBuffer >> senderID >> receiverID;
 }
 
+void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
+				    const uint_t & numberOfMessages,
+				    const CommunicationDirection & communicationDirection )
+{
+  for ( uint_t message = 0; message < numberOfMessages; message++ )
+  {
+    PrimitiveID senderID;
+    PrimitiveID receiverID;
+    readHeader( recvBuffer, senderID, receiverID );
+
+    std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+
+    WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+    WALBERLA_ASSERT( storage->primitiveExistsLocally( receiverID ) );
+
+    switch ( communicationDirection )
+    {
+    case VERTEX_TO_EDGE:
+    {
+      Edge * receivingEdge = storage->getEdge( receiverID );
+      for ( auto & packInfo : packInfos_ )
+      {
+	packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
+      }
+      break;
+    }
+    default:
+      WALBERLA_ABORT( "Receive not implemented for this direction..." );
+      break;
+    }
+
+  }
+}
+
 void BufferedCommunicator::startCommunicationVertexToEdge()
 {
   if ( packInfos_.empty() )
@@ -125,26 +159,7 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
     const uint_t senderRank       = rankToReceiveFrom.first;
     const uint_t numberOfMessages = rankToReceiveFrom.second;
 
-    auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void {
-      for ( uint_t message = 0; message < numberOfMessages; message++ )
-      {
-	PrimitiveID senderID;
-	PrimitiveID receiverID;
-	readHeader( recvBuffer, senderID, receiverID );
-
-	std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
-	WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
-
-	WALBERLA_ASSERT( storage->edgeExistsLocally( receiverID ), " receiverID: " << receiverID.getID() );
-	Edge * receivingEdge = storage->getEdge( receiverID );
-
-	for ( auto & packInfo : packInfos_ )
-	{
-          packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
-	}
-      }
-    };
-
+    auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void { receive( recvBuffer, numberOfMessages, VERTEX_TO_EDGE ); };
     bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
   }
 

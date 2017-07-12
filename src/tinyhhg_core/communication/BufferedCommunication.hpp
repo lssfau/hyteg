@@ -19,7 +19,7 @@ public:
   typedef std::function<void ( SendBuffer & buf ) > SendFunction;
   typedef std::function<void ( RecvBuffer & buf ) > RecvFunction;
 
-  enum COMMUNICATION_DIRECTIONS
+  enum CommunicationDirection
   {
 	VERTEX_TO_EDGE,
 	EDGE_TO_VERTEX,
@@ -42,12 +42,18 @@ private:
   void writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID );
   void readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID );
 
+  inline void receive    (       RecvBuffer             & recvBuffer,
+		           const uint_t                 & numberOfMessages,
+			   const CommunicationDirection & communicationDirection );
+
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
 
 };
+
+
 
 } // namespace communication
 } // namespace hhg
