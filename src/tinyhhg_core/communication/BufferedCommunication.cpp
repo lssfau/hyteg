@@ -65,8 +65,9 @@ void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
   }
 }
 
-void BufferedCommunicator::startCommunication( const CommunicationDirection & communicationDirection,
-                                               const LocalCommunicationCallback & localCommunicationCallback )
+void BufferedCommunicator::startCommunication( const CommunicationDirection     & communicationDirection,
+                                               const LocalCommunicationCallback & localCommunicationCallback,
+                                               const PackCallback               & packCallback )
 {
   if ( packInfos_.empty() )
   {
@@ -119,7 +120,7 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection & co
       PrimitiveID neighborID   = neighbor.first;
       uint_t      neighborRank = neighbor.second;
 
-      if ( storage->edgeExistsLocally( neighborID ) )
+      if ( storage->primitiveExistsLocally( neighborID ) )
       {
         for ( auto & packInfo : packInfos_ )
         {
@@ -128,16 +129,15 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection & co
       }
       else
       {
-        Vertex * vertex = storage->getVertex( senderID );
         if ( !packInfos_.empty() )
         {
-          auto headerWriter = [ this, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, vertex->getID(), neighborID ); };
+          auto headerWriter = [ this, senderID, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, senderID, neighborID ); };
           sendFunctionsMap[ neighborRank ].push_back( headerWriter );
         }
 
         for ( auto & packInfo : packInfos_ )
         {
-          auto sendFunction = [ packInfo, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { packInfo->packVertexForEdge( vertex, neighborID, sendBuffer ); };
+          auto sendFunction = [ senderID, neighborID, packInfo, packCallback ]( SendBuffer & sendBuffer ) -> void { packCallback( senderID, neighborID, sendBuffer, packInfo ); };
           sendFunctionsMap[ neighborRank ].push_back( sendFunction );
         }
       }
@@ -196,15 +196,30 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
 {
   auto localCommunicationCallback = [ this ]( const PrimitiveID & senderID,
                                               const PrimitiveID & receiverID,
-                                              const std::shared_ptr< PackInfo > & packInfo ) -> void {
+                                              const std::shared_ptr< PackInfo > & packInfo ) -> void
+  {
     std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
     WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+    WALBERLA_ASSERT( storage->vertexExistsLocally( senderID ) );
+    WALBERLA_ASSERT( storage->edgeExistsLocally  ( receiverID ) );
     Vertex * sender   = storage->getVertex( senderID );
     Edge   * receiver = storage->getEdge  ( receiverID );
     packInfo->communicateLocalVertexToEdge( sender, receiver );
   };
 
-  startCommunication( VERTEX_TO_EDGE, localCommunicationCallback );
+  auto packCallback = [ this ]( const PrimitiveID & senderID,
+                                const PrimitiveID & receiverID,
+                                      SendBuffer  & sendBuffer,
+                                const std::shared_ptr< PackInfo > & packInfo ) -> void
+  {
+    std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+    WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+    WALBERLA_ASSERT( storage->vertexExistsLocally( senderID ) );
+    Vertex * sender   = storage->getVertex( senderID );
+    packInfo->packVertexForEdge( sender, receiverID, sendBuffer );
+  };
+
+  startCommunication( VERTEX_TO_EDGE, localCommunicationCallback, packCallback );
 }
 
 void BufferedCommunicator::endCommunicationVertexToEdge()

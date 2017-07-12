@@ -19,7 +19,14 @@ public:
   typedef std::function<void ( SendBuffer & buf ) > SendFunction;
   typedef std::function<void ( RecvBuffer & buf ) > RecvFunction;
 
-  typedef std::function< void ( const PrimitiveID &, const PrimitiveID &, const std::shared_ptr< PackInfo > & ) > LocalCommunicationCallback;
+  typedef std::function< void ( const PrimitiveID & senderID,
+                                const PrimitiveID & receiverID,
+                                const std::shared_ptr< PackInfo > & packInfo ) > LocalCommunicationCallback;
+
+  typedef std::function< void ( const PrimitiveID & senderID,
+                                const PrimitiveID & receiverID,
+                                      SendBuffer  & sendBuffer,
+                                const std::shared_ptr< PackInfo > & packInfo ) > PackCallback;
 
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
@@ -48,8 +55,9 @@ private:
                     const uint_t                 & numberOfMessages,
                     const CommunicationDirection & communicationDirection );
 
-  void startCommunication( const CommunicationDirection & communicationDirection,
-                           const LocalCommunicationCallback & localCommunicationCallback );
+  void startCommunication( const CommunicationDirection     & communicationDirection,
+                           const LocalCommunicationCallback & localCommunicationCallback,
+                           const PackCallback               & packCallback );
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
