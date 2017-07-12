@@ -46,6 +46,7 @@ public:
 
   virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
   {
+    WALBERLA_UNUSED( receiver );
     VertexTestData * data = sender->getData( vertexDataID_ );
     buffer << data->someInt;
     // WALBERLA_LOG_INFO( "Packing | Vertex: " << sender->getID().getID() << ", Receiver: " << receiver.getID() << ", Data: " << data->someInt );
