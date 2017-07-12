@@ -7,7 +7,8 @@ namespace communication {
 
 using namespace hhg::P1BubbleEdge;
 
-///Vertex to Edge
+/// @name Vertex to Edge
+///@{
 
 void P1BubblePackInfo::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer){
   uint_t nbr_neighbours = sender->edges.size();
@@ -77,7 +78,9 @@ void P1BubblePackInfo::communicateLocalVertexToEdge(const Vertex *sender, Edge *
   edgeData[EdgeCoordsVertex::edge_index(level_,pos,dir2)] = vertexData[1 + sender->edge_index(*receiver) + 1];
 }
 
-///Edge to Vertex
+///@}
+/// @name Edge to Vertex
+///@{
 
 void P1BubblePackInfo::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   real_t *data = sender->getData(dataIDEdge_)->data[level_].get();
@@ -113,7 +116,9 @@ void P1BubblePackInfo::communicateLocalEdgeToVertex(const Edge *sender, Vertex *
   }
 }
 
-/// Edge to Face
+///@}
+/// @name Edge to Face
+///@{
 
 void P1BubblePackInfo::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) {
   real_t *data = sender->getData(dataIDEdge_)->data[level_].get();
@@ -132,6 +137,7 @@ void P1BubblePackInfo::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sen
     buffer >> data[*it];
   }
 }
+
 void P1BubblePackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
   using namespace hhg::P1BubbleFace;
   real_t *edgeData = sender->getData(dataIDEdge_)->data[level_].get();
@@ -144,7 +150,9 @@ void P1BubblePackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *rece
   }
 }
 
-///Face to Edge
+///@}
+/// @name Face to Edge
+///@{
 
 void P1BubblePackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   using namespace hhg::P1BubbleFace;
@@ -154,6 +162,7 @@ void P1BubblePackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &re
     buffer << data[*it];
   }
 }
+
 void P1BubblePackInfo::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
   real_t *data = receiver->getData(dataIDEdge_)->data[level_].get();
   uint_t rowSize = levelinfo::num_microvertices_per_edge(level_);
@@ -173,6 +182,7 @@ void P1BubblePackInfo::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sen
     buffer >> data[EdgeCoordsVertex::edge_index(level_,i,dir)];
   }
 }
+
 void P1BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
   using namespace hhg::P1BubbleFace;
   real_t *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
@@ -195,6 +205,8 @@ void P1BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *rece
     idx++;
   }
 }
+
+///@}
 
 } //namespace communication
 } //namespace hhg

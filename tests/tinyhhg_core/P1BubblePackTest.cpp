@@ -9,13 +9,13 @@ class FaceP1BubbleFunctionMemoryDataHandling : public OnlyInitializeDataHandling
 public:
     FaceP1BubbleFunctionMemory * initialize(const Face * const face) const
     {
+      //face->memory.push_back(new FaceP1BubbleFunctionMemory());
       WALBERLA_UNUSED(face);
-      FaceP1BubbleFunctionMemory *mem = new FaceP1BubbleFunctionMemory();
       for (size_t level = 1; level <= 5; ++level)
       {
-        mem->addlevel(level);
+        P1Bubble::getFaceFunctionMemory(*face, 0)->addlevel(level);
       }
-      return mem;
+      return P1Bubble::getFaceFunctionMemory(*face, 0);
     }
 };
 

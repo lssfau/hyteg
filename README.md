@@ -20,3 +20,7 @@
 
     cd apps
     ./tinytest_fmg
+
+### Documentation
+
+http://terraneo.pages.walberla.net/tinyhhg/index.html
