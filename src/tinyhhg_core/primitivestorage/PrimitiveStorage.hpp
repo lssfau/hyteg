@@ -41,11 +41,11 @@ public:
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
   bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
-  bool vertexExistsLocally( const PrimitiveID & id )    const { return vertices_.find( id.getID() ) != vertices_.end(); }
+  bool vertexExistsLocally( const PrimitiveID & id )    const { return vertices_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists locally.
-  bool edgeExistsLocally( const PrimitiveID & id )      const { return edges_.find( id.getID() ) != edges_.end(); }
+  bool edgeExistsLocally( const PrimitiveID & id )      const { return edges_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
-  bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.find( id.getID() ) != faces_.end(); }
+  bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
 
   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
   void getPrimitives( PrimitiveMap & primitiveMap ) const;
@@ -131,7 +131,6 @@ template< typename DataType >
 PrimitiveDataID< DataType, Primitive > PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType, Primitive > & dataHandling,
 						                const std::string & identifier )
 {
-  WALBERLA_LOG_PROGRESS( "Adding data to all primitives (\"" << identifier << "\")" );
   PrimitiveDataID< DataType, Primitive > dataID = generateDataID< DataType, Primitive >();
   std::map< PrimitiveID::IDType, Primitive* > primitives;
   primitives.insert( vertices_.begin(), vertices_.end() );
@@ -147,7 +146,6 @@ template< typename DataType >
 PrimitiveDataID< DataType, Vertex > PrimitiveStorage::addVertexData( const PrimitiveDataHandling< DataType, Vertex > & dataHandling,
 						             const std::string & identifier )
 {
-  WALBERLA_LOG_PROGRESS( "Adding data to vertices (\"" << identifier << "\")" );
   PrimitiveDataID< DataType, Vertex > dataID = generateDataID< DataType, Vertex >();
   addPrimitiveData( dataHandling, identifier, vertices_, dataID );
   return dataID;
@@ -158,7 +156,6 @@ template< typename DataType >
 PrimitiveDataID< DataType, Edge > PrimitiveStorage::addEdgeData( const PrimitiveDataHandling< DataType, Edge > & dataHandling,
 						           const std::string & identifier )
 {
-  WALBERLA_LOG_PROGRESS( "Adding data to edges (\"" << identifier << "\")" );
   PrimitiveDataID< DataType, Edge > dataID = generateDataID< DataType, Edge >();
   addPrimitiveData( dataHandling, identifier, edges_, dataID );
   return dataID;
@@ -169,7 +166,6 @@ template< typename DataType >
 PrimitiveDataID< DataType, Face > PrimitiveStorage::addFaceData( const PrimitiveDataHandling< DataType, Face > & dataHandling,
 						             const std::string & identifier )
 {
-  WALBERLA_LOG_PROGRESS( "Adding data to faces (\"" << identifier << "\")" );
   PrimitiveDataID< DataType, Face > dataID = generateDataID< DataType, Face >();
   addPrimitiveData( dataHandling, identifier, faces_, dataID );
   return dataID;

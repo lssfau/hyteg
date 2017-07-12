@@ -46,10 +46,9 @@ public:
 
   virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
   {
-    WALBERLA_UNUSED( receiver );
-
     VertexTestData * data = sender->getData( vertexDataID_ );
     buffer << data->someInt;
+    WALBERLA_LOG_INFO( "Packing | Vertex: " << sender->getID().getID() << ", Receiver: " << receiver.getID() << ", Data: " << data->someInt );
   }
 
   virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer)
@@ -59,13 +58,16 @@ public:
     EdgeTestData * data = receiver->getData( edgeDataID_ );
     uint_t vertexData;
     buffer >> vertexData;
+    WALBERLA_LOG_INFO( "Unpacking | Edge: " << receiver->getID().getID() << ", Data: " << vertexData );
     data->someInts.push_back( vertexData );
   }
 
   virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver)
   {
-    WALBERLA_UNUSED( sender   );
-    WALBERLA_UNUSED( receiver );
+    VertexTestData * vertexData = sender->getData( vertexDataID_ );
+    EdgeTestData   * edgeData   = receiver->getData( edgeDataID_ );
+    WALBERLA_LOG_INFO( "Direct | Vertex: " << sender->getID().getID() << ", Edge: " << receiver->getID().getID() << ", Data: " << vertexData->someInt );
+    edgeData->someInts.push_back( vertexData->someInt );
   }
 
 
@@ -143,13 +145,16 @@ static void testBufferedCommunication()
 
   uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  std::string meshFileName = "../../data/meshes/tri_2el.msh";
+  std::string meshFileName = "../../data/meshes/bfs_126el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   RoundRobin loadbalancer;
   setupStorage.balanceLoad( loadbalancer, 0.0 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+  WALBERLA_MPI_BARRIER();
 
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( rank, setupStorage ) );
 
@@ -181,6 +186,25 @@ static void testBufferedCommunication()
 
   communicator.startCommunicationVertexToEdge();
   communicator.endCommunicationVertexToEdge();
+
+  WALBERLA_MPI_BARRIER();
+
+  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  {
+    Edge * edge = it->second;
+    EdgeTestData * data = edge->getData( edgeTestDataID );
+    WALBERLA_CHECK_EQUAL( data->someInts.size(), 2 );
+    WALBERLA_CHECK_UNEQUAL( data->someInts[0], data->someInts[1], "Failing on Edge: " << it->first );
+
+    for ( auto lowerDimNeighbor  = edge->beginLowerDimNeighbors();
+	       lowerDimNeighbor != edge->endLowerDimNeighbors();
+	       lowerDimNeighbor++ )
+    {
+      WALBERLA_CHECK( data->someInts[0] == lowerDimNeighbor->first || data->someInts[1] == lowerDimNeighbor->first, "Failing on Edge: " << it->first );
+    }
+
+    WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
+  }
 
 }
 
