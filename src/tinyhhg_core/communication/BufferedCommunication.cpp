@@ -228,14 +228,14 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
   startCommunication( VERTEX_TO_EDGE, localCommunicationCallback, packCallback, unpackCallback );
 }
 
-void BufferedCommunicator::endCommunicationVertexToEdge()
+void BufferedCommunicator::endCommunication( const CommunicationDirection & communicationDirection )
 {
   if ( packInfos_.empty() )
   {
     return;
   }
 
-  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ VERTEX_TO_EDGE ];
+  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
 }
 

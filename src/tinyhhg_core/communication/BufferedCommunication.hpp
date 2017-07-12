@@ -41,7 +41,7 @@ public:
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
 
   void startCommunicationVertexToEdge();
-  void endCommunicationVertexToEdge();
+  void endCommunicationVertexToEdge() { endCommunication( VERTEX_TO_EDGE ); }
 
 private:
 
@@ -67,6 +67,8 @@ private:
                            const LocalCommunicationCallback & localCommunicationCallback,
                            const PackCallback               & packCallback,
                            const UnpackCallback             & unpackCallback );
+
+  void endCommunication( const CommunicationDirection & communicationDirection );
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
