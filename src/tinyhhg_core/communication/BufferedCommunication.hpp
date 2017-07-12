@@ -21,12 +21,20 @@ public:
 
   typedef std::function< void ( const PrimitiveID & senderID,
                                 const PrimitiveID & receiverID,
-                                const std::shared_ptr< PackInfo > & packInfo ) > LocalCommunicationCallback;
+                                const std::shared_ptr< PrimitiveStorage > & storage,
+                                const std::shared_ptr< PackInfo >         & packInfo ) > LocalCommunicationCallback;
 
   typedef std::function< void ( const PrimitiveID & senderID,
                                 const PrimitiveID & receiverID,
-                                      SendBuffer  & sendBuffer,
-                                const std::shared_ptr< PackInfo > & packInfo ) > PackCallback;
+                                const std::shared_ptr< PrimitiveStorage > & storage,
+                                      SendBuffer                          & sendBuffer,
+                                const std::shared_ptr< PackInfo >         & packInfo ) > PackCallback;
+
+  typedef std::function< void ( const PrimitiveID & senderID,
+                                const PrimitiveID & receiverID,
+                                const std::shared_ptr< PrimitiveStorage > & storage,
+                                      RecvBuffer                          & recvBuffer,
+                                const std::shared_ptr< PackInfo >         & packInfo ) > UnpackCallback;
 
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
@@ -57,7 +65,8 @@ private:
 
   void startCommunication( const CommunicationDirection     & communicationDirection,
                            const LocalCommunicationCallback & localCommunicationCallback,
-                           const PackCallback               & packCallback );
+                           const PackCallback               & packCallback,
+                           const UnpackCallback             & unpackCallback );
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
