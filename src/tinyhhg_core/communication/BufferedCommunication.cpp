@@ -2,6 +2,8 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include "core/logging/Logging.h"
 
+#include <functional>
+
 namespace hhg {
 namespace communication {
 
@@ -30,8 +32,8 @@ void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       Primitive
 }
 
 void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
-				    const uint_t & numberOfMessages,
-				    const CommunicationDirection & communicationDirection )
+				                            const uint_t & numberOfMessages,
+				                            const CommunicationDirection & communicationDirection )
 {
   for ( uint_t message = 0; message < numberOfMessages; message++ )
   {
@@ -51,7 +53,7 @@ void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
       Edge * receivingEdge = storage->getEdge( receiverID );
       for ( auto & packInfo : packInfos_ )
       {
-	packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
+	      packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
       }
       break;
     }
@@ -63,44 +65,70 @@ void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
   }
 }
 
-void BufferedCommunicator::startCommunication( const CommunicationDirection & communicationDirection )
+void BufferedCommunicator::startCommunication( const CommunicationDirection & communicationDirection,
+                                               const LocalCommunicationCallback & localCommunicationCallback )
 {
   if ( packInfos_.empty() )
   {
     return;
   }
 
-  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ VERTEX_TO_EDGE ];
+  bool sendingToHigherDimension =    communicationDirection == VERTEX_TO_EDGE
+                                  || communicationDirection == EDGE_TO_FACE;
+
+  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
   std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
 
-  std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;
+  std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;   // rank -> sendFunctions
   std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
 
+  std::map< PrimitiveID::IDType, std::vector< Primitive::NeighborToProcessMap > > senderReceiverPairs;
+
+  std::vector< PrimitiveID > senderIDs;
+
+  switch ( communicationDirection )
+  {
+  case VERTEX_TO_EDGE:
+    storage->getVertexIDs( senderIDs );
+    break;
+  default:
+    WALBERLA_ABORT( "Not implemented" );
+  }
 
   // Send functions
-  for ( auto it  = storage->beginVertices();
-             it != storage->endVertices();
-             it++ )
+  for ( PrimitiveID senderID : senderIDs )
   {
-    Vertex * vertex = it->second;
-    for ( auto neighbor  = vertex->beginHigherDimNeighbors();
-               neighbor != vertex->endHigherDimNeighbors();
-         neighbor++ )
+    senderReceiverPairs[ senderID.getID() ];
+    Primitive * sender = storage->getPrimitive( senderID );
+
+    Primitive::NeighborToProcessMap neighborhood;
+    if ( sendingToHigherDimension )
     {
-      PrimitiveID neighborID   = neighbor->first;
-      uint_t      neighborRank = neighbor->second;
+      sender->getHigherDimNeighbors( neighborhood );
+    }
+    else
+    {
+      sender->getLowerDimNeighbors( neighborhood );
+    }
+
+    senderReceiverPairs[ senderID.getID() ].push_back( neighborhood );
+
+    for ( auto const & neighbor : neighborhood )
+    {
+      PrimitiveID neighborID   = neighbor.first;
+      uint_t      neighborRank = neighbor.second;
 
       if ( storage->edgeExistsLocally( neighborID ) )
       {
-        Edge * edge = storage->getEdge( neighborID );
         for ( auto & packInfo : packInfos_ )
         {
-          packInfo->communicateLocalVertexToEdge( vertex, edge );
+          localCommunicationCallback( senderID, neighborID, packInfo );
         }
       }
       else
       {
+        Vertex * vertex = storage->getVertex( senderID );
         if ( !packInfos_.empty() )
         {
           auto headerWriter = [ this, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, vertex->getID(), neighborID ); };
@@ -116,15 +144,14 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection & co
     }
   }
 
-  // Receive functions
   for ( auto it  = storage->beginEdges();
-       it != storage->endEdges();
-       it++ )
+             it != storage->endEdges();
+             it++ )
   {
     Edge * edge = it->second;
     for ( auto neighbor  = edge->beginLowerDimNeighbors();
-         neighbor != edge->endLowerDimNeighbors();
-         neighbor++ )
+               neighbor != edge->endLowerDimNeighbors();
+               neighbor++ )
     {
       PrimitiveID neighborID   = neighbor->first;
       uint_t      neighborRank = neighbor->second;
@@ -167,7 +194,17 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection & co
 
 void BufferedCommunicator::startCommunicationVertexToEdge()
 {
-  startCommunication( VERTEX_TO_EDGE );
+  auto localCommunicationCallback = [ this ]( const PrimitiveID & senderID,
+                                              const PrimitiveID & receiverID,
+                                              const std::shared_ptr< PackInfo > & packInfo ) -> void {
+    std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+    WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+    Vertex * sender   = storage->getVertex( senderID );
+    Edge   * receiver = storage->getEdge  ( receiverID );
+    packInfo->communicateLocalVertexToEdge( sender, receiver );
+  };
+
+  startCommunication( VERTEX_TO_EDGE, localCommunicationCallback );
 }
 
 void BufferedCommunicator::endCommunicationVertexToEdge()
