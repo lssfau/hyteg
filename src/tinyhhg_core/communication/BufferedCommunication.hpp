@@ -61,7 +61,7 @@ private:
 
   void receive    (       RecvBuffer             & recvBuffer,
                     const uint_t                 & numberOfMessages,
-                    const CommunicationDirection & communicationDirection );
+                    const UnpackCallback         & unpackCallback );
 
   void startCommunication( const CommunicationDirection     & communicationDirection,
                            const LocalCommunicationCallback & localCommunicationCallback,

@@ -31,9 +31,9 @@ void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       Primitive
   recvBuffer >> senderID >> receiverID;
 }
 
-void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
-				                            const uint_t & numberOfMessages,
-				                            const CommunicationDirection & communicationDirection )
+void BufferedCommunicator::receive(       RecvBuffer     & recvBuffer,
+				                            const uint_t         & numberOfMessages,
+				                            const UnpackCallback & unpackCallback )
 {
   for ( uint_t message = 0; message < numberOfMessages; message++ )
   {
@@ -46,22 +46,10 @@ void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
     WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
     WALBERLA_ASSERT( storage->primitiveExistsLocally( receiverID ) );
 
-    switch ( communicationDirection )
+    for ( const auto & packInfo : packInfos_ )
     {
-    case VERTEX_TO_EDGE:
-    {
-      Edge * receivingEdge = storage->getEdge( receiverID );
-      for ( auto & packInfo : packInfos_ )
-      {
-	      packInfo->unpackEdgeFromVertex( receivingEdge, senderID, recvBuffer );
-      }
-      break;
+      unpackCallback( senderID, receiverID, storage, recvBuffer, packInfo );
     }
-    default:
-      WALBERLA_ABORT( "Receive not implemented for this direction..." );
-      break;
-    }
-
   }
 }
 
@@ -74,8 +62,6 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection     
   {
     return;
   }
-
-  WALBERLA_UNUSED( unpackCallback );
 
   bool sendingToHigherDimension =    communicationDirection == VERTEX_TO_EDGE
                                   || communicationDirection == EDGE_TO_FACE;
@@ -144,6 +130,7 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection     
     }
   }
 
+  // Ranks to receive from
   for ( const PrimitiveID & receiverID : receiverIDs )
   {
     Primitive * receiver = storage->getPrimitive( receiverID );
@@ -192,7 +179,7 @@ void BufferedCommunicator::startCommunication( const CommunicationDirection     
     const uint_t senderRank       = rankToReceiveFrom.first;
     const uint_t numberOfMessages = rankToReceiveFrom.second;
 
-    auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void { receive( recvBuffer, numberOfMessages, VERTEX_TO_EDGE ); };
+    auto recvFunction = [ this, numberOfMessages, unpackCallback ]( RecvBuffer & recvBuffer ) -> void { receive( recvBuffer, numberOfMessages, unpackCallback ); };
     bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
   }
 
