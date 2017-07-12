@@ -6,7 +6,7 @@
     cd walberla
     git checkout master
     cd ..
-    git clone git@i10git.cs.fau.de:drzisga/tinyhhg_cpp.git
+    git clone git@i10git.cs.fau.de:terraneo/tinyhhg.git
     cd tinyhhg_cpp
     git checkout master
     cd ..
@@ -20,3 +20,7 @@
 
     cd apps
     ./tinytest_fmg
+
+### Documentation
+
+http://terraneo.pages.walberla.net/tinyhhg/index.html
