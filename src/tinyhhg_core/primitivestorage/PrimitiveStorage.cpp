@@ -60,6 +60,34 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 }
 
 
+void PrimitiveStorage::getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const
+{
+  vertexIDs.clear();
+  for ( auto const & it : vertices_ )
+  {
+    vertexIDs.push_back( it.first );
+  }
+}
+
+void PrimitiveStorage::getEdgeIDs ( std::vector< PrimitiveID > & edgeIDs ) const
+{
+  edgeIDs.clear();
+  for ( auto const & it : edges_ )
+  {
+    edgeIDs.push_back( it.first );
+  }
+}
+
+void PrimitiveStorage::getFaceIDs ( std::vector< PrimitiveID > & faceIDs ) const
+{
+  faceIDs.clear();
+  for ( auto const & it : faces_ )
+  {
+    faceIDs.push_back( it.first );
+  }
+}
+
+
 void PrimitiveStorage::checkConsistency()
 {
   // 1. Number of data handlers less than local counter

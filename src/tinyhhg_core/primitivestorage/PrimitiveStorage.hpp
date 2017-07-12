@@ -65,6 +65,10 @@ public:
   const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; };
         Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; };
 
+  void getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const;
+  void getEdgeIDs   ( std::vector< PrimitiveID > & edgeIDs )   const;
+  void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
+
   VertexMap::iterator beginVertices() { return vertices_.begin(); }
   VertexMap::iterator endVertices()   { return vertices_.end(); }
 
