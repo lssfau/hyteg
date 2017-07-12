@@ -19,17 +19,6 @@ public:
   typedef std::function<void ( SendBuffer & buf ) > SendFunction;
   typedef std::function<void ( RecvBuffer & buf ) > RecvFunction;
 
-  enum CommunicationDirection
-  {
-	VERTEX_TO_EDGE,
-	EDGE_TO_VERTEX,
-
-	EDGE_TO_FACE,
-	FACE_TO_EDGE,
-
-	NUM_COMMUNICATION_DIRECTIONS
-  };
-
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
@@ -39,12 +28,25 @@ public:
 
 private:
 
+  enum CommunicationDirection
+  {
+    VERTEX_TO_EDGE,
+    EDGE_TO_VERTEX,
+
+    EDGE_TO_FACE,
+    FACE_TO_EDGE,
+
+    NUM_COMMUNICATION_DIRECTIONS
+  };
+
   void writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID );
   void readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID );
 
-  inline void receive    (       RecvBuffer             & recvBuffer,
-		           const uint_t                 & numberOfMessages,
-			   const CommunicationDirection & communicationDirection );
+  void receive    (       RecvBuffer             & recvBuffer,
+                    const uint_t                 & numberOfMessages,
+                    const CommunicationDirection & communicationDirection );
+
+  void startCommunication( const CommunicationDirection & communicationDirection );
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;

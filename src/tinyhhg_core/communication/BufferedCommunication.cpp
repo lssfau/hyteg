@@ -63,7 +63,7 @@ void BufferedCommunicator::receive( RecvBuffer & recvBuffer,
   }
 }
 
-void BufferedCommunicator::startCommunicationVertexToEdge()
+void BufferedCommunicator::startCommunication( const CommunicationDirection & communicationDirection )
 {
   if ( packInfos_.empty() )
   {
@@ -86,7 +86,7 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
     Vertex * vertex = it->second;
     for ( auto neighbor  = vertex->beginHigherDimNeighbors();
                neighbor != vertex->endHigherDimNeighbors();
-	       neighbor++ )
+         neighbor++ )
     {
       PrimitiveID neighborID   = neighbor->first;
       uint_t      neighborRank = neighbor->second;
@@ -95,50 +95,50 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
       {
         Edge * edge = storage->getEdge( neighborID );
         for ( auto & packInfo : packInfos_ )
-	{
-	  packInfo->communicateLocalVertexToEdge( vertex, edge );
-	}
+        {
+          packInfo->communicateLocalVertexToEdge( vertex, edge );
+        }
       }
       else
       {
-	if ( !packInfos_.empty() )
-	{
-	  auto headerWriter = [ this, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, vertex->getID(), neighborID ); };
-	  sendFunctionsMap[ neighborRank ].push_back( headerWriter );
-	}
+        if ( !packInfos_.empty() )
+        {
+          auto headerWriter = [ this, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, vertex->getID(), neighborID ); };
+          sendFunctionsMap[ neighborRank ].push_back( headerWriter );
+        }
 
-	for ( auto & packInfo : packInfos_ )
-	{
-	  auto sendFunction = [ packInfo, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { packInfo->packVertexForEdge( vertex, neighborID, sendBuffer ); };
-	  sendFunctionsMap[ neighborRank ].push_back( sendFunction );
-	}
+        for ( auto & packInfo : packInfos_ )
+        {
+          auto sendFunction = [ packInfo, vertex, neighborID ]( SendBuffer & sendBuffer ) -> void { packInfo->packVertexForEdge( vertex, neighborID, sendBuffer ); };
+          sendFunctionsMap[ neighborRank ].push_back( sendFunction );
+        }
       }
     }
   }
 
   // Receive functions
   for ( auto it  = storage->beginEdges();
-	     it != storage->endEdges();
-	     it++ )
+       it != storage->endEdges();
+       it++ )
   {
     Edge * edge = it->second;
     for ( auto neighbor  = edge->beginLowerDimNeighbors();
-	       neighbor != edge->endLowerDimNeighbors();
-	       neighbor++ )
+         neighbor != edge->endLowerDimNeighbors();
+         neighbor++ )
     {
       PrimitiveID neighborID   = neighbor->first;
       uint_t      neighborRank = neighbor->second;
 
       if ( !storage->vertexExistsLocally( neighborID ) )
       {
-	if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
-	{
-	  ranksToReceiveFrom[ neighborRank ] = 1;
-	}
-	else
-	{
-	  ranksToReceiveFrom[ neighborRank ] += 1;
-	}
+        if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
+        {
+          ranksToReceiveFrom[ neighborRank ] = 1;
+        }
+        else
+        {
+          ranksToReceiveFrom[ neighborRank ] += 1;
+        }
       }
     }
   }
@@ -153,7 +153,6 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
     bufferSystem->addSendingFunction( int_c( receiverRank ), sendFunction );
   }
 
-
   for ( const auto rankToReceiveFrom : ranksToReceiveFrom )
   {
     const uint_t senderRank       = rankToReceiveFrom.first;
@@ -164,7 +163,11 @@ void BufferedCommunicator::startCommunicationVertexToEdge()
   }
 
   bufferSystem->startCommunication();
+}
 
+void BufferedCommunicator::startCommunicationVertexToEdge()
+{
+  startCommunication( VERTEX_TO_EDGE );
 }
 
 void BufferedCommunicator::endCommunicationVertexToEdge()
