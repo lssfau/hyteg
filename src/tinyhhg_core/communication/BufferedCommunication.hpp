@@ -12,6 +12,21 @@ namespace communication {
 
 using walberla::int_c;
 
+/// \brief Executes communication between primitives
+/// \author Nils Kohl (nils.kohl@fau.de)
+///
+/// The \ref BufferedCommunicator can be used to perform communication between primitives.
+///
+/// To communicate data, the respective \ref PackInfo objects have to be attached.
+///
+/// The communication is buffered since the data is packed into buffers and then sent to
+/// the respective processes. If two primitives reside on the same process, the communication
+/// can be performed directly (using the respective \ref PackInfo methods).
+///
+/// Since the communication is non-blocking, other actions can be performed after the communication
+/// was started. When the communicated data is required, the \ref BufferedCommunicator can be forced to
+/// wait for the sends and receives to complete.
+///
 class BufferedCommunicator
 {
 public:
@@ -21,8 +36,13 @@ public:
 
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
+  /// All data that are registered via respective \ref PackInfo objects are exchanged
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
 
+  /// Starts the non-blocking communication between two \ref Primitive types.
+  /// The data of the sender can be modified after this method returns.
+  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
   template< typename SenderType,
             typename ReceiverType,
             typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
@@ -31,6 +51,11 @@ public:
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void startCommunication();
 
+  /// Ends the non-blocking communication between two \ref Primitive types
+  /// Waits for the started communication to be completed. It is only safe to modify the
+  /// data of the receiver after this call returned.
+  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
   template< typename SenderType,
             typename ReceiverType,
             typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
