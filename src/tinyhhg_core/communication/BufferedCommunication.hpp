@@ -43,7 +43,6 @@ public:
   template< typename SenderType, typename ReceiverType >
   inline void startCommunication();
 
-  void startCommunicationVertexToEdge();
   void endCommunicationVertexToEdge() { endCommunication( VERTEX_TO_EDGE ); }
 
 private:
@@ -61,15 +60,6 @@ private:
 
   void writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID );
   void readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID );
-
-  void receive    (       RecvBuffer             & recvBuffer,
-                    const uint_t                 & numberOfMessages,
-                    const UnpackCallback         & unpackCallback );
-
-  void startCommunication( const CommunicationDirection     & communicationDirection,
-                           const LocalCommunicationCallback & localCommunicationCallback,
-                           const PackCallback               & packCallback,
-                           const UnpackCallback             & unpackCallback );
 
   void endCommunication( const CommunicationDirection & communicationDirection );
 
