@@ -197,9 +197,25 @@ static void testBufferedCommunication()
   communicator.endCommunication< Vertex, Edge >();
 
   communicator.startCommunication< Edge, Vertex >();
-  communicator.endCommunication< Edge, Vertex >();
 
-  WALBERLA_MPI_BARRIER();
+  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  {
+    Edge * edge = it->second;
+    EdgeTestData * data = edge->getData( edgeTestDataID );
+    WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 2 );
+    WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it->first );
+
+    for ( auto lowerDimNeighbor  = edge->beginLowerDimNeighbors();
+         lowerDimNeighbor != edge->endLowerDimNeighbors();
+         lowerDimNeighbor++ )
+    {
+      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighbor->first || data->vertexIDs[1] == lowerDimNeighbor->first, "Failing on Edge: " << it->first );
+    }
+
+    // WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
+  }
+
+  communicator.endCommunication< Edge, Vertex >(); // checking interleaved communication and processing
 
   for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
   {
@@ -218,22 +234,7 @@ static void testBufferedCommunication()
     }
   }
 
-  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
-  {
-    Edge * edge = it->second;
-    EdgeTestData * data = edge->getData( edgeTestDataID );
-    WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 2 );
-    WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it->first );
 
-    for ( auto lowerDimNeighbor  = edge->beginLowerDimNeighbors();
-	       lowerDimNeighbor != edge->endLowerDimNeighbors();
-	       lowerDimNeighbor++ )
-    {
-      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighbor->first || data->vertexIDs[1] == lowerDimNeighbor->first, "Failing on Edge: " << it->first );
-    }
-
-    // WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
-  }
 
 }
 
