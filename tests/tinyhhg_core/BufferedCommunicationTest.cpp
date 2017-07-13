@@ -185,7 +185,8 @@ static void testBufferedCommunication()
 
   communicator.addPackInfo( testPackInfo );
 
-  communicator.startCommunicationVertexToEdge();
+  // communicator.startCommunicationVertexToEdge();
+  communicator.startCommunication< Vertex, Edge >();
   communicator.endCommunicationVertexToEdge();
 
   WALBERLA_MPI_BARRIER();
