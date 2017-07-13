@@ -42,5 +42,7 @@ void BufferedCommunicator::endCommunication( const CommunicationDirection & comm
   bufferSystem->wait();
 }
 
+
+
 }
 }

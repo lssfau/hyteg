@@ -40,7 +40,12 @@ public:
 
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
 
-  template< typename SenderType, typename ReceiverType >
+  template< typename SenderType,
+            typename ReceiverType,
+            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void startCommunication();
 
   void endCommunicationVertexToEdge() { endCommunication( VERTEX_TO_EDGE ); }
@@ -58,6 +63,12 @@ private:
     NUM_COMMUNICATION_DIRECTIONS
   };
 
+  template< typename SenderType, typename ReceiverType >
+  inline CommunicationDirection getCommunicationDirection() const;
+
+  template< typename SenderType, typename ReceiverType >
+  inline bool sendingToHigherDimension() const;
+
   void writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID );
   void readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID );
 
@@ -71,6 +82,28 @@ private:
 };
 
 template< typename SenderType, typename ReceiverType >
+inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCommunicationDirection() const
+{
+  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value )   return VERTEX_TO_EDGE;
+  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Vertex >::value ) return EDGE_TO_VERTEX;
+  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Face >::value )   return EDGE_TO_FACE;
+  if ( std::is_same< SenderType, Face >::value   && std::is_same< ReceiverType, Edge >::value )   return FACE_TO_EDGE;
+  WALBERLA_ASSERT( false, "Sender and receiver types are invalid" );
+  return VERTEX_TO_EDGE;
+}
+
+template< typename SenderType, typename ReceiverType >
+inline bool BufferedCommunicator::sendingToHigherDimension() const
+{
+  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value )   return true;
+  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Vertex >::value ) return false;
+  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Face >::value )   return true;
+  if ( std::is_same< SenderType, Face >::value   && std::is_same< ReceiverType, Edge >::value )   return false;
+  WALBERLA_ASSERT( false, "Sender and receiver types are invalid" );
+  return false;
+}
+
+template< typename SenderType, typename ReceiverType, typename >
 void BufferedCommunicator::startCommunication()
 {
   if ( packInfos_.empty() )
@@ -78,9 +111,8 @@ void BufferedCommunicator::startCommunication()
     return;
   }
 
-  // ToDo:
-  bool sendingToHigherDimension = true;
-  CommunicationDirection communicationDirection = VERTEX_TO_EDGE;
+  bool                   sendingToHigherDim     = sendingToHigherDimension< SenderType, ReceiverType >();
+  CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
 
@@ -110,7 +142,7 @@ void BufferedCommunicator::startCommunication()
     SenderType * sender = storage->getPrimitiveGenerically< SenderType >( senderID );
 
     Primitive::NeighborToProcessMap receivingNeighborhood;
-    if ( sendingToHigherDimension )
+    if ( sendingToHigherDim )
     {
       sender->getHigherDimNeighbors( receivingNeighborhood );
     }
@@ -130,9 +162,6 @@ void BufferedCommunicator::startCommunication()
         for ( auto & packInfo : packInfos_ )
         {
           packInfo->communicateLocal< SenderType, ReceiverType >( sender, receiver );
-#if 0
-          localCommunicationCallback( senderID, neighborID, storage, packInfo );
-#endif
         }
       }
       else
@@ -145,9 +174,6 @@ void BufferedCommunicator::startCommunication()
 
         for ( auto & packInfo : packInfos_ )
         {
-#if 0
-          auto sendFunction = [ senderID, neighborID, storage, packInfo, packCallback ]( SendBuffer & sendBuffer ) -> void { packCallback( senderID, neighborID, storage, sendBuffer, packInfo ); };
-#endif
           auto sendFunction = [ sender, neighborID, packInfo ]( SendBuffer & sendBuffer ) -> void { packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer ); };
           sendFunctionsMap[ neighborRank ].push_back( sendFunction );
 
@@ -162,7 +188,7 @@ void BufferedCommunicator::startCommunication()
     ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
 
     Primitive::NeighborToProcessMap sendingNeighborhood;
-    if ( sendingToHigherDimension )
+    if ( sendingToHigherDim )
     {
       receiver->getLowerDimNeighbors( sendingNeighborhood );
     }
@@ -204,10 +230,6 @@ void BufferedCommunicator::startCommunication()
   {
     const uint_t senderRank       = rankToReceiveFrom.first;
     const uint_t numberOfMessages = rankToReceiveFrom.second;
-
-#if 0
-    auto recvFunction = [ this, numberOfMessages, unpackCallback ]( RecvBuffer & recvBuffer ) -> void { receive( recvBuffer, numberOfMessages, unpackCallback ); };
-#endif
 
     auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void
     {
