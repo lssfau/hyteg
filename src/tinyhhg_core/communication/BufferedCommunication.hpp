@@ -31,9 +31,6 @@ class BufferedCommunicator
 {
 public:
 
-  typedef std::function<void ( SendBuffer & buf ) > SendFunction;
-  typedef std::function<void ( RecvBuffer & buf ) > RecvFunction;
-
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
 
   /// All data that are registered via respective \ref PackInfo objects are exchanged
@@ -65,6 +62,9 @@ public:
   inline void endCommunication();
 
 private:
+
+  typedef std::function<void ( SendBuffer & buf ) > SendFunction;
+  typedef std::function<void ( RecvBuffer & buf ) > RecvFunction;
 
   enum CommunicationDirection
   {
