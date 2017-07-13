@@ -47,6 +47,9 @@ public:
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
 
+  template< typename PrimitiveType >
+  inline bool primitiveExistsLocallyGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
   /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Primitive does not exist locally.
   const Primitive* getPrimitive( const PrimitiveID & id ) const;
@@ -141,6 +144,19 @@ private:
   uint_t primitiveDataHandlers_;
 
 };
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Vertex >( const PrimitiveID & id ) const { return vertexExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Edge >  ( const PrimitiveID & id ) const { return edgeExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsLocally( id ); }
+
 
 template<>
 inline const Primitive* PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID & id ) const { return getPrimitive( id ); }
