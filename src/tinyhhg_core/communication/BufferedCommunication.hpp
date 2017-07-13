@@ -3,6 +3,9 @@
 
 #include "tinyhhg_core/communication/PackInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+
+#include "core/debug/CheckFunctions.h"
+#include "core/debug/Debug.h"
 #include "core/mpi/BufferSystem.h"
 #include "core/mpi/MPIManager.h"
 #include "core/mpi/OpenMPBufferSystem.h"
