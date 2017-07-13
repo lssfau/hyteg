@@ -118,6 +118,9 @@ public:
   NeighborToProcessMap::const_iterator beginHigherDimNeighbors() const { return higherDimNeighbors_.begin(); }
   NeighborToProcessMap::const_iterator endHigherDimNeighbors()   const { return higherDimNeighbors_.end(); }
 
+  void getLowerDimNeighbors ( NeighborToProcessMap & lowerDimNeighbors )  const { lowerDimNeighbors.clear();  lowerDimNeighbors.insert( lowerDimNeighbors_.begin(),  lowerDimNeighbors_.end() ); }
+  void getHigherDimNeighbors( NeighborToProcessMap & higherDimNeighbors ) const { higherDimNeighbors.clear(); higherDimNeighbors.insert( higherDimNeighbors_.begin(), higherDimNeighbors_.end() ); }
+
   uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
   uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
   /// @}

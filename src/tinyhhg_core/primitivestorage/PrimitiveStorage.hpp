@@ -47,23 +47,45 @@ public:
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
 
-  /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
-  void getPrimitives( PrimitiveMap & primitiveMap ) const;
+  template< typename PrimitiveType >
+  inline bool primitiveExistsLocallyGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Primitive does not exist locally.
+  const Primitive* getPrimitive( const PrimitiveID & id ) const;
+        Primitive* getPrimitive( const PrimitiveID & id );
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
-  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : NULL; };
-        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : NULL; };
+  /// Returns NULL if the \ref Vertex does not exist locally.
+  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : NULL; }
+        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : NULL; }
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
-  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : NULL; };
-        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : NULL; };
+  /// Returns NULL if the \ref Edge does not exist locally.
+  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : NULL; }
+        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : NULL; }
 
-  /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
-  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; };
-        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; };
+  /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Face does not exist locally.
+  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; }
+        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; }
+
+  /// Generic versions of the getter methods.
+  template< typename PrimitiveType >
+  inline const PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  template< typename PrimitiveType >
+  inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  void getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const;
+  void getEdgeIDs   ( std::vector< PrimitiveID > & edgeIDs )   const;
+  void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
+
+  template< typename PrimitiveType >
+  inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID > & primitiveIDs ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
+  void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
   VertexMap::iterator beginVertices() { return vertices_.begin(); }
   VertexMap::iterator endVertices()   { return vertices_.end(); }
@@ -125,6 +147,53 @@ private:
   uint_t primitiveDataHandlers_;
 
 };
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Vertex >( const PrimitiveID & id ) const { return vertexExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Edge >  ( const PrimitiveID & id ) const { return edgeExistsLocally( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsLocally( id ); }
+
+
+template<>
+inline const Primitive* PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID & id ) const { return getPrimitive( id ); }
+
+template<>
+inline       Primitive* PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID & id )       { return getPrimitive( id ); }
+
+template<>
+inline const Vertex* PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID & id ) const { return getVertex( id ); }
+
+template<>
+inline       Vertex* PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID & id )       { return getVertex( id ); }
+
+template<>
+inline const Edge*   PrimitiveStorage::getPrimitiveGenerically< Edge >  ( const PrimitiveID & id ) const { return getEdge( id ); }
+
+template<>
+inline       Edge*   PrimitiveStorage::getPrimitiveGenerically< Edge >  ( const PrimitiveID & id )       { return getEdge( id ); }
+
+template<>
+inline const Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id ) const { return getFace( id ); }
+
+template<>
+inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
+
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getVertexIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Edge >( std::vector< PrimitiveID > & primitiveIDs ) const { getEdgeIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getFaceIDs( primitiveIDs ); }
 
 
 template< typename DataType >

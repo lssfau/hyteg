@@ -92,6 +92,56 @@ static void testPrimitiveStorage()
   }
 
 
+  WALBERLA_LOG_PROGRESS_ON_ROOT( "Testing generic getters" );
+
+  std::vector< PrimitiveID > vertexIDs;
+  std::vector< PrimitiveID > vertexIDsGeneric;
+  storage.getVertexIDs( vertexIDs );
+  storage.getPrimitiveIDsGenerically< Vertex >( vertexIDsGeneric );
+  WALBERLA_CHECK_EQUAL( vertexIDs.size(), vertexIDsGeneric.size() );
+
+  std::vector< PrimitiveID > edgeIDs;
+  std::vector< PrimitiveID > edgeIDsGeneric;
+  storage.getEdgeIDs( edgeIDs );
+  storage.getPrimitiveIDsGenerically< Edge >( edgeIDsGeneric );
+  WALBERLA_CHECK_EQUAL( edgeIDs.size(), edgeIDsGeneric.size() );
+
+  std::vector< PrimitiveID > faceIDs;
+  std::vector< PrimitiveID > faceIDsGeneric;
+  storage.getFaceIDs( faceIDs );
+  storage.getPrimitiveIDsGenerically< Face >( faceIDsGeneric );
+  WALBERLA_CHECK_EQUAL( faceIDs.size(), faceIDsGeneric.size() );
+
+  for ( const PrimitiveID & vertexID : vertexIDs )
+  {
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Primitive >( vertexID ) );
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Vertex >( vertexID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Edge >( vertexID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Face >( vertexID ) );
+    Vertex * vertex = storage.getPrimitiveGenerically< Vertex >( vertexID );
+    WALBERLA_LOG_INFO( "" << vertex->getID().getID() );
+  }
+
+  for ( const PrimitiveID & edgeID : edgeIDs )
+  {
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Primitive >( edgeID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Vertex >( edgeID ) );
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Edge >( edgeID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Face >( edgeID ) );
+    Edge * edge = storage.getPrimitiveGenerically< Edge >( edgeID );
+    WALBERLA_LOG_INFO( "" << edge->getID().getID() );
+  }
+
+  for ( const PrimitiveID & faceID : faceIDs )
+  {
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Primitive >( faceID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Vertex >( faceID ) );
+    WALBERLA_CHECK( !storage.primitiveExistsLocallyGenerically< Edge >( faceID ) );
+    WALBERLA_CHECK(  storage.primitiveExistsLocallyGenerically< Face >( faceID ) );
+    Face * face = storage.getPrimitiveGenerically< Face >( faceID );
+    WALBERLA_LOG_INFO( "" << face->getID().getID() );
+  }
+
 
 }
 
