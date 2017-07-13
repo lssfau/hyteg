@@ -95,13 +95,22 @@ static void testPrimitiveStorage()
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Testing generic getters" );
 
   std::vector< PrimitiveID > vertexIDs;
+  std::vector< PrimitiveID > vertexIDsGeneric;
   storage.getVertexIDs( vertexIDs );
+  storage.getPrimitiveIDsGenerically< Vertex >( vertexIDsGeneric );
+  WALBERLA_CHECK_EQUAL( vertexIDs.size(), vertexIDsGeneric.size() );
 
   std::vector< PrimitiveID > edgeIDs;
+  std::vector< PrimitiveID > edgeIDsGeneric;
   storage.getEdgeIDs( edgeIDs );
+  storage.getPrimitiveIDsGenerically< Edge >( edgeIDsGeneric );
+  WALBERLA_CHECK_EQUAL( edgeIDs.size(), edgeIDsGeneric.size() );
 
   std::vector< PrimitiveID > faceIDs;
+  std::vector< PrimitiveID > faceIDsGeneric;
   storage.getFaceIDs( faceIDs );
+  storage.getPrimitiveIDsGenerically< Face >( faceIDsGeneric );
+  WALBERLA_CHECK_EQUAL( faceIDs.size(), faceIDsGeneric.size() );
 
   for ( const PrimitiveID & vertexID : vertexIDs )
   {

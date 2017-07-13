@@ -81,6 +81,9 @@ public:
   void getEdgeIDs   ( std::vector< PrimitiveID > & edgeIDs )   const;
   void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
 
+  template< typename PrimitiveType >
+  inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID > & primitiveIDs ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
   void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
@@ -181,6 +184,16 @@ inline const Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const 
 
 template<>
 inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
+
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getVertexIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Edge >( std::vector< PrimitiveID > & primitiveIDs ) const { getEdgeIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getFaceIDs( primitiveIDs ); }
 
 
 template< typename DataType >
