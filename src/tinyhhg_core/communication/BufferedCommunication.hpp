@@ -131,15 +131,8 @@ void BufferedCommunicator::startCommunication()
   std::vector< PrimitiveID > senderIDs;
   std::vector< PrimitiveID > receiverIDs;
 
-  switch ( communicationDirection )
-  {
-  case VERTEX_TO_EDGE:
-    storage->getVertexIDs( senderIDs );
-    storage->getEdgeIDs  ( receiverIDs );
-    break;
-  default:
-    WALBERLA_ABORT( "Not implemented" );
-  }
+  storage->getPrimitiveIDsGenerically< SenderType >  ( senderIDs );
+  storage->getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
 
   // Send functions
   for ( const PrimitiveID & senderID : senderIDs )
