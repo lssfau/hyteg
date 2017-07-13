@@ -31,18 +31,5 @@ void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       Primitive
   recvBuffer >> senderID >> receiverID;
 }
 
-void BufferedCommunicator::endCommunication( const CommunicationDirection & communicationDirection )
-{
-  if ( packInfos_.empty() )
-  {
-    return;
-  }
-
-  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
-  bufferSystem->wait();
-}
-
-
-
 }
 }

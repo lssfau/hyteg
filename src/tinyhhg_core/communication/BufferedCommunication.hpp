@@ -48,7 +48,13 @@ public:
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void startCommunication();
 
-  void endCommunicationVertexToEdge() { endCommunication( VERTEX_TO_EDGE ); }
+  template< typename SenderType,
+            typename ReceiverType,
+            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
+  inline void endCommunication();
 
 private:
 
@@ -259,6 +265,19 @@ void BufferedCommunicator::startCommunication()
   bufferSystem->startCommunication();
 }
 
+template < typename SenderType, typename ReceiverType, typename >
+void BufferedCommunicator::endCommunication()
+{
+  if ( packInfos_.empty() )
+  {
+    return;
+  }
+
+  const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
+
+  std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
+  bufferSystem->wait();
+}
 
 
 } // namespace communication
