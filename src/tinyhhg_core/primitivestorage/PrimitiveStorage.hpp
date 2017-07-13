@@ -51,22 +51,22 @@ public:
   void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
   /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
+  /// Returns NULL if the \ref Primitive does not exist locally.
   const Primitive* getPrimitive( const PrimitiveID & id ) const;
         Primitive* getPrimitive( const PrimitiveID & id );
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
+  /// Returns NULL if the \ref Vertex does not exist locally.
   const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : NULL; }
         Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : NULL; }
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
+  /// Returns NULL if the \ref Edge does not exist locally.
   const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : NULL; }
         Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : NULL; }
 
-  /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL otherwise.
+  /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Face does not exist locally.
   const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; }
         Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; }
 
