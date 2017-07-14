@@ -63,8 +63,8 @@ int main (int argc, char** argv) {
   FaceP1BubbleFunctionMemoryDataHandling faceP1BubbleFunctionMemoryDataHandling;
   EdgeP1BubbleFunctionMemoryDataHandling edgeP1BubbleFunctionMemoryDataHandling;
   VertexP1BubbleFunctionMemoryDataHandling vertexP1BubbleFunctionMemoryDataHandling;
-  hhg::PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> faceDataID = storage->addFaceData(faceP1BubbleFunctionMemoryDataHandling,"data");
-  hhg::PrimitiveDataID<EdgeP1BubbleFunctionMemory, Edge> edgeDataID = storage->addEdgeData(edgeP1BubbleFunctionMemoryDataHandling,"data");
+  hhg::PrimitiveDataID<FaceP1BubbleFunctionMemory  , Face  > faceDataID   = storage->addFaceData(faceP1BubbleFunctionMemoryDataHandling,"data");
+  hhg::PrimitiveDataID<EdgeP1BubbleFunctionMemory  , Edge  > edgeDataID   = storage->addEdgeData(edgeP1BubbleFunctionMemoryDataHandling,"data");
   hhg::PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> vertexDataID = storage->addVertexData(vertexP1BubbleFunctionMemoryDataHandling,"data");
 
   hhg::PrimitiveStorage::PrimitiveMap primitveMap;
@@ -75,12 +75,10 @@ int main (int argc, char** argv) {
   std::cout << "First Face ID is: " << storage.get()->beginFaces()->second->getID().getID() << std::endl;
   real_t *face1data = (++storage.get()->beginFaces())->second->getData(faceDataID)->data[maxLevel].get();
 
-  uint_t edgeId = 1;
   for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
     for(uint_t i = 0; i < v_perEdge; ++i){
-      it->second->getData(edgeDataID)->data[maxLevel].get()[i] = 2 + (edgeId * 0.1);
+      it->second->getData(edgeDataID)->data[maxLevel].get()[i] = 2 + (it->first * 0.1);
     }
-    edgeId++;
 
     if(it->second->getNumHigherDimNeighbors() == 2){
       EdgeP1BubbleFunctionMemory *middleEdgeData = it->second->getData(edgeDataID);
