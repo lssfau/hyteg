@@ -24,17 +24,20 @@ int main(int argc, char* argv[])
   hhg::P1Function npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
+  hhg::P1MassOperator M(mesh, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
-  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 1.0 + 2*xx[0] + 3*xx[1] + xx[0]*xx[1] + xx[0]*xx[0] + xx[1]*xx[1]; };
+  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return -4.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
+  npoints_helper.interpolate(rhs, maxLevel);
+  M.apply(npoints_helper, f, maxLevel, hhg::All);
   u_exact.interpolate(exact, maxLevel);
 
   auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-16, maxiter, hhg::Inner, true);
   timer.end();
   fmt::printf("time was: %e\n",timer.last());
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
