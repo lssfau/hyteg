@@ -26,7 +26,7 @@ public:
   friend class PrimitiveStorage;
 
   Face(size_t id, Edge* edges[3]);
-  Face( PrimitiveStorage & storage, const SetupFace & setupFace );
+  Face( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID );
 
   size_t vertex_index(const Vertex& vertex) const;
   size_t edge_index(const Edge& edge) const;

@@ -10,27 +10,27 @@ using walberla::uint_c;
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
   : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-				SetupVertex(SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )), _id, Point3D()) ),
+				PrimitiveID( _id ) ),
 				id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
 				type(Inner), coords(_coords)
 {
 }
 
-Vertex::Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex ) :
-  Primitive( storage, setupVertex ), id( setupVertex.getPrimitiveID().getID() ),
-  rank( setupVertex.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses()) ),
-  type( Inner ), coords( setupVertex.getCoordinates() )
+Vertex::Vertex( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID ) :
+  Primitive( storage, primitiveID ), id( primitiveID.getID() ),
+  rank( setupStorage.getVertex( primitiveID )->getTargetRank() ),
+  type( Inner ), coords( setupStorage.getVertex( primitiveID )->getCoordinates() )
 {
-  WALBERLA_ASSERT_EQUAL( setupVertex.getNumLowerDimNeighbors(), 0 );
+  const SetupVertex * setupVertex = setupStorage.getVertex( primitiveID );
 
-  const SetupPrimitiveStorage & setupStorage = setupVertex.getStorage();
+  WALBERLA_ASSERT_EQUAL( setupVertex->getNumLowerDimNeighbors(), 0 );
 
-  for ( auto higherDimNeighbor  = setupVertex.beginHigherDimNeighbors();
-		     higherDimNeighbor != setupVertex.endHigherDimNeighbors();
-		     higherDimNeighbor++ )
+  for ( auto higherDimNeighbor  = setupVertex->beginHigherDimNeighbors();
+		         higherDimNeighbor != setupVertex->endHigherDimNeighbors();
+		         higherDimNeighbor++ )
   {
-	WALBERLA_ASSERT( setupStorage.edgeExists( *higherDimNeighbor ) );
-	higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getEdge( *higherDimNeighbor )->getTargetRank();
+	  WALBERLA_ASSERT( setupStorage.edgeExists( *higherDimNeighbor ) );
+	  higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getEdge( *higherDimNeighbor )->getTargetRank();
   }
 }
 

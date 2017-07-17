@@ -18,7 +18,7 @@ using walberla::uint_c;
 
 Face::Face(size_t _id, Edge* _edges[3])
   : Primitive( PrimitiveStorage( 0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-	           SetupFace( SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )), _id, 0, 0, 0, std::array< int, 3 >(), std::array< Point3D, 3 >()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
+	           PrimitiveID( _id ) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
 {
   for (size_t i=0; i < 3; ++i)
   {
@@ -91,29 +91,29 @@ Face::Face(size_t _id, Edge* _edges[3])
   area = std::abs(0.5 * math::det2(B));
 }
 
-Face::Face( PrimitiveStorage & storage, const SetupFace & setupFace )
-  : Primitive( storage, setupFace ), id( setupFace.getPrimitiveID().getID() ),
-    rank(setupFace.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+Face::Face( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID )
+  : Primitive( storage, primitiveID ), id( primitiveID.getID() ),
+    rank( setupStorage.getFace( primitiveID )->getTargetRank() ),
     type(Inner)
 {
-  edges[0] = storage.getEdge( setupFace.getEdgeID0() );
-  edges[1] = storage.getEdge( setupFace.getEdgeID1() );
-  edges[2] = storage.getEdge( setupFace.getEdgeID2() );
+  const SetupFace * setupFace = setupStorage.getFace( primitiveID );
 
-  edge_orientation = setupFace.getEdgeOrientation();
-  coords = setupFace.getCoordinates();
+  edges[0] = storage.getEdge( setupFace->getEdgeID0() );
+  edges[1] = storage.getEdge( setupFace->getEdgeID1() );
+  edges[2] = storage.getEdge( setupFace->getEdgeID2() );
+
+  edge_orientation = setupFace->getEdgeOrientation();
+  coords = setupFace->getCoordinates();
 
   std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
   area = std::abs(0.5 * math::det2(B));
 
-  WALBERLA_ASSERT_EQUAL( setupFace.getNumLowerDimNeighbors(), 3 );
-  WALBERLA_ASSERT_EQUAL( setupFace.getNumHigherDimNeighbors(), 0 ); // should fail when moving to 3D, let's wait and see...
+  WALBERLA_ASSERT_EQUAL( setupFace->getNumLowerDimNeighbors(), 3 );
+  WALBERLA_ASSERT_EQUAL( setupFace->getNumHigherDimNeighbors(), 0 ); // should fail when moving to 3D, let's wait and see...
 
-  const SetupPrimitiveStorage & setupStorage = setupFace.getStorage();
-
-  for ( auto lowerDimNeighbor  = setupFace.beginLowerDimNeighbors();
-	         lowerDimNeighbor != setupFace.endLowerDimNeighbors();
-		     lowerDimNeighbor++ )
+  for ( auto lowerDimNeighbor  = setupFace->beginLowerDimNeighbors();
+	           lowerDimNeighbor != setupFace->endLowerDimNeighbors();
+		         lowerDimNeighbor++ )
   {
     WALBERLA_ASSERT( setupStorage.edgeExists( *lowerDimNeighbor ) );
     lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getEdge( *lowerDimNeighbor )->getTargetRank();

@@ -41,22 +41,16 @@ public:
   uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
   ///@}
 
-  /// Returns a reference to the governing \ref SetupPrimitiveStorage
-  const SetupPrimitiveStorage & getStorage() const { return storage_; }
-
 protected:
 
-  SetupPrimitive( const SetupPrimitiveStorage & storage,
-		          const PrimitiveID & id ) :
-    storage_( storage ), primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
+  SetupPrimitive( const PrimitiveID & id ) :
+    primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
   {}
 
   std::vector< PrimitiveID > lowerDimNeighbors_;
   std::vector< PrimitiveID > higherDimNeighbors_;
 
 private:
-
-  const SetupPrimitiveStorage & storage_;
 
   PrimitiveID primitiveID_;
   uint_t      targetRank_;

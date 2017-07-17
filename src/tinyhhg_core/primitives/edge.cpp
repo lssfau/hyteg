@@ -15,9 +15,8 @@ using walberla::uint_c;
 
 Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
   : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-	       SetupEdge(SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )),
-	    		     _id, 0, 0, Inner, Point3D()) ), id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
-	       type(_type), v0(_v0), v1(_v1)
+	             PrimitiveID( id ) ),
+	  id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(_type), v0(_v0), v1(_v1)
 {
 
   direction = v1->coords - v0->coords;
@@ -32,34 +31,35 @@ Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
   // fmt::print("normal_2d = {}\n", normal_2d);
 }
 
-Edge::Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge )
-  : Primitive( storage, setupEdge ), id( setupEdge.getPrimitiveID().getID() ),
-    rank(setupEdge.getPrimitiveID().getID() % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
-    type(setupEdge.getDoFType())
+Edge::Edge( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID )
+  : Primitive( storage, primitiveID ), id( primitiveID.getID() ),
+    rank( setupStorage.getEdge( primitiveID )->getTargetRank() ),
+    type( setupStorage.getEdge( primitiveID )->getDoFType() )
 {
-  v0 = storage.getVertex( setupEdge.getVertexID0() );
-  v1 = storage.getVertex( setupEdge.getVertexID1() );
-  direction = setupEdge.getDirection();
+  const SetupEdge * setupEdge = setupStorage.getEdge( primitiveID );
+
+  v0 = storage.getVertex( setupEdge->getVertexID0() );
+  v1 = storage.getVertex( setupEdge->getVertexID1() );
+  direction = setupEdge->getDirection();
   length = direction.norm();
   tangent = direction / length;
   const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
   normal_2d = Point3D(init);
 
-  WALBERLA_ASSERT_EQUAL( setupEdge.getNumLowerDimNeighbors(), 2 );
+  WALBERLA_ASSERT_EQUAL( setupEdge->getNumLowerDimNeighbors(), 2 );
 
-  const SetupPrimitiveStorage & setupStorage = setupEdge.getStorage();
 
-  for ( auto lowerDimNeighbor  = setupEdge.beginLowerDimNeighbors();
-			 lowerDimNeighbor != setupEdge.endLowerDimNeighbors();
-			 lowerDimNeighbor++ )
+  for ( auto lowerDimNeighbor  = setupEdge->beginLowerDimNeighbors();
+			       lowerDimNeighbor != setupEdge->endLowerDimNeighbors();
+			       lowerDimNeighbor++ )
   {
-	WALBERLA_ASSERT( setupStorage.vertexExists( *lowerDimNeighbor ) );
-	lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getVertex( *lowerDimNeighbor )->getTargetRank();
+	  WALBERLA_ASSERT( setupStorage.vertexExists( *lowerDimNeighbor ) );
+	  lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getVertex( *lowerDimNeighbor )->getTargetRank();
   }
 
-  for ( auto higherDimNeighbor  = setupEdge.beginHigherDimNeighbors();
-			 higherDimNeighbor != setupEdge.endHigherDimNeighbors();
-			 higherDimNeighbor++ )
+  for ( auto higherDimNeighbor  = setupEdge->beginHigherDimNeighbors();
+			       higherDimNeighbor != setupEdge->endHigherDimNeighbors();
+			       higherDimNeighbor++ )
   {
     WALBERLA_ASSERT( setupStorage.faceExists( *higherDimNeighbor ) );
     higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getFace( *higherDimNeighbor )->getTargetRank();

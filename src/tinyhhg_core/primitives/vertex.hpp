@@ -37,7 +37,7 @@ public:
   /// \param id Id of vertex
   /// \param coords Spatial coordinates of vertex
   Vertex(size_t id, const Point3D& coords);
-  Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex );
+  Vertex( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID );
 
   /// Adds given edge to \ref edges
   /// \param edge Pointer to edge which will be added

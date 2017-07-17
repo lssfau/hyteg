@@ -28,7 +28,7 @@ public:
   friend class PrimitiveStorage;
 
   Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
-  Edge( PrimitiveStorage & storage, const SetupEdge & setupEdge );
+  Edge( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID );
   void addFace(Face* face);
 
   size_t vertex_index(const Vertex& vertex) const;

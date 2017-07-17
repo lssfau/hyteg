@@ -11,13 +11,12 @@ public:
 
   friend class SetupPrimitiveStorage;
 
-  SetupEdge( const SetupPrimitiveStorage & storage,
-		     const PrimitiveID & id,
-	         const PrimitiveID & vertexID0,
-	         const PrimitiveID & vertexID1,
-	         const DoFType & dofType,
-	         const Point3D & direction ) :
-    SetupPrimitive( storage, id ), dofType_( dofType ), direction_( direction )
+  SetupEdge( const PrimitiveID & id,
+	           const PrimitiveID & vertexID0,
+	           const PrimitiveID & vertexID1,
+	           const DoFType & dofType,
+	           const Point3D & direction ) :
+    SetupPrimitive( id ), dofType_( dofType ), direction_( direction )
   {
 	lowerDimNeighbors_.push_back( vertexID0 );
 	lowerDimNeighbors_.push_back( vertexID1 );

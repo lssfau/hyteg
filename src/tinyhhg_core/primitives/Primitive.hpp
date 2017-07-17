@@ -128,7 +128,7 @@ public:
 protected:
 
   /// Only subclasses shall be constructable
-  Primitive( const PrimitiveStorage & storage, const SetupPrimitive & setupPrimitive ) : storage_( storage ), primitiveID_( setupPrimitive.getPrimitiveID() ) {} ;
+  Primitive( const PrimitiveStorage & storage, const PrimitiveID & id ) : storage_( storage ), primitiveID_( id ) {} ;
 
   template< typename DataType, typename PrimitiveType >
   inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;

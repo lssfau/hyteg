@@ -23,7 +23,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   {
     if ( rank_ == it->second->getTargetRank() )
     {
-      vertices_[ it->first ] = new Vertex( *this, *(it->second) );
+      vertices_[ it->first ] = new Vertex( *this, setupStorage, it->first );
     }
   }
 
@@ -31,7 +31,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   {
     if ( rank_ == it->second->getTargetRank() )
     {
-      edges_[ it->first ] = new Edge( *this, *(it->second) );
+      edges_[ it->first ] = new Edge( *this, setupStorage, it->first );
     }
   }
 
@@ -39,7 +39,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
   {
     if ( rank_ == it->second->getTargetRank() )
     {
-      faces_[ it->first ] = new Face( *this, *(it->second) );
+      faces_[ it->first ] = new Face( *this, setupStorage, it->first );
     }
   }
 

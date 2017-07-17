@@ -9,14 +9,13 @@ class SetupFace : public SetupPrimitive
 {
 public:
 
-  SetupFace( const SetupPrimitiveStorage & storage,
-		     const PrimitiveID & id,
+  SetupFace( const PrimitiveID & id,
              const PrimitiveID & edgeID0,
              const PrimitiveID & edgeID1,
              const PrimitiveID & edgeID2,
              const std::array< int, 3 > edgeOrientation,
              const std::array< Point3D, 3 > coordinates ) :
-    SetupPrimitive( storage, id ), edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
+    SetupPrimitive( id ), edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
   {
 	lowerDimNeighbors_.push_back( edgeID0 );
 	lowerDimNeighbors_.push_back( edgeID1 );
