@@ -33,7 +33,7 @@ Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
 
 Edge::Edge( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID )
   : Primitive( storage, primitiveID ), id( primitiveID.getID() ),
-    rank( setupStorage.getEdge( primitiveID )->getTargetRank() ),
+    rank( setupStorage.getTargetRank( primitiveID ) ),
     type( setupStorage.getEdge( primitiveID )->getDoFType() )
 {
   const SetupEdge * setupEdge = setupStorage.getEdge( primitiveID );
@@ -54,7 +54,7 @@ Edge::Edge( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStora
 			       lowerDimNeighbor++ )
   {
 	  WALBERLA_ASSERT( setupStorage.vertexExists( *lowerDimNeighbor ) );
-	  lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getVertex( *lowerDimNeighbor )->getTargetRank();
+	  lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getTargetRank( *lowerDimNeighbor );
   }
 
   for ( auto higherDimNeighbor  = setupEdge->beginHigherDimNeighbors();
@@ -62,7 +62,7 @@ Edge::Edge( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStora
 			       higherDimNeighbor++ )
   {
     WALBERLA_ASSERT( setupStorage.faceExists( *higherDimNeighbor ) );
-    higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getFace( *higherDimNeighbor )->getTargetRank();
+    higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getTargetRank( *higherDimNeighbor );
   }
 
   // fmt::print("direction = {}\n", direction);

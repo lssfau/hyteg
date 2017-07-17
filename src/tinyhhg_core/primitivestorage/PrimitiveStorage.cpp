@@ -21,7 +21,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 {
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
   {
-    if ( rank_ == it->second->getTargetRank() )
+    if ( rank_ == setupStorage.getTargetRank( it->first ) )
     {
       vertices_[ it->first ] = new Vertex( *this, setupStorage, it->first );
     }
@@ -29,7 +29,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 
   for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
   {
-    if ( rank_ == it->second->getTargetRank() )
+    if ( rank_ == setupStorage.getTargetRank( it->first ) )
     {
       edges_[ it->first ] = new Edge( *this, setupStorage, it->first );
     }
@@ -37,7 +37,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 
   for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
   {
-    if ( rank_ == it->second->getTargetRank() )
+    if ( rank_ == setupStorage.getTargetRank( it->first ) )
     {
       faces_[ it->first ] = new Face( *this, setupStorage, it->first );
     }

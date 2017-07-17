@@ -19,9 +19,6 @@ public:
 
   const PrimitiveID getPrimitiveID() const { return primitiveID_; }
 
-        uint_t      getTargetRank()  const { return targetRank_; }
-        void        setTargetRank( uint_t targetRank ) { targetRank_ = targetRank; }
-
         workload_t getWorkload() const { return workload_; }
         void       setWorkload( const workload_t w ) { WALBERLA_ASSERT_GREATER_EQUAL( w, static_cast< workload_t >(0) ); workload_ = w; }
 
@@ -44,7 +41,8 @@ public:
 protected:
 
   SetupPrimitive( const PrimitiveID & id ) :
-    primitiveID_( id ), targetRank_( 0 ), workload_( 0 ), memory_( 0 )
+    primitiveID_( id ), // targetRank_( 0 ),
+    workload_( 0 ), memory_( 0 )
   {}
 
   std::vector< PrimitiveID > lowerDimNeighbors_;
@@ -53,7 +51,6 @@ protected:
 private:
 
   PrimitiveID primitiveID_;
-  uint_t      targetRank_;
 
   workload_t  workload_;
   memory_t    memory_;

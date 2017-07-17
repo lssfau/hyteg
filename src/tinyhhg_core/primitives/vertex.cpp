@@ -18,7 +18,7 @@ Vertex::Vertex(size_t _id, const Point3D& _coords)
 
 Vertex::Vertex( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID ) :
   Primitive( storage, primitiveID ), id( primitiveID.getID() ),
-  rank( setupStorage.getVertex( primitiveID )->getTargetRank() ),
+  rank( setupStorage.getTargetRank( primitiveID ) ),
   type( Inner ), coords( setupStorage.getVertex( primitiveID )->getCoordinates() )
 {
   const SetupVertex * setupVertex = setupStorage.getVertex( primitiveID );
@@ -30,7 +30,7 @@ Vertex::Vertex( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupS
 		         higherDimNeighbor++ )
   {
 	  WALBERLA_ASSERT( setupStorage.edgeExists( *higherDimNeighbor ) );
-	  higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getEdge( *higherDimNeighbor )->getTargetRank();
+	  higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getTargetRank( *higherDimNeighbor );
   }
 }
 

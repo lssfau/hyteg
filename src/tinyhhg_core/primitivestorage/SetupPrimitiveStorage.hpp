@@ -79,6 +79,9 @@ public:
   void balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
 		    const memory_t & perProcessMemoryLimit );
 
+  void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
+  uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
+
 private:
 
   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
@@ -99,6 +102,8 @@ private:
   SetupVertexMap vertices_;
   SetupEdgeMap   edges_;
   SetupFaceMap   faces_;
+
+  std::map< PrimitiveID::IDType, uint_t > primitiveIDToTargetRankMap_;
 
 };
 

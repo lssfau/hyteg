@@ -23,6 +23,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID( it->first );
     Point3D coordinates( it->second );
     vertices_[ vertexID.getID() ] = new SetupVertex( vertexID, coordinates );
+
+    // All to root by default
+    primitiveIDToTargetRankMap_[ vertexID.getID() ] = 0;
   }
 
   // Adding edges to storage
@@ -38,6 +41,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     edges_[ edgeID.getID() ] = new SetupEdge( edgeID, vertexID0, vertexID1, dofType, direction );
+
+    // All to root by default
+    primitiveIDToTargetRankMap_[ edgeID.getID() ] = 0;
 
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
@@ -140,6 +146,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     faces_[ faceID.getID() ] = new SetupFace( faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
 
+    // All to root by default
+    primitiveIDToTargetRankMap_[ faceID.getID() ] = 0;
+
     // Adding face ID to edges as neighbors
     edges_[ edgeID0.getID() ]->addFace( faceID );
     edges_[ edgeID1.getID() ]->addFace( faceID );
@@ -186,9 +195,9 @@ void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimiti
     rankToSetupPrimitivesMap[ rank ] = std::vector< PrimitiveID::IDType >();
     for ( auto setupPrimitive : setupPrimitives )
     {
-      if ( rank == setupPrimitive.second->getTargetRank() )
+      if ( rank == getTargetRank( setupPrimitive.first ) )
       {
-	rankToSetupPrimitivesMap[ rank ].push_back( setupPrimitive.first );
+	      rankToSetupPrimitivesMap[ rank ].push_back( setupPrimitive.first );
       }
     }
   }
@@ -271,7 +280,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
   {
     Point3D coordinates = it->second->getCoordinates();
     os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << it->second->getTargetRank() << " | "
+       << std::setw(11) << getTargetRank( it->first ) << " | "
        << coordinates << " | ";
     for ( auto neighborEdgeID =  it->second->beginHigherDimNeighbors();
 	       neighborEdgeID != it->second->endHigherDimNeighbors();
@@ -289,7 +298,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
   for ( auto it = edges_.begin(); it != edges_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << it->second->getTargetRank() << " | "
+       << std::setw(11) << getTargetRank( it->first ) << " | "
        << std::setw(10) << it->second->getVertexID0().getID() << " | "
        << std::setw(10) << it->second->getVertexID1().getID() << " | "
        << std::setw(20) << it->second->getDoFType() << " | ";
@@ -308,7 +317,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
   for ( auto it = faces_.begin(); it != faces_.end(); it++ )
   {
     os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << it->second->getTargetRank() << " | "
+       << std::setw(11) << getTargetRank( it->first ) << " | "
        << std::setw(8) << it->second->getEdgeID0().getID() << " | "
        << std::setw(8) << it->second->getEdgeID1().getID() << " | "
        << std::setw(8) << it->second->getEdgeID2().getID() << "\n";

@@ -20,7 +20,7 @@ public:
     storage.getSetupPrimitives( setupPrimitives );
     for ( auto it : setupPrimitives )
     {
-      it.second->setTargetRank( uint_c( targetRank_ ) );
+      storage.setTargetRank( it.first, uint_c( targetRank_ ) );
     }
     return uint_c( 1 );
   }
@@ -55,7 +55,7 @@ public:
 
     for ( auto it : setupPrimitives )
     {
-      it.second->setTargetRank( uint_c( currentRank % storage.getNumberOfProcesses() ) );
+      storage.setTargetRank( it.first, uint_c( currentRank % storage.getNumberOfProcesses() ) );
       currentRank++;
     }
 

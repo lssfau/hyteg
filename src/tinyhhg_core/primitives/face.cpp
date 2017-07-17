@@ -93,7 +93,7 @@ Face::Face(size_t _id, Edge* _edges[3])
 
 Face::Face( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID )
   : Primitive( storage, primitiveID ), id( primitiveID.getID() ),
-    rank( setupStorage.getFace( primitiveID )->getTargetRank() ),
+    rank( setupStorage.getTargetRank( primitiveID ) ),
     type(Inner)
 {
   const SetupFace * setupFace = setupStorage.getFace( primitiveID );
@@ -116,7 +116,7 @@ Face::Face( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStora
 		         lowerDimNeighbor++ )
   {
     WALBERLA_ASSERT( setupStorage.edgeExists( *lowerDimNeighbor ) );
-    lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getEdge( *lowerDimNeighbor )->getTargetRank();
+    lowerDimNeighbors_[ lowerDimNeighbor->getID() ] = setupStorage.getTargetRank( *lowerDimNeighbor );
   }
 }
 
