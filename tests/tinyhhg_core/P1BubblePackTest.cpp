@@ -56,9 +56,16 @@ int main (int argc, char** argv) {
   size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
 
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, 1  );
+  hhg::SetupPrimitiveStorage setupStorage( meshInfo, uint_c(walberla::MPIManager::instance()->numProcesses()));
+  RoundRobin loadBalancer;
+  setupStorage.balanceLoad( loadBalancer, 0.0 );
+
+  WALBERLA_MPI_BARRIER();
+
+  uint_t rank = uint_c(walberla::MPIManager::instance()->rank());
 
   std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(uint_c(walberla::MPIManager::instance()->rank()) , setupStorage));
+
 
   FaceP1BubbleFunctionMemoryDataHandling faceP1BubbleFunctionMemoryDataHandling;
   EdgeP1BubbleFunctionMemoryDataHandling edgeP1BubbleFunctionMemoryDataHandling;
@@ -68,7 +75,7 @@ int main (int argc, char** argv) {
   hhg::PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> vertexDataID = storage->addVertexData(vertexP1BubbleFunctionMemoryDataHandling,"data");
 
   hhg::PrimitiveStorage::PrimitiveMap primitveMap;
-  storage->getPrimitives( primitveMap);
+  storage->getPrimitives( primitveMap );
 
   //FaceP1BubbleFunctionMemory *face0data = storage->beginFaces()->second->getData(faceDataID);
   real_t *face0data = storage.get()->beginFaces()->second->getData(faceDataID)->data[maxLevel].get();
@@ -88,34 +95,29 @@ int main (int argc, char** argv) {
   real_t counter = 1;
   for(uint_t i = 0; i < hhg::levelinfo::num_microvertices_per_face(maxLevel);++i){
     face0data[i] = 1.1;
+    face1data[i] = 1.2;
   }
-  P1BubblePackInfo *packInfo = new P1BubblePackInfo(maxLevel,vertexDataID,edgeDataID,faceDataID,storage);
-//  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
-//
-//    //packInfo->packEdgeForFace(*it,)
+//  for(uint_t i = 0; i < hhg::levelinfo::num_microvertices_per_face(maxLevel);++i){
+//    face0data[i] = walberla::MPIManager::instance()->rank();
 //  }
+  std::shared_ptr<P1BubblePackInfo> packInfo(new P1BubblePackInfo(maxLevel,vertexDataID,edgeDataID,faceDataID,storage));
+  communication::BufferedCommunicator communicator( storage );
+  communicator.addPackInfo(packInfo);
+  communicator.startCommunication<Edge,Face>();
+  communicator.endCommunication<Edge,Face>();
 
 
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
-//
-//  hhg::Face *face0 = storage->beginFaces()->second;
-//
-//  walberla::mpi::SendBuffer sb;
-//  packInfo->packEdgeForFace(storage->getEdge(7),10, sb);
-//  hhg::P1BubbleVertex::packData(level,*edge.v0,0,sb);
-// hhg::P1BubbleVertex::packData(level,*edge.v1,0,sb);
-//  walberla::mpi::RecvBuffer rb(sb);
-//  packInfo->unpackFaceFromEdge(storage->getFace(10),7,rb);
 
-  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
-    walberla::mpi::SendBuffer sb;
-    for(auto jt = it->second->beginHigherDimNeighbors(); jt != it->second->endHigherDimNeighbors(); ++jt){
-      packInfo->packEdgeForFace(it->second,jt->first,sb);
-      walberla::mpi::RecvBuffer rb(sb);
-      packInfo->unpackFaceFromEdge(storage->getFace(jt->first),it->first,rb);
-    }
-  }
+//  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
+//    walberla::mpi::SendBuffer sb;
+//    for(auto jt = it->second->beginHigherDimNeighbors(); jt != it->second->endHigherDimNeighbors(); ++jt){
+//      packInfo->packEdgeForFace(it->second,jt->first,sb);
+//      walberla::mpi::RecvBuffer rb(sb);
+//      packInfo->unpackFaceFromEdge(storage->getFace(jt->first),it->first,rb);
+//    }
+//  }
 
   //hhg::P1BubbleFace::interpolate(*face0,0,eight,maxLevel);
 
