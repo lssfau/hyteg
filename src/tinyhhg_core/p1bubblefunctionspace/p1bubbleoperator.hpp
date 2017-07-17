@@ -249,8 +249,11 @@ public:
           vertex.memory.push_back(new VertexP1BubbleStencilMemory());
         }
 
-        auto& vertex_stencil = P1Bubble::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
+        auto& vertex_stencil_stack = P1Bubble::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size(), vertex.faces.size());
 
+        // build vertex stencil
+
+        size_t f = 1;
         // iterate over adjacent faces
         for (Face* face : vertex.faces)
         {
@@ -269,10 +272,27 @@ public:
 
             size_t v_j = face->vertex_index(*vertex_j);
 
-            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
+            vertex_stencil_stack[0][edge_idx] += local_stiffness[v_i][v_j];
+
+            vertex_stencil_stack[f][v_j+1] = local_stiffness[3][v_j];
           }
 
-          vertex_stencil[0] += local_stiffness[v_i][v_i];
+          vertex_stencil_stack[f][v_i+1] = local_stiffness[3][v_i];
+          vertex_stencil_stack[f][0] = local_stiffness[3][3];
+
+          size_t f_i = vertex.face_index(*face) + 1 + vertex.edges.size();
+          vertex_stencil_stack[0][f_i] = local_stiffness[v_i][3];
+
+          vertex_stencil_stack[0][0] += local_stiffness[v_i][v_i];
+          ++f;
+        }
+
+        if (vertex.id == 4 && level == 2) {
+          fmt::print("vertex_stencil[0] = {}\n", PointND<real_t, 9>(&vertex_stencil_stack[0][0]));
+
+          for (size_t f = 0; f < vertex.faces.size(); ++f) {
+            fmt::print("vertex_stencil[{}] = {}\n", f+1, PointND<real_t, 4>(&vertex_stencil_stack[f+1][0]));
+          }
         }
       }
     }

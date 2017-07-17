@@ -79,9 +79,12 @@ inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
 
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
 {
-  auto& opr_data = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& stencil_stack = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
   auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
   auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
+
+  // apply first stencil to vertex dof
+  auto& opr_data = stencil_stack[0];
 
   if (update == Replace) {
     dst[0] = opr_data[0] * src[0];
@@ -90,11 +93,40 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
     dst[0] += opr_data[0] * src[0];
   }
 
-  for (size_t i = 0; i < vertex.edges.size(); ++i)
+  for (size_t i = 0; i < vertex.edges.size() + vertex.faces.size(); ++i)
   {
     dst[0] += opr_data[i+1] * src[i+1];
   }
 
+  // apply remaining stencils to adjacent cell dofs
+  size_t offset = 1 + vertex.edges.size();
+
+  for (size_t f = 0; f < vertex.faces.size(); ++f) {
+    auto& opr_data = stencil_stack[f+1];
+    if (update == Replace) {
+      dst[offset] = opr_data[0] * src[offset];
+    }
+    else if (update == Add) {
+      dst[offset] += opr_data[0] * src[offset];
+    }
+
+    Face* face = vertex.faces[f];
+    size_t v_i = face->vertex_index(vertex);
+
+    dst[offset] += opr_data[v_i+1] * src[0];
+
+    std::vector<Edge*> adj_edges = face->adjacent_edges(vertex);
+
+    // iterate over adjacent edges
+    for (Edge* edge : adj_edges)
+    {
+      size_t edge_idx = vertex.edge_index(*edge) + 1;
+      Vertex* vertex_j = edge->get_opposite_vertex(vertex);
+
+      size_t v_j = face->vertex_index(*vertex_j);
+      dst[offset] += opr_data[v_j+1] * src[edge_idx];
+    }
+  }
 }
 
 //inline void smooth_gs(Vertex& vertex, size_t opr_id, size_t f_id, size_t rhs_id, size_t level)

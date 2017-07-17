@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
 
-  hhg::Mesh mesh("../data/meshes/tri_2el.msh");
+  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 3;
@@ -46,6 +46,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-//  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
   return 0;
 }

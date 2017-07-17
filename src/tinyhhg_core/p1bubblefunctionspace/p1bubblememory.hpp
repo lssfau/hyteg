@@ -20,26 +20,26 @@ class VertexP1BubbleStencilMemory
   :public VertexMemory
 {
 public:
-  VertexP1BubbleStencilMemory() : VertexMemory(MemoryType::P1BubbleFunction) { ; }
+  VertexP1BubbleStencilMemory() : VertexMemory(MemoryType::P1BubbleStencil) { ; }
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
+  typedef std::vector<std::unique_ptr<real_t[]>> StencilStack;
+  std::map<size_t, StencilStack> data;
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
+  inline StencilStack& addlevel(size_t level, size_t num_edge_deps, size_t num_face_deps)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      // vertex stencil
+      data[level].push_back(hhg::make_unique<real_t[]>(1 + num_edge_deps + num_face_deps));
+
+      // cell stencils adjacent to vertex
+      for (size_t i = 0; i < num_face_deps; ++i) {
+        data[level].push_back(hhg::make_unique<real_t[]>(4));
+      }
     }
     return data[level];
-  }
-
-  inline size_t getSize(size_t level)
-  {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
   }
 };
 
@@ -48,7 +48,7 @@ class VertexP1BubbleFunctionMemory
   :public VertexMemory
 {
 public:
-  VertexP1BubbleFunctionMemory() : VertexMemory(MemoryType::P1BubbleStencil) { ; }
+  VertexP1BubbleFunctionMemory() : VertexMemory(MemoryType::P1BubbleFunction) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
   size_t num_deps_;
@@ -207,7 +207,7 @@ inline VertexP1BubbleFunctionMemory *getVertexFunctionMemory(Vertex &vertex, siz
 #ifndef NDEBUG
   if (vertex.memory.size() <= id) WALBERLA_LOG_WARNING("Memory ID is out of range");
   if (vertex.memory[id]->type != MemoryType::P1BubbleFunction) {
-    WALBERLA_LOG_WARNING("Trying to convert something to VertexP1Memory which is not of the right type");
+    WALBERLA_LOG_WARNING("Trying to convert something to VertexP1BubbleFunctionMemory which is not of the right type");
   }
 #endif // !
 

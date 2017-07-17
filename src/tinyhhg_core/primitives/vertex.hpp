@@ -52,6 +52,11 @@ public:
   /// \returns Index of \p edge within \ref edges
   size_t edge_index(const Edge& edge) const;
 
+  /// Returns the index of \p face within \ref faces
+  /// \param face Face
+  /// \returns Index of \p face within \ref faces
+  size_t face_index(const Face& face) const;
+
   /// Id of vertex
   size_t id;
 

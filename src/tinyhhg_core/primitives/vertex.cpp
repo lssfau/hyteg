@@ -50,6 +50,12 @@ size_t Vertex::edge_index(const Edge& edge) const
   return uint_c((it - edges.begin()));
 }
 
+size_t Vertex::face_index(const Face& face) const
+{
+  auto it = std::find(faces.begin(), faces.end(), &face);
+  return uint_c((it - faces.begin()));
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
 {
   return os << "Vertex { id = " << vertex.id << "; "
