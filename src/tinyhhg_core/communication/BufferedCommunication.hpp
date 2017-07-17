@@ -133,6 +133,9 @@ void BufferedCommunicator::startCommunication()
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
 
+  bufferSystem->clearSendingFunctions();
+  bufferSystem->clearReceivingFunctions();
+
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
   std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
 
