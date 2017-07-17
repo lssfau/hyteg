@@ -41,8 +41,7 @@ public:
 protected:
 
   SetupPrimitive( const PrimitiveID & id ) :
-    primitiveID_( id ), // targetRank_( 0 ),
-    workload_( 0 ), memory_( 0 )
+    primitiveID_( id ), workload_( 0 ), memory_( 0 )
   {}
 
   std::vector< PrimitiveID > lowerDimNeighbors_;
