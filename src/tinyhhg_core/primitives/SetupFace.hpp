@@ -17,9 +17,9 @@ public:
              const std::array< Point3D, 3 > coordinates ) :
     SetupPrimitive( id ), edgeOrientation_( edgeOrientation ), coordinates_( coordinates )
   {
-	lowerDimNeighbors_.push_back( edgeID0 );
-	lowerDimNeighbors_.push_back( edgeID1 );
-	lowerDimNeighbors_.push_back( edgeID2 );
+    lowerDimNeighbors_.push_back( edgeID0 );
+    lowerDimNeighbors_.push_back( edgeID1 );
+    lowerDimNeighbors_.push_back( edgeID2 );
   }
 
   std::array< int, 3 >     getEdgeOrientation() const { return edgeOrientation_; }

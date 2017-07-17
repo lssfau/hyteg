@@ -18,8 +18,8 @@ public:
 	           const Point3D & direction ) :
     SetupPrimitive( id ), dofType_( dofType ), direction_( direction )
   {
-	lowerDimNeighbors_.push_back( vertexID0 );
-	lowerDimNeighbors_.push_back( vertexID1 );
+    lowerDimNeighbors_.push_back( vertexID0 );
+    lowerDimNeighbors_.push_back( vertexID1 );
   }
 
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( lowerDimNeighbors_.size(), 2 ); return lowerDimNeighbors_[0]; }
