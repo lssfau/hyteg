@@ -110,10 +110,10 @@ int main (int argc, char** argv) {
 
   for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
     walberla::mpi::SendBuffer sb;
-    for(auto jt = it->second->beginHigherDimNeighbors(); jt != it->second->endHigherDimNeighbors(); ++jt){
-      packInfo->packEdgeForFace(it->second,jt->first,sb);
+    for ( const auto & higherDimNeighborID : it->second->higherDimNeighbors() ) {
+      packInfo->packEdgeForFace(it->second,higherDimNeighborID,sb);
       walberla::mpi::RecvBuffer rb(sb);
-      packInfo->unpackFaceFromEdge(storage->getFace(jt->first),it->first,rb);
+      packInfo->unpackFaceFromEdge(storage->getFace(higherDimNeighborID),it->first,rb);
     }
   }
 
