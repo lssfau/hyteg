@@ -137,28 +137,56 @@ inline void add(Face& face, const std::vector<real_t>& scalars, const std::vecto
   }
 }
 
-inline real_t dot(Face& face, size_t lhs_id, size_t rhs_id, size_t level)
+template<size_t Level>
+inline real_t dot_tmpl(Face& face, size_t lhs_id, size_t rhs_id)
 {
   real_t sp = 0.0;
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  auto& lhs_data = P1Bubble::getFaceFunctionMemory(face, lhs_id)->data[Level];
+  auto& rhs_data = P1Bubble::getFaceFunctionMemory(face, rhs_id)->data[Level];
 
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      sp += P1Bubble::getFaceFunctionMemory(face, lhs_id)->data[level][mr] * P1Bubble::getFaceFunctionMemory(face, rhs_id)->data[level][mr];
-      mr += 1;
+      sp += lhs_data[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] * rhs_data[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
     }
+    --inner_rowsize;
+  }
 
-    mr += 2;
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
+      }
+
+      sp += lhs_data[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] * rhs_data[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      sp += lhs_data[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] * rhs_data[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+    }
     --inner_rowsize;
   }
 
   return sp;
 }
+
+SPECIALIZE(real_t, dot_tmpl, dot)
 
 template<size_t Level>
 inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)

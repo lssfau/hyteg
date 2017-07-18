@@ -73,8 +73,19 @@ inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::v
 
 inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
 {
-  return P1Bubble::getVertexFunctionMemory(vertex, lhs_id)->data[level][0] *
-      P1Bubble::getVertexFunctionMemory(vertex, rhs_id)->data[level][0];
+  auto& lhs_data = P1Bubble::getVertexFunctionMemory(vertex, lhs_id)->data[level];
+  auto& rhs_data = P1Bubble::getVertexFunctionMemory(vertex, rhs_id)->data[level];
+
+  real_t sp = lhs_data[0] * rhs_data[0];
+
+  size_t offset = 1 + vertex.edges.size();
+
+  for (size_t f = 0; f < vertex.faces.size(); ++f) {
+    sp += lhs_data[offset] * rhs_data[offset];
+    ++offset;
+  }
+
+  return sp;
 }
 
 inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)

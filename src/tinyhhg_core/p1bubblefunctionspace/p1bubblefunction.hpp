@@ -263,7 +263,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        sp_l += P1BubbleFace::dot(face, memory_id, rhs.memory_id, level);
+        sp_l += P1BubbleFace::dot(level, face, memory_id, rhs.memory_id);
       }
     }
 

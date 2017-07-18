@@ -27,6 +27,13 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
+  u.u.interpolate(ones, maxLevel);
+
+  size_t npoints = (size_t) u.u.dot(u.u, maxLevel);
+  size_t real_npoints = hhg::levelinfo::num_microvertices_per_face(maxLevel);
+
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("npoints = {}\nreal_npoints = {}\nright = {}\n", npoints, real_npoints, npoints == real_npoints))
+
   u.u.interpolate(bc_x, maxLevel);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
