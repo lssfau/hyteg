@@ -237,10 +237,6 @@ public:
         face_blue_stencil[P1BubbleFace::CoordsCellBlue::VERTEX_NW] = local_stiffness_down[3][1];
         face_blue_stencil[P1BubbleFace::CoordsCellBlue::VERTEX_NE] = local_stiffness_down[3][0];
         face_blue_stencil[P1BubbleFace::CoordsCellBlue::CELL_BLUE_C] = local_stiffness_down[3][3];
-
-        if (level == minLevel) {
-          fmt::print("face_vertex_stencil = {}\n", PointND<real_t,13>(&face_vertex_stencil[0]));
-        }
       }
 
       for (Edge& edge : mesh.edges)
@@ -355,14 +351,6 @@ public:
 
           vertex_stencil_stack[0][0] += local_stiffness[v_i][v_i];
           ++f;
-        }
-
-        if (vertex.id == 4 && level == 2) {
-          fmt::print("vertex_stencil[0] = {}\n", PointND<real_t, 9>(&vertex_stencil_stack[0][0]));
-
-          for (size_t f = 0; f < vertex.faces.size(); ++f) {
-            fmt::print("vertex_stencil[{}] = {}\n", f+1, PointND<real_t, 4>(&vertex_stencil_stack[f+1][0]));
-          }
         }
       }
     }

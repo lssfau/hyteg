@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
-#include <ufc.h>
+#include "ufc.h"
 
 class p1bubble_div_finite_element_0: public ufc::finite_element
 {

@@ -38,8 +38,6 @@ inline void interpolate_tmpl(Edge& edge, size_t memory_id, std::function<real_t(
 
   auto& dst = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[Level];
 
-  fmt::print("dst[EdgeCoordsVertex::index<Level>(0, EdgeCoordsVertex::VERTEX_C)] = {}\n", dst[EdgeCoordsVertex::index<Level>(0, EdgeCoordsVertex::VERTEX_C)]);
-
   for (size_t i = 1; i < rowsize-1; ++i)
   {
     dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)] = expr(x);

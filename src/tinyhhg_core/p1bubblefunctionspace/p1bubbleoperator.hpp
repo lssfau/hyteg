@@ -286,14 +286,6 @@ public:
           vertex_stencil_stack[0][0] += local_stiffness[v_i][v_i];
           ++f;
         }
-
-        if (vertex.id == 4 && level == 2) {
-          fmt::print("vertex_stencil[0] = {}\n", PointND<real_t, 9>(&vertex_stencil_stack[0][0]));
-
-          for (size_t f = 0; f < vertex.faces.size(); ++f) {
-            fmt::print("vertex_stencil[{}] = {}\n", f+1, PointND<real_t, 4>(&vertex_stencil_stack[f+1][0]));
-          }
-        }
       }
     }
 
