@@ -17,6 +17,7 @@
 namespace hhg {
 
 using walberla::real_t;
+using walberla::memory_t;
 
 class SetupPrimitiveStorage
 {
@@ -24,13 +25,11 @@ public:
 
   /// Function definition for loadbalancing callbacks
   /// \param storage the \ref SetupPrimitiveStorage to be balanced
-  /// \param numberOfProcesses the overall number of processes available
   /// \param perProcessMemoryLimit the main memory limit per process
   /// \return number of processes that have been assigned at least one \ref Primitive, \n
   ///         this number can be less than numberOfProcesses
   typedef std::function< uint_t ( SetupPrimitiveStorage & storage,
-				  const memory_t & perProcessMemoryLimit ) >
-          TargetProcessAssignmentFunction;
+				                          const memory_t & perProcessMemoryLimit ) > TargetProcessAssignmentFunction;
 
   typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
   typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;

@@ -4,7 +4,6 @@
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
-#include <tinyhhg_core/primitives/SetupFace.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 #include <tinyhhg_core/math.hpp>
 #include <core/DataTypes.h>

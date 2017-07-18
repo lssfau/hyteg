@@ -8,12 +8,13 @@
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include <map>
 #include <vector>
 
 namespace hhg {
+
+class SetupPrimitiveStorage;
 
 class PrimitiveStorage : private walberla::NonCopyable
 {

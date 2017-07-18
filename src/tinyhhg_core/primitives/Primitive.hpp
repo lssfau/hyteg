@@ -5,7 +5,6 @@
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
-#include "tinyhhg_core/primitives/SetupPrimitive.hpp"
 
 #include <memory>
 #include <vector>

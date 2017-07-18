@@ -7,7 +7,6 @@
 #include <core/Deprecated.h>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
-#include <tinyhhg_core/primitives/SetupVertex.hpp>
 #include <tinyhhg_core/mesh/MeshInfo.hpp>
 
 #include <vector>

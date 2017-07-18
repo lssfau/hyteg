@@ -8,6 +8,8 @@
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+
 
 #include <map>
 #include <vector>
