@@ -9,30 +9,16 @@ namespace hhg
 using walberla::uint_c;
 
 Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : Primitive( PrimitiveStorage(0, SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ))),
-				PrimitiveID( _id ) ),
+  : Primitive( PrimitiveID( _id ) ),
 				id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
 				type(Inner), coords(_coords)
-{
-}
+{}
 
-Vertex::Vertex( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID ) :
-  Primitive( storage, primitiveID ), id( primitiveID.getID() ),
-  rank( setupStorage.getTargetRank( primitiveID ) ),
-  type( Inner ), coords( setupStorage.getVertex( primitiveID )->getCoordinates() )
-{
-  const SetupVertex * setupVertex = setupStorage.getVertex( primitiveID );
-
-  WALBERLA_ASSERT_EQUAL( setupVertex->getNumLowerDimNeighbors(), 0 );
-
-  for ( auto higherDimNeighbor  = setupVertex->beginHigherDimNeighbors();
-		         higherDimNeighbor != setupVertex->endHigherDimNeighbors();
-		         higherDimNeighbor++ )
-  {
-	  WALBERLA_ASSERT( setupStorage.edgeExists( *higherDimNeighbor ) );
-	  higherDimNeighbors_[ higherDimNeighbor->getID() ] = setupStorage.getTargetRank( *higherDimNeighbor );
-  }
-}
+Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
+  : Primitive( primitiveID ),
+        id( primitiveID.getID() ), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
+        type(Inner), coords( coordinates )
+{}
 
 void Vertex::addEdge(Edge* edge)
 {

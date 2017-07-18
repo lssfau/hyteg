@@ -6,6 +6,7 @@
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/primitives/SetupFace.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
+#include <tinyhhg_core/math.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 
@@ -23,10 +24,25 @@ class Face : public Primitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
   Face(size_t id, Edge* edges[3]);
-  Face( PrimitiveStorage & storage, const SetupPrimitiveStorage & setupStorage, const PrimitiveID & primitiveID );
+
+  Face( const PrimitiveID & primitiveID,
+        const PrimitiveID & edgeID0,
+        const PrimitiveID & edgeID1,
+        const PrimitiveID & edgeID2,
+        const std::array< int, 3 >     & edgeOrientation,
+        const std::array< Point3D, 3 > & coordinates ) :
+    Primitive( primitiveID ), id( primitiveID.getID() ), rank( 0 ), type( Inner ), edge_orientation( edgeOrientation ), coords( coordinates )
+  {
+    neighborEdges_.push_back( edgeID0 );
+    neighborEdges_.push_back( edgeID1 );
+    neighborEdges_.push_back( edgeID2 );
+    std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
+    area = std::abs(0.5 * math::det2(B));
+  }
 
   size_t vertex_index(const Vertex& vertex) const;
   size_t edge_index(const Edge& edge) const;
@@ -47,6 +63,13 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 
+  std::array< int, 3 >     getEdgeOrientation() const { return edge_orientation; }
+  std::array< Point3D, 3 > getCoordinates()     const { return coords; }
+
+  const PrimitiveID & getEdgeID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[0]; }
+  const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[1]; }
+  const PrimitiveID & getEdgeID2() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[2]; }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
@@ -54,6 +77,15 @@ public:
   {
     return genericGetData< DataType >( index );
   }
+
+  virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { getNeighborEdges( lowerDimNeighbors ); }
+  virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { higherDimNeighbors.clear(); }
+
+  virtual const std::vector< PrimitiveID > & lowerDimNeighbors()  const { return neighborEdges(); }
+  virtual const std::vector< PrimitiveID > & higherDimNeighbors() const { WALBERLA_ASSERT_EQUAL( getNumNeighborFaces(), 0 ); return neighborFaces(); }
+
+  virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborEdges(); }
+  virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
 protected:
 
