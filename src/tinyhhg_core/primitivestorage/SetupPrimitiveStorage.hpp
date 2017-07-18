@@ -46,9 +46,9 @@ public:
   bool edgeExists     ( const PrimitiveID & id ) const { return edges_.count( id.getID() )    > 0; }
   bool faceExists     ( const PrimitiveID & id ) const { return faces_.count( id.getID() )    > 0; }
 
-  const SetupVertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ) : NULL; }
-  const SetupEdge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() )    : NULL; }
-  const SetupFace   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() )    : NULL; }
+  const SetupVertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ) : nullptr; }
+  const SetupEdge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() )    : nullptr; }
+  const SetupFace   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() )    : nullptr; }
 
   void getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const;
   uint_t getNumberOfPrimitives() const;

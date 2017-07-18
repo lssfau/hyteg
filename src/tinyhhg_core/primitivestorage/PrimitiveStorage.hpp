@@ -57,18 +57,18 @@ public:
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Vertex does not exist locally.
-  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : NULL; }
-        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : NULL; }
+  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : nullptr; }
+        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : nullptr; }
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Edge does not exist locally.
-  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : NULL; }
-        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : NULL; }
+  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : nullptr; }
+        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : nullptr; }
 
   /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Face does not exist locally.
-  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; }
-        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; }
+  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : nullptr; }
+        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : nullptr; }
 
   /// Generic versions of the getter methods.
   template< typename PrimitiveType >
@@ -133,7 +133,7 @@ private:
 
   template< typename DataType,
             typename PrimitiveType,
-	    typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
+            typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
   inline void addPrimitiveData( const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
 				const std::string & identifier,
 				const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
