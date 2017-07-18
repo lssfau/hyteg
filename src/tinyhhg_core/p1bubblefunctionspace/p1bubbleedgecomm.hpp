@@ -82,27 +82,23 @@ inline void unpackVertexData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::R
   uint_t pos;
   EdgeCoordsVertex::DirVertex dir1;
   EdgeCoordsVertex::DirVertex dir2;
+  ///the vertex sends face[0] first wich is the south face by convention
   if(vertex_id == 0){
-    dir1 = EdgeCoordsVertex::CELL_GRAY_NE;
-    dir2 = EdgeCoordsVertex::CELL_GRAY_SE;
+    dir1 = EdgeCoordsVertex::CELL_GRAY_SE;
+    dir2 = EdgeCoordsVertex::CELL_GRAY_NE;
     pos = 0;
   } else if(vertex_id == 1) {
     pos = levelinfo::num_microvertices_per_edge(Level) - 1;
-    dir1 = EdgeCoordsVertex::CELL_GRAY_NW;
-    dir2 = EdgeCoordsVertex::CELL_GRAY_SW;
+    dir1 = EdgeCoordsVertex::CELL_GRAY_SW;
+    dir2 = EdgeCoordsVertex::CELL_GRAY_NW;
   } else {
     WALBERLA_LOG_WARNING("vertex " << vertex << " is not contained in edge")
   }
   recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
-  //remove unneeded data
-  if(edge_id > 1) {
-    for (uint_t i = 0; i < edge_id - 1; ++i) {
-      auto dump = NULL;
-      recvBuffer >> dump;
-    }
-  }
   recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir1)];
-  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir2)];
+  if(edge.faces.size() == 2) {
+    recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos, dir2)];
+  }
 }
 
 SPECIALIZE(void, unpackVertexData_tmpl, unpackVertexData)

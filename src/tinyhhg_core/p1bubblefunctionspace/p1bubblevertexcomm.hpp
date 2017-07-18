@@ -16,14 +16,18 @@ using walberla::uint_t;
  * @param memory_id
  * @param sendBuffer
  */
-inline void packData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer) {
-  uint_t nbr_neighbours = vertex.edges.size();
+inline void packData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, const Edge &edge) {
+  uint_t nbrEdges = vertex.edges.size();
   auto &vertex_data = P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level];
   //center vertex
   sendBuffer << vertex_data[0];
-  //cell data; each edge receives all cell data
-  for(uint_t i = 0; i < vertex.edges.size(); ++i){
-    sendBuffer << vertex_data[nbr_neighbours + i];
+  Face& edgeFace0 = *edge.faces[0];
+  uint_t vertexFace0idx = vertex.face_index(edgeFace0);
+  sendBuffer << vertex_data[nbrEdges+vertexFace0idx];
+  if(edge.faces.size() == 2) {
+    Face &edgeFace1 = *edge.faces[1];
+    uint_t vertexFace1idx = vertex.face_index(edgeFace1);
+    sendBuffer << vertex_data[nbrEdges + vertexFace1idx];
   }
 }
 
