@@ -285,7 +285,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
     os << "          " << std::setw(4) << it->first << " | "
        << std::setw(11) << getTargetRank( it->first ) << " | "
        << coordinates << " | ";
-    for ( const auto & neighborEdgeID : it->second->higherDimNeighbors() )
+    for ( const auto & neighborEdgeID : it->second->getHigherDimNeighbors() )
     {
       os << neighborEdgeID.getID() << " ";
     }
@@ -303,7 +303,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
        << std::setw(10) << it->second->getVertexID0().getID() << " | "
        << std::setw(10) << it->second->getVertexID1().getID() << " | "
        << std::setw(20) << it->second->getDoFType() << " | ";
-    for ( const auto & neighborFaceID : it->second->higherDimNeighbors() )
+    for ( const auto & neighborFaceID : it->second->getHigherDimNeighbors() )
     {
       os << neighborFaceID.getID() << " ";
     }

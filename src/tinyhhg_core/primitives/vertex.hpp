@@ -101,8 +101,8 @@ public:
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { lowerDimNeighbors.clear(); }
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { getNeighborEdges( higherDimNeighbors ); }
 
-  virtual const std::vector< PrimitiveID > & lowerDimNeighbors()  const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 0 ); return neighborVertices(); }
-  virtual const std::vector< PrimitiveID > & higherDimNeighbors() const { return neighborEdges(); }
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 0 ); return neighborVertices(); }
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const { return neighborEdges(); }
 
   virtual uint_t getNumLowerDimNeighbors()  const { return 0; }
   virtual uint_t getNumHigherDimNeighbors() const { return getNumNeighborEdges(); }

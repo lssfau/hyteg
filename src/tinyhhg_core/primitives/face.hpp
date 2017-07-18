@@ -80,8 +80,8 @@ public:
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { getNeighborEdges( lowerDimNeighbors ); }
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { higherDimNeighbors.clear(); }
 
-  virtual const std::vector< PrimitiveID > & lowerDimNeighbors()  const { return neighborEdges(); }
-  virtual const std::vector< PrimitiveID > & higherDimNeighbors() const { WALBERLA_ASSERT_EQUAL( getNumNeighborFaces(), 0 ); return neighborFaces(); }
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const { return neighborEdges(); }
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const { WALBERLA_ASSERT_EQUAL( getNumNeighborFaces(), 0 ); return neighborFaces(); }
 
   virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborEdges(); }
   virtual uint_t getNumHigherDimNeighbors() const { return 0; }

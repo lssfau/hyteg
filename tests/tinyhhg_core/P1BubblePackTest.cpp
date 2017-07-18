@@ -112,7 +112,7 @@ int main (int argc, char** argv) {
 
   for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
     walberla::mpi::SendBuffer sb;
-    for ( const auto & higherDimNeighborID : it->second->higherDimNeighbors() ) {
+    for ( const auto & higherDimNeighborID : it->second->getHigherDimNeighbors() ) {
       packInfo->packEdgeForFace(it->second,higherDimNeighborID,sb);
       walberla::mpi::RecvBuffer rb(sb);
       packInfo->unpackFaceFromEdge(storage->getFace(higherDimNeighborID),it->first,rb);

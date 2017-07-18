@@ -120,8 +120,8 @@ public:
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const = 0;
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const = 0;
 
-  virtual const std::vector< PrimitiveID > & lowerDimNeighbors()  const = 0;
-  virtual const std::vector< PrimitiveID > & higherDimNeighbors() const = 0;
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const = 0;
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const = 0;
 
   virtual uint_t getNumLowerDimNeighbors()  const = 0;
   virtual uint_t getNumHigherDimNeighbors() const = 0;

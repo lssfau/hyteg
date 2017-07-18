@@ -92,8 +92,8 @@ public:
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { getNeighborVertices( lowerDimNeighbors ); }
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { getNeighborFaces( higherDimNeighbors ); }
 
-  virtual const std::vector< PrimitiveID > & lowerDimNeighbors()  const { return neighborVertices(); }
-  virtual const std::vector< PrimitiveID > & higherDimNeighbors() const { return neighborFaces(); }
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const { return neighborVertices(); }
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const { return neighborFaces(); }
 
   virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborVertices(); }
   virtual uint_t getNumHigherDimNeighbors() const { return getNumNeighborFaces(); }
