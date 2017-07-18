@@ -34,14 +34,14 @@ int main(int argc, char* argv[])
 
   size_t coarse_maxiter = 100;
   real_t coarse_tolerance = 1e-6;
-    
-  hhg::P1Function r("r", mesh, minLevel, maxLevel);
-  hhg::P1Function b("b", mesh, minLevel, maxLevel);
-  hhg::P1Function x("x", mesh, minLevel, maxLevel);
-  hhg::P1Function x_exact("x_exact", mesh, minLevel, maxLevel);
-  hhg::P1Function ax("ax", mesh, minLevel, maxLevel);
-  hhg::P1Function tmp("tmp", mesh, minLevel, maxLevel);
-  hhg::P1Function err("err", mesh, minLevel, maxLevel);
+
+  hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld b("b", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld x("x", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld x_exact("x_exact", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld ax("ax", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld tmp("tmp", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld err("err", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
   hhg::P1MassOperator M(mesh, minLevel, maxLevel);
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
-    
+
   for(size_t ll = minLevel; ll <= maxLevel;++ll)
   {
       x.interpolate(zero, ll, hhg::Inner);
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
       M.apply(tmp, b, ll, hhg::Inner);
   }
 
-  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
+  auto solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
 
   std::function<void(size_t)> cscycle;
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
       A.apply(err, tmp, ll, hhg::Inner);
       real_t discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
-      
+
       if (rk == 0)
       {
           WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err));
@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
           discr_l2_err = std::sqrt(err.dot(err, ll) / npoints);
           A.apply(err, tmp, ll, hhg::Inner);
           discr_h1_err = std::sqrt(err.dot(tmp, ll));
-          
+
           if (rk == 0)
           {
               WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, discr_h1_err));

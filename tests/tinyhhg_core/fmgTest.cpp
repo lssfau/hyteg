@@ -90,13 +90,13 @@ int main(int argc, char* argv[])
   real_t coarse_tolerance = 1e-6;
   real_t mg_tolerance = 1e-8;
 
-  hhg::P1Function r("r", mesh, minLevel, maxLevel);
-  hhg::P1Function b("b", mesh, minLevel, maxLevel);
-  hhg::P1Function x("x", mesh, minLevel, maxLevel);
-  hhg::P1Function x_exact("x_exact", mesh, minLevel, maxLevel);
-  hhg::P1Function ax("ax", mesh, minLevel, maxLevel);
-  hhg::P1Function tmp("tmp", mesh, minLevel, maxLevel);
-  hhg::P1Function err("err", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld b("b", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld x("x", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld x_exact("x_exact", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld ax("ax", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld tmp("tmp", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld err("err", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
   tmp.interpolate(ones, maxLevel);
   real_t npoints = tmp.dot(tmp, maxLevel);
 
-  auto csolver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
+  auto csolver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
 
   if (rk == 0)
   {

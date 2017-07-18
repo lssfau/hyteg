@@ -29,7 +29,7 @@ static void testP1Integration()
   size_t nbr_v_perEdge = v_perEdge - 1;
   size_t v_perVertex = levelinfo::num_microvertices_per_vertex(maxLevel);
 
-  P1Function x("x", mesh, minLevel, maxLevel);
+  P1FunctionOld x("x", mesh, minLevel, maxLevel);
 
   for(auto face : mesh.faces){
     for(size_t i = 0; i < v_perFace; ++i){

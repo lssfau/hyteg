@@ -12,7 +12,7 @@ using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
 //typedef walberla::uint64_t uint64_t;
 
-void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
+void VTKWriter(std::vector<const OldFunction*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());

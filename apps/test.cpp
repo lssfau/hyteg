@@ -16,8 +16,8 @@ int main(int argc, char* argv[])
   size_t maxLevel = 5;
 
   std::function<real_t(const hhg::Point3D&)> expr = [](const hhg::Point3D&) { return 1.0; };
-  hhg::P1Function u("u", mesh, minLevel, maxLevel);
-  hhg::P1Function Lu("Lu", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld u("u", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld Lu("Lu", mesh, minLevel, maxLevel);
 
   u.interpolate(expr, maxLevel);
   hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);

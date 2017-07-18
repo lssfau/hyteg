@@ -36,14 +36,14 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
 
-  hhg::P1Function u("u", mesh, minLevel, maxLevel);
-  hhg::P1Function v("v", mesh, minLevel, maxLevel);
-  hhg::P1Function p("p", mesh, minLevel, maxLevel);
-  hhg::P1Function p_rhs("p_rhs", mesh, minLevel, maxLevel);
-  hhg::P1Function p_res("p_res", mesh, minLevel, maxLevel);
-  hhg::P1Function tmp("tmp", mesh, minLevel, maxLevel);
-  hhg::P1Function tmp2("tmp2", mesh, minLevel, maxLevel);
-  hhg::P1Function res("res", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld u("u", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld v("v", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld p("p", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld p_rhs("p_rhs", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld p_res("p_res", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld tmp("tmp", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld tmp2("tmp2", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld res("res", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
   hhg::P1DivxOperator div_x(mesh, minLevel, maxLevel);
@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
   size_t iter = 0;
   size_t max_cg_iter = 10000;
 
-  auto mass_solver = hhg::CGSolver<hhg::P1Function, hhg::P1MassOperator>(mesh, minLevel, maxLevel);
-  auto laplace_solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
+  auto mass_solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1MassOperator>(mesh, minLevel, maxLevel);
+  auto laplace_solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
 
   u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);

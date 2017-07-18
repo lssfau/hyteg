@@ -3,18 +3,34 @@
 #include <fmt/format.h>
 
 using walberla::real_t;
+using walberla::uint_t;
+using walberla::uint_c;
+
+using namespace hhg;
 
 int main(int argc, char* argv[])
 {
-  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-  walberla::MPIManager::instance()->useWorldComm();
-  WALBERLA_LOG_INFO_ON_ROOT("TinyHHG CG Test\n");
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+  walberla::Environment walberlaEnv(argc, argv);
+  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+  walberla::MPIManager::instance()->useWorldComm();
+
+  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
+
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  RoundRobin loadbalancer;
+  setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
   size_t maxLevel = 2;
   size_t maxiter = 10000;
+
+  PrimitiveStorage storage( rank, setupStorage );
+  //////OLD STUFF
 
   hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
   hhg::P1FunctionOld f("f", mesh, minLevel, maxLevel);

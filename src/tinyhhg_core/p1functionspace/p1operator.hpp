@@ -281,7 +281,7 @@ public:
     }
   }
 
-  void apply(const P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply(const P1FunctionOld& src, P1FunctionOld& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -330,7 +330,7 @@ public:
     }
   }
 
-  void smooth_gs(P1Function& dst, const P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs(P1FunctionOld& dst, const P1FunctionOld& rhs, size_t level, DoFType flag)
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -379,7 +379,7 @@ public:
     }
   }
 
-  void printmatrix(const P1Function& src, size_t level, DoFType flag = All)
+  void printmatrix(const P1FunctionOld& src, size_t level, DoFType flag = All)
   {
     for (Vertex& vertex : mesh.vertices)
     {

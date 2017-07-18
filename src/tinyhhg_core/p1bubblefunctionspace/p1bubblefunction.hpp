@@ -16,12 +16,12 @@ namespace hhg
 //FIXME remove after we are in walberla namespace
 using namespace walberla::mpistubs;
 
-class P1BubbleFunction : public Function
+class P1BubbleFunction : public OldFunction
 {
 public:
 
   P1BubbleFunction(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : Function(_name, _mesh, _minLevel, _maxLevel)
+    : OldFunction(_name, _mesh, _minLevel, _maxLevel)
   {
     for (Vertex& v : mesh.vertices)
     {

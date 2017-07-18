@@ -16,12 +16,12 @@ namespace hhg
 //FIXME remove after we are in walberla namespace
 using namespace walberla::mpistubs;
 
-class P1Function : public Function
+class P1FunctionOld : public OldFunction
 {
 public:
 
-  P1Function(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : Function(_name, _mesh, _minLevel, _maxLevel)
+  P1FunctionOld(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
+    : OldFunction(_name, _mesh, _minLevel, _maxLevel)
   {
     for (Vertex& v : mesh.vertices)
     {
@@ -89,7 +89,7 @@ public:
     }
   }
 
-  ~P1Function()
+  ~P1FunctionOld()
   {
     for (Vertex& vertex : mesh.vertices)
     {
@@ -153,7 +153,7 @@ public:
     }
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1FunctionOld*> functions, size_t level, DoFType flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -196,7 +196,7 @@ public:
     }
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1FunctionOld*> functions, size_t level, DoFType flag = All)
   {
     std::vector<size_t> src_ids(functions.size());
     for (size_t i = 0; i < functions.size(); ++i)
@@ -239,7 +239,7 @@ public:
     }
   }
 
-  real_t dot(P1Function& rhs, size_t level, DoFType flag = All)
+  real_t dot(P1FunctionOld& rhs, size_t level, DoFType flag = All)
   {
     real_t sp_l = 0.0;
 

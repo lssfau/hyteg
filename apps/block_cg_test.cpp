@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
   hhg::P1StokesFunction u("u", mesh, minLevel, maxLevel);
   hhg::P1StokesFunction u_exact("u_exact", mesh, minLevel, maxLevel);
   hhg::P1StokesFunction err("err", mesh, minLevel, maxLevel);
-  hhg::P1Function npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
+  hhg::P1FunctionOld npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
 
   hhg::P1BlockLaplaceOperator L(mesh, minLevel, maxLevel);
 

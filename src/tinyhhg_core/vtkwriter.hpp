@@ -8,7 +8,7 @@
 namespace hhg
 {
 
-void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename);
+void VTKWriter(std::vector<const OldFunction*> functions, size_t level, const std::string& dir, const std::string& filename);
 
 }
 

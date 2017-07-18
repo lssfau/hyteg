@@ -47,16 +47,16 @@ if ( HTML_HELP_COMPILER EQUAL "" )
 else ( )
    set ( HTML_HELP_FOUND "YES" )
 endif ( )
- 
+
 if ( DOXYGEN_FOUND )
    set ( DOXYGEN_HTML_HEADER ${tinyhhg_SOURCE_DIR}/doc/header.html )
    set ( DOXYGEN_HTML_FOOTER ${tinyhhg_SOURCE_DIR}/doc/footer.html )
    set ( DOXYGEN_HTML_OUTPUT "html" )
-   
+
    configure_file ( ${tinyhhg_SOURCE_DIR}/doc/doxygen.config ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
    add_custom_target ( doc_tinyhhg   ${DOXYGEN_EXECUTABLE} ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg
                        COMMENT "Generating API documentation with Doxygen" VERBATIM )
-   
+
 endif ( )
 ############################################################################################################################
