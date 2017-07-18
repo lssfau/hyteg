@@ -57,6 +57,20 @@ inline void assign(Vertex& vertex, const std::vector<real_t>& scalars, const std
   }
 
   P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] = tmp;
+
+  size_t offset = 1 + vertex.edges.size();
+
+  for (size_t f = 0; f < vertex.faces.size(); ++f) {
+    real_t tmp = scalars[0] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[0])->data[level][offset];
+
+    for (size_t i = 1; i < src_ids.size(); ++i)
+    {
+      tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][offset];
+    }
+
+    P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][offset] = tmp;
+    ++offset;
+  }
 }
 
 inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
@@ -69,6 +83,19 @@ inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::v
   }
 
   P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] += tmp;
+
+  size_t offset = 1 + vertex.edges.size();
+
+  for (size_t f = 0; f < vertex.faces.size(); ++f) {
+    real_t tmp = 0.0;
+
+    for (size_t i = 0; i < src_ids.size(); ++i) {
+      tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][offset];
+    }
+
+    P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][offset] += tmp;
+    ++offset;
+  }
 }
 
 inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)

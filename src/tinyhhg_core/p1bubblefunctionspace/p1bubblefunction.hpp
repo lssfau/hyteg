@@ -191,7 +191,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::assign(face, scalars, src_ids, memory_id, level);
+        P1BubbleFace::assign(level, face, scalars, src_ids, memory_id);
       }
     }
   }
@@ -234,7 +234,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::add(face, scalars, src_ids, memory_id, level);
+        P1BubbleFace::add(level, face, scalars, src_ids, memory_id);
       }
     }
   }
