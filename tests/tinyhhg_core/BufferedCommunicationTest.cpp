@@ -205,11 +205,9 @@ static void testBufferedCommunication()
     WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 2 );
     WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it->first );
 
-    for ( auto lowerDimNeighbor  = edge->beginLowerDimNeighbors();
-         lowerDimNeighbor != edge->endLowerDimNeighbors();
-         lowerDimNeighbor++ )
+    for ( const auto & lowerDimNeighborID : edge->lowerDimNeighbors() )
     {
-      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighbor->first || data->vertexIDs[1] == lowerDimNeighbor->first, "Failing on Edge: " << it->first );
+      WALBERLA_CHECK( data->vertexIDs[0] == lowerDimNeighborID.getID() || data->vertexIDs[1] == lowerDimNeighborID.getID(), "Failing on Edge: " << lowerDimNeighborID.getID() );
     }
 
     // WALBERLA_LOG_INFO( "Edge " << edge->getID().getID() << " received: " << data->someInts[0] << ", " << data->someInts[1] );
@@ -225,11 +223,8 @@ static void testBufferedCommunication()
     std::set< uint_t > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
     WALBERLA_CHECK_EQUAL( data->edgeIDs.size(), edgeIdsSet.size() );
 
-    for ( auto higherDimNeighbor  = vertex->beginHigherDimNeighbors();
-               higherDimNeighbor != vertex->endHigherDimNeighbors();
-               higherDimNeighbor++ )
+    for ( const auto & higherDimNeighborID : vertex->higherDimNeighbors() )
     {
-      PrimitiveID higherDimNeighborID = higherDimNeighbor->first;
       WALBERLA_CHECK_EQUAL( edgeIdsSet.count( higherDimNeighborID.getID() ), 1 );
     }
   }
