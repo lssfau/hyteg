@@ -110,14 +110,14 @@ int main (int argc, char** argv) {
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
-//  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
-//    walberla::mpi::SendBuffer sb;
-//    for(auto jt = it->second->beginHigherDimNeighbors(); jt != it->second->endHigherDimNeighbors(); ++jt){
-//      packInfo->packEdgeForFace(it->second,jt->first,sb);
-//      walberla::mpi::RecvBuffer rb(sb);
-//      packInfo->unpackFaceFromEdge(storage->getFace(jt->first),it->first,rb);
-//    }
-//  }
+  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
+    walberla::mpi::SendBuffer sb;
+    for ( const auto & higherDimNeighborID : it->second->getHigherDimNeighbors() ) {
+      packInfo->packEdgeForFace(it->second,higherDimNeighborID,sb);
+      walberla::mpi::RecvBuffer rb(sb);
+      packInfo->unpackFaceFromEdge(storage->getFace(higherDimNeighborID),it->first,rb);
+    }
+  }
 
   //hhg::P1BubbleFace::interpolate(*face0,0,eight,maxLevel);
 

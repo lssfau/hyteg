@@ -8,12 +8,13 @@
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include <map>
 #include <vector>
 
 namespace hhg {
+
+class SetupPrimitiveStorage;
 
 class PrimitiveStorage : private walberla::NonCopyable
 {
@@ -47,8 +48,20 @@ public:
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
 
+  /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool primitiveExistsInNeighborhood( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) || edgeExistsInNeighborhood( id ) || faceExistsInNeighborhood( id ); }
+  /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool vertexExistsInNeighborhood( const PrimitiveID & id )    const { return neighborVertices_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool edgeExistsInNeighborhood( const PrimitiveID & id )      const { return neighborEdges_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool faceExistsInNeighborhood( const PrimitiveID & id )      const { return neighborFaces_.count( id.getID() ) > 0; }
+
   template< typename PrimitiveType >
   inline bool primitiveExistsLocallyGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  template< typename PrimitiveType >
+  inline bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Primitive does not exist locally.
@@ -57,18 +70,39 @@ public:
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Vertex does not exist locally.
-  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : NULL; }
-        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : NULL; }
+  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : nullptr; }
+        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : nullptr; }
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Edge does not exist locally.
-  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : NULL; }
-        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : NULL; }
+  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : nullptr; }
+        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : nullptr; }
 
   /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
   /// Returns NULL if the \ref Face does not exist locally.
-  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : NULL; }
-        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : NULL; }
+  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : nullptr; }
+        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : nullptr; }
+
+  /// Returns the neighbor \ref Primitive that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Primitive does not exist in the direct neighborhood.
+  const Primitive* getNeighborPrimitive( const PrimitiveID & id ) const;
+        Primitive* getNeighborPrimitive( const PrimitiveID & id );
+
+  /// Returns the neighbor \ref Vertex that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Vertex does not exist in the direct neighborhood.
+  const Vertex* getNeighborVertex( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) ? neighborVertices_.at( id.getID() ) : nullptr; }
+        Vertex* getNeighborVertex( const PrimitiveID & id )       { return vertexExistsInNeighborhood( id ) ? neighborVertices_[ id.getID() ] : nullptr; }
+
+  /// Returns the neighbor \ref Edge that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Edge does not exist in the direct neighborhood.
+  const Edge* getNeighborEdge( const PrimitiveID & id ) const { return edgeExistsInNeighborhood( id ) ? neighborEdges_.at( id.getID() ) : nullptr; }
+        Edge* getNeighborEdge( const PrimitiveID & id )       { return edgeExistsInNeighborhood( id ) ? neighborEdges_[ id.getID() ] : nullptr; }
+
+  /// Returns the neighbor \ref Face that is assigned to the passed \ref PrimitiveID.
+  /// Returns NULL if the \ref Face does not exist in the direct neighborhood.
+  const Face* getNeighborFace( const PrimitiveID & id ) const { return faceExistsInNeighborhood( id ) ? neighborFaces_.at( id.getID() ) : nullptr; }
+        Face* getNeighborFace( const PrimitiveID & id )       { return faceExistsInNeighborhood( id ) ? neighborFaces_[ id.getID() ] : nullptr; }
+
 
   /// Generic versions of the getter methods.
   template< typename PrimitiveType >
@@ -76,6 +110,13 @@ public:
 
   template< typename PrimitiveType >
   inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  /// Generic versions of the getter methods.
+  template< typename PrimitiveType >
+  inline const PrimitiveType* getNeighborPrimitiveGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+
+  template< typename PrimitiveType >
+  inline       PrimitiveType* getNeighborPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   void getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const;
   void getEdgeIDs   ( std::vector< PrimitiveID > & edgeIDs )   const;
@@ -105,6 +146,7 @@ public:
   FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
   FaceMap::const_iterator endFaces()        const { return faces_.end(); }
 
+  uint_t getNeighborPrimitiveRank( const PrimitiveID & id ) const { return neighborRanks_.at( id.getID() ); }
 
   ////////////////////////////
   // Primitive data methods //
@@ -133,7 +175,7 @@ private:
 
   template< typename DataType,
             typename PrimitiveType,
-	    typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
+            typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
   inline void addPrimitiveData( const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
 				const std::string & identifier,
 				const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
@@ -143,8 +185,14 @@ private:
   EdgeMap   edges_;
   FaceMap   faces_;
 
+  VertexMap neighborVertices_;
+  EdgeMap   neighborEdges_;
+  FaceMap   neighborFaces_;
+
   uint_t rank_;
   uint_t primitiveDataHandlers_;
+
+  std::map< PrimitiveID::IDType, uint_t > neighborRanks_;
 
 };
 
@@ -159,6 +207,19 @@ inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Edge >  ( const
 
 template<>
 inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsLocally( id ); }
+
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsInNeighborhood( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Vertex >( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Edge >  ( const PrimitiveID & id ) const { return edgeExistsInNeighborhood( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsInNeighborhood( id ); }
 
 
 template<>
@@ -184,6 +245,31 @@ inline const Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const 
 
 template<>
 inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
+
+
+template<>
+inline const Primitive* PrimitiveStorage::getNeighborPrimitiveGenerically< Primitive >( const PrimitiveID & id ) const { return getNeighborPrimitive( id ); }
+
+template<>
+inline       Primitive* PrimitiveStorage::getNeighborPrimitiveGenerically< Primitive >( const PrimitiveID & id )       { return getNeighborPrimitive( id ); }
+
+template<>
+inline const Vertex* PrimitiveStorage::getNeighborPrimitiveGenerically< Vertex >( const PrimitiveID & id ) const { return getNeighborVertex( id ); }
+
+template<>
+inline       Vertex* PrimitiveStorage::getNeighborPrimitiveGenerically< Vertex >( const PrimitiveID & id )       { return getNeighborVertex( id ); }
+
+template<>
+inline const Edge*   PrimitiveStorage::getNeighborPrimitiveGenerically< Edge >  ( const PrimitiveID & id ) const { return getNeighborEdge( id ); }
+
+template<>
+inline       Edge*   PrimitiveStorage::getNeighborPrimitiveGenerically< Edge >  ( const PrimitiveID & id )       { return getNeighborEdge( id ); }
+
+template<>
+inline const Face*   PrimitiveStorage::getNeighborPrimitiveGenerically< Face >  ( const PrimitiveID & id ) const { return getNeighborFace( id ); }
+
+template<>
+inline       Face*   PrimitiveStorage::getNeighborPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getNeighborFace( id ); }
 
 
 template<>

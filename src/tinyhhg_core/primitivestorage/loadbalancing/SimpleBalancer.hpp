@@ -16,11 +16,11 @@ public:
 
   uint_t operator()( SetupPrimitiveStorage & storage, const memory_t & perProcessMemoryLimit ) const
   {
-    SetupPrimitiveStorage::SetupPrimitiveMap setupPrimitives;
+    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
     storage.getSetupPrimitives( setupPrimitives );
     for ( auto it : setupPrimitives )
     {
-      it.second->setTargetRank( uint_c( targetRank_ ) );
+      storage.setTargetRank( it.first, uint_c( targetRank_ ) );
     }
     return uint_c( 1 );
   }
@@ -50,12 +50,12 @@ public:
   {
     uint_t currentRank = 0;
 
-    SetupPrimitiveStorage::SetupPrimitiveMap setupPrimitives;
+    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
     storage.getSetupPrimitives( setupPrimitives );
 
     for ( auto it : setupPrimitives )
     {
-      it.second->setTargetRank( uint_c( currentRank % storage.getNumberOfProcesses() ) );
+      storage.setTargetRank( it.first, uint_c( currentRank % storage.getNumberOfProcesses() ) );
       currentRank++;
     }
 
