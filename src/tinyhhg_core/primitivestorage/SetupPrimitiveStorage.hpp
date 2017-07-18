@@ -4,9 +4,10 @@
 #include "core/debug/Debug.h"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitiveid.hpp"
-#include "tinyhhg_core/primitives/SetupEdge.hpp"
-#include "tinyhhg_core/primitives/SetupFace.hpp"
-#include "tinyhhg_core/primitives/SetupVertex.hpp"
+#include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/primitives/edge.hpp"
+#include "tinyhhg_core/primitives/face.hpp"
+#include "tinyhhg_core/primitives/vertex.hpp"
 
 #include <map>
 #include <set>
@@ -14,6 +15,8 @@
 #include <vector>
 
 namespace hhg {
+
+using walberla::real_t;
 
 class SetupPrimitiveStorage
 {
@@ -29,10 +32,10 @@ public:
 				  const memory_t & perProcessMemoryLimit ) >
           TargetProcessAssignmentFunction;
 
-  typedef std::map< PrimitiveID::IDType, SetupPrimitive* > SetupPrimitiveMap;
-  typedef std::map< PrimitiveID::IDType, SetupVertex* >    SetupVertexMap;
-  typedef std::map< PrimitiveID::IDType, SetupEdge* >      SetupEdgeMap;
-  typedef std::map< PrimitiveID::IDType, SetupFace* >      SetupFaceMap;
+  typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
+  typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;
+  typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
+  typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
@@ -46,30 +49,30 @@ public:
   bool edgeExists     ( const PrimitiveID & id ) const { return edges_.count( id.getID() )    > 0; }
   bool faceExists     ( const PrimitiveID & id ) const { return faces_.count( id.getID() )    > 0; }
 
-  const SetupVertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ) : nullptr; }
-  const SetupEdge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() )    : nullptr; }
-  const SetupFace   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() )    : nullptr; }
+  const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ) : nullptr; }
+  const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() )    : nullptr; }
+  const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() )    : nullptr; }
 
-  void getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const;
+  void getSetupPrimitives( PrimitiveMap & setupPrimitiveMap ) const;
   uint_t getNumberOfPrimitives() const;
 
-  SetupVertexMap::iterator beginVertices() { return vertices_.begin(); }
-  SetupVertexMap::iterator endVertices()   { return vertices_.end(); }
+  VertexMap::iterator beginVertices() { return vertices_.begin(); }
+  VertexMap::iterator endVertices()   { return vertices_.end(); }
 
-  SetupEdgeMap::iterator beginEdges()      { return edges_.begin(); }
-  SetupEdgeMap::iterator endEdges()        { return edges_.end(); }
+  EdgeMap::iterator beginEdges()      { return edges_.begin(); }
+  EdgeMap::iterator endEdges()        { return edges_.end(); }
 
-  SetupFaceMap::iterator beginFaces()      { return faces_.begin(); }
-  SetupFaceMap::iterator endFaces()        { return faces_.end(); }
+  FaceMap::iterator beginFaces()      { return faces_.begin(); }
+  FaceMap::iterator endFaces()        { return faces_.end(); }
 
-  SetupVertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
-  SetupVertexMap::const_iterator endVertices()   const { return vertices_.end(); }
+  VertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
+  VertexMap::const_iterator endVertices()   const { return vertices_.end(); }
 
-  SetupEdgeMap::const_iterator beginEdges()      const { return edges_.begin(); }
-  SetupEdgeMap::const_iterator endEdges()        const { return edges_.end(); }
+  EdgeMap::const_iterator beginEdges()      const { return edges_.begin(); }
+  EdgeMap::const_iterator endEdges()        const { return edges_.end(); }
 
-  SetupFaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
-  SetupFaceMap::const_iterator endFaces()        const { return faces_.end(); }
+  FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
+  FaceMap::const_iterator endFaces()        const { return faces_.end(); }
 
   /// Searches an edge with the respective vertices by ID\n
   /// \param edge is set to the ID of the edge if one was found
@@ -99,9 +102,9 @@ private:
 
   uint_t numberOfProcesses_;
 
-  SetupVertexMap vertices_;
-  SetupEdgeMap   edges_;
-  SetupFaceMap   faces_;
+  VertexMap vertices_;
+  EdgeMap   edges_;
+  FaceMap   faces_;
 
   std::map< PrimitiveID::IDType, uint_t > primitiveIDToTargetRankMap_;
 

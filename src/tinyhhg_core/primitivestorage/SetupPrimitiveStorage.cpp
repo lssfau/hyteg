@@ -22,7 +22,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   {
     PrimitiveID vertexID( it->first );
     Point3D coordinates( it->second );
-    vertices_[ vertexID.getID() ] = new SetupVertex( vertexID, coordinates );
+    vertices_[ vertexID.getID() ] = new Vertex( vertexID, coordinates );
 
     // All to root by default
     primitiveIDToTargetRankMap_[ vertexID.getID() ] = 0;
@@ -37,10 +37,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID1 = PrimitiveID( it->first.second );
     DoFType dofType = it->second;
     Point3D direction = vertices_[ vertexID1.getID() ]->getCoordinates() - vertices_[ vertexID0.getID() ]->getCoordinates();
+    real_t length = direction.norm();
+    Point3D tangent = direction / length;
+
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
-    edges_[ edgeID.getID() ] = new SetupEdge( edgeID, vertexID0, vertexID1, dofType, direction );
+    edges_[ edgeID.getID() ] = new Edge( edgeID, vertexID0, vertexID1, dofType, direction, length, tangent );
 
     // All to root by default
     primitiveIDToTargetRankMap_[ edgeID.getID() ] = 0;
@@ -144,7 +147,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       coordinates[2] = vertices_[ edge1Vertex0.getID() ]->getCoordinates();
     }
 
-    faces_[ faceID.getID() ] = new SetupFace( faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
+    faces_[ faceID.getID() ] = new Face( faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
 
     // All to root by default
     primitiveIDToTargetRankMap_[ faceID.getID() ] = 0;
@@ -188,7 +191,7 @@ void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimiti
 {
   rankToSetupPrimitivesMap.clear();
 
-  SetupPrimitiveMap setupPrimitives;
+  PrimitiveMap setupPrimitives;
   getSetupPrimitives( setupPrimitives );
   for ( uint_t rank = 0; rank < numberOfProcesses_; rank++ )
   {
@@ -282,11 +285,9 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
     os << "          " << std::setw(4) << it->first << " | "
        << std::setw(11) << getTargetRank( it->first ) << " | "
        << coordinates << " | ";
-    for ( auto neighborEdgeID =  it->second->beginHigherDimNeighbors();
-	       neighborEdgeID != it->second->endHigherDimNeighbors();
-	       neighborEdgeID++ )
+    for ( const auto & neighborEdgeID : it->second->higherDimNeighbors() )
     {
-      os << neighborEdgeID->getID() << " ";
+      os << neighborEdgeID.getID() << " ";
     }
     os << "\n";
 
@@ -302,12 +303,10 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
        << std::setw(10) << it->second->getVertexID0().getID() << " | "
        << std::setw(10) << it->second->getVertexID1().getID() << " | "
        << std::setw(20) << it->second->getDoFType() << " | ";
-    for ( auto neighborFaceID =  it->second->beginHigherDimNeighbors();
-    	       neighborFaceID != it->second->endHigherDimNeighbors();
-    	       neighborFaceID++ )
-        {
-          os << neighborFaceID->getID() << " ";
-        }
+    for ( const auto & neighborFaceID : it->second->higherDimNeighbors() )
+    {
+      os << neighborFaceID.getID() << " ";
+    }
         os << "\n";
   }
   os << "\n";
@@ -326,7 +325,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
 }
 
 
-void SetupPrimitiveStorage::getSetupPrimitives( SetupPrimitiveMap & setupPrimitiveMap ) const
+void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap & setupPrimitiveMap ) const
 {
   setupPrimitiveMap.clear();
 

@@ -16,7 +16,7 @@ public:
 
   uint_t operator()( SetupPrimitiveStorage & storage, const memory_t & perProcessMemoryLimit ) const
   {
-    SetupPrimitiveStorage::SetupPrimitiveMap setupPrimitives;
+    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
     storage.getSetupPrimitives( setupPrimitives );
     for ( auto it : setupPrimitives )
     {
@@ -50,7 +50,7 @@ public:
   {
     uint_t currentRank = 0;
 
-    SetupPrimitiveStorage::SetupPrimitiveMap setupPrimitives;
+    SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
     storage.getSetupPrimitives( setupPrimitives );
 
     for ( auto it : setupPrimitives )
