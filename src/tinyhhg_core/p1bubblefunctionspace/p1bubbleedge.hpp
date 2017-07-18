@@ -28,26 +28,33 @@ inline void free(Edge& edge, size_t memory_id)
   edge.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Edge& edge, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+template<size_t Level>
+inline void interpolate_tmpl(Edge& edge, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x = edge.v0->coords;
   Point3D dx = edge.direction / (real_t) (rowsize - 1);
   x += dx;
 
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[Level];
+
+  fmt::print("dst[EdgeCoordsVertex::index<Level>(0, EdgeCoordsVertex::VERTEX_C)] = {}\n", dst[EdgeCoordsVertex::index<Level>(0, EdgeCoordsVertex::VERTEX_C)]);
+
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = expr(x);
+    dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)] = expr(x);
     x += dx;
   }
 }
+
+SPECIALIZE(void, interpolate_tmpl, interpolate)
 
 inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
   //TODO this is WIP only works with one mpi rank!
   walberla::mpi::SendBuffer sb;
-  hhg::P1BubbleVertex::packData(level, *edge.v0, 0, sb, edge);
-  hhg::P1BubbleVertex::packData(level, *edge.v1, 0, sb, edge);
+  hhg::P1BubbleVertex::packData(level, *edge.v0, memory_id, sb, edge);
+  hhg::P1BubbleVertex::packData(level, *edge.v1, memory_id, sb, edge);
   walberla::mpi::RecvBuffer rb(sb);
   unpackVertexData(level,edge,memory_id,rb,*edge.v0);
   unpackVertexData(level,edge,memory_id,rb,*edge.v1);

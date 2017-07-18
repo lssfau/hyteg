@@ -20,24 +20,18 @@ int main(int argc, char* argv[])
   hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-    if (x[0] < 1e-8)
-    {
-      return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
-    }
-    else
-    {
-      return 0.0;
-    }
+//    return 4.0 * (1.0-x[1]) * x[1];
+    return x[0] + 1.0;
   };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
 
-  u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
+  u.u.interpolate(bc_x, maxLevel);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
-  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
-  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+//  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
+//  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;

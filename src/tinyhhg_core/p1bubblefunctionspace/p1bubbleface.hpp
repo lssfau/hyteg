@@ -30,9 +30,11 @@ inline void free(Face& face, size_t memory_id)
   face.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+template<size_t Level>
+inline void interpolate_tmpl(Face& face, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
   Point3D x, x0;
 
   if (face.edge_orientation[0] == 1)
@@ -47,25 +49,23 @@ inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const
   Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (walberla::real_c(rowsize-1));
   Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (walberla::real_c(rowsize-1));
 
-  size_t mr_c = 1 + rowsize;
-  size_t inner_rowsize = rowsize;
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
 
-  for (size_t i = 0; i < rowsize-3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
     x = x0;
-    x += (i+1) * d2 + d0;
+    x += i * d2 + d0;
 
-    for (size_t j = 0; j < inner_rowsize-3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[level][mr_c] = expr(x);
+      dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = expr(x);
       x += d0;
-      mr_c += 1;
     }
-
-    mr_c += 2;
-    inner_rowsize -= 1;
+    --inner_rowsize;
   }
 }
+
+SPECIALIZE(void, interpolate_tmpl, interpolate)
 
 inline void pull_edges(Face& face, size_t memory_id, size_t level)
 {

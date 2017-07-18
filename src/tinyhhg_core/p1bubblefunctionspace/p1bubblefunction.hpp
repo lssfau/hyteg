@@ -135,7 +135,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1BubbleEdge::interpolate(edge, memory_id, expr, level);
+        P1BubbleEdge::interpolate(level, edge, memory_id, expr);
       }
     }
 
@@ -148,7 +148,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::interpolate(face, memory_id, expr, level);
+        P1BubbleFace::interpolate(level, face, memory_id, expr);
       }
     }
   }
