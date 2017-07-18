@@ -46,8 +46,8 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
 {
   //TODO this is WIP only works with one mpi rank!
   walberla::mpi::SendBuffer sb;
-  hhg::P1BubbleVertex::packData(level,*edge.v0,0,sb);
-  hhg::P1BubbleVertex::packData(level,*edge.v1,0,sb);
+  hhg::P1BubbleVertex::packData(level, *edge.v0, 0, sb, edge);
+  hhg::P1BubbleVertex::packData(level, *edge.v1, 0, sb, edge);
   walberla::mpi::RecvBuffer rb(sb);
   unpackVertexData(level,edge,memory_id,rb,*edge.v0);
   unpackVertexData(level,edge,memory_id,rb,*edge.v1);
