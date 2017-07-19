@@ -327,9 +327,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        P1BubbleVertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
+        P1BubbleVertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType, flag);
       }
     }
 

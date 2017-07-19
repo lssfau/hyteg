@@ -10,8 +10,8 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 4;
-  size_t maxiter = 100;
+  size_t maxLevel = 2;
+  size_t maxiter = 1000;
 
   hhg::MiniStokesFunction r("r", mesh, minLevel, maxLevel);
   hhg::MiniStokesFunction f("f", mesh, minLevel, maxLevel);
@@ -20,8 +20,7 @@ int main(int argc, char* argv[])
   hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-//    return 4.0 * (1.0-x[1]) * x[1];
-    return x[0] + 1.0;
+    return 4.0 * (1.0-x[1]) * x[1];
   };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
@@ -34,11 +33,12 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("npoints = {}\nreal_npoints = {}\nright = {}\n", npoints, real_npoints, npoints == real_npoints))
 
-  u.u.interpolate(bc_x, maxLevel);
+  u.u.interpolate(zero, maxLevel);
+  u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
-//  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
-//  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
+  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
