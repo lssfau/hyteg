@@ -62,8 +62,6 @@ int main (int argc, char** argv) {
 
   WALBERLA_MPI_BARRIER();
 
-  uint_t rank = uint_c(walberla::MPIManager::instance()->rank());
-
   std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(uint_c(walberla::MPIManager::instance()->rank()) , setupStorage));
 
 
@@ -84,15 +82,13 @@ int main (int argc, char** argv) {
 
   for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
     for(uint_t i = 0; i < v_perEdge; ++i){
-      it->second->getData(edgeDataID)->data[maxLevel].get()[i] = 2 + (it->first * 0.1);
+      it->second->getData(edgeDataID)->data[maxLevel].get()[i] = 2. + (walberla::real_c(it->first) * 0.1);
     }
 
     if(it->second->getNumHigherDimNeighbors() == 2){
-      EdgeP1BubbleFunctionMemory *middleEdgeData = it->second->getData(edgeDataID);
       std::cout << "Middle Edge ID is: " << it->second->getID().getID() << std::endl;
     }
   }
-  real_t counter = 1;
   for(uint_t i = 0; i < hhg::levelinfo::num_microvertices_per_face(maxLevel);++i){
     face0data[i] = 1.1;
     face1data[i] = 1.2;
@@ -110,14 +106,14 @@ int main (int argc, char** argv) {
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
-  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
-    walberla::mpi::SendBuffer sb;
-    for ( const auto & higherDimNeighborID : it->second->getHigherDimNeighbors() ) {
-      packInfo->packEdgeForFace(it->second,higherDimNeighborID,sb);
-      walberla::mpi::RecvBuffer rb(sb);
-      packInfo->unpackFaceFromEdge(storage->getFace(higherDimNeighborID),it->first,rb);
-    }
-  }
+//  for(auto it = storage->beginEdges(); it != storage->endEdges(); ++it){
+//    walberla::mpi::SendBuffer sb;
+//    for(auto jt = it->second->beginHigherDimNeighbors(); jt != it->second->endHigherDimNeighbors(); ++jt){
+//      packInfo->packEdgeForFace(it->second,jt->first,sb);
+//      walberla::mpi::RecvBuffer rb(sb);
+//      packInfo->unpackFaceFromEdge(storage->getFace(jt->first),it->first,rb);
+//    }
+//  }
 
   //hhg::P1BubbleFace::interpolate(*face0,0,eight,maxLevel);
 
