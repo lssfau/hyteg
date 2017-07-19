@@ -128,6 +128,10 @@ public:
   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
   void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
+  const VertexMap & getVertices() const { return vertices_; }
+  const EdgeMap   & getEdges()    const { return edges_;    }
+  const FaceMap   & getFaces()    const { return faces_;    }
+
   VertexMap::iterator beginVertices() { return vertices_.begin(); }
   VertexMap::iterator endVertices()   { return vertices_.end(); }
 
