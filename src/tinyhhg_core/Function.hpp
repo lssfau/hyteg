@@ -1,5 +1,4 @@
-#ifndef FUNCTION_HPP
-#define FUNCTION_HPP
+#pragma once
 
 #include "mesh.hpp"
 #include "operator.hpp"
@@ -32,5 +31,3 @@ private:
 };
 
 }
-
-#endif /* FUNCTION_HPP */

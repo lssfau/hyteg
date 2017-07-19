@@ -32,12 +32,12 @@ int main(int argc, char* argv[])
   PrimitiveStorage storage( rank, setupStorage );
   //////OLD STUFF
 
-  hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld f("f", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld u("u", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld u_exact("u_exact", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld err("err", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
+  hhg::P1Function r("r", mesh, minLevel, maxLevel);
+  hhg::P1Function f("f", mesh, minLevel, maxLevel);
+  hhg::P1Function u("u", mesh, minLevel, maxLevel);
+  hhg::P1Function u_exact("u_exact", mesh, minLevel, maxLevel);
+  hhg::P1Function err("err", mesh, minLevel, maxLevel);
+  hhg::P1Function npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
 

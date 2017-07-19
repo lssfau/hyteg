@@ -1,6 +1,3 @@
-#ifndef P1FUNCTION_HPP
-#define P1FUNCTION_HPP
-
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 namespace hhg
@@ -11,10 +8,14 @@ using namespace walberla::mpistubs;
 
 
   P1Function::P1Function(const std::string& name, const PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel) :
-  Function(name,storage,minLevel,maxLevel),
-
+  Function(name,storage,minLevel,maxLevel)
   {
-
+    FaceP1FunctionMemoryDataHandling faceP1FunctionMemoryDataHandling;
+    EdgeP1FunctionMemoryDataHandling edgeP1FunctionMemoryDataHandling;
+    VertexP1FunctionMemoryDataHandling vertexP1FunctionMemoryDataHandling;
+    faceDataID_   = storage->addFaceData(faceP1FunctionMemoryDataHandling,name);
+    edgeDataID_   = storage->addEdgeData(edgeP1FunctionMemoryDataHandling,name);
+    vertexDataID_ = storage->addVertexData(vertexP1FunctionMemoryDataHandling,name);
   }
 
   ~P1Function();
@@ -34,5 +35,3 @@ using namespace walberla::mpistubs;
   void restrict(size_t level, DoFType flag = All);
 
 }
-
-#endif

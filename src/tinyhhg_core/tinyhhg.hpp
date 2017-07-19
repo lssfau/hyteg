@@ -7,6 +7,7 @@
 #include "vtkwriter.hpp"
 
 #include "p1functionspace/p1function.hpp"
+#include "p1functionspace/P1Function.hpp"
 #include "p1functionspace/p1operator.hpp"
 #include "p1functionspace/p1memory.hpp"
 
