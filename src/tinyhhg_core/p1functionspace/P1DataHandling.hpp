@@ -10,7 +10,14 @@ class VertexP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< Ve
 {
 public:
 
+  VertexP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
   VertexP1FunctionMemory * initialize( const Vertex * const vertex ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
 
 };
 
@@ -18,7 +25,14 @@ class EdgeP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< Edge
 {
 public:
 
+  EdgeP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
   EdgeP1FunctionMemory * initialize( const Edge * const edge ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
 
 };
 
@@ -26,7 +40,14 @@ class FaceP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< Face
 {
 public:
 
+  FaceP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
   FaceP1FunctionMemory * initialize( const Face * const face ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
 
 };
 
