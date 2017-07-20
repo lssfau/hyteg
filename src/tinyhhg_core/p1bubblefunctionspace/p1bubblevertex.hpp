@@ -240,11 +240,11 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
   walberla::mpi::SendBuffer sb;
   for(hhg::Edge* edge : vertex.edges){
-    hhg::P1BubbleEdge::packDataforVertex(*edge,0,sb,level,vertex);
+    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
   }
   walberla::mpi::RecvBuffer rb(sb);
   for(hhg::Edge* edge : vertex.edges) {
-    unpackEdgeData(level,vertex,0,rb,*edge);
+    unpackEdgeData(level,vertex,memory_id,rb,*edge);
   }
 }
 
