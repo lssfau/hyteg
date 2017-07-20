@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
+  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
   size_t maxLevel = 2;
@@ -39,6 +39,16 @@ int main(int argc, char* argv[])
 
   auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+
+  for (auto vertex: u.v.mesh.vertices) {
+    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.v.memory_id,maxLevel);
+  }
+  for (auto vertex: u.u.mesh.vertices) {
+    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.u.memory_id,maxLevel);
+  }
+  for (auto vertex: u.p.mesh.vertices) {
+    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.p.memory_id,maxLevel);
+  }
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;

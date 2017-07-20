@@ -280,18 +280,25 @@ inline void print(Vertex & vertex, size_t memory_id, size_t level) {
 //  }
 //}
 
-//inline void printmatrix(Vertex& vertex, size_t opr_id, size_t src_id, size_t level)
-//{
-//  real_t* opr_data = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
-//  real_t* src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
-//
-//  fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[0], opr_data[0]);
-//
-//  for (size_t i = 0; i < vertex.edges.size(); ++i)
-//  {
-//    fmt::printf("%d\t%d\t%e\n", (size_t)src[0], (size_t)src[i+1], opr_data[i+1]);
-//  }
-//}
+inline void printFunctionMemory(Vertex& vertex, uint_t id, uint_t level)
+{
+  auto& vertexData = P1Bubble::getVertexFunctionMemory(vertex, id)->data[level];
+
+  std::cout <<  std::string(10,'*');
+  std::cout << " Vertex ID: " << vertex.getID().getID();
+  std::cout << " Center: " << vertexData[0];
+  std::cout << " Memory ID: "<< id;
+  std::cout <<  " " << std::string(10,'*') << std::endl;
+  std::cout << "Edge ID: |" << " Vertex " << std::endl;
+  for(uint_t i = 0; i < vertex.edges.size(); ++i){
+    std::cout << std::left << std::setw(9) << vertex.edges[i]->getID().getID() << "|"  << vertexData[1+i] << std::endl;
+  }
+  std::cout << "Face ID: |" << " Cell " << std::endl;
+  for(uint_t i = 0; i < vertex.faces.size(); ++i){
+    std::cout << std::left << std::setw(9) << vertex.faces[i]->getID().getID() << "|"  << vertexData[1+vertex.edges.size()+i] << std::endl;
+  }
+  std::cout <<  std::string(100,'*') << std::endl;
+}
 
 }
 }
