@@ -7,10 +7,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+  hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
+  const size_t maxLevel = 2;
   size_t maxiter = 1000;
 
   hhg::MiniStokesFunction r("r", mesh, minLevel, maxLevel);
@@ -49,6 +49,28 @@ int main(int argc, char* argv[])
   for (auto vertex: u.p.mesh.vertices) {
     hhg::P1BubbleVertex::printFunctionMemory(vertex,u.p.memory_id,maxLevel);
   }
+
+  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], u.u.memory_id)->data[maxLevel];
+  std::cout << "=======================================" << std::endl;
+  std::cout << "Face 0 Cell Gray: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-1; ++i) {
+    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)]);
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
+
+  std::cout << "=======================================" << std::endl;
+  std::cout << "Face 0 Cell Blue: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-2; ++i) {
+    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
