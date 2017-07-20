@@ -7,7 +7,6 @@
 #include <core/Deprecated.h>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
-#include <tinyhhg_core/primitives/SetupVertex.hpp>
 #include <tinyhhg_core/mesh/MeshInfo.hpp>
 
 #include <vector>
@@ -31,13 +30,14 @@ class Vertex : public Primitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
   /// Constructs a vertex with given id and coordinates
   /// \param id Id of vertex
   /// \param coords Spatial coordinates of vertex
   Vertex(size_t id, const Point3D& coords);
-  Vertex( PrimitiveStorage & storage, const SetupVertex & setupVertex );
+  Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates );
 
   /// Adds given edge to \ref edges
   /// \param edge Pointer to edge which will be added
@@ -85,6 +85,11 @@ public:
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 
+  const Point3D getCoordinates() const
+  {
+    return coords;
+  }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
@@ -92,6 +97,15 @@ public:
   {
     return genericGetData< DataType >( index );
   }
+
+  virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { lowerDimNeighbors.clear(); }
+  virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { getNeighborEdges( higherDimNeighbors ); }
+
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 0 ); return neighborVertices(); }
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const { return neighborEdges(); }
+
+  virtual uint_t getNumLowerDimNeighbors()  const { return 0; }
+  virtual uint_t getNumHigherDimNeighbors() const { return getNumNeighborEdges(); }
 
 protected:
 
@@ -103,6 +117,10 @@ protected:
   {
     genericAddData( index, dataHandling, this );
   }
+
+private:
+
+  void addEdge( const PrimitiveID & edgeID ) { neighborEdges_.push_back( edgeID ); }
 
 };
 

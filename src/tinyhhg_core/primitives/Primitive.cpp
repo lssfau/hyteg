@@ -4,7 +4,6 @@
 
 namespace hhg {
 
-uint_t Primitive::getRank() const { return storage_.getRank(); }
 
 } // namespace hhg
 
