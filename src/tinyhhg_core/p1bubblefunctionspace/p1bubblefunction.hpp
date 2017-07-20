@@ -163,9 +163,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        P1BubbleVertex::assign(vertex, scalars, src_ids, memory_id, level);
+        P1BubbleVertex::assign(vertex, scalars, src_ids, memory_id, level, flag);
       }
     }
 
@@ -206,9 +206,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        P1BubbleVertex::add(vertex, scalars, src_ids, memory_id, level);
+        P1BubbleVertex::add(vertex, scalars, src_ids, memory_id, level, flag);
       }
     }
 
@@ -245,9 +245,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        sp_l += P1BubbleVertex::dot(vertex, memory_id, rhs.memory_id, level);
+        sp_l += P1BubbleVertex::dot(vertex, memory_id, rhs.memory_id, level, flag);
       }
     }
 
