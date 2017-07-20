@@ -30,9 +30,11 @@ inline void free(Face& face, size_t memory_id)
   face.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+template<size_t Level>
+inline void interpolate_tmpl(Face& face, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
   Point3D x, x0;
 
   if (face.edge_orientation[0] == 1)
@@ -47,25 +49,23 @@ inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const
   Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (walberla::real_c(rowsize-1));
   Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (walberla::real_c(rowsize-1));
 
-  size_t mr_c = 1 + rowsize;
-  size_t inner_rowsize = rowsize;
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level];
 
-  for (size_t i = 0; i < rowsize-3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
     x = x0;
-    x += (i+1) * d2 + d0;
+    x += i * d2 + d0;
 
-    for (size_t j = 0; j < inner_rowsize-3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[level][mr_c] = expr(x);
+      dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = expr(x);
       x += d0;
-      mr_c += 1;
     }
-
-    mr_c += 2;
-    inner_rowsize -= 1;
+    --inner_rowsize;
   }
 }
+
+SPECIALIZE(void, interpolate_tmpl, interpolate)
 
 inline void pull_edges(Face& face, size_t memory_id, size_t level)
 {
@@ -82,83 +82,182 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
 
 }
 
-inline void assign(Face& face, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+template<size_t Level>
+inline void assign_tmpl(Face& face, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
-
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      real_t tmp = scalars[0] * P1Bubble::getFaceFunctionMemory(face, src_ids[0])->data[level][mr];
+      real_t tmp = scalars[0] * P1Bubble::getFaceFunctionMemory(face, src_ids[0])->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
 
       for (size_t k = 1; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[level][mr];
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
       }
-      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[level][mr] = tmp;
-
-      mr += 1;
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = tmp;
     }
+    --inner_rowsize;
+  }
 
-    mr += 2;
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
+      }
+
+      real_t tmp = scalars[0] * P1Bubble::getFaceFunctionMemory(face, src_ids[0])->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+
+      for (size_t k = 1; k < src_ids.size(); ++k)
+      {
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+      }
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = tmp;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      real_t tmp = scalars[0] * P1Bubble::getFaceFunctionMemory(face, src_ids[0])->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+
+      for (size_t k = 1; k < src_ids.size(); ++k)
+      {
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+      }
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = tmp;
+    }
     --inner_rowsize;
   }
 }
 
-inline void add(Face& face, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+SPECIALIZE(void, assign_tmpl, assign)
+
+template<size_t Level>
+inline void add_tmpl(Face& face, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
-
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
       real_t tmp = 0.0;
 
       for (size_t k = 0; k < src_ids.size(); ++k)
       {
-        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[level][mr];
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
+      }
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] += tmp;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
       }
 
-      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[level][mr] += tmp;
+      real_t tmp = 0.0;
 
-      mr += 1;
+      for (size_t k = 0; k < src_ids.size(); ++k)
+      {
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+      }
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] += tmp;
     }
+    --inner_rowsize;
+  }
 
-    mr += 2;
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      real_t tmp = 0.0;
+
+      for (size_t k = 0; k < src_ids.size(); ++k)
+      {
+        tmp += scalars[k] * P1Bubble::getFaceFunctionMemory(face, src_ids[k])->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+      }
+      P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] += tmp;
+    }
     --inner_rowsize;
   }
 }
 
-inline real_t dot(Face& face, size_t lhs_id, size_t rhs_id, size_t level)
+SPECIALIZE(void, add_tmpl, add)
+
+template<size_t Level>
+inline real_t dot_tmpl(Face& face, size_t lhs_id, size_t rhs_id)
 {
   real_t sp = 0.0;
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  auto& lhs_data = P1Bubble::getFaceFunctionMemory(face, lhs_id)->data[Level];
+  auto& rhs_data = P1Bubble::getFaceFunctionMemory(face, rhs_id)->data[Level];
 
-  for (size_t i = 0; i < rowsize - 3; ++i)
+  for (size_t i = 1; i < rowsize - 2; ++i)
   {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j)
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      sp += P1Bubble::getFaceFunctionMemory(face, lhs_id)->data[level][mr] * P1Bubble::getFaceFunctionMemory(face, rhs_id)->data[level][mr];
-      mr += 1;
+      sp += lhs_data[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] * rhs_data[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
     }
+    --inner_rowsize;
+  }
 
-    mr += 2;
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
+      }
+
+      sp += lhs_data[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] * rhs_data[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      sp += lhs_data[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] * rhs_data[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+    }
     --inner_rowsize;
   }
 
   return sp;
 }
+
+SPECIALIZE(real_t, dot_tmpl, dot)
 
 template<size_t Level>
 inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)

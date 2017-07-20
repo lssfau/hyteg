@@ -34,6 +34,8 @@ const DirVertex neighbors[12] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
      CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
      CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+const DirVertex neighbors_vertex[] =
+    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, DirVertex dir) {

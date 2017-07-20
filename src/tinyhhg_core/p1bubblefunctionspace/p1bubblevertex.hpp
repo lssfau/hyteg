@@ -47,84 +47,137 @@ inline void interpolate(Vertex& vertex, size_t memory_id, std::function<real_t(c
   P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = expr(vertex.coords);
 }
 
-inline void assign(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+inline void assign(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level, DoFType flag)
 {
-  real_t tmp = scalars[0] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[0])->data[level][0];
+  real_t tmp;
 
-  for (size_t i = 1; i < src_ids.size(); ++i)
-  {
-    tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][0];
+  if (testFlag(vertex.type, flag)) {
+    tmp = scalars[0] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[0])->data[level][0];
+
+    for (size_t i = 1; i < src_ids.size(); ++i) {
+      tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][0];
+    }
+
+    P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] = tmp;
   }
 
-  P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] = tmp;
+  if (testFlag(hhg::Inner, flag)) {
+    size_t offset = 1 + vertex.edges.size();
+
+    for (size_t f = 0; f < vertex.faces.size(); ++f) {
+      tmp = scalars[0] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[0])->data[level][offset];
+
+      for (size_t i = 1; i < src_ids.size(); ++i) {
+        tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][offset];
+      }
+
+      P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][offset] = tmp;
+      ++offset;
+    }
+  }
 }
 
-inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)
+inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level, DoFType flag)
 {
-  real_t tmp = 0.0;
+  real_t tmp;
 
-  for (size_t i = 0; i < src_ids.size(); ++i)
-  {
-    tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][0];
+  if (testFlag(vertex.type, flag)) {
+    tmp = 0.0;
+
+    for (size_t i = 0; i < src_ids.size(); ++i) {
+      tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][0];
+    }
+
+    P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] += tmp;
   }
 
-  P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][0] += tmp;
+  if (testFlag(hhg::Inner, flag)) {
+    size_t offset = 1 + vertex.edges.size();
+
+    for (size_t f = 0; f < vertex.faces.size(); ++f) {
+      real_t tmp = 0.0;
+
+      for (size_t i = 0; i < src_ids.size(); ++i) {
+        tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][offset];
+      }
+
+      P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level][offset] += tmp;
+      ++offset;
+    }
+  }
 }
 
-inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level)
+inline real_t dot(Vertex& vertex, size_t lhs_id, size_t rhs_id, size_t level, DoFType flag)
 {
-  return P1Bubble::getVertexFunctionMemory(vertex, lhs_id)->data[level][0] *
-      P1Bubble::getVertexFunctionMemory(vertex, rhs_id)->data[level][0];
+  auto& lhs_data = P1Bubble::getVertexFunctionMemory(vertex, lhs_id)->data[level];
+  auto& rhs_data = P1Bubble::getVertexFunctionMemory(vertex, rhs_id)->data[level];
+
+  real_t sp = 0.0;
+
+  if (testFlag(vertex.type, flag)) {
+    sp += lhs_data[0] * rhs_data[0];
+  }
+
+  if (testFlag(hhg::Inner, flag)) {
+    size_t offset = 1 + vertex.edges.size();
+
+    for (size_t f = 0; f < vertex.faces.size(); ++f) {
+      sp += lhs_data[offset] * rhs_data[offset];
+      ++offset;
+    }
+  }
+
+  return sp;
 }
 
-inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
+inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update, DoFType flag)
 {
   auto& stencil_stack = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
   auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
   auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
 
-  // apply first stencil to vertex dof
-  auto& opr_data = stencil_stack[0];
+  if (testFlag(vertex.type, flag)) {
+    // apply first stencil to vertex dof
+    auto &opr_data = stencil_stack[0];
 
-  if (update == Replace) {
-    dst[0] = opr_data[0] * src[0];
-  }
-  else if (update == Add) {
-    dst[0] += opr_data[0] * src[0];
-  }
-
-  for (size_t i = 0; i < vertex.edges.size() + vertex.faces.size(); ++i)
-  {
-    dst[0] += opr_data[i+1] * src[i+1];
-  }
-
-  // apply remaining stencils to adjacent cell dofs
-  size_t offset = 1 + vertex.edges.size();
-
-  for (size_t f = 0; f < vertex.faces.size(); ++f) {
-    auto& opr_data = stencil_stack[f+1];
     if (update == Replace) {
-      dst[offset] = opr_data[0] * src[offset];
+      dst[0] = opr_data[0] * src[0];
+    } else if (update == Add) {
+      dst[0] += opr_data[0] * src[0];
     }
-    else if (update == Add) {
-      dst[offset] += opr_data[0] * src[offset];
+
+    for (size_t i = 0; i < vertex.edges.size() + vertex.faces.size(); ++i) {
+      dst[0] += opr_data[i + 1] * src[i + 1];
     }
+  }
 
-    Face* face = vertex.faces[f];
-    size_t v_i = face->vertex_index(vertex);
+  if (testFlag(hhg::Inner, flag)) {
+    // apply remaining stencils to adjacent cell dofs
+    size_t offset = 1 + vertex.edges.size();
 
-    dst[offset] += opr_data[v_i+1] * src[0];
+    for (size_t f = 0; f < vertex.faces.size(); ++f) {
+      auto &opr_data = stencil_stack[f + 1];
+      if (update == Replace) {
+        dst[offset] = opr_data[0] * src[offset];
+      } else if (update == Add) {
+        dst[offset] += opr_data[0] * src[offset];
+      }
 
-    std::vector<Edge*> adj_edges = face->adjacent_edges(vertex);
+      Face *face = vertex.faces[f];
+      size_t v_i = face->vertex_index(vertex);
 
-    // iterate over adjacent edges
-    for (Edge* edge : adj_edges)
-    {
-      size_t edge_idx = vertex.edge_index(*edge) + 1;
-      Vertex* vertex_j = edge->get_opposite_vertex(vertex);
+      dst[offset] += opr_data[v_i + 1] * src[0];
 
-      size_t v_j = face->vertex_index(*vertex_j);
-      dst[offset] += opr_data[v_j+1] * src[edge_idx];
+      std::vector<Edge *> adj_edges = face->adjacent_edges(vertex);
+
+      // iterate over adjacent edges
+      for (Edge *edge : adj_edges) {
+        size_t edge_idx = vertex.edge_index(*edge) + 1;
+        Vertex *vertex_j = edge->get_opposite_vertex(vertex);
+
+        size_t v_j = face->vertex_index(*vertex_j);
+        dst[offset] += opr_data[v_j + 1] * src[edge_idx];
+      }
     }
   }
 }
@@ -187,11 +240,11 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
   walberla::mpi::SendBuffer sb;
   for(hhg::Edge* edge : vertex.edges){
-    hhg::P1BubbleEdge::packDataforVertex(*edge,0,sb,level,vertex);
+    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
   }
   walberla::mpi::RecvBuffer rb(sb);
   for(hhg::Edge* edge : vertex.edges) {
-    unpackEdgeData(level,vertex,0,rb,*edge);
+    unpackEdgeData(level,vertex,memory_id,rb,*edge);
   }
 }
 

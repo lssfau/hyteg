@@ -14,6 +14,9 @@
 #include "p1bubblefunctionspace/p1bubblefunction.hpp"
 #include "p1bubblefunctionspace/p1bubbleoperator.hpp"
 
+#include "mixedoperators/p1_to_p1bubble_operator.hpp"
+#include "mixedoperators/p1bubble_to_p1_operator.hpp"
+
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
 
@@ -23,6 +26,8 @@
 #include "composites/p1stokesfunction.hpp"
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
+#include "composites/ministokesfunction.hpp"
+#include "composites/ministokesoperator.hpp"
 
 #include "primitivestorage/PrimitiveStorage.hpp"
 #include "primitivestorage/SetupPrimitiveStorage.hpp"
