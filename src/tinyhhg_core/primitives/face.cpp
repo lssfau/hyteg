@@ -107,7 +107,7 @@ size_t Face::edge_index(const Edge& edge) const
 {
   for (size_t i = 0; i < 3; ++i)
   {
-    if (&edge == edges[i])
+    if (edge.getID().getID() == edges[i]->getID().getID())
     {
       return i;
     }

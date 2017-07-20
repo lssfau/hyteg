@@ -21,7 +21,7 @@ int main (int argc, char ** argv )
   const size_t maxLevel = 3;
 
   //size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
-  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+  //size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
   //size_t nbr_v_perEdge = v_perEdge - 1;
   //size_t v_perVertex = hhg::levelinfo::num_microvertices_per_vertex(maxLevel);
 
