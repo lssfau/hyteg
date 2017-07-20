@@ -33,14 +33,14 @@ int main (int argc, char ** argv )
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
-  hhg::P1BubbleFace::interpolate(mesh.faces[0],0,six,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[1],0,seven,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[2],0,eight,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[3],0,nine,maxLevel);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[0],0,six);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[1],0,seven);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[2],0,eight);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[3],0,nine);
 
   for(auto edge : mesh.edges){
     if(edge.faces.size() == 2){
-      hhg::P1BubbleEdge::interpolate(edge,0,five,maxLevel);
+      hhg::P1BubbleEdge::interpolate(maxLevel,edge,0,five);
       hhg::P1BubbleEdge::pull_halos(edge,0,maxLevel);
     }
   }
