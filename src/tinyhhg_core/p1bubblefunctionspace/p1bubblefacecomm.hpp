@@ -37,6 +37,16 @@ inline void unpackEdgeData_tmpl(Face &face, uint_t memory_id, walberla::mpi::Rec
   for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], VERTEX, Level); it != indexIterator(); ++it){
     recvBuffer >> face_data[*it];
   }
+  auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], CELL_GRAY, Level);
+  real_t tmp;
+  recvBuffer >> tmp;
+  face_data[*it] = tmp;
+  uint_t lastGray = 0;
+  while(it != indexIterator()){
+    lastGray = *it;
+    ++it;
+  }
+  recvBuffer >> face_data[lastGray];
 }
 SPECIALIZE(void, unpackEdgeData_tmpl, unpackEdgeData)
 

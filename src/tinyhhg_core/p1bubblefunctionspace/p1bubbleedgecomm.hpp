@@ -17,12 +17,19 @@ using walberla::uint_t;
  * @param memory_id Memory id of the data
  * @param level Multigrid level
  */
-inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, uint_t level) {
+inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, uint_t level, const Face &face) {
   auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   //TODO change to index function
   for (uint_t i = 0; i < rowsize; ++i) {
     sendBuffer << edge_data[i];
+  }
+  if(edge.face_index(face) == 0){
+    sendBuffer << edge_data[EdgeCoordsVertex::edge_index(level,0,EdgeCoordsVertex::CELL_GRAY_SE)];
+    sendBuffer << edge_data[EdgeCoordsVertex::edge_index(level,rowsize-1,EdgeCoordsVertex::CELL_GRAY_SW)];
+  } else {
+    sendBuffer << edge_data[EdgeCoordsVertex::edge_index(level,0,EdgeCoordsVertex::CELL_GRAY_NE)];
+    sendBuffer << edge_data[EdgeCoordsVertex::edge_index(level,rowsize-1,EdgeCoordsVertex::CELL_GRAY_NW)];
   }
 }
 
@@ -94,8 +101,7 @@ inline void unpackVertexData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::R
   } else {
     WALBERLA_LOG_WARNING("vertex " << vertex << " is not contained in edge")
   }
-  uint_t center_idx = EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C);
-  recvBuffer >> edge_data[center_idx];
+  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
   recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir1)];
   if(edge.faces.size() == 2) {
     recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos, dir2)];

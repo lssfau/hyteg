@@ -22,7 +22,7 @@ int main (int argc, char ** argv )
   const size_t maxLevel = 3;
 
   //size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
-  //size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
   //size_t nbr_v_perEdge = v_perEdge - 1;
   //size_t v_perVertex = hhg::levelinfo::num_microvertices_per_vertex(maxLevel);
 
@@ -69,10 +69,32 @@ int main (int argc, char ** argv )
 
   hhg::P1BubbleEdge::pull_vertices(mesh.edges[7],0,maxLevel);
 
+  hhg::P1BubbleFace::pull_edges(mesh.faces[2],0,maxLevel);
 
   hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],0,maxLevel);
   hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[7],0,maxLevel);
 
+  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[2], 0)->data[maxLevel];
+  std::cout << "=======================================" << std::endl;
+  std::cout << mesh.faces[2] << std::endl;
+  std::cout << "Face Cell Gray: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-1; ++i) {
+    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+      std::cout << std::setw(3) <<  face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)] << " ";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
+
+  std::cout << "=======================================" << std::endl;
+  std::cout << "Face 0 Cell Blue: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-2; ++i) {
+    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
 
 //   int counter = 1;
 //   for(auto edge : mesh.edges){

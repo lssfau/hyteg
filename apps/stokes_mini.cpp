@@ -39,38 +39,38 @@ int main(int argc, char* argv[])
 
   auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
-
-  for (auto vertex: u.v.mesh.vertices) {
-    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.v.memory_id,maxLevel);
-  }
-  for (auto vertex: u.u.mesh.vertices) {
-    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.u.memory_id,maxLevel);
-  }
-  for (auto vertex: u.p.mesh.vertices) {
-    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.p.memory_id,maxLevel);
-  }
-
-  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
-  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], u.u.memory_id)->data[maxLevel];
-  std::cout << "=======================================" << std::endl;
-  std::cout << "Face 0 Cell Gray: " << std::endl;
-  for (size_t i = 0; i < v_perEdge-1; ++i) {
-    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
-      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)]);
-    }
-    std::cout << std::endl;
-  }
-  std::cout << "=======================================" << std::endl;
-
-  std::cout << "=======================================" << std::endl;
-  std::cout << "Face 0 Cell Blue: " << std::endl;
-  for (size_t i = 0; i < v_perEdge-2; ++i) {
-    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
-      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
-    }
-    std::cout << std::endl;
-  }
-  std::cout << "=======================================" << std::endl;
+//
+//  for (auto vertex: u.v.mesh.vertices) {
+//    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.v.memory_id,maxLevel);
+//  }
+//  for (auto vertex: u.u.mesh.vertices) {
+//    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.u.memory_id,maxLevel);
+//  }
+//  for (auto vertex: u.p.mesh.vertices) {
+//    hhg::P1BubbleVertex::printFunctionMemory(vertex,u.p.memory_id,maxLevel);
+//  }
+//
+//  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+//  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], u.u.memory_id)->data[maxLevel];
+//  std::cout << "=======================================" << std::endl;
+//  std::cout << "Face 0 Cell Gray: " << std::endl;
+//  for (size_t i = 0; i < v_perEdge-1; ++i) {
+//    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)]);
+//    }
+//    std::cout << std::endl;
+//  }
+//  std::cout << "=======================================" << std::endl;
+//
+//  std::cout << "=======================================" << std::endl;
+//  std::cout << "Face 0 Cell Blue: " << std::endl;
+//  for (size_t i = 0; i < v_perEdge-2; ++i) {
+//    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+//    }
+//    std::cout << std::endl;
+//  }
+//  std::cout << "=======================================" << std::endl;
 
   hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
