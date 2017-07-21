@@ -42,9 +42,9 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
     for (size_t f = 0; f < vertex.faces.size(); ++f) {
       auto &opr_data = stencil_stack[f + 1];
       if (update == Replace) {
-        dst[offset] = opr_data[0] * src[offset];
+        dst[offset] = 0.0;
       } else if (update == Add) {
-        dst[offset] += opr_data[0] * src[offset];
+        // do nothing
       }
 
       Face *face = vertex.faces[f];
@@ -62,6 +62,7 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
         size_t v_j = face->vertex_index(*vertex_j);
         dst[offset] += opr_data[v_j + 1] * src[edge_idx];
       }
+      ++offset;
     }
   }
 }
@@ -163,7 +164,8 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
         continue;
       }
 
-      tmp = face_gray_stencil[P1BubbleFace::CoordsCellGray::CELL_GRAY_C] * src[P1BubbleFace::CoordsCellGray::index<Level>(i, j, P1BubbleFace::CoordsCellGray::CELL_GRAY_C)];
+//      tmp = face_gray_stencil[P1BubbleFace::CoordsCellGray::CELL_GRAY_C] * src[P1BubbleFace::CoordsCellGray::index<Level>(i, j, P1BubbleFace::CoordsCellGray::CELL_GRAY_C)];
+      tmp = 0.0;
 
       for (auto neighbor : P1BubbleFace::CoordsCellGray::neighbors)
       {
@@ -185,7 +187,8 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      tmp = face_blue_stencil[P1BubbleFace::CoordsCellBlue::CELL_BLUE_C] * src[P1BubbleFace::CoordsCellBlue::index<Level>(i, j, P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)];
+//      tmp = face_blue_stencil[P1BubbleFace::CoordsCellBlue::CELL_BLUE_C] * src[P1BubbleFace::CoordsCellBlue::index<Level>(i, j, P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)];
+      tmp = 0.0;
 
       for (auto neighbor : P1BubbleFace::CoordsCellBlue::neighbors)
       {
