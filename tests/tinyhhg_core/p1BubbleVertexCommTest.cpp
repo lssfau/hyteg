@@ -8,6 +8,7 @@
 
 using namespace hhg::P1BubbleFace;
 using walberla::real_t;
+using walberla::real_c;
 
 int main (int argc, char ** argv )
 {
@@ -21,7 +22,7 @@ int main (int argc, char ** argv )
   const size_t maxLevel = 3;
 
   //size_t v_perFace =  hhg::levelinfo::num_microvertices_per_face(maxLevel);
-  //size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
+  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
   //size_t nbr_v_perEdge = v_perEdge - 1;
   //size_t v_perVertex = hhg::levelinfo::num_microvertices_per_vertex(maxLevel);
 
@@ -33,18 +34,18 @@ int main (int argc, char ** argv )
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
-  hhg::P1BubbleFace::interpolate(mesh.faces[0],0,six,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[1],0,seven,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[2],0,eight,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[3],0,nine,maxLevel);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[0],0,six);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[1],0,seven);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[2],0,eight);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[3],0,nine);
 
   for(auto edge : mesh.edges){
     if(edge.faces.size() == 2){
-      hhg::P1BubbleEdge::interpolate(edge,0,five,maxLevel);
+      hhg::P1BubbleEdge::interpolate(maxLevel,edge,0,five);
       hhg::P1BubbleEdge::pull_halos(edge,0,maxLevel);
     }
   }
-  
+
   for(auto vertex : mesh.vertices){
     if(vertex.edges.size() == 4){
       std::cout << vertex << std::endl;
@@ -52,16 +53,48 @@ int main (int argc, char ** argv )
   }
 
   hhg::P1BubbleVertex::pull_halos(mesh.vertices[4],0,maxLevel);
-  
-  auto& middleVertexMem = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[4], 0)->data[maxLevel];
+  hhg::P1BubbleVertex::interpolate(mesh.vertices[4],0,nine,maxLevel);
 
-  std::cout << " Vertex: " << middleVertexMem[0] << std::endl;
-  for(uint_t i = 1; i < 5; ++i){
-    std::cout << " Edge " << i-1 << ": " << middleVertexMem[i] << std::endl;
+
+  auto& vertex4Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[4], 0)->data[maxLevel];
+  for(uint_t i = 0; i < 4; ++i) {
+    vertex4Data[i+5] = real_c(mesh.vertices[4].faces[i]->getID().getID());
   }
-  for(uint_t i = 1; i < 5; ++i){
-    std::cout << " Cell " << i-1 << ": " << middleVertexMem[i+4] << std::endl;
+
+  auto& vertex2Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[2], 0)->data[maxLevel];
+  vertex2Data[0] = 1.2;
+  for(uint_t i = 4; i < 7; ++i) {
+    vertex2Data[i] = 1.2;
   }
+
+  hhg::P1BubbleEdge::pull_vertices(mesh.edges[7],0,maxLevel);
+
+  hhg::P1BubbleFace::pull_edges(mesh.faces[2],0,maxLevel);
+
+  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],0,maxLevel);
+  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[7],0,maxLevel);
+
+  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[2], 0)->data[maxLevel];
+  std::cout << "=======================================" << std::endl;
+  std::cout << mesh.faces[2] << std::endl;
+  std::cout << "Face Cell Gray: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-1; ++i) {
+    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+      std::cout << std::setw(3) <<  face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)] << " ";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
+
+  std::cout << "=======================================" << std::endl;
+  std::cout << "Face 0 Cell Blue: " << std::endl;
+  for (size_t i = 0; i < v_perEdge-2; ++i) {
+    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+    }
+    std::cout << std::endl;
+  }
+  std::cout << "=======================================" << std::endl;
 
 //   int counter = 1;
 //   for(auto edge : mesh.edges){

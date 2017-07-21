@@ -73,7 +73,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
   walberla::mpi::SendBuffer sb;
   for(uint_t i = 0; i < 3; ++i){
 
-    P1BubbleEdge::packData(*face.edges[i],memory_id,sb,level);
+    P1BubbleEdge::packData(*face.edges[i], memory_id, sb, level, face);
   }
   walberla::mpi::RecvBuffer rb(sb);
   for(uint_t i = 0; i < 3; ++i){
