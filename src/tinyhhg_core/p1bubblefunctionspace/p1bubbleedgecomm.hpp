@@ -94,7 +94,8 @@ inline void unpackVertexData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::R
   } else {
     WALBERLA_LOG_WARNING("vertex " << vertex << " is not contained in edge")
   }
-  recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C)];
+  uint_t center_idx = EdgeCoordsVertex::index<Level>(pos,EdgeCoordsVertex::VERTEX_C);
+  recvBuffer >> edge_data[center_idx];
   recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos,dir1)];
   if(edge.faces.size() == 2) {
     recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(pos, dir2)];

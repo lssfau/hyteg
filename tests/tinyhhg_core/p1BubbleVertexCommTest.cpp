@@ -8,6 +8,7 @@
 
 using namespace hhg::P1BubbleFace;
 using walberla::real_t;
+using walberla::real_c;
 
 int main (int argc, char ** argv )
 {
@@ -53,11 +54,25 @@ int main (int argc, char ** argv )
 
   hhg::P1BubbleVertex::pull_halos(mesh.vertices[4],0,maxLevel);
   hhg::P1BubbleVertex::interpolate(mesh.vertices[4],0,nine,maxLevel);
-  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],0,maxLevel);
 
-  for(auto edge : mesh.edges){
-    hhg::P1BubbleEdge::printFunctionMemory(edge,0,maxLevel);
+
+  auto& vertex4Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[4], 0)->data[maxLevel];
+  for(uint_t i = 0; i < 4; ++i) {
+    vertex4Data[i+5] = real_c(mesh.vertices[4].faces[i]->getID().getID());
   }
+
+  auto& vertex2Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[2], 0)->data[maxLevel];
+  vertex2Data[0] = 1.2;
+  for(uint_t i = 4; i < 7; ++i) {
+    vertex2Data[i] = 1.2;
+  }
+
+  hhg::P1BubbleEdge::pull_vertices(mesh.edges[7],0,maxLevel);
+
+
+  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],0,maxLevel);
+  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[7],0,maxLevel);
+
 
 //   int counter = 1;
 //   for(auto edge : mesh.edges){
