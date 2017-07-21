@@ -23,11 +23,11 @@ inline void packData(uint_t level, Vertex &vertex, uint_t memory_id, walberla::m
   sendBuffer << vertex_data[0];
   Face& edgeFace0 = *edge.faces[0];
   uint_t vertexFace0idx = vertex.face_index(edgeFace0);
-  sendBuffer << vertex_data[nbrEdges+vertexFace0idx];
+  sendBuffer << vertex_data[nbrEdges+vertexFace0idx+1];
   if(edge.faces.size() == 2) {
     Face &edgeFace1 = *edge.faces[1];
     uint_t vertexFace1idx = vertex.face_index(edgeFace1);
-    sendBuffer << vertex_data[nbrEdges + vertexFace1idx];
+    sendBuffer << vertex_data[nbrEdges + vertexFace1idx+1];
   }
 }
 
