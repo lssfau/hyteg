@@ -49,6 +49,8 @@ const DirVertex neighbors_south[] =
 const DirVertex neighbors_north[] =
     {VERTEX_NW, VERTEX_N, CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE};
 
+//first face is south face by convention
+
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);

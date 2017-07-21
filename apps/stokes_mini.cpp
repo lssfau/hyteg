@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
 
   size_t minLevel = 2;
-  const size_t maxLevel = 2;
+  const size_t maxLevel = 4;
   size_t maxiter = 1000;
 
   hhg::MiniStokesFunction r("r", mesh, minLevel, maxLevel);
