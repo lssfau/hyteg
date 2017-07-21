@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/quad_4el.msh");
 
   size_t minLevel = 2;
-  size_t maxLevel = 3;
+  size_t maxLevel = 5;
   size_t maxiter = 10000;
 
   hhg::P1BubbleFunction r("r", mesh, minLevel, maxLevel);

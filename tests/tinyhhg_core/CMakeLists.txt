@@ -30,3 +30,8 @@ waLBerla_execute_test(NAME PrimitiveStorageTest)
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME BufferedCommunicationTest)
+
+waLBerla_compile_test(FILES p1BubbleVertexCommTest.cpp DEPENDS tinyhhg_core core fmt)
+
+waLBerla_compile_test(FILES P1DataHandlingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1DataHandlingTest)

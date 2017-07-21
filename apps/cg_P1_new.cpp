@@ -32,14 +32,14 @@ int main(int argc, char* argv[])
   PrimitiveStorage storage( rank, setupStorage );
   //////OLD STUFF
 
-  hhg::P1Function r("r", mesh, minLevel, maxLevel);
-  hhg::P1Function f("f", mesh, minLevel, maxLevel);
-  hhg::P1Function u("u", mesh, minLevel, maxLevel);
-  hhg::P1Function u_exact("u_exact", mesh, minLevel, maxLevel);
-  hhg::P1Function err("err", mesh, minLevel, maxLevel);
-  hhg::P1Function npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
+  hhg::P1Function r("r", storage, minLevel, maxLevel);
+  hhg::P1Function f("f", storage, minLevel, maxLevel);
+  hhg::P1Function u("u", storage, minLevel, maxLevel);
+  hhg::P1Function u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1Function err("err", storage, minLevel, maxLevel);
+  hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
-  hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
+  hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };

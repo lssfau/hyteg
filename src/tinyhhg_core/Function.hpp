@@ -14,7 +14,7 @@ namespace hhg
 class Function
 {
 public:
-  Function(const std::string& name, const PrimitiveStorage& storage, size_t _minLevel, size_t _maxLevel)
+  Function(const std::string& name, const PrimitiveStorage& storage, size_t minLevel, size_t maxLevel)
     : functionName_(name), storage_(storage), minLevel_(minLevel), maxLevel_(maxLevel)
   {
   }

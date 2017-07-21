@@ -1,24 +1,24 @@
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "P1Function.hpp"
+#include "P1DataHandling.hpp"
 
 namespace hhg
 {
 
-//FIXME remove after we are in walberla namespace
-using namespace walberla::mpistubs;
-
-
-  P1Function::P1Function(const std::string& name, const PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel) :
+  P1Function::P1Function(const std::string& name, PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel) :
   Function(name,storage,minLevel,maxLevel)
   {
-    FaceP1FunctionMemoryDataHandling faceP1FunctionMemoryDataHandling;
-    EdgeP1FunctionMemoryDataHandling edgeP1FunctionMemoryDataHandling;
-    VertexP1FunctionMemoryDataHandling vertexP1FunctionMemoryDataHandling;
-    faceDataID_   = storage->addFaceData(faceP1FunctionMemoryDataHandling,name);
-    edgeDataID_   = storage->addEdgeData(edgeP1FunctionMemoryDataHandling,name);
-    vertexDataID_ = storage->addVertexData(vertexP1FunctionMemoryDataHandling,name);
+    FaceP1FunctionMemoryDataHandling faceP1FunctionMemoryDataHandling(minLevel,maxLevel);
+    EdgeP1FunctionMemoryDataHandling edgeP1FunctionMemoryDataHandling(minLevel,maxLevel);
+    VertexP1FunctionMemoryDataHandling vertexP1FunctionMemoryDataHandling(minLevel,maxLevel);
+    faceDataID_   = storage.addFaceData(faceP1FunctionMemoryDataHandling,name);
+    edgeDataID_   = storage.addEdgeData(edgeP1FunctionMemoryDataHandling,name);
+    vertexDataID_ = storage.addVertexData(vertexP1FunctionMemoryDataHandling,name);
   }
 
-  ~P1Function();
+  P1Function::~P1Function()
+  {
+  //TODO implement!
+  }
 
   void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag = All);
 

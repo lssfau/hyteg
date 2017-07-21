@@ -6,62 +6,128 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/operator.hpp"
 
-#include "tinyhhg_core/p1bubblefunctionspace/generated/p1bubble_diffusion.h"
-
-#include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
-#include "tinyhhg_core/p1bubblefunctionspace/p1bubblefaceindex.hpp"
-#include "tinyhhg_core/p1bubblefunctionspace/p1bubbleedge.hpp"
+#include "tinyhhg_core/p1bubblefunctionspace/generated/p1bubble_div.h"
 
 namespace hhg
 {
 
-namespace P1Bubble {
+namespace P1BubbleToP1Vertex
+{
+inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, size_t level, UpdateType update)
+{
+  auto& stencil_stack = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
+  auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
 
-enum ElementType {
-  GRAY,
-  BLUE
-};
+  // apply first stencil to vertex dof
+  auto& opr_data = stencil_stack[0];
 
-void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize - 1);
-  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize - 1);
-
-  real_t orientation = 1.0;
-
-  if (element_type == BLUE) {
-    orientation = -1.0;
+  if (update == Replace) {
+    dst[0] = opr_data[0] * src[0];
+  }
+  else if (update == Add) {
+    dst[0] += opr_data[0] * src[0];
   }
 
-  coords[0] = 0.0;
-  coords[1] = 0.0;
-  coords[2] = orientation * d0[0];
-  coords[3] = orientation * d0[1];
-  coords[4] = orientation * d2[0];
-  coords[5] = orientation * d2[1];
+  for (size_t i = 0; i < vertex.edges.size() + vertex.faces.size(); ++i)
+  {
+    dst[0] += opr_data[i+1] * src[i+1];
+  }
+}
 }
 
-template<class UFCOperator>
-void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[4][4], ElementType element_type) {
-  real_t A[16];
-  real_t coords[6];
-  compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
-  gen.tabulate_tensor(A, NULL, coords, 0);
+namespace P1BubbleToP1Edge
+{
+template<size_t Level>
+inline void apply_tmpl(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  for (size_t i = 0; i < 4; ++i) {
-    for (size_t j = 0; j < 4; ++j) {
-      local_stiffness[i][j] = A[4 * j + i];
+  auto& edge_vertex_stencil = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[Level];
+  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[Level];
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[Level];
+
+  real_t tmp;
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+    tmp = edge_vertex_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_C] * src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)];
+
+    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_edge)
+    {
+      tmp += edge_vertex_stencil[neighbor] * src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+    }
+
+    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_south)
+    {
+      tmp += edge_vertex_stencil[neighbor] * src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+    }
+
+    if (edge.faces.size() == 2)
+    {
+      for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_north)
+      {
+        tmp += edge_vertex_stencil[neighbor] * src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+      }
+    }
+
+    if (update == Replace) {
+      dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)] = tmp;
+    } else if (update == Add) {
+      dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)] += tmp;
     }
   }
 }
+
+SPECIALIZE(void, apply_tmpl, apply)
+}
+
+namespace P1BubbleToP1Face
+{
+template<size_t Level>
+inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
+
+  auto& face_vertex_stencil = opr_data[0];
+
+  auto& src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
+
+  real_t tmp;
+
+  for (size_t i = 1; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
+    {
+      tmp = face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_C] * src[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)];
+
+      for (auto neighbor : P1BubbleFace::CoordsVertex::neighbors)
+      {
+        tmp += face_vertex_stencil[neighbor] * src[P1BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)];
+      }
+
+      if (update == Replace) {
+        dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)] = tmp;
+      } else if (update == Add) {
+        dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, apply_tmpl, apply)
 }
 
 template<class UFCOperator>
-class P1BubbleOperator : public Operator
+class P1BubbleToP1Operator : public Operator
 {
 public:
-  P1BubbleOperator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
+  P1BubbleToP1Operator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
     : Operator(_mesh, _minLevel, _maxLevel)
   {
     for (Vertex& v : mesh.vertices)
@@ -291,7 +357,7 @@ public:
 
   }
 
-  ~P1BubbleOperator()
+  ~P1BubbleToP1Operator()
   {
     for (Vertex& v : mesh.vertices)
     {
@@ -327,9 +393,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank)
+      if (vertex.rank == rank && testFlag(vertex.type, flag))
       {
-        P1BubbleVertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType, flag);
+        P1BubbleToP1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
       }
     }
 
@@ -346,7 +412,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1BubbleEdge::apply(level, edge, this->memory_id, src.memory_id, dst.memory_id, updateType);
+        P1BubbleToP1Edge::apply(level, edge, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
     }
 
@@ -359,109 +425,13 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
+        P1BubbleToP1Face::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
     }
   }
-
-//  void smooth_gs(P1BubbleFunction& dst, const P1BubbleFunction& rhs, size_t level, DoFType flag)
-//  {
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (testFlag(vertex.type, flag))
-//      {
-//        P1BubbleVertex::pull_halos(vertex, dst.memory_id, level);
-//      }
-//    }
-//
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (vertex.rank == rank && testFlag(vertex.type, flag))
-//      {
-//        P1BubbleVertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      P1BubbleEdge::pull_vertices(edge, dst.memory_id, level);
-//      if (testFlag(edge.type, flag))
-//      {
-//        P1BubbleEdge::pull_halos(edge, dst.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      if (edge.rank == rank && testFlag(edge.type, flag))
-//      {
-//        P1BubbleEdge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
-//      }
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      P1BubbleFace::pull_edges(face, dst.memory_id, level);
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      if (face.rank == rank && testFlag(face.type, flag))
-//      {
-//        P1BubbleFace::smooth_gs(level, face, this->memory_id, dst.memory_id, rhs.memory_id);
-//      }
-//    }
-//  }
-//
-//  void printmatrix(const P1BubbleFunction& src, size_t level, DoFType flag = All)
-//  {
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
-//    }
-//
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (vertex.rank == rank && testFlag(vertex.type, flag))
-//      {
-//        P1BubbleVertex::printmatrix(vertex, this->memory_id, src.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      P1BubbleEdge::pull_halos(edge, src.memory_id, level);
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      if (edge.rank == rank && testFlag(edge.type, flag))
-//      {
-//        P1BubbleEdge::printmatrix(edge, this->memory_id, src.memory_id, level);
-//      }
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      if (face.rank == rank && testFlag(face.type, flag))
-//      {
-//        P1BubbleFace::printmatrix(face, this->memory_id, src.memory_id, level);
-//      }
-//    }
-//  }
-
 };
 
-typedef P1BubbleOperator<p1bubble_diffusion_cell_integral_0_otherwise> P1BubbleLaplaceOperator;
-//
-//typedef P1Operator<p1_div_cell_integral_0_otherwise> P1DivxOperator;
-//typedef P1Operator<p1_div_cell_integral_1_otherwise> P1DivyOperator;
-//
-//typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
-//typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
-//
-//typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
-//
-//typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
+typedef P1BubbleToP1Operator<p1bubble_div_cell_integral_0_otherwise> P1BubbleToP1DivxOperator;
+typedef P1BubbleToP1Operator<p1bubble_div_cell_integral_1_otherwise> P1BubbleToP1DivyOperator;
 
 }

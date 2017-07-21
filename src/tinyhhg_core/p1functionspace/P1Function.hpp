@@ -1,13 +1,11 @@
 #pragma once
 #include "tinyhhg_core/Function.hpp"
 
+class Function;
 
 
 namespace hhg
 {
-
-//FIXME remove after we are in walberla namespace
-using namespace walberla::mpistubs;
 
 class VertexP1FunctionMemory;
 class EdgeP1FunctionMemory;
@@ -17,7 +15,7 @@ class P1Function : public Function
 {
 public:
 
-  P1Function(const std::string& name, const PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel);
+  P1Function(const std::string& name, PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel);
 
   ~P1Function();
 

@@ -135,7 +135,7 @@ public:
     {
       if (edge.rank == rank && testFlag(edge.type, flag))
       {
-        P1BubbleEdge::interpolate(edge, memory_id, expr, level);
+        P1BubbleEdge::interpolate(level, edge, memory_id, expr);
       }
     }
 
@@ -148,7 +148,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::interpolate(face, memory_id, expr, level);
+        P1BubbleFace::interpolate(level, face, memory_id, expr);
       }
     }
   }
@@ -163,9 +163,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        P1BubbleVertex::assign(vertex, scalars, src_ids, memory_id, level);
+        P1BubbleVertex::assign(vertex, scalars, src_ids, memory_id, level, flag);
       }
     }
 
@@ -191,7 +191,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::assign(face, scalars, src_ids, memory_id, level);
+        P1BubbleFace::assign(level, face, scalars, src_ids, memory_id);
       }
     }
   }
@@ -206,9 +206,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        P1BubbleVertex::add(vertex, scalars, src_ids, memory_id, level);
+        P1BubbleVertex::add(vertex, scalars, src_ids, memory_id, level, flag);
       }
     }
 
@@ -234,7 +234,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        P1BubbleFace::add(face, scalars, src_ids, memory_id, level);
+        P1BubbleFace::add(level, face, scalars, src_ids, memory_id);
       }
     }
   }
@@ -245,9 +245,9 @@ public:
 
     for (Vertex& vertex : mesh.vertices)
     {
-      if (vertex.rank == rank && testFlag(vertex.type, flag))
+      if (vertex.rank == rank)
       {
-        sp_l += P1BubbleVertex::dot(vertex, memory_id, rhs.memory_id, level);
+        sp_l += P1BubbleVertex::dot(vertex, memory_id, rhs.memory_id, level, flag);
       }
     }
 
@@ -263,7 +263,7 @@ public:
     {
       if (face.rank == rank && testFlag(face.type, flag))
       {
-        sp_l += P1BubbleFace::dot(face, memory_id, rhs.memory_id, level);
+        sp_l += P1BubbleFace::dot(level, face, memory_id, rhs.memory_id);
       }
     }
 

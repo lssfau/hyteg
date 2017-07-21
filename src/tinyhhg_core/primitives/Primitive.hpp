@@ -5,7 +5,6 @@
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
-#include "tinyhhg_core/primitives/SetupPrimitive.hpp"
 
 #include <memory>
 #include <vector>
@@ -86,8 +85,7 @@ public:
   typedef internal::PrimitiveData PrimitiveData;
   typedef internal::ConstPrimitiveData ConstPrimitiveData;
 
-  /// Map from a \ref PrimitiveID to the rank of the process it is located on
-  typedef std::map< PrimitiveID::IDType, uint_t > NeighborToProcessMap;
+  virtual ~Primitive() {}
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
@@ -104,31 +102,42 @@ public:
 
   const PrimitiveID & getID() const { return primitiveID_; }
 
-  /// Returns the rank of the \ref PrimitiveStorage this primitive is located at
-  uint_t getRank() const;
-
   /// @name Neighborhood
-  /// Access to neighbors of either lower or higher dimension.
-  /// The iterators iterate over maps of type \ref NeighborToProcessMap.
-  /// Therefore it is possible to get the rank of the respective neighboring \ref Primitive.
+  /// Access to IDs of neighbors of either lower or higher dimension.
   ///@{
-  NeighborToProcessMap::const_iterator beginLowerDimNeighbors() const { return lowerDimNeighbors_.begin(); }
-  NeighborToProcessMap::const_iterator endLowerDimNeighbors()   const { return lowerDimNeighbors_.end(); }
+  void getNeighborVertices( std::vector< PrimitiveID > & neighborVertices ) const { neighborVertices.assign( neighborVertices_.begin(), neighborVertices_.end() ); }
+  void getNeighborEdges   ( std::vector< PrimitiveID > & neighborEdges )    const { neighborEdges.assign   ( neighborEdges_.begin(),    neighborEdges_.end()    ); }
+  void getNeighborFaces   ( std::vector< PrimitiveID > & neighborFaces )    const { neighborFaces.assign   ( neighborFaces_.begin(),    neighborFaces_.end()    ); }
 
-  NeighborToProcessMap::const_iterator beginHigherDimNeighbors() const { return higherDimNeighbors_.begin(); }
-  NeighborToProcessMap::const_iterator endHigherDimNeighbors()   const { return higherDimNeighbors_.end(); }
+  const std::vector< PrimitiveID > & neighborVertices() const { return neighborVertices_; }
+  const std::vector< PrimitiveID > & neighborEdges()    const { return neighborEdges_; }
+  const std::vector< PrimitiveID > & neighborFaces()    const { return neighborFaces_; }
 
-  void getLowerDimNeighbors ( NeighborToProcessMap & lowerDimNeighbors )  const { lowerDimNeighbors.clear();  lowerDimNeighbors.insert( lowerDimNeighbors_.begin(),  lowerDimNeighbors_.end() ); }
-  void getHigherDimNeighbors( NeighborToProcessMap & higherDimNeighbors ) const { higherDimNeighbors.clear(); higherDimNeighbors.insert( higherDimNeighbors_.begin(), higherDimNeighbors_.end() ); }
+  uint_t getNumNeighborVertices() const { return neighborVertices_.size(); }
+  uint_t getNumNeighborEdges   () const { return neighborEdges_.size(); }
+  uint_t getNumNeighborFaces   () const { return neighborFaces_.size(); }
 
-  uint_t getNumLowerDimNeighbors() const  { return lowerDimNeighbors_.size(); }
-  uint_t getNumHigherDimNeighbors() const { return higherDimNeighbors_.size(); }
+  virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const = 0;
+  virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const = 0;
+
+  virtual const std::vector< PrimitiveID > & getLowerDimNeighbors()  const = 0;
+  virtual const std::vector< PrimitiveID > & getHigherDimNeighbors() const = 0;
+
+  virtual uint_t getNumLowerDimNeighbors()  const = 0;
+  virtual uint_t getNumHigherDimNeighbors() const = 0;
   /// @}
 
 protected:
 
   /// Only subclasses shall be constructable
-  Primitive( const PrimitiveStorage & storage, const SetupPrimitive & setupPrimitive ) : storage_( storage ), primitiveID_( setupPrimitive.getPrimitiveID() ) {} ;
+  /// Explicit copy-constructor - added data shall not be copied
+  Primitive( const Primitive & other ) :
+    primitiveID_( other.primitiveID_ ), neighborVertices_( other.neighborVertices_ ),
+    neighborEdges_( other.neighborEdges_ ), neighborFaces_( other.neighborFaces_ )
+  {}
+
+  /// Only subclasses shall be constructable
+  Primitive( const PrimitiveID & id ) : primitiveID_( id ) {}
 
   template< typename DataType, typename PrimitiveType >
   inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
@@ -147,8 +156,9 @@ protected:
 		              const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
 		              const PrimitiveType * primitive );
 
-  NeighborToProcessMap lowerDimNeighbors_;
-  NeighborToProcessMap higherDimNeighbors_;
+  std::vector< PrimitiveID > neighborVertices_;
+  std::vector< PrimitiveID > neighborEdges_;
+  std::vector< PrimitiveID > neighborFaces_;
 
 private:
 
@@ -156,7 +166,6 @@ private:
   /// This way it is possible to loop over the data to for example serialize all registered data.
   std::vector< std::pair< PrimitiveData*, ConstPrimitiveData* > > data_;
 
-  const PrimitiveStorage & storage_;
   PrimitiveID primitiveID_;
 
 };

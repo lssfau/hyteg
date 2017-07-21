@@ -154,7 +154,7 @@ void BufferedCommunicator::startCommunication()
     WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( senderID ) );
     SenderType * sender = storage->getPrimitiveGenerically< SenderType >( senderID );
 
-    Primitive::NeighborToProcessMap receivingNeighborhood;
+    std::vector< PrimitiveID > receivingNeighborhood;
     if ( sendingToHigherDim )
     {
       sender->getHigherDimNeighbors( receivingNeighborhood );
@@ -164,10 +164,10 @@ void BufferedCommunicator::startCommunication()
       sender->getLowerDimNeighbors( receivingNeighborhood );
     }
 
-    for ( const auto & neighbor : receivingNeighborhood )
+    for ( const auto & neighborID : receivingNeighborhood )
     {
-      PrimitiveID neighborID   = neighbor.first;
-      uint_t      neighborRank = neighbor.second;
+      WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID )
+                       || storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
 
       if ( storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
       {
@@ -179,6 +179,8 @@ void BufferedCommunicator::startCommunication()
       }
       else
       {
+        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+
         if ( !packInfos_.empty() )
         {
           auto headerWriter = [ this, senderID, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, senderID, neighborID ); };
@@ -200,7 +202,7 @@ void BufferedCommunicator::startCommunication()
   {
     ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
 
-    Primitive::NeighborToProcessMap sendingNeighborhood;
+    std::vector< PrimitiveID > sendingNeighborhood;
     if ( sendingToHigherDim )
     {
       receiver->getLowerDimNeighbors( sendingNeighborhood );
@@ -210,13 +212,15 @@ void BufferedCommunicator::startCommunication()
       receiver->getHigherDimNeighbors( sendingNeighborhood );
     }
 
-    for ( const auto & neighbor : sendingNeighborhood )
+    for ( const auto & neighborID : sendingNeighborhood )
     {
-      PrimitiveID neighborID   = neighbor.first;
-      uint_t      neighborRank = neighbor.second;
+      WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< SenderType >( neighborID )
+                       || storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
 
       if ( !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
       {
+        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+
         if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
         {
           ranksToReceiveFrom[ neighborRank ] = 1;

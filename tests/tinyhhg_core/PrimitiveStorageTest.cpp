@@ -31,7 +31,7 @@ static void testPrimitiveStorage()
 
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++ )
   {
-    if ( it->second->getTargetRank() == rank )
+    if ( setupStorage.getTargetRank( it->first ) == rank )
     {
       WALBERLA_CHECK( storage.vertexExistsLocally( it->first ) );
     }
@@ -46,7 +46,7 @@ static void testPrimitiveStorage()
 
   for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
   {
-    if ( it->second->getTargetRank() == rank )
+    if ( setupStorage.getTargetRank( it->first ) == rank )
     {
       WALBERLA_CHECK( storage.edgeExistsLocally( it->first ) );
     }
@@ -61,7 +61,7 @@ static void testPrimitiveStorage()
 
   for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
   {
-    if ( it->second->getTargetRank() == rank )
+    if ( setupStorage.getTargetRank( it->first ) == rank )
     {
       WALBERLA_CHECK( storage.faceExistsLocally( it->first ) );
     }

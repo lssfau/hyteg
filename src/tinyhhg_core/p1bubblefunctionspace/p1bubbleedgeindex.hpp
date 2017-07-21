@@ -37,6 +37,12 @@ const DirVertex neighbors[12] =
 const DirVertex neighbors_edge[] =
     {VERTEX_E, VERTEX_W};
 
+const DirVertex neighbors_vertex_south[] =
+    {VERTEX_S, VERTEX_SE};
+
+const DirVertex neighbors_vertex_north[] =
+    {VERTEX_NW, VERTEX_N};
+
 const DirVertex neighbors_south[] =
     {VERTEX_S, VERTEX_SE, CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE};
 
