@@ -1,7 +1,7 @@
 #ifndef TINYHHG_MINISTOKESFUNCTION_HPP
 #define TINYHHG_MINISTOKESFUNCTION_HPP
 
-#include "tinyhhg_core/p1functionspace/p1function.hpp"
+#include "tinyhhg_core/p1functionspace/OldP1function.hpp"
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblefunction.hpp"
 
 namespace hhg

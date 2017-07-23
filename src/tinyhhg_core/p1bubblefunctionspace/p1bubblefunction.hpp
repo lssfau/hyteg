@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/mesh.hpp"
-#include "tinyhhg_core/function.hpp"
+#include "tinyhhg_core/OldFunction.hpp"
 
 #include <core/mpi/all.h>
 
