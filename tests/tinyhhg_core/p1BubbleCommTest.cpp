@@ -30,14 +30,14 @@ int main (int argc, char ** argv )
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
 
-  hhg::P1BubbleFace::interpolate(mesh.faces[0],0,eight,maxLevel);
-  hhg::P1BubbleFace::interpolate(mesh.faces[1],0,nine,maxLevel);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[0],0,eight);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[1],0,nine);
 
 
   int counter = 1;
   for(auto edge : mesh.edges){
     std::function<real_t(const hhg::Point3D&)> exact = [counter](const hhg::Point3D&) { return counter; };
-    hhg::P1BubbleEdge::interpolate(edge,0,exact,maxLevel);
+    hhg::P1BubbleEdge::interpolate(maxLevel,edge,0,exact);
     counter++;
   }
 
