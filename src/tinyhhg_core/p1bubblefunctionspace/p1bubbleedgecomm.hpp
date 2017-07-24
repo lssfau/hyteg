@@ -62,18 +62,35 @@ inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::Rec
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t pos = edge.face_index(face);
   EdgeCoordsVertex::DirVertex dir;
+  EdgeCoordsVertex::DirVertex dirCellGray;
+  EdgeCoordsVertex::DirVertex dirCellBlue;
+  real_t dump;
   //the first edge is the south edge and the second the north edge
   if(pos == 0)
   {
     dir = EdgeCoordsVertex::VERTEX_SE;
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_SE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_SE;
   }
   else if(pos == 1)
   {
     dir = EdgeCoordsVertex::VERTEX_N;
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_NE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_NW;
   }
+  //unpack Vertex
   for (uint_t i = 0; i < rowsize -1; ++i)
   {
     recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dir)];
+  }
+  //unpack Gray Cell
+  recvBuffer >> dump;
+  for (uint_t i = 1; i < rowsize - 2; ++i){
+    recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dirCellGray)];
+  }
+  recvBuffer >> dump;
+  for (uint_t i = 0; i < rowsize - 2; ++i){
+    recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dirCellBlue)];
   }
 }
 SPECIALIZE(void, unpackFaceData_tmpl, unpackFaceData)

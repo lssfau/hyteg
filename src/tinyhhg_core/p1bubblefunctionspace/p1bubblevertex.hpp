@@ -32,7 +32,7 @@ inline void allocate(Vertex& vertex, size_t memory_id, size_t minLevel, size_t m
 
   for (size_t level = minLevel; level <= maxLevel; ++level)
   {
-    P1Bubble::getVertexFunctionMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
+    P1Bubble::getVertexFunctionMemory(vertex, memory_id)->addlevel(level, vertex.edges.size() + vertex.faces.size());
   }
 }
 
