@@ -1,9 +1,6 @@
 #pragma once
 #include "tinyhhg_core/Function.hpp"
 
-class Function;
-
-
 namespace hhg
 {
 
