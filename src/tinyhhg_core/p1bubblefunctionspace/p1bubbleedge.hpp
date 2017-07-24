@@ -173,13 +173,12 @@ SPECIALIZE(void, apply_tmpl, apply)
 inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
 {
   //TODO this is WIP only works with one mpi rank!
-  walberla::mpi::SendBuffer sb;
+
   uint_t numberOfFaces = edge.faces.size();
   for(uint_t i = 0; i < numberOfFaces; ++i){
+    walberla::mpi::SendBuffer sb;
     hhg::P1BubbleFace::packData(level,*edge.faces[i],memory_id,sb,edge);
-  }
-  walberla::mpi::RecvBuffer rb(sb);
-  for(uint_t i = 0; i < numberOfFaces; ++i){
+    walberla::mpi::RecvBuffer rb(sb);
     unpackFaceData(level,edge,memory_id,rb,*edge.faces[i]);
   }
 }
@@ -257,13 +256,13 @@ inline void printFunctionMemory(Edge& edge, uint_t memoryID, uint_t level){
 
   uint_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(level);
   auto &edgeData = P1Bubble::getEdgeFunctionMemory(edge, memoryID)->data[level];
-  cout << setfill('=') << setw(100) << "" << endl;
+  cout << setfill('=') << setw(100) << std::left << "" << endl;
   cout << edge  << " South Face ID: " << edge.faces[0]->getID().getID();
   if (edge.faces.size() == 2) { cout << " North Face ID: " << edge.faces[1]->getID().getID(); }
   cout << setprecision(1) << fixed << endl;
   if (edge.faces.size() == 2) {
     for (size_t i = 0; i < v_perEdge - 2; ++i) {
-      cout << left << setw(8) << setfill('-') << edgeData[edge_index(level, i, VERTEX_N)];
+      cout << setw(8) << setfill('-') << edgeData[edge_index(level, i, VERTEX_N)];
     }
     cout << edgeData[edge_index(level, v_perEdge - 2, VERTEX_N)] << endl << setfill(' ');
     for (size_t i = 0; i < v_perEdge - 2; ++i) { cout << "|  \\    "; }
@@ -290,7 +289,7 @@ inline void printFunctionMemory(Edge& edge, uint_t memoryID, uint_t level){
 //cell South
   cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0, CELL_GRAY_SE)] << "|";
   for (size_t i = 0; i < v_perEdge - 2; ++i) {
-    cout << setw(3) << edgeData[edge_index(level, i, CELL_BLUE_SE)];
+    cout << setw(3) << edgeData[edge_index(level, i + 1, CELL_BLUE_SE)];
     cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1, CELL_GRAY_SE)] << "|";
   }
   cout << "\n     \\  |";
@@ -303,6 +302,61 @@ inline void printFunctionMemory(Edge& edge, uint_t memoryID, uint_t level){
     cout << edgeData[edge_index(level, i, VERTEX_SE)];
   }
   cout << edgeData[edge_index(level, v_perEdge - 2, VERTEX_SE)] << std::endl;
+  cout << setfill('=') << setw(100) << "" << std::endl;
+}
+
+inline void printIndices(Edge& edge, uint_t memoryID, uint_t level){
+  using namespace std;
+  using namespace hhg::P1BubbleEdge::EdgeCoordsVertex;
+
+  uint_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(level);
+  auto &edgeData = P1Bubble::getEdgeFunctionMemory(edge, memoryID)->data[level];
+  cout << setfill('=') << setw(100) << std::left << "" << endl;
+  cout << edge  << " South Face ID: " << edge.faces[0]->getID().getID();
+  if (edge.faces.size() == 2) { cout << " North Face ID: " << edge.faces[1]->getID().getID(); }
+  cout << setprecision(1) << fixed << endl;
+  if (edge.faces.size() == 2) {
+    for (size_t i = 0; i < v_perEdge - 2; ++i) {
+      cout << setw(8) << setfill('-') << edge_index(level, i, VERTEX_N);
+    }
+    cout << edge_index(level, v_perEdge - 2, VERTEX_N) << endl << setfill(' ');
+    for (size_t i = 0; i < v_perEdge - 2; ++i) { cout << "|  \\    "; }
+    cout << "|  \\" << endl;
+    for (size_t i = 0; i < v_perEdge - 2; ++i) {
+      cout << "|" << setw(3)
+           << edge_index(level, i, CELL_GRAY_NE);
+      cout << "\\" << setw(3) << edge_index(level, i + 1, CELL_BLUE_NW);
+    }
+    cout << "|" << setw(3) << edge_index(level, v_perEdge - 1, CELL_GRAY_NW) << "\\" << endl;
+    for (size_t i = 0; i < v_perEdge - 2; ++i) { cout << "|    \\  "; }
+    cout << "|    \\" << endl;
+  }
+//middle vertex
+  for (size_t i = 0; i < v_perEdge - 1; ++i) {
+    cout << setw(8) << setfill('-');
+    cout << edge_index(level, i, VERTEX_C);
+  }
+  cout << edge_index(level, v_perEdge-1, VERTEX_C) << endl;
+//fill
+  cout << "   \\    |";
+  for (size_t i = 0; i < v_perEdge - 2; ++i) { cout << "  \\    |"; }
+  cout << endl;
+//cell South
+  cout << "    \\" << setfill(' ') << setw(3) << edge_index(level, 0, CELL_GRAY_SE) << "|";
+  for (size_t i = 0; i < v_perEdge - 2; ++i) {
+    cout << setw(3) << edge_index(level, i + 1, CELL_BLUE_SE);
+    cout << "\\" << setw(3) << edge_index(level, i + 1, CELL_GRAY_SE) << "|";
+  }
+  cout << "\n     \\  |";
+  for (size_t i = 0; i < v_perEdge - 2; ++i) { cout << "    \\  |"; }
+
+//vertex South
+  cout << "\n        ";
+  for (size_t i = 0; i < v_perEdge - 2; ++i) {
+    cout << setw(8) << setfill('-');
+    cout << edge_index(level, i, VERTEX_SE);
+  }
+  cout << edge_index(level, v_perEdge - 2, VERTEX_SE) << std::endl;
   cout << setfill('=') << setw(100) << "" << std::endl;
 }
 

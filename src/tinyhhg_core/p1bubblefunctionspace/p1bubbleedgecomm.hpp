@@ -89,7 +89,7 @@ inline void unpackFaceData_tmpl(Edge &edge, uint_t memory_id, walberla::mpi::Rec
     recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dirCellGray)];
   }
   recvBuffer >> dump;
-  for (uint_t i = 0; i < rowsize - 2; ++i){
+  for (uint_t i = 1; i < rowsize - 1; ++i){
     recvBuffer >> edge_data[EdgeCoordsVertex::index<Level>(i,dirCellBlue)];
   }
 }
