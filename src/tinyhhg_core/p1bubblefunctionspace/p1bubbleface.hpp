@@ -492,5 +492,119 @@ SPECIALIZE(void, apply_tmpl, apply)
 //  }
 //}
 
+template<size_t Level>
+inline void enumerate_tmpl(Face& face, size_t memory_id, size_t& num)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  for (size_t i = 1; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
+    {
+      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
+      }
+
+      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, enumerate_tmpl, enumerate)
+
+template<size_t Level>
+inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
+
+  auto& face_vertex_stencil = opr_data[0];
+  auto& face_gray_stencil = opr_data[1];
+  auto& face_blue_stencil = opr_data[2];
+
+  auto& src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
+
+  for (size_t i = 1; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)], src[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)], face_vertex_stencil[CoordsVertex::VERTEX_C]);
+
+      for (auto neighbor : CoordsVertex::neighbors)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)], src[CoordsVertex::index<Level>(i, j, neighbor)], face_vertex_stencil[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      // TODO: how to do this better?
+      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
+        continue;
+      }
+
+      out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)], src[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)], face_gray_stencil[CoordsCellGray::CELL_GRAY_C]);
+
+      for (auto neighbor : CoordsCellGray::neighbors)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)], src[CoordsCellGray::index<Level>(i, j, neighbor)], face_gray_stencil[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)], src[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)], face_blue_stencil[CoordsCellBlue::CELL_BLUE_C]);
+
+      for (auto neighbor : CoordsCellBlue::neighbors)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)], src[CoordsCellBlue::index<Level>(i, j, neighbor)], face_blue_stencil[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
 }// namespace P1BubbleFace
 }// namespace hhg

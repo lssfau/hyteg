@@ -10,14 +10,21 @@ int main(int argc, char* argv[])
   hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
 
   size_t minLevel = 2;
-  const size_t maxLevel = 4;
+  const size_t maxLevel = 2;
   size_t maxiter = 1000;
 
   hhg::MiniStokesFunction r("r", mesh, minLevel, maxLevel);
   hhg::MiniStokesFunction f("f", mesh, minLevel, maxLevel);
   hhg::MiniStokesFunction u("u", mesh, minLevel, maxLevel);
 
+  hhg::MiniStokesFunction numerator("numerator", mesh, minLevel, maxLevel);
+
   hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
+
+  size_t num = 1;
+  numerator.enumerate(maxLevel, num);
+  std::ofstream fileL("../output/L.txt");
+  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     return 4.0 * (1.0-x[1]) * x[1];
@@ -25,13 +32,6 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
-
-  u.u.interpolate(ones, maxLevel);
-
-  size_t npoints = (size_t) u.u.dot(u.u, maxLevel);
-  size_t real_npoints = hhg::levelinfo::num_microvertices_per_face(maxLevel);
-
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("npoints = {}\nreal_npoints = {}\nright = {}\n", npoints, real_npoints, npoints == real_npoints))
 
   u.u.interpolate(zero, maxLevel);
   u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);

@@ -277,6 +277,44 @@ public:
 #endif
   }
 
+  void enumerate(size_t level, size_t& num)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::enumerate(level, vertex, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_vertices(edge, memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::enumerate(level, edge, memory_id, num);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::pull_edges(face, memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::enumerate(level, face, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_halos(edge, memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::pull_halos(vertex, memory_id, level);
+    }
+  }
+
 //  void prolongate(size_t level, DoFType flag = All)
 //  {
 //    for (Vertex& vertex : mesh.vertices)

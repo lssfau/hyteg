@@ -34,6 +34,23 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
     dst[0] += opr_data[i+1] * src[i+1];
   }
 }
+
+inline void saveOperator(size_t level, Vertex& vertex, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+{
+  auto& stencil_stack = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
+  auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
+  auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
+
+  // apply first stencil to vertex dof
+  auto& opr_data = stencil_stack[0];
+
+  out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
+
+  for (size_t i = 0; i < vertex.edges.size() + vertex.faces.size(); ++i)
+  {
+    out << fmt::format("{}\t{}\t{}\n", dst[0], src[i + 1], opr_data[i + 1]);
+  }
+}
 }
 
 namespace P1BubbleToP1Edge
@@ -80,6 +97,41 @@ inline void apply_tmpl(Edge& edge, size_t opr_id, size_t src_id, size_t dst_id, 
 }
 
 SPECIALIZE(void, apply_tmpl, apply)
+
+template<size_t Level>
+inline void saveOperator_tmpl(Edge& edge, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto& edge_vertex_stencil = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[Level];
+  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[Level];
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[Level];
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+    out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], edge_vertex_stencil[P1BubbleEdge::EdgeCoordsVertex::VERTEX_C]);
+
+    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_edge)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+    }
+
+    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_vertex_south)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+    }
+
+    if (edge.faces.size() == 2)
+    {
+      for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_vertex_north)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+      }
+    }
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 }
 
 namespace P1BubbleToP1Face
@@ -121,6 +173,36 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
 }
 
 SPECIALIZE(void, apply_tmpl, apply)
+
+template<size_t Level>
+inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
+
+  auto& face_vertex_stencil = opr_data[0];
+
+  auto& src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
+  auto& dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
+
+  for (size_t i = 1; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], src[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_C]);
+
+      for (auto neighbor : P1BubbleFace::CoordsVertex::neighbors)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], src[P1BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)], face_vertex_stencil[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 }
 
 template<class UFCOperator>
@@ -427,6 +509,24 @@ public:
       {
         P1BubbleToP1Face::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
+    }
+  }
+
+  void save(const P1BubbleFunction& src, const P1BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleToP1Vertex::saveOperator(level, vertex, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleToP1Edge::saveOperator(level, edge, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleToP1Face::saveOperator(level, face, out, this->memory_id, src.memory_id, dst.memory_id, flag);
     }
   }
 };

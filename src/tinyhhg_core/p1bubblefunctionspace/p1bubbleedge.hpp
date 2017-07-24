@@ -360,5 +360,50 @@ inline void printIndices(Edge& edge, uint_t memoryID, uint_t level){
   cout << setfill('=') << setw(100) << "" << std::endl;
 }
 
+inline void enumerate(size_t level, Edge& edge, size_t memory_id, size_t& num)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = num++;
+  }
+}
+
+template<size_t Level>
+inline void saveOperator_tmpl(Edge& edge, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto& edge_vertex_stencil = P1Bubble::getEdgeStencilMemory(edge, opr_id)->data[Level];
+  auto& src = P1Bubble::getEdgeFunctionMemory(edge, src_id)->data[Level];
+  auto& dst = P1Bubble::getEdgeFunctionMemory(edge, dst_id)->data[Level];
+
+  for (size_t i = 1; i < rowsize-1; ++i)
+  {
+    out << fmt::format("{}\t{}\t{}\n", dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)], src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)], edge_vertex_stencil[EdgeCoordsVertex::VERTEX_C]);
+
+    for (auto neighbor : EdgeCoordsVertex::neighbors_edge)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)], src[EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+    }
+
+    for (auto neighbor : EdgeCoordsVertex::neighbors_south)
+    {
+      out << fmt::format("{}\t{}\t{}\n", dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)], src[EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+    }
+
+    if (edge.faces.size() == 2)
+    {
+      for (auto neighbor : EdgeCoordsVertex::neighbors_north)
+      {
+        out << fmt::format("{}\t{}\t{}\n", dst[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)], src[EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+      }
+    }
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
 }
 }

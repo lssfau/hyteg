@@ -364,6 +364,24 @@ public:
     }
   }
 
+  void save(const P1BubbleFunction& src, const P1BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::saveOperator(level, vertex, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::saveOperator(level, edge, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::saveOperator(level, face, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+  }
+
 //  void smooth_gs(P1BubbleFunction& dst, const P1BubbleFunction& rhs, size_t level, DoFType flag)
 //  {
 //    for (Vertex& vertex : mesh.vertices)

@@ -32,6 +32,18 @@ public:
     div_y.apply(src.v, dst.p, level, flag | DirichletBoundary, Add);
   }
 
+  void save(const MiniStokesFunction& src, MiniStokesFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    A.save(src.u, dst.u, out, level, flag);
+    divT_x.save(src.p, dst.u, out, level, flag);
+
+    A.save(src.v, dst.v, out, level, flag);
+    divT_y.save(src.p, dst.v, out, level, flag);
+
+    div_x.save(src.u, dst.p, out, level, flag);
+    div_y.save(src.v, dst.p, out, level, flag);
+  }
+
   P1BubbleLaplaceOperator A;
   P1BubbleToP1DivxOperator div_x;
   P1BubbleToP1DivyOperator div_y;
