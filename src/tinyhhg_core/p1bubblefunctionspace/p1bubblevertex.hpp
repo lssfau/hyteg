@@ -178,6 +178,7 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
         size_t v_j = face->vertex_index(*vertex_j);
         dst[offset] += opr_data[v_j + 1] * src[edge_idx];
       }
+      ++offset;
     }
   }
 }
@@ -316,6 +317,7 @@ inline void saveOperator(size_t level, Vertex& vertex, std::ostream& out, size_t
         size_t v_j = face->vertex_index(*vertex_j);
         out << fmt::format("{}\t{}\t{}\n", dst[offset], src[edge_idx], opr_data[v_j + 1]);
       }
+      ++offset;
     }
   }
 }
