@@ -12,7 +12,7 @@ using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
 //typedef walberla::uint64_t uint64_t;
 
-void VTKWriter(std::vector<const OldFunction*> functions, size_t level, const std::string& dir, const std::string& filename)
+void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
@@ -40,7 +40,7 @@ void VTKWriter(std::vector<const OldFunction*> functions, size_t level, const st
 
     for (auto function : functions)
     {
-      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->name << "\" NumberOfComponents=\"1\"/>\n";
+      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->functionName_ << "\" NumberOfComponents=\"1\"/>\n";
     }
 
     pvtu_file << "    </PPointData>\n";
@@ -56,7 +56,7 @@ void VTKWriter(std::vector<const OldFunction*> functions, size_t level, const st
     pvtu_file.close();
   }
 
-  const Mesh& mesh = functions[0]->mesh;
+  const PrimitiveStorage& storage = functions[0]->storage_;
 
   std::ofstream file;
   std::string vtu_filename(fmt::format("{}/{}-rk{:0>4}.vtu", dir, filename, rk));
