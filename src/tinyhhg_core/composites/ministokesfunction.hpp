@@ -73,7 +73,7 @@ public:
   {
     u.enumerate(level, num);
     v.enumerate(level, num);
-    p.enumerate(level, num);
+    p.enumerate_p1(level, num);
   }
 
 //  void prolongate(size_t level, DoFType flag = All)

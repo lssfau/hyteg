@@ -538,6 +538,24 @@ inline void enumerate_tmpl(Face& face, size_t memory_id, size_t& num)
 SPECIALIZE(void, enumerate_tmpl, enumerate)
 
 template<size_t Level>
+inline void enumerate_p1_tmpl(Face& face, size_t memory_id, size_t& num)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  for (size_t i = 1; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
+    {
+      P1Bubble::getFaceFunctionMemory(face, memory_id)->data[Level][CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, enumerate_p1_tmpl, enumerate_p1)
+
+template<size_t Level>
 inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);

@@ -116,14 +116,14 @@ inline void saveOperator_tmpl(Edge& edge, std::ostream& out, size_t opr_id, size
       out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
     }
 
-    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_vertex_south)
+    for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_south)
     {
       out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
     }
 
     if (edge.faces.size() == 2)
     {
-      for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_vertex_north)
+      for (auto neighbor : P1BubbleEdge::EdgeCoordsVertex::neighbors_north)
       {
         out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)], src[P1BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
       }

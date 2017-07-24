@@ -271,6 +271,11 @@ inline void enumerate(size_t level, Vertex& vertex, size_t memory_id, size_t& nu
   }
 }
 
+inline void enumerate_p1(size_t level, Vertex& vertex, size_t memory_id, size_t& num)
+{
+  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = num++;
+}
+
 inline void saveOperator(size_t level, Vertex& vertex, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
 {
   auto& stencil_stack = P1Bubble::getVertexStencilMemory(vertex, opr_id)->data[level];
