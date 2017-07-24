@@ -385,7 +385,7 @@ public:
   {
     for (Vertex& vertex : mesh.vertices)
     {
-      if (testFlag(vertex.type, flag))
+//      if (testFlag(vertex.type, flag))
       {
         P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
       }
