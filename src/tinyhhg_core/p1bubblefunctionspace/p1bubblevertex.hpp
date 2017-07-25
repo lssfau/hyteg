@@ -239,14 +239,30 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
-  walberla::mpi::SendBuffer sb;
-  for(hhg::Edge* edge : vertex.edges){
-    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
+  auto MPIManager = walberla::mpi::MPIManager::instance();
+  walberla::mpi::BufferSystem bs (MPIManager->comm());
+  for(Edge* edge : vertex.edges){
+    if(edge->rank == MPIManager->rank()){
+      P1BubbleEdge::packDataforVertex(*edge, memory_id, bs.sendBuffer(vertex.rank), level, vertex);
+    }
+    if(vertex.rank == MPIManager->rank()){
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(edge->rank), true );
+    }
+    bs.sendAll();
+    for(auto i = bs.begin(); i != bs.end(); ++i){
+      unpackEdgeData(level,vertex,memory_id,i.buffer(),*edge);
+    }
   }
-  walberla::mpi::RecvBuffer rb(sb);
-  for(hhg::Edge* edge : vertex.edges) {
-    unpackEdgeData(level,vertex,memory_id,rb,*edge);
-  }
+
+
+//  walberla::mpi::SendBuffer sb;
+//  for(hhg::Edge* edge : vertex.edges){
+//    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
+//  }
+//  walberla::mpi::RecvBuffer rb(sb);
+//  for(hhg::Edge* edge : vertex.edges) {
+//    unpackEdgeData(level,vertex,memory_id,rb,*edge);
+//  }
 }
 
 inline void print(Vertex & vertex, size_t memory_id, size_t level) {
