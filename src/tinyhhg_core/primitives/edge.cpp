@@ -53,13 +53,12 @@ size_t Edge::vertex_index(const Vertex& vertex) const
 
 size_t Edge::face_index(const Face& face) const
 {
-  if (&face == faces[0])
-  {
+  if (&face == faces[0]) {
     return 0;
-  }
-  else
-  {
+  } else if(faces.size() == 2 && &face == faces[1]) {
     return 1;
+  } else {
+    return std::numeric_limits<uint_t>::max();
   }
 }
 

@@ -28,6 +28,7 @@ int main (int argc, char ** argv )
 
   hhg::P1BubbleFunction x("x", mesh, minLevel, maxLevel);
 
+
   std::function<real_t(const hhg::Point3D&)> five = [](const hhg::Point3D&) { return 5; };
   std::function<real_t(const hhg::Point3D&)> six = [](const hhg::Point3D&) { return 6; };
   std::function<real_t(const hhg::Point3D&)> seven = [](const hhg::Point3D&) { return 7; };

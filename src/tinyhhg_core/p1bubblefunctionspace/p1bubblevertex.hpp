@@ -351,7 +351,7 @@ inline void printFunctionMemory(Vertex& vertex, uint_t id, uint_t level)
   std::cout << " Center: " << vertexData[0];
   std::cout << " Memory ID: "<< id;
   std::cout <<  " " << std::string(10,'*') << std::endl;
-  std::cout << "Edge ID: |" << " Vertex " << std::endl;
+  std::cout << "Edge ID: |" << " Vertex " << std::setfill(' ') << std::endl;
   for(uint_t i = 0; i < vertex.edges.size(); ++i){
     std::cout << std::left << std::setw(9) << vertex.edges[i]->getID().getID() << "|"  << vertexData[1+i] << std::endl;
   }

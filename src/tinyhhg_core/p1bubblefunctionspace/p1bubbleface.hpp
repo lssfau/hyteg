@@ -458,39 +458,39 @@ SPECIALIZE(void, apply_tmpl, apply)
 //}
 //
 //inline void printmatrix(Face& face, size_t opr_id, size_t src_id, size_t level)
-//{
-//  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-//  size_t inner_rowsize = rowsize;
-//
-//  real_t* opr_data = getFaceStencilMemory(face, opr_id)->data[level];
-//  real_t* src = getFaceP1BubbleFunctionMemory(face, src_id)->data[level];
-//  size_t br = 1;
-//  size_t mr = 1 + rowsize ;
-//  size_t tr = mr + (rowsize - 1);
-//
-//  for (size_t i = 0; i < rowsize - 3; ++i)
-//  {
-//    for (size_t j = 0; j < inner_rowsize - 3; ++j)
-//    {
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[br], opr_data[0]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[br+1], opr_data[1]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr-1], opr_data[2]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr], opr_data[3]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[mr+1], opr_data[4]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[tr-1], opr_data[5]);
-//      fmt::printf("%d\t%d\t%e\n", (size_t)src[mr], (size_t)src[tr], opr_data[6]);
-//
-//      br += 1;
-//      mr += 1;
-//      tr += 1;
-//    }
-//
-//    br += 3;
-//    mr += 2;
-//    tr += 1;
-//    --inner_rowsize;
-//  }
-//}
+
+template<size_t Level>
+inline void printFunctionMemory(Face& face, uint_t memory_id){
+  using namespace std;
+  auto& faceMemory = hhg::P1Bubble::getFaceFunctionMemory(face, 0)->data[Level];
+  uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  std::cout << "Cell Blue: " << std::endl;
+  for (size_t i = 0; i < verticesPerDge-2; ++i) {
+    for (size_t j = 0; j < verticesPerDge-2 - i; ++j) {
+      cout << setw(5) << faceMemory[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] << "|";
+    }
+    std::cout << std::endl;
+  }
+  cout << "Cell Gray: " << std::endl;
+  for (size_t i = 0; i < verticesPerDge-1; ++i) {
+    for (size_t j = 0; j < verticesPerDge-1 - i; ++j) {
+      cout << setw(5) << faceMemory[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] << "|";
+    }
+    std::cout << std::endl;
+  }
+  cout << "Vertices: " << std::endl;
+  for (size_t i = 0; i < verticesPerDge; ++i) {
+    for (size_t j = 0; j < verticesPerDge - i; ++j) {
+      cout << setw(5) << faceMemory[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] << "|";
+    }
+    std::cout << std::endl;
+  }
+  cout << setw(100) << setfill(' ') << endl;
+
+}
+
 
 template<size_t Level>
 inline void enumerate_tmpl(Face& face, size_t memory_id, size_t& num)
