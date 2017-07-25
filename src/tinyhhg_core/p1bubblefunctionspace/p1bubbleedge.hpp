@@ -259,7 +259,7 @@ inline void printFunctionMemory(Edge& edge, uint_t memoryID, uint_t level){
   cout << setfill('=') << setw(100) << std::left << "" << endl;
   cout << edge  << " South Face ID: " << edge.faces[0]->getID().getID();
   if (edge.faces.size() == 2) { cout << " North Face ID: " << edge.faces[1]->getID().getID(); }
-  cout << setprecision(6) << defaultfloat << endl;
+  cout << setprecision(6) << endl;
   if (edge.faces.size() == 2) {
     for (size_t i = 0; i < v_perEdge - 2; ++i) {
       cout << setw(8) << setfill('-') << edgeData[edge_index(level, i, VERTEX_N)];
@@ -314,7 +314,7 @@ inline void printIndices(Edge& edge, uint_t memoryID, uint_t level){
   cout << setfill('=') << setw(100) << std::left << "" << endl;
   cout << edge  << " South Face ID: " << edge.faces[0]->getID().getID();
   if (edge.faces.size() == 2) { cout << " North Face ID: " << edge.faces[1]->getID().getID(); }
-  cout << setprecision(6) << defaultfloat << endl;
+  cout << setprecision(6) << endl;
   if (edge.faces.size() == 2) {
     for (size_t i = 0; i < v_perEdge - 2; ++i) {
       cout << setw(8) << setfill('-') << edge_index(level, i, VERTEX_N);
