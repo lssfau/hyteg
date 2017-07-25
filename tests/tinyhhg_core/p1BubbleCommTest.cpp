@@ -90,6 +90,7 @@ int main (int argc, char ** argv )
       auto &edgeData = getEdgeFunctionMemory(*edge, id)->data[maxLevel];
       uint_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face);
+/////////////////// VERTEX CELL /////////////////////
       for(auto it = P1BubbleFace::indexIterator(face.edge_index(*edge),
                                                 face.edge_orientation[face.edge_index(*edge)],
                                                 P1BubbleFace::VERTEX_INNER,
@@ -99,72 +100,42 @@ int main (int argc, char ** argv )
         } else if(faceIdOnEdge == 1){
           WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, VERTEX_N)], faceData[*it]);
         } else{
-          //TODO add walberla fail here
+          WALBERLA_CHECK(false);
+        }
+        idxCounter++;
+      }
+//////////////////// GRAY CELL //////////////////////
+      idxCounter = 0;
+      for(auto it = P1BubbleFace::indexIterator(face.edge_index(*edge),
+                                                face.edge_orientation[face.edge_index(*edge)],
+                                                P1BubbleFace::CELL_GRAY,
+                                                maxLevel); it != P1BubbleFace::indexIterator(); ++it){
+        if(faceIdOnEdge == 0) {
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_SE)], faceData[*it]);
+        } else if(faceIdOnEdge == 1){
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_NE)], faceData[*it]);
+        } else{
+          WALBERLA_CHECK(false);
+        }
+        idxCounter++;
+      }
+//////////////////// BLUE CELL //////////////////////
+      idxCounter = 0;
+      for(auto it = P1BubbleFace::indexIterator(face.edge_index(*edge),
+                                                face.edge_orientation[face.edge_index(*edge)],
+                                                P1BubbleFace::CELL_BLUE,
+                                                maxLevel); it != P1BubbleFace::indexIterator(); ++it){
+        if(faceIdOnEdge == 0) {
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_SE)], faceData[*it]);
+        } else if(faceIdOnEdge == 1){
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_NW)], faceData[*it]);
+        } else{
+          WALBERLA_CHECK(false);
         }
         idxCounter++;
       }
     }
   }
-
-
-//
-//  hhg::P1BubbleFace::printFunctionMemory<maxLevel>(mesh.faces[0],id);
-//  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[4],id,maxLevel);
-//  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[5],id,maxLevel);
-//  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],id,maxLevel);
-
-//  hhg::P1BubbleEdge::pull_halos(mesh.edges[4],0,maxLevel);
-//
-//  hhg::P1BubbleEdge::pull_vertices(mesh.edges[4],0,maxLevel);
-//
-//  hhg::P1BubbleVertex::pull_halos(mesh.vertices[3],0,maxLevel);
-////  hhg::P1BubbleEdge::packDataforVertex(mesh.edges[4],0,sb,maxLevel,mesh.vertices[3]);
-////  walberla::mpi::RecvBuffer rb3(sb);
-////  hhg::P1BubbleVertex::unpackEdgeData(maxLevel,mesh.vertices[3],0,rb3,mesh.edges[4]);
-//
-//  hhg::P1BubbleVertex::print(mesh.vertices[3],0,maxLevel);
-//
-//  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(face0, 0)->data[maxLevel];
-//  auto& face1mem = hhg::P1Bubble::getFaceFunctionMemory(face1, 0)->data[maxLevel];
-//  auto& edge5mem = hhg::P1Bubble::getEdgeFunctionMemory(mesh.edges[4], 0)->data[maxLevel];
-//  real_t sumFace0 = 0;
-//  real_t sumFace1 = 0;
-//  std::cout << "Face 0: " << std::endl;
-//  for(size_t i = 0; i < v_perEdge; ++i){
-//    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      sumFace0 += face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)];
-//      //std::cout << face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)]);
-//    }
-//    std::cout << std::endl;
-//  }
-//  std::cout << "=======================================" << std::endl;
-//  std::cout << "Face 1: " << std::endl;
-//  for(size_t i = 0; i < v_perEdge; ++i){
-//    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      sumFace1 += face1mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)];
-//      //std::cout << face1mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face1mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)]);
-//    }
-//    std::cout << std::endl;
-//  }
-//  std::cout << "=======================================" << std::endl;
-//  std::cout << "Edge 5: " << std::endl;
-//  for(size_t i = 0; i < v_perEdge - 1; ++i) {
-//    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_N)]);
-//  }
-//  std::cout << std::endl;
-//  for(size_t i = 0; i < v_perEdge; ++i) {
-//    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_C)]);
-//  }
-//  std::cout << std::endl;
-//  for(size_t i = 0; i < v_perEdge -1 ; ++i) {
-//    fmt::print("{0:.2f}  ",edge5mem[hhg::P1BubbleEdge::EdgeCoordsVertex::index<maxLevel>(i, hhg::P1BubbleEdge::EdgeCoordsVertex::VERTEX_SE)]);
-//  }
-//  std::cout << std::endl;
-//  std::cout << "=======================================" << std::endl;
-
-  //hhg::VTKWriter({ &x }, maxLevel, "output", "P1BubbleCommTest");
 
   return 0;
 }

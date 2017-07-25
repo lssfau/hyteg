@@ -1,6 +1,7 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 
 namespace hhg
 {
@@ -215,10 +216,14 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
       size_t len = levelinfo::num_microvertices_per_face(level);
       file << std::scientific;
-
-      for (size_t i = 0; i < len; ++i)
-      {
-        file << P1::getFaceFunctionMemory(face, function->memory_id)->data[level][i] << " ";
+      if(face.memory[function->memory_id]->type == MemoryType::P1Function) {
+        for (size_t i = 0; i < len; ++i) {
+          file << P1::getFaceFunctionMemory(face, function->memory_id)->data[level][i] << " ";
+        }
+      } else if(face.memory[function->memory_id]->type == MemoryType::P1BubbleFunction){
+        for (size_t i = 0; i < len; ++i) {
+          file << P1Bubble::getFaceFunctionMemory(face, function->memory_id)->data[level][i] << " ";
+        }
       }
     }
     file << "\n</DataArray>\n";

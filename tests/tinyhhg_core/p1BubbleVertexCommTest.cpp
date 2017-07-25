@@ -15,7 +15,7 @@ int main (int argc, char ** argv )
 
   walberla::mpi::Environment MPIenv( argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::Mesh mesh("../../data/meshes/quad_4el.msh");
+  hhg::Mesh mesh("../../data/meshes/quad_2el_neumann.msh");
 
 
   size_t minLevel = 2;
@@ -34,50 +34,91 @@ int main (int argc, char ** argv )
   std::function<real_t(const hhg::Point3D&)> seven = [](const hhg::Point3D&) { return 7; };
   std::function<real_t(const hhg::Point3D&)> eight = [](const hhg::Point3D&) { return 8; };
   std::function<real_t(const hhg::Point3D&)> nine = [](const hhg::Point3D&) { return 9; };
+  std::function<real_t(const hhg::Point3D&)> threeDotZero = [](const hhg::Point3D&) { return 3.0; };
+  std::function<real_t(const hhg::Point3D&)> threeDotFive = [](const hhg::Point3D&) { return 3.5; };
 
-  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[0],0,six);
-  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[1],0,seven);
-  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[2],0,eight);
-  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[3],0,nine);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[0],0,threeDotZero);
+  hhg::P1BubbleFace::interpolate(maxLevel,mesh.faces[1],0,threeDotFive);
+
+  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], 0)->data[maxLevel];
+  for (size_t i = 0; i < v_perEdge-1; ++i) {
+    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+      face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)] = 3.2;
+    }
+  }
+
+  for (size_t i = 0; i < v_perEdge-2; ++i) {
+    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+      face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)] = 3.3;
+    }
+  }
+  auto& face1mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[1], 0)->data[maxLevel];
+  for (size_t i = 0; i < v_perEdge-1; ++i) {
+    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
+      face1mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)] = 3.6;
+    }
+  }
+
+  for (size_t i = 0; i < v_perEdge-2; ++i) {
+    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
+      face1mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)] = 3.7;
+    }
+  }
+
+  for (auto edge : mesh.edges) {
+    std::function<real_t(const hhg::Point3D &)> func = [edge](const hhg::Point3D &) { return ((20 + real_c(edge.id)) / 10); };
+    hhg::P1BubbleEdge::interpolate(maxLevel, edge, 0, func);
+    hhg::P1BubbleEdge::pull_halos(edge, 0, maxLevel);
+    if(edge.faces.size() == 2) std::cout << edge;
+  }
+
+//  hhg::P1BubbleVertex::pull_halos(mesh.vertices[4],0,maxLevel);
+//  hhg::P1BubbleVertex::interpolate(mesh.vertices[4],0,nine,maxLevel);
+//
+//
+//  auto& vertex4Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[4], 0)->data[maxLevel];
+//  for(uint_t i = 0; i < 4; ++i) {
+//    vertex4Data[i+5] = real_c(mesh.vertices[4].faces[i]->getID().getID());
+//  }
+//
+//  auto& vertex2Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[2], 0)->data[maxLevel];
+//  vertex2Data[0] = 1.2;
+//  for(uint_t i = 4; i < 7; ++i) {
+//    vertex2Data[i] = 1.2;
+//  }
+//  uint_t idxCounter = 0;
+  for(auto vertex : mesh.vertices){
+    auto& vertexData = hhg::P1Bubble::getVertexFunctionMemory(vertex, 0)->data[maxLevel];
+    for(uint_t i = 0; i <= vertex.edges.size() + vertex.faces.size(); ++i){
+      vertexData[i] = (10. + real_c(vertex.id))/10;
+    }
+  }
 
   for(auto edge : mesh.edges){
-    if(edge.faces.size() == 2){
-      hhg::P1BubbleEdge::interpolate(maxLevel,edge,0,five);
-      hhg::P1BubbleEdge::pull_halos(edge,0,maxLevel);
-    }
+    hhg::P1BubbleEdge::pull_vertices(edge,0,maxLevel);
   }
 
-  for(auto vertex : mesh.vertices){
-    if(vertex.edges.size() == 4){
-      std::cout << vertex << std::endl;
-    }
+  hhg::P1BubbleFace::pull_edges(mesh.faces[0],0,maxLevel);
+  hhg::P1BubbleFace::pull_edges(mesh.faces[1],0,maxLevel);
+
+  for(auto edge : mesh.edges){
+    hhg::P1BubbleEdge::pull_halos(edge,0,maxLevel);
   }
 
-  hhg::P1BubbleVertex::pull_halos(mesh.vertices[4],0,maxLevel);
-  hhg::P1BubbleVertex::interpolate(mesh.vertices[4],0,nine,maxLevel);
+  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[4],0,maxLevel);
 
+  hhg::P1BubbleEdge::printIndices(mesh.edges[4],0,maxLevel);
 
-  auto& vertex4Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[4], 0)->data[maxLevel];
-  for(uint_t i = 0; i < 4; ++i) {
-    vertex4Data[i+5] = real_c(mesh.vertices[4].faces[i]->getID().getID());
-  }
+  //hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[0],0,maxLevel);
+  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[4],0,maxLevel);
 
-  auto& vertex2Data = hhg::P1Bubble::getVertexFunctionMemory(mesh.vertices[2], 0)->data[maxLevel];
-  vertex2Data[0] = 1.2;
-  for(uint_t i = 4; i < 7; ++i) {
-    vertex2Data[i] = 1.2;
-  }
+  hhg::P1BubbleVertex::pull_halos(mesh.vertices[0],0,maxLevel);
 
-  hhg::P1BubbleEdge::pull_vertices(mesh.edges[7],0,maxLevel);
+  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[0],0,maxLevel);
 
-  hhg::P1BubbleFace::pull_edges(mesh.faces[2],0,maxLevel);
-
-  hhg::P1BubbleVertex::printFunctionMemory(mesh.vertices[4],0,maxLevel);
-  hhg::P1BubbleEdge::printFunctionMemory(mesh.edges[7],0,maxLevel);
-
-  auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[2], 0)->data[maxLevel];
+  //auto& face0mem = hhg::P1Bubble::getFaceFunctionMemory(mesh.faces[0], 0)->data[maxLevel];
   std::cout << "=======================================" << std::endl;
-  std::cout << mesh.faces[2] << std::endl;
+  std::cout << mesh.faces[0] << std::endl;
   std::cout << "Face Cell Gray: " << std::endl;
   for (size_t i = 0; i < v_perEdge-1; ++i) {
     for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
