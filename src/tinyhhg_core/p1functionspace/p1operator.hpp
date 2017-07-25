@@ -116,9 +116,6 @@ public:
       WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
 
-    WALBERLA_LOG_DEVEL("Created Operator with ID " + std::to_string(memory_id))
-
-
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {
 
