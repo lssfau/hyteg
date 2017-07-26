@@ -57,6 +57,8 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
     }
     if(edge.rank == MPIManager->rank()){
       bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(vertex->rank), true );
+    } else {
+      bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
     bs.sendAll();
     for(auto i = bs.begin(); i != bs.end(); ++i){
@@ -194,6 +196,8 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
     }
     if(edge.rank == MPIManager->rank()){
       bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(face->rank), true );
+    } else {
+      bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
     bs.sendAll();
     for(auto i = bs.begin(); i != bs.end(); ++i){

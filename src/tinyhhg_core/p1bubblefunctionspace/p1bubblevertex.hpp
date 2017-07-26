@@ -247,6 +247,8 @@ inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
     }
     if(vertex.rank == MPIManager->rank()){
       bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(edge->rank), true );
+    } else {
+      bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
     bs.sendAll();
     for(auto i = bs.begin(); i != bs.end(); ++i){

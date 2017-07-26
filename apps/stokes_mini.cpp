@@ -21,10 +21,10 @@ int main(int argc, char* argv[])
 
   hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
 
-  size_t num = 1;
-  numerator.enumerate(maxLevel, num);
-  std::ofstream fileL("../output/L.txt");
-  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
+//  size_t num = 1;
+//  numerator.enumerate(maxLevel, num);
+//  std::ofstream fileL("../output/L.txt");
+//  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     return 4.0 * (1.0-x[1]) * x[1];
