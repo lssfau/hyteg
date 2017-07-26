@@ -37,10 +37,6 @@ int main(int argc, char* argv[])
   u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
-  std::cout << getpid() << std::endl;
-
-  printf("PID %d ready for attach\n", getpid());
-  fflush(stdout);
 
   auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
