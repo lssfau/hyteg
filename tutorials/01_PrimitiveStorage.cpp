@@ -43,15 +43,15 @@ namespace hhg {
  * Before we create the distributed storage, we introduce another intermediate step:
  * we create a SetupPrimitiveStorage.
  *
- * This class creates the respective SetupPrimitive instances (actually subclasses like SetupVertex
- * or SetupEdge) from the MeshInfo. The resulting storage object is not distributed. However, the
- * setup primitives only carry meta data and no actual simulation data is allocated on them.
+ * This class creates the respective Primitive instances 
+ * from the MeshInfo. The resulting storage object is not distributed. However, in this phase the
+ * primitives only carry metadata and no actual simulation data is allocated on them.
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp SetupPrimitiveStorage
  *
  * The main purpose of the SetupPrimitiveStorage is to assign the primitives to the processes.
  * We achieve this by handing it a load balance callback. The balancing step additionally allows
- * us to limit the per process memory usage and workload by assigning the setup primitives corresponding
+ * us to limit the per process memory usage and workload by assigning the primitives corresponding
  * values for workload and memory usage.
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp Loadbalancing
