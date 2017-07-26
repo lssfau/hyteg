@@ -43,7 +43,6 @@ inline void packData(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &se
  */
 inline void packDataforVertex(Edge &edge, uint_t memory_id, walberla::mpi::SendBuffer &sendBuffer, uint_t level, const Vertex &vertex) {
   auto& edge_data = P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level];
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t vertex_id = edge.vertex_index(vertex);
   if(vertex_id == 0){
     sendBuffer << edge_data[1];

@@ -12,6 +12,8 @@ namespace P1BubbleEdge
 //FIXME this can be removed after we moved into walberla namespace
 using namespace walberla::mpistubs;
 
+using walberla::real_c;
+
 inline void allocate(Edge& edge, size_t memory_id, size_t minLevel, size_t maxLevel)
 {
   edge.memory.push_back(new EdgeP1BubbleFunctionMemory());
@@ -56,7 +58,7 @@ inline void pull_vertices(Edge& edge, size_t memory_id, size_t level)
       hhg::P1BubbleVertex::packData(level, *vertex, memory_id, bs.sendBuffer(edge.rank), edge);
     }
     if(edge.rank == MPIManager->rank()){
-      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(vertex->rank), true );
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank((walberla::mpi::MPIRank)vertex->rank), true );
     } else {
       bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
@@ -195,7 +197,7 @@ inline void pull_halos(Edge& edge, size_t memory_id, size_t level)
       hhg::P1BubbleFace::packData(level,*face,memory_id,bs.sendBuffer(edge.rank),edge);
     }
     if(edge.rank == MPIManager->rank()){
-      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(face->rank), true );
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank((walberla::mpi::MPIRank)face->rank), true );
     } else {
       bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
@@ -342,7 +344,6 @@ inline void printIndices(Edge& edge, uint_t memoryID, uint_t level){
   using namespace hhg::P1BubbleEdge::EdgeCoordsVertex;
 
   uint_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(level);
-  auto &edgeData = P1Bubble::getEdgeFunctionMemory(edge, memoryID)->data[level];
   cout << setfill('=') << setw(100) << std::left << "" << endl;
   cout << edge  << " South Face ID: " << edge.faces[0]->getID().getID();
   if (edge.faces.size() == 2) { cout << " North Face ID: " << edge.faces[1]->getID().getID(); }
@@ -398,7 +399,7 @@ inline void enumerate(size_t level, Edge& edge, size_t memory_id, size_t& num)
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = num++;
+    P1Bubble::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = real_c(num++);
   }
 }
 

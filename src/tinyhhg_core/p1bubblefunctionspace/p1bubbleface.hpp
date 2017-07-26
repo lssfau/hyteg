@@ -76,7 +76,7 @@ inline void pull_edges(Face& face, size_t memory_id, size_t level)
       P1BubbleEdge::packData(*edge, memory_id, bs.sendBuffer(face.rank), level, face);
     }
     if(face.rank == MPIManager->rank()){
-      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank(edge->rank), true );
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank((walberla::mpi::MPIRank)edge->rank), true );
     } else {
       bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
     }
