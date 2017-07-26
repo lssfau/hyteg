@@ -48,7 +48,7 @@ namespace hhg {
  *
  * The PrimitiveDataHandling::serialize() and PrimitiveDataHandling::deserialize() methods can be used
  * for runtime load balancing or checkpoint-restart features (but are not required for this tutorial).
- * If you are sure you do not need them, it is possible to inherit from convenience classes like NoSerializePrimitiveDataHandling
+ * If you are sure you do not need them, it is possible to inherit from convenience classes like OnlyInitializeDataHandling
  * which implements empty serialize and deserialize methods.
  *
  * \section adding Adding the data to the primitives
