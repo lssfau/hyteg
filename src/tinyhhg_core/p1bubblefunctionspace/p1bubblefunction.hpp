@@ -265,14 +265,12 @@ public:
       }
     }
 
-#ifdef WALBERLA_BUILD_WITH_MPI
-    real_t sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< real_t >::type(), MPI_SUM, MPI_COMM_WORLD);
 
-    return sp_g;
-#else // WALBERLA_BUILD_WITH_MPI
-    return sp_l;
+
+#ifdef WALBERLA_BUILD_WITH_MPI
+    walberla::mpi::allReduceInplace(sp_l,walberla::mpi::SUM,walberla::MPIManager::instance().get()->comm());
 #endif
+    return sp_l;
   }
 
   void enumerate(size_t level, size_t& num)

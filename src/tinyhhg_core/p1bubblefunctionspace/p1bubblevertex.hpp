@@ -18,6 +18,8 @@ namespace P1BubbleVertex
 //FIXME this can be removed after me moved into walberla namespace
 using namespace walberla::mpistubs;
 
+using walberla::real_c;
+
 /// Allocate memory for P1 macro-vertex including halos
 /// \param vertex Reference to Vertex the allocated memory will belong to
 /// \param memory_id Index of the \ref data
@@ -95,7 +97,7 @@ inline void add(Vertex& vertex, const std::vector<real_t>& scalars, const std::v
     size_t offset = 1 + vertex.edges.size();
 
     for (size_t f = 0; f < vertex.faces.size(); ++f) {
-      real_t tmp = 0.0;
+      tmp = 0.0;
 
       for (size_t i = 0; i < src_ids.size(); ++i) {
         tmp += scalars[i] * P1Bubble::getVertexFunctionMemory(vertex, src_ids[i])->data[level][offset];
@@ -239,14 +241,32 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
 
 inline void pull_halos(Vertex& vertex, size_t memory_id, size_t level)
 {
-  walberla::mpi::SendBuffer sb;
-  for(hhg::Edge* edge : vertex.edges){
-    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
+  auto MPIManager = walberla::mpi::MPIManager::instance();
+  walberla::mpi::BufferSystem bs (MPIManager->comm());
+  for(Edge* edge : vertex.edges){
+    if(edge->rank == MPIManager->rank()){
+      P1BubbleEdge::packDataforVertex(*edge, memory_id, bs.sendBuffer(vertex.rank), level, vertex);
+    }
+    if(vertex.rank == MPIManager->rank()){
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank((walberla::mpi::MPIRank)edge->rank), true );
+    } else {
+      bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
+    }
+    bs.sendAll();
+    for(auto i = bs.begin(); i != bs.end(); ++i){
+      unpackEdgeData(level,vertex,memory_id,i.buffer(),*edge);
+    }
   }
-  walberla::mpi::RecvBuffer rb(sb);
-  for(hhg::Edge* edge : vertex.edges) {
-    unpackEdgeData(level,vertex,memory_id,rb,*edge);
-  }
+
+
+//  walberla::mpi::SendBuffer sb;
+//  for(hhg::Edge* edge : vertex.edges){
+//    hhg::P1BubbleEdge::packDataforVertex(*edge,memory_id,sb,level,vertex);
+//  }
+//  walberla::mpi::RecvBuffer rb(sb);
+//  for(hhg::Edge* edge : vertex.edges) {
+//    unpackEdgeData(level,vertex,memory_id,rb,*edge);
+//  }
 }
 
 inline void print(Vertex & vertex, size_t memory_id, size_t level) {
@@ -262,19 +282,19 @@ inline void print(Vertex & vertex, size_t memory_id, size_t level) {
 
 inline void enumerate(size_t level, Vertex& vertex, size_t memory_id, size_t& num)
 {
-  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = num++;
+  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = real_c(num++);
 
   size_t offset = 1 + vertex.edges.size();
 
   for (size_t f = 0; f < vertex.faces.size(); ++f) {
-    P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][offset] = num++;
+    P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][offset] = real_c(num++);
     ++offset;
   }
 }
 
 inline void enumerate_p1(size_t level, Vertex& vertex, size_t memory_id, size_t& num)
 {
-  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = num++;
+  P1Bubble::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = real_c(num++);
 }
 
 inline void saveOperator(size_t level, Vertex& vertex, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)

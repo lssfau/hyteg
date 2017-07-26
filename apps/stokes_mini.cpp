@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::Mesh mesh("../data/meshes/tri_1el_neumann.msh");
+  hhg::Mesh mesh("../data/meshes/quad_4el_neumann.msh");
 
   size_t minLevel = 2;
   const size_t maxLevel = 2;
@@ -21,10 +21,10 @@ int main(int argc, char* argv[])
 
   hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
 
-  size_t num = 1;
-  numerator.enumerate(maxLevel, num);
-  std::ofstream fileL("../output/L.txt");
-  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
+//  size_t num = 1;
+//  numerator.enumerate(maxLevel, num);
+//  std::ofstream fileL("../output/L.txt");
+//  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     return 4.0 * (1.0-x[1]) * x[1];
@@ -36,6 +36,7 @@ int main(int argc, char* argv[])
   u.u.interpolate(zero, maxLevel);
   u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
+
 
   auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);

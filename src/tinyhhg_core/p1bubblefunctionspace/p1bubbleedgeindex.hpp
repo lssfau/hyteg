@@ -54,6 +54,7 @@ const DirVertex neighbors_north[] =
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   //const size_t grayBaseLength = vertexOnEdge -1;
   //const size_t blueBaseLength = vertexOnEdge -2;
   const size_t startFaceS = vertexOnEdge;
