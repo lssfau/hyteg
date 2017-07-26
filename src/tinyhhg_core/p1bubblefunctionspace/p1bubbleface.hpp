@@ -69,15 +69,21 @@ SPECIALIZE(void, interpolate_tmpl, interpolate)
 
 inline void pull_edges(Face& face, size_t memory_id, size_t level)
 {
-  //TODO this is WIP only works with one mpi rank!
-  walberla::mpi::SendBuffer sb;
-  for(uint_t i = 0; i < 3; ++i){
-
-    P1BubbleEdge::packData(*face.edges[i], memory_id, sb, level, face);
-  }
-  walberla::mpi::RecvBuffer rb(sb);
-  for(uint_t i = 0; i < 3; ++i){
-    unpackEdgeData(level,face,memory_id,rb,*face.edges[i]);
+  auto MPIManager = walberla::mpi::MPIManager::instance();
+  walberla::mpi::BufferSystem bs (MPIManager->comm());
+  for(Edge* edge : face.edges){
+    if(edge->rank == MPIManager->rank()){
+      P1BubbleEdge::packData(*edge, memory_id, bs.sendBuffer(face.rank), level, face);
+    }
+    if(face.rank == MPIManager->rank()){
+      bs.setReceiverInfo( walberla::mpi::BufferSystem::onlyRank((walberla::mpi::MPIRank)edge->rank), true );
+    } else {
+      bs.setReceiverInfo(walberla::mpi::BufferSystem::noRanks(),false);
+    }
+    bs.sendAll();
+    for(auto i = bs.begin(); i != bs.end(); ++i){
+      unpackEdgeData(level,face,memory_id,i.buffer(),*edge);
+    }
   }
 
 }
