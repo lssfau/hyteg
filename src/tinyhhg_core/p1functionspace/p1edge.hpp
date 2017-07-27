@@ -90,7 +90,7 @@ inline void apply(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &
     }
     dst[i] += opr_data[0]*src[rowsize + i - 1] + opr_data[1]*src[rowsize + i];
 
-    if (edge.faces.size()==2) {
+    if (edge.getNumNeighborFaces() == 2) {
       dst[i] += opr_data[5]*src[rowsize + rowsize - 1 + i - 1] + opr_data[6]*src[rowsize + rowsize - 1 + i];
     }
   }
@@ -109,7 +109,7 @@ inline void smooth_gs(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
     dst[i] = rhs[i] - opr_data[2]*dst[i - 1] - opr_data[4]*dst[i + 1];
     dst[i] -= opr_data[0]*dst[rowsize + i - 1] + opr_data[1]*dst[rowsize + i];
 
-    if (edge.faces.size()==2) {
+    if (edge.getNumNeighborFaces() == 2) {
       dst[i] -= opr_data[5]*dst[rowsize + rowsize - 1 + i - 1] + opr_data[6]*dst[rowsize + rowsize - 1 + i];
     }
 
@@ -168,7 +168,7 @@ inline void restrict(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edg
     // mid edge
     edge_data_c[i_coarse] = 0.5*edge_data_f[i_fine - 1] + edge_data_f[i_fine] + 0.5*edge_data_f[i_fine + 1];
 
-    for (size_t off_edge = 0; off_edge < edge.faces.size(); ++off_edge) {
+    for (size_t off_edge = 0; off_edge < edge.getNumNeighborFaces(); ++off_edge) {
       edge_data_c[i_coarse] += 0.5*edge_data_f[rowsize_fine + off_edge*(rowsize_fine - 1) + i_off]
           + 0.5*edge_data_f[rowsize_fine + off_edge*(rowsize_fine - 1) + i_off + 1];
     }

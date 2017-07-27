@@ -3,7 +3,7 @@
 
 #include "support.hpp"
 
-#include "mesh.hpp"
+//#include "mesh.hpp"
 #include "vtkwriter.hpp"
 
 //#include "tinyhhg_core/p1functionspace/OldP1function.hpp"

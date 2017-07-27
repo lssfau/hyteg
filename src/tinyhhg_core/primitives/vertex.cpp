@@ -8,43 +8,25 @@ namespace hhg
 
 using walberla::uint_c;
 
-Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : Primitive( PrimitiveID( _id ) ),
-				id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
-				type(Inner), coords(_coords)
-{}
-
 Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
-  : Primitive( primitiveID ),
-        id( primitiveID.getID() ), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())),
-        type(Inner), coords( coordinates )
+  : Primitive( primitiveID ), type(Inner), coords( coordinates )
 {}
 
-void Vertex::addEdge(Edge* edge)
+uint_t Vertex::edge_index(const PrimitiveID& edge) const
 {
-  edges.push_back(edge);
+  auto it = std::find(neighborEdges().begin(), neighborEdges().end(), edge);
+  return uint_c((it - neighborEdges().begin()));
 }
 
-void Vertex::addFace(Face* face)
+uint_t Vertex::face_index(const PrimitiveID& face) const
 {
-  faces.push_back(face);
-}
-
-size_t Vertex::edge_index(const Edge& edge) const
-{
-  auto it = std::find(edges.begin(),edges.end(),&edge);
-  return uint_c((it - edges.begin()));
-}
-
-size_t Vertex::face_index(const Face& face) const
-{
-  auto it = std::find(faces.begin(), faces.end(), &face);
-  return uint_c((it - faces.begin()));
+  auto it = std::find(neighborFaces().begin(), neighborFaces().end(), face);
+  return uint_c((it - neighborFaces().begin()));
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
 {
-  return os << "Vertex { id = " << vertex.id << "; "
+  return os << "Vertex { id = " << vertex.getID().getID() << "; "
             << "coords = [" << vertex.coords[0] << ", " << vertex.coords[1] << ", " << vertex.coords[2] << "]; "
             << "}";
 }

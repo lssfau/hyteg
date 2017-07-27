@@ -25,15 +25,13 @@ public:
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
-  Face(size_t id, Edge* edges[3]);
-
   Face( const PrimitiveID & primitiveID,
         const PrimitiveID & edgeID0,
         const PrimitiveID & edgeID1,
         const PrimitiveID & edgeID2,
         const std::array< int, 3 >     & edgeOrientation,
         const std::array< Point3D, 3 > & coordinates ) :
-    Primitive( primitiveID ), id( primitiveID.getID() ), rank( 0 ), type( Inner ), edge_orientation( edgeOrientation ), coords( coordinates )
+    Primitive( primitiveID ), type( Inner ), edge_orientation( edgeOrientation ), coords( coordinates )
   {
     neighborEdges_.push_back( edgeID0 );
     neighborEdges_.push_back( edgeID1 );
@@ -42,27 +40,25 @@ public:
     area = std::abs(0.5 * math::det2(B));
   }
 
-  size_t vertex_index(const Vertex& vertex) const;
-  size_t edge_index(const Edge& edge) const;
+  uint_t vertex_index(const PrimitiveID& vertex) const;
+  uint_t edge_index(const PrimitiveID& edge) const;
 
-  std::vector<Edge*> adjacent_edges(const Vertex& vertex) const;
-  Vertex* get_vertex_opposite_to_edge(const Edge& edge) const;
+  std::vector<PrimitiveID> adjacent_edges(const PrimitiveID& vertex) const;
+  PrimitiveID get_vertex_opposite_to_edge(const PrimitiveID& edge) const;
 
-  size_t id;
-  walberla::uint_t rank;
   DoFType type;
   real_t area;
-  Edge* edges[3];
-  std::vector<Vertex*> vertices;
   std::array<int, 3> edge_orientation;
   std::array<Point3D, 3> coords;
-
-  std::vector<void*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 
   std::array< int, 3 >     getEdgeOrientation() const { return edge_orientation; }
   std::array< Point3D, 3 > getCoordinates()     const { return coords; }
+
+  const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 3 ); return neighborVertices_[0]; }
+  const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 3 ); return neighborVertices_[1]; }
+  const PrimitiveID & getVertexID2() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 3 ); return neighborVertices_[2]; }
 
   const PrimitiveID & getEdgeID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[0]; }
   const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[1]; }

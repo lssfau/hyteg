@@ -28,8 +28,8 @@ enum ElementType {
 
 void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / walberla::real_c((rowsize - 1));
-  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / walberla::real_c((rowsize - 1));
+  Point3D d0 = (face.coords[1] - face.coords[0]) / walberla::real_c((rowsize - 1));
+  Point3D d2 = (face.coords[2] - face.coords[0]) / walberla::real_c((rowsize - 1));
 
   real_t orientation = 1.0;
 
@@ -100,100 +100,84 @@ public:
             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
       }
 
-//      for (Edge& edge : mesh.edges)
-//      {
-//        if (edge.rank != rank)
-//        {
-//          continue;
-//        }
-//
-//        if (level == minLevel)
-//        {
-//          edge.memory.push_back(new EdgeP1StencilMemory());
-//        }
-//        //WALBERLA_LOG_DEVEL("Edge.memory.size() = " + std::to_string(edge.memory.size()));
-//
-//        auto& edge_stencil = P1::getEdgeStencilMemory(edge, memory_id)->addlevel(level);
-//
-//        real_t local_stiffness_up[3][3];
-//        real_t local_stiffness_down[3][3];
-//        // first face
-//        Face* face = edge.faces[0];
-//        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
-//        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
-//
-//        size_t start_id = face->vertex_index(*edge.v0);
-//        size_t end_id = face->vertex_index(*edge.v1);
-//        size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
-//
-//        edge_stencil[0] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-//        edge_stencil[1] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
-//
-//        edge_stencil[2] = local_stiffness_up[end_id][start_id];
-//        edge_stencil[4] = local_stiffness_up[start_id][end_id];
-//
-//        edge_stencil[3] = local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
-//
-//        if (edge.faces.size() == 2)
-//        {
-//          // second face
-//          Face* face = edge.faces[1];
-//          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
-//          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
-//
-//          size_t start_id = face->vertex_index(*edge.v0);
-//          size_t end_id = face->vertex_index(*edge.v1);
-//          size_t opposite_id = face->vertex_index(*face->get_vertex_opposite_to_edge(edge));
-//
-//          edge_stencil[5] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-//          edge_stencil[6] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
-//
-//          edge_stencil[2] += local_stiffness_up[end_id][start_id];
-//          edge_stencil[4] += local_stiffness_up[start_id][end_id];
-//
-//          edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
-//        }
-//      }
+      for (auto& it : storage_->getEdges()) {
+        Edge& edge = *it.second;
 
-//      for (Vertex& vertex : mesh.vertices)
-//      {
-//        if (vertex.rank != rank)
-//        {
-//          continue;
-//        }
-//
-//        // allocate new level-vector if first level
-//        if (level == minLevel)
-//        {
-//          vertex.memory.push_back(new VertexP1StencilMemory());
-//        }
-//
-//        auto& vertex_stencil = P1::getVertexStencilMemory(vertex, memory_id)->addlevel(level, vertex.edges.size());
-//
-//        // iterate over adjacent faces
-//        for (Face* face : vertex.faces)
-//        {
-//          real_t local_stiffness[3][3];
-//          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, P1Space::UPWARD);
-//
-//          size_t v_i = face->vertex_index(vertex);
-//
-//          std::vector<Edge*> adj_edges = face->adjacent_edges(vertex);
-//
-//          // iterate over adjacent edges
-//          for (Edge* edge : adj_edges)
-//          {
-//            size_t edge_idx = vertex.edge_index(*edge) + 1;
-//            Vertex* vertex_j = edge->get_opposite_vertex(vertex);
-//
-//            size_t v_j = face->vertex_index(*vertex_j);
-//
-//            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
-//          }
-//
-//          vertex_stencil[0] += local_stiffness[v_i][v_i];
-//        }
-//      }
+        auto& edge_stencil = edge.getData(edgeStencilID_)->data[level];
+
+        real_t local_stiffness_up[3][3];
+        real_t local_stiffness_down[3][3];
+        // first face
+        Face* face = storage_->getFace(edge.neighborFaces()[0]);
+        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
+        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
+
+        size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
+        size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
+        size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+        edge_stencil[0] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
+        edge_stencil[1] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+
+        edge_stencil[2] = local_stiffness_up[end_id][start_id];
+        edge_stencil[4] = local_stiffness_up[start_id][end_id];
+
+        edge_stencil[3] = local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+
+        if (edge.getNumNeighborFaces() == 2)
+        {
+          // second face
+          Face* face = storage_->getFace(edge.neighborFaces()[1]);
+          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
+          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
+
+          size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
+          size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
+          size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+          edge_stencil[5] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
+          edge_stencil[6] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+
+          edge_stencil[2] += local_stiffness_up[end_id][start_id];
+          edge_stencil[4] += local_stiffness_up[start_id][end_id];
+
+          edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+        }
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex& vertex = *it.second;
+
+        auto& vertex_stencil = vertex.getData(vertexStencilID_)->data[level];
+
+        // iterate over adjacent faces
+        for (auto& faceId : vertex.neighborFaces())
+        {
+          Face* face = storage_->getFace(faceId);
+
+          real_t local_stiffness[3][3];
+          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, P1Space::UPWARD);
+
+          uint_t v_i = face->vertex_index(vertex.getID());
+
+          std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
+
+          // iterate over adjacent edges
+          for (auto& edgeId : adj_edges)
+          {
+            uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+            Edge* edge = storage_->getEdge(edgeId);
+            PrimitiveID vertex_j = edge->get_opposite_vertex(vertex.getID());
+
+            uint_t v_j = face->vertex_index(vertex_j);
+
+            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
+          }
+
+          vertex_stencil[0] += local_stiffness[v_i][v_i];
+        }
+      }
+
     }
 
   }

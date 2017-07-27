@@ -67,7 +67,7 @@ inline void apply(Vertex &vertex,
     dst[0] += opr_data[0]*src[0];
   }
 
-  for (size_t i = 0; i < vertex.edges.size(); ++i) {
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
     dst[0] += opr_data[i + 1]*src[i + 1];
   }
 }
@@ -81,7 +81,7 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 
   dst[0] = rhs[0];
 
-  for (size_t i = 0; i < vertex.edges.size(); ++i) {
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
     dst[0] -= opr_data[i + 1]*dst[i + 1];
   }
 
@@ -105,9 +105,8 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
 
   vertex_data_c[0] = vertex_data_f[0];
 
-  size_t i = 1;
-  for (Edge *edge : vertex.edges) {
-    vertex_data_c[0] += 0.5*vertex_data_f[i];
+  for (uint_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    vertex_data_c[0] += 0.5*vertex_data_f[i+1];
     i += 1;
   }
 }

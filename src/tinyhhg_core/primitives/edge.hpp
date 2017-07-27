@@ -25,8 +25,6 @@ public:
   friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
-  Edge(size_t id, DoFType type, Vertex* v0, Vertex* v1);
-
   Edge( const PrimitiveID & primitiveID,
         const PrimitiveID & vertexID0,
         const PrimitiveID & vertexID1,
@@ -37,10 +35,6 @@ public:
     Primitive( primitiveID ), type( dofType ), direction( _direction ),
     length( _length ), tangent( _tangent )
   {
-    rank = 0;
-    id = primitiveID.getID();
-    v0 = nullptr;
-    v1 = nullptr;
     neighborVertices_.push_back( vertexID0 );
     neighborVertices_.push_back( vertexID1 );
 
@@ -49,28 +43,18 @@ public:
 
   }
 
-  void addFace(Face* face);
+  uint_t vertex_index(const PrimitiveID& vertex) const;
+  uint_t face_index(const PrimitiveID& face) const;
 
-  size_t vertex_index(const Vertex& vertex) const;
-  size_t face_index(const Face& face) const;
+  PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
 
-  Vertex* get_opposite_vertex(const Vertex& vertex) const;
-
-  size_t id;
-  walberla::uint_t rank;
   DoFType type;
-  Vertex* v0;
-  Vertex* v1;
 
   std::array<Point3D, 2> coords;
   Point3D direction;
   real_t length;
   Point3D tangent;
   Point3D normal_2d;
-
-  std::vector<Face*> faces;
-
-  std::vector<void*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 

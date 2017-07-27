@@ -160,6 +160,11 @@ protected:
   std::vector< PrimitiveID > neighborEdges_;
   std::vector< PrimitiveID > neighborFaces_;
 
+  /// Compare two primitives by their ID
+  inline bool operator==(const Primitive& rhs) const {
+    return this->getID() == rhs.getID();
+  }
+
 private:
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
