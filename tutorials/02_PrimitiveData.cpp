@@ -141,7 +141,6 @@ void PrimitiveStorageTutorial()
   // From the PrimtivieStorage tutorial //
   //------------------------------------//
 
-  uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
@@ -154,7 +153,7 @@ void PrimitiveStorageTutorial()
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  hhg::PrimitiveStorage storage( rank, setupStorage );
+  hhg::PrimitiveStorage storage( setupStorage );
 
   //-----------------//
   // New stuff below //
