@@ -125,7 +125,10 @@ inline void add(Face &face,
   }
 }
 
-inline real_t dot(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &lhsId, const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId, size_t level) {
+inline real_t dot(Face &face,
+                  const PrimitiveDataID<FaceP1FunctionMemory, Face> &lhsId,
+                  const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId,
+                  size_t level) {
   real_t sp = 0.0;
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   size_t inner_rowsize = rowsize;
@@ -180,13 +183,15 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
 SPECIALIZE(void, apply_tmpl, apply)
 
 template<size_t Level>
-inline void smooth_gs_tmpl(Face &face, size_t opr_id, size_t dst_id, size_t rhs_id) {
+inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face> &operatorId,
+                           const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
+                           const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
   auto &dst = face.getData(dstId)->data[Level];
-  auto &rhs = P1::getFaceFunctionMemory(face, rhs_id)->data[Level];
+  auto &rhs = face.getData(rhsId)->data[Level];
 
   real_t tmp;
 
@@ -207,12 +212,12 @@ inline void smooth_gs_tmpl(Face &face, size_t opr_id, size_t dst_id, size_t rhs_
 SPECIALIZE(void, smooth_gs_tmpl, smooth_gs)
 
 template<size_t Level>
-inline void prolongate_tmpl(Face &face, size_t memory_id) {
+inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level);
   size_t N_c_i = N_c;
 
-  auto &v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level + 1];
-  auto &v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto &v_f = face.getData(memoryId)->data[Level + 1];
+  auto &v_c = face.getData(memoryId)->data[Level];
 
   size_t j;
 
@@ -236,11 +241,11 @@ inline void prolongate_tmpl(Face &face, size_t memory_id) {
 SPECIALIZE(void, prolongate_tmpl, prolongate)
 
 template<size_t Level>
-inline void prolongateQuadratic_tmpl(Face &face, size_t memory_id) {
+inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level);
   size_t N_c_i = N_c;
-  auto &v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level + 1];
-  auto &v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
+  auto &v_f = face.getData(memoryId)->data[Level + 1];
+  auto &v_c = face.getData(memoryId)->data[Level];
 
   size_t i, j;
   real_t linearx, lineary, linearxy, offx, offy, offxy;
@@ -323,12 +328,12 @@ inline void prolongateQuadratic_tmpl(Face &face, size_t memory_id) {
 SPECIALIZE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template<size_t Level>
-inline void restrict_tmpl(Face &face, size_t memory_id) {
+inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
   size_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   size_t N_c_i = N_c;
 
-  auto &v_f = P1::getFaceFunctionMemory(face, memory_id)->data[Level];
-  auto &v_c = P1::getFaceFunctionMemory(face, memory_id)->data[Level - 1];
+  auto &v_f = face.getData(memoryId)->data[Level];
+  auto &v_c = face.getData(memoryId)->data[Level - 1];
 
   real_t tmp;
 
