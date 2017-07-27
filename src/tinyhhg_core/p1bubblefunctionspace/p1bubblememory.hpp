@@ -185,38 +185,4 @@ public:
   }
 };
 
-namespace P1Bubble {
-
-inline VertexP1BubbleStencilMemory *getVertexStencilMemory(const Vertex &vertex, size_t id) {
-  return static_cast<VertexP1BubbleStencilMemory *>(vertex.memory[id]);
-}
-
-inline VertexP1BubbleFunctionMemory *getVertexFunctionMemory(Vertex &vertex, size_t id) {
-#ifndef NDEBUG
-  if (vertex.memory.size() <= id) WALBERLA_LOG_WARNING("Memory ID is out of range");
-  if (vertex.memory[id]->type != MemoryType::P1BubbleFunction) {
-    WALBERLA_LOG_WARNING("Trying to convert something to VertexP1BubbleFunctionMemory which is not of the right type");
-  }
-#endif // !
-
-  return static_cast<VertexP1BubbleFunctionMemory *>(vertex.memory[id]);
-}
-
-inline EdgeP1BubbleStencilMemory *getEdgeStencilMemory(const Edge &edge, size_t id) {
-  return static_cast<EdgeP1BubbleStencilMemory *>(edge.memory[id]);
-}
-
-inline EdgeP1BubbleFunctionMemory *getEdgeFunctionMemory(const Edge &edge, size_t id) {
-  return static_cast<EdgeP1BubbleFunctionMemory *>(edge.memory[id]);
-}
-
-inline FaceP1BubbleStencilMemory *getFaceStencilMemory(const Face &face, size_t id) {
-  return static_cast<FaceP1BubbleStencilMemory *>(face.memory[id]);
-}
-
-inline FaceP1BubbleFunctionMemory *getFaceFunctionMemory(const Face &face, size_t id) {
-  return static_cast<FaceP1BubbleFunctionMemory *>(face.memory[id]);
-}
-
-}
 }
