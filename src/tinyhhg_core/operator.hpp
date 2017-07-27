@@ -10,8 +10,8 @@ namespace hhg
 class Operator
 {
 public:
-  Operator(PrimitiveStorage& storage, size_t _minLevel, size_t _maxLevel)
-    : storage_(storage), minLevel(_minLevel), maxLevel(_maxLevel), memory_id(std::numeric_limits<std::size_t>::max())
+  Operator(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
+    : storage_(storage), minLevel_(minLevel), maxLevel_(maxLevel)
   {
   }
 
@@ -19,10 +19,10 @@ public:
   {
   }
 
-  const PrimitiveStorage& storage_;
-  const uint_t minLevel;
-  const uint_t maxLevel;
-  size_t memory_id;
+ protected:
+  const std::shared_ptr< PrimitiveStorage > storage_;
+  const uint_t minLevel_;
+  const uint_t maxLevel_;
 };
 
 }

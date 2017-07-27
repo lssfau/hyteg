@@ -11,8 +11,8 @@ class P1BlockLaplaceOperator
 {
 public:
 
-  P1BlockLaplaceOperator(Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : A(_mesh, _minLevel, _maxLevel)
+  P1BlockLaplaceOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
+    : A(storage, minLevel, maxLevel)
   {
   }
 

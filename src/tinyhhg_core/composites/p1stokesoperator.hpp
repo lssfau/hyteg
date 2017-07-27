@@ -11,13 +11,13 @@ class P1StokesOperator
 {
 public:
 
-  P1StokesOperator(Mesh& mesh, size_t minLevel, size_t maxLevel)
-    : A(mesh, minLevel, maxLevel),
-      div_x(mesh, minLevel, maxLevel),
-      div_y(mesh, minLevel, maxLevel),
-      divT_x(mesh, minLevel, maxLevel),
-      divT_y(mesh, minLevel, maxLevel),
-      pspg(mesh, minLevel, maxLevel)
+  P1StokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
+    : A(storage, minLevel, maxLevel),
+      div_x(storage, minLevel, maxLevel),
+      div_y(storage, minLevel, maxLevel),
+      divT_x(storage, minLevel, maxLevel),
+      divT_y(storage, minLevel, maxLevel),
+      pspg(storage, minLevel, maxLevel)
   {
   }
 

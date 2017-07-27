@@ -49,7 +49,7 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::interpolate(face, faceDataID_, expr, level);
+            P1Face::interpolate(level, face, faceDataID_, expr);
         }
     }
 
@@ -95,7 +95,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
+            P1Face::assign(face, scalars, srcFaceIDs, faceDataID_, level);
         }
     }
 
@@ -141,7 +141,7 @@ void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vec
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-          P1Face::add(level, face, scalars, srcFaceIDs, faceDataID_);
+          P1Face::add(face, scalars, srcFaceIDs, faceDataID_, level);
       }
   }
 

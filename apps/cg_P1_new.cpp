@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   size_t maxLevel = 2;
   size_t maxiter = 10000;
 
-  PrimitiveStorage storage( rank, setupStorage );
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
   //////OLD STUFF
 
   hhg::P1Function r("r", storage, minLevel, maxLevel);
