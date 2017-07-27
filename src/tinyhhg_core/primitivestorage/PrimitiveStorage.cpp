@@ -250,7 +250,7 @@ uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
   WALBERLA_ASSERT( primitiveExistsLocally( id ) || primitiveExistsInNeighborhood( id ) );
   if ( primitiveExistsLocally( id ) )
   {
-    return walberla::mpi::MPIManager::instance()->rank();
+    return uint_c( walberla::mpi::MPIManager::instance()->rank() );
   }
   else
   {
