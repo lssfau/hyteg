@@ -16,6 +16,46 @@ namespace hhg
 //FIXME remove after we are in walberla namespace
 using namespace walberla::mpistubs;
 
+class P1BubbleFunction : public Function
+{
+public:
+
+  P1BubbleFunction( const std::string& name,
+                    const std::shared_ptr< PrimitiveStorage > & storage,
+                    uint_t minLevel,
+                    uint_t maxLevel );
+
+  ~P1BubbleFunction();
+
+  /// Interpolates a given expression to a P1Function
+  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag = All);
+
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1BubbleFunction*> functions, size_t level, DoFType flag = All);
+
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1BubbleFunction*> functions, size_t level, DoFType flag = All);
+
+  real_t dot(P1BubbleFunction& rhs, size_t level, DoFType flag = All);
+
+  void prolongate(size_t level, DoFType flag = All);
+
+  void prolongateQuadratic(size_t level, DoFType flag = All);
+
+  void restrict(size_t level, DoFType flag = All);
+
+
+const PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> &getVertexDataID() const { return vertexDataID_; }
+
+const PrimitiveDataID<EdgeP1BubbleFunctionMemory, Edge> &getEdgeDataID() const { return edgeDataID_; }
+
+const PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> &getFaceDataID() const { return faceDataID_; }
+
+private:
+  PrimitiveDataID<VertexP1BubbleFunctionMemory, Vertex> vertexDataID_;
+  PrimitiveDataID<EdgeP1BubbleFunctionMemory, Edge> edgeDataID_;
+  PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> faceDataID_;
+};
+
+#if 0
 class P1BubbleFunction : public OldFunction
 {
 public:
@@ -436,5 +476,6 @@ public:
 //    }
 //  }
 };
+#endif
 
 }
