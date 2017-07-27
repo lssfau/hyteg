@@ -18,6 +18,7 @@ Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
 	  id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(_type), v0(_v0), v1(_v1)
 {
 
+  coords = {{v0->coords, v1->coords}};
   direction = v1->coords - v0->coords;
   length = direction.norm();
   tangent = direction / length;

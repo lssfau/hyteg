@@ -64,6 +64,7 @@ public:
   Vertex* v0;
   Vertex* v1;
 
+  std::array<Point3D, 2> coords;
   Point3D direction;
   real_t length;
   Point3D tangent;
