@@ -1,5 +1,6 @@
 #pragma once
 #include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/types/pointnd.hpp"
 
 namespace hhg {
 
@@ -14,7 +15,7 @@ public:
     ~P1Function();
 
     /// Interpolates a given expression to a P1Function
-    void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag = All);
+    void interpolate(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
     void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All);
 
