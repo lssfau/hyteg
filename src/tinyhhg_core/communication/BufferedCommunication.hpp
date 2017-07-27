@@ -34,7 +34,15 @@ class BufferedCommunicator
 {
 public:
 
-  BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage );
+  enum LocalCommunicationMode 
+  {
+    /// Uses the direct communication callbacks of the respective PackInfos for local neighbors
+    DIRECT, 
+    /// Sends data to local neighbors over MPI
+    BUFFERED_MPI, 
+  };
+
+  BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode = DIRECT );
 
   /// All data that are registered via respective \ref PackInfo objects are exchanged
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
@@ -63,6 +71,9 @@ public:
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void endCommunication();
+
+  LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
+  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { localCommunicationMode_ = localCommunicationMode; }
 
 private:
 
@@ -95,6 +106,8 @@ private:
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
+
+  LocalCommunicationMode localCommunicationMode_;
 
 };
 
@@ -169,7 +182,8 @@ void BufferedCommunicator::startCommunication()
       WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID )
                        || storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
 
-      if ( storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
+      if (    getLocalCommunicationMode() == DIRECT 
+           && storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
       {
         ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
         for ( auto & packInfo : packInfos_ )
@@ -179,7 +193,7 @@ void BufferedCommunicator::startCommunication()
       }
       else
       {
-        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
 
         if ( !packInfos_.empty() )
         {
@@ -217,9 +231,10 @@ void BufferedCommunicator::startCommunication()
       WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< SenderType >( neighborID )
                        || storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
 
-      if ( !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
+      if (    getLocalCommunicationMode() != DIRECT
+           || !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
       {
-        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
 
         if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
         {
