@@ -17,7 +17,7 @@ static void testP1DataHandling()
 
   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-  PrimitiveStorage      storage( rank, setupStorage );
+  PrimitiveStorage      storage( setupStorage );
 
   WALBERLA_LOG_INFO( setupStorage );
 

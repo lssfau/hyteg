@@ -164,7 +164,7 @@ static void testBufferedCommunication()
   // WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
   WALBERLA_MPI_BARRIER();
 
-  std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( rank, setupStorage ) );
+  std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
   communication::BufferedCommunicator communicator( storage );
 
