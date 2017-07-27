@@ -49,7 +49,7 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            // P1Face::interpolate(face, faceDataID_, expr, level);
+            P1Face::interpolate(face, faceDataID_, expr, level);
         }
     }
 
@@ -59,9 +59,9 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
 void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs(functions.size());
-    std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>> srcEdgeIDs(functions.size());
-    std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> srcFaceIDs(functions.size());
+    std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
+    std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>>     srcEdgeIDs;
+    std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>>     srcFaceIDs;
 
     for (auto& function : functions)
     {
@@ -74,7 +74,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.type, flag)) {
-            //P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+            P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
         }
     }
 
@@ -84,7 +84,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         Edge& edge = *it.second;
 
         if (testFlag(edge.type, flag)) {
-            //P1Edge::assign(edge, scalars, srcEdgeIDs, edgeDataID_, level);
+            P1Edge::assign(edge, scalars, srcEdgeIDs, edgeDataID_, level);
         }
     }
 
@@ -95,7 +95,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            //P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
+            P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
         }
     }
 
@@ -104,7 +104,48 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
 
 void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
+  // Collect all source IDs in a vector
+  std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>>     srcEdgeIDs;
+  std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>>     srcFaceIDs;
 
+  for (auto& function : functions)
+  {
+      srcVertexIDs.push_back(function->vertexDataID_);
+      srcEdgeIDs.push_back(function->edgeDataID_);
+      srcFaceIDs.push_back(function->faceDataID_);
+  }
+
+  for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag)) {
+          P1Vertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+      }
+  }
+
+  communicators_[level]->startCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag)) {
+          P1Edge::add(edge, scalars, srcEdgeIDs, edgeDataID_, level);
+      }
+  }
+
+  communicators_[level]->endCommunication<Vertex, Edge>();
+  communicators_[level]->startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag)) {
+          P1Face::add(level, face, scalars, srcFaceIDs, faceDataID_);
+      }
+  }
+
+  communicators_[level]->endCommunication<Edge, Face>();
 }
 
 real_t P1Function::dot(P1Function& rhs, size_t level, DoFType flag)
