@@ -182,7 +182,8 @@ void BufferedCommunicator::startCommunication()
       WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID )
                        || storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
 
-      if ( storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
+      if (    getLocalCommunicationMode() == DIRECT 
+           && storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
       {
         ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
         for ( auto & packInfo : packInfos_ )
@@ -192,7 +193,7 @@ void BufferedCommunicator::startCommunication()
       }
       else
       {
-        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
 
         if ( !packInfos_.empty() )
         {
@@ -230,9 +231,10 @@ void BufferedCommunicator::startCommunication()
       WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< SenderType >( neighborID )
                        || storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
 
-      if ( !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
+      if (    getLocalCommunicationMode() != DIRECT
+           || !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
       {
-        uint_t neighborRank = storage->getNeighborPrimitiveRank( neighborID );
+        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
 
         if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
         {
