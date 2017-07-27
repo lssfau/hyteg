@@ -56,6 +56,8 @@ inline uint_t index(uint_t pos, DirVertex dir) {
   return std::numeric_limits<uint_t>::max();
 }
 
+SPECIALIZE(uint_t, index, edge_index)
+
 }//namespace EdgeCoordsVertex
 }//namespace P1Edge
 }//namespace hhg
