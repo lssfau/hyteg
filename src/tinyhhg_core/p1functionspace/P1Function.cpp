@@ -95,7 +95,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::assign(face, scalars, srcFaceIDs, faceDataID_, level);
+            P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
         }
     }
 

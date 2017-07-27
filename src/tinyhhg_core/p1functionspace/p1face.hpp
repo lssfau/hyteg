@@ -38,13 +38,13 @@ inline size_t index(size_t row, size_t col, Dir dir) {
   return 0;
 }
 
-inline void interpolate(Face &face,
-                        const PrimitiveDataID<FaceP1FunctionMemory, Face> &faceMemoryId,
-                        std::function<real_t(const hhg::Point3D &)> &expr,
-                        size_t level) {
+template<size_t Level>
+inline void interpolateTmpl(Face &face,
+                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &faceMemoryId,
+                            std::function<real_t(const hhg::Point3D &)> &expr) {
   FaceP1FunctionMemory *faceMemory = face.getData(faceMemoryId);
 
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
 
   x0 = face.coords[0];
@@ -52,23 +52,22 @@ inline void interpolate(Face &face,
   Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
   Point3D d2 = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsize - 1));
 
-  size_t mr_c = 1 + rowsize;
   size_t inner_rowsize = rowsize;
 
-  for (size_t i = 0; i < rowsize - 3; ++i) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
     x = x0;
-    x += (i + 1)*d2 + d0;
+    x += i*d2 + d0;
 
-    for (size_t j = 0; j < inner_rowsize - 3; ++j) {
-      faceMemory->data[level][mr_c] = expr(x);
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+      faceMemory->data[Level][index<Level>(i, j, C)] = expr(x);
       x += d0;
-      mr_c += 1;
     }
 
-    mr_c += 2;
     inner_rowsize -= 1;
   }
 }
+
+SPECIALIZE(void, interpolateTmpl, interpolate)
 
 inline void assign(Face &face,
                    const std::vector<real_t> &scalars,
