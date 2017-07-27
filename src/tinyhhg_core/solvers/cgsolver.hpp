@@ -11,8 +11,8 @@ class CGSolver
 {
 public:
 
-  CGSolver(Mesh& mesh, size_t minLevel, size_t maxLevel)
-    : p("p", mesh, minLevel, maxLevel), ap("ap", mesh, minLevel, maxLevel)
+  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+    : p("p", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel)
   {
   }
 
