@@ -1,18 +1,12 @@
 #ifndef P1VERTEX_HPP
 #define P1VERTEX_HPP
 
-#include <fmt/format.h>
-
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
-
-#include <core/mpi/MPIWrapper.h>
 
 namespace hhg {
 
 namespace P1Vertex {
-//FIXME this can be removed after me moved into walberla namespace
-using namespace walberla::mpistubs;
 
 inline void interpolate(Vertex &vertex,
                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &vertexMemoryId,
