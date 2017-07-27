@@ -1,8 +1,8 @@
 waLBerla_link_files_to_builddir(*.msh)
 waLBerla_link_files_to_builddir(../../data/param/*.prm)
 
-waLBerla_compile_test(FILES p1integrateTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME p1integrateTest)
+waLBerla_compile_test(FILES P1IntegrateTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P1IntegrateTest)
 
 waLBerla_compile_test(FILES fmgTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME fmgTest)

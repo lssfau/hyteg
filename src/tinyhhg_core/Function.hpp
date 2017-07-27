@@ -22,6 +22,13 @@ public:
   virtual ~Function()
   {
   }
+  const std::string &getFunctionName() const { return functionName_; }
+
+  const PrimitiveStorage &getStorage() const { return storage_; }
+
+  uint_t getMinLevel() const { return minLevel_; }
+
+  uint_t getMaxLevel() const { return maxLevel_; }
 private:
 
   const std::string functionName_;

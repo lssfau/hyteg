@@ -30,6 +30,13 @@ public:
 
   void restrict(size_t level, DoFType flag = All);
 
+
+  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &getVertexDataID() const { return vertexDataID_; }
+
+  const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &getEdgeDataID() const { return edgeDataID_; }
+
+  const PrimitiveDataID<FaceP1FunctionMemory, Face> &getFaceDataID() const { return faceDataID_; }
+
 private:
   PrimitiveDataID<VertexP1FunctionMemory,Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory  ,Edge  > edgeDataID_;
