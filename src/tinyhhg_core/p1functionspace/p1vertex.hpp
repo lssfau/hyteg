@@ -18,7 +18,7 @@ inline void interpolate(Vertex &vertex,
 
 inline void assign(Vertex &vertex,
                    const std::vector<real_t> &scalars,
-                   const std::vector<const PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
+                   const std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
                    const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
                    size_t level) {
   real_t tmp = scalars[0]*vertex.getData(srcIds[0])->data[level][0];
@@ -32,7 +32,7 @@ inline void assign(Vertex &vertex,
 
 inline void add(Vertex &vertex,
                 const std::vector<real_t> &scalars,
-                const std::vector<const PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
+                const std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
                 const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
                 size_t level) {
   real_t tmp = 0.0;

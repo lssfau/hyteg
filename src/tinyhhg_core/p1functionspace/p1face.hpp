@@ -71,7 +71,7 @@ SPECIALIZE(void, interpolateTmpl, interpolate)
 
 inline void assign(Face &face,
                    const std::vector<real_t> &scalars,
-                   const std::vector<const PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
+                   const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
                    const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
                    size_t level) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -98,7 +98,7 @@ inline void assign(Face &face,
 
 inline void add(Face &face,
                 const std::vector<real_t> &scalars,
-                const std::vector<const PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
+                const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
                 const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
                 size_t level) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -364,7 +364,7 @@ bool is_boundary(size_t index, size_t length) {
   }
   return (index==0 || index==(length - 1));
 }
-}
+
 
 }// namespace P1Face
 }// namespace hhg

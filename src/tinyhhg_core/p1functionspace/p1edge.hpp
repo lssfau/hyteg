@@ -27,7 +27,7 @@ inline void interpolate(Edge &edge,
 
 inline void assign(Edge &edge,
                    const std::vector<real_t> &scalars,
-                   const std::vector<const PrimitiveDataID<EdgeP1FunctionMemory, Edge>> &srcIds,
+                   const std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>> &srcIds,
                    const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId,
                    size_t level) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -45,7 +45,7 @@ inline void assign(Edge &edge,
 
 inline void add(Edge &edge,
                 const std::vector<real_t> &scalars,
-                const std::vector<const PrimitiveDataID<EdgeP1FunctionMemory, Edge>> &srcIds,
+                const std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>> &srcIds,
                 const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId,
                 size_t level) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
