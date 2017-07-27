@@ -4486,16 +4486,16 @@ return enabled;
     //   num_cells:         None
     //   optimize:          True
     //   precision:         16
-    //   quadrature_degree: 3
+    //   quadrature_degree: 5
     //   quadrature_rule:   'default'
     //   representation:    'uflacs'
     // 
     // and the following integral 0 metadata:
     // 
-    //   estimated_polynomial_degree: 3
+    //   estimated_polynomial_degree: 5
     //   optimize:                    True
     //   precision:                   16
-    //   quadrature_degree:           3
+    //   quadrature_degree:           5
     //   quadrature_rule:             'default'
     //   representation:              'uflacs'
     
@@ -4503,12 +4503,12 @@ return enabled;
     // FE* dimensions: [entities][points][dofs]
     // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
     // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const double FE3_C0_D01_Q6[1][1][2] = { { { -1.0, 1.0 } } };
+    alignas(32) static const double FE3_C0_D01_Q7[1][1][2] = { { { -1.0, 1.0 } } };
     // Unstructured piecewise computations
-    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q6[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q7[0][0][1];
     alignas(32) double sp[8];
     sp[0] = J_c0 * J_c3;
     sp[1] = J_c1 * J_c2;
@@ -4518,18 +4518,22 @@ return enabled;
     sp[5] = std::abs(sp[2]);
     sp[6] = -1 * sp[3] * sp[5];
     sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.1666666666666666 * sp[6] + -0.1666666666666666 * sp[7];
-    A[1] = -0.1666666666666666 * sp[6] + -0.1666666666666666 * sp[7];
-    A[2] = -0.1666666666666666 * sp[6] + -0.1666666666666666 * sp[7];
-    A[3] = -0.2249999999999999 * sp[6] + -0.2249999999999999 * sp[7];
-    A[4] = 0.1666666666666666 * sp[6];
-    A[5] = 0.1666666666666666 * sp[6];
-    A[6] = 0.1666666666666666 * sp[6];
-    A[7] = 0.2249999999999999 * sp[6];
-    A[8] = 0.1666666666666666 * sp[7];
-    A[9] = 0.1666666666666666 * sp[7];
-    A[10] = 0.1666666666666666 * sp[7];
-    A[11] = 0.2249999999999999 * sp[7];
+    A[0] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
+    A[1] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
+    A[2] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
+    A[3] = -0.2250000000000001 * sp[6] + -0.2250000000000001 * sp[7];
+    A[4] = 0.1666666666666667 * sp[6];
+    A[5] = 0.1666666666666667 * sp[6];
+    A[6] = 0.1666666666666667 * sp[6];
+    A[7] = 0.2250000000000001 * sp[6];
+    A[8] = 0.1666666666666667 * sp[7];
+    A[9] = 0.1666666666666667 * sp[7];
+    A[10] = 0.1666666666666667 * sp[7];
+    A[11] = 0.2250000000000001 * sp[7];
+    A[12] = 0.2250000000000001 * sp[6] + 0.2249999999999995 * sp[7];
+    A[13] = -0.225 * sp[6];
+    A[14] = -0.2250000000000008 * sp[7];
+    A[15] = 0.0;
   }
 
 };
@@ -4566,16 +4570,16 @@ return enabled;
     //   num_cells:         None
     //   optimize:          True
     //   precision:         16
-    //   quadrature_degree: 3
+    //   quadrature_degree: 5
     //   quadrature_rule:   'default'
     //   representation:    'uflacs'
     // 
     // and the following integral 0 metadata:
     // 
-    //   estimated_polynomial_degree: 3
+    //   estimated_polynomial_degree: 5
     //   optimize:                    True
     //   precision:                   16
-    //   quadrature_degree:           3
+    //   quadrature_degree:           5
     //   quadrature_rule:             'default'
     //   representation:              'uflacs'
     
@@ -4583,12 +4587,12 @@ return enabled;
     // FE* dimensions: [entities][points][dofs]
     // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
     // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const double FE3_C0_D01_Q6[1][1][2] = { { { -1.0, 1.0 } } };
+    alignas(32) static const double FE3_C0_D01_Q7[1][1][2] = { { { -1.0, 1.0 } } };
     // Unstructured piecewise computations
-    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q6[0][0][1];
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q7[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q7[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q7[0][0][1];
     alignas(32) double sp[8];
     sp[0] = J_c0 * J_c3;
     sp[1] = J_c1 * J_c2;
@@ -4598,18 +4602,22 @@ return enabled;
     sp[5] = std::abs(sp[2]);
     sp[6] = -1 * sp[3] * sp[5];
     sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.1666666666666666 * sp[7] + -0.1666666666666666 * sp[6];
-    A[1] = -0.1666666666666666 * sp[7] + -0.1666666666666666 * sp[6];
-    A[2] = -0.1666666666666666 * sp[7] + -0.1666666666666666 * sp[6];
-    A[3] = -0.2249999999999999 * sp[7] + -0.2249999999999999 * sp[6];
-    A[4] = 0.1666666666666666 * sp[7];
-    A[5] = 0.1666666666666666 * sp[7];
-    A[6] = 0.1666666666666666 * sp[7];
-    A[7] = 0.2249999999999999 * sp[7];
-    A[8] = 0.1666666666666666 * sp[6];
-    A[9] = 0.1666666666666666 * sp[6];
-    A[10] = 0.1666666666666666 * sp[6];
-    A[11] = 0.2249999999999999 * sp[6];
+    A[0] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
+    A[1] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
+    A[2] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
+    A[3] = -0.2250000000000001 * sp[7] + -0.2250000000000001 * sp[6];
+    A[4] = 0.1666666666666667 * sp[7];
+    A[5] = 0.1666666666666667 * sp[7];
+    A[6] = 0.1666666666666667 * sp[7];
+    A[7] = 0.2250000000000001 * sp[7];
+    A[8] = 0.1666666666666667 * sp[6];
+    A[9] = 0.1666666666666667 * sp[6];
+    A[10] = 0.1666666666666667 * sp[6];
+    A[11] = 0.2250000000000001 * sp[6];
+    A[12] = 0.2250000000000001 * sp[7] + 0.2249999999999995 * sp[6];
+    A[13] = -0.225 * sp[7];
+    A[14] = -0.2250000000000008 * sp[6];
+    A[15] = 0.0;
   }
 
 };
@@ -4631,7 +4639,7 @@ public:
 
   const char * signature() const final override
   {
-    return "606d5f6964b060930ea203a128ae42293e498f0c3da2f22ee9a625a5dd57ef53d17298ce7ca748b98edb4986145133bead71164253966cf932f0d7ac9e4676ee";
+    return "57e748c710eaeded5f1e5d5f5e5937239746000844131874590c5d822fce16e3b34d0adb26ea8fe48ff8eb9a9641e13df5a689c8e73d3adafe6eb296714f71a6";
   }
 
   std::size_t rank() const final override
@@ -4671,7 +4679,7 @@ public:
     {
     case 0:
       {
-        return new p1bubble_div_finite_element_0();
+        return new p1bubble_div_finite_element_2();
         break;
       }
     case 1:
@@ -4690,7 +4698,7 @@ public:
     {
     case 0:
       {
-        return new p1bubble_div_dofmap_0();
+        return new p1bubble_div_dofmap_2();
         break;
       }
     case 1:
@@ -4882,7 +4890,7 @@ public:
 
   const char * signature() const final override
   {
-    return "3f5ed8d256c4a35b53c9ab44f72c0a8bab9b435c80bfffee1d6a76ba0fadb181bc548b9f88fb9ea728fefe0eda3b46c7bce22f727b0eebb6fc13352bc268eea5";
+    return "5d13aadba0521d9a56d1319d023938fe2098699a8bbb9a0e934e87c42a8c28b52d8c7259f91235313b2618e60548f957629bbb137047d4f96e1dfba0e024cf92";
   }
 
   std::size_t rank() const final override
@@ -4922,7 +4930,7 @@ public:
     {
     case 0:
       {
-        return new p1bubble_div_finite_element_0();
+        return new p1bubble_div_finite_element_2();
         break;
       }
     case 1:
@@ -4941,7 +4949,7 @@ public:
     {
     case 0:
       {
-        return new p1bubble_div_dofmap_0();
+        return new p1bubble_div_dofmap_2();
         break;
       }
     case 1:

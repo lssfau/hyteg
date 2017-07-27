@@ -62,7 +62,7 @@ int main (int argc, char** argv) {
 
   WALBERLA_MPI_BARRIER();
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(uint_c(walberla::MPIManager::instance()->rank()) , setupStorage));
+  std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(setupStorage));
 
 
   FaceP1BubbleFunctionMemoryDataHandling faceP1BubbleFunctionMemoryDataHandling;

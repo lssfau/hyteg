@@ -7,8 +7,8 @@
 namespace hhg {
 namespace communication {
 
-BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage ) :
-    primitiveStorage_( primitiveStorage )
+BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
+    primitiveStorage_( primitiveStorage ), localCommunicationMode_( localCommunicationMode )
 {
   for ( auto & bufferSystem : bufferSystems_ )
   {

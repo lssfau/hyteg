@@ -1,6 +1,7 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
 
 namespace hhg
 {
@@ -235,6 +236,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 //  file << "</VTKFile>\n";
 //
 //  file.close();
+
 }
 
 }

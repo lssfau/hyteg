@@ -117,7 +117,7 @@ static void testPrimitiveData()
 
   WALBERLA_LOG_INFO( setupStorage );
 
-  PrimitiveStorage storage( uint_c( walberla::mpi::MPIManager::instance()->rank() ), setupStorage );
+  PrimitiveStorage storage( setupStorage );
 
   TestDataHandling testDataHandling;
   VertexTestDataHandling vertexTestDataHandling;

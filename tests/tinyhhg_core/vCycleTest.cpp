@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 
   walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
   if (walberlaEnv.config() == nullptr) {
-    auto defaultFile = "../../data/param/fmg_test.prm";
+    auto defaultFile = "../../data/param/vCycleTest.prm";
     cfg->readParameterFile(defaultFile);
     if(!*cfg){
       WALBERLA_ABORT("could not open default file: " << defaultFile);

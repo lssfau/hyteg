@@ -25,9 +25,7 @@ public:
   typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
   typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
 
-  PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage );
-
-  uint_t getRank() const { return rank_; }
+  PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
   void checkConsistency();
 
@@ -150,7 +148,15 @@ public:
   FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
   FaceMap::const_iterator endFaces()        const { return faces_.end(); }
 
-  uint_t getNeighborPrimitiveRank( const PrimitiveID & id ) const { return neighborRanks_.at( id.getID() ); }
+  /// Returns the rank of the process the primitive is located on.
+  /// Returns the local MPI rank if it is a local primitive.
+  /// Returns the correct rank if the primitive lies in the direct neighborhood.
+  /// Should not be called for other primitives.
+  uint_t getPrimitiveRank        ( const PrimitiveID & id ) const;
+
+  /// Returns the correct rank if the primitive lies in the direct neighborhood.
+  /// Should not be called for other primitives.
+  uint_t getNeighborPrimitiveRank( const PrimitiveID & id ) const { WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ) ); return neighborRanks_.at( id.getID() ); }
 
   ////////////////////////////
   // Primitive data methods //
@@ -193,7 +199,6 @@ private:
   EdgeMap   neighborEdges_;
   FaceMap   neighborFaces_;
 
-  uint_t rank_;
   uint_t primitiveDataHandlers_;
 
   std::map< PrimitiveID::IDType, uint_t > neighborRanks_;

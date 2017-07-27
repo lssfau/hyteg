@@ -26,8 +26,8 @@ enum ElementType {
 
 void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (rowsize - 1);
-  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (rowsize - 1);
+  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / walberla::real_c((rowsize - 1));
+  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / walberla::real_c((rowsize - 1));
 
   real_t orientation = 1.0;
 
@@ -115,9 +115,6 @@ public:
     {
       WALBERLA_ABORT("Could not determine memory id of P1 operator");
     }
-
-    WALBERLA_LOG_DEVEL("Created Operator with ID " + std::to_string(memory_id))
-
 
     for (size_t level = minLevel; level <= maxLevel; ++level)
     {

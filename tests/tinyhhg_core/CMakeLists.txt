@@ -4,8 +4,8 @@ waLBerla_link_files_to_builddir(../../data/param/*.prm)
 waLBerla_compile_test(FILES P1IntegrateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1IntegrateTest)
 
-waLBerla_compile_test(FILES fmgTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME fmgTest)
+waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME vCycleTest)
 
 waLBerla_compile_test(FILES P1FaceIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1FaceIndexingTest)

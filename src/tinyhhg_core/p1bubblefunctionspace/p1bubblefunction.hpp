@@ -62,8 +62,6 @@ public:
       std::exit(-1);
     }
 
-    WALBERLA_LOG_PROGRESS("Created Function with ID " + std::to_string(memory_id))
-
     for (Vertex& vertex : mesh.vertices)
     {
       if (vertex.rank == rank)
@@ -267,14 +265,89 @@ public:
       }
     }
 
-#ifdef WALBERLA_BUILD_WITH_MPI
-    real_t sp_g = 0.0;
-    MPI_Allreduce(&sp_l, &sp_g, 1, walberla::MPITrait< real_t >::type(), MPI_SUM, MPI_COMM_WORLD);
 
-    return sp_g;
-#else // WALBERLA_BUILD_WITH_MPI
-    return sp_l;
+
+#ifdef WALBERLA_BUILD_WITH_MPI
+    walberla::mpi::allReduceInplace(sp_l,walberla::mpi::SUM,walberla::MPIManager::instance().get()->comm());
 #endif
+    return sp_l;
+  }
+
+  void enumerate(size_t level, size_t& num)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::enumerate(level, vertex, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_vertices(edge, memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::enumerate(level, edge, memory_id, num);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::pull_edges(face, memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::enumerate(level, face, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_halos(edge, memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::pull_halos(vertex, memory_id, level);
+    }
+  }
+
+  void enumerate_p1(size_t level, size_t& num)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::enumerate_p1(level, vertex, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_vertices(edge, memory_id, level);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      // enumerate_p1 for edges is the same as enumerate
+      P1BubbleEdge::enumerate(level, edge, memory_id, num);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::pull_edges(face, memory_id, level);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::enumerate_p1(level, face, memory_id, num);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::pull_halos(edge, memory_id, level);
+    }
+
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::pull_halos(vertex, memory_id, level);
+    }
   }
 
 //  void prolongate(size_t level, DoFType flag = All)

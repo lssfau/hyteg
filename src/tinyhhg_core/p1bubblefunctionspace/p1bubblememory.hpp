@@ -67,7 +67,7 @@ public:
 
   inline size_t getSize(size_t level)
   {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps_ * 2;
+    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
   }
 };
 

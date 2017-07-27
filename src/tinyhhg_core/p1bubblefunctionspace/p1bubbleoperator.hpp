@@ -319,7 +319,7 @@ public:
   {
     for (Vertex& vertex : mesh.vertices)
     {
-      if (testFlag(vertex.type, flag))
+//      if (testFlag(vertex.type, flag))
       {
         P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
       }
@@ -361,6 +361,24 @@ public:
       {
         P1BubbleFace::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
       }
+    }
+  }
+
+  void save(const P1BubbleFunction& src, const P1BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    for (Vertex& vertex : mesh.vertices)
+    {
+      P1BubbleVertex::saveOperator(level, vertex, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Edge& edge : mesh.edges)
+    {
+      P1BubbleEdge::saveOperator(level, edge, out, this->memory_id, src.memory_id, dst.memory_id, flag);
+    }
+
+    for (Face& face : mesh.faces)
+    {
+      P1BubbleFace::saveOperator(level, face, out, this->memory_id, src.memory_id, dst.memory_id, flag);
     }
   }
 

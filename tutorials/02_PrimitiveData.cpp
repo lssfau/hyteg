@@ -48,7 +48,7 @@ namespace hhg {
  *
  * The PrimitiveDataHandling::serialize() and PrimitiveDataHandling::deserialize() methods can be used
  * for runtime load balancing or checkpoint-restart features (but are not required for this tutorial).
- * If you are sure you do not need them, it is possible to inherit from convenience classes like NoSerializePrimitiveDataHandling
+ * If you are sure you do not need them, it is possible to inherit from convenience classes like OnlyInitializeDataHandling
  * which implements empty serialize and deserialize methods.
  *
  * \section adding Adding the data to the primitives
@@ -141,7 +141,6 @@ void PrimitiveStorageTutorial()
   // From the PrimtivieStorage tutorial //
   //------------------------------------//
 
-  uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
@@ -154,7 +153,7 @@ void PrimitiveStorageTutorial()
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  hhg::PrimitiveStorage storage( rank, setupStorage );
+  hhg::PrimitiveStorage storage( setupStorage );
 
   //-----------------//
   // New stuff below //

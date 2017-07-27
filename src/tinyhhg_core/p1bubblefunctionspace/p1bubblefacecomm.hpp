@@ -18,6 +18,12 @@ inline void packData_tmpl(Face &face, uint_t memory_id, walberla::mpi::SendBuffe
   for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], VERTEX_INNER, Level); it != indexIterator(); ++it){
     sendBuffer << face_data[*it];
   }
+  for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], CELL_GRAY, Level); it != indexIterator(); ++it){
+    sendBuffer << face_data[*it];
+  }
+  for(auto it = indexIterator(edgeIndex, face.edge_orientation[edgeIndex], CELL_BLUE, Level); it != indexIterator(); ++it){
+    sendBuffer << face_data[*it];
+  }
 }
 SPECIALIZE(void, packData_tmpl, packData)
 
