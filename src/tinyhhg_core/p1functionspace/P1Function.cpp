@@ -150,7 +150,35 @@ void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vec
 
 real_t P1Function::dot(P1Function& rhs, size_t level, DoFType flag)
 {
+  real_t scalarProduct = 0.0;
 
+  for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag)) {
+        scalarProduct += P1Vertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
+      }
+  }
+
+  for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag)) {
+        scalarProduct += P1Edge::dot(edge, edgeDataID_, rhs.edgeDataID_, level);
+      }
+  }
+
+  for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag)) {
+        scalarProduct += P1Face::dot(face, faceDataID_, rhs.faceDataID_, level);
+      }
+  }
+
+  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+
+  return scalarProduct;
 }
 
 void P1Function::prolongate(size_t level, DoFType flag){
