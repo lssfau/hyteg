@@ -74,17 +74,10 @@ inline void interpolate(Face& face, PrimitiveDataID<FaceP1FunctionMemory, Face>&
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   Point3D x, x0;
 
-  if (face.edge_orientation[0] == 1)
-  {
-    x0 = face.edges[0]->v0->coords;
-  }
-  else
-  {
-    x0 = face.edges[0]->v1->coords;
-  }
+  x0 = face.coords[0];
 
-  Point3D d0 = face.edge_orientation[0] * face.edges[0]->direction / (walberla::real_c(rowsize-1));
-  Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (walberla::real_c(rowsize-1));
+  Point3D d0 = (face.coords[1] - face.coords[0]) / (walberla::real_c(rowsize-1));
+  Point3D d2 = (face.coords[2] - face.coords[0]) / (walberla::real_c(rowsize-1));
 
   size_t mr_c = 1 + rowsize;
   size_t inner_rowsize = rowsize;
