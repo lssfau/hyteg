@@ -41,9 +41,10 @@ inline void free(Vertex& vertex, size_t memory_id)
   vertex.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Vertex& vertex, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+inline void interpolate(Vertex& vertex, PrimitiveDataID<VertexP1FunctionMemory, Vertex>& vertexMemoryId, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
 {
-  P1::getVertexFunctionMemory(vertex, memory_id)->data[level][0] = expr(vertex.coords);
+  VertexP1FunctionMemory* vertexMemory = vertex.getData(vertexMemoryId);
+  vertexMemory->data[level][0] = expr(vertex.coords);
 }
 
 inline void assign(Vertex& vertex, const std::vector<real_t>& scalars, const std::vector<size_t>& src_ids, size_t dst_id, size_t level)

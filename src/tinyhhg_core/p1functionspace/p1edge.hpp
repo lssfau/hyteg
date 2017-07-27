@@ -27,8 +27,10 @@ inline void free(Edge& edge, size_t memory_id)
   edge.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Edge& edge, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+inline void interpolate(Edge& edge, PrimitiveDataID<EdgeP1FunctionMemory, Edge>& edgeMemoryId, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
 {
+  EdgeP1FunctionMemory* edgeMemory = edge.getData(edgeMemoryId);
+
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   Point3D x = edge.v0->coords;
   Point3D dx = edge.direction / (real_t) (rowsize - 1);
@@ -36,7 +38,7 @@ inline void interpolate(Edge& edge, size_t memory_id, std::function<real_t(const
 
   for (size_t i = 1; i < rowsize-1; ++i)
   {
-    P1::getEdgeFunctionMemory(edge, memory_id)->data[level][i] = expr(x);
+    edgeMemory->data[level][i] = expr(x);
     x += dx;
   }
 }

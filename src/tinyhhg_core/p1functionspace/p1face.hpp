@@ -67,8 +67,10 @@ inline void free(Face& face, size_t memory_id)
   face.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+inline void interpolate(Face& face, PrimitiveDataID<FaceP1FunctionMemory, Face>& faceMemoryId, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
 {
+  FaceP1FunctionMemory* faceMemory = face.getData(faceMemoryId);
+
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   Point3D x, x0;
 
@@ -94,7 +96,7 @@ inline void interpolate(Face& face, size_t memory_id, std::function<real_t(const
 
     for (size_t j = 0; j < inner_rowsize-3; ++j)
     {
-      P1::getFaceFunctionMemory(face, memory_id)->data[level][mr_c] = expr(x);
+      faceMemory->data[level][mr_c] = expr(x);
       x += d0;
       mr_c += 1;
     }
