@@ -18,12 +18,12 @@ namespace hhg {
 
 using walberla::uint_t;
 
-PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveStorage & setupStorage ) :
-  rank_( rank ), primitiveDataHandlers_( 0 )
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
+  primitiveDataHandlers_( 0 )
 {
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
   {
-    if ( rank_ == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it->first ) )
     {
       vertices_[ it->first ] = new Vertex( *it->second );
     }
@@ -31,7 +31,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 
   for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
   {
-    if ( rank_ == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
     {
       edges_[ it->first ] = new Edge( *it->second );
     }
@@ -39,7 +39,7 @@ PrimitiveStorage::PrimitiveStorage( const uint_t & rank, const SetupPrimitiveSto
 
   for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
   {
-    if ( rank_ == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
     {
       faces_[ it->first ] = new Face( *it->second );
     }
