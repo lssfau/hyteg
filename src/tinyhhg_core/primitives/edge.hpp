@@ -116,15 +116,6 @@ private:
 
 };
 
-class EdgeMemory
-{
-public:
-  const MemoryType type;
-  virtual ~EdgeMemory() { }
-
-protected:
-  EdgeMemory(MemoryType t) : type(t) { ; }
-};
 }
 
 #endif /* EDGE_HPP */

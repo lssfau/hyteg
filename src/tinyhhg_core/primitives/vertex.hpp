@@ -124,17 +124,6 @@ private:
 
 };
 
-
-class VertexMemory
-{
-public:
-  const MemoryType type;
-  virtual ~VertexMemory() { }
-
-protected:
-  VertexMemory(MemoryType t) : type(t) { ; }
-};
-
 }
 
 #endif /* VERTEX_HPP */

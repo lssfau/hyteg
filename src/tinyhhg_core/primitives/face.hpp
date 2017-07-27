@@ -99,15 +99,6 @@ protected:
 
 };
 
-class FaceMemory
-{
-public:
-  const MemoryType type;
-  virtual ~FaceMemory() { }
-
-protected:
-  FaceMemory(MemoryType t) : type(t) { ; }
-};
 }
 
 #endif /* FACE_HPP */
