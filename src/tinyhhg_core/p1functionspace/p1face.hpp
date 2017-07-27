@@ -67,7 +67,7 @@ inline void free(Face& face, size_t memory_id)
   face.memory[memory_id] = nullptr;
 }
 
-inline void interpolate(Face& face, PrimitiveDataID<FaceP1FunctionMemory, Face>& faceMemoryId, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
+inline void interpolate(Face& face,const PrimitiveDataID<FaceP1FunctionMemory, Face>& faceMemoryId, std::function<real_t(const hhg::Point3D&)>& expr, size_t level)
 {
   FaceP1FunctionMemory* faceMemory = face.getData(faceMemoryId);
 
