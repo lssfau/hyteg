@@ -151,8 +151,6 @@ private:
 static void testBufferedCommunication()
 {
 
-  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-
   std::string meshFileName = "../../data/meshes/bfs_126el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
