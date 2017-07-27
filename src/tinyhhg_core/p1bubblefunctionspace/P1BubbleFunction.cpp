@@ -1,3 +1,4 @@
+#if 0
 #include "p1bubblefunction.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "p1bubblevertex.hpp"
@@ -53,3 +54,4 @@ void P1BubbleFunction::restrict(size_t level, DoFType flag = All)
 
 }
 }
+#endif

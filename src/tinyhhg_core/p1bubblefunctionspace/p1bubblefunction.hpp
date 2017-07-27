@@ -12,6 +12,7 @@
 
 namespace hhg
 {
+#if 0
 
 //FIXME remove after we are in walberla namespace
 using namespace walberla::mpistubs;
@@ -55,7 +56,7 @@ private:
   PrimitiveDataID<FaceP1BubbleFunctionMemory, Face> faceDataID_;
 };
 
-#if 0
+
 class P1BubbleFunction : public OldFunction
 {
 public:
