@@ -19,7 +19,7 @@ static void testP1Integration()
   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
-  PrimitiveStorage storage( uint_c( walberla::mpi::MPIManager::instance()->rank() ), setupStorage );
+  PrimitiveStorage storage( setupStorage );
 
   size_t minLevel = 2;
   size_t maxLevel = 5;

@@ -99,7 +99,7 @@ void PrimitiveStorageTutorial()
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
   /// [PrimitiveStorage]
-  hhg::PrimitiveStorage storage( rank, setupStorage );
+  hhg::PrimitiveStorage storage( setupStorage );
   /// [PrimitiveStorage]
 
   // For nicer output

@@ -25,7 +25,7 @@ static void testPrimitiveStorage()
 
   WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
 
-  PrimitiveStorage storage( rank, setupStorage );
+  PrimitiveStorage storage( setupStorage );
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking that all primitives have been loadbalanced as expected, checking neighborhood on SetupStorage" );
 

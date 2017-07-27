@@ -8,7 +8,6 @@ namespace hhg {
 static void testP1DataHandling()
 {
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-  uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
   uint_t minLevel =  1;
   uint_t maxLevel = 10;
@@ -17,7 +16,7 @@ static void testP1DataHandling()
 
   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-  PrimitiveStorage      storage( rank, setupStorage );
+  PrimitiveStorage      storage( setupStorage );
 
   WALBERLA_LOG_INFO( setupStorage );
 
