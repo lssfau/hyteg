@@ -18,8 +18,6 @@ namespace hhg
 class Vertex;
 class Face;
 
-class EdgeMemory;
-
 class Edge : public Primitive
 {
 public:
@@ -72,7 +70,7 @@ public:
 
   std::vector<Face*> faces;
 
-  std::vector<EdgeMemory*> memory;
+  std::vector<void*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 

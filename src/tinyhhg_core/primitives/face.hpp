@@ -17,7 +17,6 @@ namespace hhg
 
 class Vertex;
 class Edge;
-class FaceMemory;
 
 class Face : public Primitive
 {
@@ -58,7 +57,7 @@ public:
   std::array<int, 3> edge_orientation;
   std::array<Point3D, 3> coords;
 
-  std::vector<FaceMemory*> memory;
+  std::vector<void*> memory;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 

@@ -18,7 +18,6 @@ namespace hhg
 class Edge;
 class Face;
 
-class VertexMemory;
 
 /// \brief  Macro-Vertex primitive
 /// \author Daniel Drzisga (drzisga@ma.tum.de)
@@ -75,12 +74,10 @@ public:
   /// Pointers to faces adjacent to vertex
   std::vector<Face*> faces;
 
-
   /// Vector containing pointers to memory used by \ref Function and \ref Operator
   /// The std::vector corresponds to the memory id of a \ref Function or an \Operator
   /// This replaces the old data and opr_data vectors
-  std::vector<VertexMemory*> memory;
-
+  std::vector<void*> memory;
 
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);

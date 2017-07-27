@@ -17,10 +17,8 @@ namespace hhg
 {
 
 class VertexP1BubbleStencilMemory
-  :public VertexMemory
 {
 public:
-  VertexP1BubbleStencilMemory() : VertexMemory(MemoryType::P1BubbleStencil) { ; }
 
   typedef std::vector<std::unique_ptr<real_t[]>> StencilStack;
   std::map<size_t, StencilStack> data;
@@ -45,10 +43,8 @@ public:
 
 
 class VertexP1BubbleFunctionMemory
-  :public VertexMemory
 {
 public:
-  VertexP1BubbleFunctionMemory() : VertexMemory(MemoryType::P1BubbleFunction) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
   size_t num_deps_;
@@ -73,10 +69,8 @@ public:
 
 
 class EdgeP1BubbleStencilMemory
-  :public EdgeMemory
 {
 public:
-  EdgeP1BubbleStencilMemory() : EdgeMemory(MemoryType::P1BubbleStencil) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
 
@@ -100,10 +94,8 @@ public:
 
 
 class EdgeP1BubbleFunctionMemory
-  :public EdgeMemory
 {
 public:
-  EdgeP1BubbleFunctionMemory() : EdgeMemory(MemoryType::P1BubbleFunction) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
   size_t num_deps_;
@@ -133,10 +125,8 @@ public:
 
 
 class FaceP1BubbleStencilMemory
-  :public FaceMemory
 {
 public:
-  FaceP1BubbleStencilMemory() : FaceMemory(MemoryType::P1BubbleStencil) { ; }
 
   typedef std::array<std::unique_ptr<real_t[]>, 3> StencilStack;
 
@@ -173,10 +163,8 @@ public:
 
 
 class FaceP1BubbleFunctionMemory
-  :public FaceMemory
 {
 public:
-  FaceP1BubbleFunctionMemory() : FaceMemory(MemoryType::P1BubbleFunction) { ; }
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
 
