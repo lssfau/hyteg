@@ -10,9 +10,10 @@ namespace communication {
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
     primitiveStorage_( primitiveStorage ), localCommunicationMode_( localCommunicationMode )
 {
+  int baseTag = 0;
   for ( auto & bufferSystem : bufferSystems_ )
   {
-    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm() ) );
+    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), baseTag++ ) );
   }
 }
 
