@@ -2,36 +2,38 @@
 #define LEVELINFO_HPP
 
 #include <cmath>
-
+#include "core/DataTypes.h"
 
 namespace hhg
 {
 namespace levelinfo
 {
 
-inline size_t num_microvertices_per_vertex(size_t /*level*/)
+using walberla::uint_t;
+
+inline uint_t num_microvertices_per_vertex(uint_t /*level*/)
 {
   return 1;
 }
 
-inline size_t num_microvertices_per_edge(size_t level)
+inline uint_t num_microvertices_per_edge(uint_t level)
 {
-  return (size_t) std::pow(2, level) + 1;
+  return (uint_t) std::pow(2, level) + 1;
 }
 
-inline size_t num_microedges_per_edge(size_t level)
+inline uint_t num_microedges_per_edge(uint_t level)
 {
   return num_microvertices_per_edge(level) - 1;
 }
 
-inline size_t num_microvertices_per_face(size_t level)
+inline uint_t num_microvertices_per_face(uint_t level)
 {
-  return (size_t) ((std::pow(2, level)+1) * (std::pow(2, level-1) + 1));
+  return (uint_t) ((std::pow(2, level)+1) * (std::pow(2, level-1) + 1));
 }
 
-inline size_t num_microfaces_per_face(size_t level)
+inline uint_t num_microfaces_per_face(uint_t level)
 {
-  return (size_t) (std::pow(4, level));
+  return (uint_t) (std::pow(4, level));
 }
 
 }
