@@ -6,15 +6,15 @@
 
 namespace hhg {
 
-P1Function::P1Function(const std::string& name, PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel)
+P1Function::P1Function(const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel)
     : Function(name, storage, minLevel, maxLevel)
 {
     FaceP1FunctionMemoryDataHandling faceP1FunctionMemoryDataHandling(minLevel, maxLevel);
     EdgeP1FunctionMemoryDataHandling edgeP1FunctionMemoryDataHandling(minLevel, maxLevel);
     VertexP1FunctionMemoryDataHandling vertexP1FunctionMemoryDataHandling(minLevel, maxLevel);
-    faceDataID_ = storage.addFaceData(faceP1FunctionMemoryDataHandling, name);
-    edgeDataID_ = storage.addEdgeData(edgeP1FunctionMemoryDataHandling, name);
-    vertexDataID_ = storage.addVertexData(vertexP1FunctionMemoryDataHandling, name);
+    faceDataID_ = storage->addFaceData(faceP1FunctionMemoryDataHandling, name);
+    edgeDataID_ = storage->addEdgeData(edgeP1FunctionMemoryDataHandling, name);
+    vertexDataID_ = storage->addVertexData(vertexP1FunctionMemoryDataHandling, name);
 }
 
 P1Function::~P1Function()
@@ -24,7 +24,7 @@ P1Function::~P1Function()
 
 void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag = All)
 {
-    for (auto& it : storage_.getVertices()) {
+    for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.type, flag)) {
@@ -32,9 +32,9 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
         }
     }
 
-    comm[level].startCommunication<Vertex, Edge>();
+    communicators_[level]->startCommunication<Vertex, Edge>();
 
-    for (auto& it : storage_.getEdges()) {
+    for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
         if (testFlag(edge.type, flag)) {
@@ -42,10 +42,10 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
         }
     }
 
-    comm[level].endCommunication<Vertex, Edge>();
-    comm[level].startCommunication<Edge, Face>();
+    communicators_[level]->endCommunication<Vertex, Edge>();
+    communicators_[level]->startCommunication<Edge, Face>();
 
-    for (auto& it : storage_.getFaces()) {
+    for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
@@ -53,7 +53,7 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
         }
     }
 
-    comm[level].endCommunication<Edge, Face>();
+    communicators_[level]->endCommunication<Edge, Face>();
 }
 
 void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)
@@ -70,7 +70,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         srcFaceIDs.push_back(function->faceDataID_);
     }
 
-    for (auto& it : storage_.getVertices()) {
+    for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.type, flag)) {
@@ -78,9 +78,9 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         }
     }
 
-    comm[level].startCommunication<Vertex, Edge>();
+    communicators_[level]->startCommunication<Vertex, Edge>();
 
-    for (auto& it : storage_.getEdges()) {
+    for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
         if (testFlag(edge.type, flag)) {
@@ -88,10 +88,10 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         }
     }
 
-    comm[level].endCommunication<Vertex, Edge>();
-    comm[level].startCommunication<Edge, Face>();
+    communicators_[level]->endCommunication<Vertex, Edge>();
+    communicators_[level]->startCommunication<Edge, Face>();
 
-    for (auto& it : storage_.getFaces()) {
+    for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
@@ -99,7 +99,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
         }
     }
 
-    comm[level].endCommunication<Edge, Face>();
+    communicators_[level]->endCommunication<Edge, Face>();
 }
 
 void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All)

@@ -9,7 +9,7 @@ class FaceP1FunctionMemory;
 
 class P1Function : public Function {
 public:
-    P1Function(const std::string& name, PrimitiveStorage& storage, uint_t minLevel, uint_t maxLevel);
+    P1Function(const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel);
 
     ~P1Function();
 
