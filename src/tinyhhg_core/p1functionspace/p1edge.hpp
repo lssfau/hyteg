@@ -117,12 +117,12 @@ inline void smooth_gs(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
   }
 }
 
-inline void prolongate(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId, size_t level) {
-  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(level);
+inline void prolongate(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId, size_t sourceLevel) {
+  size_t rowsize_coarse = levelinfo::num_microvertices_per_edge(sourceLevel);
   size_t i_fine = 1;
 
-  auto &edge_data_f = edge.getData(memoryId)->data[level + 1];
-  auto &edge_data_c = edge.getData(memoryId)->data[level];
+  auto &edge_data_f = edge.getData(memoryId)->data[sourceLevel + 1];
+  auto &edge_data_c = edge.getData(memoryId)->data[sourceLevel];
 
   for (size_t i_coarse = 0; i_coarse < rowsize_coarse - 1; ++i_coarse) {
     edge_data_f[i_fine] = 0.5*(edge_data_c[i_coarse] + edge_data_c[i_coarse + 1]);

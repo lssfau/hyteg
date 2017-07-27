@@ -181,8 +181,43 @@ real_t P1Function::dot(P1Function& rhs, size_t level, DoFType flag)
   return scalarProduct;
 }
 
-void P1Function::prolongate(size_t level, DoFType flag){
+void P1Function::prolongate(size_t sourceLevel, DoFType flag)
+{
+  const size_t destinationLevel = sourceLevel + 1;
 
+  for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::prolongate(vertex, vertexDataID_, sourceLevel);
+      }
+  }
+
+  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::prolongate(edge, edgeDataID_, sourceLevel);
+      }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::prolongate(sourceLevel, face, faceDataID_);
+      }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Edge, Face>();
 }
 
 void P1Function::prolongateQuadratic(size_t level, DoFType flag){

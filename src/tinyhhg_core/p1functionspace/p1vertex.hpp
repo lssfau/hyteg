@@ -88,9 +88,9 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
   dst[0] /= opr_data[0];
 }
 
-inline void prolongate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId, size_t level) {
-  vertex.getData(memoryId)->data[level + 1][0] =
-      vertex.getData(memoryId)->data[level][0];
+inline void prolongate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId, size_t sourceLevel) {
+  vertex.getData(memoryId)->data[sourceLevel + 1][0] =
+      vertex.getData(memoryId)->data[sourceLevel][0];
 }
 
 inline void prolongateQuadratic(Vertex &vertex,
