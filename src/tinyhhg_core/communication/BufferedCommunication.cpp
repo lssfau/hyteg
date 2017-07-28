@@ -15,6 +15,13 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
   {
     bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), baseTag++ ) );
   }
+
+#ifndef NDEBUG
+  for ( auto & communicationInProgress : communicationInProgress_ )
+  {
+    communicationInProgress = false;
+  }
+#endif
 }
 
 void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & packInfo )

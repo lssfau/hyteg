@@ -106,6 +106,9 @@ private:
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
+#ifndef NDEBUG
+  std::array< bool,                                                 NUM_COMMUNICATION_DIRECTIONS > communicationInProgress_;
+#endif
 
   LocalCommunicationMode localCommunicationMode_;
 
@@ -143,6 +146,11 @@ void BufferedCommunicator::startCommunication()
 
   bool                   sendingToHigherDim     = sendingToHigherDimension< SenderType, ReceiverType >();
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
+
+#ifndef NDEBUG
+  WALBERLA_ASSERT( !communicationInProgress_[ communicationDirection ] );
+  communicationInProgress_[ communicationDirection ] = true;
+#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
 
@@ -300,6 +308,11 @@ void BufferedCommunicator::endCommunication()
   }
 
   const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
+
+#ifndef NDEBUG
+  WALBERLA_ASSERT( communicationInProgress_[ communicationDirection ] );
+  communicationInProgress_[ communicationDirection ] = false;
+#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
