@@ -12,6 +12,7 @@ using namespace hhg::P1Edge;
 ///@{
 
 void P1PackInfo::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer){
+  WALBERLA_UNUSED(receiver);
   real_t *vertexData = sender->getData(dataIDVertex_)->data[level_].get();
   buffer << vertexData[0];
 }

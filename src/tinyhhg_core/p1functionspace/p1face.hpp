@@ -11,6 +11,7 @@ namespace hhg {
 namespace P1Face {
 
 using walberla::uint_t;
+using walberla::real_c;
 
 enum Dir {
   S = 0,
@@ -63,7 +64,7 @@ inline void interpolateTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     x = x0;
-    x += i*d2 + d0;
+    x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       faceMemory->data[Level][index<Level>(j, i, C)] = expr(x);

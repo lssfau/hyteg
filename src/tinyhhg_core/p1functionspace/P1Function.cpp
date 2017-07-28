@@ -226,6 +226,8 @@ void P1Function::prolongate(size_t sourceLevel, DoFType flag)
 }
 
 void P1Function::prolongateQuadratic(size_t level, DoFType flag){
+  WALBERLA_UNUSED(level);
+  WALBERLA_UNUSED(flag);
   WALBERLA_ABORT( "quadratic interpolation not implemented for P1" );
 }
 

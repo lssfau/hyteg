@@ -116,7 +116,8 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   size_t offset = 0;
 
   for (auto& it : storage->getFaces()) {
-
+    //TODO is it really unused?
+    WALBERLA_UNUSED(it);
     size_t rowsize = levelinfo::num_microvertices_per_edge(level) - 1;
     size_t inner_rowsize = rowsize;
 
@@ -144,7 +145,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   // offsets
   offset = 3;
   for (auto& it : storage->getFaces()) {
-    Face &face = *it.second;
+    WALBERLA_UNUSED(it);
 
     for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
@@ -158,7 +159,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
   // cell types
   for (auto& it : storage->getFaces()) {
-
+    WALBERLA_UNUSED(it);
     for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
       file << "5 ";

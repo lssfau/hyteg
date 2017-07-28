@@ -84,7 +84,7 @@ public:
     return data[level];
   }
 
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t)
   {
     return 7;
   }
@@ -97,7 +97,7 @@ class EdgeP1FunctionMemory
 public:
 
   std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps;
+  size_t num_deps_;
 
   inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
   {
@@ -105,7 +105,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      this->num_deps = num_deps;
+      this->num_deps_ = num_deps;
       data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
@@ -114,7 +114,7 @@ public:
   inline size_t getSize(size_t level)
   {
     size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-    return num_dofs_per_edge + num_deps*(num_dofs_per_edge-1);
+    return num_dofs_per_edge + num_deps_*(num_dofs_per_edge-1);
   }
 };
 
@@ -136,7 +136,7 @@ public:
     return data[level];
   }
 
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t)
   {
     return 7;
   }

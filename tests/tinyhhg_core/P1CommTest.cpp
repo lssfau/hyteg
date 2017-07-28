@@ -5,7 +5,6 @@
 
 using namespace hhg;
 using walberla::real_t;
-using namespace hhg::P1Edge;
 
 int main (int argc, char ** argv )
 {
@@ -16,7 +15,7 @@ int main (int argc, char ** argv )
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-  PrimitiveStorage storage(uint_c(walberla::mpi::MPIManager::instance()->rank()), setupStorage);
+  PrimitiveStorage storage(setupStorage);
 
 
   const uint_t minLevel = 2;
