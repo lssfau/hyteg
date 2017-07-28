@@ -17,10 +17,7 @@ inline void interpolate(Edge &edge,
   Point3D x = edge.coords_[0];
   Point3D dx = edge.direction_/(real_t) (rowsize - 1);
 
-  fmt::print("x = {}\n", x);
   x += dx;
-
-  fmt::print("direction = {}\n", edge.direction_);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
     edgeMemory->data[level][i] = expr(x);
