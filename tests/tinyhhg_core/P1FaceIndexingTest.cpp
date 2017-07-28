@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   std::vector<size_t> result;
   for(auto n : neighbors_with_center)
   {
-    size_t idx = index<3>(1, 1, n);
+    size_t idx = index < 3>(1, 1, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   result.clear();
   for(auto n : neighbors_with_center)
   {
-    size_t idx = index<3>(5, 2, n);
+    size_t idx = index < 3>(5, 2, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }

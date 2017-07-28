@@ -20,7 +20,8 @@ const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
 const Dir neighbors[] = {S, SE, W, E, NW, N};
 
 template<size_t Level>
-inline size_t index(size_t row, size_t col, Dir dir) {
+inline size_t index(size_t col, size_t row, Dir dir)
+{
   size_t h = levelinfo::num_microvertices_per_edge(Level);
   WALBERLA_ASSERT_LESS_EQUAL(row,h);
   WALBERLA_ASSERT_LESS_EQUAL(col,h);
@@ -35,7 +36,7 @@ inline size_t index(size_t row, size_t col, Dir dir) {
     case SE:return center - h + row;
     case NW:return center + h - row - 1;
   }
-  return 0;
+  return std::numeric_limits<uint_t>::max();
 }
 
 template<size_t Level>
@@ -59,7 +60,7 @@ inline void interpolateTmpl(Face &face,
     x += i*d2 + d0;
 
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
-      faceMemory->data[Level][index<Level>(i, j, C)] = expr(x);
+      faceMemory->data[Level][index<Level>(j, i, C)] = expr(x);
       x += d0;
     }
 
@@ -364,6 +365,25 @@ inline bool is_boundary(size_t index, size_t length) {
   }
   return (index==0 || index==(length - 1));
 }
+
+//
+//template<size_t Level>
+//inline void printFunctionMemory(Face& face, PrimitiveDataID<FaceP1FunctionMemory,Face> memory_id){
+//  using namespace std;
+//  auto& faceMemory = hhg::P1Bubble::getFaceFunctionMemory(face, 0)->data[Level];
+//  uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
+//  cout << setfill('=') << setw(100) << "" << endl;
+//  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+//  cout << "Vertices: " << std::endl;
+//  for (size_t i = 0; i < verticesPerDge; ++i) {
+//    for (size_t j = 0; j < verticesPerDge - i; ++j) {
+//      cout << setw(5) << faceMemory[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] << "|";
+//    }
+//    std::cout << std::endl;
+//  }
+//  cout << setw(100) << setfill(' ') << endl;
+//
+//}
 
 
 }// namespace P1Face

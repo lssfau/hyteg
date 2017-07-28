@@ -57,6 +57,10 @@ int main(int argc, char* argv[])
 
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
+  auto face0data = *storage->beginFaces().operator*().second->getData(u.getFaceDataID());
+
+  hhg::P1Face::printFunctionMemory(face0data,maxLevel);
+
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
   hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
