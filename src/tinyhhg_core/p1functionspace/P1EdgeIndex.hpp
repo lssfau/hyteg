@@ -35,7 +35,7 @@ inline uint_t index(uint_t pos, DirVertex dir) {
   const uint_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
   WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const uint_t startFaceS = vertexOnEdge;
-  const uint_t startFaceN = 4 * (vertexOnEdge - 1);
+  const uint_t startFaceN = vertexOnEdge + vertexOnEdge - 1;
   const uint_t center = pos;
   switch (dir) {
     case VERTEX_C:
@@ -53,6 +53,8 @@ inline uint_t index(uint_t pos, DirVertex dir) {
     case VERTEX_W:
       return center - 1;
   }
+
+  WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<uint_t>::max();
 }
 
