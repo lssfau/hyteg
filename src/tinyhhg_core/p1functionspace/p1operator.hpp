@@ -246,54 +246,54 @@ public:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_gs(P1Function& dst, const P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
   {
-    WALBERLA_ABORT("P1Operator::smooth_gs not implemented");
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (testFlag(vertex.type, flag))
-//      {
-//        P1Vertex::pull_halos(vertex, dst.memory_id, level);
-//      }
-//    }
-//
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (vertex.rank == rank && testFlag(vertex.type, flag))
-//      {
-//        P1Vertex::smooth_gs(vertex, this->memory_id, dst.memory_id, rhs.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      P1Edge::pull_vertices(edge, dst.memory_id, level);
-//      if (testFlag(edge.type, flag))
-//      {
-//        P1Edge::pull_halos(edge, dst.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      if (edge.rank == rank && testFlag(edge.type, flag))
-//      {
-//        P1Edge::smooth_gs(edge, this->memory_id, dst.memory_id, rhs.memory_id, level);
-//      }
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      P1Face::pull_edges(face, dst.memory_id, level);
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      if (face.rank == rank && testFlag(face.type, flag))
-//      {
-//        P1Face::smooth_gs(level, face, this->memory_id, dst.memory_id, rhs.memory_id);
-//      }
-//    }
+    // start pulling vertex halos
+    dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
+
+    // start pulling edge halos
+    dst.getCommunicator(level)->startCommunication<Face, Edge>();
+
+    // end pulling vertex halos
+    dst.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
+      }
+    }
+
+    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+
+    // end pulling edge halos
+    dst.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::smooth_gs(edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), level);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::smooth_gs(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
  private:
