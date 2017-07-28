@@ -17,6 +17,7 @@ P1Function::P1Function(const std::string& name, const std::shared_ptr< Primitive
     edgeDataID_ = storage->addEdgeData(edgeP1FunctionMemoryDataHandling, name);
     vertexDataID_ = storage->addVertexData(vertexP1FunctionMemoryDataHandling, name);
   for(uint_t level = minLevel; level <= maxLevel; ++level){
+//    communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
     communicators_[level]->addPackInfo(std::make_shared<P1PackInfo>(level,vertexDataID_,edgeDataID_,faceDataID_,storage_));
   }
 }

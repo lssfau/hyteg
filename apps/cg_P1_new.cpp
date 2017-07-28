@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  size_t maxLevel = 4;
+  size_t maxLevel = 5;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
@@ -57,9 +57,9 @@ int main(int argc, char* argv[])
 
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  auto face0data = *storage->beginFaces().operator*().second->getData(u.getFaceDataID());
+//  auto face0data = *storage->beginFaces().operator*().second->getData(u.getFaceDataID());
 
-  hhg::P1Face::printFunctionMemory(face0data,maxLevel);
+//  hhg::P1Face::printFunctionMemory(face0data,maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 

@@ -17,6 +17,10 @@
 
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
+#include "p1vertex.hpp"
+#include "p1edge.hpp"
+#include "p1face.hpp"
+
 namespace hhg
 {
 
@@ -192,57 +196,59 @@ public:
   {
   }
 
-  void apply(const P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (testFlag(vertex.type, flag))
-//      {
-//        P1Vertex::pull_halos(vertex, src.memory_id, level);
-//      }
-//    }
-//
-//    for (Vertex& vertex : mesh.vertices)
-//    {
-//      if (vertex.rank == rank && testFlag(vertex.type, flag))
-//      {
-//        P1Vertex::apply(vertex, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      P1Edge::pull_vertices(edge, dst.memory_id, level);
-//      if (testFlag(edge.type, flag))
-//      {
-//        P1Edge::pull_halos(edge, src.memory_id, level);
-//      }
-//    }
-//
-//    for (Edge& edge : mesh.edges)
-//    {
-//      if (edge.rank == rank && testFlag(edge.type, flag))
-//      {
-//        P1Edge::apply(edge, this->memory_id, src.memory_id, dst.memory_id, level, updateType);
-//      }
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      P1Face::pull_edges(face, dst.memory_id, level);
-//    }
-//
-//    for (Face& face : mesh.faces)
-//    {
-//      if (face.rank == rank && testFlag(face.type, flag))
-//      {
-//        P1Face::apply(level, face, this->memory_id, src.memory_id, dst.memory_id, updateType);
-//      }
-//    }
+    // start pulling vertex halos
+    src.getCommunicator(level)->startCommunication<Edge, Vertex>();
+
+    // start pulling edge halos
+    src.getCommunicator(level)->startCommunication<Face, Edge>();
+
+    // end pulling vertex halos
+    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
+      }
+    }
+
+    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+
+    // end pulling edge halos
+    src.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::apply(edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), level, updateType);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
   void smooth_gs(P1Function& dst, const P1Function& rhs, size_t level, DoFType flag)
   {
+    WALBERLA_ABORT("P1Operator::smooth_gs not implemented");
 //    for (Vertex& vertex : mesh.vertices)
 //    {
 //      if (testFlag(vertex.type, flag))

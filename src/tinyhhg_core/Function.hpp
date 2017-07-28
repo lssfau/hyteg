@@ -37,6 +37,11 @@ public:
 
   uint_t getMaxLevel() const { return maxLevel_; }
 
+  std::shared_ptr<communication::BufferedCommunicator>& getCommunicator(uint_t level) {
+    WALBERLA_ASSERT(level >= minLevel_ && level <= maxLevel_);
+    return communicators_[level];
+  };
+
 protected:
     const std::string functionName_;
     const std::shared_ptr< PrimitiveStorage > storage_;
