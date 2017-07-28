@@ -43,14 +43,14 @@ public:
 
       if (printInfo)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] residual: {}\n", sqrsnew));
+        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] residual: {}", sqrsnew));
       }
 
       if (sqrsnew/res_start < tolerance)
       {
         if (printInfo)
         {
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] converged after {} iterations\n", i));
+          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] converged after {} iterations", i));
         }
         break;
       }
