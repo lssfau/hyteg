@@ -1,10 +1,16 @@
 #pragma once
 
+#include "core/debug/all.h"
+
+#include "tinyhhg_core/primitives/face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
+#include "p1memory.hpp"
 
 namespace hhg {
 namespace P1Face {
+
+using walberla::uint_t;
 
 enum Dir {
   S = 0,
@@ -19,14 +25,14 @@ enum Dir {
 const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
 const Dir neighbors[] = {S, SE, W, E, NW, N};
 
-template<size_t Level>
-inline size_t index(size_t col, size_t row, Dir dir)
+template<uint_t Level>
+inline uint_t index(uint_t col, uint_t row, Dir dir)
 {
-  size_t h = levelinfo::num_microvertices_per_edge(Level);
+  uint_t h = levelinfo::num_microvertices_per_edge(Level);
   WALBERLA_ASSERT_LESS_EQUAL(row,h);
   WALBERLA_ASSERT_LESS_EQUAL(col,h);
-  size_t n = h*(h + 1)/2;
-  size_t center = (n - (h - row)*(h - row + 1)/2) + col;
+  uint_t n = h*(h + 1)/2;
+  uint_t center = (n - (h - row)*(h - row + 1)/2) + col;
   switch (dir) {
     case C:return center;
     case N:return center + h - row;
@@ -39,13 +45,13 @@ inline size_t index(size_t col, size_t row, Dir dir)
   return std::numeric_limits<uint_t>::max();
 }
 
-template<size_t Level>
+template<uint_t Level>
 inline void interpolateTmpl(Face &face,
-                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &faceMemoryId,
+                            const PrimitiveDataID<FaceP1FunctionMemory, Face>& faceMemoryId,
                             std::function<real_t(const hhg::Point3D &)> &expr) {
   FaceP1FunctionMemory *faceMemory = face.getData(faceMemoryId);
 
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
 
   x0 = face.coords[0];
@@ -53,13 +59,13 @@ inline void interpolateTmpl(Face &face,
   Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
   Point3D d2 = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsize - 1));
 
-  size_t inner_rowsize = rowsize;
+  uint_t inner_rowsize = rowsize;
 
-  for (size_t i = 1; i < rowsize - 2; ++i) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
     x = x0;
     x += i*d2 + d0;
 
-    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       faceMemory->data[Level][index<Level>(j, i, C)] = expr(x);
       x += d0;
     }
@@ -71,20 +77,20 @@ inline void interpolateTmpl(Face &face,
 SPECIALIZE(void, interpolateTmpl, interpolate)
 
 inline void assign(Face &face,
-                   const std::vector<real_t> &scalars,
+                   const std::vector<real_t>& scalars,
                    const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
                    const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
-                   size_t level) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  size_t inner_rowsize = rowsize;
+                   uint_t level) {
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  uint_t mr = 1 + rowsize;
 
-  for (size_t i = 0; i < rowsize - 3; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j) {
+  for (uint_t i = 0; i < rowsize - 3; ++i) {
+    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
       real_t tmp = scalars[0]*face.getData(srcIds[0])->data[level][mr];
 
-      for (size_t k = 1; k < srcIds.size(); ++k) {
+      for (uint_t k = 1; k < srcIds.size(); ++k) {
         tmp += scalars[k]*face.getData(srcIds[k])->data[level][mr];
       }
       face.getData(dstId)->data[level][mr] = tmp;
@@ -98,20 +104,20 @@ inline void assign(Face &face,
 }
 
 inline void add(Face &face,
-                const std::vector<real_t> &scalars,
+                const std::vector<real_t>& scalars,
                 const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
                 const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
-                size_t level) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  size_t inner_rowsize = rowsize;
+                uint_t level) {
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  uint_t mr = 1 + rowsize;
 
-  for (size_t i = 0; i < rowsize - 3; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j) {
+  for (uint_t i = 0; i < rowsize - 3; ++i) {
+    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
       real_t tmp = 0.0;
 
-      for (size_t k = 0; k < srcIds.size(); ++k) {
+      for (uint_t k = 0; k < srcIds.size(); ++k) {
         tmp += scalars[k]*face.getData(srcIds[k])->data[level][mr];
       }
 
@@ -126,17 +132,17 @@ inline void add(Face &face,
 }
 
 inline real_t dot(Face &face,
-                  const PrimitiveDataID<FaceP1FunctionMemory, Face> &lhsId,
-                  const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId,
-                  size_t level) {
+                  const PrimitiveDataID<FaceP1FunctionMemory, Face>& lhsId,
+                  const PrimitiveDataID<FaceP1FunctionMemory, Face>& rhsId,
+                  uint_t level) {
   real_t sp = 0.0;
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  size_t inner_rowsize = rowsize;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
 
-  size_t mr = 1 + rowsize;
+  uint_t mr = 1 + rowsize;
 
-  for (size_t i = 0; i < rowsize - 3; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 3; ++j) {
+  for (uint_t i = 0; i < rowsize - 3; ++i) {
+    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
       sp += face.getData(lhsId)->data[level][mr]
           *face.getData(rhsId)->data[level][mr];
       mr += 1;
@@ -149,12 +155,12 @@ inline real_t dot(Face &face,
   return sp;
 }
 
-template<size_t Level>
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face> &operatorId,
+template<uint_t Level>
+inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                        const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
                        const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, UpdateType update) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  size_t inner_rowsize = rowsize;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
   auto &src = face.getData(srcId)->data[Level];
@@ -162,8 +168,8 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
 
   real_t tmp;
 
-  for (size_t i = 1; i < rowsize - 2; ++i) {
-    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       tmp = opr_data[C]*src[index<Level>(i, j, C)];
 
       for (auto neighbor : neighbors) {
@@ -182,12 +188,12 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
 
 SPECIALIZE(void, apply_tmpl, apply)
 
-template<size_t Level>
-inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face> &operatorId,
+template<uint_t Level>
+inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  size_t inner_rowsize = rowsize;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
   auto &dst = face.getData(dstId)->data[Level];
@@ -195,8 +201,8 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
   real_t tmp;
 
-  for (size_t i = 1; i < rowsize - 2; ++i) {
-    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       tmp = rhs[index<Level>(i, j, C)];
 
       for (auto neighbor : neighbors) {
@@ -211,17 +217,17 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
 SPECIALIZE(void, smooth_gs_tmpl, smooth_gs)
 
-template<size_t Level>
-inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
-  size_t N_c = levelinfo::num_microvertices_per_edge(Level);
-  size_t N_c_i = N_c;
+template<uint_t Level>
+inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face>& memoryId) {
+  uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
+  uint_t N_c_i = N_c;
 
   auto &v_f = face.getData(memoryId)->data[Level + 1];
   auto &v_c = face.getData(memoryId)->data[Level];
 
-  size_t j;
+  uint_t j;
 
-  for (size_t i = 1; i < N_c - 1; ++i) {
+  for (uint_t i = 1; i < N_c - 1; ++i) {
     for (j = 1; j < N_c_i - 2; ++j) {
       v_f[index<Level + 1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
       v_f[index<Level + 1>(2*i - 1, 2*j - 1, C)] =
@@ -240,14 +246,14 @@ inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemo
 
 SPECIALIZE(void, prolongate_tmpl, prolongate)
 
-template<size_t Level>
-inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
-  size_t N_c = levelinfo::num_microvertices_per_edge(Level);
-  size_t N_c_i = N_c;
+template<uint_t Level>
+inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face>& memoryId) {
+  uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
+  uint_t N_c_i = N_c;
   auto &v_f = face.getData(memoryId)->data[Level + 1];
   auto &v_c = face.getData(memoryId)->data[Level];
 
-  size_t i, j;
+  uint_t i, j;
   real_t linearx, lineary, linearxy, offx, offy, offxy;
   i = 0;
   for (j = 2; j <= N_c - 1; j += 2) {
@@ -327,18 +333,18 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 
 SPECIALIZE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
-template<size_t Level>
+template<uint_t Level>
 inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
-  size_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
-  size_t N_c_i = N_c;
+  uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
+  uint_t N_c_i = N_c;
 
   auto &v_f = face.getData(memoryId)->data[Level];
   auto &v_c = face.getData(memoryId)->data[Level - 1];
 
   real_t tmp;
 
-  for (size_t i = 1; i < N_c - 2; ++i) {
-    for (size_t j = 1; j < N_c_i - 2; ++j) {
+  for (uint_t i = 1; i < N_c - 2; ++i) {
+    for (uint_t j = 1; j < N_c_i - 2; ++j) {
       tmp = v_f[index<Level>(2*i, 2*j, C)];
 
       for (auto neighbor : neighbors) {
@@ -357,7 +363,7 @@ SPECIALIZE(void, restrict_tmpl, restrict)
 /// Checks if a given index is a the boundary of the face
 /// \param index The index which should be checked
 /// \param length Size of the triangle in the first dimension
-inline bool is_boundary(size_t index, size_t length) {
+inline bool is_boundary(uint_t index, uint_t length) {
   if (index < length) return true;
   while (index >= length) {
     index -= length;
@@ -367,7 +373,7 @@ inline bool is_boundary(size_t index, size_t length) {
 }
 
 //
-//template<size_t Level>
+//template<uint_t Level>
 //inline void printFunctionMemory(Face& face, PrimitiveDataID<FaceP1FunctionMemory,Face> memory_id){
 //  using namespace std;
 //  auto& faceMemory = hhg::P1Bubble::getFaceFunctionMemory(face, 0)->data[Level];
@@ -375,8 +381,8 @@ inline bool is_boundary(size_t index, size_t length) {
 //  cout << setfill('=') << setw(100) << "" << endl;
 //  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
 //  cout << "Vertices: " << std::endl;
-//  for (size_t i = 0; i < verticesPerDge; ++i) {
-//    for (size_t j = 0; j < verticesPerDge - i; ++j) {
+//  for (uint_t i = 0; i < verticesPerDge; ++i) {
+//    for (uint_t j = 0; j < verticesPerDge - i; ++j) {
 //      cout << setw(5) << faceMemory[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] << "|";
 //    }
 //    std::cout << std::endl;
