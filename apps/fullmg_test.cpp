@@ -1,11 +1,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <tinyhhg_core/likwidwrapper.hpp>
 
-//using namespace walberla;
-using walberla::uint_t;
-using walberla::uint_c;
-using walberla::real_t;
 #define PI 3.14159265359
 
 int main(int argc, char* argv[])
@@ -15,16 +10,28 @@ int main(int argc, char* argv[])
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
   LIKWID_MARKER_THREADINIT;
-  uint_t rk = uint_c(walberla::MPIManager::instance()->rank());
 
+  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
   if (walberlaEnv.config() == nullptr) {
-    WALBERLA_ABORT("No parameter file was given");
+    auto defaultFile = "../data/param/fullMGTest.prm";
+    cfg->readParameterFile(defaultFile);
+    if(!*cfg){
+      WALBERLA_ABORT("could not open default file: " << defaultFile);
+    }
+  } else {
+    cfg = walberlaEnv.config();
   }
 
-  auto parameters = walberlaEnv.config()->getOneBlock("Parameters");
+  auto parameters = cfg->getOneBlock("Parameters");
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
-  hhg::Mesh mesh(parameters.getParameter<std::string>("mesh"));
+  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(parameters.getParameter<std::string>("mesh"));
+  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  hhg::RoundRobin loadbalancer;
+  setupStorage.balanceLoad( loadbalancer, 0.0 );
+
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
   size_t minLevel = parameters.getParameter<size_t>("minlevel");
   size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
@@ -35,16 +42,16 @@ int main(int argc, char* argv[])
   size_t coarse_maxiter = 100;
   real_t coarse_tolerance = 1e-6;
 
-  hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld b("b", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld x("x", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld x_exact("x_exact", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld ax("ax", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld tmp("tmp", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld err("err", mesh, minLevel, maxLevel);
+  hhg::P1Function r("r", storage, minLevel, maxLevel);
+  hhg::P1Function b("b", storage, minLevel, maxLevel);
+  hhg::P1Function x("x", storage, minLevel, maxLevel);
+  hhg::P1Function x_exact("x_exact", storage, minLevel, maxLevel);
+  hhg::P1Function ax("ax", storage, minLevel, maxLevel);
+  hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
+  hhg::P1Function err("err", storage, minLevel, maxLevel);
 
-  hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
-  hhg::P1MassOperator M(mesh, minLevel, maxLevel);
+  hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
+  hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
@@ -60,7 +67,7 @@ int main(int argc, char* argv[])
       M.apply(tmp, b, ll, hhg::Inner);
   }
 
-  auto solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, minLevel);
+  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
 
   std::function<void(size_t)> cscycle;
 
@@ -111,13 +118,10 @@ int main(int argc, char* argv[])
   {
       tmp.interpolate(ones, ll);
       real_t npoints = tmp.dot(tmp, ll);
-      if (rk == 0)
-      {
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Level = {}", (size_t)ll));
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
-          WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-          WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error           H1-semi");
-      }
+      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Level = {}", (size_t)ll));
+      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
+      WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
+      WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error           H1-semi");
       real_t rel_res = 1.0;
 
       A.apply(x, ax, ll, hhg::Inner);
@@ -129,11 +133,7 @@ int main(int argc, char* argv[])
       A.apply(err, tmp, ll, hhg::Inner);
       real_t discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
-
-      if (rk == 0)
-      {
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err));
-      }
+      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err));
 
       for (size_t i = 0; i < outer; ++i)
       {
@@ -147,10 +147,7 @@ int main(int argc, char* argv[])
           A.apply(err, tmp, ll, hhg::Inner);
           discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
-          if (rk == 0)
-          {
-              WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, discr_h1_err));
-          }
+          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, discr_h1_err));
           abs_res_old = abs_res;
       }
       if(ll < maxLevel)

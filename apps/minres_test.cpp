@@ -1,28 +1,32 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 
-#include <fmt/format.h>
-
-using walberla::real_t;
-
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::Mesh mesh("../data/meshes/quad_4el.msh");
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
+
+  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
+  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  hhg::RoundRobin loadbalancer;
+  setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
   size_t maxLevel = 5;
   size_t maxiter = 1000;
 
-  hhg::P1FunctionOld r("r", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld f("f", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld u("u", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld u_exact("u_exact", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld err("err", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld npoints_helper("npoints_helper", mesh, minLevel, maxLevel);
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::P1LaplaceOperator L(mesh, minLevel, maxLevel);
+  hhg::P1Function r("r", storage, minLevel, maxLevel);
+  hhg::P1Function f("f", storage, minLevel, maxLevel);
+  hhg::P1Function u("u", storage, minLevel, maxLevel);
+  hhg::P1Function u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1Function err("err", storage, minLevel, maxLevel);
+  hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+
+  hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) -> real_t { return x[0]*x[0] - x[1]*x[1]; };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
@@ -31,7 +35,7 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::MinResSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
+  auto solver = hhg::MinResSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
 
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);

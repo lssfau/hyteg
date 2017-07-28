@@ -28,7 +28,7 @@ uint_t Face::vertex_index(const PrimitiveID& vertex) const
     }
   }
 
-  WALBERLA_ASSERT(false, "Face::vertex_index: Vertex does not belong to face")
+  WALBERLA_ASSERT(false, "Face::vertex_index: Vertex does not belong to face");
   return std::numeric_limits<std::size_t>::max();
 }
 
@@ -44,7 +44,7 @@ uint_t Face::edge_index(const PrimitiveID& edge) const
     }
   }
 
-  WALBERLA_ASSERT(false, "Face::edge_index: Edge does not belong to face")
+  WALBERLA_ASSERT(false, "Face::edge_index: Edge does not belong to face");
   return std::numeric_limits<std::size_t>::max();
 }
 

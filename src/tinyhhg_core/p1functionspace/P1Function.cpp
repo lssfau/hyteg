@@ -225,10 +225,42 @@ void P1Function::prolongate(size_t sourceLevel, DoFType flag)
   communicators_[destinationLevel]->endCommunication<Edge, Face>();
 }
 
-void P1Function::prolongateQuadratic(size_t level, DoFType flag){
-  WALBERLA_UNUSED(level);
-  WALBERLA_UNUSED(flag);
-  WALBERLA_ABORT( "quadratic interpolation not implemented for P1" );
+void P1Function::prolongateQuadratic(size_t sourceLevel, DoFType flag){
+  const size_t destinationLevel = sourceLevel + 1;
+
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.type, flag))
+    {
+      P1Vertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
+    }
+  }
+
+  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.type, flag))
+    {
+      P1Edge::prolongateQuadratic(edge, edgeDataID_, sourceLevel);
+    }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      P1Face::prolongateQuadratic(sourceLevel, face, faceDataID_);
+    }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Edge, Face>();
 }
 
 void P1Function::restrict(size_t sourceLevel, DoFType flag)

@@ -15,7 +15,7 @@ using walberla::uint_c;
 
 uint_t Edge::vertex_index(const PrimitiveID& vertex) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2)
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2);
 
   if (vertex.getID() == neighborVertices_[0].getID())
   {
@@ -49,7 +49,7 @@ uint_t Edge::face_index(const PrimitiveID& face) const
 
 PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2)
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2);
 
   if (vertex.getID() == neighborVertices_[0].getID())
   {
