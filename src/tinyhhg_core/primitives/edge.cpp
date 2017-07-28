@@ -53,11 +53,11 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 
   if (vertex.getID() == neighborVertices_[0].getID())
   {
-    return neighborVertices_[0];
+    return neighborVertices_[1];
   }
   else if (vertex.getID() == neighborVertices_[1].getID())
   {
-    return neighborVertices_[1];
+    return neighborVertices_[0];
   }
 
   WALBERLA_ABORT("Edge::get_opposite_vertex: Vertex does not belong to edge");
