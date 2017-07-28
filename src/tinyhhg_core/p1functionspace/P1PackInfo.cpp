@@ -2,7 +2,7 @@
 #include "p1edge.hpp"
 #include "P1EdgeIndex.hpp"
 #include "p1face.hpp"
-#include "tinyhhg_core/p1bubblefunctionspace/p1bubblefaceindex.hpp"
+#include "P1FaceIndex.hpp"
 
 namespace hhg {
 
@@ -104,7 +104,7 @@ void P1PackInfo::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiv
 }
 
 void P1PackInfo::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-  using namespace hhg::P1BubbleFace;
+  using namespace hhg::P1Face;
   real_t *faceData = receiver->getData(dataIDFace_)->data[level_].get();
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
   for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
@@ -114,7 +114,7 @@ void P1PackInfo::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, w
 }
 
 void P1PackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
-  using namespace hhg::P1BubbleFace;
+  using namespace hhg::P1Face;
   real_t *edgeData = sender->getData(dataIDEdge_)->data[level_].get();
   real_t *faceData = receiver->getData(dataIDFace_)->data[level_].get();
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
@@ -132,7 +132,7 @@ void P1PackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) 
 ///@{
 
 void P1PackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-  using namespace hhg::P1BubbleFace;
+  using namespace hhg::P1Face;
   real_t *faceData = sender->getData(dataIDFace_)->data[level_].get();
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], VERTEX_INNER, level_);
@@ -162,7 +162,7 @@ void P1PackInfo::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, w
 }
 
 void P1PackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
-  using namespace hhg::P1BubbleFace;
+  using namespace hhg::P1Face;
   real_t *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
   real_t *faceData = sender->getData(dataIDFace_)->data[level_].get();
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
