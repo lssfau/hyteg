@@ -47,6 +47,18 @@ public:
   /// All data that are registered via respective \ref PackInfo objects are exchanged
   void addPackInfo( const std::shared_ptr< PackInfo > & packInfo );
 
+  /// Performs blocking communication between two \ref Primitive types.
+  /// The data of the sender AND the receiver can be modified after this method returns.
+  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  template< typename SenderType,
+            typename ReceiverType,
+            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
+                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
+  inline void communicate() { startCommunication< SenderType, ReceiverType >(); endCommunication< SenderType, ReceiverType >(); }
+
   /// Starts the non-blocking communication between two \ref Primitive types.
   /// The data of the sender can be modified after this method returns.
   /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)

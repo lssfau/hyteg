@@ -190,9 +190,11 @@ static void testBufferedCommunication()
 
   communicator.addPackInfo( testPackInfo );
 
-  // communicator.startCommunicationVertexToEdge();
+  communicator.communicate< Vertex, Edge >();
+#if 0
   communicator.startCommunication< Vertex, Edge >();
   communicator.endCommunication< Vertex, Edge >();
+#endif
 
   communicator.startCommunication< Edge, Vertex >();
 
