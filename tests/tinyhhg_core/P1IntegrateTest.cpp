@@ -4,7 +4,6 @@
 #include <tinyhhg_core/p1functionspace/p1face.hpp>
 #include <tinyhhg_core/p1functionspace/p1edge.hpp>
 
-#include <memory>
 
 using walberla::real_t;
 using namespace hhg;
@@ -20,8 +19,8 @@ int main(int argc, char **argv)
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
 
-  size_t minLevel = 2;
-  size_t maxLevel = 5;
+  const size_t minLevel = 2;
+  const size_t maxLevel = 5;
 
   size_t v_perFace = levelinfo::num_microvertices_per_face(maxLevel);
   size_t v_perEdge = levelinfo::num_microvertices_per_edge(maxLevel);
@@ -56,20 +55,24 @@ int main(int argc, char **argv)
   real_t xStepSize = 1 / (v_perEdge-1);
   real_t yStepSize = 1 / (v_perEdge-1);
 
-  std::function<real_t(const Point3D &)> exact = [](const Point3D & x) { return x[0] + x[1]; };
+  //std::function<real_t(const Point3D &)> exact = [](const Point3D & x) { return x[0] + x[1]; };
+  std::function<real_t(const Point3D &)> exact = [](const Point3D & x) { return 13; };
 
   Face *faceZero = (*storage.get()->beginFaces()).second;
   P1Face::interpolate(maxLevel,*faceZero, x.getFaceDataID(), exact);
 
-
-  for (size_t i = 0; i < v_perFace; ++i)
+  real_t value = 0.0;
+  for (uint_t i = 0; i < v_perEdge; ++i)
   {
-    if (P1Face::is_boundary(i, v_perEdge))
+    for(uint_t j = 0; j < v_perEdge - i; ++j)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(faceZero->getData(x.getFaceDataID())->data[maxLevel][i], 0.0);
-    } else
-    {
-      WALBERLA_CHECK_FLOAT_EQUAL(faceZero->getData(x.getFaceDataID())->data[maxLevel][i], 13.0);
+      uint_t idx = P1Face::index<maxLevel>(j,i,P1Face::C);
+      if (P1Face::is_boundary(idx,v_perEdge))
+      {
+        WALBERLA_CHECK_FLOAT_EQUAL(faceZero->getData(x.getFaceDataID())->data[maxLevel][idx], 0.0);
+      } else {
+        WALBERLA_CHECK_FLOAT_EQUAL(faceZero->getData(x.getFaceDataID())->data[maxLevel][idx], 13.0);
+      }
     }
   }
 

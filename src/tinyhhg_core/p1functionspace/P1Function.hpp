@@ -1,4 +1,5 @@
 #pragma once
+
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 

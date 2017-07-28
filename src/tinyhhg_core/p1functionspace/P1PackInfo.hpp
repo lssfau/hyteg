@@ -4,7 +4,6 @@
 #include "p1memory.hpp"
 
 namespace hhg {
-namespace P1Edge {
 
 class P1PackInfo : public communication::PackInfo {
 
@@ -54,5 +53,4 @@ private:
   std::weak_ptr<hhg::PrimitiveStorage> storage_;
 };
 
-} //namespace P1Edge
 } //namespace hhg

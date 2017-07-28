@@ -5,7 +5,6 @@
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblefaceindex.hpp"
 
 namespace hhg {
-namespace P1Edge {
 
 using namespace hhg::P1Edge;
 
@@ -120,7 +119,8 @@ void P1PackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) 
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
   uint_t idx = 0;
   for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
-      it != indexIterator(); ++it){
+      it != indexIterator(); ++it)
+  {
     faceData[*it] = edgeData[idx];
     idx++;
   }
@@ -186,5 +186,4 @@ void P1PackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) 
 
 ///@}
 
-} //namespace communication
 } //namespace hhg

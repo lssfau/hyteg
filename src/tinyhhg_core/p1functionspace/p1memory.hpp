@@ -1,5 +1,4 @@
-#ifndef P1MEMORY_HPP
-#define P1MEMORY_HPP
+#pragma once
 
 #include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
@@ -170,6 +169,3 @@ public:
 };
 
 }
-
-
-#endif // !P1MEMORY_HPP

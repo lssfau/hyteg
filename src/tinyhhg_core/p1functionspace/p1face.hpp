@@ -1,9 +1,7 @@
-#ifndef P1FACE_HPP
-#define P1FACE_HPP
+#pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
-#include "tinyhhg_core/p1functionspace/p1memory.hpp"
 
 namespace hhg {
 namespace P1Face {
@@ -24,6 +22,8 @@ const Dir neighbors[] = {S, SE, W, E, NW, N};
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
   size_t h = levelinfo::num_microvertices_per_edge(Level);
+  WALBERLA_ASSERT_LESS_EQUAL(row,h);
+  WALBERLA_ASSERT_LESS_EQUAL(col,h);
   size_t n = h*(h + 1)/2;
   size_t center = (n - (h - row)*(h - row + 1)/2) + col;
   switch (dir) {
@@ -356,7 +356,7 @@ SPECIALIZE(void, restrict_tmpl, restrict)
 /// Checks if a given index is a the boundary of the face
 /// \param index The index which should be checked
 /// \param length Size of the triangle in the first dimension
-bool is_boundary(size_t index, size_t length) {
+inline bool is_boundary(size_t index, size_t length) {
   if (index < length) return true;
   while (index >= length) {
     index -= length;
@@ -369,5 +369,3 @@ bool is_boundary(size_t index, size_t length) {
 }// namespace P1Face
 }// namespace hhg
 
-
-#endif /* P1FACE_HPP */
