@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
