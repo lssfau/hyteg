@@ -229,8 +229,56 @@ void P1Function::prolongateQuadratic(size_t level, DoFType flag){
 
 }
 
-void P1Function::restrict(size_t level, DoFType flag)
+void P1Function::restrict(size_t sourceLevel, DoFType flag)
 {
+  const size_t destinationLevel = sourceLevel - 1;
+
+  // start pulling vertex halos
+  communicators_[sourceLevel]->startCommunication<Edge, Vertex>();
+
+  // start pulling edge halos
+  communicators_[sourceLevel]->startCommunication<Face, Edge>();
+
+  // end pulling vertex halos
+  communicators_[sourceLevel]->endCommunication<Edge, Vertex>();
+
+  for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::restrict(vertex, vertexDataID_, sourceLevel);
+      }
+  }
+
+  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+
+  // end pulling edge halos
+  communicators_[sourceLevel]->endCommunication<Face, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::restrict(edge, edgeDataID_, sourceLevel);
+      }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
+
+  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::restrict(sourceLevel, face, faceDataID_);
+      }
+  }
+
+  communicators_[destinationLevel]->endCommunication<Edge, Face>();
 
 }
 }
