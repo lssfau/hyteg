@@ -59,11 +59,8 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
   {
     return neighborVertices_[1];
   }
-  else
-  {
-    WALBERLA_ASSERT(false, "Edge::get_opposite_vertex: Vertex does not belong to edge");
-//    return nullptr;
-  }
+
+  WALBERLA_ABORT("Edge::get_opposite_vertex: Vertex does not belong to edge");
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)

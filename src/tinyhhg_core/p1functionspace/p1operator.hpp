@@ -98,6 +98,8 @@ public:
 
         face_stencil[3] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
+
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
 
       for (auto& it : storage_->getEdges()) {
@@ -143,6 +145,8 @@ public:
 
           edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
         }
+
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
       }
 
       for (auto& it : storage_->getVertices()) {
@@ -175,6 +179,8 @@ public:
           }
 
           vertex_stencil[0] += local_stiffness[v_i][v_i];
+
+          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("VERTEX.id = {}:vertex_stencil = {}", vertex.getID().getID(), PointND<real_t, 3>(&vertex_stencil[0])));
         }
       }
 

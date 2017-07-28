@@ -26,16 +26,19 @@ public:
   friend class PrimitiveStorage;
 
   Face( const PrimitiveID & primitiveID,
-        const PrimitiveID & edgeID0,
-        const PrimitiveID & edgeID1,
-        const PrimitiveID & edgeID2,
+        const std::array<PrimitiveID, 3>& vertexIDs,
+        const std::array<PrimitiveID, 3>& edgeIDs,
         const std::array< int, 3 >     & edgeOrientation,
         const std::array< Point3D, 3 > & coordinates ) :
     Primitive( primitiveID ), type( Inner ), edge_orientation( edgeOrientation ), coords( coordinates )
   {
-    neighborEdges_.push_back( edgeID0 );
-    neighborEdges_.push_back( edgeID1 );
-    neighborEdges_.push_back( edgeID2 );
+    neighborVertices_.push_back( vertexIDs[0] );
+    neighborVertices_.push_back( vertexIDs[1] );
+    neighborVertices_.push_back( vertexIDs[2] );
+
+    neighborEdges_.push_back( edgeIDs[0] );
+    neighborEdges_.push_back( edgeIDs[1] );
+    neighborEdges_.push_back( edgeIDs[2] );
     std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
     area = std::abs(0.5 * math::det2(B));
   }

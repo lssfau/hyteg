@@ -126,31 +126,47 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     // Corner coordinates
     std::array< Point3D, 3 > coordinates;
+    std::array< PrimitiveID, 3 > vertexIDs;
 
     if (edgeOrientation[0] == 1)
     {
       coordinates[0] = vertices_[ edge0Vertex0.getID() ]->getCoordinates();
       coordinates[1] = vertices_[ edge0Vertex1.getID() ]->getCoordinates();
+
+      vertexIDs[0] = edge0Vertex0.getID();
+      vertexIDs[1] = edge0Vertex1.getID();
     }
     else
     {
       coordinates[0] = vertices_[ edge0Vertex1.getID() ]->getCoordinates();
       coordinates[1] = vertices_[ edge0Vertex0.getID() ]->getCoordinates();
+
+      vertexIDs[0] = edge0Vertex1.getID();
+      vertexIDs[1] = edge0Vertex0.getID();
     }
 
     if (edgeOrientation[1] == 1)
     {
       coordinates[2] = vertices_[ edge1Vertex1.getID() ]->getCoordinates();
+
+      vertexIDs[2] = edge1Vertex1.getID();
     }
     else
     {
       coordinates[2] = vertices_[ edge1Vertex0.getID() ]->getCoordinates();
+
+      vertexIDs[2] = edge1Vertex0.getID();
     }
 
-    faces_[ faceID.getID() ] = new Face( faceID, edgeID0, edgeID1, edgeID2, edgeOrientation, coordinates );
+    faces_[ faceID.getID() ] = new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates );
 
     // All to root by default
     primitiveIDToTargetRankMap_[ faceID.getID() ] = 0;
+
+    // Adding face ID to vertices as neighbors
+    vertices_[vertexIDs[0].getID()]->addFace(faceID);
+    vertices_[vertexIDs[1].getID()]->addFace(faceID);
+    vertices_[vertexIDs[2].getID()]->addFace(faceID);
 
     // Adding face ID to edges as neighbors
     edges_[ edgeID0.getID() ]->addFace( faceID );

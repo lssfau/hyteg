@@ -15,9 +15,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
-
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
+  std::string meshFileName = "../data/meshes/tri_1el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -51,7 +49,7 @@ int main(int argc, char* argv[])
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
-  fmt::printf("time was: %e\n",timer.last());
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);

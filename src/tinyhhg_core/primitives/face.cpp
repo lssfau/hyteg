@@ -80,9 +80,9 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
     return neighborVertices_[0];
   } else if (edge_index(edge) == 2) {
     return neighborVertices_[1];
-  } else {
-    WALBERLA_ASSERT(false, "Face::get_vertex_opposite_to_edge: Edge does not belong to face");
   }
+
+  WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face");
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
