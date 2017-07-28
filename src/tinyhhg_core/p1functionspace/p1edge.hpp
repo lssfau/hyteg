@@ -1,5 +1,4 @@
-#ifndef P1EDGE_HPP
-#define P1EDGE_HPP
+#pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/p1memory.hpp"
@@ -15,9 +14,13 @@ inline void interpolate(Edge &edge,
   EdgeP1FunctionMemory *edgeMemory = edge.getData(edgeMemoryId);
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D x = edge.coords[0];
-  Point3D dx = edge.direction/(real_t) (rowsize - 1);
+  Point3D x = edge.coords_[0];
+  Point3D dx = edge.direction_/(real_t) (rowsize - 1);
+
+  fmt::print("x = {}\n", x);
   x += dx;
+
+  fmt::print("direction = {}\n", edge.direction_);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
     edgeMemory->data[level][i] = expr(x);
@@ -180,5 +183,3 @@ inline void restrict(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edg
 
 }
 }
-
-#endif /* P1EDGE_HPP */

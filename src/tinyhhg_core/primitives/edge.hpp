@@ -29,18 +29,18 @@ public:
         const PrimitiveID & vertexID0,
         const PrimitiveID & vertexID1,
         const DoFType     & dofType,
-        const Point3D     & _direction,
-        const real_t      & _length,
-        const Point3D     & _tangent ) :
-    Primitive( primitiveID ), type( dofType ), direction( _direction ),
-    length( _length ), tangent( _tangent )
+        const std::array<Point3D, 2>& coords) :
+    Primitive( primitiveID ), type( dofType ), coords_(coords)
   {
     neighborVertices_.push_back( vertexID0 );
     neighborVertices_.push_back( vertexID1 );
 
-    const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
-    normal_2d = Point3D(init);
+    direction_ = coords_[1] - coords_[0];
+    length_ = direction_.norm();
+    tangent_ = direction_ / length_;
 
+    const std::array<walberla::real_t,3> init{{tangent_[1], -tangent_[0], 0.0}};
+    normal_2d_ = Point3D(init);
   }
 
   uint_t vertex_index(const PrimitiveID& vertex) const;
@@ -50,11 +50,11 @@ public:
 
   DoFType type;
 
-  std::array<Point3D, 2> coords;
-  Point3D direction;
-  real_t length;
-  Point3D tangent;
-  Point3D normal_2d;
+  std::array<Point3D, 2> coords_;
+  Point3D direction_;
+  real_t length_;
+  Point3D tangent_;
+  Point3D normal_2d_;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
@@ -62,7 +62,7 @@ public:
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[1]; }
 
   const DoFType & getDoFType() const   { return type; }
-  const Point3D & getDirection() const { return direction; }
+  const Point3D & getDirection() const { return direction_; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned

@@ -36,14 +36,16 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID0 = PrimitiveID( it->first.first  );
     PrimitiveID vertexID1 = PrimitiveID( it->first.second );
     DoFType dofType = it->second;
-    Point3D direction = vertices_[ vertexID1.getID() ]->getCoordinates() - vertices_[ vertexID0.getID() ]->getCoordinates();
-    real_t length = direction.norm();
-    Point3D tangent = direction / length;
+
+    std::array<Point3D, 2> coords;
+
+    coords[0] = vertices_[vertexID0.getID()]->getCoordinates();
+    coords[1] = vertices_[vertexID1.getID()]->getCoordinates();
 
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
-    edges_[ edgeID.getID() ] = new Edge( edgeID, vertexID0, vertexID1, dofType, direction, length, tangent );
+    edges_[ edgeID.getID() ] = new Edge( edgeID, vertexID0, vertexID1, dofType, coords);
 
     // All to root by default
     primitiveIDToTargetRankMap_[ edgeID.getID() ] = 0;
@@ -172,6 +174,30 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     edges_[ edgeID0.getID() ]->addFace( faceID );
     edges_[ edgeID1.getID() ]->addFace( faceID );
     edges_[ edgeID2.getID() ]->addFace( faceID );
+  }
+
+  for (auto& it : edges_) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.type, hhg::NeumannBoundary)) {
+
+      for (auto& itv : edge.neighborVertices()) {
+        vertices_[itv.getID()]->type = hhg::NeumannBoundary;
+      }
+
+    }
+  }
+
+  for (auto& it : edges_) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.type, hhg::DirichletBoundary)) {
+
+      for (auto& itv : edge.neighborVertices()) {
+        vertices_[itv.getID()]->type = hhg::DirichletBoundary;
+      }
+
+    }
   }
 }
 
