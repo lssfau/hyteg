@@ -128,94 +128,58 @@ inline real_t dot_tmpl(Face &face,
 
 SPECIALIZE(real_t, dot_tmpl, dot)
 
-//template<size_t Level>
-//inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, UpdateType update)
-//{
-//  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-//  size_t inner_rowsize = rowsize;
-//
-//  auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
-//
-//  auto& face_vertex_stencil = opr_data[0];
-//  auto& face_gray_stencil = opr_data[1];
-//  auto& face_blue_stencil = opr_data[2];
-//
-//  auto& src = P1Bubble::getFaceFunctionMemory(face, src_id)->data[Level];
-//  auto& dst = P1Bubble::getFaceFunctionMemory(face, dst_id)->data[Level];
-//
-//  real_t tmp;
-//
-//  for (size_t i = 1; i < rowsize - 2; ++i)
-//  {
-//    for (size_t j = 1; j  < inner_rowsize - 2; ++j)
-//    {
-//      tmp = face_vertex_stencil[CoordsVertex::VERTEX_C] * src[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)];
-//
-//      for (auto neighbor : CoordsVertex::neighbors)
-//      {
-//        tmp += face_vertex_stencil[neighbor] * src[CoordsVertex::index<Level>(i, j, neighbor)];
-//      }
-//
-//      if (update == Replace) {
-//        dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] = tmp;
-//      } else if (update == Add) {
-//        dst[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] += tmp;
-//      }
-//    }
-//    --inner_rowsize;
-//  }
-//
-//  inner_rowsize = rowsize;
-//
-//  for (size_t i = 0; i < rowsize - 1; ++i)
-//  {
-//    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
-//    {
-//      // TODO: how to do this better?
-//      if ((i == 0 && j == 0) || (i == 0 && j == rowsize - 2) || (i == rowsize - 2 && j == 0)) {
-//        continue;
-//      }
-//
-//      tmp = face_gray_stencil[CoordsCellGray::CELL_GRAY_C] * src[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
-//
-//      for (auto neighbor : CoordsCellGray::neighbors)
-//      {
-//        tmp += face_gray_stencil[neighbor] * src[CoordsCellGray::index<Level>(i, j, neighbor)];
-//      }
-//
-//      if (update == Replace) {
-//        dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = tmp;
-//      } else if (update == Add) {
-//        dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] += tmp;
-//      }
-//    }
-//    --inner_rowsize;
-//  }
-//
-//  inner_rowsize = rowsize;
-//
-//  for (size_t i = 0; i < rowsize - 2; ++i)
-//  {
-//    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
-//    {
-//      tmp = face_blue_stencil[CoordsCellBlue::CELL_BLUE_C] * src[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
-//
-//      for (auto neighbor : CoordsCellBlue::neighbors)
-//      {
-//        tmp += face_blue_stencil[neighbor] * src[CoordsCellBlue::index<Level>(i, j, neighbor)];
-//      }
-//
-//      if (update == Replace) {
-//        dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = tmp;
-//      } else if (update == Add) {
-//        dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] += tmp;
-//      }
-//    }
-//    --inner_rowsize;
-//  }
-//}
-//
-//SPECIALIZE(void, apply_tmpl, apply)
+template<size_t Level>
+inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
+                       const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &srcId,
+                       const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &dstId, UpdateType update)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = face.getData(operatorId)->data[Level];
+
+  auto& face_gray_stencil = opr_data[0];
+  auto& face_blue_stencil = opr_data[1];
+
+  auto& src = face.getData(srcId)->data[Level];
+  auto& dst = face.getData(dstId)->data[Level];
+
+  real_t tmp;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      tmp = face_gray_stencil[CoordsCellGray::CELL_GRAY_C] * src[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+
+      if (update == Replace) {
+        dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = tmp;
+      } else if (update == Add) {
+        dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      tmp = face_blue_stencil[CoordsCellBlue::CELL_BLUE_C] * src[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+
+      if (update == Replace) {
+        dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = tmp;
+      } else if (update == Add) {
+        dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, apply_tmpl, apply)
 
 //template<size_t Level>
 //inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id)

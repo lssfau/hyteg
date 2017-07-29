@@ -32,7 +32,7 @@ BubbleFunction::~BubbleFunction() {
 
 void BubbleFunction::interpolate(std::function<real_t(const hhg::Point3D &)> &expr, uint_t level, DoFType flag) {
   // TODO: implement Bubble interpolation. It is not required for Dirichlet only interpolation in most of the apps
-  WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!")
+  WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!");
 }
 
 void BubbleFunction::assign(const std::vector<walberla::real_t> scalars,

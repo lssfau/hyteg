@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   hhg::P1BubbleFunction err("err", storage, minLevel, maxLevel);
   hhg::P1BubbleFunction npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
-//  hhg::P1BubbleLaplaceOperator L(storage, minLevel, maxLevel);
+  hhg::P1BubbleLaplaceOperator L(storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
@@ -43,9 +43,9 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-//  auto solver = hhg::CGSolver<hhg::P1BubbleFunction, hhg::P1BubbleLaplaceOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1BubbleFunction, hhg::P1BubbleLaplaceOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
-//  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
   fmt::printf("time was: %e\n",timer.last());
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);

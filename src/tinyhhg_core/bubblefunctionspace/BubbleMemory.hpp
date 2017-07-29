@@ -13,33 +13,6 @@
 namespace hhg
 {
 
-//class VertexBubbleStencilMemory
-//{
-//public:
-//
-//  std::map<size_t, std::unique_ptr<real_t[]>> data;
-//  size_t num_deps_;
-//
-//  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-//  {
-//    if (data.count(level)>0)
-//      WALBERLA_LOG_WARNING("Level already exists.")
-//    else
-//    {
-//      this->num_deps_ = num_deps;
-//      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-//    }
-//    return data[level];
-//  }
-//
-//  inline size_t getSize(size_t level)
-//  {
-//    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
-//  }
-//
-//};
-
-
 class VertexBubbleFunctionMemory
 {
 public:
@@ -64,33 +37,6 @@ public:
   }
 
 };
-
-
-//class EdgeBubbleStencilMemory
-//{
-//public:
-//
-//  std::map<size_t, std::unique_ptr<real_t[]>> data;
-//
-//  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
-//  {
-//    //WALBERLA_LOG_DEVEL("EdgeP1StencilMemory, kind = " + std::to_string(this->type));
-//    if (data.count(level)>0)
-//      WALBERLA_LOG_WARNING("Level already exists.")
-//    else
-//    {
-//      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-//    }
-//    return data[level];
-//  }
-//
-//  inline size_t getSize(size_t)
-//  {
-//    return 7;
-//  }
-//
-//};
-
 
 class EdgeBubbleFunctionMemory
 {
@@ -123,20 +69,28 @@ class FaceBubbleStencilMemory
 {
 public:
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
+  typedef std::array<std::unique_ptr<real_t[]>, 2> StencilStack;
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
+  std::map<size_t, StencilStack> data;
+
+  inline StencilStack& addlevel(size_t level)
   {
     if (data.count(level)>0)
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = StencilStack{{hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
+                                  hhg::make_unique<real_t[]>(getBlueStencilSize(level))}};
     }
     return data[level];
   }
 
-  inline size_t getSize(size_t)
+  inline size_t getGrayStencilSize(size_t)
+  {
+    return 1;
+  }
+
+  inline size_t getBlueStencilSize(size_t)
   {
     return 1;
   }
