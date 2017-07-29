@@ -15,11 +15,11 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 
-#include "tinyhhg_core/p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
-#include "p1vertex.hpp"
-#include "p1edge.hpp"
-#include "p1face.hpp"
+#include "P1Vertex.hpp"
+#include "P1Edge.hpp"
+#include "P1Face.hpp"
 
 namespace hhg
 {

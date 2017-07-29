@@ -1,7 +1,7 @@
 #include "P1PackInfo.hpp"
-#include "p1edge.hpp"
+#include "P1Edge.hpp"
 #include "P1EdgeIndex.hpp"
-#include "p1face.hpp"
+#include "P1Face.hpp"
 #include "P1FaceIndex.hpp"
 
 namespace hhg {

@@ -5,7 +5,7 @@
 #include "tinyhhg_core/primitives/face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
-#include "p1memory.hpp"
+#include "P1Memory.hpp"
 
 namespace hhg {
 namespace P1Face {

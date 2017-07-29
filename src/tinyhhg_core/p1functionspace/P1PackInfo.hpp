@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/communication/PackInfo.hpp"
-#include "p1memory.hpp"
+#include "P1Memory.hpp"
 
 namespace hhg {
 

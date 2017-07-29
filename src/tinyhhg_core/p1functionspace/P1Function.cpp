@@ -1,8 +1,8 @@
 #include "P1Function.hpp"
 #include "P1DataHandling.hpp"
-#include "p1vertex.hpp"
-#include "p1edge.hpp"
-#include "p1face.hpp"
+#include "P1Vertex.hpp"
+#include "P1Edge.hpp"
+#include "P1Face.hpp"
 #include "P1PackInfo.hpp"
 
 namespace hhg {

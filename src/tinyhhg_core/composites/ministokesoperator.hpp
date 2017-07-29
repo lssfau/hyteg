@@ -2,7 +2,7 @@
 #define TINYHHG_MINISTOKESOPERATOR_HPP
 
 #include "tinyhhg_core/composites/ministokesfunction.hpp"
-#include "tinyhhg_core/p1functionspace/p1operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
 namespace hhg
 {

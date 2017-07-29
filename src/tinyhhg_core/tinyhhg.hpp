@@ -8,8 +8,8 @@
 
 //#include "tinyhhg_core/p1functionspace/OldP1function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "p1functionspace/p1operator.hpp"
-#include "p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 
 //#include "p1bubblefunctionspace/p1bubblefunction.hpp"

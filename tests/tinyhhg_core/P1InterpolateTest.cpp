@@ -1,8 +1,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include <tinyhhg_core/p1functionspace/p1face.hpp>
-#include <tinyhhg_core/p1functionspace/p1edge.hpp>
+#include <tinyhhg_core/p1functionspace/P1Face.hpp>
+#include <tinyhhg_core/p1functionspace/P1Edge.hpp>
 
 
 using walberla::real_t;

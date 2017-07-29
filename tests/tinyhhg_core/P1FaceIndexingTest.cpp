@@ -1,4 +1,4 @@
-#include "tinyhhg_core/p1functionspace/p1face.hpp"
+#include "tinyhhg_core/p1functionspace/P1Face.hpp"
 
 #include "core/mpi/all.h"
 
