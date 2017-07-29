@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_4el_neumann.msh";
+  std::string meshFileName = "../data/meshes/bfs_12el_neumann.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
