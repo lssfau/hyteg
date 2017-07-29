@@ -79,7 +79,7 @@ void P1PackInfo::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiv
   uint_t edgeIdOnVertex = receiver->edge_index(sender->getID());
   //the last element would be the vertex itself so we have to send the next one
   if(vertexIdOnEdge == 0){
-    uint_t idx = edge_index(level_,0,VERTEX_C);
+    uint_t idx = edge_index(level_,1,VERTEX_C);
     vertexData[edgeIdOnVertex+1] = edgeData[idx];
   } else if(vertexIdOnEdge == 1){
     uint_t idx = edge_index(level_,levelinfo::num_microvertices_per_edge(level_)-2,VERTEX_C);
