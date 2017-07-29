@@ -8,6 +8,8 @@
 
 #include "BubbleDataHandling.hpp"
 
+#include "tinyhhg_core/fenics.hpp"
+
 #include "generated/bubble_diffusion.h"
 
 #include "BubbleMemory.hpp"
@@ -15,43 +17,6 @@
 
 namespace hhg
 {
-
-namespace BubbleSpace {
-enum ElementType {
-  GRAY,
-  BLUE
-};
-
-void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = (face.coords[1] - face.coords[0]) / walberla::real_c((rowsize - 1));
-  Point3D d2 = (face.coords[2] - face.coords[0]) / walberla::real_c((rowsize - 1));
-
-  real_t orientation = 1.0;
-
-  if (element_type == BLUE) {
-    orientation = -1.0;
-  }
-
-  coords[0] = 0.0;
-  coords[1] = 0.0;
-  coords[2] = orientation * d0[0];
-  coords[3] = orientation * d0[1];
-  coords[4] = orientation * d2[0];
-  coords[5] = orientation * d2[1];
-}
-
-template<class UFCOperator>
-void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[1][1], ElementType element_type) {
-  real_t A[1];
-  real_t coords[6];
-  compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
-  gen.tabulate_tensor(A, NULL, coords, 0);
-
-  local_stiffness[0][0] = A[0];
-}
-}
 
 template<class UFCOperator>
 class BubbleOperator : public Operator
@@ -73,11 +38,11 @@ public:
 
         real_t local_stiffness_gray[1][1];
         real_t local_stiffness_blue[1][1];
-        BubbleSpace::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_gray, BubbleSpace::GRAY);
-        BubbleSpace::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_blue, BubbleSpace::BLUE);
+        compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
+        compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_stencil_stack[BubbleSpace::GRAY][0] = local_stiffness_gray[0][0];
-        face_stencil_stack[BubbleSpace::BLUE][0] = local_stiffness_blue[0][0];
+        face_stencil_stack[fenics::GRAY][0] = local_stiffness_gray[0][0];
+        face_stencil_stack[fenics::BLUE][0] = local_stiffness_blue[0][0];
       }
     }
   }
@@ -105,6 +70,16 @@ public:
 
  private:
   PrimitiveDataID<FaceBubbleStencilMemory, Face> faceStencilID_;
+
+  void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[1][1], fenics::ElementType element_type) {
+    real_t A[1];
+    real_t coords[6];
+    fenics::compute_micro_coords(face, level, coords, element_type);
+    UFCOperator gen;
+    gen.tabulate_tensor(A, NULL, coords, 0);
+
+    local_stiffness[0][0] = A[0];
+  }
 
 };
 

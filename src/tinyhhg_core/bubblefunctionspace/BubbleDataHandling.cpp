@@ -32,26 +32,6 @@ FaceBubbleFunctionMemory * FaceBubbleFunctionMemoryDataHandling::initialize( con
   return faceBubbleFunctionMemory;
 }
 
-//VertexBubbleStencilMemory * VertexBubbleStencilMemoryDataHandling::initialize( const Vertex * const vertex) const
-//{
-//  VertexBubbleStencilMemory * vertexBubbleStencilMemory = new VertexBubbleStencilMemory();
-//  for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-//  {
-//    vertexBubbleStencilMemory->addlevel( level, vertex->getNumNeighborEdges());
-//  }
-//  return vertexBubbleStencilMemory;
-//}
-//
-//EdgeBubbleStencilMemory * EdgeBubbleStencilMemoryDataHandling::initialize( const Edge * const ) const
-//{
-//  EdgeBubbleStencilMemory * edgeBubbleStencilMemory = new EdgeBubbleStencilMemory();
-//  for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-//  {
-//    edgeBubbleStencilMemory->addlevel( level );
-//  }
-//  return edgeBubbleStencilMemory;
-//}
-
 FaceBubbleStencilMemory * FaceBubbleStencilMemoryDataHandling::initialize( const Face * const ) const
 {
   FaceBubbleStencilMemory * faceBubbleStencilMemory = new FaceBubbleStencilMemory();

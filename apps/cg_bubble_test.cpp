@@ -36,6 +36,8 @@ int main(int argc, char* argv[])
 
   hhg::P1BubbleLaplaceOperator L(storage, minLevel, maxLevel);
 
+  hhg::BubbleToP1DivTxOperator divtx(storage, minLevel, maxLevel);
+
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };

@@ -13,9 +13,6 @@
 #include "bubblefunctionspace/BubbleFunction.hpp"
 #include "bubblefunctionspace/BubbleOperator.hpp"
 
-//#include "mixedoperators/p1_to_p1bubble_operator.hpp"
-//#include "mixedoperators/p1bubble_to_p1_operator.hpp"
-
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
 
@@ -28,6 +25,8 @@
 
 #include "composites/P1BubbleFunctionSpace/P1BubbleFunction.hpp"
 #include "composites/P1BubbleFunctionSpace/P1BubbleOperator.hpp"
+
+#include "mixedoperators/BubbleToP1/BubbleToP1Operator.hpp"
 
 //#include "composites/ministokesfunction.hpp"
 //#include "composites/ministokesoperator.hpp"

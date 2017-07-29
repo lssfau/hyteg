@@ -9,6 +9,8 @@
 
 #include "P1DataHandling.hpp"
 
+#include "tinyhhg_core/fenics.hpp"
+
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_div.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
@@ -23,47 +25,6 @@
 
 namespace hhg
 {
-
-namespace P1Space {
-enum ElementType {
-  UPWARD,
-  DOWNWARD
-};
-
-void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  Point3D d0 = (face.coords[1] - face.coords[0]) / walberla::real_c((rowsize - 1));
-  Point3D d2 = (face.coords[2] - face.coords[0]) / walberla::real_c((rowsize - 1));
-
-  real_t orientation = 1.0;
-
-  if (element_type == DOWNWARD) {
-    orientation = -1.0;
-  }
-
-  coords[0] = 0.0;
-  coords[1] = 0.0;
-  coords[2] = orientation * d0[0];
-  coords[3] = orientation * d0[1];
-  coords[4] = orientation * d2[0];
-  coords[5] = orientation * d2[1];
-}
-
-template<class UFCOperator>
-void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[3][3], ElementType element_type) {
-  real_t A[9];
-  real_t coords[6];
-  compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
-  gen.tabulate_tensor(A, NULL, coords, 0);
-
-  for (size_t i = 0; i < 3; ++i) {
-    for (size_t j = 0; j < 3; ++j) {
-      local_stiffness[i][j] = A[3 * j + i];
-    }
-  }
-}
-}
 
 template<class UFCOperator>
 class P1Operator : public Operator
@@ -89,8 +50,8 @@ public:
 
         real_t local_stiffness_up[3][3];
         real_t local_stiffness_down[3][3];
-        P1Space::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, P1Space::UPWARD);
-        P1Space::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, P1Space::DOWNWARD);
+        compute_local_stiffness(face, level, local_stiffness_up, fenics::GRAY);
+        compute_local_stiffness(face, level, local_stiffness_down, fenics::BLUE);
 
         face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
         face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
@@ -115,8 +76,8 @@ public:
         real_t local_stiffness_down[3][3];
         // first face
         Face* face = storage_->getFace(edge.neighborFaces()[0]);
-        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
-        P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
+        compute_local_stiffness(*face, level, local_stiffness_up, fenics::GRAY);
+        compute_local_stiffness(*face, level, local_stiffness_down, fenics::BLUE);
 
         size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
         size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
@@ -134,8 +95,8 @@ public:
         {
           // second face
           Face* face = storage_->getFace(edge.neighborFaces()[1]);
-          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_up, P1Space::UPWARD);
-          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness_down, P1Space::DOWNWARD);
+          compute_local_stiffness(*face, level, local_stiffness_up, fenics::GRAY);
+          compute_local_stiffness(*face, level, local_stiffness_down, fenics::BLUE);
 
           size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
           size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
@@ -164,7 +125,7 @@ public:
           Face* face = storage_->getFace(faceId);
 
           real_t local_stiffness[3][3];
-          P1Space::compute_local_stiffness<UFCOperator>(*face, level, local_stiffness, P1Space::UPWARD);
+          compute_local_stiffness(*face, level, local_stiffness, fenics::GRAY);
 
           uint_t v_i = face->vertex_index(vertex.getID());
 
@@ -300,6 +261,20 @@ public:
   PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
+
+  void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[3][3], fenics::ElementType element_type) {
+    real_t A[9];
+    real_t coords[6];
+    fenics::compute_micro_coords(face, level, coords, element_type);
+    UFCOperator gen;
+    gen.tabulate_tensor(A, NULL, coords, 0);
+
+    for (size_t i = 0; i < 3; ++i) {
+      for (size_t j = 0; j < 3; ++j) {
+        local_stiffness[i][j] = A[3 * j + i];
+      }
+    }
+  }
 
 };
 

@@ -50,37 +50,6 @@ private:
 
 };
 
-
-//class VertexBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< VertexBubbleStencilMemory, Vertex >
-//{
-// public:
-//
-//  VertexBubbleStencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
-//
-//  VertexBubbleStencilMemory * initialize( const Vertex * const vertex ) const;
-//
-// private:
-//
-//  uint_t minLevel_;
-//  uint_t maxLevel_;
-//
-//};
-
-//class EdgeBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< EdgeBubbleStencilMemory, Edge >
-//{
-// public:
-//
-//  EdgeBubbleStencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
-//
-//  EdgeBubbleStencilMemory * initialize( const Edge * const edge ) const;
-//
-// private:
-//
-//  uint_t minLevel_;
-//  uint_t maxLevel_;
-//
-//};
-
 class FaceBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< FaceBubbleStencilMemory, Face >
 {
  public:
