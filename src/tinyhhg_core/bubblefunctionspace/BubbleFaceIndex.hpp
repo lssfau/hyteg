@@ -8,105 +8,20 @@ namespace BubbleFace
 
 using walberla::uint_t;
 
-namespace CoordsVertex {
-enum DirVertex {
-    VERTEX_S  = 0,
-    VERTEX_SE = 1,
-    VERTEX_W  = 2,
-    VERTEX_C  = 3,
-    VERTEX_E  = 4,
-    VERTEX_NW = 5,
-    VERTEX_N  = 6,
-    CELL_GRAY_SE = 7,
-    CELL_GRAY_NW = 8,
-    CELL_GRAY_NE = 9,
-    CELL_BLUE_SW = 10,
-    CELL_BLUE_SE = 11,
-    CELL_BLUE_NW = 12
-};
-
-const DirVertex neighbors_with_center[13] =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
-     CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
-const DirVertex neighbors[12] =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W,
-     CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
-const DirVertex neighbors_vertex[] =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
-
-template<size_t Level>
-inline size_t index(size_t row, size_t col, DirVertex dir) {
-  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t grayBaseLength = vertexBaseLength -1;
-  const size_t blueBaseLength = vertexBaseLength -2;
-  const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
-  const size_t totalCellGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
-  const size_t cellGrayNE = center + totalVertices - row;
-  const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) -1;
-  switch (dir) {
-    case VERTEX_C:
-      return center;
-    case VERTEX_N:
-      return center + vertexBaseLength - row;
-    case VERTEX_E:
-      return center + 1;
-    case VERTEX_S:
-      return center - vertexBaseLength - 1 + row;
-    case VERTEX_W:
-      return center - 1;
-    case VERTEX_SE:
-      return center - vertexBaseLength + row;
-    case VERTEX_NW:
-      return center + vertexBaseLength - row - 1;
-    case CELL_GRAY_SE:
-      return cellGrayNE - (grayBaseLength - row) -1;
-    case CELL_GRAY_NE:
-      return cellGrayNE;
-    case CELL_GRAY_NW:
-      return cellGrayNE - 1;
-    case CELL_BLUE_SE:
-      return cellBlueNW - (blueBaseLength - row);
-    case CELL_BLUE_NW:
-      return cellBlueNW;
-    case CELL_BLUE_SW:
-      return cellBlueNW - (blueBaseLength - row) -1;
-  }
-  return std::numeric_limits<size_t>::max();
-}
-}//namespace CoordsVertex
-
 namespace CoordsCellGray {
 enum Dir {
-    VERTEX_SW = 0,
-    VERTEX_SE = 1,
-    VERTEX_NW = 2,
-    CELL_GRAY_C = 3
+    CELL_GRAY_C = 0
 };
-
-const Dir neighbors[3] = {VERTEX_SE,VERTEX_NW,VERTEX_SW};
-const Dir neighbors_with_center[4] = {CELL_GRAY_C,VERTEX_SE,VERTEX_NW,VERTEX_SW};
-
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t center = totalVertices + totalGray - (grayBaseLength - row) * (grayBaseLength - row  + 1) / 2 + col;
+  const size_t center = totalGray - (grayBaseLength - row) * (grayBaseLength - row  + 1) / 2 + col;
   switch(dir){
     case CELL_GRAY_C:
       return center;
-    case VERTEX_SE:
-      return center - totalVertices + row + 1;
-    case VERTEX_SW:
-      return center - totalVertices + row;
-    case VERTEX_NW:
-      return center - totalVertices + row + vertexBaseLength - row;
   }
   return std::numeric_limits<size_t>::max();
 }
@@ -116,34 +31,20 @@ inline size_t index(size_t row, size_t col, Dir dir) {
 
 namespace CoordsCellBlue {
 enum Dir {
-    VERTEX_SE = 0,
-    VERTEX_NW = 1,
-    VERTEX_NE = 2,
-    CELL_BLUE_C = 3
+    CELL_BLUE_C = 0
 };
-
-const Dir neighbors[3] = {VERTEX_SE,VERTEX_NE,VERTEX_NW};
-const Dir neighbors_with_center[4] = {CELL_BLUE_C,VERTEX_SE,VERTEX_NE,VERTEX_NW};
-
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
   const size_t blueBaseLength = vertexBaseLength -2;
   const size_t totalBlue = blueBaseLength * (blueBaseLength + 1) / 2;
-  const size_t center = totalVertices + totalGray + totalBlue - (blueBaseLength - row) * (blueBaseLength - row  + 1) / 2 + col;
+  const size_t center = totalGray + totalBlue - (blueBaseLength - row) * (blueBaseLength - row  + 1) / 2 + col;
   switch(dir){
     case CELL_BLUE_C:
       return center;
-    case VERTEX_SE:
-      return center - totalVertices + row - totalGray + row + 1;
-    case VERTEX_NE:
-      return center - totalVertices + row - totalGray + row + vertexBaseLength - row + 1;
-    case VERTEX_NW:
-      return center - totalVertices + row - totalGray + row + vertexBaseLength - row;
   }
   return std::numeric_limits<size_t>::max();
 }
@@ -152,11 +53,8 @@ inline size_t index(size_t row, size_t col, Dir dir) {
 
 
 enum DofType {
-  VERTEX = 0,
-  CELL_GRAY = 1,
-  CELL_BLUE = 2,
-  VERTEX_INNER = 3
-  //VERTEX_INNER: vertex dofs that are connected to the boundary
+  CELL_GRAY = 0,
+  CELL_BLUE = 1,
 };
 
 /// Iterator to get the indices for one specific edge and DofType in the face memory
@@ -224,11 +122,6 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
       num_perEdge_ -= 1;
       maximum = num_perEdge_ * (num_perEdge_ + 1) / 2 - 1;
       break;
-    case VERTEX:
-      break;
-    case VERTEX_INNER:
-      //This is handled in the next switch
-      break;
     default:
       WALBERLA_LOG_WARNING("Wrong DofType: " << type);
   }
@@ -239,18 +132,10 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
         idx_ += 0;
         offset_ = 1;
         offsetOffset_ = 0;
-        if(type == VERTEX_INNER){
-          idx_ += num_perEdge_;
-          num_perEdge_--;
-        }
       } else {
         idx_ += num_perEdge_ - 1;
         offset_ = -1;
         offsetOffset_ = 0;
-        if(type == VERTEX_INNER){
-          idx_ += num_perEdge_ -1;
-          num_perEdge_--;
-        }
       }
       break;
     case 1:
@@ -258,19 +143,10 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
         idx_ += num_perEdge_ - 1;
         offset_ = num_perEdge_ - 1;
         offsetOffset_ = -1;
-        if(type == VERTEX_INNER){
-          idx_--;
-          num_perEdge_--;
-        }
       } else {
         idx_ += maximum;
         offset_ = -1;
         offsetOffset_ = -1;
-        if(type == VERTEX_INNER){
-          idx_-=2;
-          num_perEdge_--;
-          offset_ += offsetOffset_;
-        }
       }
       break;
     case 2:
@@ -278,19 +154,10 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
         idx_ += maximum;
         offset_ = -2;
         offsetOffset_ = -1;
-        if(type == VERTEX_INNER){
-          idx_--;
-          num_perEdge_--;
-          offset_ += offsetOffset_;
-        }
       } else {
         idx_ += 0;
         offset_ = num_perEdge_;
         offsetOffset_ = -1;
-        if(type == VERTEX_INNER){
-          idx_++;
-          num_perEdge_--;
-        }
       }
       break;
     default: WALBERLA_LOG_WARNING("invalid edge index");

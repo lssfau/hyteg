@@ -138,7 +138,7 @@ public:
 
   inline size_t getSize(size_t)
   {
-    return 4;
+    return 1;
   }
 
 };
