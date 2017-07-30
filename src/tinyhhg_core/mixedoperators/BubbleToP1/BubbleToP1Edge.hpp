@@ -22,13 +22,13 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
   for (size_t i = 1; i < rowsize - 1; ++i) {
     tmp = 0.0;
 
-    for (auto neighbor : BubbleToP1Edge::EdgeCoordsVertex::neighbors_south) {
-      tmp += edge_vertex_stencil[neighbor]*src[BubbleToP1Edge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+    for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_south) {
+      tmp += edge_vertex_stencil[neighbor]*src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
     }
 
     if (edge.getNumNeighborFaces() == 2) {
-      for (auto neighbor : BubbleToP1Edge::EdgeCoordsVertex::neighbors_north) {
-        tmp += edge_vertex_stencil[neighbor]*src[BubbleToP1Edge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+      for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_north) {
+        tmp += edge_vertex_stencil[neighbor]*src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
       }
     }
 

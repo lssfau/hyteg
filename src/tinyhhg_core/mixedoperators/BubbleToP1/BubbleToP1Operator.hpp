@@ -8,8 +8,8 @@
 #include "BubbleToP1Memory.hpp"
 #include "BubbleToP1DataHandling.hpp"
 
-#include "BubbleToP1FaceIndex.hpp"
-#include "BubbleToP1EdgeIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
 
 #include "tinyhhg_core/fenics.hpp"
 
@@ -51,13 +51,13 @@ class BubbleToP1Operator : public Operator
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
 
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
-        face_stencil[BubbleToP1Face::CoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
+        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
       }
 
       // assemble edge stencil
@@ -77,9 +77,9 @@ class BubbleToP1Operator : public Operator
         size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
         size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-        edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_GRAY_SW] = local_stiffness_gray[end_id][3];
-        edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[opposite_id][3];
-        edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[start_id][3];
+        edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_GRAY_SW] = local_stiffness_gray[end_id][3];
+        edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[opposite_id][3];
+        edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[start_id][3];
 
         if (edge.getNumNeighborFaces() == 2)
         {
@@ -92,9 +92,9 @@ class BubbleToP1Operator : public Operator
           size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
           size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-          edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[end_id][3];
-          edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[opposite_id][3];
-          edge_stencil[BubbleToP1Edge::EdgeCoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[start_id][3];
+          edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[end_id][3];
+          edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[opposite_id][3];
+          edge_stencil[BubbleEdge::EdgeCoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[start_id][3];
         }
       }
 

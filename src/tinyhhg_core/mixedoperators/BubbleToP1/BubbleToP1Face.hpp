@@ -3,7 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "BubbleToP1Memory.hpp"
-#include "BubbleToP1FaceIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
@@ -26,8 +26,8 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
       tmp = 0.0;
 
-      for (auto neighbor : BubbleToP1Face::CoordsVertex::neighbors) {
-        tmp += opr_data[neighbor]*src[BubbleToP1Face::CoordsVertex::index<Level>(i, j, neighbor)];
+      for (auto neighbor : BubbleFace::CoordsVertex::neighbors) {
+        tmp += opr_data[neighbor]*src[BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)];
       }
 
       if (update==Replace) {

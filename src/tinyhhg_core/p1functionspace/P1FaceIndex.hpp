@@ -8,6 +8,26 @@ namespace P1Face
 
 using walberla::uint_t;
 
+namespace CoordsCellGray {
+enum DirVertex {
+  VERTEX_SW = 0,
+  VERTEX_SE = 1,
+  VERTEX_NW = 2
+};
+
+const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
+}
+
+namespace CoordsCellBlue {
+enum DirVertex {
+  VERTEX_SE = 0,
+  VERTEX_NW = 1,
+  VERTEX_NE = 2
+};
+
+const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
+}
+
 namespace CoordsVertex {
 enum DirVertex {
   VERTEX_S  = 0,

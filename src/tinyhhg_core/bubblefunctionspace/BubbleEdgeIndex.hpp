@@ -3,7 +3,7 @@
 #include "tinyhhg_core/macros.hpp"
 
 namespace hhg{
-namespace BubbleToP1Edge{
+namespace BubbleEdge{
 //FIXME this can be removed after we moved into walberla namespace
 using namespace walberla::mpistubs;
 
