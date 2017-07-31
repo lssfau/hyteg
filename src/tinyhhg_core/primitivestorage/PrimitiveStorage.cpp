@@ -174,47 +174,114 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 
 const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
 {
-  WALBERLA_ASSERT_LESS_EQUAL(   vertices_.count( id.getID() )
-                              +    edges_.count( id.getID() )
-                              +    faces_.count( id.getID() ), uint_c( 1 ) );
-  if ( vertexExistsLocally( id ) ) return getVertex( id );
-  if (   edgeExistsLocally( id ) ) return   getEdge( id );
-  if (   faceExistsLocally( id ) ) return   getFace( id );
+  if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) ) return getVertex( id );
+  if (   edgeExistsLocally( id ) ||   edgeExistsInNeighborhood( id ) ) return   getEdge( id );
+  if (   faceExistsLocally( id ) ||   faceExistsInNeighborhood( id ) ) return   getFace( id );
   return nullptr;
 }
 
 Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id )
 {
-  WALBERLA_ASSERT_LESS_EQUAL(   vertices_.count( id.getID() )
-                              +    edges_.count( id.getID() )
-                              +    faces_.count( id.getID() ), uint_c( 1 ) );
-  if ( vertexExistsLocally( id ) ) return getVertex( id );
-  if (   edgeExistsLocally( id ) ) return   getEdge( id );
-  if (   faceExistsLocally( id ) ) return   getFace( id );
+  if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) ) return getVertex( id );
+  if (   edgeExistsLocally( id ) ||   edgeExistsInNeighborhood( id ) ) return   getEdge( id );
+  if (   faceExistsLocally( id ) ||   faceExistsInNeighborhood( id ) ) return   getFace( id );
   return nullptr;
 }
 
-
-const Primitive* PrimitiveStorage::getNeighborPrimitive( const PrimitiveID & id ) const
+const Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id ) const
 {
-  WALBERLA_ASSERT_LESS_EQUAL(   neighborVertices_.count( id.getID() )
-                              +    neighborEdges_.count( id.getID() )
-                              +    neighborFaces_.count( id.getID() ), uint_c( 1 ) );
-  if ( vertexExistsInNeighborhood( id ) ) return getNeighborVertex( id );
-  if (   edgeExistsInNeighborhood( id ) ) return   getNeighborEdge( id );
-  if (   faceExistsInNeighborhood( id ) ) return   getNeighborFace( id );
-  return nullptr;
+  if ( vertexExistsLocally( id ) )
+  {
+    return vertices_.at( id.getID() );
+  }
+  else if ( vertexExistsInNeighborhood( id ) )
+  {
+    return neighborVertices_.at( id.getID() );
+  }
+  else
+  {
+    return nullptr;
+  }
 }
 
-Primitive* PrimitiveStorage::getNeighborPrimitive( const PrimitiveID & id )
+Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id )
 {
-  WALBERLA_ASSERT_LESS_EQUAL(   neighborVertices_.count( id.getID() )
-                              +    neighborEdges_.count( id.getID() )
-                              +    neighborFaces_.count( id.getID() ), uint_c( 1 ) );
-  if ( vertexExistsInNeighborhood( id ) ) return getNeighborVertex( id );
-  if (   edgeExistsInNeighborhood( id ) ) return   getNeighborEdge( id );
-  if (   faceExistsInNeighborhood( id ) ) return   getNeighborFace( id );
-  return nullptr;
+  if ( vertexExistsLocally( id ) )
+  {
+    return vertices_[ id.getID() ];
+  }
+  else if ( vertexExistsInNeighborhood( id ) )
+  {
+    return neighborVertices_[ id.getID() ];
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+const Edge* PrimitiveStorage::getEdge( const PrimitiveID & id ) const
+{
+  if ( edgeExistsLocally( id ) )
+  {
+    return edges_.at( id.getID() );
+  }
+  else if ( edgeExistsInNeighborhood( id ) )
+  {
+    return neighborEdges_.at( id.getID() );
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+Edge* PrimitiveStorage::getEdge( const PrimitiveID & id )
+{
+  if ( edgeExistsLocally( id ) )
+  {
+    return edges_[ id.getID() ];
+  }
+  else if ( edgeExistsInNeighborhood( id ) )
+  {
+    return neighborEdges_[ id.getID() ];
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+const Face* PrimitiveStorage::getFace( const PrimitiveID & id ) const
+{
+  if ( faceExistsLocally( id ) )
+  {
+    return faces_.at( id.getID() );
+  }
+  else if ( faceExistsInNeighborhood( id ) )
+  {
+    return neighborFaces_.at( id.getID() );
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+Face* PrimitiveStorage::getFace( const PrimitiveID & id )
+{
+  if ( faceExistsLocally( id ) )
+  {
+    return faces_[ id.getID() ];
+  }
+  else if ( faceExistsInNeighborhood( id ) )
+  {
+    return neighborFaces_[ id.getID() ];
+  }
+  else
+  {
+    return nullptr;
+  }
 }
 
 

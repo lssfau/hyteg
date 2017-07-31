@@ -62,45 +62,28 @@ public:
   inline bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Primitive does not exist locally.
+  /// The returned \ref Primitive is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Primitive does not exist locally nor in the direct neighborhood.
   const Primitive* getPrimitive( const PrimitiveID & id ) const;
         Primitive* getPrimitive( const PrimitiveID & id );
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Vertex does not exist locally.
-  const Vertex* getVertex( const PrimitiveID & id ) const { return vertexExistsLocally( id ) ? vertices_.at( id.getID() ) : nullptr; }
-        Vertex* getVertex( const PrimitiveID & id )       { return vertexExistsLocally( id ) ? vertices_[ id.getID() ] : nullptr; }
+  /// The returned \ref Vertex is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Vertex does not exist locally nor in the direct neighborhood.
+  const Vertex* getVertex( const PrimitiveID & id ) const;
+        Vertex* getVertex( const PrimitiveID & id );
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Edge does not exist locally.
-  const Edge* getEdge( const PrimitiveID & id ) const { return edgeExistsLocally( id ) ? edges_.at( id.getID() ) : nullptr; }
-        Edge* getEdge( const PrimitiveID & id )       { return edgeExistsLocally( id ) ? edges_[ id.getID() ] : nullptr; }
+  /// The returned \ref Edge is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Edge does not exist locally nor in the direct neighborhood.
+  const Edge* getEdge( const PrimitiveID & id ) const;
+        Edge* getEdge( const PrimitiveID & id );
 
   /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Face does not exist locally.
-  const Face* getFace( const PrimitiveID & id ) const { return faceExistsLocally( id ) ? faces_.at( id.getID() ) : nullptr; }
-        Face* getFace( const PrimitiveID & id )       { return faceExistsLocally( id ) ? faces_[ id.getID() ] : nullptr; }
-
-  /// Returns the neighbor \ref Primitive that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Primitive does not exist in the direct neighborhood.
-  const Primitive* getNeighborPrimitive( const PrimitiveID & id ) const;
-        Primitive* getNeighborPrimitive( const PrimitiveID & id );
-
-  /// Returns the neighbor \ref Vertex that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Vertex does not exist in the direct neighborhood.
-  const Vertex* getNeighborVertex( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) ? neighborVertices_.at( id.getID() ) : nullptr; }
-        Vertex* getNeighborVertex( const PrimitiveID & id )       { return vertexExistsInNeighborhood( id ) ? neighborVertices_[ id.getID() ] : nullptr; }
-
-  /// Returns the neighbor \ref Edge that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Edge does not exist in the direct neighborhood.
-  const Edge* getNeighborEdge( const PrimitiveID & id ) const { return edgeExistsInNeighborhood( id ) ? neighborEdges_.at( id.getID() ) : nullptr; }
-        Edge* getNeighborEdge( const PrimitiveID & id )       { return edgeExistsInNeighborhood( id ) ? neighborEdges_[ id.getID() ] : nullptr; }
-
-  /// Returns the neighbor \ref Face that is assigned to the passed \ref PrimitiveID.
-  /// Returns NULL if the \ref Face does not exist in the direct neighborhood.
-  const Face* getNeighborFace( const PrimitiveID & id ) const { return faceExistsInNeighborhood( id ) ? neighborFaces_.at( id.getID() ) : nullptr; }
-        Face* getNeighborFace( const PrimitiveID & id )       { return faceExistsInNeighborhood( id ) ? neighborFaces_[ id.getID() ] : nullptr; }
-
+  /// The returned \ref Face is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Face does not exist locally nor in the direct neighborhood.
+  const Face* getFace( const PrimitiveID & id ) const;
+        Face* getFace( const PrimitiveID & id );
 
   /// Generic versions of the getter methods.
   template< typename PrimitiveType >
@@ -109,15 +92,13 @@ public:
   template< typename PrimitiveType >
   inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
-  /// Generic versions of the getter methods.
-  template< typename PrimitiveType >
-  inline const PrimitiveType* getNeighborPrimitiveGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
-
-  template< typename PrimitiveType >
-  inline       PrimitiveType* getNeighborPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
-
+  /// Fills the passed vector with the IDs of the locally existing vertices
   void getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const;
+
+  /// Fills the passed vector with the IDs of the locally existing edges
   void getEdgeIDs   ( std::vector< PrimitiveID > & edgeIDs )   const;
+
+  /// Fills the passed vector with the IDs of the locally existing faces
   void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
 
   template< typename PrimitiveType >
@@ -126,8 +107,13 @@ public:
   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
   void getPrimitives( PrimitiveMap & primitiveMap ) const;
 
+  /// Returns a reference to a map of the locally existing \ref Vertex instances
   const VertexMap & getVertices() const { return vertices_; }
+
+  /// Returns a reference to a map of the locally existing \ref Edge instances
   const EdgeMap   & getEdges()    const { return edges_;    }
+
+  /// Returns a reference to a map of the locally existing \ref Face instances
   const FaceMap   & getFaces()    const { return faces_;    }
 
   VertexMap::iterator beginVertices() { return vertices_.begin(); }
@@ -254,32 +240,6 @@ inline const Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const 
 
 template<>
 inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
-
-
-template<>
-inline const Primitive* PrimitiveStorage::getNeighborPrimitiveGenerically< Primitive >( const PrimitiveID & id ) const { return getNeighborPrimitive( id ); }
-
-template<>
-inline       Primitive* PrimitiveStorage::getNeighborPrimitiveGenerically< Primitive >( const PrimitiveID & id )       { return getNeighborPrimitive( id ); }
-
-template<>
-inline const Vertex* PrimitiveStorage::getNeighborPrimitiveGenerically< Vertex >( const PrimitiveID & id ) const { return getNeighborVertex( id ); }
-
-template<>
-inline       Vertex* PrimitiveStorage::getNeighborPrimitiveGenerically< Vertex >( const PrimitiveID & id )       { return getNeighborVertex( id ); }
-
-template<>
-inline const Edge*   PrimitiveStorage::getNeighborPrimitiveGenerically< Edge >  ( const PrimitiveID & id ) const { return getNeighborEdge( id ); }
-
-template<>
-inline       Edge*   PrimitiveStorage::getNeighborPrimitiveGenerically< Edge >  ( const PrimitiveID & id )       { return getNeighborEdge( id ); }
-
-template<>
-inline const Face*   PrimitiveStorage::getNeighborPrimitiveGenerically< Face >  ( const PrimitiveID & id ) const { return getNeighborFace( id ); }
-
-template<>
-inline       Face*   PrimitiveStorage::getNeighborPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getNeighborFace( id ); }
-
 
 template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getVertexIDs( primitiveIDs ); }
