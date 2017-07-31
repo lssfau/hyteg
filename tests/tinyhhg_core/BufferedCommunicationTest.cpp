@@ -189,6 +189,10 @@ static void testBufferedCommunication()
   }
 
   communicator.addPackInfo( testPackInfo );
+  communicator.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+  communicator.enableTiming( timingTree );
 
   communicator.communicate< Vertex, Edge >();
 #if 0
@@ -229,7 +233,8 @@ static void testBufferedCommunication()
     }
   }
 
-
+  const walberla::WcTimingTree tt = timingTree->getReduced();
+  WALBERLA_LOG_INFO_ON_ROOT( tt );
 
 }
 

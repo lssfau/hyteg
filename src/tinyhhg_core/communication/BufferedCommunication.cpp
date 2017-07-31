@@ -7,6 +7,18 @@
 namespace hhg {
 namespace communication {
 
+const std::array< std::string, BufferedCommunicator::NUM_COMMUNICATION_DIRECTIONS > BufferedCommunicator::COMMUNICATION_DIRECTION_STRINGS = {
+      "vertex -> edge  ",
+      "edge   -> vertex",
+      "edge   -> face  ",
+      "face   -> edge  "
+};
+
+const std::array< std::string, BufferedCommunicator::NUM_LOCAL_COMMUNICATION_MODES > BufferedCommunicator::LOCAL_COMMUNICATION_MODE_STRINGS = {
+    "direct",
+    "buffered MPI"
+};
+
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
     primitiveStorage_( primitiveStorage ), localCommunicationMode_( localCommunicationMode )
 {

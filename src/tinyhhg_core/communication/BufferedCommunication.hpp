@@ -9,6 +9,7 @@
 #include "core/mpi/BufferSystem.h"
 #include "core/mpi/MPIManager.h"
 #include "core/mpi/OpenMPBufferSystem.h"
+#include "core/timing/TimingTree.h"
 
 namespace hhg {
 namespace communication {
@@ -39,7 +40,9 @@ public:
     /// Uses the direct communication callbacks of the respective PackInfos for local neighbors
     DIRECT, 
     /// Sends data to local neighbors over MPI
-    BUFFERED_MPI, 
+    BUFFERED_MPI,
+    /// Number of differed modes
+    NUM_LOCAL_COMMUNICATION_MODES
   };
 
   BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode = DIRECT );
@@ -87,6 +90,8 @@ public:
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
   void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { localCommunicationMode_ = localCommunicationMode; }
 
+  void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
+
 private:
 
   typedef std::function<void ( SendBuffer & buf ) > SendFunction;
@@ -102,6 +107,9 @@ private:
 
     NUM_COMMUNICATION_DIRECTIONS
   };
+
+  static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
+  static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
 
   template< typename SenderType, typename ReceiverType >
   inline CommunicationDirection getCommunicationDirection() const;
@@ -123,6 +131,8 @@ private:
 #endif
 
   LocalCommunicationMode localCommunicationMode_;
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
 };
 
@@ -151,13 +161,22 @@ inline bool BufferedCommunicator::sendingToHigherDimension() const
 template< typename SenderType, typename ReceiverType, typename >
 void BufferedCommunicator::startCommunication()
 {
-  if ( packInfos_.empty() )
-  {
-    return;
-  }
-
   bool                   sendingToHigherDim     = sendingToHigherDimension< SenderType, ReceiverType >();
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
+
+  const std::string      timerString            = "Communication " + COMMUNICATION_DIRECTION_STRINGS[ communicationDirection ]
+                                                                   + " (setup, local mode = " + LOCAL_COMMUNICATION_MODE_STRINGS[ localCommunicationMode_ ] + ")";
+
+  if ( timingTree_ )
+  {
+    timingTree_->start( timerString );
+  }
+
+  if ( packInfos_.empty() )
+  {
+    timingTree_->stop( timerString );
+    return;
+  }
 
 #ifndef NDEBUG
   WALBERLA_ASSERT( !communicationInProgress_[ communicationDirection ] );
@@ -309,17 +328,30 @@ void BufferedCommunicator::startCommunication()
   }
 
   bufferSystem->startCommunication();
+
+  if ( timingTree_ )
+  {
+    timingTree_->stop( timerString );
+  }
 }
 
 template < typename SenderType, typename ReceiverType, typename >
 void BufferedCommunicator::endCommunication()
 {
+  const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
+  const std::string            timerString            = "Communication " + COMMUNICATION_DIRECTION_STRINGS[ communicationDirection ]
+                                                                         + " (wait , local mode = " + LOCAL_COMMUNICATION_MODE_STRINGS[ localCommunicationMode_ ] + ")";
+
+  if ( timingTree_ )
+  {
+    timingTree_->start( timerString );
+  }
+
   if ( packInfos_.empty() )
   {
     return;
   }
 
-  const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
 #ifndef NDEBUG
   WALBERLA_ASSERT( communicationInProgress_[ communicationDirection ] );
@@ -328,6 +360,11 @@ void BufferedCommunicator::endCommunication()
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
+
+  if ( timingTree_ )
+  {
+    timingTree_->stop( timerString );
+  }
 }
 
 
