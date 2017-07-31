@@ -10,6 +10,7 @@
 #include "core/mpi/MPIManager.h"
 #include "core/mpi/OpenMPBufferSystem.h"
 #include "core/timing/TimingTree.h"
+#include "core/timing/TimingPool.h"
 
 namespace hhg {
 namespace communication {
@@ -122,6 +123,9 @@ private:
 
   void endCommunication( const CommunicationDirection & communicationDirection );
 
+  void startTimer( const std::string & timerString );
+  void stopTimer ( const std::string & timerString );
+
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
@@ -164,17 +168,13 @@ void BufferedCommunicator::startCommunication()
   bool                   sendingToHigherDim     = sendingToHigherDimension< SenderType, ReceiverType >();
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
-  const std::string      timerString            = "Communication " + COMMUNICATION_DIRECTION_STRINGS[ communicationDirection ]
-                                                                   + " (setup, local mode = " + LOCAL_COMMUNICATION_MODE_STRINGS[ localCommunicationMode_ ] + ")";
+  const std::string      timerString            =   "Communication (setup)";
 
-  if ( timingTree_ )
-  {
-    timingTree_->start( timerString );
-  }
+  startTimer( timerString );
 
   if ( packInfos_.empty() )
   {
-    timingTree_->stop( timerString );
+    stopTimer( timerString );
     return;
   }
 
@@ -329,26 +329,20 @@ void BufferedCommunicator::startCommunication()
 
   bufferSystem->startCommunication();
 
-  if ( timingTree_ )
-  {
-    timingTree_->stop( timerString );
-  }
+  stopTimer( timerString );
 }
 
 template < typename SenderType, typename ReceiverType, typename >
 void BufferedCommunicator::endCommunication()
 {
   const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
-  const std::string            timerString            = "Communication " + COMMUNICATION_DIRECTION_STRINGS[ communicationDirection ]
-                                                                         + " (wait , local mode = " + LOCAL_COMMUNICATION_MODE_STRINGS[ localCommunicationMode_ ] + ")";
+  const std::string            timerString            =   "Communication (wait )";
 
-  if ( timingTree_ )
-  {
-    timingTree_->start( timerString );
-  }
+  startTimer( timerString );
 
   if ( packInfos_.empty() )
   {
+    stopTimer( timerString );
     return;
   }
 
@@ -361,10 +355,7 @@ void BufferedCommunicator::endCommunication()
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
 
-  if ( timingTree_ )
-  {
-    timingTree_->stop( timerString );
-  }
+  stopTimer( timerString );
 }
 
 

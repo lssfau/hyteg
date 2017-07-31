@@ -51,5 +51,21 @@ void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       Primitive
   recvBuffer >> senderID >> receiverID;
 }
 
+void BufferedCommunicator::startTimer( const std::string & timerString )
+{
+  if ( timingTree_ )
+  {
+    timingTree_->start( timerString );
+  }
+}
+
+void BufferedCommunicator::stopTimer( const std::string & timerString )
+{
+  if ( timingTree_ )
+  {
+    timingTree_->stop( timerString );
+  }
+}
+
 }
 }
