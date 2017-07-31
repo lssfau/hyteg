@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
+  std::string meshFileName = "../data/meshes/bfs_126el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  size_t maxLevel = 3;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -37,6 +37,14 @@ int main(int argc, char* argv[])
   hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+  r.enableTiming( timingTree );
+  f.enableTiming( timingTree );
+  u.enableTiming( timingTree );
+  u_exact.enableTiming( timingTree );
+  err.enableTiming( timingTree );
+  npoints_helper.enableTiming( timingTree );
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
@@ -63,6 +71,10 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+  hhg::VTKWriter< P1Function >({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+
+  walberla::WcTimingTree tt = timingTree->getReduced();
+  WALBERLA_LOG_INFO_ON_ROOT( tt );
+
   return 0;
 }

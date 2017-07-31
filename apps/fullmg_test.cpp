@@ -53,6 +53,15 @@ int main(int argc, char* argv[])
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+  r.enableTiming( timingTree );
+  b.enableTiming( timingTree );
+  x.enableTiming( timingTree );
+  x_exact.enableTiming( timingTree );
+  ax.enableTiming( timingTree );
+  tmp.enableTiming( timingTree );
+  err.enableTiming( timingTree );
+
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
@@ -111,7 +120,7 @@ int main(int argc, char* argv[])
       }
     }
   };
-//    hhg::VTKWriter({ &x }, 0, "../output", "out");
+    // hhg::VTKWriter({ &x }, 0, "../output", "out");
 
   LIKWID_MARKER_START("Compute");
   for (size_t ll = minLevel; ll <= maxLevel; ++ll)
@@ -157,6 +166,9 @@ int main(int argc, char* argv[])
 
   }
   LIKWID_MARKER_STOP("Compute");
+
+  walberla::WcTimingTree tt = timingTree->getReduced();
+  WALBERLA_LOG_INFO_ON_ROOT( tt );
 
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;
