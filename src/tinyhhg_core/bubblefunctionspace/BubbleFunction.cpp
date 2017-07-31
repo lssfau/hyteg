@@ -30,12 +30,12 @@ BubbleFunction::~BubbleFunction() {
   //TODO implement!
 }
 
-void BubbleFunction::interpolate(std::function<real_t(const hhg::Point3D &)> &expr, uint_t level, DoFType flag) {
+void BubbleFunction::interpolate_impl(std::function<real_t(const hhg::Point3D &)> &expr, uint_t level, DoFType flag) {
   // TODO: implement Bubble interpolation. It is not required for Dirichlet only interpolation in most of the apps
   WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!");
 }
 
-void BubbleFunction::assign(const std::vector<walberla::real_t> scalars,
+void BubbleFunction::assign_impl(const std::vector<walberla::real_t> scalars,
                             const std::vector<BubbleFunction *> functions,
                             size_t level,
                             DoFType flag) {
@@ -59,7 +59,7 @@ void BubbleFunction::assign(const std::vector<walberla::real_t> scalars,
     }
 }
 
-void BubbleFunction::add(const std::vector<walberla::real_t> scalars,
+void BubbleFunction::add_impl(const std::vector<walberla::real_t> scalars,
                          const std::vector<BubbleFunction *> functions,
                          size_t level,
                          DoFType flag) {
@@ -83,7 +83,7 @@ void BubbleFunction::add(const std::vector<walberla::real_t> scalars,
     }
 }
 
-real_t BubbleFunction::dot(BubbleFunction &rhs, uint_t level, DoFType flag) {
+real_t BubbleFunction::dot_impl(BubbleFunction &rhs, uint_t level, DoFType flag) {
   real_t scalarProduct = 0.0;
 
   for (auto &it : storage_->getFaces()) {
@@ -97,5 +97,20 @@ real_t BubbleFunction::dot(BubbleFunction &rhs, uint_t level, DoFType flag) {
   walberla::mpi::allReduceInplace(scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm());
 
   return scalarProduct;
+}
+
+void prolongate_impl(size_t level, DoFType flag)
+{
+  WALBERLA_ABORT("not implemented");
+}
+
+void prolongateQuadratic_impl(size_t level, DoFType flag)
+{
+  WALBERLA_ABORT("not implemented");
+}
+
+void restrict_impl(size_t level, DoFType flag)
+{
+  WALBERLA_ABORT("not implemented");
 }
 }

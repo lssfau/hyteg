@@ -27,7 +27,7 @@ P1Function::~P1Function()
     //TODO implement!
 }
 
-void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag)
+void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag)
 {
     for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
@@ -61,7 +61,7 @@ void P1Function::interpolate(std::function<real_t(const hhg::Point3D&)>& expr, u
     communicators_[level]->endCommunication<Edge, Face>();
 }
 
-void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
+void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
@@ -107,7 +107,7 @@ void P1Function::assign(const std::vector<walberla::real_t> scalars, const std::
     communicators_[level]->endCommunication<Edge, Face>();
 }
 
-void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
+void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
@@ -153,7 +153,7 @@ void P1Function::add(const std::vector<walberla::real_t> scalars, const std::vec
   communicators_[level]->endCommunication<Edge, Face>();
 }
 
-real_t P1Function::dot(P1Function& rhs, size_t level, DoFType flag)
+real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
 {
   real_t scalarProduct = 0.0;
 
@@ -186,7 +186,7 @@ real_t P1Function::dot(P1Function& rhs, size_t level, DoFType flag)
   return scalarProduct;
 }
 
-void P1Function::prolongate(size_t sourceLevel, DoFType flag)
+void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -225,7 +225,8 @@ void P1Function::prolongate(size_t sourceLevel, DoFType flag)
   communicators_[destinationLevel]->endCommunication<Edge, Face>();
 }
 
-void P1Function::prolongateQuadratic(size_t sourceLevel, DoFType flag){
+void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
+{
   const size_t destinationLevel = sourceLevel + 1;
 
   for (auto& it : storage_->getVertices()) {
@@ -263,7 +264,7 @@ void P1Function::prolongateQuadratic(size_t sourceLevel, DoFType flag){
   communicators_[destinationLevel]->endCommunication<Edge, Face>();
 }
 
-void P1Function::restrict(size_t sourceLevel, DoFType flag)
+void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel - 1;
 
