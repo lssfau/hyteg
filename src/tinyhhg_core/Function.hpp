@@ -13,21 +13,21 @@ namespace hhg {
 
 class Function {
 public:
-    Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
-        : functionName_(name)
-        , storage_(storage)
-        , minLevel_(minLevel)
-        , maxLevel_(maxLevel)
+  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+      : functionName_(name)
+      , storage_(storage)
+      , minLevel_(minLevel)
+      , maxLevel_(maxLevel)
+  {
+    for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      for ( uint_t level = minLevel; level <= maxLevel; level++ )
-      {
-        communicators_[ level ] = std::shared_ptr< communication::BufferedCommunicator >( new communication::BufferedCommunicator( storage ) );
-      }
+      communicators_[ level ] = std::shared_ptr< communication::BufferedCommunicator >( new communication::BufferedCommunicator( storage ) );
     }
+  }
 
-    virtual ~Function()
-    {
-    }
+  virtual ~Function()
+  {
+  }
 
   const std::string &getFunctionName() const { return functionName_; }
 
