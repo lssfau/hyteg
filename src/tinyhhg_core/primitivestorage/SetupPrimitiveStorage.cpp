@@ -212,10 +212,10 @@ bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, 
   for ( auto it = edges_.begin(); it != edges_.end(); it++ )
   {
     if (   ( it->second->getVertexID0() == vertexID0 && it->second->getVertexID1() == vertexID1 )
-	|| ( it->second->getVertexID0() == vertexID1 && it->second->getVertexID1() == vertexID0 ) )
+        || ( it->second->getVertexID0() == vertexID1 && it->second->getVertexID1() == vertexID0 ) )
     {
-	edge = PrimitiveID( it->first );
-	return true;
+      edge = PrimitiveID( it->first );
+      return true;
     }
   }
 

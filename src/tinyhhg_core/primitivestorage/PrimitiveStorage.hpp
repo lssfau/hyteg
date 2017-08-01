@@ -308,11 +308,11 @@ PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 
 template< typename DataType,
           typename PrimitiveType,
-	  typename >
+          typename >
 void PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-					 const std::string & identifier,
-					 const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
-					 const PrimitiveDataID< DataType, PrimitiveType > & dataID )
+                                         const std::string & identifier,
+                                         const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
+                                         const PrimitiveDataID< DataType, PrimitiveType > & dataID )
 {
 #ifndef NDEBUG
   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
