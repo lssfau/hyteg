@@ -1,6 +1,7 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
+#include <core/Environment.h>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -45,6 +46,8 @@ int main(int argc, char* argv[])
   u_exact.enableTiming( timingTree );
   err.enableTiming( timingTree );
   npoints_helper.enableTiming( timingTree );
+
+  L.enableTiming( timingTree );
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };

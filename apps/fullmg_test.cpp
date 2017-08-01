@@ -1,5 +1,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <tinyhhg_core/likwidwrapper.hpp>
+#include <core/Environment.h>
 
 #define PI 3.14159265359
 
@@ -62,6 +63,9 @@ int main(int argc, char* argv[])
   tmp.enableTiming( timingTree );
   err.enableTiming( timingTree );
 
+  A.enableTiming( timingTree );
+  M.enableTiming( timingTree );
+
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D& xx) { return 2*PI*PI*sin(PI*xx[0])*sin(PI*xx[1]); };
   std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
@@ -120,7 +124,7 @@ int main(int argc, char* argv[])
       }
     }
   };
-    // hhg::VTKWriter({ &x }, 0, "../output", "out");
+  hhg::VTKWriter< hhg::P1Function >({ &x, &x_exact, &b }, minLevel, "../output", "out");
 
   LIKWID_MARKER_START("Compute");
   for (size_t ll = minLevel; ll <= maxLevel; ++ll)
