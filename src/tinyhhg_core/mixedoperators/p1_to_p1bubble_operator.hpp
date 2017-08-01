@@ -351,7 +351,7 @@ inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 }
-
+#if 0
 template<class UFCOperator>
 class P1ToP1BubbleOperator : public Operator
 {
@@ -680,5 +680,5 @@ public:
 
 typedef P1ToP1BubbleOperator<p1bubble_divt_cell_integral_0_otherwise> P1ToP1BubbleDivTxOperator;
 typedef P1ToP1BubbleOperator<p1bubble_divt_cell_integral_1_otherwise> P1ToP1BubbleDivTyOperator;
-
+#endif
 }

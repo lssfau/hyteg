@@ -23,7 +23,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class BubbleToP1Operator : public Operator
+class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
 {
  public:
   BubbleToP1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -125,7 +125,9 @@ class BubbleToP1Operator : public Operator
   {
   }
 
-  void apply(BubbleFunction& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+ private:
+
+  void apply_impl(BubbleFunction& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first
     src.getCommunicator(level)->startCommunication<Face, Edge>();
@@ -170,7 +172,6 @@ class BubbleToP1Operator : public Operator
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
- private:
   PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> faceStencilID_;

@@ -19,7 +19,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class BubbleOperator : public Operator
+class BubbleOperator : public Operator< BubbleFunction, BubbleFunction >
 {
 public:
   BubbleOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -51,7 +51,9 @@ public:
   {
   }
 
-  void apply(BubbleFunction& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+private:
+
+  void apply_impl(BubbleFunction& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -63,12 +65,12 @@ public:
     }
   }
 
-  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(BubbleFunction& dst, BubbleFunction& rhs, size_t level, DoFType flag)
   {
     WALBERLA_ASSERT(false, "BubbleOperator::smooth_gs is not implemented!");
   }
 
- private:
+private:
   PrimitiveDataID<FaceBubbleStencilMemory, Face> faceStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[1][1], fenics::ElementType element_type) {

@@ -27,7 +27,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class P1Operator : public Operator
+class P1Operator : public Operator< P1Function, P1Function >
 {
 public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -157,7 +157,9 @@ public:
   {
   }
 
-  void apply(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+private:
+
+  void apply_impl(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -207,7 +209,7 @@ public:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_gs(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -257,7 +259,6 @@ public:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
- private:
   PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
