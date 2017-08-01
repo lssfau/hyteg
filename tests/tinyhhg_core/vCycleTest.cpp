@@ -1,6 +1,8 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <tinyhhg_core/likwidwrapper.hpp>
 
+#include <core/Environment.h>
+
 template<class O, class F, class CSolver>
 void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, F& b, F& r, F& tmp, real_t coarse_tolerance, size_t coarse_maxiter, size_t nu_pre, size_t nu_post)
 {

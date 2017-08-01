@@ -3,6 +3,9 @@
 
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+
+#include <memory>
 
 namespace hhg
 {

@@ -1,11 +1,10 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <tinyhhg_core/Operator.hpp>
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/operator.hpp"
-
 #include "BubbleDataHandling.hpp"
 
 #include "tinyhhg_core/fenics.hpp"

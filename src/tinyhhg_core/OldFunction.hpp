@@ -1,7 +1,7 @@
 #pragma once
 
+#include <tinyhhg_core/Operator.hpp>
 #include "mesh.hpp"
-#include "operator.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 

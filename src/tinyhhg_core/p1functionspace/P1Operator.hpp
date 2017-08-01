@@ -2,11 +2,10 @@
 #define P1OPERATOR_HPP
 
 #include <fmt/format.h>
+#include <tinyhhg_core/Operator.hpp>
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/operator.hpp"
-
 #include "P1DataHandling.hpp"
 
 #include "tinyhhg_core/fenics.hpp"

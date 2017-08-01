@@ -1,11 +1,10 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <tinyhhg_core/Operator.hpp>
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/operator.hpp"
-
 #include "tinyhhg_core/p1bubblefunctionspace/generated/p1bubble_diffusion.h"
 
 #include "tinyhhg_core/p1bubblefunctionspace/p1bubblememory.hpp"
