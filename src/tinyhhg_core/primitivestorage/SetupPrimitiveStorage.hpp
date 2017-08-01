@@ -79,7 +79,7 @@ public:
   bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
 
   void balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
-		    const memory_t & perProcessMemoryLimit );
+                    const memory_t & perProcessMemoryLimit );
 
   void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
