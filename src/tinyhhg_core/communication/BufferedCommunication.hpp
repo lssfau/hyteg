@@ -89,7 +89,7 @@ public:
   inline void endCommunication();
 
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
-  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { localCommunicationMode_ = localCommunicationMode; }
+  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { setupBeforeNextCommunication(); localCommunicationMode_ = localCommunicationMode; }
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
@@ -126,6 +126,8 @@ private:
   void startTimer( const std::string & timerString );
   void stopTimer ( const std::string & timerString );
 
+  void setupBeforeNextCommunication();
+
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
@@ -135,6 +137,10 @@ private:
 #endif
 
   LocalCommunicationMode localCommunicationMode_;
+
+  // Cached communication setup
+  std::array< bool,                                   NUM_COMMUNICATION_DIRECTIONS > setupBeforeNextCommunication_;
+  std::array< std::vector< std::function< void() > >, NUM_COMMUNICATION_DIRECTIONS > directCommunicationFunctions_;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
@@ -184,149 +190,165 @@ void BufferedCommunicator::startCommunication()
 #endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
-
-  bufferSystem->clearSendingFunctions();
-  bufferSystem->clearReceivingFunctions();
-
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
-  std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
 
-  std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;   // rank -> sendFunctions
-  std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
-
-  std::vector< PrimitiveID > senderIDs;
-  std::vector< PrimitiveID > receiverIDs;
-
-  storage->getPrimitiveIDsGenerically< SenderType >  ( senderIDs );
-  storage->getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
-
-  // Send functions
-  for ( const PrimitiveID & senderID : senderIDs )
+  if ( setupBeforeNextCommunication_[ communicationDirection ] )
   {
-    WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( senderID ) );
-    SenderType * sender = storage->getPrimitiveGenerically< SenderType >( senderID );
+    bufferSystem->clearSendingFunctions();
+    bufferSystem->clearReceivingFunctions();
 
-    std::vector< PrimitiveID > receivingNeighborhood;
-    if ( sendingToHigherDim )
-    {
-      sender->getHigherDimNeighbors( receivingNeighborhood );
-    }
-    else
-    {
-      sender->getLowerDimNeighbors( receivingNeighborhood );
-    }
+    directCommunicationFunctions_[ communicationDirection ].clear();
 
-    for ( const auto & neighborID : receivingNeighborhood )
-    {
-      WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID )
-                       || storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
+    std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+    WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
 
-      if (    getLocalCommunicationMode() == DIRECT 
-           && storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
+    std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;   // rank -> sendFunctions
+    std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
+
+    std::vector< PrimitiveID > senderIDs;
+    std::vector< PrimitiveID > receiverIDs;
+
+    storage->getPrimitiveIDsGenerically< SenderType >  ( senderIDs );
+    storage->getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
+
+    // Send functions
+    for ( const PrimitiveID & senderID : senderIDs )
+    {
+      WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< SenderType >( senderID ) );
+      SenderType * sender = storage->getPrimitiveGenerically< SenderType >( senderID );
+
+      std::vector< PrimitiveID > receivingNeighborhood;
+      if ( sendingToHigherDim )
       {
-        ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
-        for ( auto & packInfo : packInfos_ )
-        {
-          packInfo->communicateLocal< SenderType, ReceiverType >( sender, receiver );
-        }
+        sender->getHigherDimNeighbors( receivingNeighborhood );
       }
       else
       {
-        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
-
-        if ( !packInfos_.empty() )
-        {
-          auto headerWriter = [ this, senderID, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, senderID, neighborID ); };
-          sendFunctionsMap[ neighborRank ].push_back( headerWriter );
-        }
-
-        for ( auto & packInfo : packInfos_ )
-        {
-          auto sendFunction = [ sender, neighborID, packInfo ]( SendBuffer & sendBuffer ) -> void { packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer ); };
-          sendFunctionsMap[ neighborRank ].push_back( sendFunction );
-
-        }
+        sender->getLowerDimNeighbors( receivingNeighborhood );
       }
-    }
-  }
 
-  // Ranks to receive from
-  for ( const PrimitiveID & receiverID : receiverIDs )
-  {
-    ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
-
-    std::vector< PrimitiveID > sendingNeighborhood;
-    if ( sendingToHigherDim )
-    {
-      receiver->getLowerDimNeighbors( sendingNeighborhood );
-    }
-    else
-    {
-      receiver->getHigherDimNeighbors( sendingNeighborhood );
-    }
-
-    for ( const auto & neighborID : sendingNeighborhood )
-    {
-      WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< SenderType >( neighborID )
-                       || storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
-
-      if (    getLocalCommunicationMode() != DIRECT
-           || !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
+      for ( const auto & neighborID : receivingNeighborhood )
       {
-        uint_t neighborRank = storage->getPrimitiveRank( neighborID );
+        WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID )
+                         || storage->primitiveExistsInNeighborhoodGenerically< ReceiverType >( neighborID ) );
 
-        if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
+        if (    getLocalCommunicationMode() == DIRECT
+             && storage->primitiveExistsLocallyGenerically< ReceiverType >( neighborID ) )
         {
-          ranksToReceiveFrom[ neighborRank ] = 1;
+          ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( neighborID );
+          for ( auto & packInfo : packInfos_ )
+          {
+            auto directCommunicationFunction = [ sender, receiver, packInfo ]() -> void { packInfo->communicateLocal< SenderType, ReceiverType >( sender, receiver ); };
+            directCommunicationFunctions_[ communicationDirection ].push_back( directCommunicationFunction );
+          }
         }
         else
         {
-          ranksToReceiveFrom[ neighborRank ] += 1;
+          uint_t neighborRank = storage->getPrimitiveRank( neighborID );
+
+          if ( !packInfos_.empty() )
+          {
+            auto headerWriter = [ this, senderID, neighborID ]( SendBuffer & sendBuffer ) -> void { writeHeader( sendBuffer, senderID, neighborID ); };
+            sendFunctionsMap[ neighborRank ].push_back( headerWriter );
+          }
+
+          for ( auto & packInfo : packInfos_ )
+          {
+            auto sendFunction = [ sender, neighborID, packInfo ]( SendBuffer & sendBuffer ) -> void { packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer ); };
+            sendFunctionsMap[ neighborRank ].push_back( sendFunction );
+          }
         }
       }
     }
-  }
 
-  for ( auto it = sendFunctionsMap.begin(); it != sendFunctionsMap.end(); it++ )
-  {
-    uint_t                      receiverRank  = it->first;
-    std::vector< SendFunction > sendFunctions = it->second;
-
-    auto sendFunction = [ sendFunctions ]( SendBuffer & sendBuffer ) -> void { for ( auto & f : sendFunctions ) f( sendBuffer ); };
-
-    bufferSystem->addSendingFunction( int_c( receiverRank ), sendFunction );
-  }
-
-  for ( const auto rankToReceiveFrom : ranksToReceiveFrom )
-  {
-    const uint_t senderRank       = rankToReceiveFrom.first;
-    const uint_t numberOfMessages = rankToReceiveFrom.second;
-
-    auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void
+    // Ranks to receive from
+    for ( const PrimitiveID & receiverID : receiverIDs )
     {
-      for ( uint_t message = 0; message < numberOfMessages; message++ )
+      ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
+
+      std::vector< PrimitiveID > sendingNeighborhood;
+      if ( sendingToHigherDim )
       {
-        PrimitiveID senderID;
-        PrimitiveID receiverID;
-        readHeader( recvBuffer, senderID, receiverID );
+        receiver->getLowerDimNeighbors( sendingNeighborhood );
+      }
+      else
+      {
+        receiver->getHigherDimNeighbors( sendingNeighborhood );
+      }
 
-        std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+      for ( const auto & neighborID : sendingNeighborhood )
+      {
+        WALBERLA_ASSERT(    storage->primitiveExistsLocallyGenerically< SenderType >( neighborID )
+                         || storage->primitiveExistsInNeighborhoodGenerically< SenderType >( neighborID ) );
 
-        WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
-        WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( receiverID ) );
-
-        ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
-
-        for ( const auto & packInfo : packInfos_ )
+        if (    getLocalCommunicationMode() != DIRECT
+             || !storage->primitiveExistsLocallyGenerically< SenderType >( neighborID ) )
         {
-          packInfo->unpack< SenderType, ReceiverType >( receiver, senderID, recvBuffer);
+          uint_t neighborRank = storage->getPrimitiveRank( neighborID );
+
+          if ( ranksToReceiveFrom.count( neighborRank ) == 0 )
+          {
+            ranksToReceiveFrom[ neighborRank ] = 1;
+          }
+          else
+          {
+            ranksToReceiveFrom[ neighborRank ] += 1;
+          }
         }
       }
-    };
+    }
 
-    bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
+    for ( auto it = sendFunctionsMap.begin(); it != sendFunctionsMap.end(); it++ )
+    {
+      uint_t                      receiverRank  = it->first;
+      std::vector< SendFunction > sendFunctions = it->second;
+
+      auto sendFunction = [ sendFunctions ]( SendBuffer & sendBuffer ) -> void { for ( auto & f : sendFunctions ) f( sendBuffer ); };
+
+      bufferSystem->addSendingFunction( int_c( receiverRank ), sendFunction );
+    }
+
+    for ( const auto rankToReceiveFrom : ranksToReceiveFrom )
+    {
+      const uint_t senderRank       = rankToReceiveFrom.first;
+      const uint_t numberOfMessages = rankToReceiveFrom.second;
+
+      auto recvFunction = [ this, numberOfMessages ]( RecvBuffer & recvBuffer ) -> void
+      {
+        for ( uint_t message = 0; message < numberOfMessages; message++ )
+        {
+          PrimitiveID senderID;
+          PrimitiveID receiverID;
+          readHeader( recvBuffer, senderID, receiverID );
+
+          std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+
+          WALBERLA_ASSERT_NOT_NULLPTR( storage.get() );
+          WALBERLA_ASSERT( storage->primitiveExistsLocallyGenerically< ReceiverType >( receiverID ) );
+
+          ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
+
+          for ( const auto & packInfo : packInfos_ )
+          {
+            packInfo->unpack< SenderType, ReceiverType >( receiver, senderID, recvBuffer);
+          }
+        }
+      };
+
+      bufferSystem->addReceivingFunction( int_c( senderRank ), recvFunction );
+    }
+
+    setupBeforeNextCommunication_[ communicationDirection ] = false;
+
+  } // setup
+
+  // Local communication
+  for ( auto & directCommunicationFunction : directCommunicationFunctions_[ communicationDirection ] )
+  {
+    directCommunicationFunction();
   }
 
+  // Buffered communication
   bufferSystem->startCommunication();
 
   stopTimer( timerString );

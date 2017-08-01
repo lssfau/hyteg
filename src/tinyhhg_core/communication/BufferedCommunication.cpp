@@ -28,6 +28,8 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
     bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), baseTag++ ) );
   }
 
+  setupBeforeNextCommunication();
+
 #ifndef NDEBUG
   for ( auto & communicationInProgress : communicationInProgress_ )
   {
@@ -38,6 +40,7 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
 
 void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & packInfo )
 {
+  setupBeforeNextCommunication();
   packInfos_.push_back( packInfo );
 }
 
@@ -65,6 +68,11 @@ void BufferedCommunicator::stopTimer( const std::string & timerString )
   {
     timingTree_->stop( timerString );
   }
+}
+
+void BufferedCommunicator::setupBeforeNextCommunication()
+{
+  setupBeforeNextCommunication_.fill( true );
 }
 
 }
