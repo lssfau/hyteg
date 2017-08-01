@@ -160,19 +160,31 @@ real_t Function< FunctionType >::dot(FunctionType& rhs, size_t level, DoFType fl
 template< typename FunctionType >
 void Function< FunctionType >::prolongate(size_t level, DoFType flag)
 {
+  startTiming( "Prolongate" );
+
   prolongate_impl( level, flag );
+
+  stopTiming( "Prolongate" );
 }
 
 template< typename FunctionType >
 void Function< FunctionType >::prolongateQuadratic(size_t level, DoFType flag)
 {
+  startTiming( "Prolongate Quadratic" );
+
   prolongateQuadratic_impl( level, flag );
+
+  stopTiming( "Prolongate Quadratic" );
 }
 
 template< typename FunctionType >
 void Function< FunctionType >::restrict(size_t level, DoFType flag)
 {
+  startTiming( "Restrict" );
+
   restrict_impl( level, flag );
+
+  stopTiming( "Restrict" );
 }
 
 }
