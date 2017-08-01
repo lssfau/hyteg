@@ -65,6 +65,10 @@ private:
 class PrimitiveID;
 class PrimitiveStorage;
 
+class Vertex;
+class Edge;
+class Face;
+
 /// \brief Base class for primitive geometries
 /// \author Nils Kohl (nils.kohl@fau.de)
 ///
@@ -108,6 +112,9 @@ public:
   void getNeighborVertices( std::vector< PrimitiveID > & neighborVertices ) const { neighborVertices.assign( neighborVertices_.begin(), neighborVertices_.end() ); }
   void getNeighborEdges   ( std::vector< PrimitiveID > & neighborEdges )    const { neighborEdges.assign   ( neighborEdges_.begin(),    neighborEdges_.end()    ); }
   void getNeighborFaces   ( std::vector< PrimitiveID > & neighborFaces )    const { neighborFaces.assign   ( neighborFaces_.begin(),    neighborFaces_.end()    ); }
+
+  template< typename PrimitiveType >
+  inline void getNeighborPrimitivesGenerically( std::vector< PrimitiveID > & neighborPrimitives ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   const std::vector< PrimitiveID > & neighborVertices() const { return neighborVertices_; }
   const std::vector< PrimitiveID > & neighborEdges()    const { return neighborEdges_; }
@@ -174,6 +181,15 @@ private:
   PrimitiveID primitiveID_;
 
 };
+
+template<>
+inline void Primitive::getNeighborPrimitivesGenerically< Vertex >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborVertices( neighborPrimitives ); }
+
+template<>
+inline void Primitive::getNeighborPrimitivesGenerically< Edge >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborEdges( neighborPrimitives ); }
+
+template<>
+inline void Primitive::getNeighborPrimitivesGenerically< Face >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborFaces( neighborPrimitives ); }
 
 // General methods for data and data handling retrieval
 template< typename DataType, typename PrimitiveType >
