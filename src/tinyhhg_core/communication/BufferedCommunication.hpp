@@ -58,8 +58,10 @@ public:
   template< typename SenderType,
             typename ReceiverType,
             typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void communicate() { startCommunication< SenderType, ReceiverType >(); endCommunication< SenderType, ReceiverType >(); }
 
@@ -70,8 +72,10 @@ public:
   template< typename SenderType,
             typename ReceiverType,
             typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void startCommunication();
 
@@ -83,8 +87,10 @@ public:
   template< typename SenderType,
             typename ReceiverType,
             typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void endCommunication();
 
@@ -101,9 +107,12 @@ private:
   enum CommunicationDirection
   {
     VERTEX_TO_EDGE,
-    EDGE_TO_VERTEX,
+    VERTEX_TO_FACE,
 
+    EDGE_TO_VERTEX,
     EDGE_TO_FACE,
+
+    FACE_TO_VERTEX,
     FACE_TO_EDGE,
 
     NUM_COMMUNICATION_DIRECTIONS
@@ -114,9 +123,6 @@ private:
 
   template< typename SenderType, typename ReceiverType >
   inline CommunicationDirection getCommunicationDirection() const;
-
-  template< typename SenderType, typename ReceiverType >
-  inline bool sendingToHigherDimension() const;
 
   void writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID );
   void readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID );
@@ -149,29 +155,23 @@ private:
 template< typename SenderType, typename ReceiverType >
 inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCommunicationDirection() const
 {
-  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value )   return VERTEX_TO_EDGE;
-  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Vertex >::value ) return EDGE_TO_VERTEX;
-  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Face >::value )   return EDGE_TO_FACE;
-  if ( std::is_same< SenderType, Face >::value   && std::is_same< ReceiverType, Edge >::value )   return FACE_TO_EDGE;
-  WALBERLA_ASSERT( false, "Sender and receiver types are invalid" );
-  return VERTEX_TO_EDGE;
-}
+  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value ) return VERTEX_TO_EDGE;
+  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value ) return VERTEX_TO_FACE;
 
-template< typename SenderType, typename ReceiverType >
-inline bool BufferedCommunicator::sendingToHigherDimension() const
-{
-  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge >::value )   return true;
-  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Vertex >::value ) return false;
-  if ( std::is_same< SenderType, Edge >::value   && std::is_same< ReceiverType, Face >::value )   return true;
-  if ( std::is_same< SenderType, Face >::value   && std::is_same< ReceiverType, Edge >::value )   return false;
-  WALBERLA_ASSERT( false, "Sender and receiver types are invalid" );
-  return false;
+  if ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value ) return EDGE_TO_VERTEX;
+  if ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value ) return EDGE_TO_FACE;
+
+  if ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value ) return FACE_TO_VERTEX;
+  if ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) return FACE_TO_EDGE;
+
+  WALBERLA_ABORT( "Sender and receiver types are invalid" );
+
+  return VERTEX_TO_EDGE;
 }
 
 template< typename SenderType, typename ReceiverType, typename >
 void BufferedCommunicator::startCommunication()
 {
-  bool                   sendingToHigherDim     = sendingToHigherDimension< SenderType, ReceiverType >();
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
   const std::string      timerString            =   "Communication (setup)";
@@ -218,14 +218,7 @@ void BufferedCommunicator::startCommunication()
       SenderType * sender = storage->getPrimitiveGenerically< SenderType >( senderID );
 
       std::vector< PrimitiveID > receivingNeighborhood;
-      if ( sendingToHigherDim )
-      {
-        sender->getHigherDimNeighbors( receivingNeighborhood );
-      }
-      else
-      {
-        sender->getLowerDimNeighbors( receivingNeighborhood );
-      }
+      sender->template getNeighborPrimitivesGenerically< ReceiverType >( receivingNeighborhood );
 
       for ( const auto & neighborID : receivingNeighborhood )
       {
@@ -267,14 +260,7 @@ void BufferedCommunicator::startCommunication()
       ReceiverType * receiver = storage->getPrimitiveGenerically< ReceiverType >( receiverID );
 
       std::vector< PrimitiveID > sendingNeighborhood;
-      if ( sendingToHigherDim )
-      {
-        receiver->getLowerDimNeighbors( sendingNeighborhood );
-      }
-      else
-      {
-        receiver->getHigherDimNeighbors( sendingNeighborhood );
-      }
+      receiver->template getNeighborPrimitivesGenerically< SenderType >( sendingNeighborhood );
 
       for ( const auto & neighborID : sendingNeighborhood )
       {
