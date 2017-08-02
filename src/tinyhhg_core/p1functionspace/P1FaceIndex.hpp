@@ -16,6 +16,12 @@ enum DirVertex {
 };
 
 const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
+
+template<size_t Level>
+inline size_t index(size_t row, size_t col, DirVertex dir) {
+  WALBERLA_ABORT("Implement me.");
+  return std::numeric_limits<size_t>::max();
+}
 }
 
 namespace CoordsCellBlue {
@@ -26,6 +32,12 @@ enum DirVertex {
 };
 
 const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
+
+template<size_t Level>
+inline size_t index(size_t row, size_t col, DirVertex dir) {
+  WALBERLA_ABORT("Implement me.");
+  return std::numeric_limits<size_t>::max();
+}
 }
 
 namespace CoordsVertex {

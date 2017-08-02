@@ -152,7 +152,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
 
       if (testFlag(edge.type, flag))
       {
-        BubbleToP1Edge::apply(edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), level, updateType);
+        BubbleToP1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 

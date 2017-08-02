@@ -32,7 +32,9 @@ public:
  protected:
 
   virtual void apply_impl( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) = 0;
-  virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) = 0;
+  virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
+    WALBERLA_ASSERT(false, "Not implemented");
+  };
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;

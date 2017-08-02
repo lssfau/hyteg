@@ -24,22 +24,7 @@ const DirVertex neighbors[] =
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, DirVertex dir) {
-  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t grayBaseLength = vertexBaseLength - 1;
-  const size_t blueBaseLength = vertexBaseLength - 2;
-  const size_t totalVertices = vertexBaseLength*(vertexBaseLength + 1)/2;
-  const size_t totalCellGray = grayBaseLength*(grayBaseLength + 1)/2;
-  const size_t center = (totalVertices - (vertexBaseLength - row)*(vertexBaseLength - row + 1)/2) + col;
-  const size_t cellGrayNE = center + totalVertices - row;
-  const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) - 1;
-  switch (dir) {
-    case CELL_GRAY_SE:return cellGrayNE - (grayBaseLength - row) - 1;
-    case CELL_GRAY_NE:return cellGrayNE;
-    case CELL_GRAY_NW:return cellGrayNE - 1;
-    case CELL_BLUE_SE:return cellBlueNW - (blueBaseLength - row);
-    case CELL_BLUE_NW:return cellBlueNW;
-    case CELL_BLUE_SW:return cellBlueNW - (blueBaseLength - row) - 1;
-  }
+  WALBERLA_ABORT("Implement me.");
   return std::numeric_limits<size_t>::max();
 }
 }//namespace CoordsVertex
@@ -51,14 +36,7 @@ enum Dir {
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
-  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t grayBaseLength = vertexBaseLength -1;
-  const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t center = totalGray - (grayBaseLength - row) * (grayBaseLength - row  + 1) / 2 + col;
-  switch(dir){
-    case CELL_GRAY_C:
-      return center;
-  }
+  WALBERLA_ABORT("Implement me.");
   return std::numeric_limits<size_t>::max();
 }
 
@@ -72,16 +50,7 @@ enum Dir {
 
 template<size_t Level>
 inline size_t index(size_t row, size_t col, Dir dir) {
-  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t grayBaseLength = vertexBaseLength -1;
-  const size_t totalGray = grayBaseLength * (grayBaseLength + 1) / 2;
-  const size_t blueBaseLength = vertexBaseLength -2;
-  const size_t totalBlue = blueBaseLength * (blueBaseLength + 1) / 2;
-  const size_t center = totalGray + totalBlue - (blueBaseLength - row) * (blueBaseLength - row  + 1) / 2 + col;
-  switch(dir){
-    case CELL_BLUE_C:
-      return center;
-  }
+  WALBERLA_ABORT("Implement me.");
   return std::numeric_limits<size_t>::max();
 }
 

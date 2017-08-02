@@ -59,6 +59,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  hhg::VTKWriter({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "test");
+  hhg::VTKWriter<hhg::P1Function>({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "test");
   return 0;
 }
