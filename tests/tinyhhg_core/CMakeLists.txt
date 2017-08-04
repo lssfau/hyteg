@@ -19,6 +19,10 @@ waLBerla_execute_test(NAME P1EdgeIndexingTest)
 waLBerla_compile_test(FILES p1BubbleEdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME p1BubbleEdgeIndexingTest)
 
+waLBerla_compile_test(FILES BubbleEdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
+
+
 waLBerla_compile_test(FILES p1BubbleCommTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME p1BubbleCommTest)
 

@@ -31,8 +31,28 @@ const DirVertex neighbors_north[] =
 
 template<size_t Level>
 inline size_t index(size_t pos, DirVertex dir) {
-  WALBERLA_ABORT("Implement me.");
-  return std::numeric_limits<size_t>::max();
+  const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  const size_t startFaceS = 0;
+  const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
+  switch (dir) {
+    case CELL_GRAY_SE:
+      return startFaceS + pos * 2;
+    case CELL_GRAY_NE:
+      return startFaceN + pos * 2;
+    case CELL_GRAY_NW:
+      return startFaceN + pos * 2 - 2;
+    case CELL_GRAY_SW:
+      return startFaceS + (pos -1) * 2;
+    case CELL_BLUE_SE:
+      return startFaceS + pos * 2 -1;
+    case CELL_BLUE_NW:
+      return startFaceN + pos * 2 - 1;
+    default:
+      //TODO do we want to abort here?
+      return std::numeric_limits<size_t>::max();
+  }
+
 }
 
 SPECIALIZE(size_t, index, edge_index)
