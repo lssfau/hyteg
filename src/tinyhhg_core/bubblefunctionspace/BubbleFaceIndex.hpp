@@ -23,9 +23,32 @@ const DirVertex neighbors[] =
      CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
 
 template<size_t Level>
-inline size_t index(size_t row, size_t col, DirVertex dir) {
-  WALBERLA_ABORT("Implement me.");
-  return std::numeric_limits<size_t>::max();
+inline size_t index(size_t col, size_t row, DirVertex dir) {
+  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
+  const size_t grayBaseLength = vertexBaseLength -1;
+  const size_t blueBaseLength = vertexBaseLength -2;
+  const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
+  const size_t totalCellGray = grayBaseLength * (grayBaseLength + 1) / 2;
+  const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
+  const size_t cellGrayNE = center - row;
+  const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) -1;
+  switch (dir) {
+    case CELL_GRAY_SE:
+      return cellGrayNE - (grayBaseLength - row) -1;
+    case CELL_GRAY_NE:
+      return cellGrayNE;
+    case CELL_GRAY_NW:
+      return cellGrayNE - 1;
+    case CELL_BLUE_SE:
+      return cellBlueNW - (blueBaseLength - row);
+    case CELL_BLUE_NW:
+      return cellBlueNW;
+    case CELL_BLUE_SW:
+      return cellBlueNW - (blueBaseLength - row) -1;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+
 }
 }//namespace CoordsVertex
 
