@@ -1,5 +1,6 @@
 
 #include "tinyhhg_core/tinyhhg.hpp"
+#include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/SendBuffer.h"
@@ -55,9 +56,13 @@ public:
 class VertexTestData
 {
 public:
+
+  ~VertexTestData() { delete[] f; }
+
   bool a = false;
   int i = 200;
   std::vector<bool> aa;
+  float * f;
 };
 
 class EdgeTestData
@@ -72,9 +77,9 @@ class TestDataHandling : public OnlyInitializeDataHandling< TestData, Primitive 
 {
 public:
 
-  TestData * initialize( const Primitive * const ) const
+  std::shared_ptr< TestData > initialize( const Primitive * const ) const
   {
-    TestData * testData = new TestData();
+    auto testData = std::make_shared< TestData >();
     testData->i = 7777;
     return testData;
   }
@@ -85,10 +90,11 @@ class VertexTestDataHandling : public OnlyInitializeDataHandling< VertexTestData
 {
 public:
 
-  VertexTestData * initialize( const Vertex * const ) const
+  std::shared_ptr< VertexTestData > initialize( const Vertex * const ) const
   {
-    VertexTestData * testData = new VertexTestData();
+    auto testData = std::make_shared< VertexTestData >();
     testData->i = 8888;
+    testData->f = new float[10000];
     return testData;
   }
 
@@ -98,9 +104,9 @@ class EdgeTestDataHandling : public OnlyInitializeDataHandling< EdgeTestData, Ed
 {
 public:
 
-  EdgeTestData * initialize( const Edge * const ) const
+  std::shared_ptr< EdgeTestData > initialize( const Edge * const ) const
   {
-    EdgeTestData * testData = new EdgeTestData();
+    auto testData = std::make_shared< EdgeTestData >();
     testData->i = 9999;
     return testData;
   }
@@ -119,14 +125,16 @@ static void testPrimitiveData()
 
   PrimitiveStorage storage( setupStorage );
 
-  TestDataHandling testDataHandling;
-  VertexTestDataHandling vertexTestDataHandling;
-  EdgeTestDataHandling edgeTestDataHandling;
+  auto testDataHandling = std::make_shared< TestDataHandling >();
+  auto vertexTestDataHandling = std::make_shared< VertexTestDataHandling >();
+  auto edgeTestDataHandling = std::make_shared< EdgeTestDataHandling >();
 
   // Adding data to all primitives
-  PrimitiveDataID< TestData, Primitive > testDataID = storage.addPrimitiveData( testDataHandling, "primitive data" );
+  PrimitiveDataID< TestData, Primitive > testDataID;
+  storage.addPrimitiveData( testDataID, testDataHandling, "primitive data" );
   // Adding data only to vertices
-  PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID = storage.addVertexData( vertexTestDataHandling, "vertex data" );
+  PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID;
+  storage.addVertexData( vertexTestDataID, vertexTestDataHandling, "vertex data" );
 
   // Obtaining initialized vertex data from a vertex
   for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
@@ -136,12 +144,6 @@ static void testPrimitiveData()
     WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
   }
 
-#if 0
-  // Will (and shall) not compile since we would try to obtain primitive data from a vertex
-  // It is also not possible to obtain vertex data from a primitive
-  TestData * testData = vertex->getData( testDataID );
-  WALBERLA_CHECK_EQUAL( testData->i, 7777 );
-#endif
   WALBERLA_UNUSED( testDataID );
 
 }
