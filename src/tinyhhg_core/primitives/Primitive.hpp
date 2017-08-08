@@ -6,6 +6,9 @@
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
 
+#include "core/mpi/SendBuffer.h"
+#include "core/mpi/RecvBuffer.h"
+
 #include <memory>
 #include <vector>
 
@@ -178,7 +181,9 @@ private:
   /// This way it is possible to loop over the data to for example serialize all registered data.
   std::map< uint_t, std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
 
-  std::map< uint_t, std::function< void() > > dataInitializationFunctions_;
+  std::map< uint_t, std::function< void() > >                              dataInitializationFunctions_;
+  std::map< uint_t, std::function< void( walberla::mpi::SendBuffer & ) > > dataSerializationFunctions_;
+  std::map< uint_t, std::function< void( walberla::mpi::RecvBuffer & ) > > dataDeserializationFunctions_;
 
   PrimitiveID primitiveID_;
 
@@ -246,12 +251,25 @@ void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType >
 
   WALBERLA_ASSERT_EQUAL( data_.size(), dataInitializationFunctions_.size() );
 
-  // Set up init callback
+  // Set up initialization, serialization and deserialization callbacks
   auto initCallback = [ =, this ]() -> void
   {
     data_[index].first = std::shared_ptr< PrimitiveData >( new PrimitiveData( dataHandling->initialize( primitive ) ) );
   };
-  dataInitializationFunctions_[index] = initCallback;
+
+  std::function< void( walberla::mpi::SendBuffer & sendBuffer ) > serializationCallback = [ =, this ]( walberla::mpi::SendBuffer & sendBuffer ) -> void
+  {
+    dataHandling->serialize( primitive, index, sendBuffer );
+  };
+
+  std::function< void( walberla::mpi::RecvBuffer & recvBuffer ) > deserializationCallback = [ =, this ]( walberla::mpi::RecvBuffer & recvBuffer ) -> void
+  {
+    dataHandling->deserialize( primitive, index, recvBuffer );
+  };
+
+  dataInitializationFunctions_[index]  = initCallback;
+  dataSerializationFunctions_[index]   = serializationCallback;
+  dataDeserializationFunctions_[index] = deserializationCallback;
 
   initCallback();
 }
