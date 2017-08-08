@@ -112,6 +112,7 @@ public:
   /// @name Neighborhood
   /// Access to IDs of neighbors of either lower or higher dimension.
   ///@{
+  void getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrimitives ) const;
   void getNeighborVertices( std::vector< PrimitiveID > & neighborVertices ) const { neighborVertices.assign( neighborVertices_.begin(), neighborVertices_.end() ); }
   void getNeighborEdges   ( std::vector< PrimitiveID > & neighborEdges )    const { neighborEdges.assign   ( neighborEdges_.begin(),    neighborEdges_.end()    ); }
   void getNeighborFaces   ( std::vector< PrimitiveID > & neighborFaces )    const { neighborFaces.assign   ( neighborFaces_.begin(),    neighborFaces_.end()    ); }
@@ -188,6 +189,9 @@ private:
   PrimitiveID primitiveID_;
 
 };
+
+template<>
+inline void Primitive::getNeighborPrimitivesGenerically< Primitive >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborPrimitives( neighborPrimitives ); }
 
 template<>
 inline void Primitive::getNeighborPrimitivesGenerically< Vertex >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborVertices( neighborPrimitives ); }
