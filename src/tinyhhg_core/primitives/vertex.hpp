@@ -84,7 +84,7 @@ protected:
   /// This ensures valid DataIDs.
   template< typename DataType >
   inline void addData( const PrimitiveDataID< DataType, Vertex > & index,
-	               const PrimitiveDataHandling< DataType, Vertex > & dataHandling )
+                       const PrimitiveDataHandling< DataType, Vertex > & dataHandling )
   {
     genericAddData( index, dataHandling, this );
   }
