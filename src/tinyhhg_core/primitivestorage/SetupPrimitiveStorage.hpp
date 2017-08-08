@@ -31,10 +31,10 @@ public:
   typedef std::function< uint_t ( SetupPrimitiveStorage & storage,
 				                          const memory_t & perProcessMemoryLimit ) > TargetProcessAssignmentFunction;
 
-  typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
-  typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;
-  typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
-  typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
@@ -48,9 +48,9 @@ public:
   bool edgeExists     ( const PrimitiveID & id ) const { return edges_.count( id.getID() )    > 0; }
   bool faceExists     ( const PrimitiveID & id ) const { return faces_.count( id.getID() )    > 0; }
 
-  const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ) : nullptr; }
-  const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() )    : nullptr; }
-  const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() )    : nullptr; }
+  const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr; }
+  const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() ).get()    : nullptr; }
+  const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() ).get()    : nullptr; }
 
   void getSetupPrimitives( PrimitiveMap & setupPrimitiveMap ) const;
   uint_t getNumberOfPrimitives() const;
