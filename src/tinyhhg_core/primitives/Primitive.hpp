@@ -176,7 +176,7 @@ private:
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
   /// This way it is possible to loop over the data to for example serialize all registered data.
-  std::vector< std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
+  std::map< uint_t, std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
 
   std::map< uint_t, std::function< void() > > dataInitializationFunctions_;
 
@@ -197,15 +197,15 @@ inline void Primitive::getNeighborPrimitivesGenerically< Face >( std::vector< Pr
 template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data available for the specified index" );
-  return data_[ index ].first->template get< DataType >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified index" );
+  return data_.at( index ).first->template get< DataType >();
 }
 
 template< typename DataType, typename PrimitiveType >
 PrimitiveDataHandling< DataType, PrimitiveType >* Primitive::getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data handling available for the specified index" );
-  return data_[ index ].second->template get< PrimitiveDataHandling< DataType, PrimitiveType > >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data handling available for the specified index" );
+  return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, PrimitiveType > >();
 }
 ///////////////////////////////////////////////////////
 
@@ -219,8 +219,8 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & ind
 template< typename DataType >
 PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const PrimitiveDataID< DataType, Primitive > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data handling available for the specified index" );
-  return data_[ index ].second->template get< PrimitiveDataHandling< DataType, Primitive > >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data handling available for the specified index" );
+  return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, Primitive > >();
 }
 /////////////////////////////////////////////////////////////
 
@@ -238,14 +238,13 @@ void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType >
                                 const std::shared_ptr< DataHandlingType > & dataHandling,
                                 const PrimitiveType * const primitive )
 {
+  WALBERLA_ASSERT_NOT_NULLPTR( dataHandling.get() );
   WALBERLA_ASSERT_NOT_NULLPTR( primitive );
 
-  if( data_.size() <= index )
-  {
-    data_.resize( index + 1, std::make_pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > >( nullptr, nullptr ) );
-  }
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 0,                        "Data at DataID index already exists" );
+  WALBERLA_ASSERT_EQUAL( dataInitializationFunctions_.count( index ), 0, "Init callback at DataID index already exists" );
 
-  WALBERLA_ASSERT_NOT_NULLPTR( primitive );
+  WALBERLA_ASSERT_EQUAL( data_.size(), dataInitializationFunctions_.size() );
 
   // Set up init callback
   auto initCallback = [ =, this ]() -> void
