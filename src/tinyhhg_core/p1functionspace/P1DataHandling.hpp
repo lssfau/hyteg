@@ -12,7 +12,7 @@ public:
 
   VertexP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  VertexP1FunctionMemory * initialize( const Vertex * const vertex ) const;
+  std::shared_ptr< VertexP1FunctionMemory > initialize( const Vertex * const vertex ) const;
 
 private:
 
@@ -27,7 +27,7 @@ public:
 
   EdgeP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  EdgeP1FunctionMemory * initialize( const Edge * const edge ) const;
+  std::shared_ptr< EdgeP1FunctionMemory > initialize( const Edge * const edge ) const;
 
 private:
 
@@ -42,7 +42,7 @@ public:
 
   FaceP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceP1FunctionMemory * initialize( const Face * const face ) const;
+  std::shared_ptr< FaceP1FunctionMemory > initialize( const Face * const face ) const;
 
 private:
 
@@ -58,7 +58,7 @@ class VertexP1StencilMemoryDataHandling : public OnlyInitializeDataHandling< Ver
 
   VertexP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  VertexP1StencilMemory * initialize( const Vertex * const vertex ) const;
+  std::shared_ptr< VertexP1StencilMemory > initialize( const Vertex * const vertex ) const;
 
  private:
 
@@ -73,7 +73,7 @@ class EdgeP1StencilMemoryDataHandling : public OnlyInitializeDataHandling< EdgeP
 
   EdgeP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  EdgeP1StencilMemory * initialize( const Edge * const edge ) const;
+  std::shared_ptr< EdgeP1StencilMemory > initialize( const Edge * const edge ) const;
 
  private:
 
@@ -88,7 +88,7 @@ class FaceP1StencilMemoryDataHandling : public OnlyInitializeDataHandling< FaceP
 
   FaceP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceP1StencilMemory * initialize( const Face * const face ) const;
+  std::shared_ptr< FaceP1StencilMemory > initialize( const Face * const face ) const;
 
  private:
 

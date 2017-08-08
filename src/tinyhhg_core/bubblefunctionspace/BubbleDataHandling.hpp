@@ -11,7 +11,7 @@ public:
 
   VertexBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  VertexBubbleFunctionMemory * initialize( const Vertex * const vertex ) const;
+  std::shared_ptr< VertexBubbleFunctionMemory > initialize( const Vertex * const vertex ) const;
 
 private:
 
@@ -26,7 +26,7 @@ public:
 
   EdgeBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  EdgeBubbleFunctionMemory * initialize( const Edge * const edge ) const;
+  std::shared_ptr< EdgeBubbleFunctionMemory > initialize( const Edge * const edge ) const;
 
 private:
 
@@ -41,7 +41,7 @@ public:
 
   FaceBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceBubbleFunctionMemory * initialize( const Face * const face ) const;
+  std::shared_ptr< FaceBubbleFunctionMemory > initialize( const Face * const face ) const;
 
 private:
 
@@ -56,7 +56,7 @@ class FaceBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< F
 
   FaceBubbleStencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceBubbleStencilMemory * initialize( const Face * const face ) const;
+  std::shared_ptr< FaceBubbleStencilMemory > initialize( const Face * const face ) const;
 
  private:
 

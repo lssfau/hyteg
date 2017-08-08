@@ -2,9 +2,9 @@
 
 namespace hhg {
 
-VertexBubbleFunctionMemory * VertexBubbleFunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
+std::shared_ptr< VertexBubbleFunctionMemory > VertexBubbleFunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
 {
-  VertexBubbleFunctionMemory * vertexBubbleFunctionMemory = new VertexBubbleFunctionMemory();
+  auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     vertexBubbleFunctionMemory->addlevel( level, vertex->getNumNeighborEdges() );
@@ -12,9 +12,9 @@ VertexBubbleFunctionMemory * VertexBubbleFunctionMemoryDataHandling::initialize(
   return vertexBubbleFunctionMemory;
 }
 
-EdgeBubbleFunctionMemory * EdgeBubbleFunctionMemoryDataHandling::initialize( const Edge * const edge ) const
+std::shared_ptr< EdgeBubbleFunctionMemory > EdgeBubbleFunctionMemoryDataHandling::initialize( const Edge * const edge ) const
 {
-  EdgeBubbleFunctionMemory * edgeBubbleFunctionMemory = new EdgeBubbleFunctionMemory();
+  auto edgeBubbleFunctionMemory = std::make_shared< EdgeBubbleFunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     edgeBubbleFunctionMemory->addlevel( level, edge->getNumNeighborFaces() );
@@ -22,9 +22,9 @@ EdgeBubbleFunctionMemory * EdgeBubbleFunctionMemoryDataHandling::initialize( con
   return edgeBubbleFunctionMemory;
 }
 
-FaceBubbleFunctionMemory * FaceBubbleFunctionMemoryDataHandling::initialize( const Face * const ) const
+std::shared_ptr< FaceBubbleFunctionMemory > FaceBubbleFunctionMemoryDataHandling::initialize( const Face * const ) const
 {
-  FaceBubbleFunctionMemory * faceBubbleFunctionMemory = new FaceBubbleFunctionMemory();
+  auto faceBubbleFunctionMemory = std::make_shared< FaceBubbleFunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceBubbleFunctionMemory->addlevel( level );
@@ -32,9 +32,9 @@ FaceBubbleFunctionMemory * FaceBubbleFunctionMemoryDataHandling::initialize( con
   return faceBubbleFunctionMemory;
 }
 
-FaceBubbleStencilMemory * FaceBubbleStencilMemoryDataHandling::initialize( const Face * const ) const
+std::shared_ptr< FaceBubbleStencilMemory > FaceBubbleStencilMemoryDataHandling::initialize( const Face * const ) const
 {
-  FaceBubbleStencilMemory * faceBubbleStencilMemory = new FaceBubbleStencilMemory();
+  auto faceBubbleStencilMemory = std::make_shared< FaceBubbleStencilMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceBubbleStencilMemory->addlevel( level );

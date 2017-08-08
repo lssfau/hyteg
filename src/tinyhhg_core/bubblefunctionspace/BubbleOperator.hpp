@@ -24,8 +24,8 @@ public:
   BubbleOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-    FaceBubbleStencilMemoryDataHandling faceBubbleStencilMemoryDataHandling(minLevel_, maxLevel_);
-    faceStencilID_ = storage->addFaceData(faceBubbleStencilMemoryDataHandling, "BubbleOperatorFaceStencil");
+    auto faceBubbleStencilMemoryDataHandling = std::make_shared< FaceBubbleStencilMemoryDataHandling >(minLevel_, maxLevel_);
+    storage->addFaceData(faceStencilID_, faceBubbleStencilMemoryDataHandling, "BubbleOperatorFaceStencil");
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {

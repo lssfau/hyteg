@@ -10,12 +10,12 @@ BubbleFunction::BubbleFunction(const std::string &name,
                                uint_t minLevel,
                                uint_t maxLevel)
     : Function(name, storage, minLevel, maxLevel) {
-  FaceBubbleFunctionMemoryDataHandling faceBubbleFunctionMemoryDataHandling(minLevel, maxLevel);
-  EdgeBubbleFunctionMemoryDataHandling edgeBubbleFunctionMemoryDataHandling(minLevel, maxLevel);
-  VertexBubbleFunctionMemoryDataHandling vertexBubbleFunctionMemoryDataHandling(minLevel, maxLevel);
-  faceDataID_ = storage->addFaceData(faceBubbleFunctionMemoryDataHandling, name);
-  edgeDataID_ = storage->addEdgeData(edgeBubbleFunctionMemoryDataHandling, name);
-  vertexDataID_ = storage->addVertexData(vertexBubbleFunctionMemoryDataHandling, name);
+  auto faceBubbleFunctionMemoryDataHandling = std::make_shared< FaceBubbleFunctionMemoryDataHandling >(minLevel, maxLevel);
+  auto edgeBubbleFunctionMemoryDataHandling = std::make_shared< EdgeBubbleFunctionMemoryDataHandling >(minLevel, maxLevel);
+  auto vertexBubbleFunctionMemoryDataHandling = std::make_shared< VertexBubbleFunctionMemoryDataHandling >(minLevel, maxLevel);
+  storage->addFaceData(faceDataID_, faceBubbleFunctionMemoryDataHandling, name);
+  storage->addEdgeData(edgeDataID_, edgeBubbleFunctionMemoryDataHandling, name);
+  storage->addVertexData(vertexDataID_, vertexBubbleFunctionMemoryDataHandling, name);
   for (uint_t level = minLevel; level <= maxLevel; ++level) {
     //    communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
 //    communicators_[level]->addPackInfo(std::make_shared<BubblePackInfo>(level,

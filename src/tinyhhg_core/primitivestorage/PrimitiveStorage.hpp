@@ -20,10 +20,10 @@ class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
-  typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
-  typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;
-  typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
-  typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
@@ -148,21 +148,25 @@ public:
   // Primitive data methods //
   ////////////////////////////
 
-  template< typename DataType >
-  inline PrimitiveDataID< DataType, Primitive > addPrimitiveData( const PrimitiveDataHandling< DataType, Primitive > & dataHandling,
+  template< typename DataType, typename DataHandlingType >
+  inline void addPrimitiveData(       PrimitiveDataID< DataType, Primitive > & dataID,
+                                const std::shared_ptr< DataHandlingType > & dataHandling,
   						                  const std::string & identifier );
 
-  template< typename DataType >
-  inline PrimitiveDataID< DataType, Vertex > addVertexData( const PrimitiveDataHandling< DataType, Vertex > & dataHandling,
-						            const std::string & identifier );
+  template< typename DataType, typename DataHandlingType >
+  inline void addVertexData(       PrimitiveDataID< DataType, Vertex > & dataID,
+                             const std::shared_ptr< DataHandlingType > & dataHandling,
+						                 const std::string & identifier );
 
-  template< typename DataType >
-  inline PrimitiveDataID< DataType, Edge > addEdgeData( const PrimitiveDataHandling< DataType, Edge > & dataHandling,
-  						        const std::string & identifier );
+  template< typename DataType, typename DataHandlingType >
+  inline void addEdgeData(       PrimitiveDataID< DataType, Edge > & dataID,
+                           const std::shared_ptr< DataHandlingType > & dataHandling,
+  						                                          const std::string & identifier );
 
-  template< typename DataType >
-  inline PrimitiveDataID< DataType, Face > addFaceData( const PrimitiveDataHandling< DataType, Face > & dataHandling,
-  						        const std::string & identifier );
+  template< typename DataType, typename DataHandlingType >
+  inline void addFaceData(       PrimitiveDataID< DataType, Face > & dataID,
+                           const std::shared_ptr< DataHandlingType > & dataHandling,
+  						             const std::string & identifier );
 
 private:
 
@@ -171,11 +175,12 @@ private:
 
   template< typename DataType,
             typename PrimitiveType,
+            typename DataHandlingType,
             typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
-  inline void addPrimitiveData( const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-				const std::string & identifier,
-				const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
-				const PrimitiveDataID< DataType, PrimitiveType > & dataID );
+  inline void addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
+				                        const std::string & identifier,
+				                        const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
+				                        const PrimitiveDataID< DataType, PrimitiveType > & dataID );
 
   VertexMap vertices_;
   EdgeMap   edges_;
@@ -251,48 +256,51 @@ template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getFaceIDs( primitiveIDs ); }
 
 
-template< typename DataType >
-PrimitiveDataID< DataType, Primitive > PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType, Primitive > & dataHandling,
-						                const std::string & identifier )
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addPrimitiveData(       PrimitiveDataID< DataType, Primitive > & dataID,
+                                         const std::shared_ptr< DataHandlingType > & dataHandling,
+                                         const std::string & identifier )
 {
-  PrimitiveDataID< DataType, Primitive > dataID = generateDataID< DataType, Primitive >();
-  std::map< PrimitiveID::IDType, Primitive* > primitives;
+  dataID = generateDataID< DataType, Primitive >();
+  PrimitiveMap primitives;
   primitives.insert( vertices_.begin(), vertices_.end() );
   primitives.insert( edges_.begin(), edges_.end() );
   primitives.insert( faces_.begin(), faces_.end() );
   addPrimitiveData( dataHandling, identifier, primitives, dataID );
-  return dataID;
-
 }
 
 
-template< typename DataType >
-PrimitiveDataID< DataType, Vertex > PrimitiveStorage::addVertexData( const PrimitiveDataHandling< DataType, Vertex > & dataHandling,
-						             const std::string & identifier )
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addVertexData(       PrimitiveDataID< DataType, Vertex > & dataID,
+                                      const std::shared_ptr< DataHandlingType > & dataHandling,
+                                      const std::string & identifier )
 {
-  PrimitiveDataID< DataType, Vertex > dataID = generateDataID< DataType, Vertex >();
+  dataID = generateDataID< DataType, Vertex >();
   addPrimitiveData( dataHandling, identifier, vertices_, dataID );
-  return dataID;
 }
 
 
-template< typename DataType >
-PrimitiveDataID< DataType, Edge > PrimitiveStorage::addEdgeData( const PrimitiveDataHandling< DataType, Edge > & dataHandling,
-						           const std::string & identifier )
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addEdgeData(       PrimitiveDataID< DataType, Edge > & dataID,
+                                    const std::shared_ptr< DataHandlingType > & dataHandling,
+                                    const std::string & identifier )
 {
-  PrimitiveDataID< DataType, Edge > dataID = generateDataID< DataType, Edge >();
+  dataID = generateDataID< DataType, Edge >();
   addPrimitiveData( dataHandling, identifier, edges_, dataID );
-  return dataID;
 }
 
 
-template< typename DataType >
-PrimitiveDataID< DataType, Face > PrimitiveStorage::addFaceData( const PrimitiveDataHandling< DataType, Face > & dataHandling,
-						             const std::string & identifier )
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addFaceData(       PrimitiveDataID< DataType, Face > & dataID,
+                                    const std::shared_ptr< DataHandlingType > & dataHandling,
+                                    const std::string & identifier )
 {
-  PrimitiveDataID< DataType, Face > dataID = generateDataID< DataType, Face >();
+  dataID = generateDataID< DataType, Face >();
   addPrimitiveData( dataHandling, identifier, faces_, dataID );
-  return dataID;
 }
 
 
@@ -308,10 +316,11 @@ PrimitiveDataID< DataType, PrimitiveType > PrimitiveStorage::generateDataID()
 
 template< typename DataType,
           typename PrimitiveType,
+          typename DataHandlingType,
           typename >
-void PrimitiveStorage::addPrimitiveData( const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
+void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
                                          const std::string & identifier,
-                                         const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
+                                         const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
                                          const PrimitiveDataID< DataType, PrimitiveType > & dataID )
 {
 #ifndef NDEBUG

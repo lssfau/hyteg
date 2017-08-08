@@ -6,6 +6,9 @@
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
 
+#include "core/mpi/SendBuffer.h"
+#include "core/mpi/RecvBuffer.h"
+
 #include <memory>
 #include <vector>
 
@@ -21,20 +24,20 @@ class PrimitiveData : private NonCopyable
 public:
 
   template< typename DataType >
-  PrimitiveData( DataType* ptr ) : ptr_( ptr )
+  PrimitiveData( const std::shared_ptr< DataType > & ptr ) : ptr_( ptr )
   {
-    WALBERLA_ASSERT_NOT_NULLPTR( ptr );
+    WALBERLA_ASSERT_NOT_NULLPTR( ptr.get() );
   }
 
   template< typename DataType >
   DataType* get()
   {
-    return static_cast< DataType* >( ptr_ );
+    return static_cast< DataType* >( ptr_.get() );
   }
 
 private:
 
-  void *ptr_;
+  std::shared_ptr< void > ptr_;
 
 };
 
@@ -43,20 +46,20 @@ class ConstPrimitiveData : private NonCopyable
 public:
 
   template< typename DataType >
-  ConstPrimitiveData( const DataType* ptr ) : ptr_( ptr )
+  ConstPrimitiveData( const std::shared_ptr< const DataType > & ptr ) : ptr_( ptr )
   {
-    WALBERLA_ASSERT_NOT_NULLPTR( ptr );
+    WALBERLA_ASSERT_NOT_NULLPTR( ptr.get() );
   }
 
   template< typename DataType >
   const DataType* get()
   {
-    return static_cast< const DataType* >( ptr_ );
+    return static_cast< const DataType* >( ptr_.get() );
   }
 
 private:
 
-  const void *ptr_;
+  std::shared_ptr< const void > ptr_;
 
 };
 
@@ -154,14 +157,14 @@ protected:
 
   /// Not public in order to guarantee that data is only added through the governing structure.
   /// This ensures valid DataIDs.
-  template< typename DataType >
+  template< typename DataType, typename DataHandlingType >
   inline void addData( const PrimitiveDataID< DataType, Primitive > & index,
-	               const PrimitiveDataHandling< DataType, Primitive > & dataHandling );
+                       const std::shared_ptr< DataHandlingType > & dataHandling );
 
-  template< typename DataType, typename PrimitiveType >
+  template< typename DataType, typename PrimitiveType, typename DataHandlingType >
   inline void genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-		              const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-		              const PrimitiveType * primitive );
+                              const std::shared_ptr< DataHandlingType > & dataHandling,
+		                          const PrimitiveType * primitive );
 
   std::vector< PrimitiveID > neighborVertices_;
   std::vector< PrimitiveID > neighborEdges_;
@@ -176,7 +179,11 @@ private:
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
   /// This way it is possible to loop over the data to for example serialize all registered data.
-  std::vector< std::pair< PrimitiveData*, ConstPrimitiveData* > > data_;
+  std::map< uint_t, std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
+
+  std::map< uint_t, std::function< void() > >                              dataInitializationFunctions_;
+  std::map< uint_t, std::function< void( walberla::mpi::SendBuffer & ) > > dataSerializationFunctions_;
+  std::map< uint_t, std::function< void( walberla::mpi::RecvBuffer & ) > > dataDeserializationFunctions_;
 
   PrimitiveID primitiveID_;
 
@@ -195,15 +202,15 @@ inline void Primitive::getNeighborPrimitivesGenerically< Face >( std::vector< Pr
 template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data available for the specified index" );
-  return data_[ index ].first->template get< DataType >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified index" );
+  return data_.at( index ).first->template get< DataType >();
 }
 
 template< typename DataType, typename PrimitiveType >
 PrimitiveDataHandling< DataType, PrimitiveType >* Primitive::getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data handling available for the specified index" );
-  return data_[ index ].second->template get< PrimitiveDataHandling< DataType, PrimitiveType > >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data handling available for the specified index" );
+  return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, PrimitiveType > >();
 }
 ///////////////////////////////////////////////////////
 
@@ -217,32 +224,54 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & ind
 template< typename DataType >
 PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const PrimitiveDataID< DataType, Primitive > & index ) const
 {
-  WALBERLA_ASSERT_LESS( index, data_.size(), "There is no data handling available for the specified index" );
-  return data_[ index ].second->template get< PrimitiveDataHandling< DataType, Primitive > >();
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data handling available for the specified index" );
+  return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, Primitive > >();
 }
 /////////////////////////////////////////////////////////////
 
-template< typename DataType >
+template< typename DataType, typename DataHandlingType >
 void Primitive::addData( const PrimitiveDataID< DataType, Primitive > & index,
-                         const PrimitiveDataHandling< DataType, Primitive > & dataHandling )
+                         const std::shared_ptr< DataHandlingType > & dataHandling )
 {
   genericAddData( index, dataHandling, this );
 }
 
-template< typename DataType, typename PrimitiveType >
+template< typename DataType,
+          typename PrimitiveType,
+          typename DataHandlingType >
 void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-                                const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-	                        const PrimitiveType * const primitive )
+                                const std::shared_ptr< DataHandlingType > & dataHandling,
+                                const PrimitiveType * const primitive )
 {
-  if( data_.size() <= index )
-  {
-    data_.resize( index + 1, std::make_pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
-  }
-
+  WALBERLA_ASSERT_NOT_NULLPTR( dataHandling.get() );
   WALBERLA_ASSERT_NOT_NULLPTR( primitive );
 
-  data_[index].first = new PrimitiveData( dataHandling.initialize( primitive ) );
-  data_[index].second = new ConstPrimitiveData( &dataHandling );
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 0,                        "Data at DataID index already exists" );
+  WALBERLA_ASSERT_EQUAL( dataInitializationFunctions_.count( index ), 0, "Init callback at DataID index already exists" );
+
+  WALBERLA_ASSERT_EQUAL( data_.size(), dataInitializationFunctions_.size() );
+
+  // Set up initialization, serialization and deserialization callbacks
+  auto initCallback = [ =, this ]() -> void
+  {
+    data_[index].first = std::shared_ptr< PrimitiveData >( new PrimitiveData( dataHandling->initialize( primitive ) ) );
+  };
+
+  std::function< void( walberla::mpi::SendBuffer & sendBuffer ) > serializationCallback = [ =, this ]( walberla::mpi::SendBuffer & sendBuffer ) -> void
+  {
+    dataHandling->serialize( primitive, index, sendBuffer );
+  };
+
+  std::function< void( walberla::mpi::RecvBuffer & recvBuffer ) > deserializationCallback = [ =, this ]( walberla::mpi::RecvBuffer & recvBuffer ) -> void
+  {
+    dataHandling->deserialize( primitive, index, recvBuffer );
+  };
+
+  dataInitializationFunctions_[index]  = initCallback;
+  dataSerializationFunctions_[index]   = serializationCallback;
+  dataDeserializationFunctions_[index] = deserializationCallback;
+
+  initCallback();
 }
 
 

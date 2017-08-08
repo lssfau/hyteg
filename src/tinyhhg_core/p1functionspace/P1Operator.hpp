@@ -32,12 +32,12 @@ public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-    FaceP1StencilMemoryDataHandling faceP1StencilMemoryDataHandling(minLevel_, maxLevel_);
-    EdgeP1StencilMemoryDataHandling edgeP1StencilMemoryDataHandling(minLevel_, maxLevel_);
-    VertexP1StencilMemoryDataHandling vertexP1StencilMemoryDataHandling(minLevel_, maxLevel_);
-    faceStencilID_ = storage->addFaceData(faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
-    edgeStencilID_ = storage->addEdgeData(edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
-    vertexStencilID_ = storage->addVertexData(vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
+    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
+    storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
+    storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
