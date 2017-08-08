@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/Abort.h>
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
