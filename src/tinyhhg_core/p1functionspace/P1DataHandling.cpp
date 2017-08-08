@@ -3,9 +3,9 @@
 
 namespace hhg {
 
-VertexP1FunctionMemory * VertexP1FunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
+std::shared_ptr< VertexP1FunctionMemory > VertexP1FunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
 {
-  VertexP1FunctionMemory * vertexP1FunctionMemory = new VertexP1FunctionMemory();
+  auto vertexP1FunctionMemory = std::make_shared< VertexP1FunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     vertexP1FunctionMemory->addlevel( level, vertex->getNumNeighborEdges() );
@@ -13,9 +13,9 @@ VertexP1FunctionMemory * VertexP1FunctionMemoryDataHandling::initialize( const V
   return vertexP1FunctionMemory;
 }
 
-EdgeP1FunctionMemory * EdgeP1FunctionMemoryDataHandling::initialize( const Edge * const edge ) const
+std::shared_ptr< EdgeP1FunctionMemory > EdgeP1FunctionMemoryDataHandling::initialize( const Edge * const edge ) const
 {
-  EdgeP1FunctionMemory * edgeP1FunctionMemory = new EdgeP1FunctionMemory();
+  auto edgeP1FunctionMemory = std::make_shared< EdgeP1FunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     edgeP1FunctionMemory->addlevel( level, edge->getNumNeighborFaces() );
@@ -23,9 +23,9 @@ EdgeP1FunctionMemory * EdgeP1FunctionMemoryDataHandling::initialize( const Edge 
   return edgeP1FunctionMemory;
 }
 
-FaceP1FunctionMemory * FaceP1FunctionMemoryDataHandling::initialize( const Face * const ) const
+std::shared_ptr< FaceP1FunctionMemory > FaceP1FunctionMemoryDataHandling::initialize( const Face * const ) const
 {
-  FaceP1FunctionMemory * faceP1FunctionMemory = new FaceP1FunctionMemory();
+  auto faceP1FunctionMemory = std::make_shared< FaceP1FunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceP1FunctionMemory->addlevel( level );
@@ -33,9 +33,9 @@ FaceP1FunctionMemory * FaceP1FunctionMemoryDataHandling::initialize( const Face 
   return faceP1FunctionMemory;
 }
 
-VertexP1StencilMemory * VertexP1StencilMemoryDataHandling::initialize( const Vertex * const vertex) const
+std::shared_ptr< VertexP1StencilMemory > VertexP1StencilMemoryDataHandling::initialize( const Vertex * const vertex) const
 {
-  VertexP1StencilMemory * vertexP1StencilMemory = new VertexP1StencilMemory();
+  auto vertexP1StencilMemory = std::make_shared< VertexP1StencilMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     vertexP1StencilMemory->addlevel( level, vertex->getNumNeighborEdges());
@@ -43,9 +43,9 @@ VertexP1StencilMemory * VertexP1StencilMemoryDataHandling::initialize( const Ver
   return vertexP1StencilMemory;
 }
 
-EdgeP1StencilMemory * EdgeP1StencilMemoryDataHandling::initialize( const Edge * const ) const
+std::shared_ptr< EdgeP1StencilMemory > EdgeP1StencilMemoryDataHandling::initialize( const Edge * const ) const
 {
-  EdgeP1StencilMemory * edgeP1StencilMemory = new EdgeP1StencilMemory();
+  auto edgeP1StencilMemory = std::make_shared< EdgeP1StencilMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     edgeP1StencilMemory->addlevel( level );
@@ -53,9 +53,9 @@ EdgeP1StencilMemory * EdgeP1StencilMemoryDataHandling::initialize( const Edge * 
   return edgeP1StencilMemory;
 }
 
-FaceP1StencilMemory * FaceP1StencilMemoryDataHandling::initialize( const Face * const ) const
+std::shared_ptr< FaceP1StencilMemory > FaceP1StencilMemoryDataHandling::initialize( const Face * const ) const
 {
-  FaceP1StencilMemory * faceP1StencilMemory = new FaceP1StencilMemory();
+  auto faceP1StencilMemory = std::make_shared< FaceP1StencilMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceP1StencilMemory->addlevel( level );
