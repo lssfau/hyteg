@@ -21,20 +21,20 @@ class PrimitiveData : private NonCopyable
 public:
 
   template< typename DataType >
-  PrimitiveData( DataType* ptr ) : ptr_( ptr )
+  PrimitiveData( const std::shared_ptr< DataType > & ptr ) : ptr_( ptr )
   {
-    WALBERLA_ASSERT_NOT_NULLPTR( ptr );
+    WALBERLA_ASSERT_NOT_NULLPTR( ptr.get() );
   }
 
   template< typename DataType >
   DataType* get()
   {
-    return static_cast< DataType* >( ptr_ );
+    return static_cast< DataType* >( ptr_.get() );
   }
 
 private:
 
-  void *ptr_;
+  std::shared_ptr< void > ptr_;
 
 };
 
@@ -43,20 +43,20 @@ class ConstPrimitiveData : private NonCopyable
 public:
 
   template< typename DataType >
-  ConstPrimitiveData( const DataType* ptr ) : ptr_( ptr )
+  ConstPrimitiveData( const std::shared_ptr< const DataType > & ptr ) : ptr_( ptr )
   {
-    WALBERLA_ASSERT_NOT_NULLPTR( ptr );
+    WALBERLA_ASSERT_NOT_NULLPTR( ptr.get() );
   }
 
   template< typename DataType >
   const DataType* get()
   {
-    return static_cast< const DataType* >( ptr_ );
+    return static_cast< const DataType* >( ptr_.get() );
   }
 
 private:
 
-  const void *ptr_;
+  std::shared_ptr< const void > ptr_;
 
 };
 
@@ -154,14 +154,14 @@ protected:
 
   /// Not public in order to guarantee that data is only added through the governing structure.
   /// This ensures valid DataIDs.
-  template< typename DataType >
+  template< typename DataType, typename DataHandlingType >
   inline void addData( const PrimitiveDataID< DataType, Primitive > & index,
-	               const PrimitiveDataHandling< DataType, Primitive > & dataHandling );
+                       const std::shared_ptr< DataHandlingType > & dataHandling );
 
-  template< typename DataType, typename PrimitiveType >
+  template< typename DataType, typename PrimitiveType, typename DataHandlingType >
   inline void genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-		              const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-		              const PrimitiveType * primitive );
+                              const std::shared_ptr< DataHandlingType > & dataHandling,
+		                          const PrimitiveType * primitive );
 
   std::vector< PrimitiveID > neighborVertices_;
   std::vector< PrimitiveID > neighborEdges_;
@@ -176,7 +176,9 @@ private:
 
   /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
   /// This way it is possible to loop over the data to for example serialize all registered data.
-  std::vector< std::pair< PrimitiveData*, ConstPrimitiveData* > > data_;
+  std::vector< std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
+
+  std::map< uint_t, std::function< void() > > dataInitializationFunctions_;
 
   PrimitiveID primitiveID_;
 
@@ -222,27 +224,37 @@ PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const 
 }
 /////////////////////////////////////////////////////////////
 
-template< typename DataType >
+template< typename DataType, typename DataHandlingType >
 void Primitive::addData( const PrimitiveDataID< DataType, Primitive > & index,
-                         const PrimitiveDataHandling< DataType, Primitive > & dataHandling )
+                         const std::shared_ptr< DataHandlingType > & dataHandling )
 {
   genericAddData( index, dataHandling, this );
 }
 
-template< typename DataType, typename PrimitiveType >
+template< typename DataType,
+          typename PrimitiveType,
+          typename DataHandlingType >
 void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
-                                const PrimitiveDataHandling< DataType, PrimitiveType > & dataHandling,
-	                        const PrimitiveType * const primitive )
+                                const std::shared_ptr< DataHandlingType > & dataHandling,
+                                const PrimitiveType * const primitive )
 {
+  WALBERLA_ASSERT_NOT_NULLPTR( primitive );
+
   if( data_.size() <= index )
   {
-    data_.resize( index + 1, std::make_pair< PrimitiveData*, ConstPrimitiveData* >( NULL, NULL ) );
+    data_.resize( index + 1, std::make_pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > >( nullptr, nullptr ) );
   }
 
   WALBERLA_ASSERT_NOT_NULLPTR( primitive );
 
-  data_[index].first = new PrimitiveData( dataHandling.initialize( primitive ) );
-  data_[index].second = new ConstPrimitiveData( &dataHandling );
+  // Set up init callback
+  auto initCallback = [ =, this ]() -> void
+  {
+    data_[index].first = std::shared_ptr< PrimitiveData >( new PrimitiveData( dataHandling->initialize( primitive ) ) );
+  };
+  dataInitializationFunctions_[index] = initCallback;
+
+  initCallback();
 }
 
 

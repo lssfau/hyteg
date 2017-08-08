@@ -85,9 +85,9 @@ protected:
 
   /// Not public in order to guarantee that data is only added through the governing structure.
   /// This ensures valid DataIDs.
-  template< typename DataType >
+  template< typename DataType, typename DataHandlingType >
   inline void addData( const PrimitiveDataID< DataType, Edge > & index,
-                       const PrimitiveDataHandling< DataType, Edge > & dataHandling )
+                       const std::shared_ptr< DataHandlingType > & dataHandling )
   {
     genericAddData( index, dataHandling, this );
   }

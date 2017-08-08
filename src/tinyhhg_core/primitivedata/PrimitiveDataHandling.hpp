@@ -36,7 +36,7 @@ public:
   /// Initializes the data of type \ref DataType and returns a pointer to the initialized data
   /// Must be thread-safe !
   /// \param primitive the primitive the data is initialized on
-  virtual DataType * initialize( const PrimitiveType * const primitive ) const = 0;
+  virtual std::shared_ptr< DataType > initialize( const PrimitiveType * const primitive ) const = 0;
 
   /// Serializes the data of type \ref DataType to a \ref SendBuffer
   /// Must be thread-safe !
@@ -51,6 +51,7 @@ public:
   /// \param id the data index of the data that shall be deserialized
   /// \param buffer the buffer it is deserialized from
   virtual void deserialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, RecvBuffer & buffer ) const = 0;
+
 };
 
 
