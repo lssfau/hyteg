@@ -20,10 +20,10 @@ class PrimitiveStorage : private walberla::NonCopyable
 {
 public:
 
-  typedef std::map< PrimitiveID::IDType, Primitive* > PrimitiveMap;
-  typedef std::map< PrimitiveID::IDType, Vertex* >    VertexMap;
-  typedef std::map< PrimitiveID::IDType, Edge* >      EdgeMap;
-  typedef std::map< PrimitiveID::IDType, Face* >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
@@ -179,7 +179,7 @@ private:
             typename = typename std::enable_if< std::is_base_of< Primitive, PrimitiveType >::value >::type >
   inline void addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
 				                        const std::string & identifier,
-				                        const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
+				                        const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
 				                        const PrimitiveDataID< DataType, PrimitiveType > & dataID );
 
   VertexMap vertices_;
@@ -263,7 +263,7 @@ void PrimitiveStorage::addPrimitiveData(       PrimitiveDataID< DataType, Primit
                                          const std::string & identifier )
 {
   dataID = generateDataID< DataType, Primitive >();
-  std::map< PrimitiveID::IDType, Primitive* > primitives;
+  PrimitiveMap primitives;
   primitives.insert( vertices_.begin(), vertices_.end() );
   primitives.insert( edges_.begin(), edges_.end() );
   primitives.insert( faces_.begin(), faces_.end() );
@@ -320,7 +320,7 @@ template< typename DataType,
           typename >
 void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
                                          const std::string & identifier,
-                                         const std::map< PrimitiveID::IDType, PrimitiveType* > & primitives,
+                                         const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
                                          const PrimitiveDataID< DataType, PrimitiveType > & dataID )
 {
 #ifndef NDEBUG

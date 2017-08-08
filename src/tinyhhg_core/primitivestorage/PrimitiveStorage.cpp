@@ -25,7 +25,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
   {
     if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it->first ) )
     {
-      vertices_[ it->first ] = new Vertex( *it->second );
+      vertices_[ it->first ] = std::make_shared< Vertex >( *it->second );
     }
   }
 
@@ -33,7 +33,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
   {
     if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
     {
-      edges_[ it->first ] = new Edge( *it->second );
+      edges_[ it->first ] = std::make_shared< Edge >( *it->second );
     }
   }
 
@@ -41,7 +41,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
   {
     if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
     {
-      faces_[ it->first ] = new Face( *it->second );
+      faces_[ it->first ] = std::make_shared< Face >( *it->second );
     }
   }
 
@@ -49,14 +49,14 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 
   for ( const auto & it : vertices_ )
   {
-    Vertex * vertex = it.second;
+    auto vertex = it.second;
 
     for ( const auto & neighborVertexID : vertex->neighborVertices() )
     {
       const Vertex * neighborVertex = setupStorage.getVertex( neighborVertexID );
       if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
       {
-        neighborVertices_[ neighborVertexID.getID() ] = new Vertex( *neighborVertex );
+        neighborVertices_[ neighborVertexID.getID() ] = std::make_shared< Vertex >( *neighborVertex );
         neighborRanks_[ neighborVertexID.getID() ] = setupStorage.getTargetRank( neighborVertexID.getID() );
       }
     }
@@ -66,7 +66,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Edge * neighborEdge = setupStorage.getEdge( neighborEdgeID );
       if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
       {
-        neighborEdges_[ neighborEdgeID.getID() ] = new Edge( *neighborEdge );
+        neighborEdges_[ neighborEdgeID.getID() ] = std::make_shared< Edge >( *neighborEdge );
         neighborRanks_[ neighborEdgeID.getID() ] = setupStorage.getTargetRank( neighborEdgeID.getID() );
       }
     }
@@ -76,7 +76,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Face * neighborFace = setupStorage.getFace( neighborFaceID );
       if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
       {
-        neighborFaces_[ neighborFaceID.getID() ] = new Face( *neighborFace );
+        neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
@@ -84,14 +84,14 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 
   for ( const auto & it : edges_ )
   {
-    Edge * edge = it.second;
+    auto edge = it.second;
 
     for ( const auto & neighborVertexID : edge->neighborVertices() )
     {
       const Vertex * neighborVertex = setupStorage.getVertex( neighborVertexID );
       if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
       {
-        neighborVertices_[ neighborVertexID.getID() ] = new Vertex( *neighborVertex );
+        neighborVertices_[ neighborVertexID.getID() ] = std::make_shared< Vertex >( *neighborVertex );
         neighborRanks_[ neighborVertexID.getID() ] = setupStorage.getTargetRank( neighborVertexID.getID() );
       }
     }
@@ -101,7 +101,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Edge * neighborEdge = setupStorage.getEdge( neighborEdgeID );
       if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
       {
-        neighborEdges_[ neighborEdgeID.getID() ] = new Edge( *neighborEdge );
+        neighborEdges_[ neighborEdgeID.getID() ] = std::make_shared< Edge >( *neighborEdge );
         neighborRanks_[ neighborEdgeID.getID() ] = setupStorage.getTargetRank( neighborEdgeID.getID() );
       }
     }
@@ -111,7 +111,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Face * neighborFace = setupStorage.getFace( neighborFaceID );
       if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
       {
-        neighborFaces_[ neighborFaceID.getID() ] = new Face( *neighborFace );
+        neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
@@ -119,14 +119,14 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 
   for ( const auto & it : faces_ )
   {
-    Face * face = it.second;
+    auto face = it.second;
 
     for ( const auto & neighborVertexID : face->neighborVertices() )
     {
       const Vertex * neighborVertex = setupStorage.getVertex( neighborVertexID );
       if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
       {
-        neighborVertices_[ neighborVertexID.getID() ] = new Vertex( *neighborVertex );
+        neighborVertices_[ neighborVertexID.getID() ] = std::make_shared< Vertex >( *neighborVertex );
         neighborRanks_[ neighborVertexID.getID() ] = setupStorage.getTargetRank( neighborVertexID.getID() );
       }
     }
@@ -136,7 +136,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Edge * neighborEdge = setupStorage.getEdge( neighborEdgeID );
       if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
       {
-        neighborEdges_[ neighborEdgeID.getID() ] = new Edge( *neighborEdge );
+        neighborEdges_[ neighborEdgeID.getID() ] = std::make_shared< Edge >( *neighborEdge );
         neighborRanks_[ neighborEdgeID.getID() ] = setupStorage.getTargetRank( neighborEdgeID.getID() );
       }
     }
@@ -146,7 +146,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       const Face * neighborFace = setupStorage.getFace( neighborFaceID );
       if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
       {
-        neighborFaces_[ neighborFaceID.getID() ] = new Face( *neighborFace );
+        neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
@@ -192,11 +192,11 @@ const Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id ) const
 {
   if ( vertexExistsLocally( id ) )
   {
-    return vertices_.at( id.getID() );
+    return vertices_.at( id.getID() ).get();
   }
   else if ( vertexExistsInNeighborhood( id ) )
   {
-    return neighborVertices_.at( id.getID() );
+    return neighborVertices_.at( id.getID() ).get();
   }
   else
   {
@@ -208,11 +208,11 @@ Vertex* PrimitiveStorage::getVertex( const PrimitiveID & id )
 {
   if ( vertexExistsLocally( id ) )
   {
-    return vertices_[ id.getID() ];
+    return vertices_[ id.getID() ].get();
   }
   else if ( vertexExistsInNeighborhood( id ) )
   {
-    return neighborVertices_[ id.getID() ];
+    return neighborVertices_[ id.getID() ].get();
   }
   else
   {
@@ -224,11 +224,11 @@ const Edge* PrimitiveStorage::getEdge( const PrimitiveID & id ) const
 {
   if ( edgeExistsLocally( id ) )
   {
-    return edges_.at( id.getID() );
+    return edges_.at( id.getID() ).get();
   }
   else if ( edgeExistsInNeighborhood( id ) )
   {
-    return neighborEdges_.at( id.getID() );
+    return neighborEdges_.at( id.getID() ).get();
   }
   else
   {
@@ -240,11 +240,11 @@ Edge* PrimitiveStorage::getEdge( const PrimitiveID & id )
 {
   if ( edgeExistsLocally( id ) )
   {
-    return edges_[ id.getID() ];
+    return edges_[ id.getID() ].get();
   }
   else if ( edgeExistsInNeighborhood( id ) )
   {
-    return neighborEdges_[ id.getID() ];
+    return neighborEdges_[ id.getID() ].get();
   }
   else
   {
@@ -256,11 +256,11 @@ const Face* PrimitiveStorage::getFace( const PrimitiveID & id ) const
 {
   if ( faceExistsLocally( id ) )
   {
-    return faces_.at( id.getID() );
+    return faces_.at( id.getID() ).get();
   }
   else if ( faceExistsInNeighborhood( id ) )
   {
-    return neighborFaces_.at( id.getID() );
+    return neighborFaces_.at( id.getID() ).get();
   }
   else
   {
@@ -272,11 +272,11 @@ Face* PrimitiveStorage::getFace( const PrimitiveID & id )
 {
   if ( faceExistsLocally( id ) )
   {
-    return faces_[ id.getID() ];
+    return faces_[ id.getID() ].get();
   }
   else if ( faceExistsInNeighborhood( id ) )
   {
-    return neighborFaces_[ id.getID() ];
+    return neighborFaces_[ id.getID() ].get();
   }
   else
   {
