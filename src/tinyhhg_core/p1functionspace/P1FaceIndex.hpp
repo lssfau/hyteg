@@ -28,6 +28,7 @@ const DirVertex neighbors[] =
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
+  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
   switch (dir) {

@@ -49,7 +49,7 @@ inline size_t index(size_t pos, DirVertex dir) {
     case CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      //TODO do we want to abort here?
+      WALBERLA_ASSERT(false, "wrong dir");
       return std::numeric_limits<size_t>::max();
   }
 

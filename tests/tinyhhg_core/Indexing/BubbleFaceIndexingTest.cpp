@@ -51,52 +51,15 @@ int main(int argc, char* argv[])
     WALBERLA_CHECK_EQUAL_3(refTwoFive[i],result[i],"i: " << i);
   }
   result.clear();
-//  /// CHECK CELL GRAY ///
-//  std::vector<size_t> refGrayOneTwo = {61,19,25,18};
-//  std::vector<size_t> refGraySevenZero = {52,8,16,7};
-//  for(auto n : CoordsCellGray::neighbors_with_center)
-//  {
-//    size_t idx = CoordsCellGray::index<3>(2, 1, n);
-//    result.push_back(idx);
-//    //WALBERLA_LOG_INFO_ON_ROOT(idx);
-//  }
-//  for(size_t i = 0; i < refGrayOneTwo.size(); ++i){
-//    WALBERLA_CHECK_EQUAL_3(refGrayOneTwo[i],result[i],"i: " << i);
-//  }
-//  result.clear();
-//  for(auto n : CoordsCellGray::neighbors_with_center)
-//  {
-//    size_t idx = CoordsCellGray::index<3>(0, 7, n);
-//    result.push_back(idx);
-//    //WALBERLA_LOG_INFO_ON_ROOT(idx);
-//  }
-//  for(size_t i = 0; i < refGraySevenZero.size(); ++i){
-//    WALBERLA_CHECK_EQUAL_3(refGraySevenZero[i],result[i],"i: " << i);
-//  }
-//  result.clear();
-//  /// CHECK CELL BLUE ///
-//  std::vector<size_t> refBlueOneFour = {104,32,37,36};
-//  std::vector<size_t> refBlueThreeZero = {84,4,13,12};
-//  for(auto n : CoordsCellBlue::neighbors_with_center)
-//  {
-//    size_t idx = CoordsCellBlue::index<3>(4, 1, n);
-//    result.push_back(idx);
-//    //WALBERLA_LOG_INFO_ON_ROOT(idx);
-//  }
-//  for(size_t i = 0; i < refBlueOneFour.size(); ++i){
-//    WALBERLA_CHECK_EQUAL_3(refBlueOneFour[i],result[i],"i: " << i);
-//  }
-//  result.clear();
-//  for(auto n : CoordsCellBlue::neighbors_with_center)
-//  {
-//    size_t idx = CoordsCellBlue::index<3>(0, 3, n);
-//    result.push_back(idx);
-//    //WALBERLA_LOG_INFO_ON_ROOT(idx);
-//  }
-//  for(size_t i = 0; i < refBlueThreeZero.size(); ++i){
-//    WALBERLA_CHECK_EQUAL_3(refBlueThreeZero[i],result[i],"i: " << i);
-//  }
-//
+  /// CHECK CELL GRAY ///
+  WALBERLA_CHECK_EQUAL(22,CoordsCellGray::index<3>(1,3,CoordsCellGray::CELL_GRAY_C));
+  WALBERLA_CHECK_EQUAL(24,CoordsCellGray::index<3>(3,3,CoordsCellGray::CELL_GRAY_C));
+
+  /// CHECK CELL BLUE //
+  WALBERLA_CHECK_EQUAL(36,CoordsCellBlue::index<3>(0,0,CoordsCellBlue::CELL_BLUE_C));
+  WALBERLA_CHECK_EQUAL(41,CoordsCellBlue::index<3>(5,0,CoordsCellBlue::CELL_BLUE_C));
+
+
 //  /// CHECK VERTEX ITERATOR ///
 //  std::vector<size_t> vertexface0 = {0,1,2,3,4,5,6,7,8};
 //  std::vector<size_t> vertexface1 = {8,16,23,29,34,38,41,43,44};

@@ -13,10 +13,6 @@ endif()
 waLBerla_link_files_to_builddir(../data/meshes/*.msh)
 waLBerla_link_files_to_builddir(../data/param/*.prm)
 
-waLBerla_add_executable( NAME tinytest
-        FILES test.cpp
-        DEPENDS tinyhhg_core fmt)
-
 waLBerla_add_executable( NAME tinytest_cg
         FILES cg_test.cpp
         DEPENDS tinyhhg_core fmt core)
