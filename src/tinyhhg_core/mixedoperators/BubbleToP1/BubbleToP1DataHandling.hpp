@@ -11,8 +11,8 @@ class VertexBubbleToP1StencilMemoryDataHandling : public OnlyInitializeDataHandl
 
   VertexBubbleToP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  VertexBubbleToP1StencilMemory * initialize( const Vertex * const vertex ) const {
-    VertexBubbleToP1StencilMemory * vertexBubbleToP1FunctionMemory = new VertexBubbleToP1StencilMemory();
+  std::shared_ptr< VertexBubbleToP1StencilMemory > initialize( const Vertex * const vertex ) const {
+    auto vertexBubbleToP1FunctionMemory = std::make_shared< VertexBubbleToP1StencilMemory >();
     for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
     {
       vertexBubbleToP1FunctionMemory->addlevel( level, vertex->getNumNeighborFaces() );
@@ -33,8 +33,8 @@ class EdgeBubbleToP1StencilMemoryDataHandling : public OnlyInitializeDataHandlin
 
   EdgeBubbleToP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  EdgeBubbleToP1StencilMemory * initialize( const Edge * const edge ) const {
-    EdgeBubbleToP1StencilMemory * edgeBubbleToP1FunctionMemory = new EdgeBubbleToP1StencilMemory();
+  std::shared_ptr< EdgeBubbleToP1StencilMemory > initialize( const Edge * const edge ) const {
+    auto edgeBubbleToP1FunctionMemory = std::make_shared< EdgeBubbleToP1StencilMemory >();
     for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
     {
       edgeBubbleToP1FunctionMemory->addlevel( level );
@@ -55,8 +55,8 @@ class FaceBubbleToP1StencilMemoryDataHandling : public OnlyInitializeDataHandlin
 
   FaceBubbleToP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceBubbleToP1StencilMemory * initialize( const Face * const face ) const {
-    FaceBubbleToP1StencilMemory * faceBubbleToP1FunctionMemory = new FaceBubbleToP1StencilMemory();
+  std::shared_ptr< FaceBubbleToP1StencilMemory > initialize( const Face * const face ) const {
+    auto faceBubbleToP1FunctionMemory = std::make_shared< FaceBubbleToP1StencilMemory >();
     for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
     {
       faceBubbleToP1FunctionMemory->addlevel( level );

@@ -29,13 +29,13 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
   BubbleToP1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
       : Operator(storage, minLevel, maxLevel)
   {
-    FaceBubbleToP1StencilMemoryDataHandling faceBubbleToP1StencilMemoryDataHandling(minLevel_, maxLevel_);
-    EdgeBubbleToP1StencilMemoryDataHandling edgeBubbleToP1StencilMemoryDataHandling(minLevel_, maxLevel_);
-    VertexBubbleToP1StencilMemoryDataHandling vertexeBubbleToP1StencilMemoryDataHandling(minLevel_, maxLevel_);
+    auto faceBubbleToP1StencilMemoryDataHandling = std::make_shared< FaceBubbleToP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto edgeBubbleToP1StencilMemoryDataHandling = std::make_shared< EdgeBubbleToP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto vertexeBubbleToP1StencilMemoryDataHandling = std::make_shared< VertexBubbleToP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
 
-    faceStencilID_ = storage->addFaceData(faceBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorFaceStencil");
-    edgeStencilID_ = storage->addEdgeData(edgeBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorEdgeStencil");
-    vertexStencilID_ = storage->addVertexData(vertexeBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorVertexStencil");
+    storage->addFaceData(faceStencilID_, faceBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorFaceStencil");
+    storage->addEdgeData(edgeStencilID_, edgeBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorEdgeStencil");
+    storage->addVertexData(vertexStencilID_, vertexeBubbleToP1StencilMemoryDataHandling, "BubbleToP1OperatorVertexStencil");
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
