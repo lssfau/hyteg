@@ -8,9 +8,6 @@ namespace P1Face
 
 using walberla::uint_t;
 
-
-
-
 namespace CoordsVertex {
 enum DirVertex {
   VERTEX_S  = 0,
@@ -77,7 +74,7 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
       return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
   }
 
-
+  WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 } //namespace CoordsCellGray
