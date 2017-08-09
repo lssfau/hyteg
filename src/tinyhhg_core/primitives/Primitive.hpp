@@ -256,17 +256,17 @@ void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType >
   WALBERLA_ASSERT_EQUAL( data_.size(), dataInitializationFunctions_.size() );
 
   // Set up initialization, serialization and deserialization callbacks
-  auto initCallback = [ =, this ]() -> void
+  auto initCallback = [ this, index, dataHandling, primitive ]() -> void
   {
     data_[index].first = std::shared_ptr< PrimitiveData >( new PrimitiveData( dataHandling->initialize( primitive ) ) );
   };
 
-  std::function< void( walberla::mpi::SendBuffer & sendBuffer ) > serializationCallback = [ =, this ]( walberla::mpi::SendBuffer & sendBuffer ) -> void
+  std::function< void( walberla::mpi::SendBuffer & sendBuffer ) > serializationCallback = [ dataHandling, primitive, index ]( walberla::mpi::SendBuffer & sendBuffer ) -> void
   {
     dataHandling->serialize( primitive, index, sendBuffer );
   };
 
-  std::function< void( walberla::mpi::RecvBuffer & recvBuffer ) > deserializationCallback = [ =, this ]( walberla::mpi::RecvBuffer & recvBuffer ) -> void
+  std::function< void( walberla::mpi::RecvBuffer & recvBuffer ) > deserializationCallback = [ dataHandling, primitive, index ]( walberla::mpi::RecvBuffer & recvBuffer ) -> void
   {
     dataHandling->deserialize( primitive, index, recvBuffer );
   };
