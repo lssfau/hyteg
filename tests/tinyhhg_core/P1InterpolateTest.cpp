@@ -4,6 +4,7 @@
 #include <tinyhhg_core/p1functionspace/P1Face.hpp>
 #include <tinyhhg_core/p1functionspace/P1Edge.hpp>
 
+#include "core/Environment.h"
 
 using walberla::real_t;
 using namespace hhg;
@@ -59,7 +60,7 @@ int main(int argc, char **argv)
   real_t value,xStepSize, yStepSize;
   for(auto faceIter : storage->getFaces())
   {
-    Face *face = faceIter.second;
+    auto face = faceIter.second;
     value = face->coords[0].x[0] * 2 + face->coords[0].x[0];
 //    Edge *faceEdge0 = storage->getEdge(face->getEdgeID0().getID());
 //    Edge *faceEdge1 = storage->getEdge(face->getEdgeID1().getID());
@@ -83,13 +84,13 @@ int main(int argc, char **argv)
         }
         value += 2 * xStepSize;
       }
-      value = yStepSize * (i + 1);
+      value = yStepSize * (real_t) (i + 1);
     }
   }
 
   value = 0;
   for(auto edgeIter : storage->getEdges()){
-    Edge* edge = edgeIter.second;
+    auto edge = edgeIter.second;
     hhg::P1Edge::interpolate(*edge,x.getEdgeDataID(),exact,maxLevel);
     value = 2 * edge->coords_[0].x[0] + edge->coords_[0].x[1];
     xStepSize = edge->direction_.x[0] / walberla::real_c((v_perEdge-1));
