@@ -4,15 +4,34 @@
 
 using namespace hhg::P1Face;
 
-void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref){
+void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
   std::vector<size_t> result;
-  for(auto n : neighbors_with_center)
-  {
-    size_t idx = index<3>(col, row, n);
-    result.push_back(idx);
+  switch(type){
+    //vertex
+    case 0:
+      for(auto n : CoordsVertex::neighbors_with_center)
+      {
+        result.push_back(CoordsVertex::index<3>(col, row, n));
+      }
+      break;
+    case 1:
+      for(auto n : CoordsCellGray::neighbors)
+      {
+        result.push_back(CoordsCellGray::index<3>(col, row, n));
+      }
+      break;
+    case 2:
+      for(auto n : CoordsCellBlue::neighbors)
+      {
+        result.push_back(CoordsCellBlue::index<3>(col, row, n));
+      }
+      break;
+    default:
+      WALBERLA_ABORT("wrong type")
   }
+
   for(size_t i = 0; i < ref.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(ref[i],result[i],"i: " << i);
+    WALBERLA_CHECK_EQUAL_3(ref[i],result[i],"col: " << col << " row: " << row <<" i: " << i);
   }
 }
 
@@ -23,11 +42,22 @@ int main(int argc, char* argv[])
   walberla::mpi::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  /// CHECK VERTEX ///
-  std::vector<size_t> refOneOne = {1,2,9,10,11,17,18};
-  checkIndices(1,1,refOneOne);
-  std::vector<size_t> refFiveTwo = {14,15,21,22,23,28,29};
-  checkIndices(5,2,refFiveTwo);
+
+
+  /// CHECK VERTEX INDEXING ///
+  std::vector<size_t> refOneOne = {10,1,2,11,18,17,9};
+  checkIndices(1,1,refOneOne,0);
+  std::vector<size_t> refFiveTwo = {22,14,15,23,29,28,21};
+  checkIndices(5,2,refFiveTwo,0);
+
+  /// CHECK CELL GRAY INDEXING ///
+  checkIndices(2,2,{19,20,26},1);
+  checkIndices(2,4,{32,33,37},1);
+
+  /// CHECK CELL BLUE INDEXING ///
+  checkIndices(3,3,{28,33,34},2);
+  checkIndices(4,1,{14,21,22},2);
+
 
   /// CHECK VERTEX ITERATOR ///
 

@@ -133,6 +133,7 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
       edge_index_(edgeIndex),
       ended_(false)
 {
+  WALBERLA_ABORT("Implement me");
   WALBERLA_ASSERT(edge_orientation_ == -1 || edge_orientation_ == 1,"Invalid edge Orientation: " << edge_orientation_);
 
   num_perEdge_ = walberla::int_c(hhg::levelinfo::num_microvertices_per_edge(level));
@@ -229,5 +230,5 @@ indexIterator::indexIterator()
     :ended_(true)
 {}
 
-}
-}
+}// namespace BubbleFace
+}// namespace hhg

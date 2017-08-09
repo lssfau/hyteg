@@ -8,37 +8,8 @@ namespace P1Face
 
 using walberla::uint_t;
 
-namespace CoordsCellGray {
-enum DirVertex {
-  VERTEX_SW = 0,
-  VERTEX_SE = 1,
-  VERTEX_NW = 2
-};
 
-const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
 
-template<size_t Level>
-inline size_t index(size_t row, size_t col, DirVertex dir) {
-  WALBERLA_ABORT("Implement me.");
-  return std::numeric_limits<size_t>::max();
-}
-}
-
-namespace CoordsCellBlue {
-enum DirVertex {
-  VERTEX_SE = 0,
-  VERTEX_NW = 1,
-  VERTEX_NE = 2
-};
-
-const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
-
-template<size_t Level>
-inline size_t index(size_t row, size_t col, DirVertex dir) {
-  WALBERLA_ABORT("Implement me.");
-  return std::numeric_limits<size_t>::max();
-}
-}
 
 namespace CoordsVertex {
 enum DirVertex {
@@ -58,15 +29,10 @@ const DirVertex neighbors[] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
 
 template<size_t Level>
-inline size_t index(size_t row, size_t col, DirVertex dir) {
+inline size_t index(size_t col, size_t row, DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  const size_t grayBaseLength = vertexBaseLength -1;
-  const size_t blueBaseLength = vertexBaseLength -2;
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
-  const size_t totalCellGray = grayBaseLength * (grayBaseLength + 1) / 2;
   const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
-  const size_t cellGrayNE = center + totalVertices - row;
-  const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) -1;
   switch (dir) {
     case VERTEX_C:
       return center;
@@ -89,6 +55,57 @@ inline size_t index(size_t row, size_t col, DirVertex dir) {
 }
 }//namespace CoordsVertex
 
+namespace CoordsCellGray {
+enum DirVertex {
+  VERTEX_SW = 0,
+  VERTEX_SE = 1,
+  VERTEX_NW = 2
+};
+
+const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
+
+template<size_t Level>
+inline size_t index(size_t col, size_t row, DirVertex dir) {
+  //typedef hhg::P1Face::CoordsVertex CoordsVertex;
+
+  switch(dir){
+    case VERTEX_SW:
+      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_C);
+    case VERTEX_SE:
+      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+    case VERTEX_NW:
+      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+  }
+
+
+  return std::numeric_limits<size_t>::max();
+}
+} //namespace CoordsCellGray
+
+namespace CoordsCellBlue {
+enum DirVertex {
+  VERTEX_SE = 0,
+  VERTEX_NW = 1,
+  VERTEX_NE = 2
+};
+
+const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
+
+template<size_t Level>
+inline size_t index(size_t col, size_t row, DirVertex dir) {
+  switch(dir){
+    case VERTEX_SE:
+      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+    case VERTEX_NW:
+      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+    case VERTEX_NE:
+      return hhg::P1Face::CoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::CoordsVertex::VERTEX_C);
+  }
+
+  WALBERLA_ASSERT(false, "wrong dir");
+  return std::numeric_limits<size_t>::max();
+}
+} //namespace CoordsCellBlue
 
 enum DofType {
   VERTEX = 0,
@@ -261,5 +278,5 @@ indexIterator::indexIterator()
     :ended_(true)
 {}
 
-}
-}
+} //namespace P1Face
+} //namespace hhg

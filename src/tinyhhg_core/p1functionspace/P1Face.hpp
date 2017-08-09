@@ -6,6 +6,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "P1Memory.hpp"
+#include "P1FaceIndex.hpp"
 
 namespace hhg {
 namespace P1Face {
