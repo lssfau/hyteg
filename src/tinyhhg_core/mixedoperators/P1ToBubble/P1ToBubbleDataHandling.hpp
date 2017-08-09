@@ -11,8 +11,8 @@ class FaceP1ToBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandlin
 
   FaceP1ToBubbleStencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  FaceP1ToBubbleStencilMemory * initialize( const Face * const face ) const {
-    FaceP1ToBubbleStencilMemory * faceP1ToBubbleFunctionMemory = new FaceP1ToBubbleStencilMemory();
+  std::shared_ptr< FaceP1ToBubbleStencilMemory > initialize( const Face * const face ) const {
+    auto faceP1ToBubbleFunctionMemory = std::make_shared< FaceP1ToBubbleStencilMemory >();
     for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
     {
       faceP1ToBubbleFunctionMemory->addlevel( level );
