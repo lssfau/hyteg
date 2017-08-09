@@ -20,9 +20,9 @@ struct EdgeTestData
 
 struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vertex >
 {
-  virtual VertexTestData * initialize( const Vertex * const primitive ) const
+  virtual std::shared_ptr< VertexTestData > initialize( const Vertex * const primitive ) const
   {
-    VertexTestData * data = new VertexTestData;
+    auto data = std::make_shared< VertexTestData >();
     data->ownID = primitive->getID().getID();
     return data;
   }
@@ -30,9 +30,9 @@ struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vert
 
 struct EdgeTestDataHandling : OnlyInitializeDataHandling< EdgeTestData, Edge >
 {
-  virtual EdgeTestData * initialize( const Edge * const primitive ) const
+  virtual std::shared_ptr< EdgeTestData > initialize( const Edge * const primitive ) const
   {
-    EdgeTestData * data = new EdgeTestData;
+    auto data = std::make_shared< EdgeTestData >();
     data->ownID = primitive->getID().getID();
     return data;
   }
@@ -167,25 +167,28 @@ static void testBufferedCommunication()
 
   communication::BufferedCommunicator communicator( storage );
 
-  VertexTestDataHandling vertexTestDataHandling;
-  EdgeTestDataHandling   edgeTestDataHandling;
+  auto vertexTestDataHandling = std::make_shared< VertexTestDataHandling >();
+  auto edgeTestDataHandling = std::make_shared< EdgeTestDataHandling >();
 
-  auto vertexTestDataID = storage->addVertexData( vertexTestDataHandling, "vertex data" );
-  auto edgeTestDataID   = storage->addEdgeData  ( edgeTestDataHandling,   "edge data" );
+  PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID;
+  storage->addVertexData( vertexTestDataID, vertexTestDataHandling, "vertex data" );
+
+  PrimitiveDataID< EdgeTestData, Edge > edgeTestDataID;
+  storage->addEdgeData  ( edgeTestDataID, edgeTestDataHandling,   "edge data" );
 
   std::shared_ptr< TestPackInfo > testPackInfo( new TestPackInfo( vertexTestDataID, edgeTestDataID ) );
 
   for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
   {
-    Vertex * vertex = it->second;
-    VertexTestData * data = vertex->getData( vertexTestDataID );
+    auto vertex = it->second;
+    auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID().getID() );
   }
 
   for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
   {
-    Edge * edge = it->second;
-    EdgeTestData * data = edge->getData( edgeTestDataID );
+    auto edge = it->second;
+    auto data = edge->getData( edgeTestDataID );
     WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 0 );
   }
 
@@ -205,8 +208,8 @@ static void testBufferedCommunication()
 
   for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
   {
-    Edge * edge = it->second;
-    EdgeTestData * data = edge->getData( edgeTestDataID );
+    auto edge = it->second;
+    auto data = edge->getData( edgeTestDataID );
     WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 2 );
     WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it->first );
 
@@ -222,8 +225,8 @@ static void testBufferedCommunication()
 
   for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
   {
-    Vertex * vertex = it->second;
-    VertexTestData * data = vertex->getData( vertexTestDataID );
+    auto vertex = it->second;
+    auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_GREATER( data->edgeIDs.size(), 0 );
     std::set< uint_t > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
     WALBERLA_CHECK_EQUAL( data->edgeIDs.size(), edgeIdsSet.size() );
