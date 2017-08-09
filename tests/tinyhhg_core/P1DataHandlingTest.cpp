@@ -2,6 +2,7 @@
 #include "tinyhhg_core/tinyhhg.hpp"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
+#include "core/Environment.h"
 
 namespace hhg {
 
@@ -20,18 +21,23 @@ static void testP1DataHandling()
 
   WALBERLA_LOG_INFO( setupStorage );
 
-  VertexP1FunctionMemoryDataHandling vertexP1FunctionMemoryDataHandling( minLevel, maxLevel );
-  EdgeP1FunctionMemoryDataHandling   edgeP1FunctionMemoryDataHandling  ( minLevel, maxLevel );
-  FaceP1FunctionMemoryDataHandling   faceP1FunctionMemoryDataHandling  ( minLevel, maxLevel );
+  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >( minLevel, maxLevel );
+  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
+  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
 
-  PrimitiveDataID< VertexP1FunctionMemory, Vertex > vertexP1FunctionMemoryID = storage.addVertexData( vertexP1FunctionMemoryDataHandling, "P1 vertex data" );
-  PrimitiveDataID< EdgeP1FunctionMemory,   Edge   > edgeP1FunctionMemoryID   = storage.addEdgeData  ( edgeP1FunctionMemoryDataHandling,   "P1 edge data"   );
-  PrimitiveDataID< FaceP1FunctionMemory,   Face >   faceP1FunctionMemoryID   = storage.addFaceData  ( faceP1FunctionMemoryDataHandling,   "P1 face data"   );
+  PrimitiveDataID< VertexP1FunctionMemory, Vertex > vertexP1FunctionMemoryID;
+  storage.addVertexData( vertexP1FunctionMemoryID, vertexP1FunctionMemoryDataHandling, "P1 vertex data" );
+  
+  PrimitiveDataID< EdgeP1FunctionMemory,   Edge   > edgeP1FunctionMemoryID;
+  storage.addEdgeData  ( edgeP1FunctionMemoryID, edgeP1FunctionMemoryDataHandling,   "P1 edge data"   );
+
+  PrimitiveDataID< FaceP1FunctionMemory,   Face >   faceP1FunctionMemoryID;
+  storage.addFaceData  ( faceP1FunctionMemoryID, faceP1FunctionMemoryDataHandling,   "P1 face data"   );
 
   for ( const auto & it : storage.getVertices() )
   {
     PrimitiveID vertexID = it.first;
-    Vertex *    vertex   = it.second;
+    auto        vertex   = it.second;
 
     VertexP1FunctionMemory * mem = vertex->getData( vertexP1FunctionMemoryID );
 
@@ -44,7 +50,7 @@ static void testP1DataHandling()
   for ( const auto & it : storage.getEdges() )
   {
     PrimitiveID edgeID = it.first;
-    Edge *      edge   = it.second;
+    auto        edge   = it.second;
 
     EdgeP1FunctionMemory * mem = edge->getData( edgeP1FunctionMemoryID );
 
@@ -57,7 +63,7 @@ static void testP1DataHandling()
   for ( const auto & it : storage.getFaces() )
   {
     PrimitiveID faceID = it.first;
-    Face *      face   = it.second;
+    auto        face   = it.second;
 
     FaceP1FunctionMemory * mem = face->getData( faceP1FunctionMemoryID );
 
