@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
       }
     }
   };
-  hhg::VTKWriter< hhg::P1Function >({ &x, &x_exact, &b }, minLevel, "../output", "out");
+  hhg::VTKWriter< hhg::P1Function >({ &x, &x_exact, &b }, minLevel, "../output", "fullmg");
 
   LIKWID_MARKER_START("Compute");
   for (size_t ll = minLevel; ll <= maxLevel; ++ll)

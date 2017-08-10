@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -59,6 +59,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  hhg::VTKWriter<hhg::P1Function>({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "test");
+  hhg::VTKWriter<hhg::P1Function>({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "cg_bubble");
   return 0;
 }

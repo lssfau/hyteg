@@ -47,6 +47,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("discrete L2 error = {:e}", discr_l2_err));
 
-  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres_test");
+  hhg::VTKWriter<hhg::P1Function>({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
   return EXIT_SUCCESS;
 }
