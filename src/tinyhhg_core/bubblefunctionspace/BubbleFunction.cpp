@@ -32,6 +32,9 @@ BubbleFunction::~BubbleFunction() {
 
 void BubbleFunction::interpolate_impl(std::function<real_t(const hhg::Point3D &)> &expr, uint_t level, DoFType flag) {
   // TODO: implement Bubble interpolation. It is not required for Dirichlet only interpolation in most of the apps
+  WALBERLA_UNUSED( expr );
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( flag );
   WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!");
 }
 
@@ -101,16 +104,22 @@ real_t BubbleFunction::dot_impl(BubbleFunction &rhs, uint_t level, DoFType flag)
 
 void prolongate_impl(size_t level, DoFType flag)
 {
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( flag );
   WALBERLA_ABORT("not implemented");
 }
 
 void prolongateQuadratic_impl(size_t level, DoFType flag)
 {
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( flag );
   WALBERLA_ABORT("not implemented");
 }
 
 void restrict_impl(size_t level, DoFType flag)
 {
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( flag );
   WALBERLA_ABORT("not implemented");
 }
 }

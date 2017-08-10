@@ -33,6 +33,7 @@ public:
 
   inline size_t getSize(size_t level)
   {
+    WALBERLA_UNUSED( level );
     return num_deps_;
   }
 
