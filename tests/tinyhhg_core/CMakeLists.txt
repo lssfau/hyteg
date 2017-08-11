@@ -25,8 +25,8 @@ waLBerla_execute_test(NAME p1BubbleCommTest)
 waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1CommTest)
 
-waLBerla_compile_test(FILES P1BubblePackTest.cpp DEPENDS tinyhhg_core core fmt)
-#waLBerla_execute_test(NAME P1BubblePackTest)
+waLBerla_compile_test(FILES P1PackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P1BPackInfoTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME PrimitiveIDTest)

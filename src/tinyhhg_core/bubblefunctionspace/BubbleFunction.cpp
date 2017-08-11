@@ -1,7 +1,7 @@
 #include "BubbleFunction.hpp"
 #include "BubbleDataHandling.hpp"
 #include "BubbleFace.hpp"
-//#include "BubblePackInfo.hpp"
+#include "BubblePackInfo.hpp"
 
 namespace hhg {
 
@@ -17,12 +17,12 @@ BubbleFunction::BubbleFunction(const std::string &name,
   storage->addEdgeData(edgeDataID_, edgeBubbleFunctionMemoryDataHandling, name);
   storage->addVertexData(vertexDataID_, vertexBubbleFunctionMemoryDataHandling, name);
   for (uint_t level = minLevel; level <= maxLevel; ++level) {
-    //    communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
-//    communicators_[level]->addPackInfo(std::make_shared<BubblePackInfo>(level,
-//                                                                    vertexDataID_,
-//                                                                    edgeDataID_,
-//                                                                    faceDataID_,
-//                                                                    storage_));
+    communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+    communicators_[level]->addPackInfo(std::make_shared<BubblePackInfo>(level,
+                                                                    vertexDataID_,
+                                                                    edgeDataID_,
+                                                                    faceDataID_,
+                                                                    storage_));
   }
 }
 
