@@ -125,59 +125,82 @@ void BubblePackInfo::communicateLocalEdgeToFace(const Edge *sender, Face *receiv
 /// @name Face to Edge
 ///@{
 
-///// DONE TILL HERE 11.08.2017 14:18 ITERATOR NEEDED /////
-//
-//void BubblePackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-//  using namespace hhg::BubbleFace;
-//  real_t *data = sender->getData(dataIDFace_)->data[level_].get();
-//  uint_t edgeIndexOnFace = sender->edge_index(*storage_.lock()->getEdge(receiver));
-//  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], VERTEX_INNER, level_); it != indexIterator(); ++it){
-//    buffer << data[*it];
-//  }
-//}
-//
-//void BubblePackInfo::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-//  real_t *data = receiver->getData(dataIDEdge_)->data[level_].get();
-//  uint_t rowSize = levelinfo::num_microvertices_per_edge(level_);
-//  uint_t pos = receiver->face_index(*storage_.lock()->getFace(sender));
-//  EdgeCoordsVertex::DirVertex dir;
-//  //the first face is the south face and the second the north face
-//  if(pos == 0)
-//  {
-//    dir = EdgeCoordsVertex::VERTEX_SE;
-//  }
-//  else if(pos == 1)
-//  {
-//    dir = EdgeCoordsVertex::VERTEX_N;
-//  }
-//  for (uint_t i = 0; i < rowSize -1; ++i)
-//  {
-//    buffer >> data[EdgeCoordsVertex::edge_index(level_,i,dir)];
-//  }
-//}
-//
-//void BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
-//  using namespace hhg::BubbleFace;
-//  real_t *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
-//  real_t *faceData = sender->getData(dataIDFace_)->data[level_].get();
-//  uint_t facePosOnEdge = receiver->face_index(*sender);
-//  EdgeCoordsVertex::DirVertex dir;
-//  uint_t edgeIndexOnFace = sender->edge_index(*receiver);
-//  //the first face is the south face and the second the north face
-//  if(facePosOnEdge == 0)
-//  {
-//    dir = EdgeCoordsVertex::VERTEX_SE;
-//  }
-//  else if(facePosOnEdge == 1)
-//  {
-//    dir = EdgeCoordsVertex::VERTEX_N;
-//  }
-//  uint_t idx = 0;
-//  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], VERTEX_INNER, level_); it != indexIterator(); ++it) {
-//    edgeData[hhg::BubbleEdge::EdgeCoordsVertex::edge_index(level_,idx,dir)] = faceData[*it];
-//    idx++;
-//  }
-//}
+
+void BubblePackInfo::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+  using namespace hhg::BubbleFace;
+  real_t *faceData = sender->getData(dataIDFace_)->data[level_].get();
+  uint_t edgeIndexOnFace = sender->edge_index(receiver);
+  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_); it != indexIterator(); ++it){
+    buffer << faceData[*it];
+  }
+  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_); it != indexIterator(); ++it){
+    buffer << faceData[*it];
+  }
+}
+
+void BubblePackInfo::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+  real_t *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
+  uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
+  uint_t edgeIdOnFace = receiver->face_index(sender);
+  EdgeCoordsVertex::DirVertex dirCellGray;
+  EdgeCoordsVertex::DirVertex dirCellBlue;
+  //the first face is the south face and the second the north face
+  if(edgeIdOnFace == 0)
+  {
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_SE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_SE;
+  }
+  else if(edgeIdOnFace == 1)
+  {
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_NE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_NW;
+  }
+  //unpack Gray Cell
+  for (uint_t i = 0; i < vPerEdge - 1; ++i)
+  {
+    buffer >> edgeData[EdgeCoordsVertex::edge_index(level_,i,dirCellGray)];
+  }
+  //unpack Blue Cell
+  for (uint_t i = 1; i < vPerEdge - 1; ++i)
+  {
+    buffer >> edgeData[EdgeCoordsVertex::edge_index(level_,i,dirCellBlue)];
+  }
+}
+
+void BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
+  using namespace hhg::BubbleFace;
+  real_t *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
+  real_t *faceData = sender->getData(dataIDFace_)->data[level_].get();
+  uint_t edgeIdOnFace = receiver->face_index(sender->getID());
+  EdgeCoordsVertex::DirVertex dirCellGray;
+  EdgeCoordsVertex::DirVertex dirCellBlue;
+  uint_t edgeIndexOnFace = sender->edge_index(receiver->getID());
+  //the first face is the south face and the second the north face
+  if(edgeIdOnFace == 0)
+  {
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_SE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_SE;
+  }
+  else if(edgeIdOnFace == 1)
+  {
+    dirCellGray = EdgeCoordsVertex::CELL_GRAY_NE;
+    dirCellBlue = EdgeCoordsVertex::CELL_BLUE_NW;
+  }
+  uint_t pos = 0;
+  //copy Gray Cell
+  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_); it != indexIterator(); ++it)
+  {
+    edgeData[EdgeCoordsVertex::edge_index(level_,pos,dirCellGray)] = faceData[*it];
+    pos++;
+  }
+  pos = 1;
+
+  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_); it != indexIterator(); ++it)
+  {
+    edgeData[EdgeCoordsVertex::edge_index(level_,pos,dirCellGray)] = faceData[*it];
+    pos++;
+  }
+}
 
 ///@}
 
