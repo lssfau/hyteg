@@ -63,7 +63,7 @@ class P1ToBubbleOperator : public Operator<P1Function, BubbleFunction>
   {
   }
 
-  void apply(P1Function& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;

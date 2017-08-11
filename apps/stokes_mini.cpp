@@ -7,19 +7,27 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::Mesh mesh("../data/meshes/quad_4el_neumann.msh");
+  std::string meshFileName = "../data/meshes/quad_4el_neumann.msh";
+
+  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(meshFileName);
+  hhg::SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+
+  hhg::RoundRobin loadbalancer;
+  setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  const size_t maxLevel = 2;
+  size_t maxLevel = 4;
   size_t maxiter = 1000;
 
-  hhg::MiniStokesFunction r("r", mesh, minLevel, maxLevel);
-  hhg::MiniStokesFunction f("f", mesh, minLevel, maxLevel);
-  hhg::MiniStokesFunction u("u", mesh, minLevel, maxLevel);
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::MiniStokesFunction numerator("numerator", mesh, minLevel, maxLevel);
+  hhg::MiniStokesFunction r("r", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction f("f", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction u("u", storage, minLevel, maxLevel);
 
-  hhg::MiniStokesOperator L(mesh, minLevel, maxLevel);
+//  hhg::MiniStokesFunction numerator("numerator", mesh, minLevel, maxLevel);
+
+  hhg::MiniStokesOperator L(storage, minLevel, maxLevel);
 
 //  size_t num = 1;
 //  numerator.enumerate(maxLevel, num);
@@ -38,7 +46,7 @@ int main(int argc, char* argv[])
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
 
-  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(mesh, minLevel, maxLevel);
+  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 //
 //  for (auto vertex: u.v.mesh.vertices) {
@@ -73,6 +81,6 @@ int main(int argc, char* argv[])
 //  }
 //  std::cout << "=======================================" << std::endl;
 
-  hhg::VTKWriter({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_mini_test");
+  hhg::VTKWriter<hhg::P1Function>({ &u.u.p1, &u.v.p1, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
 }

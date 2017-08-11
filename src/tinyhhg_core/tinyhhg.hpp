@@ -29,8 +29,8 @@
 #include "mixedoperators/BubbleToP1/BubbleToP1Operator.hpp"
 #include "mixedoperators/P1ToBubble/P1ToBubbleOperator.hpp"
 
-//#include "composites/ministokesfunction.hpp"
-//#include "composites/ministokesoperator.hpp"
+#include "composites/ministokesfunction.hpp"
+#include "composites/ministokesoperator.hpp"
 
 #include "primitivestorage/PrimitiveStorage.hpp"
 #include "primitivestorage/SetupPrimitiveStorage.hpp"

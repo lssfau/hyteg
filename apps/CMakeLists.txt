@@ -48,9 +48,9 @@ waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1       CONFIGURATIONS Release Re
 #        FILES chorin_test.cpp
 #        DEPENDS tinyhhg_core fmt)
 
-#waLBerla_add_executable( NAME tinytest_stokes_mini
-#        FILES stokes_mini.cpp
-#        DEPENDS tinyhhg_core fmt)
+waLBerla_add_executable( NAME stokes_mini
+        FILES stokes_mini.cpp
+        DEPENDS tinyhhg_core fmt)
 
 #add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})

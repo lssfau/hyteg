@@ -19,12 +19,12 @@ public:
   {
   }
 
-  void apply(P1BubbleFunction& src, P1BubbleFunction& dst, size_t level, DoFType flag)
+  void apply(P1BubbleFunction& src, P1BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType)
   {
 //    WALBERLA_LOG_DEBUG_ON_ROOT("P1BubbleOperator::apply is missing off diagonal blocks!")
 
-    A_p1.apply(src.p1, dst.p1, level, flag, Replace);
-    A_b.apply(src.b, dst.b, level, flag, Replace);
+    A_p1.apply(src.p1, dst.p1, level, flag, updateType);
+    A_b.apply(src.b, dst.b, level, flag, updateType);
   }
 
   Opr_P1_to_P1 A_p1;
