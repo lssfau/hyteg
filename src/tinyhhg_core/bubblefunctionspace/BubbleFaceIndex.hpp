@@ -1,5 +1,8 @@
 #pragma once
 #include <iterator>
+#include <core/logging/Logging.h>
+
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg
 {
@@ -145,21 +148,18 @@ indexIterator::indexIterator(uint_t edgeIndex, int edgeOrientation, DofType type
       edge_index_(edgeIndex),
       ended_(false)
 {
-  WALBERLA_ABORT("Implement me");
   WALBERLA_ASSERT(edge_orientation_ == -1 || edge_orientation_ == 1,"Invalid edge Orientation: " << edge_orientation_);
 
   num_perEdge_ = walberla::int_c(hhg::levelinfo::num_microvertices_per_edge(level));
-  int maximum = walberla::int_c(hhg::levelinfo::num_microvertices_per_face(level)) - 1;
+  int maximum = 0;
   switch(type){
     case CELL_GRAY:
       num_perEdge_ -= 1;
-      idx_ = maximum + 1;
       maximum =  num_perEdge_ * (num_perEdge_ + 1) / 2 - 1;
       break;
     case CELL_BLUE:
       num_perEdge_ -= 1;
-      maximum += num_perEdge_ * (num_perEdge_ + 1) / 2;
-      idx_ = maximum + 1;
+      idx_ = num_perEdge_ * (num_perEdge_ + 1) / 2;
       num_perEdge_ -= 1;
       maximum = num_perEdge_ * (num_perEdge_ + 1) / 2 - 1;
       break;
