@@ -69,6 +69,18 @@ private:
     WALBERLA_ASSERT(false, "BubbleOperator::smooth_gs is not implemented!");
   }
 
+  void save_impl(BubbleFunction& src, BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        BubbleFace::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
+      }
+    }
+  }
+
 private:
   PrimitiveDataID<FaceBubbleStencilMemory, Face> faceStencilID_;
 

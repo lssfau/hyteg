@@ -172,6 +172,36 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
+  void save_impl(BubbleFunction& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+//    for (auto& it : storage_->getVertices()) {
+//      Vertex& vertex = *it.second;
+//
+//      if (testFlag(vertex.type, flag))
+//      {
+//        BubbleToP1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
+//      }
+//    }
+//
+//    for (auto& it : storage_->getEdges()) {
+//      Edge& edge = *it.second;
+//
+//      if (testFlag(edge.type, flag))
+//      {
+//        BubbleToP1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
+//      }
+//    }
+//
+//    for (auto& it : storage_->getFaces()) {
+//      Face& face = *it.second;
+//
+//      if (testFlag(face.type, flag))
+//      {
+//        BubbleToP1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
+//      }
+//    }
+  }
+
   PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> faceStencilID_;

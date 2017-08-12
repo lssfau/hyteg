@@ -115,6 +115,23 @@ inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemo
   auto &dst = vertex.getData(dstId)->data[level];
   dst[0] = num++;
 }
+
+inline void saveOperator(Vertex &vertex,
+                         const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                         std::ostream& out,
+                         size_t level) {
+  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto &src = vertex.getData(srcId)->data[level];
+  auto &dst = vertex.getData(dstId)->data[level];
+
+  out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    out << fmt::format("{}\t{}\t{}\n", dst[0], src[i + 1], opr_data[i + 1]);
+  }
+}
 }
 }
 

@@ -23,6 +23,15 @@ public:
     A.apply(src.p, dst.p, level, flag);
   }
 
+  void save(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  {
+    WALBERLA_UNUSED(src);
+    WALBERLA_UNUSED(dst);
+    WALBERLA_UNUSED(level);
+    WALBERLA_UNUSED(flag);
+    WALBERLA_ABORT("not implemented");
+  }
+
   P1LaplaceOperator A;
 };
 

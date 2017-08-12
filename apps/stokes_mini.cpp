@@ -33,10 +33,10 @@ int main(int argc, char* argv[])
   numerator.enumerate(maxLevel, num);
 
   fmt::print("num = {}\n", num);
-  return 0;
 
-//  std::ofstream fileL("../output/L.txt");
-//  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
+  std::ofstream fileL("../output/L.txt");
+  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
+  return 0;
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     return 4.0 * (1.0-x[1]) * x[1];

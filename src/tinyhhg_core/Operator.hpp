@@ -27,6 +27,8 @@ public:
 
   void smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag );
 
+  void save( SourceFunction& src, DestinationFunction& dst, std::ostream& out, size_t level, DoFType flag );
+
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
  protected:
@@ -35,6 +37,8 @@ public:
   virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
     WALBERLA_ASSERT(false, "Not implemented");
   };
+
+  virtual void save_impl( SourceFunction& src, DestinationFunction& dst, std::ostream& out, size_t level, DoFType flag ) = 0;
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -82,6 +86,16 @@ void Operator< SourceFunction, DestinationFunction  >::smooth_gs( DestinationFun
   smooth_gs_impl( dst, rhs, level, flag );
 
   stopTiming( "Smooth GS" );
+}
+
+template< typename SourceFunction, typename DestinationFunction >
+void Operator< SourceFunction, DestinationFunction  >::save( SourceFunction& src, DestinationFunction& dst, std::ostream& out, size_t level, DoFType flag )
+{
+  startTiming( "Apply" );
+
+  save_impl( src, dst, out, level, flag );
+
+  stopTiming( "Apply" );
 }
 
 }

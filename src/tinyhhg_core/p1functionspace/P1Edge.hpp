@@ -186,5 +186,31 @@ inline void enumerate(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Ed
   }
 }
 
+inline void saveOperator(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &srcId,
+                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, std::ostream& out, size_t level) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  auto &opr_data = edge.getData(operatorId)->data[level];
+  auto &src = edge.getData(srcId)->data[level];
+  auto &dst = edge.getData(dstId)->data[level];
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+    out << fmt::format("{}\t{}\t{}\n", dst[i], src[i - 1], opr_data[2]);
+    out << fmt::format("{}\t{}\t{}\n", dst[i], src[i], opr_data[3]);
+    out << fmt::format("{}\t{}\t{}\n", dst[i], src[i+1], opr_data[4]);
+
+
+    out << fmt::format("{}\t{}\t{}\n", dst[i], src[rowsize + i - 1], opr_data[0]);
+    out << fmt::format("{}\t{}\t{}\n", dst[i], src[rowsize + i], opr_data[1]);
+
+
+    if (edge.getNumNeighborFaces() == 2) {
+      out << fmt::format("{}\t{}\t{}\n", dst[i], src[rowsize + rowsize - 1 + i - 1], opr_data[5]);
+      out << fmt::format("{}\t{}\t{}\n", dst[i], src[rowsize + rowsize - 1 + i], opr_data[6]);
+    }
+  }
+}
+
 }
 }

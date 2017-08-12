@@ -412,6 +412,32 @@ inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Fa
   }
 }
 
+template<uint_t Level>
+inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto &src = face.getData(srcId)->data[Level];
+  auto &dst = face.getData(dstId)->data[Level];
+
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, C)], src[index<Level>(i, j, C)], opr_data[C]);
+
+      for (auto neighbor : neighbors) {
+        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
 }// namespace P1Face
 }// namespace hhg
 

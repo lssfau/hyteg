@@ -258,6 +258,36 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
+  void save_impl(P1Function& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
+      }
+    }
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        P1Edge::saveOperator(edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out, level);
+      }
+    }
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
+      }
+    }
+  }
+
   PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;

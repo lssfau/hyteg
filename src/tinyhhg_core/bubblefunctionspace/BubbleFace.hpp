@@ -209,6 +209,51 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
 
 SPECIALIZE(void, enumerate_tmpl, enumerate)
 
+template<size_t Level>
+inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &srcId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &dstId, std::ostream& out)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = face.getData(operatorId)->data[Level];
+
+  auto& face_gray_stencil = opr_data[0];
+  auto& face_blue_stencil = opr_data[1];
+
+  auto& src = face.getData(srcId)->data[Level];
+  auto& dst = face.getData(dstId)->data[Level];
+
+  real_t tmp;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      tmp = face_gray_stencil[CoordsCellGray::CELL_GRAY_C] * src[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+
+      out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)], src[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)], face_gray_stencil[CoordsCellGray::CELL_GRAY_C]);
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      tmp = face_blue_stencil[CoordsCellBlue::CELL_BLUE_C] * src[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+
+      out << fmt::format("{}\t{}\t{}\n", dst[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)], src[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)], face_blue_stencil[CoordsCellBlue::CELL_BLUE_C]);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
 //template<size_t Level>
 //inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id)
 //{

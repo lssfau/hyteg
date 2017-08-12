@@ -75,6 +75,18 @@ class P1ToBubbleOperator : public Operator<P1Function, BubbleFunction>
     }
   }
 
+  void save_impl(P1Function& src, BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+  {
+//    for (auto& it : storage_->getFaces()) {
+//      Face& face = *it.second;
+//
+//      if (testFlag(face.type, flag))
+//      {
+//        P1ToBubbleFace::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+//      }
+//    }
+  }
+
  private:
   PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> faceStencilID_;
 
