@@ -65,7 +65,7 @@ public:
 
 
   P1ToBubbleDivxOperator divT_x_b;
-  P1ToBubbleDivxOperator divT_y_b;
+  P1ToBubbleDivyOperator divT_y_b;
   P1DivTxOperator divT_x_p1;
   P1DivTyOperator divT_y_p1;
 

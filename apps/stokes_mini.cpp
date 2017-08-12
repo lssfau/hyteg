@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/tri_1el_neumann.msh";
+  std::string meshFileName = "../data/meshes/quad_4el_neumann.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(meshFileName);
   hhg::SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   setupStorage.balanceLoad( loadbalancer, 0.0 );
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
+  size_t maxLevel = 4;
   size_t maxiter = 1000;
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -29,14 +29,14 @@ int main(int argc, char* argv[])
 
   hhg::MiniStokesOperator L(storage, minLevel, maxLevel);
 
-  size_t num = 1;
-  numerator.enumerate(maxLevel, num);
-
-  fmt::print("num = {}\n", num);
-
-  std::ofstream fileL("../output/L.txt");
-  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
-  return 0;
+//  size_t num = 1;
+//  numerator.enumerate(maxLevel, num);
+//
+//  fmt::print("num = {}\n", num);
+//
+//  std::ofstream fileL("../output/L.txt");
+//  L.save(numerator, numerator, fileL, maxLevel, hhg::All);
+//  return 0;
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
     return 4.0 * (1.0-x[1]) * x[1];
