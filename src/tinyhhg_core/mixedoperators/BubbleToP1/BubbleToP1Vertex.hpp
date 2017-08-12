@@ -15,9 +15,9 @@ inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilM
   auto& src = vertex.getData(srcId)->data[level];
   auto& dst = vertex.getData(dstId)->data[level];
 
-  real_t tmp = opr_data[0] * src[0];
+  real_t tmp = 0.0;
 
-  for (size_t i = 1; i < vertex.getNumNeighborFaces(); ++i)
+  for (size_t i = 0; i < vertex.getNumNeighborFaces(); ++i)
   {
     tmp += opr_data[i] * src[i];
   }
