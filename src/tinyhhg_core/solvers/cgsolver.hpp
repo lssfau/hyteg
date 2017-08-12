@@ -18,7 +18,7 @@ public:
 
   void solve(O& A, F& x, F& b, F& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
-    A.apply(x, p, level, flag);
+    A.apply(x, p, level, flag, Replace);
     r.assign({1.0, -1.0}, {&b, &p}, level, flag);
     real_t res_start = std::sqrt(r.dot(r, level, flag));
     p.assign({1.0}, {&r}, level, flag);
@@ -32,7 +32,7 @@ public:
 
     for(size_t i = 0; i < maxiter; ++i)
     {
-      A.apply(p, ap, level, flag);
+      A.apply(p, ap, level, flag, Replace);
       real_t pAp = p.dot(ap, level, flag);
 
       real_t alpha = rsold / pAp;
