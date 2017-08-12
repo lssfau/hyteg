@@ -174,32 +174,39 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
 
   void save_impl(BubbleFunction& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
   {
-//    for (auto& it : storage_->getVertices()) {
-//      Vertex& vertex = *it.second;
-//
-//      if (testFlag(vertex.type, flag))
-//      {
-//        BubbleToP1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
-//      }
-//    }
-//
-//    for (auto& it : storage_->getEdges()) {
-//      Edge& edge = *it.second;
-//
-//      if (testFlag(edge.type, flag))
-//      {
-//        BubbleToP1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
-//      }
-//    }
-//
-//    for (auto& it : storage_->getFaces()) {
-//      Face& face = *it.second;
-//
-//      if (testFlag(face.type, flag))
-//      {
-//        BubbleToP1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
-//      }
-//    }
+    // Since the Bubble dofs are in the interior, we have to pull them through the edges first
+    src.getCommunicator(level)->startCommunication<Face, Edge>();
+    src.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    src.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.type, flag))
+      {
+        BubbleToP1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
+      }
+    }
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.type, flag))
+      {
+        BubbleToP1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
+      }
+    }
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        BubbleToP1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
+      }
+    }
   }
 
   PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> vertexStencilID_;

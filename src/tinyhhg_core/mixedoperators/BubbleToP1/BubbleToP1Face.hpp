@@ -41,5 +41,31 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
 }
 
 SPECIALIZE(void, apply_tmpl, apply)
+
+template<size_t Level>
+inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = face.getData(operatorId)->data[Level];
+  auto& src = face.getData(srcId)->data[Level];
+  auto& dst = face.getData(dstId)->data[Level];
+
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+
+      uint_t dst_id = dst[P1Face::CoordsVertex::index<Level>(i, j, P1Face::CoordsVertex::VERTEX_C)];
+
+      for (auto neighbor : BubbleFace::CoordsVertex::neighbors) {
+        out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)], opr_data[neighbor]);
+      }
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 }
 }
