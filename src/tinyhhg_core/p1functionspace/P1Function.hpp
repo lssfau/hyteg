@@ -38,6 +38,8 @@ private:
 
   void restrict_impl(size_t level, DoFType flag = All);
 
+  void enumerate_impl(size_t level, uint_t& num);
+
   PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory, Edge> edgeDataID_;
   PrimitiveDataID<FaceP1FunctionMemory, Face> faceDataID_;

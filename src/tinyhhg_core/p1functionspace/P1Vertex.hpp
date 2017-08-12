@@ -110,6 +110,11 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
     i += 1;
   }
 }
+
+inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, size_t level, uint_t& num) {
+  auto &dst = vertex.getData(dstId)->data[level];
+  dst[0] = num++;
+}
 }
 }
 

@@ -393,6 +393,24 @@ inline bool is_boundary(uint_t index, uint_t length) {
 //
 //}
 
+inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, size_t level, uint_t& num) {
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
+
+  uint_t mr = 1 + rowsize;
+
+  for (uint_t i = 0; i < rowsize - 3; ++i) {
+    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
+
+      face.getData(dstId)->data[level][mr] = num++;
+
+      mr += 1;
+    }
+
+    mr += 2;
+    --inner_rowsize;
+  }
+}
 
 }// namespace P1Face
 }// namespace hhg

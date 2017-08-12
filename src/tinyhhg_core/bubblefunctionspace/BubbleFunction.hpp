@@ -59,6 +59,8 @@ class BubbleFunction : public Function< BubbleFunction > {
     WALBERLA_ABORT("Bubble restrict not implemented");
   }
 
+  void enumerate_impl(size_t level, uint_t& num);
+
   PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> edgeDataID_;
   PrimitiveDataID<FaceBubbleFunctionMemory, Face> faceDataID_;

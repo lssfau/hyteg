@@ -178,5 +178,13 @@ inline void restrict(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edg
   }
 }
 
+inline void enumerate(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, size_t level, uint_t& num) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+    edge.getData(dstId)->data[level][i] = num++;
+  }
+}
+
 }
 }

@@ -316,4 +316,34 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
   communicators_[destinationLevel]->endCommunication<Edge, Face>();
 
 }
+
+void P1Function::enumerate_impl(uint_t level, uint_t& num)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+    P1Vertex::enumerate(vertex, vertexDataID_, level, num);
+  }
+
+  communicators_[level]->startCommunication<Vertex, Edge>();
+  communicators_[level]->endCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+    P1Edge::enumerate(edge, edgeDataID_, level, num);
+  }
+
+  communicators_[level]->startCommunication<Edge, Face>();
+  communicators_[level]->endCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+    P1Face::enumerate(face, faceDataID_, level, num);
+  }
+
+  communicators_[level]->startCommunication<Face, Edge>();
+  communicators_[level]->endCommunication<Face, Edge>();
+
+  communicators_[level]->startCommunication<Edge, Vertex>();
+  communicators_[level]->endCommunication<Edge, Vertex>();
+}
 }

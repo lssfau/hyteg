@@ -68,12 +68,12 @@ public:
     return sum;
   }
 
-//  void enumerate(size_t level, size_t& num)
-//  {
-//    u.enumerate(level, num);
-//    v.enumerate(level, num);
-//    p.enumerate_p1(level, num);
-//  }
+  void enumerate(size_t level, uint_t& num)
+  {
+    u.enumerate(level, num);
+    v.enumerate(level, num);
+    p.enumerate(level, num);
+  }
 
 //  void prolongate(size_t level, DoFType flag = All)
 //  {

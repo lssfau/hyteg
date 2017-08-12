@@ -44,6 +44,8 @@ public:
 
   inline void restrict(size_t level, DoFType flag = All);
 
+  inline void enumerate(size_t level, uint_t& num);
+
 
   const std::string &getFunctionName() const { return functionName_; }
 
@@ -82,6 +84,8 @@ protected:
   virtual void prolongateQuadratic_impl(size_t level, DoFType flag = All) = 0;
 
   virtual void restrict_impl(size_t level, DoFType flag = All) = 0;
+
+  virtual void enumerate_impl(size_t level, uint_t& num) = 0;
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -183,6 +187,16 @@ void Function< FunctionType >::restrict(size_t level, DoFType flag)
   startTiming( "Restrict" );
 
   restrict_impl( level, flag );
+
+  stopTiming( "Restrict" );
+}
+
+template< typename FunctionType >
+void Function< FunctionType >::enumerate(size_t level, uint_t& num)
+{
+  startTiming( "Restrict" );
+
+  enumerate_impl( level, num );
 
   stopTiming( "Restrict" );
 }

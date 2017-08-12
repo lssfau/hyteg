@@ -69,6 +69,12 @@ public:
     WALBERLA_ASSERT(false, "P1BubbleFunction::restrict is not implemented!");
   }
 
+  void enumerate(size_t level, uint_t& num)
+  {
+    p1.enumerate(level, num);
+    b.enumerate(level, num);
+  }
+
   P1Function p1;
   BubbleFunction b;
 };

@@ -27,7 +27,6 @@ public:
   void apply(MiniStokesFunction& src, MiniStokesFunction& dst, size_t level, DoFType flag)
   {
     A.apply(src.u, dst.u, level, flag, Replace);
-
     divT_x_p1.apply(src.p, dst.u.p1, level, flag, Add);
     divT_x_b.apply(src.p, dst.u.b, level, flag, Add);
 

@@ -181,6 +181,34 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
 
 SPECIALIZE(void, apply_tmpl, apply)
 
+template<size_t Level>
+inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &dstId, uint_t& num) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      face.getData(dstId)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      face.getData(dstId)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = num++;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, enumerate_tmpl, enumerate)
+
 //template<size_t Level>
 //inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id)
 //{

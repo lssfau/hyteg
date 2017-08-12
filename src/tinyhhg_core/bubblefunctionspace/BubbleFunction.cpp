@@ -102,24 +102,12 @@ real_t BubbleFunction::dot_impl(BubbleFunction &rhs, uint_t level, DoFType flag)
   return scalarProduct;
 }
 
-void prolongate_impl(size_t level, DoFType flag)
+void BubbleFunction::enumerate_impl(size_t level, uint_t& num)
 {
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( flag );
-  WALBERLA_ABORT("not implemented");
-}
+  for (auto &it : storage_->getFaces()) {
+    Face &face = *it.second;
 
-void prolongateQuadratic_impl(size_t level, DoFType flag)
-{
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( flag );
-  WALBERLA_ABORT("not implemented");
-}
-
-void restrict_impl(size_t level, DoFType flag)
-{
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( flag );
-  WALBERLA_ABORT("not implemented");
+    BubbleFace::enumerate(level, face, faceDataID_, num);
+  }
 }
 }
