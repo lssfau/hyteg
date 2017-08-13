@@ -7,7 +7,7 @@ std::shared_ptr< VertexBubbleFunctionMemory > VertexBubbleFunctionMemoryDataHand
   auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
-    vertexBubbleFunctionMemory->addlevel( level, vertex->getNumNeighborEdges() );
+    vertexBubbleFunctionMemory->addlevel( level, vertex->getNumNeighborFaces() );
   }
   return vertexBubbleFunctionMemory;
 }

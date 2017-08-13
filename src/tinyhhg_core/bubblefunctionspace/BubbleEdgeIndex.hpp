@@ -107,11 +107,11 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   { cout << "  \\    |"; }
   cout << endl;
 //cell South
-  cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0, CELL_GRAY_SE)] << "|";
+  cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0u, CELL_GRAY_SE)] << "|";
   for (size_t i = 0; i < v_perEdge - 2; ++i)
   {
-    cout << setw(3) << edgeData[edge_index(level, i + 1, CELL_BLUE_SE)];
-    cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1, CELL_GRAY_SE)] << "|";
+    cout << setw(3) << edgeData[edge_index(level, i + 1u, CELL_BLUE_SE)];
+    cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1u, CELL_GRAY_SE)] << "|";
   }
   cout << "\n     \\  |";
   for (size_t i = 0; i < v_perEdge - 2; ++i)
@@ -128,6 +128,22 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   //cout << edgeData[edge_index(level, v_perEdge - 2, VERTEX_SE)] << std::endl;
   cout << "x" << std::endl;
   cout << setfill('=') << setw(100) << "" << setfill(' ') << std::endl;
+}
+
+inline void printFunctionMemory(Vertex& vertex, const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &memoryId, uint_t level)
+{
+  real_t* vertexData = vertex.getData(memoryId)->data[level].get();
+
+  std::cout <<  std::string(10,'*');
+  std::cout << " Vertex ID: " << vertex.getID().getID();
+  std::cout << " Center: " << vertexData[0];
+  std::cout << " Memory ID: "<< memoryId;
+  std::cout <<  " " << std::string(10,'*') << std::endl;
+  std::cout << "Face ID: |" << " Cell " << std::endl;
+  for(uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
+    std::cout << std::left << std::setw(9) << vertex.neighborFaces()[i].getID() << "|"  << vertexData[1+i] << std::endl;
+  }
+  std::cout <<  std::string(100,'*') << std::endl;
 }
 
 }//namespace BubbleToP1Edge
