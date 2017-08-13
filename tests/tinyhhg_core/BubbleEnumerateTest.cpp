@@ -13,7 +13,7 @@ int main (int argc, char ** argv )
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -26,10 +26,13 @@ int main (int argc, char ** argv )
   size_t num = 1;
   x.enumerate(maxLevel,num);
 
+  uint_t numberOfChecks = 0;
+  uint_t totalExpectedChecks = (2 * hhg::levelinfo::num_microvertices_per_edge(maxLevel) - 3) * 3 * storage->getNumberOfLocalFaces();
+
   //check face to edge comm; face inner vertex Dofs and Cells are communicated
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
-
+    //BubbleFace::printFunctionMemory<maxLevel>(face,x.getFaceDataID());
     using namespace BubbleEdge::EdgeCoordsVertex;
     real_t *faceData = face.getData(x.getFaceDataID())->data[maxLevel].get();
     std::vector<PrimitiveID> nbrEdges;
@@ -48,8 +51,10 @@ int main (int argc, char ** argv )
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_SE)], faceData[*it]);
+          numberOfChecks++;
         } else if(faceIdOnEdge == 1){
           WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_NE)], faceData[*it]);
+          numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
         }
@@ -64,8 +69,10 @@ int main (int argc, char ** argv )
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_SE)], faceData[*it]);
+          numberOfChecks++;
         } else if(faceIdOnEdge == 1){
           WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_NW)], faceData[*it]);
+          numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
         }
@@ -73,6 +80,61 @@ int main (int argc, char ** argv )
       }
     }
   }
+
+  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+
+  numberOfChecks = 0;
+  totalExpectedChecks = 0;
+  for(auto &edgeIt : storage->getEdges()){
+    if(edgeIt.second.get()->getNumHigherDimNeighbors() == 1){
+      totalExpectedChecks += 2;
+    } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
+      totalExpectedChecks += 4;
+    } else {
+      WALBERLA_CHECK(false);
+    }
+  }
+
+
+  for (auto &edgeIt : storage->getEdges()) {
+    using namespace BubbleEdge::EdgeCoordsVertex;
+    Edge &edge = *edgeIt.second;
+    real_t *edgeData = edge.getData(x.getEdgeDataID())->data[maxLevel].get();
+    std::vector<PrimitiveID> nbrVertices;
+    edge.getNeighborVertices(nbrVertices);
+    for(uint_t i = 0; i < nbrVertices.size(); ++i)
+    {
+      Vertex* vertex = storage->getVertex(nbrVertices[i].getID());
+      real_t* vertexData = vertex->getData(x.getVertexDataID())->data[maxLevel].get();
+      uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
+      uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
+      if(vertexIdOnEdge == 0){
+        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 0, CELL_GRAY_SE )],
+                             vertexData[vertex->face_index(edge.neighborFaces()[0])]);
+        numberOfChecks++;
+        if(edge.getNumHigherDimNeighbors() == 2)
+        {
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 0, CELL_GRAY_NE)],
+                               vertexData[vertex->face_index(edge.neighborFaces()[1])]);
+          numberOfChecks++;
+        }
+      } else if( vertexIdOnEdge == 1){
+        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 1, CELL_GRAY_SW )],
+                             vertexData[vertex->face_index(edge.neighborFaces()[0])]);
+        numberOfChecks++;
+        if(edge.getNumHigherDimNeighbors() == 2)
+        {
+          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 1, CELL_GRAY_NW)],
+                               vertexData[vertex->face_index(edge.neighborFaces()[1])]);
+          numberOfChecks++;
+        }
+      } else {
+        WALBERLA_CHECK(false);
+      }
+    }
+  }
+
+  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
 
   return 0;
 }

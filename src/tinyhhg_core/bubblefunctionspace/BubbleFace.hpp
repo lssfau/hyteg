@@ -254,6 +254,32 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 
+template<size_t Level>
+inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &dstId){
+  using namespace std;
+  real_t* faceMemory = face.getData(dstId)->data[Level].get();
+  uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  std::cout << "Cell Blue: " << std::endl;
+  for (size_t i = 0; i < verticesPerDge-2; ++i) {
+    for (size_t j = 0; j < verticesPerDge-2 - i; ++j) {
+      cout << setw(5) << faceMemory[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] << "|";
+    }
+    std::cout << std::endl;
+  }
+  cout << "Cell Gray: " << std::endl;
+  for (size_t i = 0; i < verticesPerDge-1; ++i) {
+    for (size_t j = 0; j < verticesPerDge-1 - i; ++j) {
+      cout << setw(5) << faceMemory[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] << "|";
+    }
+    std::cout << std::endl;
+  }
+  cout << setw(100) << setfill(' ') << endl;
+
+}
+
+
 //template<size_t Level>
 //inline void smooth_gs_tmpl(Face& face, size_t opr_id, size_t dst_id, size_t rhs_id)
 //{
