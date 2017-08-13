@@ -394,39 +394,6 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunc
 #if 0
 
 template<size_t Level>
-inline void printFunctionMemory(Face& face, uint_t memory_id){
-  using namespace std;
-  auto& faceMemory = hhg::P1Bubble::getFaceFunctionMemory(face, 0)->data[Level];
-  uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
-  cout << setfill('=') << setw(100) << "" << endl;
-  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
-  std::cout << "Cell Blue: " << std::endl;
-  for (size_t i = 0; i < verticesPerDge-2; ++i) {
-    for (size_t j = 0; j < verticesPerDge-2 - i; ++j) {
-      cout << setw(5) << faceMemory[CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] << "|";
-    }
-    std::cout << std::endl;
-  }
-  cout << "Cell Gray: " << std::endl;
-  for (size_t i = 0; i < verticesPerDge-1; ++i) {
-    for (size_t j = 0; j < verticesPerDge-1 - i; ++j) {
-      cout << setw(5) << faceMemory[CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] << "|";
-    }
-    std::cout << std::endl;
-  }
-  cout << "Vertices: " << std::endl;
-  for (size_t i = 0; i < verticesPerDge; ++i) {
-    for (size_t j = 0; j < verticesPerDge - i; ++j) {
-      cout << setw(5) << faceMemory[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] << "|";
-    }
-    std::cout << std::endl;
-  }
-  cout << setw(100) << setfill(' ') << endl;
-
-}
-
-
-template<size_t Level>
 inline void enumerate_tmpl(Face& face, size_t memory_id, size_t& num)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);

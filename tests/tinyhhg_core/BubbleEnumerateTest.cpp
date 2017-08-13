@@ -99,6 +99,7 @@ int main (int argc, char ** argv )
   for (auto &edgeIt : storage->getEdges()) {
     using namespace BubbleEdge::EdgeCoordsVertex;
     Edge &edge = *edgeIt.second;
+    //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
     real_t *edgeData = edge.getData(x.getEdgeDataID())->data[maxLevel].get();
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
