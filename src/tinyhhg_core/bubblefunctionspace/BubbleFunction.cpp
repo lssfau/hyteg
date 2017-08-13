@@ -109,5 +109,10 @@ void BubbleFunction::enumerate_impl(size_t level, uint_t& num)
 
     BubbleFace::enumerate(level, face, faceDataID_, num);
   }
+  communicators_[level]->startCommunication<Face, Edge>();
+  communicators_[level]->endCommunication<Face, Edge>();
+
+  communicators_[level]->startCommunication<Edge, Vertex>();
+  communicators_[level]->endCommunication<Edge, Vertex>();
 }
 }

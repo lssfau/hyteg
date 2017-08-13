@@ -16,11 +16,11 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag, UpdateType updateType)
   {
-    A.apply(src.u, dst.u, level, flag);
-    A.apply(src.v, dst.v, level, flag);
-    A.apply(src.p, dst.p, level, flag);
+    A.apply(src.u, dst.u, level, flag, updateType);
+    A.apply(src.v, dst.v, level, flag, updateType);
+    A.apply(src.p, dst.p, level, flag, updateType);
   }
 
   void save(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
