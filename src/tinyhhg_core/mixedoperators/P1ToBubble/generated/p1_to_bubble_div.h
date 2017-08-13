@@ -3931,9 +3931,9 @@ return enabled;
     sp[5] = std::abs(sp[2]);
     sp[6] = -1 * sp[3] * sp[5];
     sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.2249999999999999 * sp[6] + -0.2249999999999999 * sp[7];
-    A[1] = 0.2249999999999999 * sp[6];
-    A[2] = 0.2249999999999999 * sp[7];
+    A[0] = 0.2250000000000003 * sp[6] + 0.2249999999999991 * sp[7];
+    A[1] = -0.2250000000000005 * sp[6];
+    A[2] = -0.2250000000000017 * sp[7];
   }
 
 };
@@ -4002,9 +4002,9 @@ return enabled;
     sp[5] = std::abs(sp[2]);
     sp[6] = -1 * sp[3] * sp[5];
     sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.2249999999999999 * sp[7] + -0.2249999999999999 * sp[6];
-    A[1] = 0.2249999999999999 * sp[7];
-    A[2] = 0.2249999999999999 * sp[6];
+    A[0] = 0.2250000000000003 * sp[7] + 0.2249999999999991 * sp[6];
+    A[1] = -0.2250000000000005 * sp[7];
+    A[2] = -0.2250000000000017 * sp[6];
   }
 
 };
@@ -4026,7 +4026,7 @@ public:
 
   const char * signature() const final override
   {
-    return "50036ee546c13513f87a685401f4d12635dd01701ce397a3ee21ad1fd1e1c0ac9e5b9a4b89997184f83d629a8d44314d668d303aed34160d4694e0722cdc3827";
+    return "be366ceb37dc43dbd1d236e1c29740b31057f9e3c446f59737f919619e86322b25ce45bd1a9deda931070ee2a8d5dbc0c32f1aa04f3b3a4fdb3f497c70562f6c";
   }
 
   std::size_t rank() const final override
@@ -4277,7 +4277,7 @@ public:
 
   const char * signature() const final override
   {
-    return "f27da215d6e3cbcc08848ce5b349e64a8c8407350312224126794c0c469b1a2608d0f061f99dc650b795c79ec2b224561cdf3e8940928ac7754666fafd36f66e";
+    return "657421bfcd52c3575b31fbf04e3463d9ea475804ffdaf5991cf59cc55ac104b5ab2d42b83a88f40deb10d314e5be98873fae178bda35e99d05e3cfb19f7c07b6";
   }
 
   std::size_t rank() const final override

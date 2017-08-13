@@ -4,6 +4,5 @@ bubble = FiniteElement("Bubble", triangle, 3)
 
 u = TrialFunction(bubble)
 q = TestFunction(p1)
-u, q = q, u # HHG uses FORTRAN layout
 
 forms = [-u.dx(i)*q*dx for i in range(2)]
