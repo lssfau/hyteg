@@ -157,8 +157,7 @@ static void testBufferedCommunication()
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  RoundRobin loadbalancer;
-  setupStorage.balanceLoad( loadbalancer, 0.0 );
+  loadbalancing::roundRobin( setupStorage );
 
   // WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
   WALBERLA_MPI_BARRIER();

@@ -73,8 +73,7 @@ int main(int argc, char* argv[])
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(parameters.getParameter<std::string>("mesh"));
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  hhg::RoundRobin loadbalancer;
-  setupStorage.balanceLoad( loadbalancer, 0.0 );
+  hhg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 

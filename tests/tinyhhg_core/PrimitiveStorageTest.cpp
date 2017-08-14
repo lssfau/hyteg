@@ -19,10 +19,7 @@ static void testPrimitiveStorage()
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  // uint_t balanceRank = 2;
-  // AllBlocksOnOneRank loadbalancer( 2 );
-  RoundRobin loadbalancer;
-  setupStorage.balanceLoad( loadbalancer, 0.0 );
+  loadbalancing::greedyIgnoringPrimitiveType( setupStorage );
 
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 

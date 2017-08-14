@@ -15,8 +15,8 @@ int main (int argc, char** argv) {
 
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, uint_c(walberla::MPIManager::instance()->numProcesses()));
-  RoundRobin loadBalancer;
-  setupStorage.balanceLoad( loadBalancer, 0.0 );
+
+  loadbalancing::roundRobin( setupStorage );
 
   WALBERLA_MPI_BARRIER();
 
