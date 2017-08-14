@@ -23,14 +23,6 @@ class SetupPrimitiveStorage
 {
 public:
 
-  /// Function definition for loadbalancing callbacks
-  /// \param storage the \ref SetupPrimitiveStorage to be balanced
-  /// \param perProcessMemoryLimit the main memory limit per process
-  /// \return number of processes that have been assigned at least one \ref Primitive, \n
-  ///         this number can be less than numberOfProcesses
-  typedef std::function< uint_t ( SetupPrimitiveStorage & storage,
-				                          const memory_t & perProcessMemoryLimit ) > TargetProcessAssignmentFunction;
-
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Primitive > > PrimitiveMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
@@ -78,9 +70,6 @@ public:
   /// \param edge is set to the ID of the edge if one was found
   /// \return true, if an edge was found, false otherwise
   bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
-
-  void balanceLoad( const TargetProcessAssignmentFunction & loadbalanceCallback,
-                    const memory_t & perProcessMemoryLimit );
 
   void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
