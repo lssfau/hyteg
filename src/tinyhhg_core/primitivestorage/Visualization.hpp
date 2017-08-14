@@ -240,38 +240,42 @@ void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStora
 
   WALBERLA_ROOT_SECTION()
   {
-    output << "processRank" << delimiter
-           << "numVertices" << delimiter
-           << "numEdges"    << delimiter
-           << "numFaces"    << delimiter
-           << "fractionOfLocalVertexNeighbors" << delimiter
+    output << "processRank"   << delimiter
+           << "numPrimitives" << delimiter
+           << "numVertices"   << delimiter
+           << "numEdges"      << delimiter
+           << "numFaces"      << delimiter
+           << "fractionOfLocalNeighbors" << delimiter
            << "\n";
   }
 
-  uint_t numTotalNeighborsOfLocalVertices = 0;
-  uint_t numLocalNeighborsOfLocalVertices = 0;
+  uint_t numTotalLocalNeighbors = 0;
+  uint_t numLocalLocalNeighbors = 0;
 
-  for ( const auto & vertex : storage->getVertices() )
+  PrimitiveStorage::PrimitiveMap primitiveMap;
+  storage->getPrimitives( primitiveMap );
+
+  for ( const auto & primitive : primitiveMap )
   {
-    WALBERLA_ASSERT_EQUAL( vertex.second->getNumNeighborVertices(), 0 );
-    numTotalNeighborsOfLocalVertices += vertex.second->getNumNeighborVertices() + vertex.second->getNumNeighborEdges() + vertex.second->getNumNeighborFaces();
+    numTotalLocalNeighbors += primitive.second->getNumNeighborVertices() + primitive.second->getNumNeighborEdges() + primitive.second->getNumNeighborFaces();
     std::vector< PrimitiveID > neighbors;
-    vertex.second->getNeighborPrimitives( neighbors );
+    primitive.second->getNeighborPrimitives( neighbors );
     for ( const auto & neighbor : neighbors ) {
       if ( storage->primitiveExistsLocally( neighbor ) )
       {
-        numLocalNeighborsOfLocalVertices++;
+        numLocalLocalNeighbors++;
       }
     }
   }
 
-  real_t fractionOfLocalVertexNeighbors = (real_t) numLocalNeighborsOfLocalVertices / (real_t) numTotalNeighborsOfLocalVertices;
+  real_t fractionOfLocalNeighbors = (real_t) numLocalLocalNeighbors / (real_t) numTotalLocalNeighbors;
 
   output << rank << delimiter
-         << storage->getNumberOfLocalVertices() << delimiter
-         << storage->getNumberOfLocalEdges()    << delimiter
-         << storage->getNumberOfLocalFaces()    << delimiter
-         << fractionOfLocalVertexNeighbors      << delimiter
+         << storage->getNumberOfLocalPrimitives() << delimiter
+         << storage->getNumberOfLocalVertices()   << delimiter
+         << storage->getNumberOfLocalEdges()      << delimiter
+         << storage->getNumberOfLocalFaces()      << delimiter
+         << fractionOfLocalNeighbors              << delimiter
          << "\n";
 
   walberla::mpi::writeMPITextFile( filename, output.str(), walberla::mpi::MPIManager::instance()->comm() );
