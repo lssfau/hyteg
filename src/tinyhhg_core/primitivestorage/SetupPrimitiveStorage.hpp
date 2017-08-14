@@ -48,6 +48,7 @@ public:
   bool edgeExists     ( const PrimitiveID & id ) const { return edges_.count( id.getID() )    > 0; }
   bool faceExists     ( const PrimitiveID & id ) const { return faces_.count( id.getID() )    > 0; }
 
+  const Primitive * getPrimitive( const PrimitiveID & id ) const;
   const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr; }
   const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() ).get()    : nullptr; }
   const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() ).get()    : nullptr; }

@@ -201,6 +201,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   }
 }
 
+const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
+{
+  if ( vertexExists( id ) ) { return getVertex( id ); }
+  if ( edgeExists( id ) )   { return getEdge( id ); }
+  if ( faceExists( id ) )   { return getFace( id ); }
+  return nullptr;
+}
 
 bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const
 {
