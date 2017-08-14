@@ -33,6 +33,7 @@ public:
   // Primitive access methods //
   //////////////////////////////
 
+  uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces(); }
   uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
   uint_t getNumberOfLocalEdges()    const { return edges_.size(); }
   uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
