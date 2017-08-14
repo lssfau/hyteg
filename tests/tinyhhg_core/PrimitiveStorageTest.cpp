@@ -13,6 +13,7 @@ static void testPrimitiveStorage()
   uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
   const std::string meshFileName = "../../data/meshes/quad_1054el.msh";
+  // const std::string meshFileName = "../../data/meshes/tri_2el.msh";
   const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
@@ -145,6 +146,7 @@ static void testPrimitiveStorage()
   }
 
   writePrimitiveStorageDistributionCSV( storage, distributionFile );
+  writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition" );
 }
 
 } // namespace hhg
