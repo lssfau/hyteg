@@ -10,8 +10,7 @@ int main(int argc, char* argv[])
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  hhg::RoundRobin loadbalancer;
-  setupStorage.balanceLoad( loadbalancer, 0.0 );
+  hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
   size_t maxLevel = 5;

@@ -21,8 +21,7 @@ int main(int argc, char* argv[])
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  RoundRobin loadbalancer;
-  setupStorage.balanceLoad( loadbalancer, 0.0 );
+  hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
   size_t maxLevel = 4;
