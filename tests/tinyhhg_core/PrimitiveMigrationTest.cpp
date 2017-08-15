@@ -16,7 +16,7 @@ static void testPrimitiveMigration()
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  loadbalancing::allPrimitivesOnRoot( setupStorage );
+  loadbalancing::roundRobin( setupStorage );
 
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
@@ -26,6 +26,19 @@ static void testPrimitiveMigration()
 
   writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_before_migration" );
 
+  WALBERLA_MPI_SECTION()
+  {
+    std::vector< PrimitiveID > primitiveIDs;
+    storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
+
+    std::map< PrimitiveID::IDType, uint_t > migrationInfo;
+    for ( const auto & id : primitiveIDs )
+    {
+      migrationInfo[ id.getID() ] = 0;
+    }
+
+    storage->migratePrimitives( migrationInfo );
+  }
 
 }
 
