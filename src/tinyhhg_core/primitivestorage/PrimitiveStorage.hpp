@@ -169,6 +169,9 @@ public:
                            const std::shared_ptr< DataHandlingType > & dataHandling,
   						             const std::string & identifier );
 
+
+  // void migratePrimitives( const std::vector< PrimitiveID > & primitivesToMigrate, const uint_t & sourceRank, const uint_t & targetRank );
+
 private:
 
   template< typename DataType, typename PrimitiveType >
@@ -191,70 +194,80 @@ private:
   EdgeMap   neighborEdges_;
   FaceMap   neighborFaces_;
 
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Primitive > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Primitive > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Primitive > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    primitiveDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    primitiveDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    primitiveDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Vertex > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Vertex > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Vertex > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Vertex > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    vertexDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    vertexDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    vertexDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Edge > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Edge > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Edge > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Edge > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    edgeDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    edgeDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    edgeDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Face > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Face > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Face > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Face > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    faceDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    faceDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    faceDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
+  // Maps from data ID to respective callback functions
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Primitive > & ) > >                              primitiveDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Primitive > &, walberla::mpi::SendBuffer & ) > > primitiveDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Primitive > &, walberla::mpi::RecvBuffer & ) > > primitiveDataDeserializationFunctions_;
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Vertex > & ) > >                              vertexDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Vertex > &, walberla::mpi::SendBuffer & ) > > vertexDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Vertex > &, walberla::mpi::RecvBuffer & ) > > vertexDataDeserializationFunctions_;
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Edge   > & ) > >                              edgeDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Edge   > &, walberla::mpi::SendBuffer & ) > > edgeDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Edge   > &, walberla::mpi::RecvBuffer & ) > > edgeDataDeserializationFunctions_;
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Face   > & ) > >                              faceDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::SendBuffer & ) > > faceDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::RecvBuffer & ) > > faceDataDeserializationFunctions_;
+
   uint_t primitiveDataHandlers_;
 
   std::map< PrimitiveID::IDType, uint_t > neighborRanks_;
 
 };
 
-template<>
-inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsLocally( id ); }
+////////////////////////////////////////////////
+// Find various template specializations here //
+////////////////////////////////////////////////
+#include "PrimitiveStorage.tpp"
+////////////////////////////////////////////////
 
-template<>
-inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Vertex >( const PrimitiveID & id ) const { return vertexExistsLocally( id ); }
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Edge >  ( const PrimitiveID & id ) const { return edgeExistsLocally( id ); }
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsLocally( id ); }
-
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsInNeighborhood( id ); }
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Vertex >( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ); }
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Edge >  ( const PrimitiveID & id ) const { return edgeExistsInNeighborhood( id ); }
-
-template<>
-inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsInNeighborhood( id ); }
-
-
-template<>
-inline const Primitive* PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID & id ) const { return getPrimitive( id ); }
-
-template<>
-inline       Primitive* PrimitiveStorage::getPrimitiveGenerically< Primitive >( const PrimitiveID & id )       { return getPrimitive( id ); }
-
-template<>
-inline const Vertex* PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID & id ) const { return getVertex( id ); }
-
-template<>
-inline       Vertex* PrimitiveStorage::getPrimitiveGenerically< Vertex >( const PrimitiveID & id )       { return getVertex( id ); }
-
-template<>
-inline const Edge*   PrimitiveStorage::getPrimitiveGenerically< Edge >  ( const PrimitiveID & id ) const { return getEdge( id ); }
-
-template<>
-inline       Edge*   PrimitiveStorage::getPrimitiveGenerically< Edge >  ( const PrimitiveID & id )       { return getEdge( id ); }
-
-template<>
-inline const Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id ) const { return getFace( id ); }
-
-template<>
-inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
-
-template<>
-inline void PrimitiveStorage::getPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getVertexIDs( primitiveIDs ); }
-
-template<>
-inline void PrimitiveStorage::getPrimitiveIDsGenerically< Edge >( std::vector< PrimitiveID > & primitiveIDs ) const { getEdgeIDs( primitiveIDs ); }
-
-template<>
-inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getFaceIDs( primitiveIDs ); }
 
 
 template< typename DataType,
@@ -331,10 +344,35 @@ void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType
   }
 #endif
 
+  // Set up initialization, serialization and deserialization callbacks
+  auto initCallback = [ this, dataID, dataHandling ]( const std::shared_ptr< PrimitiveType > & primitive ) -> void
+  {
+    primitive->data_[ dataID ] = std::shared_ptr< internal::PrimitiveData >( new internal::PrimitiveData( dataHandling->initialize( primitive.get() ) ) );
+  };
+
+  std::function< void( const std::shared_ptr< PrimitiveType > &, walberla::mpi::SendBuffer & ) > serializationCallback =
+      [ dataHandling, dataID ]( const std::shared_ptr< PrimitiveType > & primitive, walberla::mpi::SendBuffer & sendBuffer ) -> void
+  {
+    dataHandling->serialize( primitive.get(), dataID, sendBuffer );
+  };
+
+  std::function< void( const std::shared_ptr< PrimitiveType > &, walberla::mpi::RecvBuffer & ) > deserializationCallback =
+      [ dataHandling, dataID ]( const std::shared_ptr< PrimitiveType > & primitive, walberla::mpi::RecvBuffer & recvBuffer ) -> void
+  {
+    dataHandling->deserialize( primitive.get(), dataID, recvBuffer );
+  };
+
+  for ( const auto & primitive : primitives )
+  {
+    initCallback( primitive.second );
+  }
+
+#if 0
   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
   {
     it->second->addData( dataID, dataHandling );
   }
+#endif
 }
 
 

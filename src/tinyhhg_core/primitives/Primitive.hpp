@@ -40,7 +40,7 @@ private:
   std::shared_ptr< void > ptr_;
 
 };
-
+#if 0
 class ConstPrimitiveData : private NonCopyable
 {
 public:
@@ -62,7 +62,7 @@ private:
   std::shared_ptr< const void > ptr_;
 
 };
-
+#endif
 }
 
 class PrimitiveID;
@@ -90,7 +90,9 @@ public:
   friend class PrimitiveStorage;
 
   typedef internal::PrimitiveData PrimitiveData;
+#if 0
   typedef internal::ConstPrimitiveData ConstPrimitiveData;
+#endif
 
   virtual ~Primitive() {}
 
@@ -153,6 +155,7 @@ protected:
   template< typename DataType, typename PrimitiveType >
   inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
 
+#if 0
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataHandling< DataType, PrimitiveType >* getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
 
@@ -166,6 +169,7 @@ protected:
   inline void genericAddData( const PrimitiveDataID< DataType, PrimitiveType > & index,
                               const std::shared_ptr< DataHandlingType > & dataHandling,
 		                          const PrimitiveType * primitive );
+#endif
 
   std::vector< PrimitiveID > neighborVertices_;
   std::vector< PrimitiveID > neighborEdges_;
@@ -178,13 +182,9 @@ protected:
 
 private:
 
-  /// Holds a pointer to the actual data in the first entry and a pointer to the respective datahandling in the second entry.
-  /// This way it is possible to loop over the data to for example serialize all registered data.
-  std::map< uint_t, std::pair< std::shared_ptr< PrimitiveData >, std::shared_ptr< ConstPrimitiveData > > > data_;
-
-  std::map< uint_t, std::function< void() > >                              dataInitializationFunctions_;
-  std::map< uint_t, std::function< void( walberla::mpi::SendBuffer & ) > > dataSerializationFunctions_;
-  std::map< uint_t, std::function< void( walberla::mpi::RecvBuffer & ) > > dataDeserializationFunctions_;
+  /// Holds pointers to the attached primitive data.
+  /// Mapping from the dataID index to a pointer to the data.
+  std::map< uint_t, std::shared_ptr< PrimitiveData > > data_;
 
   PrimitiveID primitiveID_;
 
@@ -207,9 +207,10 @@ template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
   WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified index" );
-  return data_.at( index ).first->template get< DataType >();
+  return data_.at( index )->template get< DataType >();
 }
 
+#if 0
 template< typename DataType, typename PrimitiveType >
 PrimitiveDataHandling< DataType, PrimitiveType >* Primitive::getDataHandling( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
@@ -217,6 +218,7 @@ PrimitiveDataHandling< DataType, PrimitiveType >* Primitive::getDataHandling( co
   return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, PrimitiveType > >();
 }
 ///////////////////////////////////////////////////////
+#endif
 
 // Methods to retrieve data and data handling from primitives
 template< typename DataType >
@@ -225,6 +227,7 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & ind
   return genericGetData< DataType >( index );
 }
 
+#if 0
 template< typename DataType >
 PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const PrimitiveDataID< DataType, Primitive > & index ) const
 {
@@ -232,13 +235,16 @@ PrimitiveDataHandling< DataType, Primitive >* Primitive::getDataHandling( const 
   return data_.at( index ).second->template get< PrimitiveDataHandling< DataType, Primitive > >();
 }
 /////////////////////////////////////////////////////////////
+#endif
 
+#if 0
 template< typename DataType, typename DataHandlingType >
 void Primitive::addData( const PrimitiveDataID< DataType, Primitive > & index,
                          const std::shared_ptr< DataHandlingType > & dataHandling )
 {
   genericAddData( index, dataHandling, this );
 }
+
 
 template< typename DataType,
           typename PrimitiveType,
@@ -277,7 +283,7 @@ void Primitive::genericAddData( const PrimitiveDataID< DataType, PrimitiveType >
 
   initCallback();
 }
-
+#endif
 
 } // namespace hhg
 
