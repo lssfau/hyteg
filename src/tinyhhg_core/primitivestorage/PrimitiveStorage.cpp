@@ -327,7 +327,7 @@ uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
 
 void PrimitiveStorage::checkConsistency()
 {
-  // 1. Number of data handlers less than local counter
+  // 1. Number of data entries less than local counter
   // 2. PrimitiveIDs of maps match IDs of Primitives
   // 3. Neighborhood of Primitives
   for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
@@ -349,7 +349,7 @@ void PrimitiveStorage::checkConsistency()
     WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
   }
 
-  // 4. Number of data handlers of neighbor primitives is zero
+  // 4. Number of data entries of neighbor primitives is zero
   // 5. PrimitiveIDs of neighbor maps match IDs of neighbor Primitives
   // 6. Neighborhood of Primitives
   for ( auto it = neighborVertices_.begin(); it != neighborVertices_.end(); it++ )
@@ -371,6 +371,19 @@ void PrimitiveStorage::checkConsistency()
     WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
   }
 
+  // 7. Number of callbacks is less or equal to the data handling counter
+  WALBERLA_CHECK_LESS_EQUAL( primitiveDataInitializationFunctions_.size() , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( primitiveDataSerializationFunctions_.size()  , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( primitiveDataDeserializationFunctions_.size(), primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( vertexDataInitializationFunctions_.size()    , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( vertexDataSerializationFunctions_.size()     , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( vertexDataDeserializationFunctions_.size()   , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( edgeDataInitializationFunctions_.size()      , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( edgeDataSerializationFunctions_.size()       , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( edgeDataDeserializationFunctions_.size()     , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( faceDataInitializationFunctions_.size()      , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( faceDataSerializationFunctions_.size()       , primitiveDataHandlers_ );
+  WALBERLA_CHECK_LESS_EQUAL( faceDataDeserializationFunctions_.size()     , primitiveDataHandlers_ );
 
 }
 

@@ -362,6 +362,8 @@ void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType
     dataHandling->deserialize( primitive.get(), dataID, recvBuffer );
   };
 
+  addDataHandlingCallbacks( dataID, initCallback, serializationCallback, deserializationCallback );
+
   for ( const auto & primitive : primitives )
   {
     initCallback( primitive.second );
