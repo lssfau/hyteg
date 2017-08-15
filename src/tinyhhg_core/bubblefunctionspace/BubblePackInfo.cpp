@@ -197,7 +197,7 @@ void BubblePackInfo::communicateLocalFaceToEdge(const Face *sender, Edge *receiv
 
   for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_); it != indexIterator(); ++it)
   {
-    edgeData[EdgeCoordsVertex::edge_index(level_,pos,dirCellGray)] = faceData[*it];
+    edgeData[EdgeCoordsVertex::edge_index(level_,pos,dirCellBlue)] = faceData[*it];
     pos++;
   }
 }
