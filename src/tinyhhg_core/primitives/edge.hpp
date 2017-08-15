@@ -92,6 +92,9 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const {};
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       {};
+
 private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
