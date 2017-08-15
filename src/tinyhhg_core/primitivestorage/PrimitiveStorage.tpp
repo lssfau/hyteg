@@ -50,6 +50,9 @@ template<>
 inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
 
 template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Primitive >( std::vector< PrimitiveID > & primitiveIDs ) const { getPrimitiveIDs( primitiveIDs ); }
+
+template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getVertexIDs( primitiveIDs ); }
 
 template<>

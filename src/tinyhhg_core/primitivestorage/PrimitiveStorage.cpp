@@ -4,6 +4,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
+#include "core/mpi/OpenMPBufferSystem.h"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
@@ -284,6 +285,21 @@ Face* PrimitiveStorage::getFace( const PrimitiveID & id )
   }
 }
 
+void PrimitiveStorage::getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const
+{
+  primitiveIDs.clear();
+
+  std::vector< PrimitiveID > someIDs;
+
+  getVertexIDs( someIDs );
+  primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
+
+  getEdgeIDs( someIDs );
+  primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
+
+  getFaceIDs( someIDs );
+  primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
+}
 
 void PrimitiveStorage::getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const
 {
@@ -324,6 +340,119 @@ uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
     return getNeighborPrimitiveRank( id );
   }
 }
+
+void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate )
+{
+  uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+
+  walberla::mpi::OpenMPBufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
+
+
+  ///////////////////////////////////
+  // Serialization and sender side //
+  ///////////////////////////////////
+  std::map< uint_t, std::vector< std::function< void( SendBuffer & ) > > > sendingFunctions;
+
+  for ( const auto & it : primitivesToMigrate )
+  {
+    PrimitiveID primitiveID = it.first;
+    uint_t      targetRank  = it.second;
+
+    WALBERLA_CHECK( primitiveExistsLocally( primitiveID ), "Cannot migrate non-existent primitives." );
+    WALBERLA_CHECK_LESS( targetRank, numProcesses );
+
+    if ( targetRank == rank )
+    {
+      continue;
+    }
+
+    // serialize
+    // - true (== hasContent)
+    // - source rank
+    // - primitive ID
+    // - primitive (contains neighborhood IDs)
+    // - primitive data
+    // - for all neighbors (from lower to higher dimension):
+    //   - neighbor primitive ID
+    //   - neighbor primitive
+    auto sendingFunction = [ rank, primitiveID ]( SendBuffer & sendBuffer ) -> void
+    {
+      sendBuffer << true;
+      WALBERLA_LOG_DEVEL( "Serializing source rank: " << rank );
+      sendBuffer << rank;
+      WALBERLA_LOG_DEVEL( "Serializing PrimitiveID: " << primitiveID.getID() );
+      sendBuffer << primitiveID;
+    };
+
+    sendingFunctions[ targetRank ].push_back( sendingFunction );
+  }
+
+
+  auto emptySendingFunction = []( SendBuffer & sendBuffer ) -> void
+  {
+    // hasContent == false
+    sendBuffer << false;
+  };
+
+  for ( uint_t receiverRank = 0; receiverRank < numProcesses; receiverRank++ )
+  {
+    if ( sendingFunctions.count( receiverRank ) == 0 )
+    {
+      sendingFunctions[ receiverRank ].push_back( emptySendingFunction );
+    }
+  }
+
+  for ( const auto & sendFunctionVectors : sendingFunctions )
+  {
+    uint_t targetRank                                                       = sendFunctionVectors.first;
+    std::vector< std::function< void( SendBuffer & ) > > sendFunctionVector = sendFunctionVectors.second;
+
+    auto sendingFunctionExecuter = [ sendFunctionVector ]( SendBuffer & sendBuffer ) -> void
+    {
+      for ( const auto & sendingFunction : sendFunctionVector ) { sendingFunction( sendBuffer ); }
+    };
+
+    bufferSystem.addSendingFunction( targetRank, sendingFunctionExecuter );
+  }
+
+
+  ///////////////////////////////////////
+  // Deserialization and receiver side //
+  ///////////////////////////////////////
+  auto receivingFunction = []( RecvBuffer & recvBuffer ) -> void
+  {
+    while ( !recvBuffer.isEmpty() )
+    {
+      bool          hasContent;
+      recvBuffer >> hasContent;
+
+      if ( hasContent )
+      {
+        uint_t      sourceRank;
+        PrimitiveID primitiveID;
+
+        recvBuffer >> sourceRank;
+        WALBERLA_LOG_DEVEL( "Deserializing source rank: "<< sourceRank );
+        recvBuffer >> primitiveID;
+        WALBERLA_LOG_DEVEL( "Deserializing PrimitiveID: "<< primitiveID.getID() );
+      }
+    }
+  };
+
+  for ( uint_t senderRank = 0; senderRank < numProcesses; senderRank++ )
+  {
+    bufferSystem.addReceivingFunction( senderRank, receivingFunction );
+  }
+
+
+  //////////////////////////////
+  // Performing communication //
+  //////////////////////////////
+  bufferSystem.startCommunication();
+  bufferSystem.wait();
+}
+
 
 void PrimitiveStorage::checkConsistency()
 {

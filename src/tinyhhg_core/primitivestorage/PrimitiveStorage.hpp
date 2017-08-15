@@ -93,6 +93,9 @@ public:
   template< typename PrimitiveType >
   inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
+  /// Fills the passed vector with the IDs of the locally existing primitives
+  void getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const;
+
   /// Fills the passed vector with the IDs of the locally existing vertices
   void getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const;
 
@@ -170,7 +173,13 @@ public:
   						             const std::string & identifier );
 
 
-  // void migratePrimitives( const std::vector< PrimitiveID > & primitivesToMigrate, const uint_t & sourceRank, const uint_t & targetRank );
+  /// Migrates the passed primitives to the respective target process.
+  /// Must be called collectively, even if a processes does not send any primitives (pass empty map).
+  /// Calls the serialization and deserialization methods of the data handlings of all registered data items in order to
+  /// transport the data over MPI.
+  /// Automatically refreshes the neighborhood information.
+  /// \param primitivesToMigrate key: primitive to migrate, value: target process
+  void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate );
 
 private:
 
