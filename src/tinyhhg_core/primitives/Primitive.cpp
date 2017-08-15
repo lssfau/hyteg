@@ -2,6 +2,8 @@
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 
+#include <core/mpi/BufferDataTypeExtensions.h>
+
 namespace hhg {
 
 void Primitive::getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrimitives ) const
@@ -18,6 +20,23 @@ void Primitive::getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrim
   neighborPrimitives.insert( neighborPrimitives.end(), neighborFaces.begin(), neighborFaces.end() );
 
 }
+
+void Primitive::serialize ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << primitiveID_;
+  sendBuffer << neighborVertices_;
+  sendBuffer << neighborEdges_;
+  sendBuffer << neighborFaces_;
+}
+
+void Primitive::deserialize ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> primitiveID_;
+  recvBuffer >> neighborVertices_;
+  recvBuffer >> neighborEdges_;
+  recvBuffer >> neighborFaces_;
+}
+
 
 } // namespace hhg
 

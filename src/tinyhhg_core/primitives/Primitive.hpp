@@ -115,6 +115,9 @@ public:
   virtual uint_t getNumHigherDimNeighbors() const = 0;
   /// @}
 
+  void   serialize ( walberla::mpi::SendBuffer & sendBuffer ) const;
+  void deserialize ( walberla::mpi::RecvBuffer & recvBuffer );
+
 protected:
 
   /// Only subclasses shall be constructable
@@ -138,6 +141,9 @@ protected:
   inline bool operator==(const Primitive& rhs) const {
     return this->getID() == rhs.getID();
   }
+
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const = 0;
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       = 0;
 
 private:
 
@@ -178,4 +184,26 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & ind
 
 
 } // namespace hhg
+
+namespace walberla {
+namespace mpi {
+
+template< typename T,    // Element type of SendBuffer
+          typename G >   // Growth policy of SendBuffer
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::Primitive & primitive )
+{
+  primitive.serialize( buf );
+  return buf;
+}
+
+template< typename T >   // Element type  of RecvBuffer
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::Primitive & primitive )
+{
+  primitive.deserialize( buf );
+  return buf;
+}
+
+}
+}
+
 
