@@ -13,7 +13,7 @@ int main (int argc, char ** argv )
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -29,7 +29,6 @@ int main (int argc, char ** argv )
   uint_t numberOfChecks = 0;
   uint_t totalExpectedChecks = (2 * hhg::levelinfo::num_microvertices_per_edge(maxLevel) - 3) * 3 * storage->getNumberOfLocalFaces();
 
-  //check face to edge comm; face inner vertex Dofs and Cells are communicated
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
     //BubbleFace::printFunctionMemory<maxLevel>(face,x.getFaceDataID());

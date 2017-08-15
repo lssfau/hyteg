@@ -19,11 +19,8 @@ waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
-waLBerla_compile_test(FILES p1BubbleCommTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME p1BubbleCommTest)
-
-waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1CommTest)
+waLBerla_compile_test(FILES P1EnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P1EnumerateTest)
 
 waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleEnumerateTest)
@@ -42,8 +39,6 @@ waLBerla_execute_test(NAME PrimitiveStorageTest)
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BufferedCommunicationTest)
-
-waLBerla_compile_test(FILES p1BubbleVertexCommTest.cpp DEPENDS tinyhhg_core core fmt)
 
 waLBerla_compile_test(FILES P1DataHandlingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1DataHandlingTest)
