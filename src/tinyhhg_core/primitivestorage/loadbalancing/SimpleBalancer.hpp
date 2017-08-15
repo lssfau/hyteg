@@ -22,7 +22,7 @@ void allBlocksOnOneRank( SetupPrimitiveStorage & storage, const uint_t & targetR
 
 /// \brief Load balancing function for \ref SetupPrimitiveStorage that locates all blocks on root
 /// \author Nils Kohl (nils.kohl@fau.de)
-void allBlocksOnRoot( SetupPrimitiveStorage & storage, const uint_t & targetRank )
+void allBlocksOnRoot( SetupPrimitiveStorage & storage )
 {
   allBlocksOnOneRank( storage, uint_c( 0 ) );
 }
