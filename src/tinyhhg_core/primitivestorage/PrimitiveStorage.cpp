@@ -6,6 +6,7 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/OpenMPBufferSystem.h"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
+#include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
@@ -371,18 +372,26 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     // - true (== hasContent)
     // - source rank
     // - primitive ID
+    // - primitive type
     // - primitive (contains neighborhood IDs)
     // - primitive data
     // - for all neighbors (from lower to higher dimension):
     //   - neighbor primitive ID
     //   - neighbor primitive
-    auto sendingFunction = [ rank, primitiveID ]( SendBuffer & sendBuffer ) -> void
+    auto sendingFunction = [ = ]( SendBuffer & sendBuffer ) -> void
     {
       sendBuffer << true;
       WALBERLA_LOG_DEVEL( "Serializing source rank: " << rank );
       sendBuffer << rank;
       WALBERLA_LOG_DEVEL( "Serializing PrimitiveID: " << primitiveID.getID() );
       sendBuffer << primitiveID;
+
+      sendBuffer << getPrimitiveType( primitiveID );
+
+      Primitive * primitive = getPrimitive( primitiveID );
+
+      sendBuffer << *primitive;
+
     };
 
     sendingFunctions[ targetRank ].push_back( sendingFunction );
@@ -413,14 +422,14 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       for ( const auto & sendingFunction : sendFunctionVector ) { sendingFunction( sendBuffer ); }
     };
 
-    bufferSystem.addSendingFunction( targetRank, sendingFunctionExecuter );
+    bufferSystem.addSendingFunction( static_cast< walberla::mpi::MPIRank >( targetRank ), sendingFunctionExecuter );
   }
 
 
   ///////////////////////////////////////
   // Deserialization and receiver side //
   ///////////////////////////////////////
-  auto receivingFunction = []( RecvBuffer & recvBuffer ) -> void
+  auto receivingFunction = [ = ]( RecvBuffer & recvBuffer ) -> void
   {
     while ( !recvBuffer.isEmpty() )
     {
@@ -429,20 +438,40 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
       if ( hasContent )
       {
-        uint_t      sourceRank;
-        PrimitiveID primitiveID;
+        uint_t        sourceRank;
+        PrimitiveID   primitiveID;
+
+        PrimitiveTypeEnum primitiveType;
 
         recvBuffer >> sourceRank;
         WALBERLA_LOG_DEVEL( "Deserializing source rank: "<< sourceRank );
         recvBuffer >> primitiveID;
         WALBERLA_LOG_DEVEL( "Deserializing PrimitiveID: "<< primitiveID.getID() );
+        recvBuffer >> primitiveType;
+
+        switch ( primitiveType )
+        {
+        case VERTEX:
+        {
+
+          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( primitiveID, Point3D() );
+          recvBuffer >> *vertex;
+          WALBERLA_LOG_INFO( *vertex );
+          break;
+
+        }
+        default:
+          break;
+
+        }
+
       }
     }
   };
 
   for ( uint_t senderRank = 0; senderRank < numProcesses; senderRank++ )
   {
-    bufferSystem.addReceivingFunction( senderRank, receivingFunction );
+    bufferSystem.addReceivingFunction( static_cast< walberla::mpi::MPIRank >( senderRank ), receivingFunction );
   }
 
 
@@ -451,6 +480,15 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   //////////////////////////////
   bufferSystem.startCommunication();
   bufferSystem.wait();
+}
+
+
+PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID & primitiveID ) const
+{
+  if ( vertexExistsLocally( primitiveID ) ) return VERTEX;
+  if ( edgeExistsLocally  ( primitiveID ) ) return EDGE;
+  if ( faceExistsLocally  ( primitiveID ) ) return FACE;
+  return INVALID;
 }
 
 

@@ -183,6 +183,19 @@ public:
 
 private:
 
+  // needed to differentiate when migrating primitives
+  enum PrimitiveTypeEnum
+  {
+    VERTEX,
+    EDGE,
+    FACE,
+    INVALID
+  };
+
+  /// Returns the primitive type of a local primitive.
+  /// Returns invalid if the primitive is not locally availably.
+  PrimitiveTypeEnum getPrimitiveType( const PrimitiveID & primitiveID ) const;
+
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataID< DataType, PrimitiveType > generateDataID();
 
@@ -341,10 +354,10 @@ template< typename DataType,
           typename PrimitiveType,
           typename DataHandlingType,
           typename >
-void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
-                                         const std::string & identifier,
-                                         const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
-                                         const PrimitiveDataID< DataType, PrimitiveType > & dataID )
+inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
+                                                const std::string & identifier,
+                                                const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
+                                                const PrimitiveDataID< DataType, PrimitiveType > & dataID )
 {
 #ifndef NDEBUG
   for ( auto it = primitives.begin(); it != primitives.end(); it++ )
