@@ -7,9 +7,9 @@
 namespace hhg {
 namespace loadbalancing {
 
-/// \brief Load balancing function for \ref SetupPrimitiveStorage that locates all blocks on a certain rank
+/// \brief Load balancing function for \ref SetupPrimitiveStorage that locates all primitives on a certain rank
 /// \author Nils Kohl (nils.kohl@fau.de)
-void allBlocksOnOneRank( SetupPrimitiveStorage & storage, const uint_t & targetRank )
+void allPrimitivesOnOneRank( SetupPrimitiveStorage & storage, const uint_t & targetRank )
 {
   SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
   storage.getSetupPrimitives( setupPrimitives );
@@ -20,11 +20,11 @@ void allBlocksOnOneRank( SetupPrimitiveStorage & storage, const uint_t & targetR
 }
 
 
-/// \brief Load balancing function for \ref SetupPrimitiveStorage that locates all blocks on root
+/// \brief Load balancing function for \ref SetupPrimitiveStorage that locates all primitives on root
 /// \author Nils Kohl (nils.kohl@fau.de)
-void allBlocksOnRoot( SetupPrimitiveStorage & storage )
+void allPrimitivesOnRoot( SetupPrimitiveStorage & storage )
 {
-  allBlocksOnOneRank( storage, uint_c( 0 ) );
+  allPrimitivesOnOneRank( storage, uint_c( 0 ) );
 }
 
 
