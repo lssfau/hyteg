@@ -115,8 +115,8 @@ public:
   virtual uint_t getNumHigherDimNeighbors() const = 0;
   /// @}
 
-  void   serialize ( walberla::mpi::SendBuffer & sendBuffer ) const;
-  void deserialize ( walberla::mpi::RecvBuffer & recvBuffer );
+  void   serialize( walberla::mpi::SendBuffer & sendBuffer ) const;
+  void deserialize( walberla::mpi::RecvBuffer & recvBuffer );
 
 protected:
 
@@ -129,6 +129,9 @@ protected:
 
   /// Only subclasses shall be constructable
   Primitive( const PrimitiveID & id ) : primitiveID_( id ) {}
+
+  /// Creates Primitive from an MPI buffer
+  Primitive( walberla::mpi::RecvBuffer & recvBuffer ) { deserializePrimitive( recvBuffer ); }
 
   template< typename DataType, typename PrimitiveType >
   inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
@@ -146,6 +149,9 @@ protected:
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       = 0;
 
 private:
+
+  void   serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) const;
+  void deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer );
 
   /// Holds pointers to the attached primitive data.
   /// Mapping from the dataID index to a pointer to the data.

@@ -21,7 +21,19 @@ void Primitive::getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrim
 
 }
 
-void Primitive::serialize ( walberla::mpi::SendBuffer & sendBuffer ) const
+void Primitive::serialize( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  serializePrimitive( sendBuffer );
+  serializeSubclass( sendBuffer );
+}
+
+void Primitive::deserialize( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  deserializePrimitive( recvBuffer );
+  deserializeSubclass( recvBuffer );
+}
+
+void Primitive::serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) const
 {
   sendBuffer << primitiveID_;
   sendBuffer << neighborVertices_;
@@ -29,14 +41,13 @@ void Primitive::serialize ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << neighborFaces_;
 }
 
-void Primitive::deserialize ( walberla::mpi::RecvBuffer & recvBuffer )
+void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )
 {
   recvBuffer >> primitiveID_;
   recvBuffer >> neighborVertices_;
   recvBuffer >> neighborEdges_;
   recvBuffer >> neighborFaces_;
 }
-
 
 } // namespace hhg
 
