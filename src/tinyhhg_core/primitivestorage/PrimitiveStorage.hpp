@@ -173,10 +173,10 @@ public:
   						             const std::string & identifier );
 
 
-  /// Migrates the passed primitives to the respective target process.
+  /// Migrates the passed (local!) primitives to the respective target process.
   /// Must be called collectively, even if a processes does not send any primitives (pass empty map).
-  /// Calls the serialization and deserialization methods of the data handlings of all registered data items in order to
-  /// transport the data over MPI.
+  /// Calls the serialization and deserialization methods of the data handling instances of all registered data items
+  /// in order to transport the data over MPI.
   /// Automatically refreshes the neighborhood information.
   /// \param primitivesToMigrate key: primitive to migrate, value: target process
   void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate );

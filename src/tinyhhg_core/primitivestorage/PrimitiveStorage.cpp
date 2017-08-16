@@ -349,10 +349,10 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
   walberla::mpi::OpenMPBufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
 
-
   ///////////////////////////////////
   // Serialization and sender side //
   ///////////////////////////////////
+
   std::map< uint_t, std::vector< std::function< void( SendBuffer & ) > > > sendingFunctions;
 
   for ( const auto & primitiveToMigrate : primitivesToMigrate )
@@ -365,16 +365,21 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
     if ( targetRank == rank )
     {
+      // we do not want to send already local primitives
       continue;
     }
 
-    // serialize
-    // - true (== hasContent)
+    // Serialize primitives:
+    // Create one serialization callback per primitive that shall be serialized.
+    // for all primitives to be migrated:
+    // - true (signals that this is no empty message)
     // - source rank
     // - primitive ID
-    // - primitive type
-    // - primitive (contains neighborhood IDs)
+    // - primitive type (Vertex, Edge, ...)
+    // - primitive (contains neighborhood IDs and metadata like coordinates etc.)
     // - primitive data
+    //   - 1.: data that was added to all primitives
+    //   - 2.: data that was added to the type of primitive
     // - for all neighbors (from lower to higher dimension):
     //   - neighbor primitive ID
     //   - neighbor primitive
@@ -383,9 +388,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
 
       sendBuffer << true;
-      // WALBERLA_LOG_DEVEL( "Serializing source rank: " << rank );
-      sendBuffer << rank;
-      // WALBERLA_LOG_DEVEL( "Serializing PrimitiveID: " << primitiveID.getID() );
+      sendBuffer << rank; // == source rank since we are on the sender side
       sendBuffer << primitiveID;
       sendBuffer << primitiveType;
 
@@ -393,16 +396,16 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       {
       case VERTEX:
       {
-    	WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
+    	WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) ); // double check that we serialize a vertex and it is locally allocated
     	auto vertex = vertices_[ primitiveID.getID() ];
-    	sendBuffer << *vertex;
+    	sendBuffer << *vertex;  // serialize metadata
         for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
         {
-          serializationFunction.second( vertex, sendBuffer );
+          serializationFunction.second( vertex, sendBuffer ); // serialize data added to all primitives
         }
         for ( const auto & serializationFunction : vertexDataSerializationFunctions_ )
         {
-          serializationFunction.second( vertex, sendBuffer );
+          serializationFunction.second( vertex, sendBuffer ); // serialize data added only to vertices
         }
         break;
       }
@@ -445,10 +448,14 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     sendingFunctions[ targetRank ].push_back( sendingFunction );
   }
 
-
+  // Since we do not know if we receive primitives on the receiver side
+  // and since it is apparently not possible to send empty buffers via the
+  // buffer system (?) we need to work around this by sending empty messages
+  // to all processes that will not receive primitives.
+  // It should be possible to improve this by AllReduce or something...
   auto emptySendingFunction = []( SendBuffer & sendBuffer ) -> void
   {
-    // hasContent == false
+    // empty message only contains a false boolean
     sendBuffer << false;
   };
 
@@ -460,6 +467,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     }
   }
 
+  // adds the sending callbacks to the buffersystem
   for ( const auto & sendFunctionVectors : sendingFunctions )
   {
     uint_t targetRank                                                       = sendFunctionVectors.first;
@@ -477,6 +485,9 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   ///////////////////////////////////////
   // Deserialization and receiver side //
   ///////////////////////////////////////
+
+  // Each process registeres a callback that parses and deserializes the
+  // messages sent above.
   auto receivingFunction = [ = ]( RecvBuffer & recvBuffer ) -> void
   {
     while ( !recvBuffer.isEmpty() )
@@ -491,24 +502,21 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
         PrimitiveTypeEnum primitiveType;
 
         recvBuffer >> sourceRank;
-        WALBERLA_LOG_DEVEL( "Deserializing source rank: "<< sourceRank );
         recvBuffer >> primitiveID;
-        WALBERLA_ASSERT( !primitiveExistsLocally( primitiveID ) );
-        WALBERLA_LOG_DEVEL( "Deserializing PrimitiveID: "<< primitiveID.getID() );
         recvBuffer >> primitiveType;
-        WALBERLA_LOG_DEVEL( "Deserializing PrimitiveType: "<< primitiveType );
+
+        WALBERLA_ASSERT( !primitiveExistsLocally( primitiveID ), "Received already locally existing primitive" );
 
         switch ( primitiveType )
         {
         case VERTEX:
         {
-          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
-          WALBERLA_LOG_INFO( "Deserializing vertex: " << *vertex );
+          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer ); // allocating a new Vertex using data in the buffer
           WALBERLA_ASSERT_EQUAL( vertex->getID(), primitiveID );
-          vertices_[ primitiveID.getID() ] = vertex;
+          vertices_[ primitiveID.getID() ] = vertex; // adding to to the storage
           for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
           {
-            initializationFunction.second( vertex );
+            initializationFunction.second( vertex ); // before we deserialize the data, we need to initialize the pointers..
           }
           for ( const auto & initializationFunction : vertexDataInitializationFunctions_ )
           {
@@ -516,7 +524,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
           }
           for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
           {
-            deserializationFunction.second( vertex, recvBuffer );
+            deserializationFunction.second( vertex, recvBuffer ); // ..now we deserialize
           }
           for ( const auto & deserializationFunction : vertexDataDeserializationFunctions_ )
           {
@@ -581,6 +589,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     }
   };
 
+  // adds the receiving callbacks
   for ( uint_t senderRank = 0; senderRank < numProcesses; senderRank++ )
   {
     bufferSystem.addReceivingFunction( static_cast< walberla::mpi::MPIRank >( senderRank ), receivingFunction );
@@ -590,14 +599,20 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   //////////////////////////////
   // Performing communication //
   //////////////////////////////
+
   bufferSystem.startCommunication();
   bufferSystem.wait();
+
+  /////////////////////////////////////
+  // Erasing the migrated primitives //
+  /////////////////////////////////////
 
   std::vector< PrimitiveID > migratedPrimitives;
   for ( const auto & it : primitivesToMigrate )
   {
 	PrimitiveID migratedPrimitive( it.first );
 	uint_t      targetRank = it.second;
+
 	if ( primitiveExistsLocally( migratedPrimitive ) && targetRank != rank )
 	{
 	  migratedPrimitives.push_back( PrimitiveID( it.first ));
