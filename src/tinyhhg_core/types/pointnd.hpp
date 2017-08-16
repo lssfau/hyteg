@@ -1,5 +1,5 @@
-#ifndef POINT3D_HPP
-#define POINT3D_HPP
+
+#pragma once
 
 #include "core/DataTypes.h"
 #include "core/mpi/SendBuffer.h"
@@ -257,4 +257,3 @@ GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::PointND< Poin
 }
 }
 
-#endif /* POINT3D_HPP */
