@@ -196,6 +196,11 @@ private:
   /// Returns invalid if the primitive is not locally availably.
   PrimitiveTypeEnum getPrimitiveType( const PrimitiveID & primitiveID ) const;
 
+  /// Erases the matching Primitives from the storage
+  /// Also updates the neighborhood and erases neighbors that are not
+  /// referenced by other primitives.
+  void eraseLocalPrimitives( const std::vector< PrimitiveID > & ids );
+
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataID< DataType, PrimitiveType > generateDataID();
 
