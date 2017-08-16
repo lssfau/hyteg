@@ -448,21 +448,31 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
         recvBuffer >> primitiveID;
         WALBERLA_LOG_DEVEL( "Deserializing PrimitiveID: "<< primitiveID.getID() );
         recvBuffer >> primitiveType;
+        WALBERLA_LOG_DEVEL( "Deserializing PrimitiveType: "<< primitiveType );
 
         switch ( primitiveType )
         {
         case VERTEX:
         {
-
-          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( primitiveID, Point3D() );
-          recvBuffer >> *vertex;
-          WALBERLA_LOG_INFO( *vertex );
+          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
+          WALBERLA_LOG_INFO( "Deserializing vertex: " << *vertex );
           break;
-
         }
-        default:
+        case EDGE:
+        {
+		  std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
+          WALBERLA_LOG_INFO( "Deserializing edge: " << *edge );
           break;
-
+        }
+        case FACE:
+		{
+		  std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
+		  WALBERLA_LOG_INFO( "Deserializing face: " << *face );
+		  break;
+		}
+        default:
+          WALBERLA_ABORT( "Cannot deserialize primitive - unkown primitive type" );
+          break;
         }
 
       }
