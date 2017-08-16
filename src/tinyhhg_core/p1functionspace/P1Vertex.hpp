@@ -113,7 +113,7 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
 
 inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, size_t level, uint_t& num) {
   auto &dst = vertex.getData(dstId)->data[level];
-  dst[0] = num++;
+  dst[0] = static_cast< real_t >( num++ );
 }
 
 inline void saveOperator(Vertex &vertex,
