@@ -40,7 +40,7 @@ namespace hhg {
  * subclass of Primitive (e.g. with Vertex or Edge).
  *
  * Since it inherits from PrimitiveDataHandling it must implement a few virtual methods.
- * The most important one is PrimitiveDataHandling::initialize(). It returns a pointer to
+ * The most important one is PrimitiveDataHandling::initialize(). It returns a shared pointer to
  * an initialized object. This way, the PrimitiveStorage does not need to know what type of data it
  * stores.
  *
@@ -102,10 +102,10 @@ public:
   ~SimulationDataHandling() {}
 
   /// [SimulationDataHandlingInitialize]
-  SimulationData * initialize( const Primitive * const primitive ) const
+  std::shared_ptr< SimulationData > initialize( const Primitive * const primitive ) const
   {
     WALBERLA_UNUSED( primitive );
-    return new SimulationData( 42 );
+    return std::make_shared< SimulationData >( 42 );
   }
   /// [SimulationDataHandlingInitialize]
 
@@ -125,10 +125,10 @@ class VertexSimulationDataHandling : public OnlyInitializeDataHandling< Simulati
 {
 public:
 
-  SimulationData * initialize( const Vertex * const primitive ) const
+  std::shared_ptr< SimulationData > initialize( const Vertex * const primitive ) const
   {
     WALBERLA_UNUSED( primitive );
-    return new SimulationData( 4711 );
+    return std::make_shared< SimulationData >( 4711 );
   }
 
 };
@@ -146,9 +146,7 @@ void PrimitiveStorageTutorial()
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
-  real_t perProcessMemoryLimit = 256.0;
-  hhg::AllBlocksOnRoot loadBalancer;
-  setupStorage.balanceLoad( loadBalancer, perProcessMemoryLimit );
+  hhg::loadbalancing::roundRobin( setupStorage );
 
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
@@ -161,13 +159,15 @@ void PrimitiveStorageTutorial()
 
   /// [AddingData]
   // Adding some data to all primitives
-  SimulationDataHandling simulationDataHandling;
-  PrimitiveDataID< SimulationData, Primitive > simulationDataID = storage.addPrimitiveData( simulationDataHandling, "simulation data" );
+  auto simulationDataHandling = std::make_shared< SimulationDataHandling  >();
+  PrimitiveDataID< SimulationData, Primitive > simulationDataID;
+  storage.addPrimitiveData( simulationDataID, simulationDataHandling, "simulation data" );
   /// [AddingData]
 
   // Adding some data only to vertices
-  VertexSimulationDataHandling vertexSimulationDataHandling;
-  PrimitiveDataID< SimulationData, Vertex > vertexSimulationDataID = storage.addVertexData( vertexSimulationDataHandling, "simulation data (vertices)" );
+  auto vertexSimulationDataHandling = std::make_shared< VertexSimulationDataHandling  >();
+  PrimitiveDataID< SimulationData, Vertex > vertexSimulationDataID;
+  storage.addVertexData( vertexSimulationDataID, vertexSimulationDataHandling, "simulation data (vertices)" );
 
   /// [DataRetrieval]
   // Gather all the primitives

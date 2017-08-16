@@ -50,9 +50,8 @@ namespace hhg {
  * \snippet tutorials/01_PrimitiveStorage.cpp SetupPrimitiveStorage
  *
  * The main purpose of the SetupPrimitiveStorage is to assign the primitives to the processes.
- * We achieve this by handing it a load balance callback. The balancing step additionally allows
- * us to limit the per process memory usage and workload by assigning the primitives corresponding
- * values for workload and memory usage.
+ * We achieve this by calling a load balancing function on it. There are some simple load balancers
+ * available in the library.
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp Loadbalancing
  *
@@ -88,11 +87,8 @@ void PrimitiveStorageTutorial()
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
   /// [SetupPrimitiveStorage]
 
-  real_t perProcessMemoryLimit = 256.0;
-
   /// [Loadbalancing]
-  hhg::AllBlocksOnRoot loadBalancer;
-  setupStorage.balanceLoad( loadBalancer, perProcessMemoryLimit );
+  hhg::loadbalancing::roundRobin( setupStorage );
   /// [Loadbalancing]
 
   // Let's have a debug print
