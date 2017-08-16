@@ -31,4 +31,16 @@ std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
             << "}";
 }
 
+void Vertex::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << type;
+  sendBuffer << coords;
+}
+
+void Vertex::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> type;
+  recvBuffer >> coords;
+}
+
 }

@@ -43,6 +43,8 @@ public:
     normal_2d_ = Point3D(init);
   }
 
+  Edge( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
+
   uint_t vertex_index(const PrimitiveID& vertex) const;
   uint_t face_index(const PrimitiveID& face) const;
 
@@ -92,8 +94,8 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_UNUSED(sendBuffer); };
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_UNUSED(recvBuffer); };
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const;
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 private:
 

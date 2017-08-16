@@ -43,6 +43,8 @@ public:
     area = std::abs(0.5 * math::det2(B));
   }
 
+  Face( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
+
   uint_t vertex_index(const PrimitiveID& vertex) const;
   uint_t edge_index(const PrimitiveID& edge) const;
 

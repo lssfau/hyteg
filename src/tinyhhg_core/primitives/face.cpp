@@ -96,12 +96,26 @@ std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 
 void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
-  WALBERLA_UNUSED( sendBuffer );
+  sendBuffer << type;
+  sendBuffer << area;
+  sendBuffer << edge_orientation[0];
+  sendBuffer << edge_orientation[1];
+  sendBuffer << edge_orientation[2];
+  sendBuffer << coords[0];
+  sendBuffer << coords[1];
+  sendBuffer << coords[2];
 }
 
 void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
-  WALBERLA_UNUSED( recvBuffer );
+  recvBuffer >> type;
+  recvBuffer >> area;
+  recvBuffer >> edge_orientation[0];
+  recvBuffer >> edge_orientation[1];
+  recvBuffer >> edge_orientation[2];
+  recvBuffer >> coords[0];
+  recvBuffer >> coords[1];
+  recvBuffer >> coords[2];
 }
 
 }

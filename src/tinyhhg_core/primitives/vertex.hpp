@@ -37,6 +37,8 @@ public:
   /// \param coords Spatial coordinates of vertex
   Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates );
 
+  Vertex( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
+
   /// Returns the index of \p edge within \ref edges
   /// \param edge Edge
   /// \returns Index of \p edge within \ref edges
@@ -89,8 +91,8 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_UNUSED(sendBuffer); };
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_UNUSED(recvBuffer); };
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const;
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 private:
 

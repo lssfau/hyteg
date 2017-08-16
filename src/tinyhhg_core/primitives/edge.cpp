@@ -71,4 +71,26 @@ std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
             << "neighborVertices_[1] = " << edge.neighborVertices_[1].getID() << "; }";
 }
 
+void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << type;
+  sendBuffer << coords_[0];
+  sendBuffer << coords_[1];
+  sendBuffer << direction_;
+  sendBuffer << length_;
+  sendBuffer << tangent_;
+  sendBuffer << normal_2d_;
+}
+
+void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> type;
+  recvBuffer >> coords_[0];
+  recvBuffer >> coords_[1];
+  recvBuffer >> direction_;
+  recvBuffer >> length_;
+  recvBuffer >> tangent_;
+  recvBuffer >> normal_2d_;
+}
+
 }
