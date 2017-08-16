@@ -9,7 +9,7 @@ namespace hhg {
 
 static void testPrimitiveMigration()
 {
-  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+  //uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
   const std::string meshFileName = "../../data/meshes/tri_2el.msh";
 
@@ -52,6 +52,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
+  walberla::debug::enterTestMode();
    hhg::testPrimitiveMigration();
 
    return EXIT_SUCCESS;

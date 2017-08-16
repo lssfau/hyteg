@@ -11,8 +11,6 @@ int main (int argc, char** argv) {
   const uint_t minLevel = 3;
   const uint_t maxLevel = 3;
 
-  size_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(maxLevel);
-
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_2el.msh" );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, uint_c(walberla::MPIManager::instance()->numProcesses()));
 
