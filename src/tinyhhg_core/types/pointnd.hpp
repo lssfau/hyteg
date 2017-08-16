@@ -2,6 +2,8 @@
 #define POINT3D_HPP
 
 #include "core/DataTypes.h"
+#include "core/mpi/SendBuffer.h"
+#include "core/mpi/RecvBuffer.h"
 
 #include <fmt/ostream.h>
 #include <cmath>
@@ -154,6 +156,22 @@ public:
     return x[index];
   }
 
+  void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
+  {
+    for ( size_t index = 0; index < N; index++ )
+    {
+      sendBuffer << x[index];
+    }
+  }
+
+  void deserialize( walberla::mpi::RecvBuffer & recvBuffer )
+  {
+    for ( size_t index = 0; index < N; index++ )
+    {
+      recvBuffer >> x[index];
+    }
+  }
+
   T x[N];
 };
 
@@ -212,6 +230,31 @@ inline std::ostream& operator<<(std::ostream &os, const PointND<T, N> &pointnd)
 typedef PointND<real_t, 2> Point2D;
 typedef PointND<real_t, 3> Point3D;
 
+}
+
+namespace walberla {
+namespace mpi {
+
+template< typename T,    // Element type of SendBuffer
+          typename G,    // Growth policy of SendBuffer
+          typename PointNDDataType,
+          size_t   PointNDDimension >
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::PointND< PointNDDataType, PointNDDimension > & pointND )
+{
+  pointND.serialize( buf );
+  return buf;
+}
+
+template< typename T, // Element type  of RecvBuffer
+          typename PointNDDataType,
+          size_t   PointNDDimension >
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::PointND< PointNDDataType, PointNDDimension > & pointND )
+{
+  pointND.deserialize( buf );
+  return buf;
+}
+
+}
 }
 
 #endif /* POINT3D_HPP */
