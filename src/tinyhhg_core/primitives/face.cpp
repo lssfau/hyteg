@@ -94,4 +94,17 @@ std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
             << "}";
 }
 
+void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  WALBERLA_UNUSED( sendBuffer );
 }
+
+void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  WALBERLA_UNUSED( recvBuffer );
+}
+
+}
+
+
+

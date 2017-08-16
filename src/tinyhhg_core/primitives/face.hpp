@@ -95,8 +95,8 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const {};
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       {};
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const;
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 };
 
