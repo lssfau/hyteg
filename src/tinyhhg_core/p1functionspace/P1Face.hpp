@@ -402,7 +402,7 @@ inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Fa
   for (uint_t i = 0; i < rowsize - 3; ++i) {
     for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
 
-      face.getData(dstId)->data[level][mr] = num++;
+      face.getData(dstId)->data[level][mr] = walberla::real_c(num++);
 
       mr += 1;
     }
