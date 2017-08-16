@@ -10,15 +10,13 @@ void Primitive::getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrim
 {
   getNeighborVertices( neighborPrimitives );
 
-  std::vector< PrimitiveID > neighborEdges;
-  std::vector< PrimitiveID > neighborFaces;
+  std::vector< PrimitiveID > someNeighbors;
 
-  getNeighborEdges( neighborEdges );
-  getNeighborFaces( neighborFaces );
+  getNeighborEdges( someNeighbors );
+  neighborPrimitives.insert( neighborPrimitives.end(), someNeighbors.begin(), someNeighbors.end() );
 
-  neighborPrimitives.insert( neighborPrimitives.end(), neighborEdges.begin(), neighborEdges.end() );
-  neighborPrimitives.insert( neighborPrimitives.end(), neighborFaces.begin(), neighborFaces.end() );
-
+  getNeighborFaces( someNeighbors );
+  neighborPrimitives.insert( neighborPrimitives.end(), someNeighbors.begin(), someNeighbors.end() );
 }
 
 void Primitive::serialize( walberla::mpi::SendBuffer & sendBuffer ) const
