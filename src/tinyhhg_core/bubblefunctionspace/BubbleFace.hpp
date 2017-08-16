@@ -183,6 +183,7 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 template<size_t Level>
 inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &dstId, uint_t& num) {
+  using walberla::real_c;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -190,7 +191,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      face.getData(dstId)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = num++;
+      face.getData(dstId)->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -201,7 +202,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      face.getData(dstId)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = num++;
+      face.getData(dstId)->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
