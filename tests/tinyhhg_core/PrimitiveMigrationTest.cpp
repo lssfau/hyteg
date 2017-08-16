@@ -7,6 +7,35 @@
 
 namespace hhg {
 
+struct Data
+{
+  uint_t primitiveIDInData = 345678;
+};
+
+class DataHandling : PrimitiveDataHandling< Data, Primitive >
+{
+public:
+
+	std::shared_ptr< Data > initialize( const Primitive * const primitive ) const
+	{
+      auto data = std::make_shared< Data >();
+      data->primitiveIDInData = uint_c( primitive->getID().getID() );
+      return data;
+	}
+
+	virtual void serialize( const Primitive * const primitive, const PrimitiveDataID< Data, Primitive > & id, SendBuffer & buffer ) const
+	{
+      auto data = primitive->getData( id );
+      buffer << data->primitiveIDInData;
+	}
+
+	virtual void deserialize( const Primitive * const primitive, const PrimitiveDataID< Data, Primitive > & id, RecvBuffer & buffer ) const
+	{
+	  auto data = primitive->getData( id );
+	  buffer >> data->primitiveIDInData;
+	}
+};
+
 static void testPrimitiveMigration()
 {
   //uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
@@ -15,6 +44,8 @@ static void testPrimitiveMigration()
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  const uint_t globalNumPrimitives = setupStorage.getNumberOfPrimitives();
 
   loadbalancing::roundRobin( setupStorage );
 
@@ -25,6 +56,10 @@ static void testPrimitiveMigration()
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
   writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_before_migration" );
+
+  PrimitiveDataID< Data, Primitive > dataID;
+  auto dataHandling = std::make_shared< DataHandling >();
+  storage->addPrimitiveData( dataID, dataHandling, "test data" );
 
   WALBERLA_MPI_SECTION()
   {
@@ -38,6 +73,22 @@ static void testPrimitiveMigration()
     }
 
     storage->migratePrimitives( migrationInfo );
+
+    WALBERLA_ROOT_SECTION()
+    {
+      WALBERLA_CHECK_EQUAL( globalNumPrimitives, storage->getNumberOfLocalPrimitives() );
+      PrimitiveStorage::PrimitiveMap primitives;
+      storage->getPrimitives( primitives );
+      for ( const auto & it : primitives )
+      {
+        WALBERLA_CHECK_EQUAL( it.first, it.second->getData( dataID )->primitiveIDInData );
+      }
+    }
+    WALBERLA_NON_ROOT_SECTION()
+    {
+      WALBERLA_CHECK_EQUAL( 0, storage->getNumberOfLocalPrimitives() );
+    }
+
   }
 
 }
