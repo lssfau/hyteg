@@ -380,17 +380,69 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     //   - neighbor primitive
     auto sendingFunction = [ = ]( SendBuffer & sendBuffer ) -> void
     {
+      const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
+
       sendBuffer << true;
-      WALBERLA_LOG_DEVEL( "Serializing source rank: " << rank );
+      // WALBERLA_LOG_DEVEL( "Serializing source rank: " << rank );
       sendBuffer << rank;
-      WALBERLA_LOG_DEVEL( "Serializing PrimitiveID: " << primitiveID.getID() );
+      // WALBERLA_LOG_DEVEL( "Serializing PrimitiveID: " << primitiveID.getID() );
       sendBuffer << primitiveID;
+      sendBuffer << primitiveType;
 
-      sendBuffer << getPrimitiveType( primitiveID );
-
-      Primitive * primitive = getPrimitive( primitiveID );
-
-      sendBuffer << *primitive;
+      switch( primitiveType )
+      {
+      case VERTEX:
+      {
+    	WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
+    	auto vertex = vertices_[ primitiveID.getID() ];
+    	sendBuffer << *vertex;
+        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+        {
+          serializationFunction.second( vertex, sendBuffer );
+        }
+        for ( const auto & serializationFunction : vertexDataSerializationFunctions_ )
+        {
+          serializationFunction.second( vertex, sendBuffer );
+        }
+        vertices_.erase( primitiveID.getID() );
+        break;
+      }
+      case EDGE:
+      {
+    	WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
+    	auto edge = edges_[ primitiveID.getID() ];
+    	sendBuffer << *edge;
+        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+        {
+          serializationFunction.second( edge, sendBuffer );
+        }
+        for ( const auto & serializationFunction : edgeDataSerializationFunctions_ )
+        {
+          serializationFunction.second( edge, sendBuffer );
+        }
+        edges_.erase( primitiveID.getID() );
+        break;
+      }
+      case FACE:
+      {
+    	WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
+    	auto face = faces_[ primitiveID.getID() ];
+    	sendBuffer << *face;
+        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+        {
+          serializationFunction.second( face, sendBuffer );
+        }
+        for ( const auto & serializationFunction : faceDataSerializationFunctions_ )
+        {
+          serializationFunction.second( face, sendBuffer );
+        }
+        faces_.erase( primitiveID.getID() );
+        break;
+      }
+      default:
+    	WALBERLA_ABORT( "Cannot serialize primitive - unkown primitive type" );
+    	break;
+      }
 
     };
 
@@ -438,14 +490,14 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
       if ( hasContent )
       {
-        uint_t        sourceRank;
-        PrimitiveID   primitiveID;
-
+        uint_t            sourceRank;
+        PrimitiveID       primitiveID;
         PrimitiveTypeEnum primitiveType;
 
         recvBuffer >> sourceRank;
         WALBERLA_LOG_DEVEL( "Deserializing source rank: "<< sourceRank );
         recvBuffer >> primitiveID;
+        WALBERLA_ASSERT( !primitiveExistsLocally( primitiveID ) );
         WALBERLA_LOG_DEVEL( "Deserializing PrimitiveID: "<< primitiveID.getID() );
         recvBuffer >> primitiveType;
         WALBERLA_LOG_DEVEL( "Deserializing PrimitiveType: "<< primitiveType );
@@ -456,18 +508,72 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
         {
           std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
           WALBERLA_LOG_INFO( "Deserializing vertex: " << *vertex );
+          WALBERLA_ASSERT_EQUAL( vertex->getID(), primitiveID );
+          vertices_[ primitiveID.getID() ] = vertex;
+          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+          {
+            initializationFunction.second( vertex );
+          }
+          for ( const auto & initializationFunction : vertexDataInitializationFunctions_ )
+          {
+        	initializationFunction.second( vertex );
+          }
+          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( vertex, recvBuffer );
+          }
+          for ( const auto & deserializationFunction : vertexDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( vertex, recvBuffer );
+          }
           break;
         }
         case EDGE:
         {
 		  std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
           WALBERLA_LOG_INFO( "Deserializing edge: " << *edge );
+          WALBERLA_ASSERT_EQUAL( edge->getID(), primitiveID );
+		  edges_[ primitiveID.getID() ] = edge;
+          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+          {
+            initializationFunction.second( edge );
+          }
+          for ( const auto & initializationFunction : edgeDataInitializationFunctions_ )
+          {
+        	initializationFunction.second( edge );
+          }
+          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( edge, recvBuffer );
+          }
+          for ( const auto & deserializationFunction : edgeDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( edge, recvBuffer );
+          }
           break;
         }
         case FACE:
 		{
 		  std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
 		  WALBERLA_LOG_INFO( "Deserializing face: " << *face );
+		  WALBERLA_ASSERT_EQUAL( face->getID(), primitiveID );
+		  faces_[ primitiveID.getID() ] = face;
+          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+          {
+            initializationFunction.second( face );
+          }
+          for ( const auto & initializationFunction : faceDataInitializationFunctions_ )
+          {
+        	initializationFunction.second( face );
+          }
+          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( face, recvBuffer );
+          }
+          for ( const auto & deserializationFunction : faceDataDeserializationFunctions_ )
+          {
+            deserializationFunction.second( face, recvBuffer );
+          }
 		  break;
 		}
         default:
