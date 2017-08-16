@@ -236,8 +236,15 @@ static void testBufferedCommunication()
     }
   }
 
-  const walberla::WcTimingTree tt = timingTree->getReduced();
-  WALBERLA_LOG_INFO_ON_ROOT( tt );
+  WALBERLA_MPI_SECTION()
+  {
+    const walberla::WcTimingTree tt = timingTree->getReduced();
+    WALBERLA_LOG_INFO_ON_ROOT( tt );
+  }
+  WALBERLA_NON_MPI_SECTION()
+  {
+    WALBERLA_LOG_INFO_ON_ROOT( *timingTree );
+  }
 
 }
 
