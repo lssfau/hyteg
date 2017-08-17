@@ -521,6 +521,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   /////////////////////////////////////////////////////////////////////////////
 
   std::vector< PrimitiveID > localPrimitiveIDs;
+  getPrimitiveIDs( localPrimitiveIDs );
   for ( const auto & localID : localPrimitiveIDs )
   {
     if ( vertexExistsInNeighborhood( localID ) ) neighborVertices_.erase( localID.getID() );
@@ -532,7 +533,43 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   // Erasing all neighbors that are not referenced by local primitives from neighborhood //
   /////////////////////////////////////////////////////////////////////////////////////////
 
-  // TODO
+  // enjoy worst possible complexity...
+
+  std::vector< PrimitiveID > neighborhoodIDs;
+  for ( const auto & it : neighborVertices_ ) neighborhoodIDs.push_back( it.first );
+  for ( const auto & it : neighborEdges_    ) neighborhoodIDs.push_back( it.first );
+  for ( const auto & it : neighborFaces_    ) neighborhoodIDs.push_back( it.first );
+
+  for ( const auto & neighborhoodID : neighborhoodIDs )
+  {
+    bool referenced = false;
+    for ( const auto & localID : localPrimitiveIDs )
+    {
+      if ( referenced )
+        break;
+
+      Primitive * primitive = getPrimitive( localID );
+
+      std::vector< PrimitiveID > neighborIDs;
+      primitive->getNeighborPrimitives( neighborIDs );
+
+      for ( const auto & neighborOfLocalID : neighborIDs )
+      {
+        if ( neighborOfLocalID == neighborhoodID )
+        {
+          referenced = true;
+          break;
+        }
+      }
+    }
+
+    if ( !referenced )
+    {
+      if ( vertexExistsInNeighborhood( neighborhoodID ) ) neighborVertices_.erase( neighborhoodID.getID() );
+      if (   edgeExistsInNeighborhood( neighborhoodID ) )    neighborEdges_.erase( neighborhoodID.getID() );
+      if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborFaces_.erase( neighborhoodID.getID() );
+    }
+  }
 
   /////////////////////////////////
   // Updating neighborhood ranks //
@@ -870,6 +907,7 @@ void PrimitiveStorage::checkConsistency()
 #if 0
   // 8. As many neighbor ranks as neighbors
   WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
+#endif
 
   // 9. Local primitives do not exist in neighborhood
   std::vector< PrimitiveID > primitiveIDs;
@@ -878,7 +916,7 @@ void PrimitiveStorage::checkConsistency()
   {
     WALBERLA_CHECK( !primitiveExistsInNeighborhood( id ), "Primitive that exists in neighborhood: " << id.getID() );
   }
-#endif
+
 }
 
 
