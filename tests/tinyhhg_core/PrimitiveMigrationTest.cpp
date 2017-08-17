@@ -38,7 +38,7 @@ public:
 
 static void testPrimitiveMigration()
 {
-  //uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   const std::string meshFileName = "../../data/meshes/tri_2el.msh";
 
@@ -67,29 +67,24 @@ static void testPrimitiveMigration()
     storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
 
     std::map< PrimitiveID::IDType, uint_t > migrationInfo;
+    uint_t lel = 0;
     for ( const auto & id : primitiveIDs )
     {
-      migrationInfo[ id.getID() ] = 0;
+      migrationInfo[ id.getID() ] = ++lel % numProcesses;
     }
 
     storage->migratePrimitives( migrationInfo );
 
-    WALBERLA_ROOT_SECTION()
+    PrimitiveStorage::PrimitiveMap primitives;
+    storage->getPrimitives( primitives );
+    for ( const auto & it : primitives )
     {
-      WALBERLA_CHECK_EQUAL( globalNumPrimitives, storage->getNumberOfLocalPrimitives() );
-      PrimitiveStorage::PrimitiveMap primitives;
-      storage->getPrimitives( primitives );
-      for ( const auto & it : primitives )
-      {
-        WALBERLA_CHECK_EQUAL( it.first, it.second->getData( dataID )->primitiveIDInData );
-      }
-    }
-    WALBERLA_NON_ROOT_SECTION()
-    {
-      WALBERLA_CHECK_EQUAL( 0, storage->getNumberOfLocalPrimitives() );
+      WALBERLA_CHECK_EQUAL( it.first, it.second->getData( dataID )->primitiveIDInData );
     }
 
   }
+
+  writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_after_migration" );
 
 }
 
