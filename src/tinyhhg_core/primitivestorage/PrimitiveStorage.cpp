@@ -4,6 +4,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
+#include "core/mpi/Gatherv.h"
 #include "core/mpi/OpenMPBufferSystem.h"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
@@ -349,6 +350,13 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
   walberla::mpi::OpenMPBufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
 
+  // Preparing buffer to gather migration information on all processes:
+  // Since we need to know if the ranks of the neighborhood have changed
+  // we need to communicate the migrated primitives to all ranks somehow.
+  // Otherwise we cannot reassign the ranks properly.
+  SendBuffer migrationInfoSendBuffer;
+  RecvBuffer migrationInfoRecvBuffer;
+
   ///////////////////////////////////
   // Serialization and sender side //
   ///////////////////////////////////
@@ -368,6 +376,11 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       // we do not want to send already local primitives
       continue;
     }
+
+    // serializing the migration information
+    migrationInfoSendBuffer << primitiveID;
+    migrationInfoSendBuffer << rank;
+    migrationInfoSendBuffer << targetRank;
 
     // Serialize primitives:
     // Create one serialization callback per primitive that shall be serialized.
@@ -492,12 +505,15 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     bufferSystem.addReceivingFunction( static_cast< walberla::mpi::MPIRank >( senderRank ), receivingFunction );
   }
 
-
   //////////////////////////////
   // Performing communication //
   //////////////////////////////
 
   bufferSystem.startCommunication();
+
+  // gathering all migration information
+  walberla::mpi::allGathervBuffer( migrationInfoSendBuffer, migrationInfoRecvBuffer, walberla::mpi::MPIManager::instance()->comm() );
+
   bufferSystem.wait();
 
   ////////////////////////////////////////////////////////////////
@@ -524,6 +540,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   getPrimitiveIDs( localPrimitiveIDs );
   for ( const auto & localID : localPrimitiveIDs )
   {
+    if ( primitiveExistsInNeighborhood( localID ) ) neighborRanks_.erase( localID.getID() );
     if ( vertexExistsInNeighborhood( localID ) ) neighborVertices_.erase( localID.getID() );
     if (   edgeExistsInNeighborhood( localID ) )    neighborEdges_.erase( localID.getID() );
     if (   faceExistsInNeighborhood( localID ) )    neighborFaces_.erase( localID.getID() );
@@ -565,6 +582,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
     if ( !referenced )
     {
+      if ( primitiveExistsInNeighborhood( neighborhoodID ) ) neighborRanks_.erase( neighborhoodID.getID() );
       if ( vertexExistsInNeighborhood( neighborhoodID ) ) neighborVertices_.erase( neighborhoodID.getID() );
       if (   edgeExistsInNeighborhood( neighborhoodID ) )    neighborEdges_.erase( neighborhoodID.getID() );
       if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborFaces_.erase( neighborhoodID.getID() );
@@ -575,70 +593,27 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   // Updating neighborhood ranks //
   /////////////////////////////////
 
-  // TODO
+  while ( !migrationInfoRecvBuffer.isEmpty() )
+  {
+    PrimitiveID migratedPrimitiveID;
+    uint_t      sourceRank;
+    uint_t      targetRank;
+
+    migrationInfoRecvBuffer >> migratedPrimitiveID;
+    migrationInfoRecvBuffer >> sourceRank;
+    migrationInfoRecvBuffer >> targetRank;
+
+    if ( primitiveExistsInNeighborhood( migratedPrimitiveID ) )
+    {
+      neighborRanks_[ migratedPrimitiveID.getID() ] = targetRank;
+    }
+  }
 
 #ifndef NDEBUG
   checkConsistency();
 #endif
 }
 
-#if 0
-void PrimitiveStorage::eraseLocalPrimitives( const std::vector< PrimitiveID > & ids )
-{
-  // copy of local primitives
-  PrimitiveStorage::PrimitiveMap primitiveMap;
-  getPrimitives( primitiveMap );
-
-  // remove to be erased primitives from copy
-  for ( const auto & id : ids )
-  {
-	WALBERLA_ASSERT( primitiveExistsLocally( id ), "Cannot erase non-existent primitive!" );
-    primitiveMap.erase( id.getID() );
-  }
-
-  // get all neighbors of remaining primitives
-  std::set< PrimitiveID > remainingPrimitivesNeighbors;
-  for ( const auto it : primitiveMap )
-  {
-	auto primitive = it.second;
-	std::vector< PrimitiveID > neighborPrimitives;
-	primitive->getNeighborPrimitives( neighborPrimitives );
-	remainingPrimitivesNeighbors.insert( neighborPrimitives.begin(), neighborPrimitives.end() );
-  }
-
-  // collect a set of all neighbor primitives
-  std::vector< PrimitiveID > neighborPrimitives;
-  for ( const auto & it : neighborVertices_ ) { neighborPrimitives.push_back( it.first ); }
-  for ( const auto & it : neighborEdges_ )    { neighborPrimitives.push_back( it.first ); }
-  for ( const auto & it : neighborFaces_ )    { neighborPrimitives.push_back( it.first ); }
-
-  std::set< PrimitiveID > neighborPrimitivesSet( neighborPrimitives.begin(), neighborPrimitives.end() );
-
-  WALBERLA_ASSERT_EQUAL( neighborPrimitives.size(), neighborPrimitivesSet.size() );
-
-  std::vector< PrimitiveID > neighborsToErase( neighborPrimitives.size() );
-  std::set_difference( neighborPrimitives.begin(), neighborPrimitives.end(),
-		               remainingPrimitivesNeighbors.begin(), remainingPrimitivesNeighbors.end(),
-					   neighborsToErase.begin() );
-
-  // remove all neighbors that are not in the set of remaining neighbors
-  for ( const auto & idToErase : neighborsToErase )
-  {
-	if ( vertexExistsInNeighborhood( idToErase ) ) neighborVertices_.erase( idToErase.getID() );
-	if ( edgeExistsInNeighborhood( idToErase ) )   neighborEdges_.erase( idToErase.getID() );
-	if ( faceExistsInNeighborhood( idToErase ) )   neighborFaces_.erase( idToErase.getID() );
-	if ( neighborRanks_.count( idToErase.getID() ) > 0 ) neighborRanks_.erase( idToErase.getID() );
-  }
-
-  // remove actual primitives
-  for ( const auto & idToErase : ids )
-  {
-	if ( vertexExistsLocally( idToErase ) ) vertices_.erase( idToErase.getID() );
-	if ( edgeExistsLocally( idToErase ) )   edges_.erase( idToErase.getID() );
-	if ( faceExistsLocally( idToErase ) )   faces_.erase( idToErase.getID() );
-  }
-}
-#endif
 
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID & primitiveID ) const
 {
@@ -904,10 +879,8 @@ void PrimitiveStorage::checkConsistency()
   WALBERLA_CHECK_LESS_EQUAL( faceDataSerializationFunctions_.size()       , primitiveDataHandlers_ );
   WALBERLA_CHECK_LESS_EQUAL( faceDataDeserializationFunctions_.size()     , primitiveDataHandlers_ );
 
-#if 0
   // 8. As many neighbor ranks as neighbors
   WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
-#endif
 
   // 9. Local primitives do not exist in neighborhood
   std::vector< PrimitiveID > primitiveIDs;

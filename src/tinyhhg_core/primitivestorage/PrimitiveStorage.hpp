@@ -196,13 +196,6 @@ private:
   /// Returns invalid if the primitive is not locally availably.
   PrimitiveTypeEnum getPrimitiveType( const PrimitiveID & primitiveID ) const;
 
-#if 0
-  /// Erases the matching Primitives from the storage
-  /// Also updates the neighborhood and erases neighbors that are not
-  /// referenced by other primitives.
-  void eraseLocalPrimitives( const std::vector< PrimitiveID > & ids );
-#endif
-
   /// Deserializes a primitive from the receive buffer and adds it to the storage.
   /// Reads:
   ///   - PrimitiveType
