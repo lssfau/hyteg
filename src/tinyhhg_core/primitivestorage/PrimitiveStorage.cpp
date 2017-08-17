@@ -488,11 +488,13 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
         for ( uint_t neighborCnt = 0; neighborCnt < numNeighbors; neighborCnt++ )
         {
+#ifndef NDEBUG
           PrimitiveID neighborPrimitiveID = deserializeAndAddPrimitive( recvBuffer, true );
 
-#ifndef NDEBUG
           WALBERLA_CHECK( std::find( neighborPrimitives.begin(), neighborPrimitives.end(), neighborPrimitiveID ) != neighborPrimitives.end(),
                           "Received PrimitiveID that is no neighbor of previously unpacked primitive." );
+#else
+          deserializeAndAddPrimitive( recvBuffer, true );
 #endif
         }
       }
