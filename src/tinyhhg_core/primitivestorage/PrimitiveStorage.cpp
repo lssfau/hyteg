@@ -360,7 +360,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     PrimitiveID primitiveID = primitiveToMigrate.first;
     uint_t      targetRank  = primitiveToMigrate.second;
 
-    WALBERLA_CHECK( primitiveExistsLocally( primitiveID ), "Cannot migrate non-existent primitives." );
+    WALBERLA_CHECK( primitiveExistsLocally( primitiveID ), "Cannot migrate non-locally-existent primitives." );
     WALBERLA_CHECK_LESS( targetRank, numProcesses );
 
     if ( targetRank == rank )
@@ -373,75 +373,39 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     // Create one serialization callback per primitive that shall be serialized.
     // for all primitives to be migrated:
     // - true (signals that this is no empty message)
-    // - source rank
-    // - primitive ID
     // - primitive type (Vertex, Edge, ...)
     // - primitive (contains neighborhood IDs and metadata like coordinates etc.)
     // - primitive data
-    //   - 1.: data that was added to all primitives
-    //   - 2.: data that was added to the type of primitive
-    // - for all neighbors (from lower to higher dimension):
-    //   - neighbor primitive ID
+    //   - data that was added to all primitives
+    //   - data that was added to the type of primitive
+    // - for all neighbors:
+    //   - neighbor type
     //   - neighbor primitive
     auto sendingFunction = [ = ]( SendBuffer & sendBuffer ) -> void
     {
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
+      const Primitive *       primitive     = getPrimitive( primitiveID );
 
       sendBuffer << true;
-      sendBuffer << rank; // == source rank since we are on the sender side
-      sendBuffer << primitiveID;
       sendBuffer << primitiveType;
+      sendBuffer << *primitive;
 
-      switch( primitiveType )
+      serializeAllPrimitiveData( sendBuffer, primitiveID );
+
+      // Neighborhood
+      // the number of neighbors of the sent primitive is already serialized
+      // in its metadata - so we do not need to send it
+      std::vector< PrimitiveID > neighborhood;
+      primitive->getNeighborPrimitives( neighborhood );
+      for ( const auto & neighborID : neighborhood )
       {
-      case VERTEX:
-      {
-    	WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) ); // double check that we serialize a vertex and it is locally allocated
-    	auto vertex = vertices_[ primitiveID.getID() ];
-    	sendBuffer << *vertex;  // serialize metadata
-        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
-        {
-          serializationFunction.second( vertex, sendBuffer ); // serialize data added to all primitives
-        }
-        for ( const auto & serializationFunction : vertexDataSerializationFunctions_ )
-        {
-          serializationFunction.second( vertex, sendBuffer ); // serialize data added only to vertices
-        }
-        break;
-      }
-      case EDGE:
-      {
-    	WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
-    	auto edge = edges_[ primitiveID.getID() ];
-    	sendBuffer << *edge;
-        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
-        {
-          serializationFunction.second( edge, sendBuffer );
-        }
-        for ( const auto & serializationFunction : edgeDataSerializationFunctions_ )
-        {
-          serializationFunction.second( edge, sendBuffer );
-        }
-        break;
-      }
-      case FACE:
-      {
-    	WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
-    	auto face = faces_[ primitiveID.getID() ];
-    	sendBuffer << *face;
-        for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
-        {
-          serializationFunction.second( face, sendBuffer );
-        }
-        for ( const auto & serializationFunction : faceDataSerializationFunctions_ )
-        {
-          serializationFunction.second( face, sendBuffer );
-        }
-        break;
-      }
-      default:
-    	WALBERLA_ABORT( "Cannot serialize primitive - unkown primitive type" );
-    	break;
+        WALBERLA_ASSERT( primitiveExistsLocally( neighborID ) || primitiveExistsInNeighborhood( neighborID ) );
+
+        const PrimitiveTypeEnum neighborType      = getPrimitiveType( neighborID );
+        const Primitive *       neighborPrimitive = getPrimitive( neighborID );
+
+        sendBuffer << neighborType;
+        sendBuffer << *neighborPrimitive;
       }
     };
 
@@ -486,8 +450,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   // Deserialization and receiver side //
   ///////////////////////////////////////
 
-  // Each process registeres a callback that parses and deserializes the
-  // messages sent above.
+  // Each process registers a callback that parses and deserializes the messages sent above.
   auto receivingFunction = [ = ]( RecvBuffer & recvBuffer ) -> void
   {
     while ( !recvBuffer.isEmpty() )
@@ -497,94 +460,28 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
       if ( hasContent )
       {
-        uint_t            sourceRank;
-        PrimitiveID       primitiveID;
-        PrimitiveTypeEnum primitiveType;
+        const PrimitiveID primitiveID = deserializeAndAddPrimitive( recvBuffer, false );
 
-        recvBuffer >> sourceRank;
-        recvBuffer >> primitiveID;
-        recvBuffer >> primitiveType;
+        initializeAndDeserializeAllPrimitiveData( recvBuffer, primitiveID );
 
-        WALBERLA_ASSERT( !primitiveExistsLocally( primitiveID ), "Received already locally existing primitive" );
+        // Neighborhood
+        const Primitive * primitive = getPrimitive( primitiveID );
+        const uint_t numNeighbors = primitive->getNumNeighborPrimitives();
 
-        switch ( primitiveType )
+#ifndef NDEBUG
+        std::vector< PrimitiveID > neighborPrimitives;
+        primitive->getNeighborPrimitives( neighborPrimitives );
+#endif
+
+        for ( uint_t neighborCnt = 0; neighborCnt < numNeighbors; neighborCnt++ )
         {
-        case VERTEX:
-        {
-          std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer ); // allocating a new Vertex using data in the buffer
-          WALBERLA_ASSERT_EQUAL( vertex->getID(), primitiveID );
-          vertices_[ primitiveID.getID() ] = vertex; // adding to to the storage
-          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
-          {
-            initializationFunction.second( vertex ); // before we deserialize the data, we need to initialize the pointers..
-          }
-          for ( const auto & initializationFunction : vertexDataInitializationFunctions_ )
-          {
-        	initializationFunction.second( vertex );
-          }
-          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( vertex, recvBuffer ); // ..now we deserialize
-          }
-          for ( const auto & deserializationFunction : vertexDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( vertex, recvBuffer );
-          }
-          break;
-        }
-        case EDGE:
-        {
-		  std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
-          WALBERLA_LOG_INFO( "Deserializing edge: " << *edge );
-          WALBERLA_ASSERT_EQUAL( edge->getID(), primitiveID );
-		  edges_[ primitiveID.getID() ] = edge;
-          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
-          {
-            initializationFunction.second( edge );
-          }
-          for ( const auto & initializationFunction : edgeDataInitializationFunctions_ )
-          {
-        	initializationFunction.second( edge );
-          }
-          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( edge, recvBuffer );
-          }
-          for ( const auto & deserializationFunction : edgeDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( edge, recvBuffer );
-          }
-          break;
-        }
-        case FACE:
-		{
-		  std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
-		  WALBERLA_LOG_INFO( "Deserializing face: " << *face );
-		  WALBERLA_ASSERT_EQUAL( face->getID(), primitiveID );
-		  faces_[ primitiveID.getID() ] = face;
-          for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
-          {
-            initializationFunction.second( face );
-          }
-          for ( const auto & initializationFunction : faceDataInitializationFunctions_ )
-          {
-        	initializationFunction.second( face );
-          }
-          for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( face, recvBuffer );
-          }
-          for ( const auto & deserializationFunction : faceDataDeserializationFunctions_ )
-          {
-            deserializationFunction.second( face, recvBuffer );
-          }
-		  break;
-		}
-        default:
-          WALBERLA_ABORT( "Cannot deserialize primitive - unkown primitive type" );
-          break;
-        }
+          PrimitiveID neighborPrimitiveID = deserializeAndAddPrimitive( recvBuffer, true );
 
+#ifndef NDEBUG
+          WALBERLA_CHECK( std::find( neighborPrimitives.begin(), neighborPrimitives.end(), neighborPrimitiveID ) != neighborPrimitives.end(),
+                          "Received PrimitiveID that is no neighbor of previously unpacked primitive." );
+#endif
+        }
       }
     }
   };
@@ -603,29 +500,36 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   bufferSystem.startCommunication();
   bufferSystem.wait();
 
-  /////////////////////////////////////
-  // Erasing the migrated primitives //
-  /////////////////////////////////////
+  ////////////////////////////////////////////////////////////////
+  // Erasing the migrated primitives from the locally allocated //
+  ////////////////////////////////////////////////////////////////
 
-  std::vector< PrimitiveID > migratedPrimitives;
-  for ( const auto & it : primitivesToMigrate )
-  {
-	PrimitiveID migratedPrimitive( it.first );
-	uint_t      targetRank = it.second;
+  // TODO
 
-	if ( primitiveExistsLocally( migratedPrimitive ) && targetRank != rank )
-	{
-	  migratedPrimitives.push_back( PrimitiveID( it.first ));
-	}
-  }
-  eraseLocalPrimitives( migratedPrimitives );
+  /////////////////////////////////////////////////////////////////////////////
+  // Erasing all neighborhood primitives that are also locally allocated now //
+  /////////////////////////////////////////////////////////////////////////////
+
+  // TODO
+
+  /////////////////////////////////////////////////////////////////////////////////////////
+  // Erasing all neighbors that are not referenced by local primitives from neighborhood //
+  /////////////////////////////////////////////////////////////////////////////////////////
+
+  // TODO
+
+  /////////////////////////////////
+  // Updating neighborhood ranks //
+  /////////////////////////////////
+
+  // TODO
 
 #ifndef NDEBUG
   checkConsistency();
 #endif
 }
 
-
+#if 0
 void PrimitiveStorage::eraseLocalPrimitives( const std::vector< PrimitiveID > & ids )
 {
   // copy of local primitives
@@ -670,6 +574,7 @@ void PrimitiveStorage::eraseLocalPrimitives( const std::vector< PrimitiveID > & 
 	if ( vertexExistsInNeighborhood( idToErase ) ) neighborVertices_.erase( idToErase.getID() );
 	if ( edgeExistsInNeighborhood( idToErase ) )   neighborEdges_.erase( idToErase.getID() );
 	if ( faceExistsInNeighborhood( idToErase ) )   neighborFaces_.erase( idToErase.getID() );
+	if ( neighborRanks_.count( idToErase.getID() ) > 0 ) neighborRanks_.erase( idToErase.getID() );
   }
 
   // remove actual primitives
@@ -680,13 +585,209 @@ void PrimitiveStorage::eraseLocalPrimitives( const std::vector< PrimitiveID > & 
 	if ( faceExistsLocally( idToErase ) )   faces_.erase( idToErase.getID() );
   }
 }
+#endif
 
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID & primitiveID ) const
 {
-  if ( vertexExistsLocally( primitiveID ) ) return VERTEX;
-  if ( edgeExistsLocally  ( primitiveID ) ) return EDGE;
-  if ( faceExistsLocally  ( primitiveID ) ) return FACE;
+  if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) ) return VERTEX;
+  if (   edgeExistsLocally( primitiveID ) ||   edgeExistsInNeighborhood( primitiveID ) ) return EDGE;
+  if (   faceExistsLocally( primitiveID ) ||   faceExistsInNeighborhood( primitiveID ) ) return FACE;
   return INVALID;
+}
+
+
+PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuffer & recvBuffer, const bool & isNeighborPrimitive )
+{
+  PrimitiveTypeEnum primitiveType;
+  PrimitiveID       primitiveID;
+
+  recvBuffer >> primitiveType;
+
+  switch ( primitiveType )
+  {
+  case VERTEX:
+  {
+    std::shared_ptr< Vertex > vertex = std::make_shared< Vertex >( recvBuffer );
+    primitiveID = vertex->getID();
+    if ( isNeighborPrimitive )
+    {
+      neighborVertices_[ primitiveID.getID() ] = vertex;
+    }
+    else if ( !isNeighborPrimitive )
+    {
+      vertices_[ primitiveID.getID() ] = vertex;
+    }
+    break;
+  }
+  case EDGE:
+  {
+    std::shared_ptr< Edge > edge = std::make_shared< Edge >( recvBuffer );
+    primitiveID = edge->getID();
+    if ( isNeighborPrimitive )
+    {
+      neighborEdges_[ primitiveID.getID() ] = edge;
+    }
+    else if ( !isNeighborPrimitive )
+    {
+      edges_[ primitiveID.getID() ] = edge;
+    }
+    break;
+  }
+  case FACE:
+  {
+    std::shared_ptr< Face > face = std::make_shared< Face >( recvBuffer );
+    primitiveID = face->getID();
+    if ( isNeighborPrimitive )
+    {
+      neighborFaces_[ primitiveID.getID() ] = face;
+    }
+    else if ( !isNeighborPrimitive )
+    {
+      faces_[ primitiveID.getID() ] = face;
+    }
+    break;
+  }
+  default:
+    WALBERLA_ABORT( "Cannot deserialize primitive - unkown primitive type" );
+    break;
+  }
+
+  return primitiveID;
+}
+
+
+
+void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer & sendBuffer, const PrimitiveID & primitiveID )
+{
+  WALBERLA_ASSERT( primitiveExistsLocally( primitiveID ) );
+  const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
+  switch ( primitiveType )
+  {
+  case VERTEX:
+  {
+    WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
+    auto vertex = vertices_[ primitiveID.getID() ];
+    for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+    {
+      serializationFunction.second( vertex, sendBuffer );
+    }
+    for ( const auto & serializationFunction : vertexDataSerializationFunctions_ )
+    {
+      serializationFunction.second( vertex, sendBuffer );
+    }
+    break;
+  }
+  case EDGE:
+  {
+    WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
+    auto edge = edges_[ primitiveID.getID() ];
+    for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+    {
+      serializationFunction.second( edge, sendBuffer );
+    }
+    for ( const auto & serializationFunction : edgeDataSerializationFunctions_ )
+    {
+      serializationFunction.second( edge, sendBuffer );
+    }
+    break;
+  }
+  case FACE:
+  {
+    WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
+    auto face = faces_[ primitiveID.getID() ];
+    for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+    {
+      serializationFunction.second( face, sendBuffer );
+    }
+    for ( const auto & serializationFunction : faceDataSerializationFunctions_ )
+    {
+      serializationFunction.second( face, sendBuffer );
+    }
+    break;
+  }
+  default:
+    WALBERLA_ABORT( "Invalid primitive type during serialization." );
+    break;
+  }
+}
+
+
+void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::RecvBuffer & recvBuffer, const PrimitiveID & primitiveID )
+{
+  WALBERLA_ASSERT( primitiveExistsLocally( primitiveID ) );
+  const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
+  switch ( primitiveType )
+  {
+  case VERTEX:
+  {
+    WALBERLA_ASSERT( vertexExistsLocally( primitiveID ) );
+    auto vertex = vertices_[ primitiveID.getID() ];
+    for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+    {
+      initializationFunction.second( vertex );
+    }
+    for ( const auto & initializationFunction : vertexDataInitializationFunctions_ )
+    {
+      initializationFunction.second( vertex );
+    }
+    for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( vertex, recvBuffer );
+    }
+    for ( const auto & deserializationFunction : vertexDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( vertex, recvBuffer );
+    }
+    break;
+  }
+  case EDGE:
+  {
+    WALBERLA_ASSERT( edgeExistsLocally( primitiveID ) );
+    auto edge = edges_[ primitiveID.getID() ];
+    for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+    {
+      initializationFunction.second( edge );
+    }
+    for ( const auto & initializationFunction : edgeDataInitializationFunctions_ )
+    {
+      initializationFunction.second( edge );
+    }
+    for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( edge, recvBuffer );
+    }
+    for ( const auto & deserializationFunction : edgeDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( edge, recvBuffer );
+    }
+    break;
+  }
+  case FACE:
+  {
+    WALBERLA_ASSERT( faceExistsLocally( primitiveID ) );
+    auto face = faces_[ primitiveID.getID() ];
+    for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+    {
+      initializationFunction.second( face );
+    }
+    for ( const auto & initializationFunction : faceDataInitializationFunctions_ )
+    {
+      initializationFunction.second( face );
+    }
+    for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( face, recvBuffer );
+    }
+    for ( const auto & deserializationFunction : faceDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( face, recvBuffer );
+    }
+    break;
+  }
+  default:
+    WALBERLA_ABORT( "Invalid primitive type during initialization and deserialization." );
+    break;
+  }
 }
 
 
@@ -750,6 +851,18 @@ void PrimitiveStorage::checkConsistency()
   WALBERLA_CHECK_LESS_EQUAL( faceDataSerializationFunctions_.size()       , primitiveDataHandlers_ );
   WALBERLA_CHECK_LESS_EQUAL( faceDataDeserializationFunctions_.size()     , primitiveDataHandlers_ );
 
+#if 0
+  // 8. As many neighbor ranks as neighbors
+  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
+
+  // 9. Local primitives do not exist in neighborhood
+  std::vector< PrimitiveID > primitiveIDs;
+  getPrimitiveIDs( primitiveIDs );
+  for ( const auto & id : primitiveIDs )
+  {
+    WALBERLA_CHECK( !primitiveExistsInNeighborhood( id ), "Primitive that exists in neighborhood: " << id.getID() );
+  }
+#endif
 }
 
 

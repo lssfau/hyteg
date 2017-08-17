@@ -196,10 +196,27 @@ private:
   /// Returns invalid if the primitive is not locally availably.
   PrimitiveTypeEnum getPrimitiveType( const PrimitiveID & primitiveID ) const;
 
+#if 0
   /// Erases the matching Primitives from the storage
   /// Also updates the neighborhood and erases neighbors that are not
   /// referenced by other primitives.
   void eraseLocalPrimitives( const std::vector< PrimitiveID > & ids );
+#endif
+
+  /// Deserializes a primitive from the receive buffer and adds it to the storage.
+  /// Reads:
+  ///   - PrimitiveType
+  ///   - Primitive
+  /// \param recvBuffer the buffer the data shall be unpacked from
+  /// \param isNeighborPrimitive if true, the primitive is added to the neighborhood instead of the local primitives
+  /// \return the ID of the deserialized primitive
+  PrimitiveID deserializeAndAddPrimitive( walberla::mpi::RecvBuffer & recvBuffer, const bool & isNeighborPrimitive );
+
+  /// Serializes all data from a locally allocated primitive to the send buffer.
+  void serializeAllPrimitiveData               ( walberla::mpi::SendBuffer & sendBuffer, const PrimitiveID & primitiveID );
+  /// Initializes and then deserializes all data from the receive buffer to a locally allocated primitive.
+  void initializeAndDeserializeAllPrimitiveData( walberla::mpi::RecvBuffer & recvBuffer, const PrimitiveID & primitiveID );
+
 
   template< typename DataType, typename PrimitiveType >
   inline PrimitiveDataID< DataType, PrimitiveType > generateDataID();
