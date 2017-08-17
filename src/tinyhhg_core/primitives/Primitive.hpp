@@ -101,9 +101,10 @@ public:
   const std::vector< PrimitiveID > & neighborEdges()    const { return neighborEdges_; }
   const std::vector< PrimitiveID > & neighborFaces()    const { return neighborFaces_; }
 
-  uint_t getNumNeighborVertices() const { return neighborVertices_.size(); }
-  uint_t getNumNeighborEdges   () const { return neighborEdges_.size(); }
-  uint_t getNumNeighborFaces   () const { return neighborFaces_.size(); }
+  uint_t getNumNeighborPrimitives() const { return getNumNeighborVertices() + getNumNeighborEdges() + getNumNeighborFaces(); }
+  uint_t getNumNeighborVertices  () const { return neighborVertices_.size(); }
+  uint_t getNumNeighborEdges     () const { return neighborEdges_.size(); }
+  uint_t getNumNeighborFaces     () const { return neighborFaces_.size(); }
 
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const = 0;
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const = 0;
