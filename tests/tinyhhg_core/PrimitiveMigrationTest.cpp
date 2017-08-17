@@ -70,7 +70,9 @@ static void testPrimitiveMigration()
     uint_t lel = 0;
     for ( const auto & id : primitiveIDs )
     {
-      migrationInfo[ id.getID() ] = ++lel % numProcesses;
+      uint_t targetRank = ++lel % numProcesses;
+      WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
+      migrationInfo[ id.getID() ] = targetRank;
     }
 
     storage->migratePrimitives( migrationInfo );
