@@ -504,13 +504,29 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   // Erasing the migrated primitives from the locally allocated //
   ////////////////////////////////////////////////////////////////
 
-  // TODO
+  for ( const auto & it : primitivesToMigrate )
+  {
+    PrimitiveID idToErase  = it.first;
+    uint_t      targetRank = it.second;
+    if ( targetRank != rank ) // only erase local primitives that were migrated to other ranks than mine
+    {
+      if ( vertexExistsLocally( idToErase ) ) vertices_.erase( idToErase.getID() );
+      if (   edgeExistsLocally( idToErase ) )    edges_.erase( idToErase.getID() );
+      if (   faceExistsLocally( idToErase ) )    faces_.erase( idToErase.getID() );
+    }
+  }
 
   /////////////////////////////////////////////////////////////////////////////
   // Erasing all neighborhood primitives that are also locally allocated now //
   /////////////////////////////////////////////////////////////////////////////
 
-  // TODO
+  std::vector< PrimitiveID > localPrimitiveIDs;
+  for ( const auto & localID : localPrimitiveIDs )
+  {
+    if ( vertexExistsInNeighborhood( localID ) ) neighborVertices_.erase( localID.getID() );
+    if (   edgeExistsInNeighborhood( localID ) )    neighborEdges_.erase( localID.getID() );
+    if (   faceExistsInNeighborhood( localID ) )    neighborFaces_.erase( localID.getID() );
+  }
 
   /////////////////////////////////////////////////////////////////////////////////////////
   // Erasing all neighbors that are not referenced by local primitives from neighborhood //
