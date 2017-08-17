@@ -45,8 +45,6 @@ static void testPrimitiveMigration()
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  const uint_t globalNumPrimitives = setupStorage.getNumberOfPrimitives();
-
   loadbalancing::roundRobin( setupStorage );
 
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
