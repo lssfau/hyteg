@@ -14,43 +14,12 @@ namespace P1Face {
 using walberla::uint_t;
 using walberla::real_c;
 
-enum Dir {
-  S = 0,
-  SE = 1,
-  W = 2,
-  C = 3,
-  E = 4,
-  NW = 5,
-  N = 6
-};
-
-const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
-const Dir neighbors[] = {S, SE, W, E, NW, N};
-
-template<uint_t Level>
-inline uint_t index(uint_t col, uint_t row, Dir dir)
-{
-  uint_t h = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS_EQUAL(row,h);
-  WALBERLA_ASSERT_LESS_EQUAL(col,h);
-  uint_t n = h*(h + 1)/2;
-  uint_t center = (n - (h - row)*(h - row + 1)/2) + col;
-  switch (dir) {
-    case C:return center;
-    case N:return center + h - row;
-    case E:return center + 1;
-    case S:return center - h - 1 + row;
-    case W:return center - 1;
-    case SE:return center - h + row;
-    case NW:return center + h - row - 1;
-  }
-  return std::numeric_limits<uint_t>::max();
-}
-
 template<uint_t Level>
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory, Face>& faceMemoryId,
                             std::function<real_t(const hhg::Point3D &)> &expr) {
+  using namespace CoordsVertex;
+
   FaceP1FunctionMemory *faceMemory = face.getData(faceMemoryId);
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -68,7 +37,7 @@ inline void interpolateTmpl(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      faceMemory->data[Level][index<Level>(j, i, C)] = expr(x);
+      faceMemory->data[Level][index<Level>(j, i, VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -161,6 +130,8 @@ template<uint_t Level>
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                        const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
                        const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, UpdateType update) {
+  using namespace CoordsVertex;
+
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -172,16 +143,16 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      tmp = opr_data[C]*src[index<Level>(i, j, C)];
+      tmp = opr_data[VERTEX_C]*src[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
         tmp += opr_data[neighbor]*src[index<Level>(i, j, neighbor)];
       }
 
       if (update==Replace) {
-        dst[index<Level>(i, j, C)] = tmp;
+        dst[index<Level>(i, j, VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[index<Level>(i, j, C)] += tmp;
+        dst[index<Level>(i, j, VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -194,6 +165,8 @@ template<uint_t Level>
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId) {
+  using namespace CoordsVertex;
+
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -205,13 +178,13 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      tmp = rhs[index<Level>(i, j, C)];
+      tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
         tmp -= opr_data[neighbor]*dst[index<Level>(i, j, neighbor)];
       }
 
-      dst[index<Level>(i, j, C)] = tmp/opr_data[C];
+      dst[index<Level>(i, j, VERTEX_C)] = tmp/opr_data[VERTEX_C];
     }
     --inner_rowsize;
   }
@@ -221,6 +194,8 @@ SPECIALIZE(void, smooth_gs_tmpl, smooth_gs)
 
 template<uint_t Level>
 inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face>& memoryId) {
+  using namespace CoordsVertex;
+
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
 
@@ -231,16 +206,16 @@ inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemo
 
   for (uint_t i = 1; i < N_c - 1; ++i) {
     for (j = 1; j < N_c_i - 2; ++j) {
-      v_f[index<Level + 1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
-      v_f[index<Level + 1>(2*i - 1, 2*j - 1, C)] =
-          0.5*(v_c[index<Level>(i - 1, j, C)] + v_c[index<Level>(i, j - 1, C)]);
-      v_f[index<Level + 1>(2*i - 1, 2*j, C)] = 0.5*(v_c[index<Level>(i, j, C)] + v_c[index<Level>(i - 1, j, C)]);
-      v_f[index<Level + 1>(2*i, 2*j - 1, C)] = 0.5*(v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j - 1, C)]);
+      v_f[index<Level + 1>(2*i, 2*j, VERTEX_C)] = v_c[index<Level>(i, j, VERTEX_C)];
+      v_f[index<Level + 1>(2*i - 1, 2*j - 1, VERTEX_C)] =
+          0.5*(v_c[index<Level>(i - 1, j, VERTEX_C)] + v_c[index<Level>(i, j - 1, VERTEX_C)]);
+      v_f[index<Level + 1>(2*i - 1, 2*j, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i - 1, j, VERTEX_C)]);
+      v_f[index<Level + 1>(2*i, 2*j - 1, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i, j - 1, VERTEX_C)]);
     }
 
-    v_f[index<Level + 1>(2*i - 1, 2*j - 1, C)] = 0.5*(v_c[index<Level>(i - 1, j, C)] + v_c[index<Level>(i, j - 1, C)]);
-    v_f[index<Level + 1>(2*i - 1, 2*j, C)] = 0.5*(v_c[index<Level>(i, j, C)] + v_c[index<Level>(i - 1, j, C)]);
-    v_f[index<Level + 1>(2*i, 2*j - 1, C)] = 0.5*(v_c[index<Level>(i, j, C)] + v_c[index<Level>(i, j - 1, C)]);
+    v_f[index<Level + 1>(2*i - 1, 2*j - 1, VERTEX_C)] = 0.5*(v_c[index<Level>(i - 1, j, VERTEX_C)] + v_c[index<Level>(i, j - 1, VERTEX_C)]);
+    v_f[index<Level + 1>(2*i - 1, 2*j, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i - 1, j, VERTEX_C)]);
+    v_f[index<Level + 1>(2*i, 2*j - 1, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, VERTEX_C)] + v_c[index<Level>(i, j - 1, VERTEX_C)]);
 
     --N_c_i;
   }
@@ -250,6 +225,8 @@ SPECIALIZE(void, prolongate_tmpl, prolongate)
 
 template<uint_t Level>
 inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face>& memoryId) {
+  using namespace CoordsVertex;
+
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
   auto &v_f = face.getData(memoryId)->data[Level + 1];
@@ -261,20 +238,20 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
   for (j = 2; j <= N_c - 1; j += 2) {
 // upper triangle inner points
 //calculate offsets
-    linearx = 0.5*(v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
-    lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, C)] + v_c[index<Level>(i, j - 2, C)]);
-    linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+    linearx = 0.5*(v_c[index<Level>(i, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
+    lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, VERTEX_C)] + v_c[index<Level>(i, j - 2, VERTEX_C)]);
+    linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
 
-    offx = v_c[index<Level>(i, j - 1, C)] - linearx;
-    offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
-    offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+    offx = v_c[index<Level>(i, j - 1, VERTEX_C)] - linearx;
+    offy = v_c[index<Level>(i + 1, j - 2, VERTEX_C)] - lineary;
+    offxy = v_c[index<Level>(i + 1, j - 1, VERTEX_C)] - linearxy;
 
 // left bottom corner
-    v_f[index<Level + 1>(2*i + 1, 2*j - 3, C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+    v_f[index<Level + 1>(2*i + 1, 2*j - 3, VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-    v_f[index<Level + 1>(2*i + 1, 2*j - 2, C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+    v_f[index<Level + 1>(2*i + 1, 2*j - 2, VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-    v_f[index<Level + 1>(2*i + 2, 2*j - 3, C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+    v_f[index<Level + 1>(2*i + 2, 2*j - 3, VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
   }
 
   N_c_i -= 1;
@@ -283,50 +260,50 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
     for (j = 2; j < N_c_i - 1; j += 2) {
 // upper triangle inner points
 //calculate offsets
-      linearx = 0.5*(v_c[index<Level>(i, j - 2, C)] + v_c[index<Level>(i, j, C)]);
-      lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, C)] + v_c[index<Level>(i, j - 2, C)]);
-      linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, C)] + v_c[index<Level>(i, j, C)]);
+      linearx = 0.5*(v_c[index<Level>(i, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
+      lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, VERTEX_C)] + v_c[index<Level>(i, j - 2, VERTEX_C)]);
+      linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
 
-      offx = v_c[index<Level>(i, j - 1, C)] - linearx;
-      offy = v_c[index<Level>(i + 1, j - 2, C)] - lineary;
-      offxy = v_c[index<Level>(i + 1, j - 1, C)] - linearxy;
+      offx = v_c[index<Level>(i, j - 1, VERTEX_C)] - linearx;
+      offy = v_c[index<Level>(i + 1, j - 2, VERTEX_C)] - lineary;
+      offxy = v_c[index<Level>(i + 1, j - 1, VERTEX_C)] - linearxy;
 // left bottom corner
-      v_f[index<Level + 1>(2*i + 1, 2*j - 3, C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+      v_f[index<Level + 1>(2*i + 1, 2*j - 3, VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-      v_f[index<Level + 1>(2*i + 1, 2*j - 2, C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+      v_f[index<Level + 1>(2*i + 1, 2*j - 2, VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-      v_f[index<Level + 1>(2*i + 2, 2*j - 3, C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+      v_f[index<Level + 1>(2*i + 2, 2*j - 3, VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
 
 // lower triangle all points
 //calculate offsets
-      lineary = 0.5*(v_c[index<Level>(i - 2, j, C)] + v_c[index<Level>(i, j, C)]);
-      linearxy = 0.5*(v_c[index<Level>(i - 2, j, C)] + v_c[index<Level>(i, j - 2, C)]);
+      lineary = 0.5*(v_c[index<Level>(i - 2, j, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
+      linearxy = 0.5*(v_c[index<Level>(i - 2, j, VERTEX_C)] + v_c[index<Level>(i, j - 2, VERTEX_C)]);
 
-      offy = v_c[index<Level>(i - 1, j, C)] - lineary;
-      offxy = v_c[index<Level>(i - 1, j - 1, C)] - linearxy;
+      offy = v_c[index<Level>(i - 1, j, VERTEX_C)] - lineary;
+      offxy = v_c[index<Level>(i - 1, j - 1, VERTEX_C)] - linearxy;
 // first inner points
 // left bottom corner
-      v_f[index<Level + 1>(2*i - 1, 2*j - 1, C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+      v_f[index<Level + 1>(2*i - 1, 2*j - 1, VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-      v_f[index<Level + 1>(2*i - 1, 2*j - 2, C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+      v_f[index<Level + 1>(2*i - 1, 2*j - 2, VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-      v_f[index<Level + 1>(2*i - 2, 2*j - 1, C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+      v_f[index<Level + 1>(2*i - 2, 2*j - 1, VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
 
 // boundary points
 // x-direction
-      v_f[index<Level + 1>(2*i, 2*j - 1, C)] = 0.5*(linearx + v_c[index<Level>(i, j, C)]) + 0.75*offx;
-      v_f[index<Level + 1>(2*i, 2*j - 3, C)] = 0.5*(linearx + v_c[index<Level>(i, j - 2, C)]) + 0.75*offx;
+      v_f[index<Level + 1>(2*i, 2*j - 1, VERTEX_C)] = 0.5*(linearx + v_c[index<Level>(i, j, VERTEX_C)]) + 0.75*offx;
+      v_f[index<Level + 1>(2*i, 2*j - 3, VERTEX_C)] = 0.5*(linearx + v_c[index<Level>(i, j - 2, VERTEX_C)]) + 0.75*offx;
 //y-direction
-      v_f[index<Level + 1>(2*i - 1, 2*j, C)] = 0.5*(v_c[index<Level>(i, j, C)] + lineary) + 0.75*offy;
-      v_f[index<Level + 1>(2*i - 3, 2*j, C)] = 0.5*(v_c[index<Level>(i - 2, j, C)] + lineary) + 0.75*offy;
+      v_f[index<Level + 1>(2*i - 1, 2*j, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, VERTEX_C)] + lineary) + 0.75*offy;
+      v_f[index<Level + 1>(2*i - 3, 2*j, VERTEX_C)] = 0.5*(v_c[index<Level>(i - 2, j, VERTEX_C)] + lineary) + 0.75*offy;
 //xy-direction
-      v_f[index<Level + 1>(2*i - 1, 2*j - 3, C)] = 0.5*(v_c[index<Level>(i, j - 2, C)] + linearxy) + 0.75*offxy;
-      v_f[index<Level + 1>(2*i - 3, 2*j - 1, C)] = 0.5*(v_c[index<Level>(i - 2, j, C)] + linearxy) + 0.75*offxy;
+      v_f[index<Level + 1>(2*i - 1, 2*j - 3, VERTEX_C)] = 0.5*(v_c[index<Level>(i, j - 2, VERTEX_C)] + linearxy) + 0.75*offxy;
+      v_f[index<Level + 1>(2*i - 3, 2*j - 1, VERTEX_C)] = 0.5*(v_c[index<Level>(i - 2, j, VERTEX_C)] + linearxy) + 0.75*offxy;
 // coarse points
-      v_f[index<Level + 1>(2*i, 2*j, C)] = v_c[index<Level>(i, j, C)];
-      v_f[index<Level + 1>(2*i, 2*j - 2, C)] = v_c[index<Level>(i, j - 1, C)];
-      v_f[index<Level + 1>(2*i - 2, 2*j, C)] = v_c[index<Level>(i - 1, j, C)];
-      v_f[index<Level + 1>(2*i - 2, 2*j - 2, C)] = v_c[index<Level>(i - 1, j - 1, C)];
+      v_f[index<Level + 1>(2*i, 2*j, VERTEX_C)] = v_c[index<Level>(i, j, VERTEX_C)];
+      v_f[index<Level + 1>(2*i, 2*j - 2, VERTEX_C)] = v_c[index<Level>(i, j - 1, VERTEX_C)];
+      v_f[index<Level + 1>(2*i - 2, 2*j, VERTEX_C)] = v_c[index<Level>(i - 1, j, VERTEX_C)];
+      v_f[index<Level + 1>(2*i - 2, 2*j - 2, VERTEX_C)] = v_c[index<Level>(i - 1, j - 1, VERTEX_C)];
     }
     N_c_i -= 2;
 
@@ -337,6 +314,8 @@ SPECIALIZE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template<uint_t Level>
 inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &memoryId) {
+  using namespace CoordsVertex;
+
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   uint_t N_c_i = N_c;
 
@@ -347,13 +326,13 @@ inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 
   for (uint_t i = 1; i < N_c - 2; ++i) {
     for (uint_t j = 1; j < N_c_i - 2; ++j) {
-      tmp = v_f[index<Level>(2*i, 2*j, C)];
+      tmp = v_f[index<Level>(2*i, 2*j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
         tmp += 0.5*v_f[index<Level>(2*i, 2*j, neighbor)];
       }
 
-      v_c[index<Level - 1>(i, j, C)] = tmp;
+      v_c[index<Level - 1>(i, j, VERTEX_C)] = tmp;
     }
 
     --N_c_i;
@@ -373,25 +352,6 @@ inline bool is_boundary(uint_t index, uint_t length) {
   }
   return (index==0 || index==(length - 1));
 }
-
-//
-//template<uint_t Level>
-//inline void printFunctionMemory(Face& face, PrimitiveDataID<FaceP1FunctionMemory,Face> memory_id){
-//  using namespace std;
-//  auto& faceMemory = hhg::P1Bubble::getFaceFunctionMemory(face, 0)->data[Level];
-//  uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
-//  cout << setfill('=') << setw(100) << "" << endl;
-//  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
-//  cout << "Vertices: " << std::endl;
-//  for (uint_t i = 0; i < verticesPerDge; ++i) {
-//    for (uint_t j = 0; j < verticesPerDge - i; ++j) {
-//      cout << setw(5) << faceMemory[CoordsVertex::index<Level>(i, j, CoordsVertex::VERTEX_C)] << "|";
-//    }
-//    std::cout << std::endl;
-//  }
-//  cout << setw(100) << setfill(' ') << endl;
-//
-//}
 
 inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, size_t level, uint_t& num) {
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -416,6 +376,8 @@ template<uint_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+  using namespace CoordsVertex;
+
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -426,10 +388,10 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, C)], src[index<Level>(i, j, C)], opr_data[C]);
+      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
 
       for (auto neighbor : neighbors) {
-        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
       }
     }
     --inner_rowsize;
