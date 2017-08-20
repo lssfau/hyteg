@@ -100,7 +100,7 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::assign(face, scalars, srcFaceIDs, faceDataID_, level);
+            P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
         }
     }
 
@@ -146,7 +146,7 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-          P1Face::add(face, scalars, srcFaceIDs, faceDataID_, level);
+          P1Face::add(level, face, scalars, srcFaceIDs, faceDataID_);
       }
   }
 
@@ -177,7 +177,7 @@ real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-        scalarProduct += P1Face::dot(face, faceDataID_, rhs.faceDataID_, level);
+        scalarProduct += P1Face::dot(level, face, faceDataID_, rhs.faceDataID_);
       }
   }
 

@@ -47,84 +47,80 @@ inline void interpolateTmpl(Face &face,
 
 SPECIALIZE(void, interpolateTmpl, interpolate)
 
-inline void assign(Face &face,
+template<uint_t Level>
+inline void assignTmpl(Face &face,
                    const std::vector<real_t>& scalars,
                    const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
-                   const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
-                   uint_t level) {
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+                   const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  uint_t mr = 1 + rowsize;
-
-  for (uint_t i = 0; i < rowsize - 3; ++i) {
-    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
-      real_t tmp = scalars[0]*face.getData(srcIds[0])->data[level][mr];
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      real_t tmp = scalars[0]*face.getData(srcIds[0])->data[Level][index<Level>(i, j, VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->data[level][mr];
+        tmp += scalars[k]*face.getData(srcIds[k])->data[Level][index<Level>(i, j, VERTEX_C)];
       }
-      face.getData(dstId)->data[level][mr] = tmp;
-
-      mr += 1;
+      face.getData(dstId)->data[Level][index<Level>(i, j, VERTEX_C)] = tmp;
     }
-
-    mr += 2;
     --inner_rowsize;
   }
 }
 
-inline void add(Face &face,
+SPECIALIZE(void, assignTmpl, assign);
+
+template<uint_t Level>
+inline void addTmpl(Face &face,
                 const std::vector<real_t>& scalars,
                 const std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>> &srcIds,
-                const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
-                uint_t level) {
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+                const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  uint_t mr = 1 + rowsize;
-
-  for (uint_t i = 0; i < rowsize - 3; ++i) {
-    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       real_t tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->data[level][mr];
+        tmp += scalars[k]*face.getData(srcIds[k])->data[Level][index<Level>(i, j, VERTEX_C)];
       }
 
-      face.getData(dstId)->data[level][mr] += tmp;
-
-      mr += 1;
+      face.getData(dstId)->data[Level][index<Level>(i, j, VERTEX_C)] += tmp;
     }
 
-    mr += 2;
     --inner_rowsize;
   }
 }
 
-inline real_t dot(Face &face,
+SPECIALIZE(void, addTmpl, add);
+
+template<uint_t Level>
+inline real_t dotTmpl(Face &face,
                   const PrimitiveDataID<FaceP1FunctionMemory, Face>& lhsId,
-                  const PrimitiveDataID<FaceP1FunctionMemory, Face>& rhsId,
-                  uint_t level) {
+                  const PrimitiveDataID<FaceP1FunctionMemory, Face>& rhsId) {
+  using namespace CoordsVertex;
+
   real_t sp = 0.0;
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  uint_t mr = 1 + rowsize;
-
-  for (uint_t i = 0; i < rowsize - 3; ++i) {
-    for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
-      sp += face.getData(lhsId)->data[level][mr]
-          *face.getData(rhsId)->data[level][mr];
-      mr += 1;
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      sp += face.getData(lhsId)->data[Level][index<Level>(i, j, VERTEX_C)]
+          *face.getData(rhsId)->data[Level][index<Level>(i, j, VERTEX_C)];
     }
-
-    mr += 2;
     --inner_rowsize;
   }
 
   return sp;
 }
+
+SPECIALIZE(real_t, dotTmpl, dot);
 
 template<uint_t Level>
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
