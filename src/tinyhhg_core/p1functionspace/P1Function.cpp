@@ -43,7 +43,7 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
         Edge& edge = *it.second;
 
         if (testFlag(edge.type, flag)) {
-            P1Edge::interpolate(edge, edgeDataID_, expr, level);
+            P1Edge::interpolate(level, edge, edgeDataID_, expr);
         }
     }
 
@@ -89,7 +89,7 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
         Edge& edge = *it.second;
 
         if (testFlag(edge.type, flag)) {
-            P1Edge::assign(edge, scalars, srcEdgeIDs, edgeDataID_, level);
+            P1Edge::assign(level, edge, scalars, srcEdgeIDs, edgeDataID_);
         }
     }
 
@@ -135,7 +135,7 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
       Edge& edge = *it.second;
 
       if (testFlag(edge.type, flag)) {
-          P1Edge::add(edge, scalars, srcEdgeIDs, edgeDataID_, level);
+          P1Edge::add(level, edge, scalars, srcEdgeIDs, edgeDataID_);
       }
   }
 
@@ -169,7 +169,7 @@ real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
       Edge& edge = *it.second;
 
       if (testFlag(edge.type, flag)) {
-        scalarProduct += P1Edge::dot(edge, edgeDataID_, rhs.edgeDataID_, level);
+        scalarProduct += P1Edge::dot(level, edge, edgeDataID_, rhs.edgeDataID_);
       }
   }
 
@@ -206,7 +206,7 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
 
       if (testFlag(edge.type, flag))
       {
-        P1Edge::prolongate(edge, edgeDataID_, sourceLevel);
+        P1Edge::prolongate(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -245,7 +245,7 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
 
     if (testFlag(edge.type, flag))
     {
-      P1Edge::prolongateQuadratic(edge, edgeDataID_, sourceLevel);
+      P1Edge::prolongateQuadratic(sourceLevel, edge, edgeDataID_);
     }
   }
 
@@ -296,7 +296,7 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
 
       if (testFlag(edge.type, flag))
       {
-        P1Edge::restrict(edge, edgeDataID_, sourceLevel);
+        P1Edge::restrict(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -329,7 +329,7 @@ void P1Function::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
-    P1Edge::enumerate(edge, edgeDataID_, level, num);
+    P1Edge::enumerate(level, edge, edgeDataID_, num);
   }
 
   communicators_[level]->startCommunication<Edge, Face>();

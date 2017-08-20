@@ -23,11 +23,21 @@ enum DirVertex {
   VERTEX_N  = 6
 };
 
-const DirVertex neighbors_with_center[13] =
+const DirVertex neighbors_with_center[] =
     {VERTEX_C,
      VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
-const DirVertex neighbors[12] =
+
+const DirVertex neighbors[] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+
+const DirVertex neighbors_on_edge[] =
+    {VERTEX_E, VERTEX_W};
+
+const DirVertex neighbors_south[] =
+    {VERTEX_S, VERTEX_SE};
+
+const DirVertex neighbors_north[] =
+    {VERTEX_N, VERTEX_NW};
 
 //first face is south face by convention
 

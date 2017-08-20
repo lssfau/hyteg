@@ -188,7 +188,7 @@ private:
 
       if (testFlag(edge.type, flag))
       {
-        P1Edge::apply(edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), level, updateType);
+        P1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -238,7 +238,7 @@ private:
 
       if (testFlag(edge.type, flag))
       {
-        P1Edge::smooth_gs(edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), level);
+        P1Edge::smooth_gs(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -274,7 +274,7 @@ private:
 
       if (testFlag(edge.type, flag))
       {
-        P1Edge::saveOperator(edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out, level);
+        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
       }
     }
 
