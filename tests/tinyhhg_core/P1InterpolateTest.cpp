@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = P1Face::index<maxLevel>(j, i, P1Face::C);
+        uint_t idx = P1Face::CoordsVertex::index<maxLevel>(j, i, P1Face::CoordsVertex::VERTEX_C);
         if (P1Face::is_boundary(idx, v_perEdge))
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], 0.0,
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::P1Edge::interpolate(*edge,x.getEdgeDataID(),exact,maxLevel);
+    hhg::P1Edge::interpolate(maxLevel, *edge,x.getEdgeDataID(),exact);
     value = 2 * edge->coords_[0].x[0] + edge->coords_[0].x[1];
     xStepSize = edge->direction_.x[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->direction_.x[1] / walberla::real_c((v_perEdge-1));
