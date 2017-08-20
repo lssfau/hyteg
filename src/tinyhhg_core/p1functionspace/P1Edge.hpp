@@ -28,7 +28,7 @@ inline void interpolateTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, interpolateTmpl, interpolate);
+SPECIALIZE(void, interpolateTmpl, interpolate)
 
 template<uint_t Level>
 inline void assignTmpl(Edge &edge,
@@ -50,7 +50,7 @@ inline void assignTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, assignTmpl, assign);
+SPECIALIZE(void, assignTmpl, assign)
 
 template<uint_t Level>
 inline void addTmpl(Edge &edge,
@@ -72,7 +72,7 @@ inline void addTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, addTmpl, add);
+SPECIALIZE(void, addTmpl, add)
 
 template<uint_t Level>
 inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &lhsMemoryId,
@@ -90,7 +90,7 @@ inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Ed
   return sp;
 }
 
-SPECIALIZE(real_t, dotTmpl, dot);
+SPECIALIZE(real_t, dotTmpl, dot)
 
 template<uint_t Level>
 inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
@@ -132,7 +132,7 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
   }
 }
 
-SPECIALIZE(void, applyTmpl, apply);
+SPECIALIZE(void, applyTmpl, apply)
 
 template<uint_t Level>
 inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
@@ -168,7 +168,7 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, 
   }
 }
 
-SPECIALIZE(void, smoothGSTmpl, smooth_gs);
+SPECIALIZE(void, smoothGSTmpl, smooth_gs)
 
 template<uint_t SourceLevel>
 inline void prolongateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId) {
@@ -191,7 +191,7 @@ inline void prolongateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemor
                                                             + edge_data_c[index<SourceLevel>(i_c, VERTEX_C)]);
 }
 
-SPECIALIZE(void, prolongateTmpl, prolongate);
+SPECIALIZE(void, prolongateTmpl, prolongate)
 
 template<uint_t Level>
 inline void prolongateQuadraticTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId) {
@@ -220,7 +220,7 @@ inline void prolongateQuadraticTmpl(Edge &edge, const PrimitiveDataID<EdgeP1Func
 
 }
 
-SPECIALIZE(void, prolongateQuadraticTmpl, prolongateQuadratic);
+SPECIALIZE(void, prolongateQuadraticTmpl, prolongateQuadratic)
 
 template<uint_t Level>
 inline void restrictTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId) {
@@ -251,7 +251,7 @@ inline void restrictTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory,
   }
 }
 
-SPECIALIZE(void, restrictTmpl, restrict);
+SPECIALIZE(void, restrictTmpl, restrict)
 
 template<uint_t Level>
 inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, uint_t& num) {
@@ -264,7 +264,7 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory
   }
 }
 
-SPECIALIZE(void, enumerateTmpl, enumerate);
+SPECIALIZE(void, enumerateTmpl, enumerate)
 
 template<uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
@@ -297,7 +297,7 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
   }
 }
 
-SPECIALIZE(void, saveOperatorTmpl, saveOperator);
+SPECIALIZE(void, saveOperatorTmpl, saveOperator)
 
 }
 }

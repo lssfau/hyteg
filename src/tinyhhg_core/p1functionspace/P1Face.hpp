@@ -70,7 +70,7 @@ inline void assignTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, assignTmpl, assign);
+SPECIALIZE(void, assignTmpl, assign)
 
 template<uint_t Level>
 inline void addTmpl(Face &face,
@@ -97,7 +97,7 @@ inline void addTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, addTmpl, add);
+SPECIALIZE(void, addTmpl, add)
 
 template<uint_t Level>
 inline real_t dotTmpl(Face &face,
@@ -120,7 +120,7 @@ inline real_t dotTmpl(Face &face,
   return sp;
 }
 
-SPECIALIZE(real_t, dotTmpl, dot);
+SPECIALIZE(real_t, dotTmpl, dot)
 
 template<uint_t Level>
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
