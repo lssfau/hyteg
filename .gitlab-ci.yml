@@ -660,12 +660,13 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
       - mkdir build
       - cd build
       - cmake -LAH -DWALBERLA_DIR=../walberla -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=OFF -G "$CMAKE_GENERATOR" ..
-      - cmake --build . --config Release -- /maxcpucount:4
+      - cmake --build apps --config $BUILD_CONFIGURATION -- /maxcpucount:4
+      - cmake --build tests --config $BUILD_CONFIGURATION -- /maxcpucount:4
       #- cd tests
       #- ctest -LE $CTEST_EXCLUDE_LABELS -C $BUILD_CONFIGURATION --output-on-failure -j 4
 
 
-msvc-14_Hybrid_Dbg:
+msvc-14.1_Hybrid_Dbg:
    <<: *win_build_definition
    variables:
       CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
@@ -675,7 +676,7 @@ msvc-14_Hybrid_Dbg:
       WALBERLA_BUILD_WITH_OPENMP: "ON"
       WALBERLA_DOUBLE_ACCURACY: "ON"
 
-msvc-14_Hybrid:
+msvc-14.1_Hybrid:
    <<: *win_build_definition
    variables:
       CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
@@ -685,7 +686,7 @@ msvc-14_Hybrid:
       WALBERLA_BUILD_WITH_OPENMP: "ON"
       WALBERLA_DOUBLE_ACCURACY: "ON"
 
-msvc-14_Serial_Dbg:
+msvc-14.1_Serial_Dbg:
    <<: *win_build_definition
    variables:
       CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
@@ -695,7 +696,7 @@ msvc-14_Serial_Dbg:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
 
-msvc-14_MpiOnly_Dbg:
+msvc-14.1_MpiOnly_Dbg:
    <<: *win_build_definition
    variables:
       CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
