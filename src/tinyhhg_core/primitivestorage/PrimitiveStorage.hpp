@@ -181,6 +181,10 @@ public:
   /// \param primitivesToMigrate key: primitive to migrate, value: target process
   void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate );
 
+  /// Returns a stamp that is always increased when the topology of the storage somehow changes -
+  /// e.g. after migration of primitives to other processes.
+  uint_t getModificationStamp() const { return modificationStamp_; }
+
 private:
 
   // needed to differentiate when migrating primitives
@@ -297,6 +301,9 @@ private:
 
   std::map< PrimitiveID::IDType, uint_t > neighborRanks_;
 
+  void wasModified() { modificationStamp_++; }
+  uint_t modificationStamp_;
+
 };
 
 ////////////////////////////////////////////////
@@ -406,12 +413,7 @@ inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandl
     initCallback( primitive.second );
   }
 
-#if 0
-  for ( auto it = primitives.begin(); it != primitives.end(); it++ )
-  {
-    it->second->addData( dataID, dataHandling );
-  }
-#endif
+  wasModified();
 }
 
 

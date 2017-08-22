@@ -22,7 +22,7 @@ namespace hhg {
 using walberla::uint_t;
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
-  primitiveDataHandlers_( 0 )
+  primitiveDataHandlers_( 0 ), modificationStamp_( 0 )
 {
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
   {
@@ -345,6 +345,10 @@ uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
 
 void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate )
 {
+#ifndef NDEBUG
+  checkConsistency();
+#endif
+
   uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
@@ -365,8 +369,10 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
   for ( const auto & primitiveToMigrate : primitivesToMigrate )
   {
-    PrimitiveID primitiveID = primitiveToMigrate.first;
-    uint_t      targetRank  = primitiveToMigrate.second;
+    const PrimitiveID primitiveID = primitiveToMigrate.first;
+    const uint_t      targetRank  = primitiveToMigrate.second;
+
+    WALBERLA_LOG_DEVEL( "Sending ID " << primitiveID.getID() << " to rank " << targetRank );
 
     WALBERLA_CHECK( primitiveExistsLocally( primitiveID ), "Cannot migrate non-locally-existent primitives." );
     WALBERLA_CHECK_LESS( targetRank, numProcesses );
@@ -394,6 +400,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     // - for all neighbors:
     //   - neighbor type
     //   - neighbor primitive
+    //   - neighbor primitive rank
     auto sendingFunction = [ = ]( SendBuffer & sendBuffer ) -> void
     {
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
@@ -419,6 +426,14 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
         sendBuffer << neighborType;
         sendBuffer << *neighborPrimitive;
+        if ( primitiveExistsLocally( neighborID ) )
+        {
+          sendBuffer << rank;
+        }
+        else if ( primitiveExistsInNeighborhood( neighborID ) )
+        {
+          sendBuffer << getNeighborPrimitiveRank( neighborID );
+        }
       }
     };
 
@@ -475,6 +490,8 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       {
         const PrimitiveID primitiveID = deserializeAndAddPrimitive( recvBuffer, false );
 
+        WALBERLA_LOG_DEVEL( "Receiving ID " << primitiveID.getID() );
+
         initializeAndDeserializeAllPrimitiveData( recvBuffer, primitiveID );
 
         // Neighborhood
@@ -518,19 +535,35 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 
   bufferSystem.wait();
 
-  ////////////////////////////////////////////////////////////////
-  // Erasing the migrated primitives from the locally allocated //
-  ////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Erasing the migrated primitives from the locally allocated but creating copies for the neighborhood //
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   for ( const auto & it : primitivesToMigrate )
   {
     PrimitiveID idToErase  = it.first;
     uint_t      targetRank = it.second;
+    WALBERLA_ASSERT( primitiveExistsLocally( idToErase ), "Cannot erase non-locally-existent primitives." );
     if ( targetRank != rank ) // only erase local primitives that were migrated to other ranks than mine
     {
-      if ( vertexExistsLocally( idToErase ) ) vertices_.erase( idToErase.getID() );
-      if (   edgeExistsLocally( idToErase ) )    edges_.erase( idToErase.getID() );
-      if (   faceExistsLocally( idToErase ) )    faces_.erase( idToErase.getID() );
+      if ( vertexExistsLocally( idToErase ) )
+      {
+        neighborVertices_[ idToErase.getID() ] = std::make_shared< Vertex >( *getVertex( idToErase ) );
+        neighborRanks_[ idToErase.getID() ] = targetRank;
+        vertices_.erase( idToErase.getID() );
+      }
+      if (   edgeExistsLocally( idToErase ) )
+      {
+        neighborEdges_[ idToErase.getID() ] = std::make_shared< Edge >( *getEdge( idToErase ) );
+        neighborRanks_[ idToErase.getID() ] = targetRank;
+        edges_.erase( idToErase.getID() );
+      }
+      if (   faceExistsLocally( idToErase ) )
+      {
+        neighborFaces_[ idToErase.getID() ] = std::make_shared< Face >( *getFace( idToErase ) );
+        neighborRanks_[ idToErase.getID() ] = targetRank;
+        faces_.erase( idToErase.getID() );
+      }
     }
   }
 
@@ -611,6 +644,8 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     }
   }
 
+  wasModified();
+
 #ifndef NDEBUG
   checkConsistency();
 #endif
@@ -643,7 +678,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
     {
       neighborVertices_[ primitiveID.getID() ] = vertex;
     }
-    else if ( !isNeighborPrimitive )
+    else
     {
       vertices_[ primitiveID.getID() ] = vertex;
     }
@@ -657,7 +692,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
     {
       neighborEdges_[ primitiveID.getID() ] = edge;
     }
-    else if ( !isNeighborPrimitive )
+    else
     {
       edges_[ primitiveID.getID() ] = edge;
     }
@@ -671,7 +706,7 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
     {
       neighborFaces_[ primitiveID.getID() ] = face;
     }
-    else if ( !isNeighborPrimitive )
+    else
     {
       faces_[ primitiveID.getID() ] = face;
     }
@@ -680,6 +715,13 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
   default:
     WALBERLA_ABORT( "Cannot deserialize primitive - unkown primitive type" );
     break;
+  }
+
+  if ( isNeighborPrimitive )
+  {
+    uint_t sourceRank;
+    recvBuffer >> sourceRank;
+    neighborRanks_[ primitiveID.getID() ] = sourceRank;
   }
 
   return primitiveID;
@@ -881,16 +923,30 @@ void PrimitiveStorage::checkConsistency()
   WALBERLA_CHECK_LESS_EQUAL( faceDataSerializationFunctions_.size()       , primitiveDataHandlers_ );
   WALBERLA_CHECK_LESS_EQUAL( faceDataDeserializationFunctions_.size()     , primitiveDataHandlers_ );
 
-  // 8. As many neighbor ranks as neighbors
-  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
-
-  // 9. Local primitives do not exist in neighborhood
   std::vector< PrimitiveID > primitiveIDs;
   getPrimitiveIDs( primitiveIDs );
+
+  // 8. All neighborIDs that are referenced by locally allocated primitives are allocated in storage
+  for ( const auto & id : primitiveIDs )
+  {
+    std::vector< PrimitiveID > neighborhoodIDs;
+    getPrimitive( id )->getNeighborPrimitives( neighborhoodIDs );
+    for ( const auto & nID : neighborhoodIDs )
+    {
+      WALBERLA_CHECK( primitiveExistsLocally( nID ) || primitiveExistsInNeighborhood( nID ), "Neighbor referenced from locally allocated primitive is not allocated in storage." );
+    }
+  }
+
+  // 9. As many neighbor ranks as neighbors
+  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
+
+  // 10. Local primitives do not exist in neighborhood
   for ( const auto & id : primitiveIDs )
   {
     WALBERLA_CHECK( !primitiveExistsInNeighborhood( id ), "Primitive that exists in neighborhood: " << id.getID() );
   }
+
+
 
 }
 
