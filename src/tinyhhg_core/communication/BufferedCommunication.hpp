@@ -135,6 +135,9 @@ private:
   void setupBeforeNextCommunication();
 
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
+
+  uint_t primitiveStorageModificationStamp_;
+
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
@@ -192,15 +195,21 @@ void BufferedCommunicator::startCommunication()
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
 
+  std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
+  WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
+
+  if ( storage->getModificationStamp() != primitiveStorageModificationStamp_ )
+  {
+    primitiveStorageModificationStamp_ = storage->getModificationStamp();
+    setupBeforeNextCommunication();
+  }
+
   if ( setupBeforeNextCommunication_[ communicationDirection ] )
   {
     bufferSystem->clearSendingFunctions();
     bufferSystem->clearReceivingFunctions();
 
     directCommunicationFunctions_[ communicationDirection ].clear();
-
-    std::shared_ptr< PrimitiveStorage > storage = primitiveStorage_.lock();
-    WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
 
     std::map< uint_t, std::vector< SendFunction > > sendFunctionsMap;   // rank -> sendFunctions
     std::map< uint_t, uint_t >                      ranksToReceiveFrom; // rank -> number of receives
