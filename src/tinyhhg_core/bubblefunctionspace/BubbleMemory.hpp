@@ -7,31 +7,19 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include "tinyhhg_core/FunctionMemory.hpp"
+
 #include <string>
 
 
 namespace hhg
 {
 
-class VertexBubbleFunctionMemory
+class VertexBubbleFunctionMemory : public FunctionMemory
 {
 public:
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
     WALBERLA_UNUSED( level );
     return num_deps_;
@@ -39,26 +27,11 @@ public:
 
 };
 
-class EdgeBubbleFunctionMemory
+class EdgeBubbleFunctionMemory : public FunctionMemory
 {
 public:
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
-
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
     size_t num_cell_dofs = num_deps_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
     return num_cell_dofs;
@@ -99,24 +72,11 @@ public:
 };
 
 
-class FaceBubbleFunctionMemory
+class FaceBubbleFunctionMemory : public FunctionMemory
 {
 public:
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
     return levelinfo::num_microfaces_per_face(level);
   }
