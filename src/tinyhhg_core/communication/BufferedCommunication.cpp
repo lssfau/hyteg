@@ -20,7 +20,7 @@ const std::array< std::string, BufferedCommunicator::NUM_LOCAL_COMMUNICATION_MOD
 }};
 
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
-    primitiveStorage_( primitiveStorage ), localCommunicationMode_( localCommunicationMode )
+    primitiveStorage_( primitiveStorage ), primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ), localCommunicationMode_( localCommunicationMode )
 {
   int baseTag = 0;
   for ( auto & bufferSystem : bufferSystems_ )
