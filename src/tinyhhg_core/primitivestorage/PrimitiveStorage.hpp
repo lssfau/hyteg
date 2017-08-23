@@ -29,10 +29,9 @@ public:
 
   void checkConsistency();
 
-  //////////////////////////////
-  // Primitive access methods //
-  //////////////////////////////
-
+  /// @name \ref Primitive access methods
+  /// Various methods to obtain primitives or IDs.
+  ///@{
   uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces(); }
   uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
   uint_t getNumberOfLocalEdges()    const { return edges_.size(); }
@@ -56,42 +55,54 @@ public:
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool faceExistsInNeighborhood( const PrimitiveID & id )      const { return neighborFaces_.count( id.getID() ) > 0; }
 
+  /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
   template< typename PrimitiveType >
   inline bool primitiveExistsLocallyGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
+  /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   template< typename PrimitiveType >
   inline bool primitiveExistsInNeighborhoodGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   /// Returns the \ref Primitive that is assigned to the passed \ref PrimitiveID.
   /// The returned \ref Primitive is either local or lies in the direct neighborhood.
   /// Returns nullptr if the \ref Primitive does not exist locally nor in the direct neighborhood.
+  ///@{
   const Primitive* getPrimitive( const PrimitiveID & id ) const;
         Primitive* getPrimitive( const PrimitiveID & id );
+  ///@}
 
   /// Returns the \ref Vertex that is assigned to the passed \ref PrimitiveID.
   /// The returned \ref Vertex is either local or lies in the direct neighborhood.
   /// Returns nullptr if the \ref Vertex does not exist locally nor in the direct neighborhood.
+  ///@{
   const Vertex* getVertex( const PrimitiveID & id ) const;
         Vertex* getVertex( const PrimitiveID & id );
+  ///@}
 
   /// Returns the \ref Edge that is assigned to the passed \ref PrimitiveID.
   /// The returned \ref Edge is either local or lies in the direct neighborhood.
   /// Returns nullptr if the \ref Edge does not exist locally nor in the direct neighborhood.
+  ///@{
   const Edge* getEdge( const PrimitiveID & id ) const;
         Edge* getEdge( const PrimitiveID & id );
+  ///@}
 
   /// Returns the \ref Face that is assigned to the passed \ref PrimitiveID.
   /// The returned \ref Face is either local or lies in the direct neighborhood.
   /// Returns nullptr if the \ref Face does not exist locally nor in the direct neighborhood.
+  ///@{
   const Face* getFace( const PrimitiveID & id ) const;
         Face* getFace( const PrimitiveID & id );
+  ///@}
 
-  /// Generic versions of the getter methods.
+  /// @name Generic versions of the getter methods.
+  ///@{
   template< typename PrimitiveType >
   inline const PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
   template< typename PrimitiveType >
   inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+  ///@}
 
   /// Fills the passed vector with the IDs of the locally existing primitives
   void getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const;
@@ -137,6 +148,7 @@ public:
 
   FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
   FaceMap::const_iterator endFaces()        const { return faces_.end(); }
+  ///@}
 
   /// Returns the rank of the process the primitive is located on.
   /// Returns the local MPI rank if it is a local primitive.
@@ -148,10 +160,13 @@ public:
   /// Should not be called for other primitives.
   uint_t getNeighborPrimitiveRank( const PrimitiveID & id ) const { WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ) ); return neighborRanks_.at( id.getID() ); }
 
-  ////////////////////////////
-  // Primitive data methods //
-  ////////////////////////////
 
+  /// @name Primitive data methods
+  /// Use these methods to add data to all primitives of a certain type using a respective \ref PrimitiveDataHandling implementation.
+  /// \param dataID (out) the method creates a data ID and writes it to this parameter, the data can be obtained through a \ref Primitive using this ID
+  /// \param dataHandling a pointer to the \ref PrimitiveDataHandling that shall be used to treat the data item
+  /// \param identifier string that identifies the data that was added
+  ///@{
   template< typename DataType, typename DataHandlingType >
   inline void addPrimitiveData(       PrimitiveDataID< DataType, Primitive > & dataID,
                                 const std::shared_ptr< DataHandlingType > & dataHandling,
@@ -171,7 +186,7 @@ public:
   inline void addFaceData(       PrimitiveDataID< DataType, Face > & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
   						             const std::string & identifier );
-
+  ///@}
 
   /// Migrates the passed (local!) primitives to the respective target process.
   /// Must be called collectively, even if a processes does not send any primitives (pass empty map).
