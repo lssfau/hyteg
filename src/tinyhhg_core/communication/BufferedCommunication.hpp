@@ -26,7 +26,8 @@ using walberla::int_c;
 ///
 /// The communication is buffered since the data is packed into buffers and then sent to
 /// the respective processes. If two primitives reside on the same process, the communication
-/// can be performed directly (using the respective \ref PackInfo methods).
+/// can be performed directly (using the respective \ref PackInfo methods). There are, however
+/// different methods that can be set for local communication.
 ///
 /// Since the communication is non-blocking, other actions can be performed after the communication
 /// was started. When the communicated data is required, the \ref BufferedCommunicator can be forced to
@@ -94,9 +95,17 @@ public:
                                                 || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
   inline void endCommunication();
 
+  /// @name Local communication mode
+  /// Getter and setter to retrieve and set the local communication mode.
+  /// Depending on the mode, data is transferred via different mechanisms if the sending
+  /// and the receiving \ref Primitive are located on the same process.
+  /// See also \ref LocalCommunicationMode
+  ///@{
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
   void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { setupBeforeNextCommunication(); localCommunicationMode_ = localCommunicationMode; }
+  ///@}
 
+  /// Writes timing data for the setup and for the wait phase to the passed \ref walberla::WcTimingTree
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
 private:
