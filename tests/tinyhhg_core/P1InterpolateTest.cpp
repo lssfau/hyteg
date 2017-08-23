@@ -93,8 +93,8 @@ int main(int argc, char **argv)
     auto edge = edgeIter.second;
     hhg::P1Edge::interpolate(maxLevel, *edge,x.getEdgeDataID(),exact);
     value = 2 * edge->coords_[0].x[0] + edge->coords_[0].x[1];
-    xStepSize = edge->direction_.x[0] / walberla::real_c((v_perEdge-1));
-    yStepSize = edge->direction_.x[1] / walberla::real_c((v_perEdge-1));
+    xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
+    yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));
     value += 2*xStepSize;
     value += yStepSize;
     for(uint_t i = 1; i < v_perEdge-1; ++i)

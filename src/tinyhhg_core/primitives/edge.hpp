@@ -53,7 +53,7 @@ public:
   DoFType type;
 
   std::array<Point3D, 2> coords_;
-  Point3D direction_;
+
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
@@ -101,6 +101,7 @@ private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
 
+  Point3D direction_;
   real_t  length_;
   Point3D tangent_;
   Point3D normal2D_;
