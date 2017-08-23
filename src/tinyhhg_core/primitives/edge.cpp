@@ -79,7 +79,7 @@ void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << direction_;
   sendBuffer << length_;
   sendBuffer << tangent_;
-  sendBuffer << normal_2d_;
+  sendBuffer << normal2D_;
 }
 
 void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -90,7 +90,7 @@ void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> direction_;
   recvBuffer >> length_;
   recvBuffer >> tangent_;
-  recvBuffer >> normal_2d_;
+  recvBuffer >> normal2D_;
 }
 
 }
