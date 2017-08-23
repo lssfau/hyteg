@@ -52,19 +52,17 @@ public:
 
   DoFType type;
 
-  std::array<Point3D, 2> coords_;
-
-
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[0]; }
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[1]; }
 
-  const DoFType & getDoFType()   const { return type; }
-  const Point3D & getDirection() const { return direction_; }
-  const real_t  & getLength()    const { return length_; }
-  const Point3D & getTangent()   const { return tangent_; }
-  const Point3D & get2DNormal()  const { return normal2D_; }
+  const DoFType                  & getDoFType()     const { return type; }
+  const std::array< Point3D, 2 > & getCoordinates() const { return coords_; }
+  const Point3D                  & getDirection()   const { return direction_; }
+  const real_t                   & getLength()      const { return length_; }
+  const Point3D                  & getTangent()     const { return tangent_; }
+  const Point3D                  & get2DNormal()    const { return normal2D_; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
@@ -101,6 +99,7 @@ private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
 
+  std::array<Point3D, 2> coords_;
   Point3D direction_;
   real_t  length_;
   Point3D tangent_;
