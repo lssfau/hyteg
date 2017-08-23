@@ -6,6 +6,105 @@
 
 namespace hhg {
 
+/**
+ * \page 03_Communication Communicating data between primitives
+ *
+ * \dontinclude tutorials/03_Communication.cpp
+ *
+ * \brief In this tutorial we will communicate data between primitives
+ *
+ * \section intro Introduction
+ *
+ * During typical simulations, the simulation domain is partitioned and distributed
+ * among processes. In hhg, the primitives define the topology of the domain.
+ *
+ * Each primitive is assigned to one process, while one process may carry more
+ * than one primitive.
+ *
+ * Since most simulations require data to be exchanged between primitives
+ * (think of the ghost layer / halo concept) we need to be able to support
+ * communcation between primitives that reside on different or the same process.
+ *
+ * The general approach can be divided into three steps:
+ * - packing the data into send buffers on the sender side
+ * - sending the buffer to a receiving primitive
+ * - unpacking the data on the receiver side.
+ *
+ * We will in this tutorial show how to implement these steps.
+ *
+ * \section packinfo (Un-)Packing data
+ *
+ * For packing and unpacking data into and from MPI buffers, the framework provides the
+ * interface hhg::communication::PackInfo.
+ *
+ * All virtual methods must be implemented for a specific data item that shall be
+ * transferred among different primitive types.
+ *
+ * Note that by design, it is not allowed to transfer data between two primitives
+ * of the same type (e.g. vertex to edge is allowed while vertex to vertex is not).
+ *
+ * To keep things simple let's on every edge collect the IDs of the neighboring vertices via communication
+ * (this is of course not necessary in real applications but gives a simple example).
+ *
+ * Therefore we introduce a struct TestData (plus the respective data handling) that carries the ID of the
+ * carrier and a vector of neighboring IDs:
+ *
+ * \snippet tutorials/03_Communication.cpp TestData
+ *
+ * Now let us implement the three virtual functions of the abstract class hhg::communication::PackInfo that are needed to
+ * send data from vertices to edges:
+ *
+ * \snippet tutorials/03_Communication.cpp PackInfo
+ *
+ * Note that we implement the method communicateLocalVertexToEdge. It can be used automatically (we will see that later)
+ * if both primitives reside on the same process to optimize the communication step.
+ *
+ * \section Communication
+ *
+ * To communicate the data, we need a hhg::PrimitiveStorage and primitives that carry our struct:
+ *
+ * \snippet tutorials/03_Communication.cpp Setup
+ *
+ * Then we create an instance of our PackInfo implementation and an instance of hhg::communication::BufferedCommunicator
+ * which will carry out the communication.
+ *
+ * \snippet tutorials/03_Communication.cpp Communicator
+ *
+ * To tell the communicator that it shall communicate our test data during every communication, we need
+ * to add our PackInfo. Only data with registered PackInfo will be communicated.
+ *
+ * \snippet tutorials/03_Communication.cpp AddPackInfo
+ *
+ * As previously mentioned, local communication can be performed directly, without buffering (which is set by default).
+ * However, the local communication mode can be changed via:
+ *
+ * \snippet tutorials/03_Communication.cpp LocalMode
+ *
+ * See hhg::communication::BufferedCommunicator for more details on the local communication modes.
+ *
+ * Now we perform the buffered, non-blocking communication:
+ *
+ * \snippet tutorials/03_Communication.cpp Communication
+ *
+ * Since the communication is buffered and non-blocking, we perform it in two steps:
+ * - startCommunication packs the data into buffers and starts non-blocking MPI sends
+ * - endCommunication waits for the MPI receives and unpacks the data
+ *
+ * Therefore we can right after startCommunication() safely operate on the data of the sender side,
+ * in our case on the vertex data. This allows for overlapping communication and computation.
+ *
+ * After the communication is done, we expect to have two IDs unpacked on all edges since every
+ * edge has two neighboring vertices. Let's check that:
+ *
+ * \snippet tutorials/03_Communication.cpp Check
+ *
+ * \section code Complete Program
+ *
+ * \include tutorials/03_Communication.cpp
+ *
+ */
+
+/// [TestData]
 struct TestData
 {
   uint_t ownID;
@@ -21,7 +120,9 @@ struct TestDataHandling : OnlyInitializeDataHandling< TestData, Primitive >
     return data;
   }
 };
+/// [TestData]
 
+/// [PackInfo]
 class TestPackInfo : public communication::PackInfo
 {
 public:
@@ -30,26 +131,45 @@ public:
 
   virtual void packVertexForEdge( const Vertex *sender, const PrimitiveID & /* receiver */, walberla::mpi::SendBuffer & buffer )
   {
+    WALBERLA_LOG_INFO( "Packing data on vertex..." );
+
     TestData * data = sender->getData( dataID_ );
+
+    // The operator<< overload allows for easy buffer packing
+    // of standard data types (thanks to the waLBerla framework).
     buffer << data->ownID;
   }
 
   virtual void unpackEdgeFromVertex( Edge *receiver, const PrimitiveID & /* sender */, walberla::mpi::RecvBuffer & buffer )
   {
+    WALBERLA_LOG_INFO( "Unpacking data on edge..." );
+
     TestData * data = receiver->getData( dataID_ );
     uint_t vertexData;
     buffer >> vertexData;
+
+    // Adding the received ID to the neighbors..
     data->neighborIDs.push_back( vertexData );
   }
 
-  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver)
+  virtual void communicateLocalVertexToEdge( const Vertex *sender, Edge *receiver )
   {
+    WALBERLA_LOG_INFO( "Communicating data unbuffered from vertex to edge..." );
+
     TestData * vertexData = sender->getData( dataID_ );
     TestData * edgeData   = receiver->getData( dataID_ );
     edgeData->neighborIDs.push_back( vertexData->ownID );
   }
 
-  // left other methods empty for this tutorial
+  // Left other methods empty for this tutorial.
+
+private:
+
+  PrimitiveDataID< TestData, Primitive > dataID_;
+
+/// [PackInfo]
+
+public:
 
   virtual void packEdgeForVertex( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) {}
 
@@ -69,32 +189,76 @@ public:
 
   virtual void communicateLocalFaceToEdge( const Face *, Edge * ) {}
 
-
-private:
-
-  PrimitiveDataID< TestData, Primitive > dataID_;
-
 };
 
-}
 
-int main()
+
+void CommunicationTutorial()
 {
   uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
+  SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  loadbalancing::roundRobin( setupStorage );
 
+  /// [Setup]
+  // As seen in previous tutorials...
   auto storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
-  hhg::PrimitiveDataID< hhg::TestData, hhg::Primitive > dataID;
-  auto testDataHandling = std::make_shared< hhg::TestDataHandling >();
+  PrimitiveDataID< TestData, Primitive > dataID;
+  auto testDataHandling = std::make_shared< TestDataHandling >();
   storage->addPrimitiveData( dataID, testDataHandling, "test data" );
+  /// [Setup]
 
-  std::shared_ptr< hhg::TestPackInfo > packInfo = std::make_shared< hhg::TestPackInfo >( dataID );
+  for ( const auto & it : storage->getEdges() )
+  {
+    auto edge = it.second;
+    WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 0 );
+  }
+
+  /// [Communicator]
+  std::shared_ptr< TestPackInfo > packInfo = std::make_shared< TestPackInfo >( dataID );
+
+  communication::BufferedCommunicator communicator( storage );
+  /// [Communicator]
+
+  /// [AddPackInfo]
+  communicator.addPackInfo( packInfo );
+  /// [AddPackInfo]
+
+  /// [LocalMode]
+  // communicator.setLocalCommunicationMode( communication::BufferedCommunicator::BUFFERED_MPI );
+  /// [LocalMode]
+
+  /// [Communication]
+  // Communicate data from all vertices to the neighboring edges:
+
+  // Packing data from vertices into buffers and starting non-blocking MPI calls
+  communicator.startCommunication< Vertex, Edge >();
+
+  // Waiting for MPI sends and unpacking data to all receiving edges
+  communicator.endCommunication< Vertex, Edge >();
+  /// [Communication]
+
+  /// [Check]
+  for ( const auto & it : storage->getEdges() )
+  {
+    auto edge = it.second;
+    WALBERLA_CHECK_EQUAL( edge->getData( dataID )->neighborIDs.size(), 2 );
+  }
+  /// [Check]
+
 }
 
+}
+
+int main( int argc, char** argv )
+{
+  walberla::mpi::Environment env( argc, argv );
+  walberla::mpi::MPIManager::instance()->useWorldComm();
+  hhg::CommunicationTutorial();
+  return 0;
+}
 
 
