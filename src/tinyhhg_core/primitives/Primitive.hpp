@@ -55,11 +55,16 @@ class Face;
 ///
 /// The \ref Primitive class is intended to be used as a base class for primitives like vertices or edges.
 ///
+/// Every \ref Primitive of the domain carries an unique ID a.k.a \ref PrimitiveID.
+///
+/// It contains methods to retrieve the \ref PrimitiveIDs from the neighboring primitives and methods
+/// to (de-)serialize its metadata to / from MPI buffers.
+///
 /// It is able to store arbitrary data structures (e.g. from the standard library or custom classes)
 /// that can, however only be added through a governing structure, for example the \ref PrimitiveStorage class.
-/// Using the respective \ref PrimitiveDataID a pointer to the data or the associated \ref PrimitiveDataHandling can be obtained.
+/// Using the respective \ref PrimitiveDataID a pointer to the data can be obtained.
 ///
-/// For more details on the data handling refer to \ref PrimitiveDataHandling.
+/// For more details on the data handling refer to \ref PrimitiveDataHandling and \ref PrimitiveStorage.
 ///
 class Primitive
 {
@@ -76,14 +81,10 @@ public:
   template< typename DataType >
   inline DataType* getData( const PrimitiveDataID< DataType, Primitive > & index ) const;
 
-  /// Returns a pointer to the \ref PrimitiveDataHandling that belongs to the passed \ref PrimitiveDataID.
-  /// \param index the \ref PrimitiveDataID of the data handling that should be returned
-  template< typename DataType >
-  inline PrimitiveDataHandling< DataType, Primitive >* getDataHandling( const PrimitiveDataID< DataType, Primitive > & index ) const;
-
   /// Returns the number of registered data / data handling pairs.
   uint_t getNumberOfDataEntries() const { return data_.size(); }
 
+  /// Returns the \ref PrimitiveID of the \ref Primitive
   const PrimitiveID & getID() const { return primitiveID_; }
 
   /// @name Neighborhood
@@ -116,8 +117,15 @@ public:
   virtual uint_t getNumHigherDimNeighbors() const = 0;
   /// @}
 
+  /// @name Serialization
+  /// (De-)Serialize the \ref Primitive to / from MPI buffers.
+  /// Even if called via the \ref Primitive class, the metadata of the
+  /// subclasses (e.g. \ref Vertex or \ref Edge) are also (de-)serialized.
+  /// Does not (de-)serialize attached data.
+  ///@{
   void   serialize( walberla::mpi::SendBuffer & sendBuffer ) const;
   void deserialize( walberla::mpi::RecvBuffer & recvBuffer );
+  ///@}
 
 protected:
 
