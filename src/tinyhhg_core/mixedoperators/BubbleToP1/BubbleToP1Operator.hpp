@@ -150,7 +150,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         BubbleToP1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
@@ -193,7 +193,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         BubbleToP1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
       }

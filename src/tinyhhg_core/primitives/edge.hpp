@@ -50,8 +50,6 @@ public:
 
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
 
-  DoFType type;
-
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[0]; }
@@ -99,6 +97,7 @@ private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
 
+  DoFType type;
   std::array<Point3D, 2> coords_;
   Point3D direction_;
   real_t  length_;
