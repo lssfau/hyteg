@@ -30,17 +30,17 @@ public:
         const PrimitiveID & vertexID1,
         const DoFType     & dofType,
         const std::array<Point3D, 2>& coords) :
-    Primitive( primitiveID ), type( dofType ), coords_(coords)
+    Primitive( primitiveID ), dofType_( dofType ), coordinates_(coords)
   {
     neighborVertices_.push_back( vertexID0 );
     neighborVertices_.push_back( vertexID1 );
 
-    direction_ = coords_[1] - coords_[0];
+    direction_ = coordinates_[1] - coordinates_[0];
     length_ = direction_.norm();
     tangent_ = direction_ / length_;
 
     const std::array<walberla::real_t,3> init{{tangent_[1], -tangent_[0], 0.0}};
-    normal_2d_ = Point3D(init);
+    normal2D_ = Point3D(init);
   }
 
   Edge( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
@@ -50,21 +50,17 @@ public:
 
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
 
-  DoFType type;
-
-  std::array<Point3D, 2> coords_;
-  Point3D direction_;
-  real_t length_;
-  Point3D tangent_;
-  Point3D normal_2d_;
-
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[0]; }
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[1]; }
 
-  const DoFType & getDoFType() const   { return type; }
-  const Point3D & getDirection() const { return direction_; }
+  const DoFType                  & getDoFType()     const { return dofType_; }
+  const std::array< Point3D, 2 > & getCoordinates() const { return coordinates_; }
+  const Point3D                  & getDirection()   const { return direction_; }
+  const real_t                   & getLength()      const { return length_; }
+  const Point3D                  & getTangent()     const { return tangent_; }
+  const Point3D                  & get2DNormal()    const { return normal2D_; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
@@ -100,6 +96,13 @@ protected:
 private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
+
+  DoFType dofType_;
+  std::array<Point3D, 2> coordinates_;
+  Point3D direction_;
+  real_t  length_;
+  Point3D tangent_;
+  Point3D normal2D_;
 
 };
 

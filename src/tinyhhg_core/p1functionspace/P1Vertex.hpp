@@ -13,7 +13,7 @@ inline void interpolate(Vertex &vertex,
                         std::function<real_t(const hhg::Point3D &)> &expr,
                         size_t level) {
   VertexP1FunctionMemory *vertexMemory = vertex.getData(vertexMemoryId);
-  vertexMemory->data[level][0] = expr(vertex.coords);
+  vertexMemory->data[level][0] = expr(vertex.getCoordinates());
 }
 
 inline void assign(Vertex &vertex,

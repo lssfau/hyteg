@@ -32,7 +32,7 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
     for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        if (testFlag(vertex.type, flag)) {
+        if (testFlag(vertex.getDoFType(), flag)) {
             P1Vertex::interpolate(vertex, vertexDataID_, expr, level);
         }
     }
@@ -42,7 +42,7 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
     for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        if (testFlag(edge.type, flag)) {
+        if (testFlag(edge.getDoFType(), flag)) {
             P1Edge::interpolate(level, edge, edgeDataID_, expr);
         }
     }
@@ -78,7 +78,7 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
     for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        if (testFlag(vertex.type, flag)) {
+        if (testFlag(vertex.getDoFType(), flag)) {
             P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
         }
     }
@@ -88,7 +88,7 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
     for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        if (testFlag(edge.type, flag)) {
+        if (testFlag(edge.getDoFType(), flag)) {
             P1Edge::assign(level, edge, scalars, srcEdgeIDs, edgeDataID_);
         }
     }
@@ -124,7 +124,7 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
   for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag)) {
+      if (testFlag(vertex.getDoFType(), flag)) {
           P1Vertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
       }
   }
@@ -134,7 +134,7 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag)) {
+      if (testFlag(edge.getDoFType(), flag)) {
           P1Edge::add(level, edge, scalars, srcEdgeIDs, edgeDataID_);
       }
   }
@@ -160,7 +160,7 @@ real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
   for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag)) {
+      if (testFlag(vertex.getDoFType(), flag)) {
         scalarProduct += P1Vertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
       }
   }
@@ -168,7 +168,7 @@ real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag)) {
+      if (testFlag(edge.getDoFType(), flag)) {
         scalarProduct += P1Edge::dot(level, edge, edgeDataID_, rhs.edgeDataID_);
       }
   }
@@ -193,7 +193,7 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::prolongate(vertex, vertexDataID_, sourceLevel);
       }
@@ -204,7 +204,7 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         P1Edge::prolongate(sourceLevel, edge, edgeDataID_);
       }
@@ -232,7 +232,7 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
 
-    if (testFlag(vertex.type, flag))
+    if (testFlag(vertex.getDoFType(), flag))
     {
       P1Vertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
     }
@@ -243,7 +243,7 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.type, flag))
+    if (testFlag(edge.getDoFType(), flag))
     {
       P1Edge::prolongateQuadratic(sourceLevel, edge, edgeDataID_);
     }
@@ -280,7 +280,7 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::restrict(vertex, vertexDataID_, sourceLevel);
       }
@@ -294,7 +294,7 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         P1Edge::restrict(sourceLevel, edge, edgeDataID_);
       }

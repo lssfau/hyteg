@@ -172,7 +172,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
@@ -186,7 +186,7 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         P1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
@@ -222,7 +222,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
       }
@@ -236,7 +236,7 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         P1Edge::smooth_gs(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
@@ -263,7 +263,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
       }
@@ -272,7 +272,7 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.type, flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
       }

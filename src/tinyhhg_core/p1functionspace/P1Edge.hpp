@@ -17,8 +17,8 @@ inline void interpolateTmpl(Edge &edge,
   EdgeP1FunctionMemory *edgeMemory = edge.getData(edgeMemoryId);
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  Point3D x = edge.coords_[0];
-  Point3D dx = edge.direction_/(real_t) (rowsize - 1);
+  Point3D x = edge.getCoordinates()[0];
+  Point3D dx = edge.getDirection()/(real_t) (rowsize - 1);
 
   x += dx;
 

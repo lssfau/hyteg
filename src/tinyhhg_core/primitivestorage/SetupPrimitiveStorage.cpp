@@ -179,10 +179,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for (auto& it : edges_) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.type, hhg::NeumannBoundary)) {
+    if (testFlag(edge.dofType_, hhg::NeumannBoundary)) {
 
       for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->type = hhg::NeumannBoundary;
+        vertices_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
       }
 
     }
@@ -191,10 +191,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for (auto& it : edges_) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.type, hhg::DirichletBoundary)) {
+    if (testFlag(edge.dofType_, hhg::DirichletBoundary)) {
 
       for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->type = hhg::DirichletBoundary;
+        vertices_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
       }
 
     }
