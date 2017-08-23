@@ -19,10 +19,12 @@ class VertexBubbleFunctionMemory : public FunctionMemory
 {
 public:
 
+  VertexBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+
   inline size_t getSize(size_t level) const
   {
     WALBERLA_UNUSED( level );
-    return num_deps_;
+    return numDependencies_;
   }
 
 };
@@ -31,9 +33,11 @@ class EdgeBubbleFunctionMemory : public FunctionMemory
 {
 public:
 
+  EdgeBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+
   inline size_t getSize(size_t level) const
   {
-    size_t num_cell_dofs = num_deps_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
+    size_t num_cell_dofs = numDependencies_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
     return num_cell_dofs;
   }
 };
@@ -75,6 +79,8 @@ public:
 class FaceBubbleFunctionMemory : public FunctionMemory
 {
 public:
+
+  FaceBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {

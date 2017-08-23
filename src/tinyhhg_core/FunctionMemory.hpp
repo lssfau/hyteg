@@ -1,15 +1,17 @@
 
+#pragma once
+
 #include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 
 #include <core/DataTypes.h>
+#include <core/logging/Logging.h>
 #include <core/mpi/SendBuffer.h>
 #include <core/mpi/RecvBuffer.h>
 
 #include <map>
 #include <memory>
 
-#pragma once
 
 namespace hhg {
 
@@ -24,7 +26,7 @@ public:
 
   /// Constructs memory for a function
   /// \param numDeps number of higher dimensional neighbor primitives
-  FunctionMemory( const uint_t & numDeps = 0 ) : num_deps_( numDeps ) {}
+  FunctionMemory( const uint_t & numDependencies ) : numDependencies_( numDependencies ) {}
 
   virtual ~FunctionMemory(){}
 
@@ -33,7 +35,7 @@ public:
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
-  inline std::unique_ptr< real_t[] > & addlevel( uint_t level, uint_t num_deps = 0 )
+  inline std::unique_ptr< real_t[] > & addlevel( uint_t level )
   {
     if (data.count(level)>0)
     {
@@ -41,7 +43,6 @@ public:
     }
     else
     {
-      num_deps_ = num_deps;
       data[level] = hhg::make_unique<real_t[]>(getSize(level));
     }
     return data[level];
@@ -83,7 +84,7 @@ public:
 
 protected:
 
-  uint_t num_deps_;
+  uint_t numDependencies_;
 
 };
 
