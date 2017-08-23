@@ -30,12 +30,12 @@ public:
         const PrimitiveID & vertexID1,
         const DoFType     & dofType,
         const std::array<Point3D, 2>& coords) :
-    Primitive( primitiveID ), type( dofType ), coords_(coords)
+    Primitive( primitiveID ), dofType_( dofType ), coordinates_(coords)
   {
     neighborVertices_.push_back( vertexID0 );
     neighborVertices_.push_back( vertexID1 );
 
-    direction_ = coords_[1] - coords_[0];
+    direction_ = coordinates_[1] - coordinates_[0];
     length_ = direction_.norm();
     tangent_ = direction_ / length_;
 
@@ -55,8 +55,8 @@ public:
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[0]; }
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[1]; }
 
-  const DoFType                  & getDoFType()     const { return type; }
-  const std::array< Point3D, 2 > & getCoordinates() const { return coords_; }
+  const DoFType                  & getDoFType()     const { return dofType_; }
+  const std::array< Point3D, 2 > & getCoordinates() const { return coordinates_; }
   const Point3D                  & getDirection()   const { return direction_; }
   const real_t                   & getLength()      const { return length_; }
   const Point3D                  & getTangent()     const { return tangent_; }
@@ -97,8 +97,8 @@ private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
 
-  DoFType type;
-  std::array<Point3D, 2> coords_;
+  DoFType dofType_;
+  std::array<Point3D, 2> coordinates_;
   Point3D direction_;
   real_t  length_;
   Point3D tangent_;

@@ -66,16 +66,16 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "
-            << "type = " << edge.type << "; "
+            << "type = " << edge.dofType_ << "; "
             << "neighborVertices_[0] = " << edge.neighborVertices_[0].getID() << "; "
             << "neighborVertices_[1] = " << edge.neighborVertices_[1].getID() << "; }";
 }
 
 void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
-  sendBuffer << type;
-  sendBuffer << coords_[0];
-  sendBuffer << coords_[1];
+  sendBuffer << dofType_;
+  sendBuffer << coordinates_[0];
+  sendBuffer << coordinates_[1];
   sendBuffer << direction_;
   sendBuffer << length_;
   sendBuffer << tangent_;
@@ -84,9 +84,9 @@ void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 
 void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
-  recvBuffer >> type;
-  recvBuffer >> coords_[0];
-  recvBuffer >> coords_[1];
+  recvBuffer >> dofType_;
+  recvBuffer >> coordinates_[0];
+  recvBuffer >> coordinates_[1];
   recvBuffer >> direction_;
   recvBuffer >> length_;
   recvBuffer >> tangent_;
