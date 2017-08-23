@@ -9,7 +9,7 @@ namespace hhg
 using walberla::uint_c;
 
 Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
-  : Primitive( primitiveID ), dofType_(Inner), coords( coordinates )
+  : Primitive( primitiveID ), dofType_(Inner), coordinates_( coordinates )
 {}
 
 uint_t Vertex::edge_index(const PrimitiveID& edge) const
@@ -27,20 +27,20 @@ uint_t Vertex::face_index(const PrimitiveID& face) const
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
 {
   return os << "Vertex { id = " << vertex.getID().getID() << "; "
-            << "coords = [" << vertex.coords[0] << ", " << vertex.coords[1] << ", " << vertex.coords[2] << "]; "
+            << "coords = [" << vertex.coordinates_[0] << ", " << vertex.coordinates_[1] << ", " << vertex.coordinates_[2] << "]; "
             << "}";
 }
 
 void Vertex::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
   sendBuffer << dofType_;
-  sendBuffer << coords;
+  sendBuffer << coordinates_;
 }
 
 void Vertex::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
   recvBuffer >> dofType_;
-  recvBuffer >> coords;
+  recvBuffer >> coordinates_;
 }
 
 }

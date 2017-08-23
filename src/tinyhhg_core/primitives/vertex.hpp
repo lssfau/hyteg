@@ -52,16 +52,11 @@ public:
   /// DoF type of vertex
   DoFType getDoFType() const { return dofType_; }
 
-  /// Spatial coordinates of vertex
-  Point3D coords;
-
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 
-  const Point3D getCoordinates() const
-  {
-    return coords;
-  }
+  /// Spatial coordinates of vertex
+  const Point3D getCoordinates() const { return coordinates_; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
@@ -100,7 +95,7 @@ private:
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
 
   DoFType dofType_;
-
+  Point3D coordinates_;
 };
 
 }
