@@ -25,7 +25,6 @@ class FunctionMemory
 public:
 
   /// Constructs memory for a function
-  /// \param numDeps number of higher dimensional neighbor primitives
   FunctionMemory( const uint_t & numDependencies ) : numDependencies_( numDependencies ) {}
 
   virtual ~FunctionMemory(){}
