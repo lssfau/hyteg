@@ -11,3 +11,7 @@ waLBerla_add_executable( NAME 01_PrimitiveStorage
 waLBerla_add_executable( NAME 02_PrimitiveData
         FILES 02_PrimitiveData.cpp
         DEPENDS tinyhhg_core )
+        
+waLBerla_add_executable( NAME 03_Communication
+        FILES 03_Communication.cpp
+        DEPENDS tinyhhg_core fmt )
