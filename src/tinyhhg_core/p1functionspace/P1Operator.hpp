@@ -172,7 +172,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
@@ -222,7 +222,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
       }
@@ -263,7 +263,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
       }

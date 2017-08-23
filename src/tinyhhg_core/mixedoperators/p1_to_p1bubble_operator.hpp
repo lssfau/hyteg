@@ -18,7 +18,7 @@ inline void apply(Vertex& vertex, size_t opr_id, size_t src_id, size_t dst_id, s
   auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
   auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
 
-  if (testFlag(vertex.type, flag)) {
+  if (testFlag(vertex.getDoFType(), flag)) {
     // apply first stencil to vertex dof
     auto &opr_data = stencil_stack[0];
 
@@ -72,7 +72,7 @@ inline void saveOperator(size_t level, Vertex& vertex, std::ostream& out, size_t
   auto& src = P1Bubble::getVertexFunctionMemory(vertex, src_id)->data[level];
   auto& dst = P1Bubble::getVertexFunctionMemory(vertex, dst_id)->data[level];
 
-  if (testFlag(vertex.type, flag)) {
+  if (testFlag(vertex.getDoFType(), flag)) {
     // apply first stencil to vertex dof
     auto &opr_data = stencil_stack[0];
     out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
@@ -613,7 +613,7 @@ public:
   {
     for (Vertex& vertex : mesh.vertices)
     {
-//      if (testFlag(vertex.type, flag))
+//      if (testFlag(vertex.getDoFType(), flag))
       {
         P1BubbleVertex::pull_halos(vertex, src.memory_id, level);
       }

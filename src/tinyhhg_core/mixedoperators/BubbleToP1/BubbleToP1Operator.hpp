@@ -139,7 +139,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         BubbleToP1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
@@ -184,7 +184,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.type, flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         BubbleToP1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
       }

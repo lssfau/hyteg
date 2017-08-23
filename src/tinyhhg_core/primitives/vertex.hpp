@@ -50,7 +50,7 @@ public:
   uint_t face_index(const PrimitiveID& face) const;
 
   /// DoF type of vertex
-  DoFType type;
+  DoFType getDoFType() const { return dofType_; }
 
   /// Spatial coordinates of vertex
   Point3D coords;
@@ -98,6 +98,8 @@ private:
 
   void addEdge( const PrimitiveID & edgeID ) { neighborEdges_.push_back( edgeID ); }
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
+
+  DoFType dofType_;
 
 };
 
