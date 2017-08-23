@@ -77,6 +77,8 @@ public:
     return genericGetData< DataType >( index );
   }
 
+  using Primitive::getData;
+
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { getNeighborEdges( lowerDimNeighbors ); }
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { higherDimNeighbors.clear(); }
 
