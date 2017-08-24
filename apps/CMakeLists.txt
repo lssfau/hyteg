@@ -13,32 +13,43 @@ endif()
 waLBerla_link_files_to_builddir(../data/meshes/*.msh)
 waLBerla_link_files_to_builddir(../data/param/*.prm)
 
-waLBerla_add_executable( NAME tinytest
-        FILES test.cpp
-        DEPENDS tinyhhg_core fmt)
-
-waLBerla_add_executable( NAME tinytest_cg
-        FILES cg_test.cpp
+waLBerla_add_executable( NAME cg_bubble
+        FILES cg_bubble.cpp
         DEPENDS tinyhhg_core fmt core)
 
-waLBerla_add_executable( NAME tinytest_chorin
-        FILES chorin_test.cpp
+waLBerla_add_executable( NAME minres
+        FILES minres.cpp
         DEPENDS tinyhhg_core fmt)
 
-waLBerla_add_executable( NAME tinytest_minres
-        FILES minres_test.cpp
+waLBerla_add_executable( NAME block_cg
+        FILES block_cg.cpp
         DEPENDS tinyhhg_core fmt)
 
-waLBerla_add_executable( NAME tinytest_block_cg
-        FILES block_cg_test.cpp
-        DEPENDS tinyhhg_core fmt)
-
-waLBerla_add_executable( NAME tinytest_stokes_stab
+waLBerla_add_executable( NAME stokes_stab
         FILES stokes_stab.cpp
         DEPENDS tinyhhg_core fmt)
 
-waLBerla_add_executable( NAME tinytest_fullmg
-        FILES fullmg_test.cpp
+waLBerla_add_executable( NAME fullmg
+        FILES fullmg.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME cg_P1
+        FILES cg_P1.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_execute_test(NO_MODULE_LABEL NAME cg_bubble   CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME minres      CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME block_cg    CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME stokes_stab CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg      CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1       CONFIGURATIONS Release RelWithDbgInfo)
+
+#waLBerla_add_executable( NAME tinytest_chorin
+#        FILES chorin_test.cpp
+#        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME stokes_mini
+        FILES stokes_mini.cpp
         DEPENDS tinyhhg_core fmt)
 
 #add_executable (tinytest_fmg fmg_test.cpp)

@@ -1,0 +1,6 @@
+# generate code with ffc p1bubble_diffusion.ufl
+bubble = FiniteElement("Bubble", triangle, 3)
+element = bubble
+v = TestFunction(element)
+u = TrialFunction(element)
+a = dot(grad(v), grad(u))*dx

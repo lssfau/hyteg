@@ -1,7 +1,7 @@
 #ifndef TINYHHG_FUNCTIONS_HPP
 #define TINYHHG_FUNCTIONS_HPP
 
-#include "tinyhhg_core/p1functionspace/p1function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 namespace hhg
 {
@@ -10,10 +10,10 @@ class P1StokesFunction
 {
 public:
 
-  P1StokesFunction(const std::string& _name, Mesh& _mesh, size_t _minLevel, size_t _maxLevel)
-    : u(_name+"_u", _mesh, _minLevel, _maxLevel),
-      v(_name+"_v", _mesh, _minLevel, _maxLevel),
-      p(_name+"_p", _mesh, _minLevel, _maxLevel)
+  P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
+    : u(_name+"_u", storage, minLevel, maxLevel),
+      v(_name+"_v", storage, minLevel, maxLevel),
+      p(_name+"_p", storage, minLevel, maxLevel)
   {
   }
 

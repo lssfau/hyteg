@@ -46,7 +46,9 @@ inline bool testFlag(DoFType a, DoFType b)
 enum class MemoryType {
   Base,
   P1Stencil,
-  P1Function
+  P1Function,
+  P1BubbleFunction,
+  P1BubbleStencil
 };
 
 } // namespace hhg

@@ -5,81 +5,92 @@
 
 #include <core/mpi/MPIManager.h>
 
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+
 namespace hhg
 {
 
 using walberla::uint_c;
 
-Edge::Edge(size_t _id, DoFType _type, Vertex* _v0, Vertex* _v1)
-  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(_type), v0(_v0), v1(_v1)
+uint_t Edge::vertex_index(const PrimitiveID& vertex) const
 {
-  direction = v1->coords - v0->coords;
-  length = direction.norm();
-  tangent = direction / length;
-  const std::array<walberla::real_t,3> init{{tangent[1], -tangent[0], 0.0}};
-  normal_2d = Point3D(init);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2);
 
-  // fmt::print("direction = {}\n", direction);
-  // fmt::print("length = {}\n", length);
-  // fmt::print("tangent = {}\n", tangent);
-  // fmt::print("normal_2d = {}\n", normal_2d);
-}
-
-void Edge::addFace(Face* face)
-{
-  faces.push_back(face);
-}
-
-size_t Edge::vertex_index(const Vertex& vertex) const
-{
-  if (&vertex == v0)
+  if (vertex.getID() == neighborVertices_[0].getID())
   {
     return 0;
   }
-  else if (&vertex == v1)
+  else if (vertex.getID() == neighborVertices_[1].getID())
   {
     return 1;
   }
   else
   {
-    return 2;
+    WALBERLA_ASSERT(false, "Edge::vertex_index: Vertex does not belong to edge");
+    return std::numeric_limits<std::size_t>::max();
   }
 }
 
-size_t Edge::face_index(const Face& face) const
+uint_t Edge::face_index(const PrimitiveID& face) const
 {
-  if (&face == faces[0])
-  {
+  WALBERLA_ASSERT_GREATER_EQUAL(getNumNeighborFaces(), 1);
+  WALBERLA_ASSERT_LESS_EQUAL(getNumNeighborFaces(), 2);
+
+  if (face.getID() == neighborFaces_[0].getID()) {
     return 0;
-  }
-  else
-  {
+  } else if(getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID()) {
     return 1;
+  } else {
+    WALBERLA_ASSERT(false, "Edge::face_index: Face does not belong to edge");
+    return std::numeric_limits<uint_t>::max();
   }
 }
 
-Vertex* Edge::get_opposite_vertex(const Vertex& vertex) const
+PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 {
-  if (&vertex == v0)
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2);
+
+  if (vertex.getID() == neighborVertices_[0].getID())
   {
-    return v1;
+    return neighborVertices_[1];
   }
-  else if (&vertex == v1)
+  else if (vertex.getID() == neighborVertices_[1].getID())
   {
-    return v0;
+    return neighborVertices_[0];
   }
-  else
-  {
-    return NULL;
-  }
+
+  WALBERLA_ABORT("Edge::get_opposite_vertex: Vertex does not belong to edge");
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
-  return os << "Edge { id = " << edge.id << "; "
-            << "type = " << edge.type << "; "
-            << "v0 = " << edge.v0->id << "; "
-            << "v1 = " << edge.v1->id << "; }";
+  return os << "Edge { id = " << edge.getID().getID() << "; "
+            << "type = " << edge.dofType_ << "; "
+            << "neighborVertices_[0] = " << edge.neighborVertices_[0].getID() << "; "
+            << "neighborVertices_[1] = " << edge.neighborVertices_[1].getID() << "; }";
+}
+
+void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << dofType_;
+  sendBuffer << coordinates_[0];
+  sendBuffer << coordinates_[1];
+  sendBuffer << direction_;
+  sendBuffer << length_;
+  sendBuffer << tangent_;
+  sendBuffer << normal2D_;
+}
+
+void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> dofType_;
+  recvBuffer >> coordinates_[0];
+  recvBuffer >> coordinates_[1];
+  recvBuffer >> direction_;
+  recvBuffer >> length_;
+  recvBuffer >> tangent_;
+  recvBuffer >> normal2D_;
 }
 
 }

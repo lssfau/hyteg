@@ -1,4 +1,5 @@
 #include "vertex.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include <core/mpi/MPIManager.h>
 
@@ -7,32 +8,39 @@ namespace hhg
 
 using walberla::uint_c;
 
-Vertex::Vertex(size_t _id, const Point3D& _coords)
-  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner), coords(_coords)
+Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
+  : Primitive( primitiveID ), dofType_(Inner), coordinates_( coordinates )
+{}
+
+uint_t Vertex::edge_index(const PrimitiveID& edge) const
 {
+  auto it = std::find(neighborEdges().begin(), neighborEdges().end(), edge);
+  return uint_c((it - neighborEdges().begin()));
 }
 
-void Vertex::addEdge(Edge* edge)
+uint_t Vertex::face_index(const PrimitiveID& face) const
 {
-  edges.push_back(edge);
-}
-
-void Vertex::addFace(Face* face)
-{
-  faces.push_back(face);
-}
-
-size_t Vertex::edge_index(const Edge& edge) const
-{
-  auto it = std::find(edges.begin(),edges.end(),&edge);
-  return uint_c((it - edges.begin()));
+  auto it = std::find(neighborFaces().begin(), neighborFaces().end(), face);
+  return uint_c((it - neighborFaces().begin()));
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
 {
-  return os << "Vertex { id = " << vertex.id << "; "
-            << "coords = [" << vertex.coords[0] << ", " << vertex.coords[1] << ", " << vertex.coords[2] << "]; "
+  return os << "Vertex { id = " << vertex.getID().getID() << "; "
+            << "coords = [" << vertex.coordinates_[0] << ", " << vertex.coordinates_[1] << ", " << vertex.coordinates_[2] << "]; "
             << "}";
+}
+
+void Vertex::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << dofType_;
+  sendBuffer << coordinates_;
+}
+
+void Vertex::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> dofType_;
+  recvBuffer >> coordinates_;
 }
 
 }

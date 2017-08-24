@@ -1,10 +1,12 @@
 #include <fmt/ostream.h>
 
-#include "edge.hpp"
 #include "face.hpp"
+#include "edge.hpp"
 #include "vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/math.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include <core/mpi/MPIManager.h>
 
@@ -14,138 +16,109 @@ namespace hhg
 {
 using walberla::uint_c;
 
-Face::Face(size_t _id, Edge* _edges[3])
-  : id(_id), rank(id % uint_c(walberla::mpi::MPIManager::instance()->numProcesses())), type(Inner)
+uint_t Face::vertex_index(const PrimitiveID& vertex) const
 {
-  for (size_t i=0; i < 3; ++i)
-  {
-    edges[i] = _edges[i];
-  }
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3);
 
-  Vertex* v0_0 = edges[0]->v0;
-  Vertex* v0_1 = edges[0]->v1;
-  Vertex* v1_0 = edges[1]->v0;
-  Vertex* v1_1 = edges[1]->v1;
-  Vertex* v2_0 = edges[2]->v0;
-  Vertex* v2_1 = edges[2]->v1;
-
-  if (v0_1 == v1_0 && v1_1 == v2_0 && v2_1 == v0_0)
-  {
-    edge_orientation = {{1, 1, 1}};
-  }
-  else if (v0_1 == v1_0 && v1_1 == v2_1 && v2_0 == v0_0)
-  {
-    edge_orientation = {{1, 1, -1}};
-  }
-  else if (v0_1 == v1_1 && v1_0 == v2_0 && v2_1 == v0_0)
-  {
-    edge_orientation = {{1, -1, 1}};
-  }
-  else if (v0_1 == v1_1 && v1_0 == v2_1 && v2_0 == v0_0)
-  {
-    edge_orientation = {{1, -1, -1}};
-  }
-  else if (v0_0 == v1_0 && v1_1 == v2_0 && v2_1 == v0_1)
-  {
-    edge_orientation = {{-1, 1, 1}};
-  }
-  else if (v0_0 == v1_0 && v1_1 == v2_1 && v2_0 == v0_1)
-  {
-    edge_orientation = {{-1, 1, -1}};
-  }
-  else if (v0_0 == v1_1 && v1_0 == v2_0 && v2_1 == v0_1)
-  {
-    edge_orientation = {{-1, -1, 1}};
-  }
-  else if (v0_0 == v1_1 && v1_0 == v2_1 && v2_0 == v0_1)
-  {
-    edge_orientation = {{-1, -1, -1}};
-  }
-
-  if (edge_orientation[0] == 1)
-  {
-    vertices.push_back(v0_0);
-    vertices.push_back(v0_1);
-  }
-  else
-  {
-    vertices.push_back(v0_1);
-    vertices.push_back(v0_0);
-  }
-
-  if (edge_orientation[1] == 1)
-  {
-    vertices.push_back(v1_1);
-  }
-  else
-  {
-    vertices.push_back(v1_0);
-  }
-
-  coords = {{vertices[0]->coords, vertices[1]->coords, vertices[2]->coords}};
-
-  std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
-  area = std::abs(0.5 * math::det2(B));
-}
-
-size_t Face::vertex_index(const Vertex& vertex) const
-{
   for (size_t i = 0; i < 3; ++i)
   {
-    if (&vertex == vertices[i])
+    if (vertex == neighborVertices_[i].getID())
     {
       return i;
     }
   }
 
+  WALBERLA_ASSERT(false, "Face::vertex_index: Vertex does not belong to face");
   return std::numeric_limits<std::size_t>::max();
 }
 
-size_t Face::edge_index(const Edge& edge) const
+uint_t Face::edge_index(const PrimitiveID& edge) const
 {
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
+
   for (size_t i = 0; i < 3; ++i)
   {
-    if (&edge == edges[i])
+    if (edge.getID() == neighborEdges_[i].getID())
     {
       return i;
     }
   }
 
+  WALBERLA_ASSERT(false, "Face::edge_index: Edge does not belong to face");
   return std::numeric_limits<std::size_t>::max();
 }
 
-std::vector<Edge*> Face::adjacent_edges(const Vertex& vertex) const
+std::vector<PrimitiveID> Face::adjacent_edges(const PrimitiveID& vertex) const
 {
-  std::vector<Edge*> e;
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
 
-  for (size_t i = 0; i < 3; ++i)
-  {
-    if (edges[i]->vertex_index(vertex) != 2)
-    {
-      e.push_back(edges[i]);
-    }
+  std::vector<PrimitiveID> e;
+
+  if (vertex_index(vertex) == 0) {
+    e.push_back(neighborEdges_[0]);
+    e.push_back(neighborEdges_[2]);
+  } else if (vertex_index(vertex) == 1) {
+    e.push_back(neighborEdges_[0]);
+    e.push_back(neighborEdges_[1]);
+  } else if (vertex_index(vertex) == 2) {
+    e.push_back(neighborEdges_[1]);
+    e.push_back(neighborEdges_[2]);
   }
 
+  WALBERLA_ASSERT_EQUAL(e.size(), 2);
   return e;
 }
 
-Vertex* Face::get_vertex_opposite_to_edge(const Edge& edge) const
+PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
 {
-  std::vector<Vertex*> v(vertices);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
 
-  std::remove(v.begin(), v.end(), edge.v0);
-  std::remove(v.begin(), v.end(), edge.v1);
+  if (edge_index(edge) == 0) {
+    return neighborVertices_[2];
+  } else if (edge_index(edge) == 1) {
+    return neighborVertices_[0];
+  } else if (edge_index(edge) == 2) {
+    return neighborVertices_[1];
+  }
 
-  return v[0];
+  WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face");
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
-  return os << "Face { id = " << face.id << "; "
-            << "edges[0] = " << face.edges[0]->id << "; "
-            << "edges[1] = " << face.edges[1]->id << "; "
-            << "edges[2] = " << face.edges[2]->id << "; "
+  return os << "Face { id = " << face.getID().getID() << "; "
+            << "neighborEdges_[0] = " << face.neighborEdges_[0].getID() << "; "
+            << "neighborEdges_[1] = " << face.neighborEdges_[1].getID() << "; "
+            << "neighborEdges_[2] = " << face.neighborEdges_[2].getID() << "; "
             << "}";
 }
 
+void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << type;
+  sendBuffer << area;
+  sendBuffer << edge_orientation[0];
+  sendBuffer << edge_orientation[1];
+  sendBuffer << edge_orientation[2];
+  sendBuffer << coords[0];
+  sendBuffer << coords[1];
+  sendBuffer << coords[2];
 }
+
+void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> type;
+  recvBuffer >> area;
+  recvBuffer >> edge_orientation[0];
+  recvBuffer >> edge_orientation[1];
+  recvBuffer >> edge_orientation[2];
+  recvBuffer >> coords[0];
+  recvBuffer >> coords[1];
+  recvBuffer >> coords[2];
+}
+
+}
+
+
+

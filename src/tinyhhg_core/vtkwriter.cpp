@@ -1,18 +1,20 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
-#include "tinyhhg_core/p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
 namespace hhg
 {
-
+#if 0
 using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
 using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
-//typedef walberla::uint64_t uint64_t;
+typedef walberla::uint64_t uint64_t;
 
-void VTKWriter(std::vector<const Function*> functions, size_t level, const std::string& dir, const std::string& filename)
+template< typename FunctionType >
+void VTKWriter(std::vector<const Function< FunctionType >*> functions, size_t level, const std::string& dir, const std::string& filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
@@ -40,7 +42,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
     for (auto function : functions)
     {
-      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->name << "\" NumberOfComponents=\"1\"/>\n";
+      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\"/>\n";
     }
 
     pvtu_file << "    </PPointData>\n";
@@ -56,7 +58,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
     pvtu_file.close();
   }
 
-  const Mesh& mesh = functions[0]->mesh;
+  auto& storage = functions[0]->getStorage();
 
   std::ofstream file;
   std::string vtu_filename(fmt::format("{}/{}-rk{:0>4}.vtu", dir, filename, rk));
@@ -68,16 +70,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
     std::exit(-1);
   }
 
-  size_t num_faces = 0;
-  for (const Face& face : mesh.faces)
-  {
-    if (face.rank != rk)
-    {
-      continue;
-    }
-
-    ++num_faces;
-  }
+  size_t num_faces = storage->getNumberOfLocalFaces();
 
   file << "<?xml version=\"1.0\"?>\n";
   file << "<VTKFile type=\"UnstructuredGrid\">\n";
@@ -86,28 +79,17 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   file << "<Points>\n";
   file << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
-  // coords
-  for (const Face& face : mesh.faces)
-  {
-    if (face.rank != rk)
-    {
-      continue;
-    }
+  // write out coords
+  for (auto& it : storage->getFaces()) {
+    Face &face = *it.second;
 
     size_t rowsize = levelinfo::num_microvertices_per_edge(level);
     Point3D x, x0;
 
-    if(face.edge_orientation[0] == 1)
-    {
-      x0 = face.edges[0]->v0->coords;
-    }
-    else
-    {
-      x0 = face.edges[0]->v1->coords;
-    }
+    x0 = face.coords[0];
 
-    Point3D d0 =  face.edge_orientation[0] * face.edges[0]->direction / (real_c(rowsize)-1);
-    Point3D d2 = -face.edge_orientation[2] * face.edges[2]->direction / (real_c(rowsize)-1);
+    Point3D d0 = (face.coords[1] - face.coords[0]) / (real_c(rowsize)-1);
+    Point3D d2 = (face.coords[2] - face.coords[0]) / (real_c(rowsize)-1);
 
     size_t inner_rowsize = rowsize;
 
@@ -134,13 +116,9 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   // connectivity
   size_t offset = 0;
 
-  for (const Face& face : mesh.faces)
-  {
-    if (face.rank != rk)
-    {
-      continue;
-    }
-
+  for (auto& it : storage->getFaces()) {
+    //TODO is it really unused?
+    WALBERLA_UNUSED(it);
     size_t rowsize = levelinfo::num_microvertices_per_edge(level) - 1;
     size_t inner_rowsize = rowsize;
 
@@ -167,12 +145,8 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
 
   // offsets
   offset = 3;
-  for (const Face& face : mesh.faces)
-  {
-    if (face.rank != rk)
-    {
-      continue;
-    }
+  for (auto& it : storage->getFaces()) {
+    WALBERLA_UNUSED(it);
 
     for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
@@ -185,13 +159,8 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   file << "<DataArray type=\"UInt8\" Name=\"types\">\n";
 
   // cell types
-  for (const Face& face : mesh.faces)
-  {
-    if (face.rank != rk)
-    {
-      continue;
-    }
-
+  for (auto& it : storage->getFaces()) {
+    WALBERLA_UNUSED(it);
     for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
       file << "5 ";
@@ -203,22 +172,21 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   file << "<PointData>\n";
 
   // point data
-  for (auto function : functions)
+  for (const Function* function : functions)
   {
-    file << "<DataArray type=\"Float64\" Name=\"" << function->name <<  "\" NumberOfComponents=\"1\">\n";
-    for (const Face& face : mesh.faces)
-    {
-      if (face.rank != rk)
-      {
-        continue;
-      }
+    file << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
+    for (auto& it : storage->getFaces()) {
+      Face &face = *it.second;
 
       size_t len = levelinfo::num_microvertices_per_face(level);
       file << std::scientific;
 
+      // FIXME: How to check type of Function properly?
+      const P1Function* p1Function = dynamic_cast<const P1Function*>(function);
+
       for (size_t i = 0; i < len; ++i)
       {
-        file << P1::getFaceFunctionMemory(face, function->memory_id)->data[level][i] << " ";
+        file << face.getData(p1Function->getFaceDataID())->data[level][i] << " ";
       }
     }
     file << "\n</DataArray>\n";
@@ -235,6 +203,7 @@ void VTKWriter(std::vector<const Function*> functions, size_t level, const std::
   file << "</VTKFile>\n";
 
   file.close();
-}
 
+}
+#endif
 }

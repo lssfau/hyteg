@@ -3,12 +3,17 @@
 
 #include "support.hpp"
 
-#include "mesh.hpp"
 #include "vtkwriter.hpp"
 
-#include "p1functionspace/p1function.hpp"
-#include "p1functionspace/p1operator.hpp"
-#include "p1functionspace/p1memory.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
+
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "p1functionspace/P1DataHandling.hpp"
+
+#include "bubblefunctionspace/BubbleFunction.hpp"
+#include "bubblefunctionspace/BubbleOperator.hpp"
 
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"
@@ -19,5 +24,25 @@
 #include "composites/p1stokesfunction.hpp"
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
+
+#include "composites/P1BubbleFunctionSpace/P1BubbleFunction.hpp"
+#include "composites/P1BubbleFunctionSpace/P1BubbleOperator.hpp"
+
+#include "mixedoperators/BubbleToP1/BubbleToP1Operator.hpp"
+#include "mixedoperators/P1ToBubble/P1ToBubbleOperator.hpp"
+
+#include "composites/ministokesfunction.hpp"
+#include "composites/ministokesoperator.hpp"
+
+#include "primitivestorage/PrimitiveStorage.hpp"
+#include "primitivestorage/SetupPrimitiveStorage.hpp"
+#include "primitivestorage/Visualization.hpp"
+#include "primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
+#include "mesh/MeshInfo.hpp"
+
+#include "communication/PackInfo.hpp"
+#include "communication/BufferedCommunication.hpp"
+
 
 #endif /* TINYHHG_HPP */

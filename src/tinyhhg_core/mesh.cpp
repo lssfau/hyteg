@@ -1,3 +1,4 @@
+#if 0
 #include "mesh.hpp"
 
 #include <fstream>
@@ -221,3 +222,4 @@ size_t Mesh::addEdge(size_t v0, size_t v1, size_t type, Mesh::EdgeMap& map)
 }
 
 }
+#endif

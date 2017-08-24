@@ -31,3 +31,32 @@ add_subdirectory (extern/fmt-3.0.1)
 add_subdirectory( src )
 add_subdirectory( apps )
 add_subdirectory( tests )
+add_subdirectory( tutorials )
+
+
+############################################################################################################################
+# Documentation Generation
+#
+# Build documentation using Doxygen (www.doxygen.org)
+############################################################################################################################
+find_package ( Doxygen  )
+find_package ( HTMLHelp )
+
+if ( HTML_HELP_COMPILER EQUAL "" )
+   set ( HTML_HELP_FOUND "NO" )
+else ( )
+   set ( HTML_HELP_FOUND "YES" )
+endif ( )
+
+if ( DOXYGEN_FOUND )
+   set ( DOXYGEN_HTML_HEADER ${tinyhhg_SOURCE_DIR}/doc/header.html )
+   set ( DOXYGEN_HTML_FOOTER ${tinyhhg_SOURCE_DIR}/doc/footer.html )
+   set ( DOXYGEN_HTML_OUTPUT "html" )
+
+   configure_file ( ${tinyhhg_SOURCE_DIR}/doc/doxygen.config ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
+
+   add_custom_target ( doc_tinyhhg   ${DOXYGEN_EXECUTABLE} ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg
+                       COMMENT "Generating API documentation with Doxygen" VERBATIM )
+
+endif ( )
+############################################################################################################################

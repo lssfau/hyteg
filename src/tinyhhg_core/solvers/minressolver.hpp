@@ -11,18 +11,18 @@ class MinResSolver
 {
 public:
 
-  MinResSolver(Mesh& mesh, size_t minLevel, size_t maxLevel)
+  MinResSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
   {
-    p_vm = new F("vm", mesh, minLevel, maxLevel);
-    p_v = new F("v", mesh, minLevel, maxLevel);
-    p_vp = new F("vp", mesh, minLevel, maxLevel);
+    p_vm = new F("vm", storage, minLevel, maxLevel);
+    p_v = new F("v", storage, minLevel, maxLevel);
+    p_vp = new F("vp", storage, minLevel, maxLevel);
 
-    p_z = new F("z", mesh, minLevel, maxLevel);
-    p_zp = new F("zp", mesh, minLevel, maxLevel);
+    p_z = new F("z", storage, minLevel, maxLevel);
+    p_zp = new F("zp", storage, minLevel, maxLevel);
 
-    p_wm = new F("wm", mesh, minLevel, maxLevel);
-    p_w = new F("w", mesh, minLevel, maxLevel);
-    p_wp = new F("wp", mesh, minLevel, maxLevel);
+    p_wm = new F("wm", storage, minLevel, maxLevel);
+    p_w = new F("w", storage, minLevel, maxLevel);
+    p_wp = new F("wp", storage, minLevel, maxLevel);
   }
 
   ~MinResSolver()

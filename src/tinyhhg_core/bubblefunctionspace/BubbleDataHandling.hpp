@@ -1,0 +1,68 @@
+#pragma once
+
+#include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
+#include "BubbleMemory.hpp"
+
+namespace hhg {
+
+class VertexBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexBubbleFunctionMemory, Vertex >
+{
+public:
+
+  VertexBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
+  std::shared_ptr< VertexBubbleFunctionMemory > initialize( const Vertex * const vertex ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
+
+};
+
+class EdgeBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeBubbleFunctionMemory, Edge >
+{
+public:
+
+  EdgeBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
+  std::shared_ptr< EdgeBubbleFunctionMemory > initialize( const Edge * const edge ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
+
+};
+
+class FaceBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceBubbleFunctionMemory, Face >
+{
+public:
+
+  FaceBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
+  std::shared_ptr< FaceBubbleFunctionMemory > initialize( const Face * const face ) const;
+
+private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
+
+};
+
+class FaceBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< FaceBubbleStencilMemory, Face >
+{
+ public:
+
+  FaceBubbleStencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
+
+  std::shared_ptr< FaceBubbleStencilMemory > initialize( const Face * const face ) const;
+
+ private:
+
+  uint_t minLevel_;
+  uint_t maxLevel_;
+
+};
+
+}
