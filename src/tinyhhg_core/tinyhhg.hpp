@@ -38,6 +38,7 @@
 #include "primitivestorage/SetupPrimitiveStorage.hpp"
 #include "primitivestorage/Visualization.hpp"
 #include "primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "primitivestorage/loadbalancing/DistributedBalancer.hpp"
 
 #include "mesh/MeshInfo.hpp"
 
