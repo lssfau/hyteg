@@ -200,6 +200,9 @@ public:
   /// e.g. after migration of primitives to other processes.
   uint_t getModificationStamp() const { return modificationStamp_; }
 
+  /// Returns a set filled with all neighboring ranks (== all ranks from primitives that are located in the direct neighborhood)
+  std::set< uint_t > getNeighboringRanks() const;
+
 private:
 
   // needed to differentiate when migrating primitives

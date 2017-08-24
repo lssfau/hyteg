@@ -652,6 +652,17 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 }
 
 
+std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
+{
+  std::set< uint_t > neighboringRanks;
+  for ( const auto & it : neighborRanks_ )
+  {
+    const uint_t neighborRank = it.second;
+    neighboringRanks.insert( neighborRank );
+  }
+  return neighboringRanks;
+}
+
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID & primitiveID ) const
 {
   if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) ) return VERTEX;
