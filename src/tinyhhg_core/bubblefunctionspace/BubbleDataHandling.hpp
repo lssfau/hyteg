@@ -5,7 +5,7 @@
 
 namespace hhg {
 
-class VertexBubbleFunctionMemoryDataHandling : public OnlyInitializeDataHandling< VertexBubbleFunctionMemory, Vertex >
+class VertexBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexBubbleFunctionMemory, Vertex >
 {
 public:
 
@@ -20,7 +20,7 @@ private:
 
 };
 
-class EdgeBubbleFunctionMemoryDataHandling : public OnlyInitializeDataHandling< EdgeBubbleFunctionMemory, Edge >
+class EdgeBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeBubbleFunctionMemory, Edge >
 {
 public:
 
@@ -35,7 +35,7 @@ private:
 
 };
 
-class FaceBubbleFunctionMemoryDataHandling : public OnlyInitializeDataHandling< FaceBubbleFunctionMemory, Face >
+class FaceBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceBubbleFunctionMemory, Face >
 {
 public:
 

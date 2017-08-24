@@ -4,27 +4,27 @@ namespace hhg {
 
 std::shared_ptr< VertexBubbleFunctionMemory > VertexBubbleFunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
 {
-  auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory >();
+  auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory >( vertex->getNumNeighborFaces() );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
-    vertexBubbleFunctionMemory->addlevel( level, vertex->getNumNeighborFaces() );
+    vertexBubbleFunctionMemory->addlevel( level );
   }
   return vertexBubbleFunctionMemory;
 }
 
 std::shared_ptr< EdgeBubbleFunctionMemory > EdgeBubbleFunctionMemoryDataHandling::initialize( const Edge * const edge ) const
 {
-  auto edgeBubbleFunctionMemory = std::make_shared< EdgeBubbleFunctionMemory >();
+  auto edgeBubbleFunctionMemory = std::make_shared< EdgeBubbleFunctionMemory >( edge->getNumNeighborFaces() );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
-    edgeBubbleFunctionMemory->addlevel( level, edge->getNumNeighborFaces() );
+    edgeBubbleFunctionMemory->addlevel( level );
   }
   return edgeBubbleFunctionMemory;
 }
 
 std::shared_ptr< FaceBubbleFunctionMemory > FaceBubbleFunctionMemoryDataHandling::initialize( const Face * const ) const
 {
-  auto faceBubbleFunctionMemory = std::make_shared< FaceBubbleFunctionMemory >();
+  auto faceBubbleFunctionMemory = std::make_shared< FaceBubbleFunctionMemory >( 0 );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceBubbleFunctionMemory->addlevel( level );

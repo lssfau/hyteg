@@ -5,6 +5,8 @@
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
 
+#include "tinyhhg_core/FunctionMemory.hpp"
+
 #include "tinyhhg_core/levelinfo.hpp"
 
 #include <string>
@@ -40,27 +42,15 @@ public:
 };
 
 
-class VertexP1FunctionMemory
+class VertexP1FunctionMemory : public FunctionMemory
 {
 public:
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
+  VertexP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
 
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
+    return levelinfo::num_microvertices_per_vertex(level) + numDependencies_;
   }
 
 };
@@ -92,29 +82,16 @@ public:
 };
 
 
-class EdgeP1FunctionMemory
+class EdgeP1FunctionMemory : public FunctionMemory
 {
 public:
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
+  EdgeP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
     size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-    return num_dofs_per_edge + num_deps_*(num_dofs_per_edge-1);
+    return num_dofs_per_edge + numDependencies_*(num_dofs_per_edge-1);
   }
 };
 
@@ -144,24 +121,13 @@ public:
 };
 
 
-class FaceP1FunctionMemory
+class FaceP1FunctionMemory : public FunctionMemory
 {
 public:
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
+  FaceP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
 
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
+  inline size_t getSize(size_t level) const
   {
     return levelinfo::num_microvertices_per_face(level);
   }

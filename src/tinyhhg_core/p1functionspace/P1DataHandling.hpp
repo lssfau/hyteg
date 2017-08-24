@@ -3,10 +3,11 @@
 
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 
 namespace hhg {
 
-class VertexP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< VertexP1FunctionMemory, Vertex >
+class VertexP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexP1FunctionMemory, Vertex >
 {
 public:
 
@@ -21,7 +22,7 @@ private:
 
 };
 
-class EdgeP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< EdgeP1FunctionMemory, Edge >
+class EdgeP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeP1FunctionMemory, Edge >
 {
 public:
 
@@ -36,7 +37,7 @@ private:
 
 };
 
-class FaceP1FunctionMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1FunctionMemory, Face >
+class FaceP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceP1FunctionMemory, Face >
 {
 public:
 

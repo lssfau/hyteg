@@ -5,6 +5,8 @@
 
 #include "vtkwriter.hpp"
 
+#include "tinyhhg_core/FunctionMemory.hpp"
+
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
