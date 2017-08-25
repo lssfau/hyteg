@@ -170,6 +170,44 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, 
 
 SPECIALIZE(void, smoothGSTmpl, smooth_gs)
 
+template<uint_t Level>
+inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+                          const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId,
+                          const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &rhsId,
+                          const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &tmpId) {
+  using namespace EdgeCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto &dst = edge.getData(dstId)->data[Level];
+  auto &rhs = edge.getData(rhsId)->data[Level];
+  auto &tmp = edge.getData(tmpId)->data[Level];
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    dst[index<Level>(i, VERTEX_C)] = rhs[index<Level>(i, VERTEX_C)];
+
+    for (auto& neighbor : neighbors_on_edge) {
+      dst[index<Level>(i, VERTEX_C)] -= opr_data[neighbor] * tmp[index<Level>(i, neighbor)];
+    }
+
+    for (auto& neighbor : neighbors_south) {
+      dst[index<Level>(i, VERTEX_C)] -= opr_data[neighbor] * tmp[index<Level>(i, neighbor)];
+    }
+
+    if (edge.getNumNeighborFaces() == 2) {
+      for (auto& neighbor : neighbors_north) {
+        dst[index<Level>(i, VERTEX_C)] -= opr_data[neighbor] * tmp[index<Level>(i, neighbor)];
+      }
+    }
+
+    dst[index<Level>(i, VERTEX_C)] /= opr_data[VERTEX_C];
+  }
+}
+
+SPECIALIZE(void, smoothJacTmpl, smooth_jac)
+
 template<uint_t SourceLevel>
 inline void prolongateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &memoryId) {
   using namespace EdgeCoordsVertex;

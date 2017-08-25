@@ -21,6 +21,7 @@
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
 
+#include "solvers/preconditioners/JacobiPreconditioner.hpp"
 #include "solvers/preconditioners/GaussSeidelPreconditioner.hpp"
 
 #include "composites/p1stokesfunction.hpp"
