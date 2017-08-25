@@ -189,6 +189,39 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 SPECIALIZE(void, smooth_gs_tmpl, smooth_gs)
 
 template<uint_t Level>
+inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId,
+                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &rhsId,
+                            const PrimitiveDataID<FaceP1FunctionMemory, Face> &tmpId) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto &dst = face.getData(dstId)->data[Level];
+  auto &rhs = face.getData(rhsId)->data[Level];
+  auto &tmpVar = face.getData(tmpId)->data[Level];
+
+  real_t tmp;
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      tmp = rhs[index<Level>(i, j, VERTEX_C)];
+
+      for (auto neighbor : neighbors) {
+        tmp -= opr_data[neighbor]*tmpVar[index<Level>(i, j, neighbor)];
+      }
+
+      dst[index<Level>(i, j, VERTEX_C)] = tmp/opr_data[VERTEX_C];
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, smooth_jac_tmpl, smooth_jac)
+
+template<uint_t Level>
 inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Face>& memoryId) {
   using namespace CoordsVertex;
 

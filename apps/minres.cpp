@@ -34,7 +34,8 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::MinResSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, maxLevel);
+  auto prec = hhg::JacobiPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, maxLevel, L, 10);
+  auto solver = hhg::MinResSolver<hhg::P1Function, hhg::P1LaplaceOperator, decltype(prec)>(storage, minLevel, maxLevel, prec);
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
 
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
