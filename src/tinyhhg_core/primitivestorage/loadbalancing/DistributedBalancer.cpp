@@ -15,6 +15,30 @@ namespace distributed {
 
 using walberla::int64_t;
 
+static void printVector( const std::vector< int64_t > & vec, const std::string & name )
+{
+  std::stringstream ss;
+  ss << name << ":\n";
+  for ( const auto & v : vec )
+  {
+    ss << "    " << v << " ";
+  }
+  ss << "\n";
+  WALBERLA_LOG_INFO( ss.str() );
+}
+
+static void printVector( const std::vector< double > & vec, const std::string & name )
+{
+  std::stringstream ss;
+  ss << name << ":\n";
+  for ( const auto & v : vec )
+  {
+    ss << "    " << v << " ";
+  }
+  ss << "\n";
+  WALBERLA_LOG_INFO( ss.str() );
+}
+
 void parmetis( PrimitiveStorage & storage )
 {
   WALBERLA_LOG_INFO_ON_ROOT( "ParMeTis start..." );
@@ -211,6 +235,22 @@ void parmetis( PrimitiveStorage & storage )
   //////////////////////
   // Calling parmetis //
   //////////////////////
+
+  std::stringstream ss;
+  ss << "PrimitiveID -> parmetisID\n";
+  for ( const auto & i : localPrimitiveIDToGlobalParmetisIDMap )
+  {
+    ss << i.first << " -> " << i.second << "\n";
+  }
+  ss << "\n";
+  WALBERLA_LOG_INFO( ss.str() );
+
+  printVector( vtxdist, "vtxdist" );
+  printVector( xadj,    "xadj" );
+  printVector( adjncy,  "adjncy" );
+  printVector( ncon,    "ncon" );
+  printVector( nparts,  "nparts" );
+  printVector( tpwgts,  "tpwgts" );
 
   int parmetisError =
   walberla::core::ParMETIS_V3_PartKway( vtxdist.data(), xadj.data(), adjncy.data(), vwgt.data(), /* adjwgt */ NULL, wgtflag.data(),

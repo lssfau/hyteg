@@ -13,12 +13,14 @@ static void testParMetis()
 {
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  const std::string meshFileName = "../../data/meshes/quad_4el.msh";
+  const std::string meshFileName = "../../data/meshes/quad_2el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   loadbalancing::roundRobin( setupStorage );
+
+  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
