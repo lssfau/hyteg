@@ -47,6 +47,6 @@ waLBerla_compile_test(FILES PrimitiveMigrationTest.cpp DEPENDS tinyhhg_core core
 waLBerla_execute_test(NAME PrimitiveMigrationTest)
 
 #if( WALBERLA_BUILD_WITH_PARMETIS )
-  waLBerla_compile_test(FILES ParMetisTest.cpp DEPENDS tinyhhg_core core fmt)
-  waLBerla_execute_test(NAME ParMetisTest)
+  waLBerla_compile_test(FILES ParMetisTestHHG.cpp DEPENDS tinyhhg_core core fmt)
+  waLBerla_execute_test(NAME ParMetisTestHHG)
 #endif()
