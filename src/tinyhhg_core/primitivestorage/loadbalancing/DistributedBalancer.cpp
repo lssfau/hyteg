@@ -163,25 +163,36 @@ void parmetis( PrimitiveStorage & storage )
 
   WALBERLA_ASSERT_EQUAL( xadj.size(), storage.getNumberOfLocalPrimitives() + 1 );
 
-  /////////////////////////////
-  // Vertex and edge weights //
-  /////////////////////////////
-
-  // TODO
-
-  wgtflag.push_back( 0 );
-  ncon.push_back( 0 );
-
   //////////////////////////
   // Number of subdomains //
   //////////////////////////
 
   nparts.push_back( static_cast< int64_t >( numProcesses ) );
 
+  /////////////////////////////
+  // Vertex and edge weights //
+  /////////////////////////////
+
+  // TODO
+
+  vwgt.resize( storage.getNumberOfLocalPrimitives() );
+  std::fill( vwgt.begin(), vwgt.end(), 1 );
+
+  wgtflag.push_back( 2 );
+  ncon.push_back( 1 );
+
+  tpwgts.resize( ncon[0] * nparts[0] );
+  std::fill( tpwgts.begin(), tpwgts.end(), 1.0 / static_cast< double >( nparts[0] ) );
+
+  ubvec.resize( ncon[0] );
+  std::fill( ubvec.begin(), ubvec.end(), 1.05 );
+
   //////////////////////
   // Parmetis options //
   //////////////////////
 
+  options.push_back( 0 );
+  options.push_back( 0 );
   options.push_back( 0 );
 
   ///////////////////
@@ -202,9 +213,9 @@ void parmetis( PrimitiveStorage & storage )
   //////////////////////
 
   int parmetisError =
-  walberla::core::ParMETIS_V3_PartKway( &vtxdist[0], &xadj[0], &adjncy[0], /* &vwgt[0] */ NULL, /* adjwgt */ NULL, &wgtflag[0],
-                                        &numflag[0], &ncon[0], &nparts[0], &tpwgts[0], &ubvec[0], &options[0],
-                                        &edgecut[0], &part[0], parmetisCommunicator);
+  walberla::core::ParMETIS_V3_PartKway( vtxdist.data(), xadj.data(), adjncy.data(), vwgt.data(), /* adjwgt */ NULL, wgtflag.data(),
+                                        numflag.data(), ncon.data(), nparts.data(), tpwgts.data(), ubvec.data(), options.data(),
+                                        edgecut.data(), part.data(), parmetisCommunicator);
 
   WALBERLA_ASSERT_EQUAL( parmetisError, walberla::core::METIS_OK );
 
