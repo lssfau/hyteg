@@ -15,35 +15,11 @@ namespace distributed {
 
 using walberla::int64_t;
 using walberla::int64_c;
+using walberla::mpi::MPIRank;
 
-static void printVector( const std::vector< int64_t > & vec, const std::string & name )
-{
-  std::stringstream ss;
-  ss << name << ":\n";
-  for ( const auto & v : vec )
-  {
-    ss << "    " << v << " ";
-  }
-  ss << "\n";
-  WALBERLA_LOG_INFO( ss.str() );
-}
-
-static void printVector( const std::vector< double > & vec, const std::string & name )
-{
-  std::stringstream ss;
-  ss << name << ":\n";
-  for ( const auto & v : vec )
-  {
-    ss << "    " << v << " ";
-  }
-  ss << "\n";
-  WALBERLA_LOG_INFO( ss.str() );
-}
 
 void parmetis( PrimitiveStorage & storage )
 {
-  WALBERLA_LOG_INFO_ON_ROOT( "ParMeTis start..." );
-
   WALBERLA_CHECK_GREATER( storage.getNumberOfLocalPrimitives(), 0, "ParMeTis not supported (yet) for distributions with empty processes." );
 
   MPI_Comm communicator = walberla::mpi::MPIManager::instance()->comm();
@@ -121,7 +97,8 @@ void parmetis( PrimitiveStorage & storage )
 
   // To build the parmetis graph, we now need the mappings (PrimitiveID to parmetisID) from all neighboring processes
 
-  std::set< uint_t > neighboringRanks = storage.getNeighboringRanks();
+  std::set< MPIRank > neighboringRanks;
+  storage.getNeighboringRanks( neighboringRanks );
 
   // Mapping neighboring process ranks to their ID mapping
   std::map< uint_t, std::map< PrimitiveID::IDType, int64_t > > neighboringPrimitiveIDToGlobalParmetisIDMaps;
@@ -156,7 +133,6 @@ void parmetis( PrimitiveStorage & storage )
 
   for ( const auto & it : globalParmetisIDToLocalPrimitiveIDMap )
   {
-    const int64_t     parmetisID  = it.first;
     const PrimitiveID primitiveID = it.second;
     const Primitive * primitive   = storage.getPrimitive( primitiveID );
 
@@ -236,42 +212,25 @@ void parmetis( PrimitiveStorage & storage )
   //////////////////////
   // Calling parmetis //
   //////////////////////
-#if 0
-  std::stringstream ss;
-  ss << "PrimitiveID -> parmetisID\n";
-  for ( const auto & i : localPrimitiveIDToGlobalParmetisIDMap )
-  {
-    ss << i.first << " -> " << i.second << "\n";
-  }
-  ss << "\n";
-  WALBERLA_LOG_INFO( ss.str() );
-
-  printVector( vtxdist, "vtxdist" );
-  printVector( xadj,    "xadj" );
-  printVector( adjncy,  "adjncy" );
-  printVector( tpwgts,  "tpwgts" );
-#endif
 
   int parmetisError =
   walberla::core::ParMETIS_V3_PartKway( vtxdist.data(), xadj.data(), adjncy.data(), vwgt.data(), /* adjwgt */ NULL, &wgtflag,
                                         &numflag, &ncon, &nparts, tpwgts.data(), ubvec.data(), options.data(),
-                                        edgecut.data(), part.data(), &communicator);
+                                        edgecut.data(), part.data(), parmetisCommunicator);
 
   WALBERLA_ASSERT_EQUAL( parmetisError, walberla::core::METIS_OK );
-
-  WALBERLA_LOG_INFO_ON_ROOT( "ParMeTis end." );
 
   /////////////////////////
   // Primitive migration //
   /////////////////////////
 
   std::map< PrimitiveID::IDType, uint_t > migrationMap;
-  for ( uint_t parmetisIDCounter = 0; parmetisIDCounter < part.size(); parmetisIDCounter++ )
+  for ( uint_t partIdx = 0; partIdx < part.size(); partIdx++ )
   {
-    const int64_t     parmetisID  = vtxdist[ rank ] + parmetisIDCounter;
+    const int64_t     parmetisID  = vtxdist[ rank ] + partIdx;
     const PrimitiveID primitiveID = globalParmetisIDToLocalPrimitiveIDMap[ parmetisID ];
 
-    migrationMap[ primitiveID.getID() ] = part[ parmetisIDCounter ];
+    migrationMap[ primitiveID.getID() ] = part[ partIdx ];
   }
 
   storage.migratePrimitives( migrationMap );
