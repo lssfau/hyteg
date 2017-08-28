@@ -13,7 +13,7 @@ static void testParMetis()
 {
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  const std::string meshFileName = "../../data/meshes/quad_2el.msh";
+  const std::string meshFileName = "../../data/meshes/porous_fine.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );

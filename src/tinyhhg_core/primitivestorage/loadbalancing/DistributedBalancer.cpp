@@ -236,7 +236,7 @@ void parmetis( PrimitiveStorage & storage )
   //////////////////////
   // Calling parmetis //
   //////////////////////
-
+#if 0
   std::stringstream ss;
   ss << "PrimitiveID -> parmetisID\n";
   for ( const auto & i : localPrimitiveIDToGlobalParmetisIDMap )
@@ -250,6 +250,7 @@ void parmetis( PrimitiveStorage & storage )
   printVector( xadj,    "xadj" );
   printVector( adjncy,  "adjncy" );
   printVector( tpwgts,  "tpwgts" );
+#endif
 
   int parmetisError =
   walberla::core::ParMETIS_V3_PartKway( vtxdist.data(), xadj.data(), adjncy.data(), vwgt.data(), /* adjwgt */ NULL, &wgtflag,
@@ -259,6 +260,23 @@ void parmetis( PrimitiveStorage & storage )
   WALBERLA_ASSERT_EQUAL( parmetisError, walberla::core::METIS_OK );
 
   WALBERLA_LOG_INFO_ON_ROOT( "ParMeTis end." );
+
+  /////////////////////////
+  // Primitive migration //
+  /////////////////////////
+
+  std::map< PrimitiveID::IDType, uint_t > migrationMap;
+  for ( uint_t parmetisIDCounter = 0; parmetisIDCounter < part.size(); parmetisIDCounter++ )
+  {
+    const int64_t     parmetisID  = vtxdist[ rank ] + parmetisIDCounter;
+    const PrimitiveID primitiveID = globalParmetisIDToLocalPrimitiveIDMap[ parmetisID ];
+
+    migrationMap[ primitiveID.getID() ] = part[ parmetisIDCounter ];
+  }
+
+  storage.migratePrimitives( migrationMap );
+
+
 
 }
 
