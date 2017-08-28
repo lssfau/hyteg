@@ -1,17 +1,19 @@
-#ifndef MINRESSOLVER_HPP
-#define MINRESSOLVER_HPP
+#pragma once
 
 #include <fmt/format.h>
+
+#include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 
 namespace hhg
 {
 
-template<class F, class O>
+template<class F, class O, class Preconditioner = IdentityPreconditioner<F>>
 class MinResSolver
 {
 public:
 
-  MinResSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+  MinResSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, Preconditioner prec_ = Preconditioner())
+    : prec(prec_)
   {
     p_vm = new F("vm", storage, minLevel, maxLevel);
     p_v = new F("v", storage, minLevel, maxLevel);
@@ -54,8 +56,7 @@ public:
     A.apply(x, r, level, flag);
     p_v->assign({1.0, -1.0}, {&b, &r}, level, flag);
 
-    // identity preconditioner
-    p_z->assign({1.0}, {p_v}, level, flag);
+    prec.apply(*p_v, *p_z, level, flag);
 
     real_t gamma_old = 1.0;
     real_t gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
@@ -82,8 +83,7 @@ public:
 
       p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
 
-      // identity preconditioner
-      p_zp->assign({1.0}, {p_vp}, level, flag);
+      prec.apply(*p_vp, *p_zp, level, flag);
 
       gamma_old = gamma_new;
       gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
@@ -147,8 +147,8 @@ private:
   F* p_wp;
 
   F* p_tmp;
+
+  Preconditioner prec;
 };
 
 }
-
-#endif /* MINRESSOLVER_HPP */

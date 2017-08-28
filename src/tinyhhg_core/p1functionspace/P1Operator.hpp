@@ -25,7 +25,7 @@
 namespace hhg
 {
 
-template<class UFCOperator>
+template<class UFCOperator,  bool Diagonal = false>
 class P1Operator : public Operator< P1Function, P1Function >
 {
 public:
@@ -258,6 +258,56 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
+  void smooth_jac_impl(P1Function& dst, P1Function& rhs, P1Function& tmp, size_t level, DoFType flag)
+  {
+    // start pulling vertex halos
+    tmp.getCommunicator(level)->startCommunication<Edge, Vertex>();
+
+    // start pulling edge halos
+    tmp.getCommunicator(level)->startCommunication<Face, Edge>();
+
+    // end pulling vertex halos
+    tmp.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.getDoFType(), flag))
+      {
+        P1Vertex::smooth_jac(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
+      }
+    }
+
+    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+
+    // end pulling edge halos
+    tmp.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.getDoFType(), flag))
+      {
+        P1Edge::smooth_jac(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::smooth_jac(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+  }
+
   void save_impl(P1Function& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
@@ -304,11 +354,22 @@ private:
         local_stiffness[i][j] = A[3 * j + i];
       }
     }
+
+    if (Diagonal) {
+      for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+          if (i != j) {
+            local_stiffness[i][j] = real_t(0);
+          }
+        }
+      }
+    }
   }
 
 };
 
 typedef P1Operator<p1_diffusion_cell_integral_0_otherwise> P1LaplaceOperator;
+typedef P1Operator<p1_diffusion_cell_integral_0_otherwise, true> P1DiagonalLaplaceOperator;
 
 typedef P1Operator<p1_div_cell_integral_0_otherwise> P1DivxOperator;
 typedef P1Operator<p1_div_cell_integral_1_otherwise> P1DivyOperator;

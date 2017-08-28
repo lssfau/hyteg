@@ -88,6 +88,24 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
   dst[0] /= opr_data[0];
 }
 
+inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &rhsId,
+                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &tmpId, size_t level) {
+  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto &dst = vertex.getData(dstId)->data[level];
+  auto &rhs = vertex.getData(rhsId)->data[level];
+  auto &tmp = vertex.getData(tmpId)->data[level];
+
+  dst[0] = rhs[0];
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    dst[0] -= opr_data[i + 1]*tmp[i + 1];
+  }
+
+  dst[0] /= opr_data[0];
+}
+
 inline void prolongate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId, size_t sourceLevel) {
   vertex.getData(memoryId)->data[sourceLevel + 1][0] =
       vertex.getData(memoryId)->data[sourceLevel][0];
