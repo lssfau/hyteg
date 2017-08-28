@@ -11,8 +11,6 @@ namespace hhg {
 
 static void testParMetis()
 {
-  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-
   const std::string meshFileName = "../../data/meshes/porous_fine.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
