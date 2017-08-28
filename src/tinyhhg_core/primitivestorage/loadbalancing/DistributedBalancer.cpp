@@ -7,6 +7,7 @@
 #include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/BufferSystem.h"
 #include "core/mpi/Gatherv.h"
+#include "core/mpi/MPIWrapper.h"
 
 #include <algorithm>
 
@@ -17,7 +18,7 @@ namespace distributed {
 using walberla::int64_t;
 using walberla::int64_c;
 using walberla::mpi::MPIRank;
-
+using namespace walberla::mpistubs;
 
 void parmetis( PrimitiveStorage & storage )
 {
@@ -107,20 +108,20 @@ void parmetis( PrimitiveStorage & storage )
   walberla::mpi::BufferSystem bufferSystem( communicator );
   bufferSystem.setReceiverInfo( neighboringRanks, true );
 
-  for ( const uint_t neighborRank : neighboringRanks )
+  for ( const MPIRank neighborRank : neighboringRanks )
   {
     bufferSystem.sendBuffer( neighborRank ) << localPrimitiveIDToGlobalParmetisIDMap;
   }
   bufferSystem.sendAll();
   for ( auto recv = bufferSystem.begin(); recv != bufferSystem.end(); ++recv )
   {
-    recv.buffer() >> neighboringPrimitiveIDToGlobalParmetisIDMaps[ recv.rank() ];
+    recv.buffer() >> neighboringPrimitiveIDToGlobalParmetisIDMaps[ uint_c( recv.rank() ) ];
   }
 
 #ifndef NDEBUG
-  for ( const uint_t neighborRank : neighboringRanks )
+  for ( const MPIRank neighborRank : neighboringRanks )
   {
-    WALBERLA_ASSERT_EQUAL( neighboringPrimitiveIDToGlobalParmetisIDMaps[ neighborRank ].size(), numberOfLocalPrimitivesOnProcesses[ neighborRank ] );
+    WALBERLA_ASSERT_EQUAL( neighboringPrimitiveIDToGlobalParmetisIDMaps[ uint_c( neighborRank ) ].size(), numberOfLocalPrimitivesOnProcesses[ uint_c( neighborRank ) ] );
   }
 #endif
 
@@ -185,10 +186,10 @@ void parmetis( PrimitiveStorage & storage )
   wgtflag = int64_c( 2 );
   ncon    = int64_c( 1 );
 
-  tpwgts.resize( ncon * nparts );
+  tpwgts.resize( uint_c( ncon * nparts ) );
   std::fill( tpwgts.begin(), tpwgts.end(), 1.0 / static_cast< double >( nparts ) );
 
-  ubvec.resize( ncon );
+  ubvec.resize( uint_c( ncon ) );
   std::fill( ubvec.begin(), ubvec.end(), 1.05 );
 
   //////////////////////
@@ -230,10 +231,10 @@ void parmetis( PrimitiveStorage & storage )
   std::map< PrimitiveID::IDType, uint_t > migrationMap;
   for ( uint_t partIdx = 0; partIdx < part.size(); partIdx++ )
   {
-    const int64_t     parmetisID  = vtxdist[ rank ] + partIdx;
+    const int64_t     parmetisID  = vtxdist[ rank ] + int64_c( partIdx );
     const PrimitiveID primitiveID = globalParmetisIDToLocalPrimitiveIDMap[ parmetisID ];
 
-    migrationMap[ primitiveID.getID() ] = part[ partIdx ];
+    migrationMap[ primitiveID.getID() ] = uint_c( part[ partIdx ] );
   }
 
   storage.migratePrimitives( migrationMap );
