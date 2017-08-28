@@ -2,6 +2,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 
 #include "core/DataTypes.h"
+#include "core/debug/CheckFunctions.h"
 #include "core/load_balancing/ParMetisWrapper.h"
 #include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/BufferSystem.h"
@@ -116,10 +117,12 @@ void parmetis( PrimitiveStorage & storage )
     recv.buffer() >> neighboringPrimitiveIDToGlobalParmetisIDMaps[ recv.rank() ];
   }
 
+#ifndef NDEBUG
   for ( const uint_t neighborRank : neighboringRanks )
   {
     WALBERLA_ASSERT_EQUAL( neighboringPrimitiveIDToGlobalParmetisIDMaps[ neighborRank ].size(), numberOfLocalPrimitivesOnProcesses[ neighborRank ] );
   }
+#endif
 
   //////////////////////////////
   // Building xadj and adjncy //
@@ -218,7 +221,7 @@ void parmetis( PrimitiveStorage & storage )
                                         &numflag, &ncon, &nparts, tpwgts.data(), ubvec.data(), options.data(),
                                         edgecut.data(), part.data(), parmetisCommunicator);
 
-  WALBERLA_ASSERT_EQUAL( parmetisError, walberla::core::METIS_OK );
+  WALBERLA_CHECK_EQUAL( parmetisError, walberla::core::METIS_OK );
 
   /////////////////////////
   // Primitive migration //
