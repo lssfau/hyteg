@@ -651,16 +651,24 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
 #endif
 }
 
-
-std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
+void PrimitiveStorage::getNeighboringRanks( std::set< uint_t > & neighboringRanks ) const
 {
-  std::set< uint_t > neighboringRanks;
+  neighboringRanks.clear();
   for ( const auto & it : neighborRanks_ )
   {
     const uint_t neighborRank = it.second;
     neighboringRanks.insert( neighborRank );
   }
-  return neighboringRanks;
+}
+
+void PrimitiveStorage::getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const
+{
+  neighboringRanks.clear();
+  for ( const auto & it : neighborRanks_ )
+  {
+    const walberla::mpi::MPIRank neighborRank = static_cast< walberla::mpi::MPIRank >( it.second );
+    neighboringRanks.insert( neighborRank );
+  }
 }
 
 PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const PrimitiveID & primitiveID ) const
