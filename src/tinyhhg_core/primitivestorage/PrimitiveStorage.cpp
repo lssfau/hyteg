@@ -372,8 +372,6 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     const PrimitiveID primitiveID = primitiveToMigrate.first;
     const uint_t      targetRank  = primitiveToMigrate.second;
 
-    WALBERLA_LOG_DEVEL( "Sending ID " << primitiveID.getID() << " to rank " << targetRank );
-
     WALBERLA_CHECK( primitiveExistsLocally( primitiveID ), "Cannot migrate non-locally-existent primitives." );
     WALBERLA_CHECK_LESS( targetRank, numProcesses );
 
@@ -489,8 +487,6 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       if ( hasContent )
       {
         const PrimitiveID primitiveID = deserializeAndAddPrimitive( recvBuffer, false );
-
-        WALBERLA_LOG_DEVEL( "Receiving ID " << primitiveID.getID() );
 
         initializeAndDeserializeAllPrimitiveData( recvBuffer, primitiveID );
 
