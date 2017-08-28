@@ -200,6 +200,10 @@ public:
   /// e.g. after migration of primitives to other processes.
   uint_t getModificationStamp() const { return modificationStamp_; }
 
+  /// Fills the passed set with all neighboring ranks (== all ranks from primitives that are located in the direct neighborhood)
+  void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
+  void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
+
 private:
 
   // needed to differentiate when migrating primitives

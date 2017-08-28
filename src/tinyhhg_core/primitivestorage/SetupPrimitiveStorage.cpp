@@ -16,11 +16,18 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 {
   WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
 
+  // since the MeshInfo IDs of the vertices do not necessarily
+  // match the primitive IDs of the vertices in the SetupStorage, we need an assignment
+  std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
+
   // Adding vertices to storage
   MeshInfo::VertexContainer vertices = meshInfo.getVertices();
   for ( auto it = vertices.begin(); it != vertices.end(); it++ )
   {
-    PrimitiveID vertexID( it->first );
+    PrimitiveID vertexID = generatePrimitiveID();
+
+    meshVertexIDToPrimitiveID[ it->first ] = vertexID;
+
     Point3D coordinates( it->second );
     vertices_[ vertexID.getID() ] = std::make_shared< Vertex >( vertexID, coordinates );
 
@@ -33,8 +40,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for ( auto it = edges.begin(); it != edges.end(); it++ )
   {
     PrimitiveID edgeID = generatePrimitiveID();
-    PrimitiveID vertexID0 = PrimitiveID( it->first.first  );
-    PrimitiveID vertexID1 = PrimitiveID( it->first.second );
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ it->first.first  ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ it->first.second ];
     DoFType dofType = it->second;
 
     std::array<Point3D, 2> coords;
@@ -60,9 +67,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for ( auto it = faces.begin(); it != faces.end(); it++ )
   {
     PrimitiveID faceID = generatePrimitiveID();
-    PrimitiveID vertexID0 = PrimitiveID( (*it)[0] );
-    PrimitiveID vertexID1 = PrimitiveID( (*it)[1] );
-    PrimitiveID vertexID2 = PrimitiveID( (*it)[2] );
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ (*it)[0] ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ (*it)[1] ];
+    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ (*it)[2] ];
 
     WALBERLA_ASSERT_EQUAL( faces_.count( faceID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
@@ -382,11 +389,9 @@ void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap & setupPrimitiveMap
 
 PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
 {
-  uint_t maxIDVertices = vertices_.size() == 0 ? 0 : vertices_.rbegin()->first;
-  uint_t maxIDEdges    = edges_.size() == 0 ? 0 : edges_.rbegin()->first;
-  uint_t maxIDFaces    = faces_.size() == 0 ? 0 : faces_.rbegin()->first;
-
-  return PrimitiveID( std::max( std::max( maxIDVertices, maxIDFaces ), maxIDEdges ) + 1 );
+  PrimitiveID newID( getNumberOfPrimitives() );
+  WALBERLA_ASSERT( !primitiveExists( newID ) );
+  return newID;
 }
 
 }
