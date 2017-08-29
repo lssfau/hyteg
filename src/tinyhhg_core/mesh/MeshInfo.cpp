@@ -135,10 +135,12 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
+
     meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[0], faceCoordinates[1] } ), Inner ) );
     meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[1], faceCoordinates[2] } ), Inner ) );
     meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[2], faceCoordinates[0] } ), Inner ) );
-    meshInfo.faces_[ faceCoordinates ] = meshInfoFace;
+
+    meshInfo.addFace( meshInfoFace );
   }
 
   meshFile.close();
@@ -167,6 +169,21 @@ void MeshInfo::addEdge( const Edge & edge )
   {
     edges_[ sortedVertexIDs ] = Edge( sortedVertexIDs, edge.getDoFType() );
   }
+}
+
+void MeshInfo::addFace( const Face & face )
+{
+  std::vector< IDType > sortedVertexIDs = face.getVertices();
+  std::sort( sortedVertexIDs.begin(), sortedVertexIDs.end() );
+
+  WALBERLA_CHECK_EQUAL( std::set< IDType >( sortedVertexIDs.begin(), sortedVertexIDs.end() ).size(), sortedVertexIDs.size(),
+                        "[Mesh] File contains face with duplicate vertices." );
+
+  if ( faces_.count( sortedVertexIDs ) == 0 )
+  {
+    faces_[ sortedVertexIDs ] = Face( sortedVertexIDs, face.getDoFType() );
+  }
+
 }
 
 } // namespace hhg

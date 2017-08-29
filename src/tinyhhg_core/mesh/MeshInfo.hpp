@@ -111,6 +111,9 @@ private:
   /// Adds edge in ascending index order and performs checks
   void addEdge( const Edge & edge );
 
+  /// Adds face in ascending index order and performs checks
+  void addFace( const Face & face );
+
   VertexContainer vertices_;
   EdgeContainer   edges_;
   FaceContainer   faces_;
