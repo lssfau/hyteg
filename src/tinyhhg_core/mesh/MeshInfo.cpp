@@ -136,9 +136,9 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[0], faceCoordinates[1] } ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[1], faceCoordinates[2] } ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( { faceCoordinates[2], faceCoordinates[0] } ), Inner ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[0], faceCoordinates[1] }} ), Inner ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[1], faceCoordinates[2] }} ), Inner ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[2], faceCoordinates[0] }} ), Inner ) );
 
     meshInfo.addFace( meshInfoFace );
   }
