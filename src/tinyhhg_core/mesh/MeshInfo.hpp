@@ -77,13 +77,30 @@ public:
 
   private:
     std::vector< IDType > vertices_;
-    DoFType                 dofType_;
+    DoFType               dofType_;
+  };
+
+  class Cell
+  {
+  public:
+    Cell() : dofType_( Inner ) {};
+    Cell( const std::vector< IDType > & vertices, const DoFType & dofType ) :
+      vertices_( vertices ), dofType_( dofType )
+    {}
+
+    const std::vector< IDType > getVertices() const { return vertices_; }
+    const DoFType               getDoFType()  const { return dofType_; }
+
+  private:
+    std::vector< IDType > vertices_;
+    DoFType               dofType_;
   };
 
 
   typedef std::map< IDType,                  Vertex > VertexContainer;
   typedef std::map< std::array< IDType, 2 >, Edge   > EdgeContainer;
   typedef std::map< std::vector< IDType >,   Face   > FaceContainer;
+  typedef std::map< std::vector< IDType >,   Cell   > CellContainer;
 
   /// Construct empty MeshInfo (for testing)
   static MeshInfo emptyMeshInfo() { return MeshInfo(); }
@@ -91,18 +108,16 @@ public:
   static MeshInfo fromGmshFile( const std::string & meshFileName );
 
   /// Returns vertices of the mesh
-  /// \return Map that maps ( vertex ID -> vertex coordinate )
   const VertexContainer & getVertices() const { return vertices_; };
 
   /// Returns edges of the mesh
-  /// \return Map that maps \n
-  ///         - a pair of vertex indices (matching indices from the vertices from \ref getVertices \n
-  ///         - to the corresponding \ref DoFType
   const EdgeContainer & getEdges() const { return edges_; };
 
   /// Returns faces of the mesh
-  /// \return Set of 3-tuples of vertex indices from the vertices from \ref getVertices
   const FaceContainer & getFaces() const { return faces_; }
+
+  /// Returns cells of the mesh
+  const CellContainer & getCells() const { return cells_; }
 
 private:
 
@@ -117,6 +132,7 @@ private:
   VertexContainer vertices_;
   EdgeContainer   edges_;
   FaceContainer   faces_;
+  CellContainer   cells_;
 
 };
 
