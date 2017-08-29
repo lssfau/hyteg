@@ -4,9 +4,12 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
+#include <core/mpi/Gather.h>
 
 #include <string>
 #include <functional>
+#include <vector>
+
 
 namespace hhg {
 
@@ -193,11 +196,26 @@ void Function< FunctionType >::restrict(size_t level, DoFType flag)
 template< typename FunctionType >
 void Function< FunctionType >::enumerate(size_t level, uint_t& num)
 {
-  startTiming( "Restrict" );
+  startTiming( "Enumerate" );
+  uint_t counter = 0;
 
-  enumerate_impl( level, num );
 
-  stopTiming( "Restrict" );
+  enumerate_impl(level,counter);
+
+  std::vector<uint_t> dofs_per_rank  = walberla::mpi::allGather(counter);
+
+  uint_t start = num;
+
+  for(int i = 0; i<walberla::MPIManager::instance()->rank();++i)
+    start += dofs_per_rank[i];
+
+  for(int i = 0; i<walberla::MPIManager::instance()->numProcesses();++i)
+    num += dofs_per_rank[i];
+
+
+  enumerate_impl( level, start );
+
+  stopTiming( "Enumerate" );
 }
 
 }
