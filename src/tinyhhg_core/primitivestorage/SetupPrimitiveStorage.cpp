@@ -21,14 +21,16 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
 
   // Adding vertices to storage
-  MeshInfo::VertexContainer vertices = meshInfo.getVertices();
-  for ( auto it = vertices.begin(); it != vertices.end(); it++ )
+  const MeshInfo::VertexContainer vertices = meshInfo.getVertices();
+  for ( const auto & it : vertices )
   {
+    const MeshInfo::Vertex meshInfoVertex = it.second;
+
     PrimitiveID vertexID = generatePrimitiveID();
 
-    meshVertexIDToPrimitiveID[ it->first ] = vertexID;
+    meshVertexIDToPrimitiveID[ meshInfoVertex.getID() ] = vertexID;
 
-    Point3D coordinates( it->second );
+    Point3D coordinates( meshInfoVertex.getCoordinates() );
     vertices_[ vertexID.getID() ] = std::make_shared< Vertex >( vertexID, coordinates );
 
     // All to root by default
@@ -36,18 +38,20 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   }
 
   // Adding edges to storage
-  MeshInfo::EdgeContainer edges = meshInfo.getEdges();
-  for ( auto it = edges.begin(); it != edges.end(); it++ )
+  const MeshInfo::EdgeContainer edges = meshInfo.getEdges();
+  for ( const auto & it : edges )
   {
+    const MeshInfo::Edge meshInfoEdge = it.second;
+
     PrimitiveID edgeID = generatePrimitiveID();
-    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ it->first.first  ];
-    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ it->first.second ];
-    DoFType dofType = it->second;
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 )  ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 1 ) ];
+    DoFType dofType = meshInfoEdge.getDoFType();
 
     std::array<Point3D, 2> coords;
 
-    coords[0] = vertices_[vertexID0.getID()]->getCoordinates();
-    coords[1] = vertices_[vertexID1.getID()]->getCoordinates();
+    coords[0] = vertices_[ vertexID0.getID() ]->getCoordinates();
+    coords[1] = vertices_[ vertexID1.getID() ]->getCoordinates();
 
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
@@ -63,13 +67,15 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   }
 
   // Adding faces to storage
-  MeshInfo::FaceContainer faces = meshInfo.getFaces();
-  for ( auto it = faces.begin(); it != faces.end(); it++ )
+  const MeshInfo::FaceContainer faces = meshInfo.getFaces();
+  for ( const auto & it : faces )
   {
+    const MeshInfo::Face meshInfoFace = it.second;
+
     PrimitiveID faceID = generatePrimitiveID();
-    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ (*it)[0] ];
-    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ (*it)[1] ];
-    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ (*it)[2] ];
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 0 ) ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 1 ) ];
+    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 2 ) ];
 
     WALBERLA_ASSERT_EQUAL( faces_.count( faceID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );

@@ -28,12 +28,62 @@ class MeshInfo
 {
 public:
 
-  /// Vertices: ( ID, coordinate )
-  typedef std::map< uint_t, Point3D >                       VertexContainer;
-  /// Edges: ( ( VertexID_0, VertexID_1 ), DoFType )
-  typedef std::map< std::pair< uint_t, uint_t >, DoFType >  EdgeContainer;
-  /// Faces: ( ( VertexID_0, VertexID_1, VertexID_2 )
-  typedef std::set< std::array< uint_t, 3 > >               FaceContainer;
+  typedef uint_t IDType;
+
+  class Vertex
+  {
+  public:
+    Vertex() : id_( 0 ), coordinates_( Point3D() ), dofType_( Inner ) {};
+    Vertex( const IDType & id, const Point3D & coordinates, const DoFType & dofType ) :
+      id_( id ), coordinates_( coordinates ), dofType_( dofType_ )
+    {}
+
+    const IDType  getID()          const { return id_; }
+    const Point3D getCoordinates() const { return coordinates_; }
+    const DoFType getDoFType()     const { return dofType_; }
+
+  private:
+    IDType  id_;
+    Point3D coordinates_;
+    DoFType dofType_;
+  };
+
+  class Edge
+  {
+  public:
+    Edge() : dofType_( Inner ) {};
+    Edge( const std::array< IDType, 2 > & vertices, const DoFType & dofType ) :
+      vertices_( vertices ), dofType_( dofType )
+    {}
+
+    const std::array< IDType, 2 > getVertices() const { return vertices_; }
+    const DoFType                 getDoFType()  const { return dofType_; }
+
+  private:
+    std::array< IDType, 2 > vertices_;
+    DoFType                 dofType_;
+  };
+
+  class Face
+  {
+  public:
+    Face() : dofType_( Inner ) {};
+    Face( const std::vector< IDType > & vertices, const DoFType & dofType ) :
+      vertices_( vertices ), dofType_( dofType )
+    {}
+
+    const std::vector< IDType > getVertices() const { return vertices_; }
+    const DoFType               getDoFType()  const { return dofType_; }
+
+  private:
+    std::vector< IDType > vertices_;
+    DoFType                 dofType_;
+  };
+
+
+  typedef std::map< IDType,                  Vertex > VertexContainer;
+  typedef std::map< std::array< IDType, 2 >, Edge   > EdgeContainer;
+  typedef std::map< std::vector< IDType >,   Face   > FaceContainer;
 
   /// Construct empty MeshInfo (for testing)
   static MeshInfo emptyMeshInfo() { return MeshInfo(); }
@@ -59,11 +109,11 @@ private:
   MeshInfo() {};
 
   /// Adds edge in ascending index order and performs checks
-  void addEdge( uint_t idx0, uint_t idx1, DoFType dofType );
+  void addEdge( const Edge & edge );
 
   VertexContainer vertices_;
-  EdgeContainer edges_;
-  FaceContainer faces_;
+  EdgeContainer   edges_;
+  FaceContainer   faces_;
 
 };
 
