@@ -1,5 +1,4 @@
 waLBerla_link_files_to_builddir(*.msh)
-waLBerla_link_files_to_builddir(../../data/param/*.prm)
 
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1InterpolateTest)
@@ -50,3 +49,6 @@ if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_compile_test(FILES ParMetisTestHHG.cpp DEPENDS tinyhhg_core core fmt)
   waLBerla_execute_test(NAME ParMetisTestHHG)
 endif()
+
+waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME MeshInfoTest)
