@@ -44,8 +44,11 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     const MeshInfo::Edge meshInfoEdge = it.second;
 
     PrimitiveID edgeID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoEdge.getVertices().size(), 2, "Edges are expected to have two vertices." );
     PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 )  ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 1 ) ];
+
     DoFType dofType = meshInfoEdge.getDoFType();
 
     std::array<Point3D, 2> coords;
@@ -73,6 +76,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     const MeshInfo::Face meshInfoFace = it.second;
 
     PrimitiveID faceID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoFace.getVertices().size(), 3, "Only supporting triangle faces." );
     PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 0 ) ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 1 ) ];
     PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 2 ) ];
@@ -86,9 +91,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID edgeID1;
     PrimitiveID edgeID2;
 
-    bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
-    bool foundEdge1 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID1 );
-    bool foundEdge2 = findEdgeByVertexIDs( vertexID2, vertexID0, edgeID2 );
+    const bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
+    const bool foundEdge1 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID1 );
+    const bool foundEdge2 = findEdgeByVertexIDs( vertexID2, vertexID0, edgeID2 );
 
     WALBERLA_CHECK( foundEdge0 && foundEdge1 && foundEdge2, "Could not successfully construct faces from MeshInfo" );
 
@@ -189,6 +194,58 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     edges_[ edgeID2.getID() ]->addFace( faceID );
   }
 
+  const MeshInfo::CellContainer cells = meshInfo.getCells();
+  for ( const auto & it : cells )
+  {
+    const MeshInfo::Cell meshInfoCell = it.second;
+
+    PrimitiveID cellID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoCell.getVertices().size(), 4, "Only supporting tetrahedron cells." );
+
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
+    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
+    PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+
+    PrimitiveID edgeID0;
+    PrimitiveID edgeID1;
+    PrimitiveID edgeID2;
+    PrimitiveID edgeID3;
+    PrimitiveID edgeID4;
+    PrimitiveID edgeID5;
+
+    PrimitiveID faceID0;
+    PrimitiveID faceID1;
+    PrimitiveID faceID2;
+    PrimitiveID faceID3;
+
+    const bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
+    const bool foundEdge1 = findEdgeByVertexIDs( vertexID0, vertexID2, edgeID1 );
+    const bool foundEdge2 = findEdgeByVertexIDs( vertexID0, vertexID3, edgeID2 );
+    const bool foundEdge3 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID3 );
+    const bool foundEdge4 = findEdgeByVertexIDs( vertexID1, vertexID3, edgeID4 );
+    const bool foundEdge5 = findEdgeByVertexIDs( vertexID2, vertexID3, edgeID5 );
+
+    const bool foundFace0 = findFaceByVertexIDs( vertexID0, vertexID1, vertexID2, faceID0 );
+    const bool foundFace1 = findFaceByVertexIDs( vertexID0, vertexID1, vertexID3, faceID1 );
+    const bool foundFace2 = findFaceByVertexIDs( vertexID0, vertexID2, vertexID3, faceID2 );
+    const bool foundFace3 = findFaceByVertexIDs( vertexID1, vertexID2, vertexID3, faceID3 );
+
+    WALBERLA_CHECK( foundEdge0 && foundEdge1 && foundEdge2 && foundEdge3 && foundEdge4 && foundEdge5, "Could not successfully construct cell from MeshInfo." );
+    WALBERLA_CHECK( foundFace0 && foundFace1 && foundFace2 && foundFace3,                             "Could not successfully construct cell from MeshInfo." );
+
+    std::vector< PrimitiveID > cellVertices = {{ vertexID0, vertexID1, vertexID2, vertexID3 }};
+    std::vector< PrimitiveID > cellEdges    = {{ edgeID0, edgeID1, edgeID2, edgeID3, edgeID4, edgeID5 }};
+    std::vector< PrimitiveID > cellFaces    = {{ faceID0, faceID1, faceID2, faceID3 }};
+
+    for ( const auto & id : cellVertices ) { WALBERLA_ASSERT( vertexExists( id ) ); vertices_[ id.getID() ]->addCell( cellID ); }
+    for ( const auto & id : cellEdges    ) { WALBERLA_ASSERT(   edgeExists( id ) );    edges_[ id.getID() ]->addCell( cellID ); }
+    for ( const auto & id : cellFaces    ) { WALBERLA_ASSERT(   faceExists( id ) );    faces_[ id.getID() ]->addCell( cellID ); }
+
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces );
+  }
+
   for (auto& it : edges_) {
     Edge& edge = *it.second;
 
@@ -236,6 +293,32 @@ bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, 
         || ( it->second->getVertexID0() == vertexID1 && it->second->getVertexID1() == vertexID0 ) )
     {
       edge = PrimitiveID( it->first );
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool SetupPrimitiveStorage::findFaceByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, const PrimitiveID & vertexID2, PrimitiveID & faceID ) const
+{
+  if ( !vertexExists( vertexID0 ) || !vertexExists( vertexID1 ) || !vertexExists( vertexID2 ) )
+  {
+    return false;
+  }
+
+  for ( const auto & it : faces_ )
+  {
+    auto face = it.second;
+    if (   ( face->getVertexID0() == vertexID0 && face->getVertexID1() == vertexID1 && face->getVertexID2() == vertexID2 )
+        || ( face->getVertexID0() == vertexID0 && face->getVertexID1() == vertexID2 && face->getVertexID2() == vertexID1 )
+        || ( face->getVertexID0() == vertexID1 && face->getVertexID1() == vertexID0 && face->getVertexID2() == vertexID2 )
+        || ( face->getVertexID0() == vertexID1 && face->getVertexID1() == vertexID2 && face->getVertexID2() == vertexID0 )
+        || ( face->getVertexID0() == vertexID2 && face->getVertexID1() == vertexID0 && face->getVertexID2() == vertexID1 )
+        || ( face->getVertexID0() == vertexID2 && face->getVertexID1() == vertexID1 && face->getVertexID2() == vertexID0 )
+       )
+    {
+      faceID = PrimitiveID( it.first );
       return true;
     }
   }

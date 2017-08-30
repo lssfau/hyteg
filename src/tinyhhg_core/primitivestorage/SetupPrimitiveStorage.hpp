@@ -76,17 +76,22 @@ public:
   CellMap::const_iterator beginCells()      const { return cells_.begin(); }
   CellMap::const_iterator endCells()        const { return cells_.end(); }
 
-  /// Searches an edge with the respective vertices by ID\n
-  /// \param edge is set to the ID of the edge if one was found
-  /// \return true, if an edge was found, false otherwise
-  bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
-
   void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
 
 private:
 
   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
+
+  /// Searches an edge with the respective vertices by ID\n
+  /// \param edge is set to the ID of the edge if one was found
+  /// \return true, if an edge was found, false otherwise
+  bool findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const;
+
+  /// Searches a face with the respective vertices by ID\n
+  /// \param face is set to the ID of the face if one was found
+  /// \return true, if a face was found, false otherwise
+  bool findFaceByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, const PrimitiveID & vertexID2, PrimitiveID & faceID ) const;
 
   PrimitiveID generatePrimitiveID() const;
 
