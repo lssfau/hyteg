@@ -39,22 +39,26 @@ public:
   uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
 
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
-  bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ); }
+  bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ) || cellExistsLocally( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
   bool vertexExistsLocally( const PrimitiveID & id )    const { return vertices_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists locally.
   bool edgeExistsLocally( const PrimitiveID & id )      const { return edges_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists locally.
+  bool cellExistsLocally( const PrimitiveID & id )      const { return cells_.count( id.getID() ) > 0; }
 
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-  bool primitiveExistsInNeighborhood( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) || edgeExistsInNeighborhood( id ) || faceExistsInNeighborhood( id ); }
+  bool primitiveExistsInNeighborhood( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) || edgeExistsInNeighborhood( id ) || faceExistsInNeighborhood( id ) || cellExistsInNeighborhood( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool vertexExistsInNeighborhood( const PrimitiveID & id )    const { return neighborVertices_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool edgeExistsInNeighborhood( const PrimitiveID & id )      const { return neighborEdges_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool faceExistsInNeighborhood( const PrimitiveID & id )      const { return neighborFaces_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool cellExistsInNeighborhood( const PrimitiveID & id )      const { return neighborCells_.count( id.getID() ) > 0; }
 
   /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
   template< typename PrimitiveType >
@@ -96,6 +100,14 @@ public:
         Face* getFace( const PrimitiveID & id );
   ///@}
 
+  /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.
+  /// The returned \ref Cell is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Cell does not exist locally nor in the direct neighborhood.
+  ///@{
+  const Cell* getCell( const PrimitiveID & id ) const;
+        Cell* getCell( const PrimitiveID & id );
+  ///@}
+
   /// @name Generic versions of the getter methods.
   ///@{
   template< typename PrimitiveType >
@@ -116,6 +128,9 @@ public:
 
   /// Fills the passed vector with the IDs of the locally existing faces
   void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
+
+  /// Fills the passed vector with the IDs of the locally existing cells
+  void getCellIDs   ( std::vector< PrimitiveID > & cellIDs )   const;
 
   template< typename PrimitiveType >
   inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID > & primitiveIDs ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
