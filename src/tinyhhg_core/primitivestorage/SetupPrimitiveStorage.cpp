@@ -472,8 +472,9 @@ void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap & setupPrimitiveMap
   setupPrimitiveMap.insert( beginVertices(), endVertices() );
   setupPrimitiveMap.insert( beginEdges(), endEdges() );
   setupPrimitiveMap.insert( beginFaces(), endFaces() );
+  setupPrimitiveMap.insert( beginCells(), endCells() );
 
-  WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+  WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() + cells_.size() );
 }
 
 
