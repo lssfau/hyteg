@@ -2,8 +2,6 @@
 #include <tinyhhg_core/likwidwrapper.hpp>
 
 #include <core/Environment.h>
-#include "petscsys.h"
-#include "tinyhhg_core/SparseMat.hpp"
 
 
 template<class O, class F, class CSolver>
@@ -71,7 +69,8 @@ int main(int argc, char* argv[])
 
   auto parameters = cfg->getOneBlock("Parameters");
 
-  PetscInitializeNoArguments();
+  PETScManager petscManager;
+
 
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
@@ -166,7 +165,6 @@ int main(int argc, char* argv[])
 
   hhg::VTKWriter< hhg::P1Function >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
 
-  PetscFinalize();
 
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;

@@ -49,6 +49,7 @@
 #include "communication/BufferedCommunication.hpp"
 
 #include "SparseMat.hpp"
+#include "PETScManager.hpp"
 
 
 #endif /* TINYHHG_HPP */

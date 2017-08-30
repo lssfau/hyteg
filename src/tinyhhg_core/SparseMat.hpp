@@ -27,7 +27,7 @@ public:
   }
 
   virtual ~SparseMat() {
-    //MatDestroy(&mat);
+    MatDestroy(&mat);
   }
 
   void print(const char name[])
