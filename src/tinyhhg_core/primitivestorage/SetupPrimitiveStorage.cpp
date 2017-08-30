@@ -20,6 +20,21 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   // match the primitive IDs of the vertices in the SetupStorage, we need an assignment
   std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
 
+  // We cache the inserted primitives (edges, faces and cells) by filling
+  // these maps with the surrounding vertexIDs as keys and the inserted
+  // PrimitiveIDs as values.
+  // This way we do not need to search for the neighboring lower level
+  // primitives when building inner primitives.
+  std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToEdgeIDs;
+  std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToFaceIDs;
+  auto findCachedPrimitiveID = []( const std::vector< PrimitiveID > & unsortedPrimitiveIDs, const std::map< std::vector< PrimitiveID >, PrimitiveID > & cache ) -> PrimitiveID
+  {
+    std::vector< PrimitiveID > sortedKey( unsortedPrimitiveIDs );
+    std::sort( sortedKey.begin(), sortedKey.end() );
+    WALBERLA_ASSERT_GREATER( cache.count( sortedKey ), 0, "Could not find primitive in cache during SetupStorage construction." );
+    return cache.at( sortedKey );
+  };
+
   // Adding vertices to storage
   const MeshInfo::VertexContainer vertices = meshInfo.getVertices();
   for ( const auto & it : vertices )
@@ -61,6 +76,11 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
     vertices_[ vertexID1.getID() ]->addEdge( edgeID );
+
+    // Caching neighboring vertices
+    std::vector< PrimitiveID > vertexIDs = {{ vertexID0, vertexID1 }};
+    std::sort( vertexIDs.begin(), vertexIDs.end() );
+    vertexIDsToEdgeIDs[ vertexIDs ] = edgeID;
   }
 
   // Adding faces to storage
@@ -81,15 +101,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
 
-    PrimitiveID edgeID0;
-    PrimitiveID edgeID1;
-    PrimitiveID edgeID2;
-
-    const bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
-    const bool foundEdge1 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID1 );
-    const bool foundEdge2 = findEdgeByVertexIDs( vertexID2, vertexID0, edgeID2 );
-
-    WALBERLA_CHECK( foundEdge0 && foundEdge1 && foundEdge2, "Could not successfully construct faces from MeshInfo" );
+    PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID2, vertexID0 }}, vertexIDsToEdgeIDs );
 
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
@@ -183,8 +197,14 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     edges_[ edgeID0.getID() ]->addFace( faceID );
     edges_[ edgeID1.getID() ]->addFace( faceID );
     edges_[ edgeID2.getID() ]->addFace( faceID );
+
+    // Caching neighboring vertices
+    std::vector< PrimitiveID > neighboringVertexIDs = {{ vertexID0, vertexID1, vertexID2 }};
+    std::sort( neighboringVertexIDs.begin(), neighboringVertexIDs.end() );
+    vertexIDsToFaceIDs[ neighboringVertexIDs ] = faceID;
   }
 
+  // Adding cells to storage
   const MeshInfo::CellContainer cells = meshInfo.getCells();
   for ( const auto & it : cells )
   {
@@ -199,32 +219,36 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
     PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
 
-    PrimitiveID edgeID0;
-    PrimitiveID edgeID1;
-    PrimitiveID edgeID2;
-    PrimitiveID edgeID3;
-    PrimitiveID edgeID4;
-    PrimitiveID edgeID5;
+    PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID5 = findCachedPrimitiveID( {{ vertexID2, vertexID3 }}, vertexIDsToEdgeIDs );
 
-    PrimitiveID faceID0;
-    PrimitiveID faceID1;
-    PrimitiveID faceID2;
-    PrimitiveID faceID3;
+    PrimitiveID faceID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID2 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID1 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID3 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID2 = findCachedPrimitiveID( {{ vertexID0, vertexID2, vertexID3 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID3 = findCachedPrimitiveID( {{ vertexID1, vertexID2, vertexID3 }}, vertexIDsToFaceIDs );
 
-    const bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
-    const bool foundEdge1 = findEdgeByVertexIDs( vertexID0, vertexID2, edgeID1 );
-    const bool foundEdge2 = findEdgeByVertexIDs( vertexID0, vertexID3, edgeID2 );
-    const bool foundEdge3 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID3 );
-    const bool foundEdge4 = findEdgeByVertexIDs( vertexID1, vertexID3, edgeID4 );
-    const bool foundEdge5 = findEdgeByVertexIDs( vertexID2, vertexID3, edgeID5 );
+    WALBERLA_ASSERT_EQUAL( cells_.count( cellID.getID() ), 0 );
 
-    const bool foundFace0 = findFaceByVertexIDs( vertexID0, vertexID1, vertexID2, faceID0 );
-    const bool foundFace1 = findFaceByVertexIDs( vertexID0, vertexID1, vertexID3, faceID1 );
-    const bool foundFace2 = findFaceByVertexIDs( vertexID0, vertexID2, vertexID3, faceID2 );
-    const bool foundFace3 = findFaceByVertexIDs( vertexID1, vertexID2, vertexID3, faceID3 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID3.getID() ), 1 );
 
-    WALBERLA_CHECK( foundEdge0 && foundEdge1 && foundEdge2 && foundEdge3 && foundEdge4 && foundEdge5, "Could not successfully construct cell from MeshInfo." );
-    WALBERLA_CHECK( foundFace0 && foundFace1 && foundFace2 && foundFace3,                             "Could not successfully construct cell from MeshInfo." );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID3.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID4.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID5.getID() ), 1 );
+
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID3.getID() ), 1 );
 
     std::vector< PrimitiveID > cellVertices = {{ vertexID0, vertexID1, vertexID2, vertexID3 }};
     std::vector< PrimitiveID > cellEdges    = {{ edgeID0, edgeID1, edgeID2, edgeID3, edgeID4, edgeID5 }};
@@ -269,7 +293,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID id = it.first;
     setTargetRank( id, 0 );
   }
-
 }
 
 const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
@@ -279,52 +302,6 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   if ( faceExists( id ) )   { return getFace( id ); }
   if ( cellExists( id ) )   { return getCell( id ); }
   return nullptr;
-}
-
-bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const
-{
-  if ( vertices_.count( vertexID0.getID() ) == 0 || vertices_.count( vertexID1.getID() ) == 0 )
-  {
-    return false;
-  }
-
-  for ( auto it = edges_.begin(); it != edges_.end(); it++ )
-  {
-    if (   ( it->second->getVertexID0() == vertexID0 && it->second->getVertexID1() == vertexID1 )
-        || ( it->second->getVertexID0() == vertexID1 && it->second->getVertexID1() == vertexID0 ) )
-    {
-      edge = PrimitiveID( it->first );
-      return true;
-    }
-  }
-
-  return false;
-}
-
-bool SetupPrimitiveStorage::findFaceByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, const PrimitiveID & vertexID2, PrimitiveID & faceID ) const
-{
-  if ( !vertexExists( vertexID0 ) || !vertexExists( vertexID1 ) || !vertexExists( vertexID2 ) )
-  {
-    return false;
-  }
-
-  for ( const auto & it : faces_ )
-  {
-    auto face = it.second;
-    if (   ( face->getVertexID0() == vertexID0 && face->getVertexID1() == vertexID1 && face->getVertexID2() == vertexID2 )
-        || ( face->getVertexID0() == vertexID0 && face->getVertexID1() == vertexID2 && face->getVertexID2() == vertexID1 )
-        || ( face->getVertexID0() == vertexID1 && face->getVertexID1() == vertexID0 && face->getVertexID2() == vertexID2 )
-        || ( face->getVertexID0() == vertexID1 && face->getVertexID1() == vertexID2 && face->getVertexID2() == vertexID0 )
-        || ( face->getVertexID0() == vertexID2 && face->getVertexID1() == vertexID0 && face->getVertexID2() == vertexID1 )
-        || ( face->getVertexID0() == vertexID2 && face->getVertexID1() == vertexID1 && face->getVertexID2() == vertexID0 )
-       )
-    {
-      faceID = PrimitiveID( it.first );
-      return true;
-    }
-  }
-
-  return false;
 }
 
 
