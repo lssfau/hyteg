@@ -26,6 +26,25 @@ include_directories ( src )
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR} )
 find_package( waLBerla )
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes/3D)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes/3D")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
+endif()
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/output)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
+endif()
+
+waLBerla_link_files_to_builddir(data/meshes/*.msh)
+waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
+waLBerla_link_files_to_builddir(data/param/*.prm)
 
 add_subdirectory (extern/fmt-3.0.1)
 add_subdirectory( src )
