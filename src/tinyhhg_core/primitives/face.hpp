@@ -1,5 +1,5 @@
-#ifndef FACE_HPP
-#define FACE_HPP
+
+#pragma once
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
@@ -106,4 +106,3 @@ protected:
 
 }
 
-#endif /* FACE_HPP */
