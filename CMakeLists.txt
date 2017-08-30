@@ -26,6 +26,8 @@ include_directories ( src )
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR} )
 find_package( waLBerla )
 
+include_directories ( ${PETSC_INCLUDES} )
+
 
 add_subdirectory (extern/fmt-3.0.1)
 add_subdirectory( src )
