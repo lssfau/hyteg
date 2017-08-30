@@ -8,6 +8,7 @@
 #include "P1Memory.hpp"
 #include "P1FaceIndex.hpp"
 #include <petscmat.h>
+#include <petscvec.h>
 
 namespace hhg {
 namespace P1Face {
@@ -434,6 +435,33 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 }
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
+
+template<uint_t Level>
+inline void createVectorFromFunctionTmpl(Face &face,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &numeratorId,
+                              Vec& vec) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      PetscInt numeratorInt = (PetscInt)numerator[index<Level>(i, j, VERTEX_C)];
+      VecSetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, VERTEX_C)],INSERT_VALUES);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
 
 }// namespace P1Face
 }// namespace hhg

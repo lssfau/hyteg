@@ -48,8 +48,10 @@
 #include "communication/PackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
-#include "SparseMat.hpp"
 #include "PETScManager.hpp"
+#include "SparseMat.hpp"
+#include "Vector.hpp"
+
 
 
 #endif /* TINYHHG_HPP */

@@ -16,7 +16,7 @@ namespace hhg {
 template< typename FunctionType >
 class Function {
 public:
-  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
       : functionName_(name)
       , storage_(storage)
       , minLevel_(minLevel)
@@ -34,19 +34,21 @@ public:
 
   inline void interpolate(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
-  inline void assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All);
+  inline void assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
 
-  inline void add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All);
+  inline void add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
 
-  inline real_t dot(FunctionType& rhs, size_t level, DoFType flag = All);
+  inline real_t dot(FunctionType& rhs, uint_t level, DoFType flag = All);
 
-  inline void prolongate(size_t level, DoFType flag = All);
+  inline void prolongate(uint_t level, DoFType flag = All);
 
-  inline void prolongateQuadratic(size_t level, DoFType flag = All);
+  inline void prolongateQuadratic(uint_t level, DoFType flag = All);
 
-  inline void restrict(size_t level, DoFType flag = All);
+  inline void restrict(uint_t level, DoFType flag = All);
 
-  inline void enumerate(size_t level, uint_t& num);
+  inline void enumerate(uint_t level, uint_t& num);
+
+  inline void createVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag);
 
 
   const std::string &getFunctionName() const { return functionName_; }
@@ -75,19 +77,21 @@ protected:
 
   virtual void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All) = 0;
 
-  virtual void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All) = 0;
+  virtual void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
 
-  virtual void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All) = 0;
+  virtual void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
 
-  virtual real_t dot_impl(FunctionType& rhs, size_t level, DoFType flag = All) = 0;
+  virtual real_t dot_impl(FunctionType& rhs, uint_t level, DoFType flag = All) = 0;
 
-  virtual void prolongate_impl(size_t level, DoFType flag = All) = 0;
+  virtual void prolongate_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void prolongateQuadratic_impl(size_t level, DoFType flag = All) = 0;
+  virtual void prolongateQuadratic_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void restrict_impl(size_t level, DoFType flag = All) = 0;
+  virtual void restrict_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void enumerate_impl(size_t level, uint_t& num) = 0;
+  virtual void enumerate_impl(uint_t level, uint_t& num) = 0;
+
+  virtual void createVector_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;}
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -216,6 +220,17 @@ void Function< FunctionType >::enumerate(size_t level, uint_t& num)
   enumerate_impl( level, start );
 
   stopTiming( "Enumerate" );
+}
+
+
+template< typename FunctionType >
+void Function< FunctionType >::createVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  startTiming( "createVector" );
+
+  createVector_impl(numerator, vec, level,flag);
+
+  stopTiming( "createVector" );
 }
 
 }

@@ -4,6 +4,7 @@
 #include "P1Memory.hpp"
 #include "P1EdgeIndex.hpp"
 #include <petscmat.h>
+#include <petscvec.h>
 
 namespace hhg {
 
@@ -325,20 +326,20 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
     MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[VERTEX_C] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
 
     for (auto& neighbor : neighbors_on_edge) {
-      PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+      srcint = (PetscInt) src[index<Level>(i, neighbor)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
     }
 
     for (auto& neighbor : neighbors_south) {
-      PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+      srcint = (PetscInt) src[index<Level>(i, neighbor)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto& neighbor : neighbors_north) {
-        PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+        srcint = (PetscInt) src[index<Level>(i, neighbor)];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
         MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
       }
@@ -347,6 +348,31 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
 }
 
 SPECIALIZE(void, saveOperatorTmpl, saveOperator)
+
+template<uint_t Level>
+inline void createVectorFromFunctionTmpl(Edge &edge,
+                                     const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &srcId,
+                                     const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &numeratorId,
+                                     Vec& vec) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto &src = edge.getData(srcId)->data[Level];
+  auto &numerator = edge.getData(numeratorId)->data[Level];
+
+  PetscInt* numeratorInt = new PetscInt[rowsize-2];
+  for(uint_t i = 0;i<rowsize-2; i++)
+  {
+    numeratorInt[i] = (PetscInt)numerator[i+1];
+  }
+
+  VecSetValues(vec,rowsize-2,numeratorInt,&src[1],INSERT_VALUES);
+  delete[] numeratorInt;
+
+}
+SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+
+
 
 }
 }

@@ -99,14 +99,12 @@ int main(int argc, char* argv[])
   hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
   hhg::P1Function err("err", storage, minLevel, maxLevel);
   hhg::P1Function numerator("numerator",storage, minLevel, maxLevel);
-  uint_t num = 0;
-  numerator.enumerate(minLevel,num);
+
 
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
 
-  hhg::SparseMat<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,minLevel,numerator,num);
 
-  Amat.print("CreateMatrix.m");
+
 
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
@@ -118,6 +116,20 @@ int main(int argc, char* argv[])
 
   tmp.interpolate(ones, maxLevel);
   real_t npoints = tmp.dot(tmp, maxLevel);
+
+
+  uint_t num = 0;
+  numerator.enumerate(maxLevel,num);
+  hhg::SparseMat<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,maxLevel,numerator,num);
+
+  Amat.print("CreateMatrix.m");
+
+  hhg::Vector<hhg::P1Function> x_exact_vector(num);
+  x_exact_vector.createVectorFromFunction(x_exact,numerator,maxLevel);
+
+  x_exact_vector.print("CreateX.m");
+
+
 
   auto csolver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
 

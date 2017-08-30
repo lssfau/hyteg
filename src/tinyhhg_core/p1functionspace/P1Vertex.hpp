@@ -4,6 +4,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include <petscmat.h>
+#include <petscvec.h>
 
 namespace hhg {
 
@@ -140,20 +141,20 @@ inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
                          Mat& mat,
-                         size_t level) {
+                         uint_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &src = vertex.getData(srcId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
 
   PetscInt* srcint = new PetscInt[vertex.getNumNeighborEdges()+1];
-  PetscInt dstint = dst[0];
+  PetscInt dstint = (PetscInt) dst[0];
 
 
-  for(int i = 0;i<vertex.getNumNeighborEdges()+1;++i)
+  for(uint_t i = 0;i<vertex.getNumNeighborEdges()+1;++i)
     srcint[i] = (PetscInt)src[i];
 
 
-  MatSetValues(mat,1,&dstint,vertex.getNumNeighborEdges()+1,srcint,opr_data.get() ,INSERT_VALUES);
+  MatSetValues(mat,1,&dstint,(PetscInt)(vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);
 
   delete[] srcint;
 
@@ -164,6 +165,21 @@ inline void saveOperator(Vertex &vertex,
   }
   */
 }
+
+inline void createVectorFromFunction(Vertex &vertex,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                         Vec& vec,
+                         uint_t level) {
+
+  auto &src = vertex.getData(srcId)->data[level];
+  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+
+  VecSetValues(vec,1,&numerator,src.get(),INSERT_VALUES);
+
+}
+
+
 }
 }
 

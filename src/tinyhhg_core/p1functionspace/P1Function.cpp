@@ -346,4 +346,36 @@ void P1Function::enumerate_impl(uint_t level, uint_t& num)
   communicators_[level]->startCommunication<Edge, Vertex>();
   communicators_[level]->endCommunication<Edge, Vertex>();
 }
+
+
+void P1Function::createVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      P1Vertex::createVectorFromFunction(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
+    }
+  }
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      P1Edge::createVectorFromFunction(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
+    }
+  }
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      P1Face::createVectorFromFunction(level, face, faceDataID_, numerator.getFaceDataID(), vec);
+    }
+  }
+}
+
 }
