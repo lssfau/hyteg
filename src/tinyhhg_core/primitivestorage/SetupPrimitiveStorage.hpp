@@ -5,9 +5,10 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitiveid.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
-#include "tinyhhg_core/primitives/vertex.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 
 #include <map>
 #include <set>
@@ -27,6 +28,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
@@ -35,15 +37,17 @@ public:
   uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
   uint_t getNumberOfEmptyProcesses() const;
 
-  bool primitiveExists( const PrimitiveID & id ) const { return vertexExists( id ) || edgeExists( id ) || faceExists( id ); }
+  bool primitiveExists( const PrimitiveID & id ) const { return vertexExists( id ) || edgeExists( id ) || faceExists( id ) || cellExists( id ); }
   bool vertexExists   ( const PrimitiveID & id ) const { return vertices_.count( id.getID() ) > 0; }
   bool edgeExists     ( const PrimitiveID & id ) const { return edges_.count( id.getID() )    > 0; }
   bool faceExists     ( const PrimitiveID & id ) const { return faces_.count( id.getID() )    > 0; }
+  bool cellExists     ( const PrimitiveID & id ) const { return cells_.count( id.getID() )    > 0; }
 
   const Primitive * getPrimitive( const PrimitiveID & id ) const;
   const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr; }
   const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() ).get()    : nullptr; }
   const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() ).get()    : nullptr; }
+  const Cell   * getCell  ( const PrimitiveID & id ) const { return cellExists( id )   ? cells_.at( id.getID() ).get()    : nullptr; }
 
   void getSetupPrimitives( PrimitiveMap & setupPrimitiveMap ) const;
   uint_t getNumberOfPrimitives() const;
@@ -57,6 +61,9 @@ public:
   FaceMap::iterator beginFaces()      { return faces_.begin(); }
   FaceMap::iterator endFaces()        { return faces_.end(); }
 
+  CellMap::iterator beginCells()      { return cells_.begin(); }
+  CellMap::iterator endCells()        { return cells_.end(); }
+
   VertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
   VertexMap::const_iterator endVertices()   const { return vertices_.end(); }
 
@@ -65,6 +72,9 @@ public:
 
   FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
   FaceMap::const_iterator endFaces()        const { return faces_.end(); }
+
+  CellMap::const_iterator beginCells()      const { return cells_.begin(); }
+  CellMap::const_iterator endCells()        const { return cells_.end(); }
 
   /// Searches an edge with the respective vertices by ID\n
   /// \param edge is set to the ID of the edge if one was found
@@ -94,6 +104,7 @@ private:
   VertexMap vertices_;
   EdgeMap   edges_;
   FaceMap   faces_;
+  CellMap   cells_;
 
   std::map< PrimitiveID::IDType, uint_t > primitiveIDToTargetRankMap_;
 

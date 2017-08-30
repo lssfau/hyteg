@@ -219,6 +219,7 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   if ( vertexExists( id ) ) { return getVertex( id ); }
   if ( edgeExists( id ) )   { return getEdge( id ); }
   if ( faceExists( id ) )   { return getFace( id ); }
+  if ( cellExists( id ) )   { return getCell( id ); }
   return nullptr;
 }
 
@@ -281,7 +282,7 @@ uint_t SetupPrimitiveStorage::getNumberOfEmptyProcesses() const
 
 uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
 {
-  return vertices_.size() + edges_.size() + faces_.size();
+  return vertices_.size() + edges_.size() + faces_.size() + cells_.size();
 }
 
 uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
