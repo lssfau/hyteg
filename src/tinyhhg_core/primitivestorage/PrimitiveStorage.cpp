@@ -91,6 +91,16 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
+
+    for ( const auto & neighborCellID : vertex->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
   }
 
   for ( const auto & it : edges_ )
@@ -124,6 +134,16 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       {
         neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
+      }
+    }
+
+    for ( const auto & neighborCellID : edge->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
       }
     }
   }
@@ -161,8 +181,62 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
+
+    for ( const auto & neighborCellID : face->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
   }
 
+  for ( const auto & it : cells_ )
+  {
+    auto cell = it.second;
+
+    for ( const auto & neighborVertexID : cell->neighborVertices() )
+    {
+      const Vertex * neighborVertex = setupStorage.getVertex( neighborVertexID );
+      if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+      {
+        neighborVertices_[ neighborVertexID.getID() ] = std::make_shared< Vertex >( *neighborVertex );
+        neighborRanks_[ neighborVertexID.getID() ] = setupStorage.getTargetRank( neighborVertexID.getID() );
+      }
+    }
+
+    for ( const auto & neighborEdgeID : cell->neighborEdges() )
+    {
+      const Edge * neighborEdge = setupStorage.getEdge( neighborEdgeID );
+      if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+      {
+        neighborEdges_[ neighborEdgeID.getID() ] = std::make_shared< Edge >( *neighborEdge );
+        neighborRanks_[ neighborEdgeID.getID() ] = setupStorage.getTargetRank( neighborEdgeID.getID() );
+      }
+    }
+
+    for ( const auto & neighborFaceID : cell->neighborFaces() )
+    {
+      const Face * neighborFace = setupStorage.getFace( neighborFaceID );
+      if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+      {
+        neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
+        neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
+      }
+    }
+
+    for ( const auto & neighborCellID : cell->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
+  }
 
 #ifndef NDEBUG
   checkConsistency();
