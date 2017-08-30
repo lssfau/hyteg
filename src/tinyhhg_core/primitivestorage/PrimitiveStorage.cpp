@@ -899,7 +899,16 @@ void PrimitiveStorage::checkConsistency()
   {
     WALBERLA_CHECK_GREATER_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
     WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 3 );
+  }
+  for ( auto it = cells_.begin(); it != cells_.end(); it++ )
+  {
+    WALBERLA_CHECK_GREATER_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 4 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 6 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborFaces(), 4 );
   }
 
   // 4. Number of data entries of neighbor primitives is zero
@@ -921,7 +930,16 @@ void PrimitiveStorage::checkConsistency()
   {
     WALBERLA_CHECK_GREATER_EQUAL( 0, it->second->getNumberOfDataEntries() );
     WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 3 );
+  }
+  for ( auto it = neighborCells_.begin(); it != neighborCells_.end(); it++ )
+  {
+    WALBERLA_CHECK_GREATER_EQUAL( 0, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 4 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 6 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborFaces(), 4 );
   }
 
   // 7. Number of callbacks is less or equal to the data handling counter
@@ -953,7 +971,7 @@ void PrimitiveStorage::checkConsistency()
   }
 
   // 9. As many neighbor ranks as neighbors
-  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
+  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() + neighborCells_.size() );
 
   // 10. Local primitives do not exist in neighborhood
   for ( const auto & id : primitiveIDs )
