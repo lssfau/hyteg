@@ -27,6 +27,12 @@ set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR} )
 find_package( waLBerla )
 
 include_directories ( ${PETSC_INCLUDES} )
+foreach(lib ${PETSC_LIBRARIES})
+    if(lib)
+        list( APPEND SERVICE_LIBS ${lib})
+    endif()
+endforeach()
+
 
 
 add_subdirectory (extern/fmt-3.0.1)
