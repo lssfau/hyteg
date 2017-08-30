@@ -69,7 +69,7 @@ private:
     WALBERLA_ASSERT(false, "BubbleOperator::smooth_gs is not implemented!");
   }
 
-  void save_impl(BubbleFunction& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(BubbleFunction& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
     /* //TODO
     for (auto& it : storage_->getFaces()) {

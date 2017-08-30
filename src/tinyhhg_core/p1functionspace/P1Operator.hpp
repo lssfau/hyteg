@@ -308,7 +308,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void save_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;

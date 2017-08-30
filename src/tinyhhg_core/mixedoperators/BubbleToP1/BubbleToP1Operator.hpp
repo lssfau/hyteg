@@ -172,7 +172,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void save_impl(BubbleFunction& src, P1Function& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(BubbleFunction& src, P1Function& dst, Mat &mat, size_t level, DoFType flag)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first //TODO: Implement!
     /*src.getCommunicator(level)->startCommunication<Face, Edge>();

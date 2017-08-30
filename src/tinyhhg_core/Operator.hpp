@@ -30,7 +30,7 @@ public:
 
   void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
 
-  void save( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag );
+  void createMatrix( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag );
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
@@ -45,7 +45,7 @@ public:
     WALBERLA_ASSERT(false, "Not implemented");
   };
 
-  virtual void save_impl( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag ) = 0;
+  virtual void createMatrix_impl( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag ) = 0;
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -106,11 +106,11 @@ void Operator< SourceFunction, DestinationFunction  >::smooth_jac( DestinationFu
 }
 
 template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::save( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag )
+void Operator< SourceFunction, DestinationFunction  >::createMatrix( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag )
 {
   startTiming( "save" );
 
-  save_impl( src, dst, mat, level, flag );
+  createMatrix_impl( src, dst, mat, level, flag );
 
   stopTiming( "save" );
 }

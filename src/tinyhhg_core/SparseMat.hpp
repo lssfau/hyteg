@@ -19,7 +19,7 @@ public:
     MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,num,num);
     MatSetUp(mat);
 
-    op.save(numerator, numerator, mat, level, hhg::All);
+    op.createMatrix(numerator, numerator, mat, level, hhg::All);
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);

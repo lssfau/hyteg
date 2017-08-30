@@ -27,7 +27,7 @@ public:
     A_b.apply(src.b, dst.b, level, flag, updateType);
   }
 
-  void save(P1BubbleFunction& src, P1BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix(P1BubbleFunction& src, P1BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
 //    WALBERLA_LOG_DEBUG_ON_ROOT("P1BubbleOperator::apply is missing off diagonal blocks!")
 
