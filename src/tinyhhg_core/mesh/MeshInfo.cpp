@@ -67,9 +67,9 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
   // First we parse the file and store the information plainly into vector.
   // This way, we can then first process the edges and then all faces.
 
-  std::map< std::array< IDType, 2 >, Edge > parsedEdges;
-  std::map< std::vector< IDType >,   Face > parsedFaces;
-  std::map< std::vector< IDType >,   Cell > parsedCells;
+  EdgeContainer parsedEdges;
+  FaceContainer parsedFaces;
+  CellContainer parsedCells;
 
   for ( uint_t primitive = 0; primitive < numPrimitives; ++primitive )
   {
