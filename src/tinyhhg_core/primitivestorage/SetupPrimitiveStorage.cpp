@@ -409,7 +409,8 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
   os << " - Number of...\n"
      << "   +  Vertices: " << std::setw(10) << vertices_.size() << "\n"
      << "   +     Edges: " << std::setw(10) << edges_.size() << "\n"
-     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n";
+     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n"
+     << "   +     Cells: " << std::setw(10) << cells_.size() << "\n";
 
   os << " - Primitives per process...\n"
      << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
@@ -461,6 +462,22 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
        << std::setw(8) << it->second->getEdgeID0().getID() << " | "
        << std::setw(8) << it->second->getEdgeID1().getID() << " | "
        << std::setw(8) << it->second->getEdgeID2().getID() << "\n";
+  }
+  os << "\n";
+
+  if ( cells_.size() > 0 )
+  {
+    os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
+       << "------------------------------------------------------------------------\n";
+    for ( auto it = cells_.begin(); it != cells_.end(); it++ )
+    {
+      os << "          " << std::setw(4) << it->first << " | "
+         << std::setw(11) << getTargetRank( it->first ) << " | "
+         << std::setw(8) << it->second->neighborFaces()[0].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[1].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[2].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[3].getID() << "\n";
+    }
   }
 #endif
 }
