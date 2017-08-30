@@ -23,6 +23,11 @@ public:
   virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborFaces(); }
   virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
+protected:
+
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_UNUSED( sendBuffer ); }
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_UNUSED( recvBuffer ); };
+
 };
 
 }
