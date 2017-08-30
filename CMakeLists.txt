@@ -33,15 +33,6 @@ add_subdirectory( apps )
 add_subdirectory( tests )
 add_subdirectory( tutorials )
 
-if(MSVC)
-  # Force to always compile with W3
-  # W4 contains warning c4100 which is massively triggered by the generated code 
-  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
-    string(REGEX REPLACE "/W[0-4]" "/W3" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
-  endif()
-endif()
 
 ############################################################################################################################
 # Documentation Generation
