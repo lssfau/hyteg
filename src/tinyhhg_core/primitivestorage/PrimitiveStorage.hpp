@@ -24,6 +24,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
@@ -249,10 +250,12 @@ private:
   VertexMap vertices_;
   EdgeMap   edges_;
   FaceMap   faces_;
+  CellMap   cells_;
 
   VertexMap neighborVertices_;
   EdgeMap   neighborEdges_;
   FaceMap   neighborFaces_;
+  CellMap   neighborCells_;
 
   template< typename DataType >
   inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive > &                                                     dataID,
