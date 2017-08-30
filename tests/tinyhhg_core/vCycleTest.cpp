@@ -2,6 +2,9 @@
 #include <tinyhhg_core/likwidwrapper.hpp>
 
 #include <core/Environment.h>
+#include "petscsys.h"
+#include "tinyhhg_core/SparseMat.hpp"
+
 
 template<class O, class F, class CSolver>
 void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, F& b, F& r, F& tmp, real_t coarse_tolerance, size_t coarse_maxiter, size_t nu_pre, size_t nu_post)
@@ -68,6 +71,8 @@ int main(int argc, char* argv[])
 
   auto parameters = cfg->getOneBlock("Parameters");
 
+  PetscInitializeNoArguments();
+
   WALBERLA_LOG_INFO_ON_ROOT("TinyHHG FMG Test");
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(parameters.getParameter<std::string>("mesh"));
@@ -94,8 +99,16 @@ int main(int argc, char* argv[])
   hhg::P1Function ax("ax", storage, minLevel, maxLevel);
   hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
   hhg::P1Function err("err", storage, minLevel, maxLevel);
+  hhg::P1Function numerator("numerator",storage, minLevel, maxLevel);
+  uint_t num = 0;
+  numerator.enumerate(minLevel,num);
 
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
+
+  hhg::SparseMat<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,minLevel,numerator,num);
+
+  Amat.print("CreateMatrix.m");
+
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
@@ -152,6 +165,9 @@ int main(int argc, char* argv[])
   WALBERLA_CHECK_LESS( i, outer );
 
   hhg::VTKWriter< hhg::P1Function >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
+
+  PetscFinalize();
+
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;
 }

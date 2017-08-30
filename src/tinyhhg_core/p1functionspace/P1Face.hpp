@@ -7,6 +7,7 @@
 #include "tinyhhg_core/macros.hpp"
 #include "P1Memory.hpp"
 #include "P1FaceIndex.hpp"
+#include <petscmat.h>
 
 namespace hhg {
 namespace P1Face {
@@ -404,7 +405,7 @@ inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Fa
 template<uint_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, Mat& mat) {
   using namespace CoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -417,10 +418,15 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
+      PetscInt srcInt = (PetscInt)src[index<Level>(i, j, VERTEX_C)];
+      PetscInt dstInt = (PetscInt)dst[index<Level>(i, j, VERTEX_C)];
+      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[VERTEX_C] ,INSERT_VALUES);
 
       for (auto neighbor : neighbors) {
-        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        srcInt = (PetscInt)src[index<Level>(i, j, neighbor)];
+        //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[neighbor] ,INSERT_VALUES);
       }
     }
     --inner_rowsize;

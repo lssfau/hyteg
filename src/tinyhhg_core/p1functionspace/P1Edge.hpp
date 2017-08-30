@@ -3,6 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "P1Memory.hpp"
 #include "P1EdgeIndex.hpp"
+#include <petscmat.h>
 
 namespace hhg {
 
@@ -307,7 +308,7 @@ SPECIALIZE(void, enumerateTmpl, enumerate)
 template<uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
                          const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &srcId,
-                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, std::ostream& out) {
+                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, Mat& mat) {
   using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -316,20 +317,30 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
   auto &src = edge.getData(srcId)->data[Level];
   auto &dst = edge.getData(dstId)->data[Level];
 
+
   for (uint_t i = 1; i < rowsize - 1; ++i) {
-    out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
+    PetscInt dstint = (PetscInt) dst[index<Level>(i, VERTEX_C)];
+    PetscInt srcint = (PetscInt) src[index<Level>(i, VERTEX_C)];
+    //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
+    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[VERTEX_C] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
 
     for (auto& neighbor : neighbors_on_edge) {
-      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+      PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
     }
 
     for (auto& neighbor : neighbors_south) {
-      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+      PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto& neighbor : neighbors_north) {
-        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+        PetscInt srcint = (PetscInt) src[index<Level>(i, neighbor)];
+        //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
+        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
       }
     }
   }

@@ -48,5 +48,7 @@
 #include "communication/PackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
+#include "SparseMat.hpp"
+
 
 #endif /* TINYHHG_HPP */

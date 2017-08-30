@@ -308,14 +308,14 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void save_impl(P1Function& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
+  void save_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
+        P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
       }
     }
 
@@ -324,7 +324,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
+        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
       }
     }
 
@@ -333,7 +333,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
+        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
       }
     }
   }

@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include <petscmat.h>
 
 namespace hhg {
 
@@ -138,17 +139,30 @@ inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
-                         std::ostream& out,
+                         Mat& mat,
                          size_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &src = vertex.getData(srcId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
 
-  out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
+  PetscInt* srcint = new PetscInt[vertex.getNumNeighborEdges()+1];
+  PetscInt dstint = dst[0];
+
+
+  for(int i = 0;i<vertex.getNumNeighborEdges()+1;++i)
+    srcint[i] = (PetscInt)src[i];
+
+
+  MatSetValues(mat,1,&dstint,vertex.getNumNeighborEdges()+1,srcint,opr_data.get() ,INSERT_VALUES);
+
+  delete[] srcint;
+
+  /*out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
 
   for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
     out << fmt::format("{}\t{}\t{}\n", dst[0], src[i + 1], opr_data[i + 1]);
   }
+  */
 }
 }
 }
