@@ -32,9 +32,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     Point3D coordinates( meshInfoVertex.getCoordinates() );
     vertices_[ vertexID.getID() ] = std::make_shared< Vertex >( vertexID, coordinates );
-
-    // All to root by default
-    primitiveIDToTargetRankMap_[ vertexID.getID() ] = 0;
   }
 
   // Adding edges to storage
@@ -60,9 +57,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     edges_[ edgeID.getID() ] = std::make_shared< Edge >( edgeID, vertexID0, vertexID1, dofType, coords);
-
-    // All to root by default
-    primitiveIDToTargetRankMap_[ edgeID.getID() ] = 0;
 
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
@@ -180,9 +174,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates ) );
 
-    // All to root by default
-    primitiveIDToTargetRankMap_[ faceID.getID() ] = 0;
-
     // Adding face ID to vertices as neighbors
     vertices_[vertexIDs[0].getID()]->addFace(faceID);
     vertices_[vertexIDs[1].getID()]->addFace(faceID);
@@ -269,6 +260,16 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     }
   }
+
+  // All to root by default
+  PrimitiveMap allPrimitives;
+  getSetupPrimitives( allPrimitives );
+  for ( const auto & it : allPrimitives )
+  {
+    PrimitiveID id = it.first;
+    setTargetRank( id, 0 );
+  }
+
 }
 
 const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
