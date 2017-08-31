@@ -5,8 +5,6 @@ waLBerla_execute_test(NAME P1InterpolateTest)
 
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
-waLBerla_execute_test(NAME vCycleTest3 COMMAND $<TARGET_FILE:vCycleTest> PROCESSES 3 )
-waLBerla_execute_test(NAME vCycleTest8 COMMAND $<TARGET_FILE:vCycleTest> PROCESSES 8 )
 
 waLBerla_compile_test(FILES Indexing/P1EdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1EdgeIndexingTest)
