@@ -16,7 +16,7 @@ public:
 public:
   PETScSparseMatrix() = delete;
 
-  PETScSparseMatrix(OperatorType& op, uint_t level,FunctionType& numerator,uint_t num,DoFType flag = All) {
+  PETScSparseMatrix(const char name[],OperatorType& op, uint_t level,FunctionType& numerator,uint_t num,DoFType flag = All) {
     MatCreate(walberla::MPIManager::instance()->comm(),&mat);
     MatSetType(mat,MATAIJ);
     MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,(PetscInt)num,(PetscInt)num);
@@ -26,6 +26,7 @@ public:
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    PetscObjectSetName((PetscObject)mat,name);
 
   }
 

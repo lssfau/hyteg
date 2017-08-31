@@ -153,7 +153,6 @@ inline void saveOperator(Vertex &vertex,
   for(uint_t i = 0;i<vertex.getNumNeighborEdges()+1;++i)
     srcint[i] = (PetscInt)src[i];
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Number of Neighbors: {}",vertex.getNumNeighborEdges()))
 
 
   MatSetValues(mat,1,&dstint,(PetscInt) (vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);

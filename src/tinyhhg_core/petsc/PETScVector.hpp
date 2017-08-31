@@ -14,11 +14,12 @@ public:
 
   PETScVector() = delete;
 
-  PETScVector(uint_t size) {
+  PETScVector(const char name[],uint_t size) {
     VecCreate(walberla::MPIManager::instance()->comm(), &vec);
     VecSetType(vec, VECSTANDARD);
     VecSetSizes(vec, PETSC_DECIDE, size);
     VecSetUp(vec);
+    PetscObjectSetName((PetscObject)vec,name);
   }
 
   ~PETScVector() { VecDestroy(&vec); }
@@ -37,10 +38,10 @@ public:
 
   }
 
-  void print(const char name[])
+  void print(const char filename[])
   {
     PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD,name,&viewer);
+    PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer);
     PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB );
     VecView(vec,viewer);
     PetscViewerDestroy(&viewer);
