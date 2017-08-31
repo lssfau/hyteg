@@ -4,7 +4,8 @@
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include <petscmat.h>
+
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 #include <memory>
 
@@ -30,7 +31,9 @@ public:
 
   void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
 
+#ifdef HHG_BUILD_WITH_PETSC
   void createMatrix( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag );
+#endif
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
@@ -45,7 +48,9 @@ public:
     WALBERLA_ASSERT(false, "Not implemented");
   };
 
+#ifdef HHG_BUILD_WITH_PETSC
   virtual void createMatrix_impl( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag ) = 0;
+#endif
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -105,6 +110,7 @@ void Operator< SourceFunction, DestinationFunction  >::smooth_jac( DestinationFu
   stopTiming( "Smooth JAC" );
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::createMatrix( SourceFunction& src, DestinationFunction& dst, Mat& mat, size_t level, DoFType flag )
 {
@@ -114,5 +120,6 @@ void Operator< SourceFunction, DestinationFunction  >::createMatrix( SourceFunct
 
   stopTiming( "save" );
 }
+#endif
 
 }

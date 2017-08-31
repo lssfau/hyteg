@@ -6,6 +6,8 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include <core/mpi/Gather.h>
 
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
+
 #include <string>
 #include <functional>
 #include <vector>
@@ -48,11 +50,13 @@ public:
 
   inline void enumerate(uint_t level, uint_t& num);
 
+#ifdef HHG_BUILD_WITH_PETSC
   inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level, DoFType flag);
 
   inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
 
   inline void applyDirichletBC(Mat &mat, uint_t level);
+#endif
 
 
   const std::string &getFunctionName() const { return functionName_; }
@@ -95,11 +99,13 @@ protected:
 
   virtual void enumerate_impl(uint_t level, uint_t& num) = 0;
 
+#ifdef HHG_BUILD_WITH_PETSC
   virtual void createVectorFromFunction_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;} //TODO make this abstract
 
   virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
 
   virtual void applyDirichletBC_impl(Mat &mat, uint_t level){;}
+#endif
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -230,7 +236,7 @@ void Function< FunctionType >::enumerate(size_t level, uint_t& num)
   stopTiming( "Enumerate" );
 }
 
-
+#ifdef HHG_BUILD_WITH_PETSC
 template< typename FunctionType >
 void Function< FunctionType >::createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
 {
@@ -261,6 +267,7 @@ void Function< FunctionType >::applyDirichletBC(Mat &mat, uint_t level)
 
   stopTiming( "applyDirichletBC" );
 }
+#endif
 
 
 }

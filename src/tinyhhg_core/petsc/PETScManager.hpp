@@ -1,7 +1,8 @@
 #pragma once
 
-#include "petscsys.h"
+#include "PETScWrapper.hpp"
 
+#ifdef HHG_BUILD_WITH_PETSC
 
 class PETScManager {
 public:
@@ -11,5 +12,4 @@ public:
   ~PETScManager(){  PetscFinalize();  }
 };
 
-
-
+#endif

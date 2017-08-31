@@ -7,8 +7,7 @@
 #include "tinyhhg_core/macros.hpp"
 #include "P1Memory.hpp"
 #include "P1FaceIndex.hpp"
-#include <petscmat.h>
-#include <petscvec.h>
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 namespace P1Face {
@@ -403,6 +402,7 @@ inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Fa
   }
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
@@ -488,7 +488,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
 }
 
 SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
-
+#endif
 
 }// namespace P1Face
 }// namespace hhg

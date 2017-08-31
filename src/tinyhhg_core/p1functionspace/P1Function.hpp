@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 
@@ -39,12 +40,14 @@ private:
   void restrict_impl(uint_t level, DoFType flag = All);
 
   void enumerate_impl(uint_t level, uint_t& num);
-  
+
+#ifdef HHG_BUILD_WITH_PETSC
   void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
   void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
   void applyDirichletBC_impl(Mat &mat, uint_t level);
+#endif
 
 
 

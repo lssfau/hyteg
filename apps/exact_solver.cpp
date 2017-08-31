@@ -3,6 +3,10 @@
 #include <fmt/format.h>
 #include <core/Environment.h>
 
+#ifndef HHG_BUILD_WITH_PETSC
+#error "This app only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON"
+#endif
+
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;

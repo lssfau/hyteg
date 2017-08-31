@@ -347,7 +347,7 @@ void P1Function::enumerate_impl(uint_t level, uint_t& num)
   communicators_[level]->endCommunication<Edge, Vertex>();
 }
 
-
+#ifdef HHG_BUILD_WITH_PETSC
 void P1Function::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
 {
   for (auto& it : storage_->getVertices()) {
@@ -438,5 +438,6 @@ void P1Function::applyDirichletBC_impl(Mat &mat, uint_t level)
   }
 
 }
+#endif
 
 }

@@ -308,6 +308,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
+#ifdef HHG_BUILD_WITH_PETSC
   void createMatrix_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
@@ -337,6 +338,7 @@ private:
       }
     }
   }
+#endif
 
   PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;

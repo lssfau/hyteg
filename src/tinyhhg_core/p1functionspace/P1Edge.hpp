@@ -3,8 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "P1Memory.hpp"
 #include "P1EdgeIndex.hpp"
-#include <petscmat.h>
-#include <petscvec.h>
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 
@@ -306,6 +305,7 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory
 
 SPECIALIZE(void, enumerateTmpl, enumerate)
 
+#ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
                          const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &srcId,
@@ -409,8 +409,7 @@ inline void applyDirichletBCTmpl(Edge &edge,Mat &mat,
   delete[] numeratorInt;
 }
 SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
-
-
+#endif
 
 }
 }

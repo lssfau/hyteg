@@ -40,6 +40,7 @@ public:
     div_y_b.apply(src.v.b, dst.p, level, flag | DirichletBoundary, Add);
   }
 
+#ifdef HHG_BUILD_WITH_PETSC
   void createMatrix(MiniStokesFunction& src, MiniStokesFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
     /*A.save(src.u, dst.u, mat, level, flag); //Todo Implement
@@ -55,6 +56,7 @@ public:
     div_y_p1.save(src.v.p1, dst.p, mat, level, flag | DirichletBoundary);
     div_y_b.save(src.v.b, dst.p, mat, level, flag | DirichletBoundary);*/
   }
+#endif
 
   P1BubbleLaplaceOperator A;
 

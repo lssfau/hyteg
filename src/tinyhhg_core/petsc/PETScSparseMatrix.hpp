@@ -1,10 +1,9 @@
 #pragma once
 
-
-#include <petscmat.h>
+#include "PETScWrapper.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
-
+#ifdef HHG_BUILD_WITH_PETSC
 
 namespace hhg {
 
@@ -54,5 +53,6 @@ public:
 
 };
 
-
 }
+
+#endif

@@ -3,8 +3,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-#include <petscmat.h>
-#include <petscvec.h>
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 
@@ -136,6 +135,7 @@ inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemo
   dst[0] = static_cast< real_t >( num++ );
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
@@ -199,7 +199,7 @@ inline void applyDirichletBC(Vertex &vertex,Mat &mat, uint_t level,
   MatZeroRows(mat,1,&numerator,1.0,0,0);
 }
 
-
+#endif
 
 
 }
