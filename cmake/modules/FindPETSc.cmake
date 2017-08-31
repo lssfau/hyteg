@@ -21,6 +21,8 @@ if("${PETSC_ARCH}" STREQUAL "")
     set(PETSC_ARCH "$ENV{PETSC_ARCH}")
 endif()
 
+set( ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${PETSC_DIR}/${PETSC_ARCH}/lib/pkgconfig" )
+
 
 find_package(PkgConfig)
 pkg_check_modules(PC_PETSC PETSc)
