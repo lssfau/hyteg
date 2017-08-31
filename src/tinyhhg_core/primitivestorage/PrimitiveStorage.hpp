@@ -33,7 +33,7 @@ public:
   /// @name \ref Primitive access methods
   /// Various methods to obtain primitives or IDs.
   ///@{
-  uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces(); }
+  uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces() + getNumberOfLocalCells(); }
   uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
   uint_t getNumberOfLocalEdges()    const { return edges_.size(); }
   uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
@@ -215,6 +215,7 @@ private:
     VERTEX,
     EDGE,
     FACE,
+    CELL,
     INVALID
   };
 
@@ -320,6 +321,10 @@ private:
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > & ) > >                              faceDataInitializationFunctions_;
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::SendBuffer & ) > > faceDataSerializationFunctions_;
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::RecvBuffer & ) > > faceDataDeserializationFunctions_;
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > & ) > >                              cellDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > &, walberla::mpi::SendBuffer & ) > > cellDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > &, walberla::mpi::RecvBuffer & ) > > cellDataDeserializationFunctions_;
 
   uint_t primitiveDataHandlers_;
 
