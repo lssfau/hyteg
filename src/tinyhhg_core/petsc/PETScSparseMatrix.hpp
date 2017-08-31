@@ -8,18 +8,18 @@
 
 namespace hhg {
 
-template <typename Operator,typename Function>
-class SparseMat {
+template <typename OperatorType,typename FunctionType>
+class PETScSparseMatrix {
 public:
   Mat mat;
 
 public:
-  SparseMat() = delete;
+  PETScSparseMatrix() = delete;
 
-  SparseMat(Operator& op, uint_t level,Function& numerator,uint_t num,DoFType flag = All) {
+  PETScSparseMatrix(OperatorType& op, uint_t level,FunctionType& numerator,uint_t num,DoFType flag = All) {
     MatCreate(walberla::MPIManager::instance()->comm(),&mat);
     MatSetType(mat,MATAIJ);
-    MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,num,num);
+    MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,(PetscInt)num,(PetscInt)num);
     MatSetUp(mat);
 
     op.createMatrix(numerator, numerator, mat, level, flag);
@@ -29,7 +29,7 @@ public:
 
   }
 
-  virtual ~SparseMat() {
+  virtual ~PETScSparseMatrix() {
     MatDestroy(&mat);
   }
 

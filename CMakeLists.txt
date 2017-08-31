@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT ( tinyhhg )
 enable_testing()
 option ( HHG_ENABLE_LIKWID                "Compile with LIKWID" )
+option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                                  Off )
+
 
 if ( HHG_ENABLE_LIKWID )
     find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )

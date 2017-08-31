@@ -7,21 +7,21 @@
 namespace hhg {
 
 template<typename FunctionType>
-class Vector {
+class PETScVector {
 public:
 
   Vec vec;
 
-  Vector() = delete;
+  PETScVector() = delete;
 
-  Vector(uint_t size) {
+  PETScVector(uint_t size) {
     VecCreate(walberla::MPIManager::instance()->comm(), &vec);
     VecSetType(vec, VECSTANDARD);
     VecSetSizes(vec, PETSC_DECIDE, size);
     VecSetUp(vec);
   }
 
-  ~Vector() { VecDestroy(&vec); }
+  ~PETScVector() { VecDestroy(&vec); }
 
   void createVectorFromFunction(FunctionType &src, FunctionType &numerator, uint_t level, DoFType flag = All) {
 

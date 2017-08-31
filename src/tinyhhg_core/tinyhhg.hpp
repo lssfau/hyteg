@@ -48,9 +48,9 @@
 #include "communication/PackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
-#include "PETScManager.hpp"
-#include "SparseMat.hpp"
-#include "Vector.hpp"
+#include "petsc/PETScManager.hpp"
+#include "petsc/PETScSparseMatrix.hpp"
+#include "petsc/PETScVector.hpp"
 
 
 
