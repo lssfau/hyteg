@@ -224,11 +224,13 @@ void Function< FunctionType >::enumerate(size_t level, uint_t& num)
 
   uint_t start = num;
 
-  for(int i = 0; i<walberla::MPIManager::instance()->rank();++i)
+  for(uint_t i = 0; i<walberla::MPIManager::instance()->rank();++i) {
     start += dofs_per_rank[i];
+  }
 
-  for(int i = 0; i<walberla::MPIManager::instance()->numProcesses();++i)
+  for(uint_t i = 0; i<walberla::MPIManager::instance()->numProcesses();++i) {
     num += dofs_per_rank[i];
+  }
 
 
   enumerate_impl( level, start );
