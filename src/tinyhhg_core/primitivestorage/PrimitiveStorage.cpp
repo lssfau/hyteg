@@ -352,7 +352,9 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   uint_t rank         = uint_c( walberla::mpi::MPIManager::instance()->rank() );
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  walberla::mpi::OpenMPBufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
+  const bool serialSends = true;
+  const bool serialRecvs = true;
+  walberla::mpi::OpenMPBufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 0, serialSends, serialRecvs );
 
   // Preparing buffer to gather migration information on all processes:
   // Since we need to know if the ranks of the neighborhood have changed
