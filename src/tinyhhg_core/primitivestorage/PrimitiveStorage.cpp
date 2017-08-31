@@ -688,6 +688,12 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
         neighborRanks_[ idToErase.getID() ] = targetRank;
         faces_.erase( idToErase.getID() );
       }
+      if (   cellExistsLocally( idToErase ) )
+      {
+        neighborCells_[ idToErase.getID() ] = std::make_shared< Cell >( *getCell( idToErase ) );
+        neighborRanks_[ idToErase.getID() ] = targetRank;
+        cells_.erase( idToErase.getID() );
+      }
     }
   }
 
@@ -703,6 +709,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     if ( vertexExistsInNeighborhood( localID ) ) neighborVertices_.erase( localID.getID() );
     if (   edgeExistsInNeighborhood( localID ) )    neighborEdges_.erase( localID.getID() );
     if (   faceExistsInNeighborhood( localID ) )    neighborFaces_.erase( localID.getID() );
+    if (   cellExistsInNeighborhood( localID ) )    neighborCells_.erase( localID.getID() );
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -715,6 +722,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   for ( const auto & it : neighborVertices_ ) neighborhoodIDs.push_back( it.first );
   for ( const auto & it : neighborEdges_    ) neighborhoodIDs.push_back( it.first );
   for ( const auto & it : neighborFaces_    ) neighborhoodIDs.push_back( it.first );
+  for ( const auto & it : neighborCells_    ) neighborhoodIDs.push_back( it.first );
 
   for ( const auto & neighborhoodID : neighborhoodIDs )
   {
@@ -745,6 +753,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       if ( vertexExistsInNeighborhood( neighborhoodID ) ) neighborVertices_.erase( neighborhoodID.getID() );
       if (   edgeExistsInNeighborhood( neighborhoodID ) )    neighborEdges_.erase( neighborhoodID.getID() );
       if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborFaces_.erase( neighborhoodID.getID() );
+      if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborCells_.erase( neighborhoodID.getID() );
     }
   }
 
@@ -856,6 +865,20 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
     }
     break;
   }
+  case CELL:
+  {
+    std::shared_ptr< Cell > cell = std::make_shared< Cell >( recvBuffer );
+    primitiveID = cell->getID();
+    if ( isNeighborPrimitive )
+    {
+      neighborCells_[ primitiveID.getID() ] = cell;
+    }
+    else
+    {
+      cells_[ primitiveID.getID() ] = cell;
+    }
+    break;
+  }
   default:
     WALBERLA_ABORT( "Cannot deserialize primitive - unkown primitive type" );
     break;
@@ -918,6 +941,20 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer & se
     for ( const auto & serializationFunction : faceDataSerializationFunctions_ )
     {
       serializationFunction.second( face, sendBuffer );
+    }
+    break;
+  }
+  case CELL:
+  {
+    WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
+    auto cell = cells_[ primitiveID.getID() ];
+    for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+    {
+      serializationFunction.second( cell, sendBuffer );
+    }
+    for ( const auto & serializationFunction : cellDataSerializationFunctions_ )
+    {
+      serializationFunction.second( cell, sendBuffer );
     }
     break;
   }
@@ -997,6 +1034,28 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
     for ( const auto & deserializationFunction : faceDataDeserializationFunctions_ )
     {
       deserializationFunction.second( face, recvBuffer );
+    }
+    break;
+  }
+  case CELL:
+  {
+    WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
+    auto cell = cells_[ primitiveID.getID() ];
+    for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+    {
+      initializationFunction.second( cell );
+    }
+    for ( const auto & initializationFunction : cellDataInitializationFunctions_ )
+    {
+      initializationFunction.second( cell );
+    }
+    for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( cell, recvBuffer );
+    }
+    for ( const auto & deserializationFunction : cellDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( cell, recvBuffer );
     }
     break;
   }
