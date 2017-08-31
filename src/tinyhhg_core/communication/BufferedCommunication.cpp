@@ -26,7 +26,7 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
 {
   for ( auto & bufferSystem : bufferSystems_ )
   {
-    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), bufferSystemTag_++ ) );
+    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), int_c( bufferSystemTag_++ ) ) );
   }
 
   setupBeforeNextCommunication();
