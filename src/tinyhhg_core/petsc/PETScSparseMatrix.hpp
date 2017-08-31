@@ -42,6 +42,15 @@ public:
     PetscViewerDestroy(&viewer);
   }
 
+  void applyDirichletBC(FunctionType& numerator, uint_t level){
+
+    numerator.applyDirichletBC(mat,level);
+
+    MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
+
+  }
+
 };
 
 

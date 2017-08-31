@@ -153,8 +153,10 @@ inline void saveOperator(Vertex &vertex,
   for(uint_t i = 0;i<vertex.getNumNeighborEdges()+1;++i)
     srcint[i] = (PetscInt)src[i];
 
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Number of Neighbors: {}",vertex.getNumNeighborEdges()))
 
-  MatSetValues(mat,1,&dstint,(PetscInt)(vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);
+
+  MatSetValues(mat,1,&dstint,(PetscInt) (vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);
 
   delete[] srcint;
 
@@ -190,6 +192,12 @@ inline void createFunctionFromVector(Vertex &vertex,
 
   VecGetValues(vec,1,&numerator,vertex.getData(srcId)->data[level].get());
 
+}
+
+inline void applyDirichletBC(Vertex &vertex,Mat &mat, uint_t level,
+                             const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId){
+  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+  MatZeroRows(mat,1,&numerator,1.0,0,0);
 }
 
 

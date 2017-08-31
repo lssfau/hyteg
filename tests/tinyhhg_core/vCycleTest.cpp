@@ -125,9 +125,13 @@ int main(int argc, char* argv[])
   numerator.enumerate(maxLevel,num);
   hhg::PETScSparseMatrix<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,maxLevel,numerator,num);
 
-  Amat.print("CreateMatrix.m");
+  Amat.print("CreateMatrixNeumann.m");
 
-  hhg::PETScVector<hhg::P1Function> x_exact_vector(num);
+  Amat.applyDirichletBC(numerator,maxLevel);
+
+  Amat.print("CreateMatrixDirichlet.m");
+
+  hhg::PETScVector<hhg::P1Function> x_exact_vector(num),rhs_vector(num);
   x_exact_vector.createVectorFromFunction(x_exact,numerator,maxLevel);
 
   x_exact_vector.print("CreateX.m");
@@ -137,6 +141,9 @@ int main(int argc, char* argv[])
   x_exact_vector.createVectorFromFunction(x_exact2,numerator,maxLevel);
 
   x_exact_vector.print("CreateX2.m");
+
+  rhs_vector.createVectorFromFunction(x_exact,numerator,maxLevel,hhg::DirichletBoundary);
+  rhs_vector.print("CreateRHS.m");
 
 
 

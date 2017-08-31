@@ -340,11 +340,11 @@ void P1Function::enumerate_impl(uint_t level, uint_t& num)
     P1Face::enumerate(face, faceDataID_, level, num);
   }
 
-  //communicators_[level]->startCommunication<Face, Edge>();
-  //communicators_[level]->endCommunication<Face, Edge>();
+  communicators_[level]->startCommunication<Face, Edge>();
+  communicators_[level]->endCommunication<Face, Edge>();
 
-  //communicators_[level]->startCommunication<Edge, Vertex>();
-  //communicators_[level]->endCommunication<Edge, Vertex>();
+  communicators_[level]->startCommunication<Edge, Vertex>();
+  communicators_[level]->endCommunication<Edge, Vertex>();
 }
 
 
@@ -415,6 +415,28 @@ void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, u
       P1Face::createFunctionFromVector(level, face, faceDataID_, numerator.getFaceDataID(), vec);
     }
   }
+}
+
+void P1Function::applyDirichletBC_impl(Mat &mat, uint_t level)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), DirichletBoundary))
+    {
+      P1Vertex::applyDirichletBC(vertex,mat,level,vertexDataID_);
+    }
+  }
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), DirichletBoundary))
+    {
+      P1Edge::applyDirichletBC(level,edge,mat,edgeDataID_);
+    }
+  }
+
 }
 
 }

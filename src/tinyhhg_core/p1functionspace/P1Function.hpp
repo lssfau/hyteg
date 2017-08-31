@@ -44,6 +44,9 @@ private:
 
   void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
+  void applyDirichletBC_impl(Mat &mat, uint_t level);
+
+
 
   PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory, Edge> edgeDataID_;
