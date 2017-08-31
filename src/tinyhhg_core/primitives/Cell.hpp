@@ -14,6 +14,8 @@ public:
         const std::vector< PrimitiveID > & edgeIDs,
         const std::vector< PrimitiveID > & faceIDs );
 
+  Cell( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
+
   virtual void getLowerDimNeighbors ( std::vector< PrimitiveID > & lowerDimNeighbors )  const { getNeighborFaces( lowerDimNeighbors ); }
   virtual void getHigherDimNeighbors( std::vector< PrimitiveID > & higherDimNeighbors ) const { higherDimNeighbors.clear(); }
 
