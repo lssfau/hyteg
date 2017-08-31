@@ -19,13 +19,14 @@ const std::array< std::string, BufferedCommunicator::NUM_LOCAL_COMMUNICATION_MOD
     "buffered MPI"
 }};
 
+std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );
+
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
     primitiveStorage_( primitiveStorage ), primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ), localCommunicationMode_( localCommunicationMode )
 {
-  int baseTag = 0;
   for ( auto & bufferSystem : bufferSystems_ )
   {
-    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), baseTag++ ) );
+    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), bufferSystemTag_++ ) );
   }
 
   setupBeforeNextCommunication();
