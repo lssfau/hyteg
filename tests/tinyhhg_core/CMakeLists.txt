@@ -39,16 +39,14 @@ waLBerla_execute_test(NAME PrimitiveStorageTest2 COMMAND $<TARGET_FILE:Primitive
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest> )
-waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3 )
-waLBerla_execute_test(NAME BufferedCommunicationTest8 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 8 )
+waLBerla_execute_test(NAME BufferedCommunicationTest2 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES P1DataHandlingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1DataHandlingTest)
 
 waLBerla_compile_test(FILES PrimitiveMigrationTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveMigrationTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> )
-waLBerla_execute_test(NAME PrimitiveMigrationTest3 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> PROCESSES 3 )
-waLBerla_execute_test(NAME PrimitiveMigrationTest8 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> PROCESSES 8 )
+waLBerla_execute_test(NAME PrimitiveMigrationTest2 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> PROCESSES 2 )
 
 if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_compile_test(FILES ParMetisTestHHG.cpp DEPENDS tinyhhg_core core fmt)
@@ -59,5 +57,4 @@ endif()
 
 waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME MeshInfoTest1 COMMAND $<TARGET_FILE:MeshInfoTest> )
-waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 3 )
-waLBerla_execute_test(NAME MeshInfoTest8 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 8 )
+waLBerla_execute_test(NAME MeshInfoTest2 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 2 )
