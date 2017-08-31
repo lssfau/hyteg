@@ -800,6 +800,7 @@ PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const Pr
   if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) ) return VERTEX;
   if (   edgeExistsLocally( primitiveID ) ||   edgeExistsInNeighborhood( primitiveID ) ) return EDGE;
   if (   faceExistsLocally( primitiveID ) ||   faceExistsInNeighborhood( primitiveID ) ) return FACE;
+  if (   cellExistsLocally( primitiveID ) ||   cellExistsInNeighborhood( primitiveID ) ) return CELL;
   return INVALID;
 }
 
