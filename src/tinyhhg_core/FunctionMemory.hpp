@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 
 #include <core/DataTypes.h>
 #include <core/logging/Logging.h>
 #include <core/mpi/SendBuffer.h>
 #include <core/mpi/RecvBuffer.h>
+#include <core/mpi/BufferSizeTrait.h>
 
 #include <map>
 #include <memory>
@@ -20,6 +20,8 @@ using walberla::real_t;
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
 
+template< typename ValueType,
+          typename = typename std::enable_if< std::is_arithmetic< ValueType >::value >::type >
 class FunctionMemory
 {
 public:
@@ -34,7 +36,7 @@ public:
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
-  inline std::unique_ptr< real_t[] > & addlevel( uint_t level )
+  inline std::unique_ptr< ValueType[] > & addlevel( uint_t level )
   {
     if (data.count(level)>0)
     {
@@ -42,7 +44,7 @@ public:
     }
     else
     {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
     }
     return data[level];
   }
@@ -53,7 +55,7 @@ public:
     for ( const auto & it : data )
     {
       uint_t level = it.first;
-      const real_t * dataPtr = it.second.get();
+      const ValueType * dataPtr = it.second.get();
       sendBuffer << level;
       for ( uint_t idx = 0; idx < getSize( level ); idx++ )
       {
@@ -70,7 +72,7 @@ public:
     {
       uint_t level;
       recvBuffer >> level;
-      data[ level ] = hhg::make_unique< real_t[] >( getSize( level ) );
+      data[ level ] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
       for ( uint_t idx = 0; idx < getSize( level ); idx++ )
       {
         recvBuffer >> data[ level ][ idx ];
@@ -79,7 +81,7 @@ public:
   }
 
   /// Maps a level to the respective allocated data
-  std::map< uint_t, std::unique_ptr< real_t[] > > data;
+  std::map< uint_t, std::unique_ptr< ValueType[] > > data;
 
 protected:
 
@@ -93,22 +95,24 @@ namespace walberla {
 namespace mpi {
 
 template< typename T,  // Element type of SendBuffer
-          typename G > // Growth policy of SendBuffer
-inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hhg::FunctionMemory & functionMemory )
+          typename G,  // Growth policy of SendBuffer
+          typename ValueType>
+inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hhg::FunctionMemory< ValueType > & functionMemory )
 {
    functionMemory.serialize( buffer );
    return buffer;
 }
 
-template< typename T > // Element type  of RecvBuffer
-inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hhg::FunctionMemory & functionMemory )
+template< typename T, // Element type  of RecvBuffer
+          typename ValueType >
+inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hhg::FunctionMemory< ValueType > & functionMemory )
 {
    functionMemory.deserialize( buffer );
    return buffer;
 }
 
-template<>
-struct BufferSizeTrait< hhg::FunctionMemory > { static const bool constantSize = false; };
+template< typename ValueType >
+struct BufferSizeTrait< hhg::FunctionMemory< ValueType > > { static const bool constantSize = false; };
 
 } // namespace mpi
 } // namespace walberla
@@ -121,8 +125,6 @@ template< typename DataType, typename PrimitiveType >
 class FunctionMemoryDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
 {
 public:
-  static_assert( std::is_base_of< FunctionMemory, DataType >::value,
-                 "FunctionMemoryDataHandling can only be used for subclasses of FunctionMemory!" );
 
   virtual ~FunctionMemoryDataHandling() {}
 

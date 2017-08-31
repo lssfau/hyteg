@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
@@ -15,7 +14,7 @@
 namespace hhg
 {
 
-class VertexBubbleFunctionMemory : public FunctionMemory
+class VertexBubbleFunctionMemory : public FunctionMemory< real_t >
 {
 public:
 
@@ -29,7 +28,7 @@ public:
 
 };
 
-class EdgeBubbleFunctionMemory : public FunctionMemory
+class EdgeBubbleFunctionMemory : public FunctionMemory< real_t >
 {
 public:
 
@@ -57,8 +56,8 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = StencilStack{{hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
-                                  hhg::make_unique<real_t[]>(getBlueStencilSize(level))}};
+      data[level] = StencilStack{{std::unique_ptr< real_t[] >( new real_t[ getGrayStencilSize(level) ] ),
+                                  std::unique_ptr< real_t[] >( new real_t[ getBlueStencilSize(level) ] )}};
     }
     return data[level];
   }
@@ -76,7 +75,7 @@ public:
 };
 
 
-class FaceBubbleFunctionMemory : public FunctionMemory
+class FaceBubbleFunctionMemory : public FunctionMemory< real_t >
 {
 public:
 
