@@ -25,16 +25,14 @@ include_directories ( src )
 #include_directories ( ${tinyhhg_BINARY_DIR}/src/tinyhhg_core )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR} )
+set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
+
 find_package( waLBerla )
+find_package( PETSc )
 
-include_directories ( ${PETSC_INCLUDES} )
-foreach(lib ${PETSC_LIBRARIES})
-    if(lib)
-        list( APPEND SERVICE_LIBS ${lib})
-    endif()
-endforeach()
-
+include_directories ( ${PETSC_INCLUDE_DIRS} )
+link_directories    ( ${PETSC_LIBRARY_DIR} )
+list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
 
 
 add_subdirectory (extern/fmt-3.0.1)
