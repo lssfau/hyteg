@@ -48,7 +48,9 @@ public:
 
   inline void enumerate(uint_t level, uint_t& num);
 
-  inline void createVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag);
+  inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag);
+
+  inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
 
 
   const std::string &getFunctionName() const { return functionName_; }
@@ -91,7 +93,9 @@ protected:
 
   virtual void enumerate_impl(uint_t level, uint_t& num) = 0;
 
-  virtual void createVector_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;}
+  virtual void createVectorFromFunction_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;} //TODO make this abstract
+
+  virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -224,13 +228,24 @@ void Function< FunctionType >::enumerate(size_t level, uint_t& num)
 
 
 template< typename FunctionType >
-void Function< FunctionType >::createVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
+void Function< FunctionType >::createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
 {
-  startTiming( "createVector" );
+  startTiming( "createVectorFromFunction" );
 
-  createVector_impl(numerator, vec, level,flag);
+  createVectorFromFunction_impl(numerator, vec, level,flag);
 
-  stopTiming( "createVector" );
+  stopTiming( "createVectorFromFunction" );
+}
+
+
+template< typename FunctionType >
+void Function< FunctionType >::createFunctionFromVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  startTiming( "createFunctionFromVector" );
+
+  createFunctionFromVector_impl(numerator, vec, level,flag);
+
+  stopTiming( "createFunctionFromVector" );
 }
 
 }

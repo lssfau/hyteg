@@ -463,6 +463,33 @@ inline void createVectorFromFunctionTmpl(Face &face,
 SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 
+
+template<uint_t Level>
+inline void createFunctionFromVectorTmpl(Face &face,
+                                         const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
+                                         const PrimitiveDataID<FaceP1FunctionMemory, Face> &numeratorId,
+                                         Vec& vec) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      PetscInt numeratorInt = (PetscInt)numerator[index<Level>(i, j, VERTEX_C)];
+      VecGetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, VERTEX_C)]);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+
+
 }// namespace P1Face
 }// namespace hhg
 

@@ -2,6 +2,8 @@
 #include <tinyhhg_core/likwidwrapper.hpp>
 
 #include <core/Environment.h>
+#include <tinyhhg_core/petsc/PETScSparseMatrix.hpp>
+#include <tinyhhg_core/petsc/PETScVector.hpp>
 
 
 template<class O, class F, class CSolver>
@@ -95,6 +97,7 @@ int main(int argc, char* argv[])
   hhg::P1Function b("b", storage, minLevel, maxLevel);
   hhg::P1Function x("x", storage, minLevel, maxLevel);
   hhg::P1Function x_exact("x_exact", storage, minLevel, maxLevel);
+  hhg::P1Function x_exact2("x_exact2", storage, minLevel, maxLevel);
   hhg::P1Function ax("ax", storage, minLevel, maxLevel);
   hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
   hhg::P1Function err("err", storage, minLevel, maxLevel);
@@ -107,7 +110,7 @@ int main(int argc, char* argv[])
 
 
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]+10; };
   std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
@@ -120,14 +123,20 @@ int main(int argc, char* argv[])
 
   uint_t num = 0;
   numerator.enumerate(maxLevel,num);
-  hhg::SparseMat<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,maxLevel,numerator,num);
+  hhg::PETScSparseMatrix<hhg::P1LaplaceOperator,hhg::P1Function> Amat(A,maxLevel,numerator,num);
 
   Amat.print("CreateMatrix.m");
 
-  hhg::Vector<hhg::P1Function> x_exact_vector(num);
+  hhg::PETScVector<hhg::P1Function> x_exact_vector(num);
   x_exact_vector.createVectorFromFunction(x_exact,numerator,maxLevel);
 
   x_exact_vector.print("CreateX.m");
+
+  x_exact_vector.createFunctionFromVector(x_exact2,numerator,maxLevel);
+
+  x_exact_vector.createVectorFromFunction(x_exact2,numerator,maxLevel);
+
+  x_exact_vector.print("CreateX2.m");
 
 
 
@@ -175,7 +184,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_CHECK_LESS( i, outer );
 
-  hhg::VTKWriter< hhg::P1Function >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
+  hhg::VTKWriter< hhg::P1Function >({ &x, &b, &x_exact,&x_exact2 }, maxLevel, "../../output", "test");
 
 
   LIKWID_MARKER_CLOSE;

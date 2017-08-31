@@ -40,7 +40,10 @@ private:
 
   void enumerate_impl(uint_t level, uint_t& num);
   
-  void createVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag);
+  void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+
+  void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+
 
   PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory, Edge> edgeDataID_;

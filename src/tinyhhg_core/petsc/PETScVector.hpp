@@ -25,10 +25,16 @@ public:
 
   void createVectorFromFunction(FunctionType &src, FunctionType &numerator, uint_t level, DoFType flag = All) {
 
-    src.createVector(numerator, vec, level, flag);
+    src.createVectorFromFunction(numerator, vec, level, flag);
 
     VecAssemblyBegin(vec);
     VecAssemblyEnd(vec);
+  }
+
+  void createFunctionFromVector(FunctionType &src, FunctionType &numerator, uint_t level, DoFType flag = All){
+
+    src.createFunctionFromVector(numerator, vec, level, flag);
+
   }
 
   void print(const char name[])

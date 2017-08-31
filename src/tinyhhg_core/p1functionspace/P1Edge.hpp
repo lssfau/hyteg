@@ -371,6 +371,26 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
 }
 SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
+template<uint_t Level>
+inline void createFunctionFromVectorTmpl(Edge &edge,
+                                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &srcId,
+                                         const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &numeratorId,
+                                         Vec& vec) {
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto &numerator = edge.getData(numeratorId)->data[Level];
+
+  PetscInt* numeratorInt = new PetscInt[rowsize-2];
+  for(uint_t i = 0;i<rowsize-2; i++)
+  {
+    numeratorInt[i] = (PetscInt)numerator[i+1];
+  }
+
+  VecGetValues(vec,rowsize-2,numeratorInt,&edge.getData(srcId)->data[Level][1]);
+  delete[] numeratorInt;
+
+}
+SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
 
 

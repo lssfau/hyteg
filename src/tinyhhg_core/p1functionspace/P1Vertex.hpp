@@ -179,6 +179,21 @@ inline void createVectorFromFunction(Vertex &vertex,
 
 }
 
+inline void createFunctionFromVector(Vertex &vertex,
+                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
+                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                                     Vec& vec,
+                                     uint_t level) {
+
+
+  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+
+  VecGetValues(vec,1,&numerator,vertex.getData(srcId)->data[level].get());
+
+}
+
+
+
 
 }
 }
