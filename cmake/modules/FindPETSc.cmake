@@ -12,15 +12,15 @@
 set(PETSC_DIR "" CACHE PATH "An optional hint to a PETSc directory")
 set(PETSC_ARCH "" CACHE STRING "An optional hint to a PETSc arch")
 
-if("${${PETSC_DIR}}" STREQUAL "")
-    set(${PETSC_DIR} "$ENV{PETSC_DIR}")
+if("${PETSC_DIR}" STREQUAL "")
+    set(PETSC_DIR "$ENV{PETSC_DIR}")
 endif()
 
-if("${${PETSC_ARCH}}" STREQUAL "")
-    set(${PETSC_ARCH} "$ENV{PETSC_ARCH}")
+
+if("${PETSC_ARCH}" STREQUAL "")
+    set(PETSC_ARCH "$ENV{PETSC_ARCH}")
 endif()
 
-set( ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${PETSC_DIR}/${PETSC_ARCH}/lib/pkgconfig" )
 
 find_package(PkgConfig)
 pkg_check_modules(PC_PETSC PETSc)
