@@ -75,20 +75,20 @@ static void testPrimitiveStorage()
   }
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
-  for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
+  for ( const auto & it : storage->getVertices() )
   {
-	WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 0 );
-	WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+	WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
+	WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
-  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  for ( const auto it : storage->getEdges() )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 2 );
-    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
+    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
-  for ( auto it = storage->beginFaces(); it != storage->endFaces(); it++ )
+  for ( const auto & it : storage->getFaces() )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
-    WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
   }
 
 

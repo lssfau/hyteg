@@ -249,9 +249,9 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {
   primitiveMap.clear();
 
-  primitiveMap.insert( beginVertices(), endVertices() );
-  primitiveMap.insert( beginEdges(), endEdges() );
-  primitiveMap.insert( beginFaces(), endFaces() );
+  primitiveMap.insert( vertices_.begin(), vertices_.end() );
+  primitiveMap.insert( edges_.begin(), edges_.end() );
+  primitiveMap.insert( faces_.begin(), faces_.end() );
 
   WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
 }

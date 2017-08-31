@@ -137,10 +137,10 @@ static void testPrimitiveData()
   storage.addVertexData( vertexTestDataID, vertexTestDataHandling, "vertex data" );
 
   // Obtaining initialized vertex data from a vertex
-  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  for ( const auto & it : storage.getVertices() )
   {
-    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it->second->getID().getID() );
-    VertexTestData * vertexTestData = it->second->getData( vertexTestDataID );
+    WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it.second->getID().getID() );
+    VertexTestData * vertexTestData = it.second->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
   }
 

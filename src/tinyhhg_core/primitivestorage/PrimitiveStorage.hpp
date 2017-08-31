@@ -147,23 +147,6 @@ public:
   /// Returns a reference to a map of the locally existing \ref Face instances
   const FaceMap   & getFaces()    const { return faces_;    }
 
-  VertexMap::iterator beginVertices() { return vertices_.begin(); }
-  VertexMap::iterator endVertices()   { return vertices_.end(); }
-
-  EdgeMap::iterator beginEdges()      { return edges_.begin(); }
-  EdgeMap::iterator endEdges()        { return edges_.end(); }
-
-  FaceMap::iterator beginFaces()      { return faces_.begin(); }
-  FaceMap::iterator endFaces()        { return faces_.end(); }
-
-  VertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
-  VertexMap::const_iterator endVertices()   const { return vertices_.end(); }
-
-  EdgeMap::const_iterator beginEdges()      const { return edges_.begin(); }
-  EdgeMap::const_iterator endEdges()        const { return edges_.end(); }
-
-  FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
-  FaceMap::const_iterator endFaces()        const { return faces_.end(); }
   ///@}
 
   /// Returns the rank of the process the primitive is located on.
