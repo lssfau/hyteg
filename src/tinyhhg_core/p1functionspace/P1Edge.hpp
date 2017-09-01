@@ -393,20 +393,16 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
 SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
 template<uint_t Level>
-inline void applyDirichletBCTmpl(Edge &edge,Mat &mat,
+inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
                                  const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &numeratorId){
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  auto &numerator = edge.getData(numeratorId)->data[Level];
 
-  PetscInt* numeratorInt = new PetscInt[rowsize-2];
-  for(uint_t i = 0;i<rowsize-2; i++)
+  for(uint_t i = 1;i<rowsize-1; i++)
   {
-    numeratorInt[i] = (PetscInt)numerator[i+1];
+    mat.push_back((PetscInt)edge.getData(numeratorId)->data[Level][i]);
   }
 
-  MatZeroRows(mat,rowsize-2,numeratorInt,1.0,0,0);
-  delete[] numeratorInt;
 }
 SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif

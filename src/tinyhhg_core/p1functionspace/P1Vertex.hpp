@@ -193,10 +193,11 @@ inline void createFunctionFromVector(Vertex &vertex,
 
 }
 
-inline void applyDirichletBC(Vertex &vertex,Mat &mat, uint_t level,
+inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t level,
                              const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId){
-  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
-  MatZeroRows(mat,1,&numerator,1.0,0,0);
+
+  mat.push_back((PetscInt)vertex.getData(numeratorId)->data[level][0]);
+
 }
 
 #endif

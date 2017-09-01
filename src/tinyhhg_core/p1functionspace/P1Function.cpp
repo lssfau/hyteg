@@ -417,7 +417,7 @@ void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, u
   }
 }
 
-void P1Function::applyDirichletBC_impl(Mat &mat, uint_t level)
+void P1Function::applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;

@@ -55,7 +55,7 @@ public:
 
   inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
 
-  inline void applyDirichletBC(Mat &mat, uint_t level);
+  inline void applyDirichletBC(std::vector<PetscInt> &mat , uint_t level);
 #endif
 
 
@@ -104,7 +104,7 @@ protected:
 
   virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
 
-  virtual void applyDirichletBC_impl(Mat &mat, uint_t level){;}
+  virtual void applyDirichletBC_impl(std::vector<PetscInt>& mat, uint_t level){;}
 #endif
 
   const std::string functionName_;
@@ -261,7 +261,7 @@ void Function< FunctionType >::createFunctionFromVector(FunctionType &numerator,
 }
 
 template< typename FunctionType >
-void Function< FunctionType >::applyDirichletBC(Mat &mat, uint_t level)
+void Function< FunctionType >::applyDirichletBC(std::vector<PetscInt> &mat, uint_t level)
 {
   startTiming( "applyDirichletBC" );
 

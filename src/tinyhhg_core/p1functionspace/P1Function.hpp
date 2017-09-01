@@ -46,7 +46,7 @@ private:
 
   void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
-  void applyDirichletBC_impl(Mat &mat, uint_t level);
+  void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
 #endif
 
 

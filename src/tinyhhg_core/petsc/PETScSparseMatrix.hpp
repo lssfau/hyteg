@@ -20,13 +20,11 @@ public:
     MatSetType(mat,MATAIJ);
     MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,(PetscInt)num,(PetscInt)num);
     MatSetUp(mat);
-
     op.createMatrix(numerator, numerator, mat, level, flag);
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     PetscObjectSetName((PetscObject)mat,name);
-
   }
 
   virtual ~PETScSparseMatrix() {
@@ -43,13 +41,21 @@ public:
   }
 
   void applyDirichletBC(FunctionType& numerator, uint_t level){
+    //WALBERLA_LOG_INFO_ON_ROOT("")
+    std::vector<PetscInt> ind;
+    numerator.applyDirichletBC(ind,level);
 
-    numerator.applyDirichletBC(mat,level);
+    MatZeroRows(mat,ind.size(),ind.data(),1.0,0,0);
+
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
 
   }
+
+
+
+
 
 };
 
