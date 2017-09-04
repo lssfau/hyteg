@@ -49,7 +49,7 @@ void BufferedCommunicator::setLocalCommunicationMode( const LocalCommunicationMo
 {
   for ( auto & communicationInProgress : communicationInProgress_ )
   {
-    WALBERLA_ASSERT( !communicationInProgress );
+    WALBERLA_CHECK( !communicationInProgress );
   }
 
   setupBeforeNextCommunication();
