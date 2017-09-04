@@ -12,6 +12,8 @@
 #include "core/timing/TimingTree.h"
 #include "core/timing/TimingPool.h"
 
+#include <atomic>
+
 namespace hhg {
 namespace communication {
 
@@ -102,7 +104,7 @@ public:
   /// See also \ref LocalCommunicationMode
   ///@{
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
-  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { setupBeforeNextCommunication(); localCommunicationMode_ = localCommunicationMode; }
+  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode );
   ///@}
 
   /// Writes timing data for the setup and for the wait phase to the passed \ref walberla::WcTimingTree
@@ -130,6 +132,8 @@ private:
   static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
   static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
 
+  static std::atomic_uint bufferSystemTag_;
+
   template< typename SenderType, typename ReceiverType >
   inline CommunicationDirection getCommunicationDirection() const;
 
@@ -150,9 +154,9 @@ private:
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
-#ifndef NDEBUG
+
   std::array< bool,                                                 NUM_COMMUNICATION_DIRECTIONS > communicationInProgress_;
-#endif
+
 
   LocalCommunicationMode localCommunicationMode_;
 
@@ -196,10 +200,8 @@ void BufferedCommunicator::startCommunication()
     return;
   }
 
-#ifndef NDEBUG
   WALBERLA_ASSERT( !communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = true;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
@@ -372,11 +374,8 @@ void BufferedCommunicator::endCommunication()
     return;
   }
 
-
-#ifndef NDEBUG
   WALBERLA_ASSERT( communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = false;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();

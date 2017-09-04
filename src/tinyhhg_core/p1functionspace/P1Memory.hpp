@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tinyhhg_core/support.hpp"
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/primitives/face.hpp"
@@ -29,7 +28,7 @@ public:
     else
     {
       this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }
@@ -42,7 +41,7 @@ public:
 };
 
 
-class VertexP1FunctionMemory : public FunctionMemory
+class VertexP1FunctionMemory : public FunctionMemory< real_t >
 {
 public:
 
@@ -69,7 +68,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }
@@ -82,7 +81,7 @@ public:
 };
 
 
-class EdgeP1FunctionMemory : public FunctionMemory
+class EdgeP1FunctionMemory : public FunctionMemory< real_t >
 {
 public:
 
@@ -108,7 +107,7 @@ public:
       WALBERLA_LOG_WARNING("Level already exists.")
     else
     {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }
@@ -121,7 +120,7 @@ public:
 };
 
 
-class FaceP1FunctionMemory : public FunctionMemory
+class FaceP1FunctionMemory : public FunctionMemory< real_t >
 {
 public:
 

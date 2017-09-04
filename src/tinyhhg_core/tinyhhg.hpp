@@ -1,8 +1,6 @@
 #ifndef TINYHHG_HPP
 #define TINYHHG_HPP
 
-#include "support.hpp"
-
 #include "vtkwriter.hpp"
 
 #include "tinyhhg_core/FunctionMemory.hpp"

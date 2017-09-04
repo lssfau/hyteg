@@ -40,7 +40,7 @@ static void testPrimitiveMigration()
 {
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  const std::string meshFileName = "../../data/meshes/tri_2el.msh";
+  const std::string meshFileName = "../../data/meshes/bfs_126el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
