@@ -33,18 +33,27 @@ BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > pr
 
   setupBeforeNextCommunication();
 
-#ifndef NDEBUG
   for ( auto & communicationInProgress : communicationInProgress_ )
   {
     communicationInProgress = false;
   }
-#endif
 }
 
 void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & packInfo )
 {
   setupBeforeNextCommunication();
   packInfos_.push_back( packInfo );
+}
+
+void BufferedCommunicator::setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode )
+{
+  for ( auto & communicationInProgress : communicationInProgress_ )
+  {
+    WALBERLA_CHECK( !communicationInProgress );
+  }
+
+  setupBeforeNextCommunication();
+  localCommunicationMode_ = localCommunicationMode;
 }
 
 void BufferedCommunicator::writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID )

@@ -104,7 +104,7 @@ public:
   /// See also \ref LocalCommunicationMode
   ///@{
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
-  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { setupBeforeNextCommunication(); localCommunicationMode_ = localCommunicationMode; }
+  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode );
   ///@}
 
   /// Writes timing data for the setup and for the wait phase to the passed \ref walberla::WcTimingTree
@@ -154,9 +154,9 @@ private:
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
-#ifndef NDEBUG
+
   std::array< bool,                                                 NUM_COMMUNICATION_DIRECTIONS > communicationInProgress_;
-#endif
+
 
   LocalCommunicationMode localCommunicationMode_;
 
@@ -200,10 +200,8 @@ void BufferedCommunicator::startCommunication()
     return;
   }
 
-#ifndef NDEBUG
   WALBERLA_ASSERT( !communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = true;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
@@ -376,11 +374,8 @@ void BufferedCommunicator::endCommunication()
     return;
   }
 
-
-#ifndef NDEBUG
   WALBERLA_ASSERT( communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = false;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
