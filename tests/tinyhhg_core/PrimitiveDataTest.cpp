@@ -8,43 +8,6 @@
 
 namespace hhg {
 
-std::string getExampleMeshFileContent()
-{
-  std::string content =
-  "$MeshFormat\n"
-  "2.2 0 8\n"
-  "$EndMeshFormat\n"
-  "$Nodes\n"
-  "4\n"
-  "1 0 0 0\n"
-  "2 1 0 0\n"
-  "3 0 1 0\n"
-  "4 1 1 0\n"
-  "$EndNodes\n"
-  "$Elements\n"
-  "9\n"
-  "1 15 2 1 1 1\n"
-  "2 15 2 1 2 2\n"
-  "3 15 2 1 3 3\n"
-  "4 1 2 1 1 1 2\n"
-  "5 1 2 1 2 2 4\n"
-  "6 1 2 1 2 4 3\n"
-  "7 1 2 1 3 3 1\n"
-  "8 2 2 0 5 2 4 1\n"
-  "9 2 2 0 5 1 4 3\n"
-  "$EndElements\n";
-
-  return content;
-}
-
-void writeTestMeshFile( const std::string & meshFileName )
-{
-  std::string meshFileContent = getExampleMeshFileContent();
-  std::ofstream file( meshFileName );
-  file << meshFileContent;
-  file.close();
-}
-
 class TestData
 {
 public:
@@ -73,6 +36,15 @@ public:
   std::vector<bool> aa;
 };
 
+class CellTestData
+{
+public:
+  bool a = false;
+  int i = 400;
+  std::vector<bool> aa;
+};
+
+
 class TestDataHandling : public OnlyInitializeDataHandling< TestData, Primitive >
 {
 public:
@@ -80,7 +52,7 @@ public:
   std::shared_ptr< TestData > initialize( const Primitive * const ) const
   {
     auto testData = std::make_shared< TestData >();
-    testData->i = 7777;
+    testData->i = 5555;
     return testData;
   }
 
@@ -93,7 +65,7 @@ public:
   std::shared_ptr< VertexTestData > initialize( const Vertex * const ) const
   {
     auto testData = std::make_shared< VertexTestData >();
-    testData->i = 8888;
+    testData->i = 6666;
     testData->f = new float[10000];
     return testData;
   }
@@ -107,6 +79,19 @@ public:
   std::shared_ptr< EdgeTestData > initialize( const Edge * const ) const
   {
     auto testData = std::make_shared< EdgeTestData >();
+    testData->i = 7777;
+    return testData;
+  }
+
+};
+
+class CellTestDataHandling : public OnlyInitializeDataHandling< CellTestData, Cell >
+{
+public:
+
+  std::shared_ptr< CellTestData > initialize( const Cell * const ) const
+  {
+    auto testData = std::make_shared< CellTestData >();
     testData->i = 9999;
     return testData;
   }
@@ -115,9 +100,8 @@ public:
 
 static void testPrimitiveData()
 {
-  std::string meshFileName = "./tmpMeshFile.msh";
-  writeTestMeshFile( meshFileName );
 
+  const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -125,9 +109,10 @@ static void testPrimitiveData()
 
   PrimitiveStorage storage( setupStorage );
 
-  auto testDataHandling = std::make_shared< TestDataHandling >();
+  auto testDataHandling       = std::make_shared< TestDataHandling >();
   auto vertexTestDataHandling = std::make_shared< VertexTestDataHandling >();
-  auto edgeTestDataHandling = std::make_shared< EdgeTestDataHandling >();
+  auto edgeTestDataHandling   = std::make_shared< EdgeTestDataHandling >();
+  auto cellTestDataHandling   = std::make_shared< CellTestDataHandling >();
 
   // Adding data to all primitives
   PrimitiveDataID< TestData, Primitive > testDataID;
@@ -135,13 +120,34 @@ static void testPrimitiveData()
   // Adding data only to vertices
   PrimitiveDataID< VertexTestData, Vertex > vertexTestDataID;
   storage.addVertexData( vertexTestDataID, vertexTestDataHandling, "vertex data" );
+  // Adding data only to cells
+  PrimitiveDataID< CellTestData, Cell > cellTestDataID;
+  storage.addCellData( cellTestDataID, cellTestDataHandling, "cell data" );
+
+  std::vector< PrimitiveID > primitiveIDs;
+  storage.getPrimitiveIDs( primitiveIDs );
+  for ( const auto & id : primitiveIDs )
+  {
+    WALBERLA_LOG_PROGRESS( "Checking content of primitive with ID: " << id.getID() );
+    auto primitive = storage.getPrimitive( id );
+    TestData * testData = primitive->getData( testDataID );
+    WALBERLA_CHECK_EQUAL( testData->i, 5555 );
+  }
 
   // Obtaining initialized vertex data from a vertex
   for ( const auto & it : storage.getVertices() )
   {
     WALBERLA_LOG_PROGRESS( "Checking content of vertex with ID: " << it.second->getID().getID() );
     VertexTestData * vertexTestData = it.second->getData( vertexTestDataID );
-    WALBERLA_CHECK_EQUAL( vertexTestData->i, 8888 );
+    WALBERLA_CHECK_EQUAL( vertexTestData->i, 6666 );
+  }
+
+  // Obtaining initialized cell data from a cell
+  for ( const auto & it : storage.getCells() )
+  {
+    WALBERLA_LOG_PROGRESS( "Checking content of cell with ID: " << it.second->getID().getID() );
+    CellTestData * cellTestData = it.second->getData( cellTestDataID );
+    WALBERLA_CHECK_EQUAL( cellTestData->i, 9999 );
   }
 
   WALBERLA_UNUSED( testDataID );
