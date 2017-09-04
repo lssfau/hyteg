@@ -172,23 +172,28 @@ public:
   ///@{
   template< typename DataType, typename DataHandlingType >
   inline void addPrimitiveData(       PrimitiveDataID< DataType, Primitive > & dataID,
-                                const std::shared_ptr< DataHandlingType > & dataHandling,
-  						                  const std::string & identifier );
+                                const std::shared_ptr< DataHandlingType >    & dataHandling,
+  						                  const std::string                            & identifier );
 
   template< typename DataType, typename DataHandlingType >
   inline void addVertexData(       PrimitiveDataID< DataType, Vertex > & dataID,
                              const std::shared_ptr< DataHandlingType > & dataHandling,
-						                 const std::string & identifier );
+						                 const std::string                         & identifier );
 
   template< typename DataType, typename DataHandlingType >
-  inline void addEdgeData(       PrimitiveDataID< DataType, Edge > & dataID,
+  inline void addEdgeData(       PrimitiveDataID< DataType, Edge >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
-  						                                          const std::string & identifier );
+                           const std::string                         & identifier );
 
   template< typename DataType, typename DataHandlingType >
-  inline void addFaceData(       PrimitiveDataID< DataType, Face > & dataID,
+  inline void addFaceData(       PrimitiveDataID< DataType, Face >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
-  						             const std::string & identifier );
+  						             const std::string                         & identifier );
+
+  template< typename DataType, typename DataHandlingType >
+  inline void addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
+                           const std::shared_ptr< DataHandlingType > & dataHandling,
+                           const std::string                         & identifier );
   ///@}
 
   /// Migrates the passed (local!) primitives to the respective target process.
@@ -304,6 +309,17 @@ private:
     faceDataDeserializationFunctions_[ dataID ] = deserializationFunction;
   }
 
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Cell > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Cell > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Cell > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    cellDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    cellDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    cellDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
   // Maps from data ID to respective callback functions
 
   std::map< uint_t, std::function< void( const std::shared_ptr< Primitive > & ) > >                              primitiveDataInitializationFunctions_;
@@ -354,6 +370,7 @@ void PrimitiveStorage::addPrimitiveData(       PrimitiveDataID< DataType, Primit
   primitives.insert( vertices_.begin(), vertices_.end() );
   primitives.insert( edges_.begin(), edges_.end() );
   primitives.insert( faces_.begin(), faces_.end() );
+  primitives.insert( cells_.begin(), cells_.end() );
   addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 
@@ -389,6 +406,18 @@ void PrimitiveStorage::addFaceData(       PrimitiveDataID< DataType, Face > & da
   dataID = generateDataID< DataType, Face >();
   addPrimitiveData( dataHandling, identifier, faces_, dataID );
 }
+
+
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
+                                    const std::shared_ptr< DataHandlingType > & dataHandling,
+                                    const std::string                         & identifier )
+{
+  dataID = generateDataID< DataType, Cell >();
+  addPrimitiveData( dataHandling, identifier, cells_, dataID );
+}
+
 
 
 template< typename DataType, typename PrimitiveType >

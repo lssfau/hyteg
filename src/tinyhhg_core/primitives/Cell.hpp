@@ -25,7 +25,24 @@ public:
   virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborFaces(); }
   virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
+  /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
+  /// \param index the \ref PrimitiveDataID of the data that should be returned
+  template< typename DataType >
+  DataType* getData( const PrimitiveDataID< DataType, Cell > & index ) const
+  {
+    return genericGetData< DataType >( index );
+  }
+
 protected:
+
+  /// Not public in order to guarantee that data is only added through the governing structure.
+  /// This ensures valid DataIDs.
+  template< typename DataType, typename DataHandlingType >
+  inline void addData( const PrimitiveDataID< DataType, Cell > & index,
+                       const std::shared_ptr< DataHandlingType > & dataHandling )
+  {
+    genericAddData( index, dataHandling, this );
+  }
 
   virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_UNUSED( sendBuffer ); }
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_UNUSED( recvBuffer ); };
