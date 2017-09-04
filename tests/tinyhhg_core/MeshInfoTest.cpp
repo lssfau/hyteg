@@ -33,6 +33,8 @@ static void testMeshInfo()
   {
     MeshInfo meshInfo = MeshInfo::fromGmshFile( gmshFile );
     SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+    loadbalancing::roundRobin( setupStorage );
+    WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
     PrimitiveStorage storage( setupStorage );
   }
 }

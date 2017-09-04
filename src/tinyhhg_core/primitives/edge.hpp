@@ -98,6 +98,7 @@ protected:
 private:
 
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
+  void addCell( const PrimitiveID & cellID ) { neighborCells_.push_back( cellID ); }
 
   DoFType dofType_;
   std::array<Point3D, 2> coordinates_;

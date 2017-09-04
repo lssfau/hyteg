@@ -177,16 +177,16 @@ static void testBufferedCommunication()
 
   std::shared_ptr< TestPackInfo > testPackInfo( new TestPackInfo( vertexTestDataID, edgeTestDataID ) );
 
-  for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
+  for ( const auto & it : storage->getVertices() )
   {
-    auto vertex = it->second;
+    auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_EQUAL( data->ownID, vertex->getID().getID() );
   }
 
-  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  for ( const auto & it : storage->getEdges() )
   {
-    auto edge = it->second;
+    auto edge = it.second;
     auto data = edge->getData( edgeTestDataID );
     WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 0 );
   }
@@ -205,12 +205,12 @@ static void testBufferedCommunication()
 
   communicator.startCommunication< Edge, Vertex >();
 
-  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  for ( const auto & it : storage->getEdges() )
   {
-    auto edge = it->second;
+    auto edge = it.second;
     auto data = edge->getData( edgeTestDataID );
     WALBERLA_CHECK_EQUAL( data->vertexIDs.size(), 2 );
-    WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it->first );
+    WALBERLA_CHECK_UNEQUAL( data->vertexIDs[0], data->vertexIDs[1], "Failing on Edge: " << it.first );
 
     for ( const auto & lowerDimNeighborID : edge->getLowerDimNeighbors() )
     {
@@ -222,9 +222,9 @@ static void testBufferedCommunication()
 
   communicator.endCommunication< Edge, Vertex >(); // checking interleaved communication and processing
 
-  for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
+  for ( const auto & it : storage->getVertices() )
   {
-    auto vertex = it->second;
+    auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_GREATER( data->edgeIDs.size(), 0 );
     std::set< uint_t > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );

@@ -1,5 +1,5 @@
-#ifndef FACE_HPP
-#define FACE_HPP
+
+#pragma once
 
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
@@ -102,8 +102,11 @@ protected:
   virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const;
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
+private:
+
+  void addCell( const PrimitiveID & cellID ) { neighborCells_.push_back( cellID ); }
+
 };
 
 }
 
-#endif /* FACE_HPP */

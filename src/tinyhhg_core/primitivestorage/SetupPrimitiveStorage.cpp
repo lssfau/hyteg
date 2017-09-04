@@ -20,6 +20,21 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   // match the primitive IDs of the vertices in the SetupStorage, we need an assignment
   std::map< uint_t, PrimitiveID > meshVertexIDToPrimitiveID;
 
+  // We cache the inserted primitives (edges, faces and cells) by filling
+  // these maps with the surrounding vertexIDs as keys and the inserted
+  // PrimitiveIDs as values.
+  // This way we do not need to search for the neighboring lower level
+  // primitives when building inner primitives.
+  std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToEdgeIDs;
+  std::map< std::vector< PrimitiveID >, PrimitiveID > vertexIDsToFaceIDs;
+  auto findCachedPrimitiveID = []( const std::vector< PrimitiveID > & unsortedPrimitiveIDs, const std::map< std::vector< PrimitiveID >, PrimitiveID > & cache ) -> PrimitiveID
+  {
+    std::vector< PrimitiveID > sortedKey( unsortedPrimitiveIDs );
+    std::sort( sortedKey.begin(), sortedKey.end() );
+    WALBERLA_ASSERT_GREATER( cache.count( sortedKey ), 0, "Could not find primitive in cache during SetupStorage construction." );
+    return cache.at( sortedKey );
+  };
+
   // Adding vertices to storage
   const MeshInfo::VertexContainer vertices = meshInfo.getVertices();
   for ( const auto & it : vertices )
@@ -32,9 +47,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     Point3D coordinates( meshInfoVertex.getCoordinates() );
     vertices_[ vertexID.getID() ] = std::make_shared< Vertex >( vertexID, coordinates );
-
-    // All to root by default
-    primitiveIDToTargetRankMap_[ vertexID.getID() ] = 0;
   }
 
   // Adding edges to storage
@@ -44,8 +56,11 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     const MeshInfo::Edge meshInfoEdge = it.second;
 
     PrimitiveID edgeID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoEdge.getVertices().size(), 2, "Edges are expected to have two vertices." );
     PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 )  ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 1 ) ];
+
     DoFType dofType = meshInfoEdge.getDoFType();
 
     std::array<Point3D, 2> coords;
@@ -58,12 +73,14 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     edges_[ edgeID.getID() ] = std::make_shared< Edge >( edgeID, vertexID0, vertexID1, dofType, coords);
 
-    // All to root by default
-    primitiveIDToTargetRankMap_[ edgeID.getID() ] = 0;
-
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
     vertices_[ vertexID1.getID() ]->addEdge( edgeID );
+
+    // Caching neighboring vertices
+    std::vector< PrimitiveID > vertexIDs = {{ vertexID0, vertexID1 }};
+    std::sort( vertexIDs.begin(), vertexIDs.end() );
+    vertexIDsToEdgeIDs[ vertexIDs ] = edgeID;
   }
 
   // Adding faces to storage
@@ -73,6 +90,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     const MeshInfo::Face meshInfoFace = it.second;
 
     PrimitiveID faceID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoFace.getVertices().size(), 3, "Only supporting triangle faces." );
     PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 0 ) ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 1 ) ];
     PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoFace.getVertices().at( 2 ) ];
@@ -82,15 +101,9 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
 
-    PrimitiveID edgeID0;
-    PrimitiveID edgeID1;
-    PrimitiveID edgeID2;
-
-    bool foundEdge0 = findEdgeByVertexIDs( vertexID0, vertexID1, edgeID0 );
-    bool foundEdge1 = findEdgeByVertexIDs( vertexID1, vertexID2, edgeID1 );
-    bool foundEdge2 = findEdgeByVertexIDs( vertexID2, vertexID0, edgeID2 );
-
-    WALBERLA_CHECK( foundEdge0 && foundEdge1 && foundEdge2, "Could not successfully construct faces from MeshInfo" );
+    PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID2, vertexID0 }}, vertexIDsToEdgeIDs );
 
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
@@ -175,9 +188,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates ) );
 
-    // All to root by default
-    primitiveIDToTargetRankMap_[ faceID.getID() ] = 0;
-
     // Adding face ID to vertices as neighbors
     vertices_[vertexIDs[0].getID()]->addFace(faceID);
     vertices_[vertexIDs[1].getID()]->addFace(faceID);
@@ -187,6 +197,68 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     edges_[ edgeID0.getID() ]->addFace( faceID );
     edges_[ edgeID1.getID() ]->addFace( faceID );
     edges_[ edgeID2.getID() ]->addFace( faceID );
+
+    // Caching neighboring vertices
+    std::vector< PrimitiveID > neighboringVertexIDs = {{ vertexID0, vertexID1, vertexID2 }};
+    std::sort( neighboringVertexIDs.begin(), neighboringVertexIDs.end() );
+    vertexIDsToFaceIDs[ neighboringVertexIDs ] = faceID;
+  }
+
+  // Adding cells to storage
+  const MeshInfo::CellContainer cells = meshInfo.getCells();
+  for ( const auto & it : cells )
+  {
+    const MeshInfo::Cell meshInfoCell = it.second;
+
+    PrimitiveID cellID = generatePrimitiveID();
+
+    WALBERLA_ASSERT_EQUAL( meshInfoCell.getVertices().size(), 4, "Only supporting tetrahedron cells." );
+
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
+    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
+    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
+    PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+
+    PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID5 = findCachedPrimitiveID( {{ vertexID2, vertexID3 }}, vertexIDsToEdgeIDs );
+
+    PrimitiveID faceID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID2 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID1 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID3 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID2 = findCachedPrimitiveID( {{ vertexID0, vertexID2, vertexID3 }}, vertexIDsToFaceIDs );
+    PrimitiveID faceID3 = findCachedPrimitiveID( {{ vertexID1, vertexID2, vertexID3 }}, vertexIDsToFaceIDs );
+
+    WALBERLA_ASSERT_EQUAL( cells_.count( cellID.getID() ), 0 );
+
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID3.getID() ), 1 );
+
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID3.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID4.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( edges_.count( edgeID5.getID() ), 1 );
+
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID0.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID1.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID2.getID() ), 1 );
+    WALBERLA_ASSERT_EQUAL( faces_.count( faceID3.getID() ), 1 );
+
+    std::vector< PrimitiveID > cellVertices = {{ vertexID0, vertexID1, vertexID2, vertexID3 }};
+    std::vector< PrimitiveID > cellEdges    = {{ edgeID0, edgeID1, edgeID2, edgeID3, edgeID4, edgeID5 }};
+    std::vector< PrimitiveID > cellFaces    = {{ faceID0, faceID1, faceID2, faceID3 }};
+
+    for ( const auto & id : cellVertices ) { WALBERLA_ASSERT( vertexExists( id ) ); vertices_[ id.getID() ]->addCell( cellID ); }
+    for ( const auto & id : cellEdges    ) { WALBERLA_ASSERT(   edgeExists( id ) );    edges_[ id.getID() ]->addCell( cellID ); }
+    for ( const auto & id : cellFaces    ) { WALBERLA_ASSERT(   faceExists( id ) );    faces_[ id.getID() ]->addCell( cellID ); }
+
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces );
   }
 
   for (auto& it : edges_) {
@@ -212,6 +284,15 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     }
   }
+
+  // All to root by default
+  PrimitiveMap allPrimitives;
+  getSetupPrimitives( allPrimitives );
+  for ( const auto & it : allPrimitives )
+  {
+    PrimitiveID id = it.first;
+    setTargetRank( id, 0 );
+  }
 }
 
 const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
@@ -219,27 +300,8 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   if ( vertexExists( id ) ) { return getVertex( id ); }
   if ( edgeExists( id ) )   { return getEdge( id ); }
   if ( faceExists( id ) )   { return getFace( id ); }
+  if ( cellExists( id ) )   { return getCell( id ); }
   return nullptr;
-}
-
-bool SetupPrimitiveStorage::findEdgeByVertexIDs( const PrimitiveID & vertexID0, const PrimitiveID & vertexID1, PrimitiveID & edge ) const
-{
-  if ( vertices_.count( vertexID0.getID() ) == 0 || vertices_.count( vertexID1.getID() ) == 0 )
-  {
-    return false;
-  }
-
-  for ( auto it = edges_.begin(); it != edges_.end(); it++ )
-  {
-    if (   ( it->second->getVertexID0() == vertexID0 && it->second->getVertexID1() == vertexID1 )
-        || ( it->second->getVertexID0() == vertexID1 && it->second->getVertexID1() == vertexID0 ) )
-    {
-      edge = PrimitiveID( it->first );
-      return true;
-    }
-  }
-
-  return false;
 }
 
 
@@ -281,7 +343,7 @@ uint_t SetupPrimitiveStorage::getNumberOfEmptyProcesses() const
 
 uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
 {
-  return vertices_.size() + edges_.size() + faces_.size();
+  return vertices_.size() + edges_.size() + faces_.size() + cells_.size();
 }
 
 uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
@@ -324,7 +386,8 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
   os << " - Number of...\n"
      << "   +  Vertices: " << std::setw(10) << vertices_.size() << "\n"
      << "   +     Edges: " << std::setw(10) << edges_.size() << "\n"
-     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n";
+     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n"
+     << "   +     Cells: " << std::setw(10) << cells_.size() << "\n";
 
   os << " - Primitives per process...\n"
      << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
@@ -377,6 +440,22 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
        << std::setw(8) << it->second->getEdgeID1().getID() << " | "
        << std::setw(8) << it->second->getEdgeID2().getID() << "\n";
   }
+  os << "\n";
+
+  if ( cells_.size() > 0 )
+  {
+    os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
+       << "------------------------------------------------------------------------\n";
+    for ( auto it = cells_.begin(); it != cells_.end(); it++ )
+    {
+      os << "          " << std::setw(4) << it->first << " | "
+         << std::setw(11) << getTargetRank( it->first ) << " | "
+         << std::setw(8) << it->second->neighborFaces()[0].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[1].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[2].getID() << " | "
+         << std::setw(8) << it->second->neighborFaces()[3].getID() << "\n";
+    }
+  }
 #endif
 }
 
@@ -388,8 +467,9 @@ void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap & setupPrimitiveMap
   setupPrimitiveMap.insert( beginVertices(), endVertices() );
   setupPrimitiveMap.insert( beginEdges(), endEdges() );
   setupPrimitiveMap.insert( beginFaces(), endFaces() );
+  setupPrimitiveMap.insert( beginCells(), endCells() );
 
-  WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+  WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() + cells_.size() );
 }
 
 

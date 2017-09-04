@@ -11,6 +11,9 @@ inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Edge >  ( const
 template<>
 inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsLocally( id ); }
 
+template<>
+inline bool PrimitiveStorage::primitiveExistsLocallyGenerically< Cell >  ( const PrimitiveID & id ) const { return cellExistsLocally( id ); }
+
 
 template<>
 inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Primitive >( const PrimitiveID & id ) const { return primitiveExistsInNeighborhood( id ); }
@@ -23,6 +26,9 @@ inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Edge >  
 
 template<>
 inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Face >  ( const PrimitiveID & id ) const { return faceExistsInNeighborhood( id ); }
+
+template<>
+inline bool PrimitiveStorage::primitiveExistsInNeighborhoodGenerically< Cell >  ( const PrimitiveID & id ) const { return cellExistsInNeighborhood( id ); }
 
 
 template<>
@@ -50,6 +56,13 @@ template<>
 inline       Face*   PrimitiveStorage::getPrimitiveGenerically< Face >  ( const PrimitiveID & id )       { return getFace( id ); }
 
 template<>
+inline const Cell*   PrimitiveStorage::getPrimitiveGenerically< Cell >  ( const PrimitiveID & id ) const { return getCell( id ); }
+
+template<>
+inline       Cell*   PrimitiveStorage::getPrimitiveGenerically< Cell >  ( const PrimitiveID & id )       { return getCell( id ); }
+
+
+template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Primitive >( std::vector< PrimitiveID > & primitiveIDs ) const { getPrimitiveIDs( primitiveIDs ); }
 
 template<>
@@ -60,3 +73,6 @@ inline void PrimitiveStorage::getPrimitiveIDsGenerically< Edge >( std::vector< P
 
 template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getFaceIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getPrimitiveIDsGenerically< Cell >( std::vector< PrimitiveID > & primitiveIDs ) const { getCellIDs( primitiveIDs ); }

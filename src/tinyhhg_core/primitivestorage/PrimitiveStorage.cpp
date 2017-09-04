@@ -48,6 +48,14 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
     }
   }
 
+  for ( auto it = setupStorage.beginCells(); it != setupStorage.endCells(); it++ )
+  {
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
+    {
+      cells_[ it->first ] = std::make_shared< Cell >( *it->second );
+    }
+  }
+
   // Neighborhood
 
   for ( const auto & it : vertices_ )
@@ -81,6 +89,16 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
       {
         neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
+      }
+    }
+
+    for ( const auto & neighborCellID : vertex->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
       }
     }
   }
@@ -118,6 +136,16 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
+
+    for ( const auto & neighborCellID : edge->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
   }
 
   for ( const auto & it : faces_ )
@@ -153,8 +181,62 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
         neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
       }
     }
+
+    for ( const auto & neighborCellID : face->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
   }
 
+  for ( const auto & it : cells_ )
+  {
+    auto cell = it.second;
+
+    for ( const auto & neighborVertexID : cell->neighborVertices() )
+    {
+      const Vertex * neighborVertex = setupStorage.getVertex( neighborVertexID );
+      if ( !vertexExistsLocally( neighborVertexID ) && !vertexExistsInNeighborhood( neighborVertexID ) )
+      {
+        neighborVertices_[ neighborVertexID.getID() ] = std::make_shared< Vertex >( *neighborVertex );
+        neighborRanks_[ neighborVertexID.getID() ] = setupStorage.getTargetRank( neighborVertexID.getID() );
+      }
+    }
+
+    for ( const auto & neighborEdgeID : cell->neighborEdges() )
+    {
+      const Edge * neighborEdge = setupStorage.getEdge( neighborEdgeID );
+      if ( !edgeExistsLocally( neighborEdgeID ) && !edgeExistsInNeighborhood( neighborEdgeID ) )
+      {
+        neighborEdges_[ neighborEdgeID.getID() ] = std::make_shared< Edge >( *neighborEdge );
+        neighborRanks_[ neighborEdgeID.getID() ] = setupStorage.getTargetRank( neighborEdgeID.getID() );
+      }
+    }
+
+    for ( const auto & neighborFaceID : cell->neighborFaces() )
+    {
+      const Face * neighborFace = setupStorage.getFace( neighborFaceID );
+      if ( !faceExistsLocally( neighborFaceID ) && !faceExistsInNeighborhood( neighborFaceID ) )
+      {
+        neighborFaces_[ neighborFaceID.getID() ] = std::make_shared< Face >( *neighborFace );
+        neighborRanks_[ neighborFaceID.getID() ] = setupStorage.getTargetRank( neighborFaceID.getID() );
+      }
+    }
+
+    for ( const auto & neighborCellID : cell->neighborCells() )
+    {
+      const Cell * neighborCell = setupStorage.getCell( neighborCellID );
+      if ( !cellExistsLocally( neighborCellID ) && !cellExistsInNeighborhood( neighborCellID ) )
+      {
+        neighborCells_[ neighborCellID.getID() ] = std::make_shared< Cell >( *neighborCell );
+        neighborRanks_[ neighborCellID.getID() ] = setupStorage.getTargetRank( neighborCellID.getID() );
+      }
+    }
+  }
 
 #ifndef NDEBUG
   checkConsistency();
@@ -167,9 +249,9 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {
   primitiveMap.clear();
 
-  primitiveMap.insert( beginVertices(), endVertices() );
-  primitiveMap.insert( beginEdges(), endEdges() );
-  primitiveMap.insert( beginFaces(), endFaces() );
+  primitiveMap.insert( vertices_.begin(), vertices_.end() );
+  primitiveMap.insert( edges_.begin(), edges_.end() );
+  primitiveMap.insert( faces_.begin(), faces_.end() );
 
   WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
 }
@@ -180,6 +262,7 @@ const Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
   if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) ) return getVertex( id );
   if (   edgeExistsLocally( id ) ||   edgeExistsInNeighborhood( id ) ) return   getEdge( id );
   if (   faceExistsLocally( id ) ||   faceExistsInNeighborhood( id ) ) return   getFace( id );
+  if (   cellExistsLocally( id ) ||   cellExistsInNeighborhood( id ) ) return   getCell( id );
   return nullptr;
 }
 
@@ -188,6 +271,7 @@ Primitive* PrimitiveStorage::getPrimitive( const PrimitiveID & id )
   if ( vertexExistsLocally( id ) || vertexExistsInNeighborhood( id ) ) return getVertex( id );
   if (   edgeExistsLocally( id ) ||   edgeExistsInNeighborhood( id ) ) return   getEdge( id );
   if (   faceExistsLocally( id ) ||   faceExistsInNeighborhood( id ) ) return   getFace( id );
+  if (   cellExistsLocally( id ) ||   cellExistsInNeighborhood( id ) ) return   getCell( id );
   return nullptr;
 }
 
@@ -287,6 +371,38 @@ Face* PrimitiveStorage::getFace( const PrimitiveID & id )
   }
 }
 
+const Cell* PrimitiveStorage::getCell( const PrimitiveID & id ) const
+{
+  if ( cellExistsLocally( id ) )
+  {
+    return cells_.at( id.getID() ).get();
+  }
+  else if ( cellExistsInNeighborhood( id ) )
+  {
+    return neighborCells_.at( id.getID() ).get();
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+Cell* PrimitiveStorage::getCell( const PrimitiveID & id )
+{
+  if ( cellExistsLocally( id ) )
+  {
+    return cells_[ id.getID() ].get();
+  }
+  else if ( cellExistsInNeighborhood( id ) )
+  {
+    return neighborCells_[ id.getID() ].get();
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
 void PrimitiveStorage::getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const
 {
   primitiveIDs.clear();
@@ -300,6 +416,9 @@ void PrimitiveStorage::getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveI
   primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
 
   getFaceIDs( someIDs );
+  primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
+
+  getCellIDs( someIDs );
   primitiveIDs.insert( primitiveIDs.end(), someIDs.begin(), someIDs.end() );
 }
 
@@ -327,6 +446,15 @@ void PrimitiveStorage::getFaceIDs ( std::vector< PrimitiveID > & faceIDs ) const
   for ( auto const & it : faces_ )
   {
     faceIDs.push_back( it.first );
+  }
+}
+
+void PrimitiveStorage::getCellIDs ( std::vector< PrimitiveID > & cellIDs ) const
+{
+  cellIDs.clear();
+  for ( auto const & it : cells_ )
+  {
+    cellIDs.push_back( it.first );
   }
 }
 
@@ -562,6 +690,12 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
         neighborRanks_[ idToErase.getID() ] = targetRank;
         faces_.erase( idToErase.getID() );
       }
+      if (   cellExistsLocally( idToErase ) )
+      {
+        neighborCells_[ idToErase.getID() ] = std::make_shared< Cell >( *getCell( idToErase ) );
+        neighborRanks_[ idToErase.getID() ] = targetRank;
+        cells_.erase( idToErase.getID() );
+      }
     }
   }
 
@@ -577,6 +711,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     if ( vertexExistsInNeighborhood( localID ) ) neighborVertices_.erase( localID.getID() );
     if (   edgeExistsInNeighborhood( localID ) )    neighborEdges_.erase( localID.getID() );
     if (   faceExistsInNeighborhood( localID ) )    neighborFaces_.erase( localID.getID() );
+    if (   cellExistsInNeighborhood( localID ) )    neighborCells_.erase( localID.getID() );
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////
@@ -589,6 +724,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
   for ( const auto & it : neighborVertices_ ) neighborhoodIDs.push_back( it.first );
   for ( const auto & it : neighborEdges_    ) neighborhoodIDs.push_back( it.first );
   for ( const auto & it : neighborFaces_    ) neighborhoodIDs.push_back( it.first );
+  for ( const auto & it : neighborCells_    ) neighborhoodIDs.push_back( it.first );
 
   for ( const auto & neighborhoodID : neighborhoodIDs )
   {
@@ -619,6 +755,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       if ( vertexExistsInNeighborhood( neighborhoodID ) ) neighborVertices_.erase( neighborhoodID.getID() );
       if (   edgeExistsInNeighborhood( neighborhoodID ) )    neighborEdges_.erase( neighborhoodID.getID() );
       if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborFaces_.erase( neighborhoodID.getID() );
+      if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborCells_.erase( neighborhoodID.getID() );
     }
   }
 
@@ -674,6 +811,7 @@ PrimitiveStorage::PrimitiveTypeEnum PrimitiveStorage::getPrimitiveType( const Pr
   if ( vertexExistsLocally( primitiveID ) || vertexExistsInNeighborhood( primitiveID ) ) return VERTEX;
   if (   edgeExistsLocally( primitiveID ) ||   edgeExistsInNeighborhood( primitiveID ) ) return EDGE;
   if (   faceExistsLocally( primitiveID ) ||   faceExistsInNeighborhood( primitiveID ) ) return FACE;
+  if (   cellExistsLocally( primitiveID ) ||   cellExistsInNeighborhood( primitiveID ) ) return CELL;
   return INVALID;
 }
 
@@ -726,6 +864,20 @@ PrimitiveID PrimitiveStorage::deserializeAndAddPrimitive( walberla::mpi::RecvBuf
     else
     {
       faces_[ primitiveID.getID() ] = face;
+    }
+    break;
+  }
+  case CELL:
+  {
+    std::shared_ptr< Cell > cell = std::make_shared< Cell >( recvBuffer );
+    primitiveID = cell->getID();
+    if ( isNeighborPrimitive )
+    {
+      neighborCells_[ primitiveID.getID() ] = cell;
+    }
+    else
+    {
+      cells_[ primitiveID.getID() ] = cell;
     }
     break;
   }
@@ -791,6 +943,20 @@ void PrimitiveStorage::serializeAllPrimitiveData( walberla::mpi::SendBuffer & se
     for ( const auto & serializationFunction : faceDataSerializationFunctions_ )
     {
       serializationFunction.second( face, sendBuffer );
+    }
+    break;
+  }
+  case CELL:
+  {
+    WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
+    auto cell = cells_[ primitiveID.getID() ];
+    for ( const auto & serializationFunction : primitiveDataSerializationFunctions_ )
+    {
+      serializationFunction.second( cell, sendBuffer );
+    }
+    for ( const auto & serializationFunction : cellDataSerializationFunctions_ )
+    {
+      serializationFunction.second( cell, sendBuffer );
     }
     break;
   }
@@ -873,6 +1039,28 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
     }
     break;
   }
+  case CELL:
+  {
+    WALBERLA_ASSERT( cellExistsLocally( primitiveID ) );
+    auto cell = cells_[ primitiveID.getID() ];
+    for ( const auto & initializationFunction : primitiveDataInitializationFunctions_ )
+    {
+      initializationFunction.second( cell );
+    }
+    for ( const auto & initializationFunction : cellDataInitializationFunctions_ )
+    {
+      initializationFunction.second( cell );
+    }
+    for ( const auto & deserializationFunction : primitiveDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( cell, recvBuffer );
+    }
+    for ( const auto & deserializationFunction : cellDataDeserializationFunctions_ )
+    {
+      deserializationFunction.second( cell, recvBuffer );
+    }
+    break;
+  }
   default:
     WALBERLA_ABORT( "Invalid primitive type during initialization and deserialization." );
     break;
@@ -901,7 +1089,16 @@ void PrimitiveStorage::checkConsistency()
   {
     WALBERLA_CHECK_GREATER_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
     WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 3 );
+  }
+  for ( auto it = cells_.begin(); it != cells_.end(); it++ )
+  {
+    WALBERLA_CHECK_GREATER_EQUAL( primitiveDataHandlers_, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 4 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 6 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborFaces(), 4 );
   }
 
   // 4. Number of data entries of neighbor primitives is zero
@@ -923,7 +1120,16 @@ void PrimitiveStorage::checkConsistency()
   {
     WALBERLA_CHECK_GREATER_EQUAL( 0, it->second->getNumberOfDataEntries() );
     WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 3 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 3 );
+  }
+  for ( auto it = neighborCells_.begin(); it != neighborCells_.end(); it++ )
+  {
+    WALBERLA_CHECK_GREATER_EQUAL( 0, it->second->getNumberOfDataEntries() );
+    WALBERLA_CHECK_EQUAL( it->first, it->second->getID().getID() );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborVertices(), 4 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborEdges(), 6 );
+    WALBERLA_CHECK_EQUAL( it->second->getNumNeighborFaces(), 4 );
   }
 
   // 7. Number of callbacks is less or equal to the data handling counter
@@ -955,15 +1161,13 @@ void PrimitiveStorage::checkConsistency()
   }
 
   // 9. As many neighbor ranks as neighbors
-  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() );
+  WALBERLA_CHECK_EQUAL( neighborRanks_.size(), neighborVertices_.size() + neighborEdges_.size() + neighborFaces_.size() + neighborCells_.size() );
 
   // 10. Local primitives do not exist in neighborhood
   for ( const auto & id : primitiveIDs )
   {
     WALBERLA_CHECK( !primitiveExistsInNeighborhood( id ), "Primitive that exists in neighborhood: " << id.getID() );
   }
-
-
 
 }
 

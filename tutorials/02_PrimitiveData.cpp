@@ -189,12 +189,12 @@ void PrimitiveStorageTutorial()
   WALBERLA_MPI_BARRIER();
 
   // Check data of the vertices
-  for ( auto it = storage.beginVertices(); it != storage.endVertices(); it++ )
+  for ( const auto & it : storage.getVertices() )
   {
-      WALBERLA_LOG_INFO( "Checking data from Vertex with ID: " << it->first );
+      WALBERLA_LOG_INFO( "Checking data from Vertex with ID: " << it.first );
 
       // Getting the data via the respective ID
-      SimulationData * data = it->second->getData( vertexSimulationDataID );
+      SimulationData * data = it.second->getData( vertexSimulationDataID );
 
       WALBERLA_ASSERT_EQUAL( data->size_, 4711 );
   }
