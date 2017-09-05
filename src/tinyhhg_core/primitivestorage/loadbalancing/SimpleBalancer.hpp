@@ -4,6 +4,8 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
+#include <queue>
+
 namespace hhg {
 namespace loadbalancing {
 
@@ -46,77 +48,112 @@ void roundRobin( SetupPrimitiveStorage & storage )
 
 
 /// \brief Load balancing function for \ref SetupPrimitiveStorage that distributes all primitives in a greedy fashion.
-///
-/// This balancer ignores the type of the primitive (vertex, edge, ...) and therefore does not result in a distribution
-/// that balances the number of the primitives per process if they are distinguished by type.
-/// It's also pretty slow.
-void greedyIgnoringPrimitiveType( SetupPrimitiveStorage & storage )
+void greedy( SetupPrimitiveStorage & storage )
 {
   const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-  const uint_t maxPrimitives = storage.getNumberOfPrimitives() / numProcesses;
+
+  const uint_t maxVertices   = storage.getNumberOfVertices  () / numProcesses;
+  const uint_t maxEdges      = storage.getNumberOfEdges     () / numProcesses;
+  const uint_t maxFaces      = storage.getNumberOfFaces     () / numProcesses;
+  const uint_t maxCells      = storage.getNumberOfCells     () / numProcesses;
 
   // Set all target ranks to zero
   SetupPrimitiveStorage::PrimitiveMap primitives;
   storage.getSetupPrimitives( primitives );
 
-  PrimitiveID       startPrimitiveID;
-  const Primitive * startPrimitive;
-
   for ( const auto & it : primitives )
   {
-    startPrimitiveID = it.first;
-    startPrimitive   = it.second.get();
     storage.setTargetRank( it.first, 0 );
   }
 
-  // Main algorithm
-  const Primitive * currentPrimitive = startPrimitive;
-  std::vector< PrimitiveID > visited;
 
+  // Main algorithm
   for ( uint_t rank = 1; rank < numProcesses; rank++ )
   {
-    uint_t currentNumPrimitives = 0;
+    uint_t currentNumVertices   = 0;
+    uint_t currentNumEdges      = 0;
+    uint_t currentNumFaces      = 0;
+    uint_t currentNumCells      = 0;
+
+    std::queue< PrimitiveID > nextPrimitives;
+    std::map< PrimitiveID::IDType, bool > wasAddedToQueue;
 
     while ( true )
     {
-      visited.push_back( currentPrimitive->getID() );
+      if (    currentNumVertices >= maxVertices
+           && currentNumEdges    >= maxEdges
+           && currentNumFaces    >= maxFaces
+           && currentNumCells    >= maxCells )
+      {
+        break;
+      }
 
+      // Push a random, unassigned primitive to the queue if the queue is empty and we are not finished
+      if ( nextPrimitives.size() == 0 )
+      {
+        for ( const auto & it : primitives )
+        {
+          if ( storage.getTargetRank( it.first ) == 0 && !wasAddedToQueue[ it.first ] )
+          {
+            if (   ( storage.vertexExists( it.first ) && currentNumVertices < maxVertices )
+                || ( storage.edgeExists  ( it.first ) && currentNumEdges < maxEdges )
+                || ( storage.faceExists  ( it.first ) && currentNumFaces < maxFaces )
+                || ( storage.cellExists  ( it.first ) && currentNumCells < maxCells )
+                )
+            {
+              nextPrimitives.push( it.first );
+              wasAddedToQueue[ it.first ] = true;
+              break;
+            }
+          }
+        }
+      }
+
+      WALBERLA_ASSERT_GREATER( nextPrimitives.size(), 0 );
+
+      // Pop a primitive from the queue
+      const Primitive * currentPrimitive = storage.getPrimitive( nextPrimitives.front() );
+      nextPrimitives.pop();
+
+      // Set the target rank to the current process if the process does not already carry enough primitives of that type.
+      // Then set the primitive to visited. Otherwise, the next primitive is pulled from the queue.
       if ( storage.getTargetRank( currentPrimitive->getID().getID() ) == 0 )
       {
-        storage.setTargetRank( currentPrimitive->getID().getID(), rank );
-        currentNumPrimitives++;
-
-        if ( currentNumPrimitives >= maxPrimitives )
+        // Check primitive type and assign rank
+        if ( storage.vertexExists( currentPrimitive->getID() ) && currentNumVertices < maxVertices )
         {
-          break;
+          storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+          currentNumVertices++;
+        }
+        else if ( storage.edgeExists( currentPrimitive->getID() ) && currentNumEdges < maxEdges )
+        {
+          storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+          currentNumEdges++;
+        }
+        else if ( storage.faceExists( currentPrimitive->getID() ) && currentNumFaces < maxFaces )
+        {
+          storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+          currentNumFaces++;
+        }
+        else if ( storage.cellExists( currentPrimitive->getID() ) && currentNumCells < maxCells )
+        {
+          storage.setTargetRank( currentPrimitive->getID().getID(), rank );
+          currentNumCells++;
         }
       }
 
-      // Choose next primitive
-      const Primitive * nextPrimitive;
-      for ( const auto & it : primitives )
-      {
-        PrimitiveID id = it.first;
-        if ( std::find( visited.begin(), visited.end(), id ) == visited.end() )
-        {
-          nextPrimitive = storage.getPrimitive( id );
-          break;
-        }
-      }
-
+      // Put neighboring primitives into queue
       std::vector< PrimitiveID > neighbors;
       currentPrimitive->getNeighborPrimitives( neighbors );
 
       for ( const auto & neighborID : neighbors )
       {
-        if ( std::find( visited.begin(), visited.end(), neighborID ) == visited.end() )
+        if ( storage.getTargetRank( neighborID ) == 0 && !wasAddedToQueue[ neighborID.getID() ] )
         {
-          nextPrimitive = storage.getPrimitive( neighborID );
-          break;
+          nextPrimitives.push( neighborID );
+          wasAddedToQueue[ neighborID.getID() ] = true;
         }
       }
-
-      currentPrimitive = nextPrimitive;
     }
   }
 }

@@ -50,7 +50,12 @@ public:
   const Cell   * getCell  ( const PrimitiveID & id ) const { return cellExists( id )   ? cells_.at( id.getID() ).get()    : nullptr; }
 
   void getSetupPrimitives( PrimitiveMap & setupPrimitiveMap ) const;
-  uint_t getNumberOfPrimitives() const;
+
+  uint_t getNumberOfPrimitives() const { return getNumberOfVertices() + getNumberOfEdges() + getNumberOfFaces() + getNumberOfCells(); }
+  uint_t getNumberOfVertices  () const { return vertices_.size(); }
+  uint_t getNumberOfEdges     () const { return edges_.size();    }
+  uint_t getNumberOfFaces     () const { return faces_.size();    }
+  uint_t getNumberOfCells     () const { return cells_.size();    }
 
   VertexMap::iterator beginVertices() { return vertices_.begin(); }
   VertexMap::iterator endVertices()   { return vertices_.end(); }

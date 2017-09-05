@@ -341,11 +341,6 @@ uint_t SetupPrimitiveStorage::getNumberOfEmptyProcesses() const
   return numberOfEmptyProcesses;
 }
 
-uint_t SetupPrimitiveStorage::getNumberOfPrimitives() const
-{
-  return vertices_.size() + edges_.size() + faces_.size() + cells_.size();
-}
-
 uint_t SetupPrimitiveStorage::getMinPrimitivesPerRank() const
 {
   uint_t minNumberOfPrimitives = std::numeric_limits< uint_t >::max();
