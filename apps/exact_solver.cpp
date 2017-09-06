@@ -30,12 +30,13 @@ int main(int argc, char* argv[])
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  size_t Level = 6;
+  size_t Level = 2;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
   hhg::P1Function x("x", storage, Level, Level);
   hhg::P1Function x_exact("x_exact", storage, Level, Level);
+  hhg::P1Function err("err", storage, Level, Level);
   std::shared_ptr<hhg::P1Function> numerator = std::make_shared<hhg::P1Function>("numerator", storage, Level, Level);
 
   hhg::P1LaplaceOperator A(storage, Level, Level);
@@ -56,13 +57,20 @@ int main(int argc, char* argv[])
   PETScLUSolver<hhg::P1Function,hhg::P1LaplaceOperator> solver(numerator,num);
 
   WALBERLA_LOG_INFO_ON_ROOT("Solving System")
+  walberla::WcTimer timer;
   solver.solve(A,x,x,x,Level,0,0);
+  timer.end();
 
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
+  err.assign({1.0, -1.0}, {&x, &x_exact}, Level);
 
+  real_t discr_l2_err = std::sqrt(err.dot(err, Level) / (real_t)num);
+
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
 
   WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
-  hhg::VTKWriter< P1Function >({ &x, &x_exact }, Level, "../output", "exact_solver");
+  hhg::VTKWriter< P1Function >({ &x, &x_exact, &err }, Level, "../output", "exact_solver");
 
 
   return 0;
