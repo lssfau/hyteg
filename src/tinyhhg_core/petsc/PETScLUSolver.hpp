@@ -5,6 +5,8 @@
 #include "PETScVector.hpp"
 #include "PETScSparseMatrix.hpp"
 
+#ifdef HHG_BUILD_WITH_PETSC
+
 namespace hhg{
 
 
@@ -64,3 +66,5 @@ private:
 
 
 }
+
+#endif
