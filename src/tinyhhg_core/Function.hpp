@@ -48,7 +48,7 @@ public:
 
   inline void restrict(uint_t level, DoFType flag = All);
 
-  inline void enumerate(uint_t level, uint_t& num);
+  inline uint_t enumerate(uint_t level, uint_t& num);
 
 #ifdef HHG_BUILD_WITH_PETSC
   inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level, DoFType flag);
@@ -212,7 +212,7 @@ void Function< FunctionType >::restrict(size_t level, DoFType flag)
 }
 
 template< typename FunctionType >
-void Function< FunctionType >::enumerate(size_t level, uint_t& num)
+uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
 {
   startTiming( "Enumerate" );
   uint_t counter = 0;
@@ -236,6 +236,7 @@ void Function< FunctionType >::enumerate(size_t level, uint_t& num)
   enumerate_impl( level, start );
 
   stopTiming( "Enumerate" );
+  return counter;
 }
 
 #ifdef HHG_BUILD_WITH_PETSC

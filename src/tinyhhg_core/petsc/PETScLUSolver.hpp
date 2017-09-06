@@ -14,8 +14,8 @@ template <class Functiontype,class Operatortype>
 class PETScLUSolver {
 public:
 
-  PETScLUSolver(std::shared_ptr<Functiontype> &numerator,uint_t size)
-      :num(numerator),Amat(size),vec(size)
+  PETScLUSolver(std::shared_ptr<Functiontype> &numerator, uint_t localSize, uint_t globalSize)
+      :num(numerator), Amat(localSize, globalSize), vec(localSize)
   {
     KSPCreate(PETSC_COMM_WORLD, &ksp);
   }

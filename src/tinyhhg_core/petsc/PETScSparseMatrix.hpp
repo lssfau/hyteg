@@ -16,10 +16,10 @@ protected:
 public:
   PETScSparseMatrix() = delete;
 
-  PETScSparseMatrix(uint_t size,const char name[] = "Mat") {
+  PETScSparseMatrix(uint_t localSize, uint_t globalSize, const char name[] = "Mat") {
     MatCreate(walberla::MPIManager::instance()->comm(),&mat);
     MatSetType(mat,MATAIJ);
-    MatSetSizes(mat,PETSC_DECIDE,PETSC_DECIDE,(PetscInt)size,(PetscInt)size);
+    MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
     MatSetUp(mat);
     setName(name);
     reset();
