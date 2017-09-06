@@ -12,14 +12,17 @@ static void testPrimitiveStorage()
 {
   uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
-  const std::string meshFileName = "../../data/meshes/quad_1054el.msh";
+  const std::string meshFileName = "../../data/meshes/porous_fine.msh";
+  // const std::string meshFileName = "../../data/meshes/bfs_126el.msh";
   // const std::string meshFileName = "../../data/meshes/tri_2el.msh";
   const std::string distributionFile = "../../output/PrimitiveStorageTestDistribution.csv";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  loadbalancing::greedyIgnoringPrimitiveType( setupStorage );
+  WALBERLA_LOG_INFO_ON_ROOT( "LB start" );
+  loadbalancing::greedy( setupStorage );
+  WALBERLA_LOG_INFO_ON_ROOT( "LB end" );
 
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
@@ -75,20 +78,20 @@ static void testPrimitiveStorage()
   }
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
-  for ( auto it = storage->beginVertices(); it != storage->endVertices(); it++ )
+  for ( const auto & it : storage->getVertices() )
   {
-	WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 0 );
-	WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+	WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
+	WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
-  for ( auto it = storage->beginEdges(); it != storage->endEdges(); it++ )
+  for ( const auto it : storage->getEdges() )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 2 );
-    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
+    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
-  for ( auto it = storage->beginFaces(); it != storage->endFaces(); it++ )
+  for ( const auto & it : storage->getFaces() )
   {
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
-    WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
   }
 
 

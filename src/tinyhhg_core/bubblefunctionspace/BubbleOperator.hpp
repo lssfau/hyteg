@@ -9,7 +9,15 @@
 
 #include "tinyhhg_core/fenics.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "generated/bubble_diffusion.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #include "BubbleMemory.hpp"
 #include "BubbleFace.hpp"

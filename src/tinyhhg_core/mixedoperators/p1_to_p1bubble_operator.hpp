@@ -5,7 +5,16 @@
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
+
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "tinyhhg_core/p1bubblefunctionspace/generated/p1bubble_divt.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg
 {

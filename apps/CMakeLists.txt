@@ -1,18 +1,3 @@
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")
-endif()
-
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/param)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/param")
-endif()
-
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/output)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
-endif()
-
-waLBerla_link_files_to_builddir(../data/meshes/*.msh)
-waLBerla_link_files_to_builddir(../data/param/*.prm)
-
 waLBerla_add_executable( NAME cg_bubble
         FILES cg_bubble.cpp
         DEPENDS tinyhhg_core fmt core)

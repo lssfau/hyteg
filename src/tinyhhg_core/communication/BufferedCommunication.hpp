@@ -12,6 +12,8 @@
 #include "core/timing/TimingTree.h"
 #include "core/timing/TimingPool.h"
 
+#include <atomic>
+
 namespace hhg {
 namespace communication {
 
@@ -56,28 +58,14 @@ public:
   /// The data of the sender AND the receiver can be modified after this method returns.
   /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
   /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  template< typename SenderType,
-            typename ReceiverType,
-            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
-                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
+  template< typename SenderType, typename ReceiverType >
   inline void communicate() { startCommunication< SenderType, ReceiverType >(); endCommunication< SenderType, ReceiverType >(); }
 
   /// Starts the non-blocking communication between two \ref Primitive types.
   /// The data of the sender can be modified after this method returns.
   /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
   /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  template< typename SenderType,
-            typename ReceiverType,
-            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
-                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
+  template< typename SenderType, typename ReceiverType >
   inline void startCommunication();
 
   /// Ends the non-blocking communication between two \ref Primitive types
@@ -85,14 +73,7 @@ public:
   /// data of the receiver after this call returned.
   /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
   /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  template< typename SenderType,
-            typename ReceiverType,
-            typename = typename std::enable_if<    ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
-                                                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
-                                                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) >::type >
+  template< typename SenderType, typename ReceiverType >
   inline void endCommunication();
 
   /// @name Local communication mode
@@ -102,7 +83,7 @@ public:
   /// See also \ref LocalCommunicationMode
   ///@{
   LocalCommunicationMode getLocalCommunicationMode() const { return localCommunicationMode_; }
-  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode ) { setupBeforeNextCommunication(); localCommunicationMode_ = localCommunicationMode; }
+  void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode );
   ///@}
 
   /// Writes timing data for the setup and for the wait phase to the passed \ref walberla::WcTimingTree
@@ -117,18 +98,27 @@ private:
   {
     VERTEX_TO_EDGE,
     VERTEX_TO_FACE,
+    VERTEX_TO_CELL,
 
     EDGE_TO_VERTEX,
     EDGE_TO_FACE,
+    EDGE_TO_CELL,
 
     FACE_TO_VERTEX,
     FACE_TO_EDGE,
+    FACE_TO_CELL,
+
+    CELL_TO_VERTEX,
+    CELL_TO_EDGE,
+    CELL_TO_FACE,
 
     NUM_COMMUNICATION_DIRECTIONS
   };
 
   static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
   static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
+
+  static std::atomic_uint bufferSystemTag_;
 
   template< typename SenderType, typename ReceiverType >
   inline CommunicationDirection getCommunicationDirection() const;
@@ -143,6 +133,9 @@ private:
 
   void setupBeforeNextCommunication();
 
+  template< typename SenderType, typename ReceiverType >
+  inline void staticAssertCommunicationDirections() const;
+
   std::weak_ptr< PrimitiveStorage > primitiveStorage_;
 
   uint_t primitiveStorageModificationStamp_;
@@ -150,9 +143,9 @@ private:
   std::vector< std::shared_ptr< PackInfo > > packInfos_;
 
   std::array< std::shared_ptr< walberla::mpi::OpenMPBufferSystem >, NUM_COMMUNICATION_DIRECTIONS > bufferSystems_;
-#ifndef NDEBUG
+
   std::array< bool,                                                 NUM_COMMUNICATION_DIRECTIONS > communicationInProgress_;
-#endif
+
 
   LocalCommunicationMode localCommunicationMode_;
 
@@ -167,23 +160,34 @@ private:
 template< typename SenderType, typename ReceiverType >
 inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCommunicationDirection() const
 {
+  staticAssertCommunicationDirections< SenderType, ReceiverType >();
+
   if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value ) return VERTEX_TO_EDGE;
   if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value ) return VERTEX_TO_FACE;
+  if ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Cell   >::value ) return VERTEX_TO_CELL;
 
   if ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value ) return EDGE_TO_VERTEX;
   if ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value ) return EDGE_TO_FACE;
+  if ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Cell   >::value ) return EDGE_TO_CELL;
 
   if ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value ) return FACE_TO_VERTEX;
   if ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value ) return FACE_TO_EDGE;
+  if ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Cell   >::value ) return FACE_TO_CELL;
+
+  if ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Vertex >::value ) return CELL_TO_VERTEX;
+  if ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Edge   >::value ) return CELL_TO_EDGE;
+  if ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Face   >::value ) return CELL_TO_FACE;
 
   WALBERLA_ABORT( "Sender and receiver types are invalid" );
 
-  return VERTEX_TO_EDGE;
+  return NUM_COMMUNICATION_DIRECTIONS;
 }
 
-template< typename SenderType, typename ReceiverType, typename >
+template< typename SenderType, typename ReceiverType >
 void BufferedCommunicator::startCommunication()
 {
+  staticAssertCommunicationDirections< SenderType, ReceiverType >();
+
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
   const std::string      timerString            =   "Communication (setup)";
@@ -196,10 +200,8 @@ void BufferedCommunicator::startCommunication()
     return;
   }
 
-#ifndef NDEBUG
   WALBERLA_ASSERT( !communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = true;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   WALBERLA_CHECK_NOT_NULLPTR( bufferSystem.get() );
@@ -358,9 +360,11 @@ void BufferedCommunicator::startCommunication()
   stopTimer( timerString );
 }
 
-template < typename SenderType, typename ReceiverType, typename >
+template < typename SenderType, typename ReceiverType >
 void BufferedCommunicator::endCommunication()
 {
+  staticAssertCommunicationDirections< SenderType, ReceiverType >();
+
   const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
   const std::string            timerString            =   "Communication (wait )";
 
@@ -372,16 +376,35 @@ void BufferedCommunicator::endCommunication()
     return;
   }
 
-
-#ifndef NDEBUG
   WALBERLA_ASSERT( communicationInProgress_[ communicationDirection ] );
   communicationInProgress_[ communicationDirection ] = false;
-#endif
 
   std::shared_ptr< walberla::mpi::OpenMPBufferSystem > bufferSystem = bufferSystems_[ communicationDirection ];
   bufferSystem->wait();
 
   stopTimer( timerString );
+}
+
+template< typename SenderType, typename ReceiverType >
+void BufferedCommunicator::staticAssertCommunicationDirections() const
+{
+  static_assert(   ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Edge   >::value )
+                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Face   >::value )
+                || ( std::is_same< SenderType, Vertex >::value && std::is_same< ReceiverType, Cell   >::value )
+
+                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Vertex >::value )
+                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Face   >::value )
+                || ( std::is_same< SenderType, Edge   >::value && std::is_same< ReceiverType, Cell   >::value )
+
+                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Vertex >::value )
+                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Edge   >::value )
+                || ( std::is_same< SenderType, Face   >::value && std::is_same< ReceiverType, Cell   >::value )
+
+                || ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Vertex >::value )
+                || ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Edge   >::value )
+                || ( std::is_same< SenderType, Cell   >::value && std::is_same< ReceiverType, Face   >::value ),
+
+                "BufferedCommunicator: illegal sender and receiver type combination." );
 }
 
 

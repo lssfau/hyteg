@@ -12,7 +12,8 @@ enum VTK_CELL_TYPE
 {
   VTK_VERTEX   = 1,
   VTK_LINE     = 3,
-  VTK_TRIANGLE = 5
+  VTK_TRIANGLE = 5,
+  VTK_TETRA    = 10
 };
 
 static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage > & storage,
@@ -42,6 +43,11 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     storage->getFaceIDs( primitiveIDs );
     numLocalPrimitives = storage->getNumberOfLocalFaces();
     verticesPerPrimitive = 3;
+    break;
+  case VTK_TETRA:
+    storage->getCellIDs( primitiveIDs );
+    numLocalPrimitives = storage->getNumberOfLocalCells();
+    verticesPerPrimitive = 4;
     break;
   default:
     WALBERLA_ASSERT( false, "VTK cell type not supported!" );
@@ -134,6 +140,7 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     else
     {
       auto primitive = storage->getPrimitive( primitiveID );
+      WALBERLA_ASSERT_EQUAL( primitive->getNumNeighborVertices(), verticesPerPrimitive );
       for ( const auto & neighborVertexID : primitive->neighborVertices() )
       {
         WALBERLA_ASSERT(    storage->vertexExistsLocally( neighborVertexID )
@@ -225,10 +232,12 @@ void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage > & sto
   const std::string filenameVertices = filename + "_vertices";
   const std::string filenameEdges    = filename + "_edges";
   const std::string filenameFaces    = filename + "_faces";
+  const std::string filenameCells    = filename + "_cells";
 
   writeDomainPartitioningVTK( storage, dir, filenameVertices, VTK_VERTEX   );
   writeDomainPartitioningVTK( storage, dir, filenameEdges,    VTK_LINE     );
   writeDomainPartitioningVTK( storage, dir, filenameFaces,    VTK_TRIANGLE );
+  writeDomainPartitioningVTK( storage, dir, filenameCells,    VTK_TETRA    );
 }
 
 void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage > & storage, const std::string & filename )

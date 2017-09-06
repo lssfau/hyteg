@@ -12,8 +12,8 @@ class FaceP1ToBubbleStencilMemory {
     if (data.count(level) > 0)
     WALBERLA_LOG_WARNING("Level already exists.")
     else {
-      data[level] = StencilStack{{hhg::make_unique<real_t[]>(getGrayStencilSize(level)),
-                                  hhg::make_unique<real_t[]>(getBlueStencilSize(level))}};
+      data[level] = StencilStack{{ std::unique_ptr< real_t[ ]>( new real_t[ getGrayStencilSize(level) ] ),
+                                   std::unique_ptr< real_t[ ]>( new real_t[ getBlueStencilSize(level) ] ) }};
     }
     return data[level];
   }

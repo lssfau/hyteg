@@ -11,9 +11,17 @@
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "tinyhhg_core/fenics.hpp"
 
 #include "generated/bubble_to_p1_divt.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #include "BubbleToP1Vertex.hpp"
 #include "BubbleToP1Edge.hpp"

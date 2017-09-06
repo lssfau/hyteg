@@ -13,7 +13,7 @@ class VertexBubbleToP1StencilMemory {
       WALBERLA_LOG_WARNING("Level already exists.")
     else {
       this->num_deps_ = num_deps;
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }
@@ -33,7 +33,7 @@ class EdgeBubbleToP1StencilMemory {
     if (data.count(level) > 0)
     WALBERLA_LOG_WARNING("Level already exists.")
     else {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }
@@ -53,7 +53,7 @@ class FaceBubbleToP1StencilMemory {
     if (data.count(level) > 0)
     WALBERLA_LOG_WARNING("Level already exists.")
     else {
-      data[level] = hhg::make_unique<real_t[]>(getSize(level));
+      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
     }
     return data[level];
   }

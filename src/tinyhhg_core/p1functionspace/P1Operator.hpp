@@ -1,5 +1,5 @@
-#ifndef P1OPERATOR_HPP
-#define P1OPERATOR_HPP
+
+#pragma once
 
 #include <fmt/format.h>
 #include <tinyhhg_core/Operator.hpp>
@@ -8,6 +8,10 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "P1DataHandling.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "tinyhhg_core/fenics.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
@@ -15,6 +19,10 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
@@ -385,4 +393,4 @@ typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
 
 }
 
-#endif /* P1OPERATOR_HPP */
+

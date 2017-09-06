@@ -24,6 +24,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Vertex > >    VertexMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Edge > >      EdgeMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
+  typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
@@ -32,28 +33,33 @@ public:
   /// @name \ref Primitive access methods
   /// Various methods to obtain primitives or IDs.
   ///@{
-  uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces(); }
+  uint_t getNumberOfLocalPrimitives() const { return getNumberOfLocalVertices() + getNumberOfLocalEdges() + getNumberOfLocalFaces() + getNumberOfLocalCells(); }
   uint_t getNumberOfLocalVertices() const { return vertices_.size(); }
   uint_t getNumberOfLocalEdges()    const { return edges_.size(); }
   uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
+  uint_t getNumberOfLocalCells()    const { return cells_.size(); }
 
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
-  bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ); }
+  bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ) || cellExistsLocally( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
   bool vertexExistsLocally( const PrimitiveID & id )    const { return vertices_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists locally.
   bool edgeExistsLocally( const PrimitiveID & id )      const { return edges_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists locally.
   bool faceExistsLocally( const PrimitiveID & id )      const { return faces_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists locally.
+  bool cellExistsLocally( const PrimitiveID & id )      const { return cells_.count( id.getID() ) > 0; }
 
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
-  bool primitiveExistsInNeighborhood( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) || edgeExistsInNeighborhood( id ) || faceExistsInNeighborhood( id ); }
+  bool primitiveExistsInNeighborhood( const PrimitiveID & id ) const { return vertexExistsInNeighborhood( id ) || edgeExistsInNeighborhood( id ) || faceExistsInNeighborhood( id ) || cellExistsInNeighborhood( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool vertexExistsInNeighborhood( const PrimitiveID & id )    const { return neighborVertices_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Edge that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool edgeExistsInNeighborhood( const PrimitiveID & id )      const { return neighborEdges_.count( id.getID() ) > 0; }
   /// Returns true, if the \ref Face that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
   bool faceExistsInNeighborhood( const PrimitiveID & id )      const { return neighborFaces_.count( id.getID() ) > 0; }
+  /// Returns true, if the \ref Cell that corresponds to the \ref PrimitiveID exists in the direct neighborhood.
+  bool cellExistsInNeighborhood( const PrimitiveID & id )      const { return neighborCells_.count( id.getID() ) > 0; }
 
   /// Returns true, if the \ref Primitive of the generically passed type that corresponds to the \ref PrimitiveID exists locally.
   template< typename PrimitiveType >
@@ -95,6 +101,14 @@ public:
         Face* getFace( const PrimitiveID & id );
   ///@}
 
+  /// Returns the \ref Cell that is assigned to the passed \ref PrimitiveID.
+  /// The returned \ref Cell is either local or lies in the direct neighborhood.
+  /// Returns nullptr if the \ref Cell does not exist locally nor in the direct neighborhood.
+  ///@{
+  const Cell* getCell( const PrimitiveID & id ) const;
+        Cell* getCell( const PrimitiveID & id );
+  ///@}
+
   /// @name Generic versions of the getter methods.
   ///@{
   template< typename PrimitiveType >
@@ -116,6 +130,9 @@ public:
   /// Fills the passed vector with the IDs of the locally existing faces
   void getFaceIDs   ( std::vector< PrimitiveID > & faceIDs )   const;
 
+  /// Fills the passed vector with the IDs of the locally existing cells
+  void getCellIDs   ( std::vector< PrimitiveID > & cellIDs )   const;
+
   template< typename PrimitiveType >
   inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID > & primitiveIDs ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
 
@@ -131,23 +148,9 @@ public:
   /// Returns a reference to a map of the locally existing \ref Face instances
   const FaceMap   & getFaces()    const { return faces_;    }
 
-  VertexMap::iterator beginVertices() { return vertices_.begin(); }
-  VertexMap::iterator endVertices()   { return vertices_.end(); }
+  /// Returns a reference to a map of the locally existing \ref Face instances
+  const CellMap   & getCells()    const { return cells_;    }
 
-  EdgeMap::iterator beginEdges()      { return edges_.begin(); }
-  EdgeMap::iterator endEdges()        { return edges_.end(); }
-
-  FaceMap::iterator beginFaces()      { return faces_.begin(); }
-  FaceMap::iterator endFaces()        { return faces_.end(); }
-
-  VertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
-  VertexMap::const_iterator endVertices()   const { return vertices_.end(); }
-
-  EdgeMap::const_iterator beginEdges()      const { return edges_.begin(); }
-  EdgeMap::const_iterator endEdges()        const { return edges_.end(); }
-
-  FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
-  FaceMap::const_iterator endFaces()        const { return faces_.end(); }
   ///@}
 
   /// Returns the rank of the process the primitive is located on.
@@ -169,23 +172,28 @@ public:
   ///@{
   template< typename DataType, typename DataHandlingType >
   inline void addPrimitiveData(       PrimitiveDataID< DataType, Primitive > & dataID,
-                                const std::shared_ptr< DataHandlingType > & dataHandling,
-  						                  const std::string & identifier );
+                                const std::shared_ptr< DataHandlingType >    & dataHandling,
+  						                  const std::string                            & identifier );
 
   template< typename DataType, typename DataHandlingType >
   inline void addVertexData(       PrimitiveDataID< DataType, Vertex > & dataID,
                              const std::shared_ptr< DataHandlingType > & dataHandling,
-						                 const std::string & identifier );
+						                 const std::string                         & identifier );
 
   template< typename DataType, typename DataHandlingType >
-  inline void addEdgeData(       PrimitiveDataID< DataType, Edge > & dataID,
+  inline void addEdgeData(       PrimitiveDataID< DataType, Edge >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
-  						                                          const std::string & identifier );
+                           const std::string                         & identifier );
 
   template< typename DataType, typename DataHandlingType >
-  inline void addFaceData(       PrimitiveDataID< DataType, Face > & dataID,
+  inline void addFaceData(       PrimitiveDataID< DataType, Face >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
-  						             const std::string & identifier );
+  						             const std::string                         & identifier );
+
+  template< typename DataType, typename DataHandlingType >
+  inline void addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
+                           const std::shared_ptr< DataHandlingType > & dataHandling,
+                           const std::string                         & identifier );
   ///@}
 
   /// Migrates the passed (local!) primitives to the respective target process.
@@ -212,6 +220,7 @@ private:
     VERTEX,
     EDGE,
     FACE,
+    CELL,
     INVALID
   };
 
@@ -249,10 +258,12 @@ private:
   VertexMap vertices_;
   EdgeMap   edges_;
   FaceMap   faces_;
+  CellMap   cells_;
 
   VertexMap neighborVertices_;
   EdgeMap   neighborEdges_;
   FaceMap   neighborFaces_;
+  CellMap   neighborCells_;
 
   template< typename DataType >
   inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Primitive > &                                                     dataID,
@@ -298,6 +309,17 @@ private:
     faceDataDeserializationFunctions_[ dataID ] = deserializationFunction;
   }
 
+  template< typename DataType >
+  inline void addDataHandlingCallbacks( const PrimitiveDataID< DataType, Cell > &                                                     dataID,
+                                        const std::function< void( const std::shared_ptr< Cell > & ) > &                              initializationFunction,
+                                        const std::function< void( const std::shared_ptr< Cell > &, walberla::mpi::SendBuffer & ) > & serializationFunction,
+                                        const std::function< void( const std::shared_ptr< Cell > &, walberla::mpi::RecvBuffer & ) > & deserializationFunction )
+  {
+    cellDataInitializationFunctions_[ dataID ]  = initializationFunction;
+    cellDataSerializationFunctions_[ dataID ]   = serializationFunction;
+    cellDataDeserializationFunctions_[ dataID ] = deserializationFunction;
+  }
+
   // Maps from data ID to respective callback functions
 
   std::map< uint_t, std::function< void( const std::shared_ptr< Primitive > & ) > >                              primitiveDataInitializationFunctions_;
@@ -315,6 +337,10 @@ private:
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > & ) > >                              faceDataInitializationFunctions_;
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::SendBuffer & ) > > faceDataSerializationFunctions_;
   std::map< uint_t, std::function< void( const std::shared_ptr< Face   > &, walberla::mpi::RecvBuffer & ) > > faceDataDeserializationFunctions_;
+
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > & ) > >                              cellDataInitializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > &, walberla::mpi::SendBuffer & ) > > cellDataSerializationFunctions_;
+  std::map< uint_t, std::function< void( const std::shared_ptr< Cell   > &, walberla::mpi::RecvBuffer & ) > > cellDataDeserializationFunctions_;
 
   uint_t primitiveDataHandlers_;
 
@@ -344,6 +370,7 @@ void PrimitiveStorage::addPrimitiveData(       PrimitiveDataID< DataType, Primit
   primitives.insert( vertices_.begin(), vertices_.end() );
   primitives.insert( edges_.begin(), edges_.end() );
   primitives.insert( faces_.begin(), faces_.end() );
+  primitives.insert( cells_.begin(), cells_.end() );
   addPrimitiveData( dataHandling, identifier, primitives, dataID );
 }
 
@@ -379,6 +406,18 @@ void PrimitiveStorage::addFaceData(       PrimitiveDataID< DataType, Face > & da
   dataID = generateDataID< DataType, Face >();
   addPrimitiveData( dataHandling, identifier, faces_, dataID );
 }
+
+
+template< typename DataType,
+          typename DataHandlingType >
+void PrimitiveStorage::addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
+                                    const std::shared_ptr< DataHandlingType > & dataHandling,
+                                    const std::string                         & identifier )
+{
+  dataID = generateDataID< DataType, Cell >();
+  addPrimitiveData( dataHandling, identifier, cells_, dataID );
+}
+
 
 
 template< typename DataType, typename PrimitiveType >

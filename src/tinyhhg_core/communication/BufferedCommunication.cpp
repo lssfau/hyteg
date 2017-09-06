@@ -7,41 +7,41 @@
 namespace hhg {
 namespace communication {
 
-const std::array< std::string, BufferedCommunicator::NUM_COMMUNICATION_DIRECTIONS > BufferedCommunicator::COMMUNICATION_DIRECTION_STRINGS = {{
-      "vertex -> edge  ",
-      "edge   -> vertex",
-      "edge   -> face  ",
-      "face   -> edge  "
-}};
-
-const std::array< std::string, BufferedCommunicator::NUM_LOCAL_COMMUNICATION_MODES > BufferedCommunicator::LOCAL_COMMUNICATION_MODE_STRINGS = {{
-    "direct",
-    "buffered MPI"
-}};
+std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );
 
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
     primitiveStorage_( primitiveStorage ), primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ), localCommunicationMode_( localCommunicationMode )
 {
-  int baseTag = 0;
+  const bool serialSends = true;
+  const bool serialRecvs = true;
   for ( auto & bufferSystem : bufferSystems_ )
   {
-    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), baseTag++ ) );
+    bufferSystem = std::shared_ptr< walberla::mpi::OpenMPBufferSystem >( new walberla::mpi::OpenMPBufferSystem( walberla::mpi::MPIManager::instance()->comm(), int_c( bufferSystemTag_++ ), serialSends, serialRecvs ) );
   }
 
   setupBeforeNextCommunication();
 
-#ifndef NDEBUG
   for ( auto & communicationInProgress : communicationInProgress_ )
   {
     communicationInProgress = false;
   }
-#endif
 }
 
 void BufferedCommunicator::addPackInfo( const std::shared_ptr< PackInfo > & packInfo )
 {
   setupBeforeNextCommunication();
   packInfos_.push_back( packInfo );
+}
+
+void BufferedCommunicator::setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode )
+{
+  for ( auto & communicationInProgress : communicationInProgress_ )
+  {
+    WALBERLA_CHECK( !communicationInProgress );
+  }
+
+  setupBeforeNextCommunication();
+  localCommunicationMode_ = localCommunicationMode;
 }
 
 void BufferedCommunicator::writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID )
