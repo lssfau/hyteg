@@ -7,8 +7,9 @@ namespace P1Face
 {
 
 using walberla::uint_t;
-
+/// contains stencil directions and index functions for vertices in a P1-Function
 namespace CoordsVertex {
+/// possible stencil directions
 enum DirVertex {
   VERTEX_S  = 0,
   VERTEX_SE = 1,
@@ -19,12 +20,18 @@ enum DirVertex {
   VERTEX_N  = 6
 };
 
+/// all stencil directions including the center
 const DirVertex neighbors_with_center[] =
     {VERTEX_C,
      VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+/// all stencil directions without the center
 const DirVertex neighbors[] =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
 
+/// returns the index inside the linearized P1FaceMemory for a given vertex point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
@@ -52,16 +59,22 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
   return std::numeric_limits<size_t>::max();
 }
 }//namespace CoordsVertex
-
+/// contains stencil directions and index functions for gray cells in a P1-Function
+/// see documentation for description of gray and blue cells
 namespace CoordsCellGray {
 enum DirVertex {
   VERTEX_SW = 0,
   VERTEX_SE = 1,
   VERTEX_NW = 2
 };
-
+/// all stencil directions
+/// note that the center can not be contained since a P1-Function has no face dof
 const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
 
+/// returns the index inside the linearized P1FaceMemory for a given gray cell point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   //typedef hhg::P1Face::CoordsVertex CoordsVertex;
@@ -80,15 +93,24 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
 }
 } //namespace CoordsCellGray
 
+/// contains stencil directions and index functions for blue cells in a P1-Function
+/// see documentation for description of gray and blue cells
 namespace CoordsCellBlue {
+/// possible stencil directions
 enum DirVertex {
   VERTEX_SE = 0,
   VERTEX_NW = 1,
   VERTEX_NE = 2
 };
 
+/// all stencil directions
+/// note that the center can not be contained since a P1-Function has no face dof
 const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
 
+/// returns the index inside the linearized P1FaceMemory for a given blue cell point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   switch(dir){
