@@ -7,5 +7,6 @@
 #include <petscsys.h>
 #include <petscmat.h>
 #include <petscvec.h>
+#include <petscksp.h>
 
 #endif

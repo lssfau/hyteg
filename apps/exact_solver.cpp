@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
 
   hhg::P1Function x("x", storage, Level, Level);
   hhg::P1Function x_exact("x_exact", storage, Level, Level);
-  hhg::P1Function numerator("numerator", storage, Level, Level);
+  std::shared_ptr<hhg::P1Function> numerator = std::make_shared<hhg::P1Function>("numerator", storage, Level, Level);
 
   hhg::P1LaplaceOperator A(storage, Level, Level);
 
@@ -49,32 +49,14 @@ int main(int argc, char* argv[])
   x_exact.interpolate(exact, Level);
 
   uint_t num = 0;
-  numerator.enumerate(Level,num);
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)num));
-
-  WALBERLA_LOG_INFO_ON_ROOT("Creating Matrix")
-  hhg::PETScSparseMatrix<hhg::P1LaplaceOperator,hhg::P1Function> Amat("A",A,Level,numerator,num);
-
-  WALBERLA_LOG_INFO_ON_ROOT("Applying DBC")
-  Amat.applyDirichletBC(numerator,Level);
-  WALBERLA_LOG_INFO_ON_ROOT("Printing Matrix")
-  Amat.print("CreateMatrixDirichlet.m");
+  numerator->enumerate(Level,num);
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)num))
 
 
+  PETScLUSolver<hhg::P1Function,hhg::P1LaplaceOperator> solver(numerator,num);
 
-  hhg::PETScVector<hhg::P1Function> rhs_vector("b",num);
-  hhg::PETScVector<hhg::P1Function> x_exact_vector("x_exact",num);
-
-
-
-  WALBERLA_LOG_INFO_ON_ROOT("Creating RHS")
-  rhs_vector.createVectorFromFunction(x_exact,numerator,Level,hhg::DirichletBoundary);
-  rhs_vector.print("CreateRHS.m");
-
-  WALBERLA_LOG_INFO_ON_ROOT("Creating exact Solution Vector")
-  x_exact_vector.createVectorFromFunction(x_exact,numerator,Level);
-  x_exact_vector.print("CreateSolution.m");
-
+  WALBERLA_LOG_INFO_ON_ROOT("Solving System")
+  solver.solve(A,x,x,x,Level,0,0);
 
 
 

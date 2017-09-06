@@ -9,18 +9,20 @@ namespace hhg {
 
 template<typename FunctionType>
 class PETScVector {
-public:
+protected:
 
   Vec vec;
 
+
+public:
   PETScVector() = delete;
 
-  PETScVector(const char name[],uint_t size) {
+  PETScVector(uint_t size,const char name[] = "Vec") {
     VecCreate(walberla::MPIManager::instance()->comm(), &vec);
     VecSetType(vec, VECSTANDARD);
     VecSetSizes(vec, PETSC_DECIDE, size);
     VecSetUp(vec);
-    PetscObjectSetName((PetscObject)vec,name);
+    setName(name);
   }
 
   ~PETScVector() { VecDestroy(&vec); }
@@ -47,6 +49,11 @@ public:
     VecView(vec,viewer);
     PetscViewerDestroy(&viewer);
   }
+
+  inline void setName(const char name[]){ PetscObjectSetName((PetscObject)vec,name); }
+
+  inline Vec& get() { return vec; }
+
 
 };
 

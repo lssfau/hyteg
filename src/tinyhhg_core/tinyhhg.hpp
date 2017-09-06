@@ -51,6 +51,7 @@
 #include "petsc/PETScManager.hpp"
 #include "petsc/PETScSparseMatrix.hpp"
 #include "petsc/PETScVector.hpp"
+#include "petsc/PETScLUSolver.hpp"
 
 
 
