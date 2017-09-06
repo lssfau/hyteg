@@ -7,6 +7,7 @@
 #include "tinyhhg_core/macros.hpp"
 #include "P1Memory.hpp"
 #include "P1FaceIndex.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 namespace P1Face {
@@ -401,10 +402,11 @@ inline void enumerate(Face &face, const PrimitiveDataID<FaceP1FunctionMemory, Fa
   }
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, Mat& mat) {
   using namespace CoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -417,10 +419,15 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
+      PetscInt srcInt = (PetscInt)src[index<Level>(i, j, VERTEX_C)];
+      PetscInt dstInt = (PetscInt)dst[index<Level>(i, j, VERTEX_C)];
+      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[VERTEX_C] ,INSERT_VALUES);
 
       for (auto neighbor : neighbors) {
-        out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        srcInt = (PetscInt)src[index<Level>(i, j, neighbor)];
+        //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[neighbor] ,INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -428,6 +435,60 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 }
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+
+
+template<uint_t Level>
+inline void createVectorFromFunctionTmpl(Face &face,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &numeratorId,
+                              Vec& vec) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      PetscInt numeratorInt = (PetscInt)numerator[index<Level>(i, j, VERTEX_C)];
+      VecSetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, VERTEX_C)],INSERT_VALUES);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+
+
+template<uint_t Level>
+inline void createFunctionFromVectorTmpl(Face &face,
+                                         const PrimitiveDataID<FaceP1FunctionMemory, Face> &srcId,
+                                         const PrimitiveDataID<FaceP1FunctionMemory, Face> &numeratorId,
+                                         Vec& vec) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+      PetscInt numeratorInt = (PetscInt)numerator[index<Level>(i, j, VERTEX_C)];
+      VecGetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, VERTEX_C)]);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+#endif
 
 }// namespace P1Face
 }// namespace hhg

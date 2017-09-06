@@ -346,4 +346,98 @@ void P1Function::enumerate_impl(uint_t level, uint_t& num)
   communicators_[level]->startCommunication<Edge, Vertex>();
   communicators_[level]->endCommunication<Edge, Vertex>();
 }
+
+#ifdef HHG_BUILD_WITH_PETSC
+void P1Function::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      P1Vertex::createVectorFromFunction(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
+    }
+  }
+
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      P1Edge::createVectorFromFunction(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
+    }
+  }
+
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      P1Face::createVectorFromFunction(level, face, faceDataID_, numerator.getFaceDataID(), vec);
+    }
+  }
+}
+
+
+void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      P1Vertex::createFunctionFromVector(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
+    }
+  }
+
+  communicators_[level]->startCommunication<Vertex, Edge>();
+  communicators_[level]->endCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      P1Edge::createFunctionFromVector(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
+    }
+  }
+
+  communicators_[level]->startCommunication<Edge, Face>();
+  communicators_[level]->endCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      P1Face::createFunctionFromVector(level, face, faceDataID_, numerator.getFaceDataID(), vec);
+    }
+  }
+}
+
+void P1Function::applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), DirichletBoundary))
+    {
+      P1Vertex::applyDirichletBC(vertex,mat,level,vertexDataID_);
+    }
+  }
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), DirichletBoundary))
+    {
+      P1Edge::applyDirichletBC(level,edge,mat,edgeDataID_);
+    }
+  }
+
+}
+#endif
+
 }

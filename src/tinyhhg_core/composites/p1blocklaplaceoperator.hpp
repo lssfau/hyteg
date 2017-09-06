@@ -23,7 +23,7 @@ public:
     A.apply(src.p, dst.p, level, flag, updateType);
   }
 
-  void save(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  void createMatrix(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
   {
     WALBERLA_UNUSED(src);
     WALBERLA_UNUSED(dst);

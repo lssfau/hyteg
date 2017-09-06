@@ -295,9 +295,9 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
 SPECIALIZE(void, apply_tmpl, apply)
 
 template<size_t Level>
-inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
+inline void saveOperator_tmpl(Face& face, Mat &mat, size_t opr_id, size_t src_id, size_t dst_id, DoFType flag)
 {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  /*size_t rowsize = levelinfo::num_microvertices_per_edge(Level); //TODO: Implement
   size_t inner_rowsize = rowsize;
 
   auto& opr_data = P1Bubble::getFaceStencilMemory(face, opr_id)->data[Level];
@@ -354,7 +354,7 @@ inline void saveOperator_tmpl(Face& face, std::ostream& out, size_t opr_id, size
       }
     }
     --inner_rowsize;
-  }
+  }*/
 }
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)

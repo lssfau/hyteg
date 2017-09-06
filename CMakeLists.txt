@@ -2,7 +2,9 @@ cmake_minimum_required (VERSION 2.8)
 
 PROJECT ( tinyhhg )
 enable_testing()
-option ( HHG_ENABLE_LIKWID                "Compile with LIKWID" )
+option ( HHG_ENABLE_LIKWID                "Compile with LIKWID"                       OFF)
+option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                          OFF)
+
 
 if ( HHG_ENABLE_LIKWID )
     find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )
@@ -23,8 +25,22 @@ include_directories ( src )
 #include_directories ( ${tinyhhg_BINARY_DIR}/src/tinyhhg_core )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR} )
+set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
+
 find_package( waLBerla )
+
+if ( HHG_BUILD_WITH_PETSC )
+    find_package( PETSc )
+    include_directories ( ${PETSC_INCLUDE_DIRS} )
+    link_directories    ( ${PETSC_LIBRARY_DIR} )
+    list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+endif()
+
+configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
+                 src/tinyhhg_core/HHGDefinitions.hpp )
+
+include_directories( ${tinyhhg_BINARY_DIR}/src )
+
 
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/meshes")

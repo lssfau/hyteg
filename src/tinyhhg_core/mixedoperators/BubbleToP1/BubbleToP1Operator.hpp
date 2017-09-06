@@ -180,10 +180,11 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void save_impl(BubbleFunction& src, P1Function& dst, std::ostream& out, size_t level, DoFType flag)
+#ifdef HHG_BUILD_WITH_PETSC
+  void createMatrix_impl(BubbleFunction& src, P1Function& dst, Mat &mat, size_t level, DoFType flag)
   {
-    // Since the Bubble dofs are in the interior, we have to pull them through the edges first
-    src.getCommunicator(level)->startCommunication<Face, Edge>();
+    // Since the Bubble dofs are in the interior, we have to pull them through the edges first //TODO: Implement!
+    /*src.getCommunicator(level)->startCommunication<Face, Edge>();
     src.getCommunicator(level)->endCommunication<Face, Edge>();
 
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -215,7 +216,9 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
         BubbleToP1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
       }
     }
+     */
   }
+#endif
 
   PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> edgeStencilID_;

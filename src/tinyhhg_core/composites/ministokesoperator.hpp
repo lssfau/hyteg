@@ -40,21 +40,23 @@ public:
     div_y_b.apply(src.v.b, dst.p, level, flag | DirichletBoundary, Add);
   }
 
-  void save(MiniStokesFunction& src, MiniStokesFunction& dst, std::ostream& out, size_t level, DoFType flag)
+#ifdef HHG_BUILD_WITH_PETSC
+  void createMatrix(MiniStokesFunction& src, MiniStokesFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
-    A.save(src.u, dst.u, out, level, flag);
-    divT_x_p1.save(src.p, dst.u.p1, out, level, flag);
-    divT_x_b.save(src.p, dst.u.b, out, level, flag);
+    /*A.save(src.u, dst.u, mat, level, flag); //Todo Implement
+    divT_x_p1.save(src.p, dst.u.p1, mat, level, flag);
+    divT_x_b.save(src.p, dst.u.b, mat, level, flag);
 
-    A.save(src.v, dst.v, out, level, flag);
-    divT_y_p1.save(src.p, dst.v.p1, out, level, flag);
-    divT_y_b.save(src.p, dst.v.b, out, level, flag);
+    A.save(src.v, dst.v, mat, level, flag);
+    divT_y_p1.save(src.p, dst.v.p1, mat, level, flag);
+    divT_y_b.save(src.p, dst.v.b, mat, level, flag);
 
-    div_x_p1.save(src.u.p1, dst.p, out, level, flag | DirichletBoundary);
-    div_x_b.save(src.u.b, dst.p, out, level, flag | DirichletBoundary);
-    div_y_p1.save(src.v.p1, dst.p, out, level, flag | DirichletBoundary);
-    div_y_b.save(src.v.b, dst.p, out, level, flag | DirichletBoundary);
+    div_x_p1.save(src.u.p1, dst.p, mat, level, flag | DirichletBoundary);
+    div_x_b.save(src.u.b, dst.p, mat, level, flag | DirichletBoundary);
+    div_y_p1.save(src.v.p1, dst.p, mat, level, flag | DirichletBoundary);
+    div_y_b.save(src.v.b, dst.p, mat, level, flag | DirichletBoundary);*/
   }
+#endif
 
   P1BubbleLaplaceOperator A;
 

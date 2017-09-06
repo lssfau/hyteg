@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 
@@ -134,22 +135,74 @@ inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemo
   dst[0] = static_cast< real_t >( num++ );
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
                          const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
-                         std::ostream& out,
-                         size_t level) {
+                         Mat& mat,
+                         uint_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &src = vertex.getData(srcId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
 
-  out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
+  PetscInt* srcint = new PetscInt[vertex.getNumNeighborEdges()+1];
+  PetscInt dstint = (PetscInt) dst[0];
+
+
+  for(uint_t i = 0;i<vertex.getNumNeighborEdges()+1;++i)
+    srcint[i] = (PetscInt)src[i];
+
+
+
+  MatSetValues(mat,1,&dstint,(PetscInt) (vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);
+
+  delete[] srcint;
+
+  /*out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
 
   for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
     out << fmt::format("{}\t{}\t{}\n", dst[0], src[i + 1], opr_data[i + 1]);
   }
+  */
 }
+
+inline void createVectorFromFunction(Vertex &vertex,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                         Vec& vec,
+                         uint_t level) {
+
+  auto &src = vertex.getData(srcId)->data[level];
+  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+
+  VecSetValues(vec,1,&numerator,src.get(),INSERT_VALUES);
+
+}
+
+inline void createFunctionFromVector(Vertex &vertex,
+                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
+                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                                     Vec& vec,
+                                     uint_t level) {
+
+
+  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+
+  VecGetValues(vec,1,&numerator,vertex.getData(srcId)->data[level].get());
+
+}
+
+inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t level,
+                             const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId){
+
+  mat.push_back((PetscInt)vertex.getData(numeratorId)->data[level][0]);
+
+}
+
+#endif
+
+
 }
 }
 

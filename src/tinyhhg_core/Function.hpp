@@ -4,16 +4,21 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
+#include <core/mpi/Gather.h>
+
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 #include <string>
 #include <functional>
+#include <vector>
+
 
 namespace hhg {
 
 template< typename FunctionType >
 class Function {
 public:
-  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
       : functionName_(name)
       , storage_(storage)
       , minLevel_(minLevel)
@@ -31,19 +36,27 @@ public:
 
   inline void interpolate(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
-  inline void assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All);
+  inline void assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
 
-  inline void add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All);
+  inline void add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
 
-  inline real_t dot(FunctionType& rhs, size_t level, DoFType flag = All);
+  inline real_t dot(FunctionType& rhs, uint_t level, DoFType flag = All);
 
-  inline void prolongate(size_t level, DoFType flag = All);
+  inline void prolongate(uint_t level, DoFType flag = All);
 
-  inline void prolongateQuadratic(size_t level, DoFType flag = All);
+  inline void prolongateQuadratic(uint_t level, DoFType flag = All);
 
-  inline void restrict(size_t level, DoFType flag = All);
+  inline void restrict(uint_t level, DoFType flag = All);
 
-  inline void enumerate(size_t level, uint_t& num);
+  inline void enumerate(uint_t level, uint_t& num);
+
+#ifdef HHG_BUILD_WITH_PETSC
+  inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level, DoFType flag);
+
+  inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
+
+  inline void applyDirichletBC(std::vector<PetscInt> &mat , uint_t level);
+#endif
 
 
   const std::string &getFunctionName() const { return functionName_; }
@@ -72,19 +85,27 @@ protected:
 
   virtual void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All) = 0;
 
-  virtual void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All) = 0;
+  virtual void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
 
-  virtual void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag = All) = 0;
+  virtual void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
 
-  virtual real_t dot_impl(FunctionType& rhs, size_t level, DoFType flag = All) = 0;
+  virtual real_t dot_impl(FunctionType& rhs, uint_t level, DoFType flag = All) = 0;
 
-  virtual void prolongate_impl(size_t level, DoFType flag = All) = 0;
+  virtual void prolongate_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void prolongateQuadratic_impl(size_t level, DoFType flag = All) = 0;
+  virtual void prolongateQuadratic_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void restrict_impl(size_t level, DoFType flag = All) = 0;
+  virtual void restrict_impl(uint_t level, DoFType flag = All) = 0;
 
-  virtual void enumerate_impl(size_t level, uint_t& num) = 0;
+  virtual void enumerate_impl(uint_t level, uint_t& num) = 0;
+
+#ifdef HHG_BUILD_WITH_PETSC
+  virtual void createVectorFromFunction_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;} //TODO make this abstract
+
+  virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
+
+  virtual void applyDirichletBC_impl(std::vector<PetscInt>& mat, uint_t level){;}
+#endif
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -193,11 +214,62 @@ void Function< FunctionType >::restrict(size_t level, DoFType flag)
 template< typename FunctionType >
 void Function< FunctionType >::enumerate(size_t level, uint_t& num)
 {
-  startTiming( "Restrict" );
+  startTiming( "Enumerate" );
+  uint_t counter = 0;
 
-  enumerate_impl( level, num );
 
-  stopTiming( "Restrict" );
+  enumerate_impl(level,counter);
+
+  std::vector<uint_t> dofs_per_rank  = walberla::mpi::allGather(counter);
+
+  uint_t start = num;
+
+  for(uint_t i = 0; i<walberla::MPIManager::instance()->rank();++i) {
+    start += dofs_per_rank[i];
+  }
+
+  for(uint_t i = 0; i<walberla::MPIManager::instance()->numProcesses();++i) {
+    num += dofs_per_rank[i];
+  }
+
+
+  enumerate_impl( level, start );
+
+  stopTiming( "Enumerate" );
 }
+
+#ifdef HHG_BUILD_WITH_PETSC
+template< typename FunctionType >
+void Function< FunctionType >::createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  startTiming( "createVectorFromFunction" );
+
+  createVectorFromFunction_impl(numerator, vec, level,flag);
+
+  stopTiming( "createVectorFromFunction" );
+}
+
+
+template< typename FunctionType >
+void Function< FunctionType >::createFunctionFromVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
+{
+  startTiming( "createFunctionFromVector" );
+
+  createFunctionFromVector_impl(numerator, vec, level,flag);
+
+  stopTiming( "createFunctionFromVector" );
+}
+
+template< typename FunctionType >
+void Function< FunctionType >::applyDirichletBC(std::vector<PetscInt> &mat, uint_t level)
+{
+  startTiming( "applyDirichletBC" );
+
+  applyDirichletBC_impl(mat, level);
+
+  stopTiming( "applyDirichletBC" );
+}
+#endif
+
 
 }

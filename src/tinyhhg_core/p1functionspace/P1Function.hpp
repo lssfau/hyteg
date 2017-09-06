@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 
@@ -26,19 +27,29 @@ private:
   /// Interpolates a given expression to a P1Function
   void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
-  void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All);
+  void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, uint_t level, DoFType flag = All);
 
-  void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag = All);
+  void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, uint_t level, DoFType flag = All);
 
-  real_t dot_impl(P1Function& rhs, size_t level, DoFType flag = All);
+  real_t dot_impl(P1Function& rhs, uint_t level, DoFType flag = All);
 
-  void prolongate_impl(size_t level, DoFType flag = All);
+  void prolongate_impl(uint_t level, DoFType flag = All);
 
-  void prolongateQuadratic_impl(size_t level, DoFType flag = All);
+  void prolongateQuadratic_impl(uint_t level, DoFType flag = All);
 
-  void restrict_impl(size_t level, DoFType flag = All);
+  void restrict_impl(uint_t level, DoFType flag = All);
 
-  void enumerate_impl(size_t level, uint_t& num);
+  void enumerate_impl(uint_t level, uint_t& num);
+
+#ifdef HHG_BUILD_WITH_PETSC
+  void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+
+  void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+
+  void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
+#endif
+
+
 
   PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory, Edge> edgeDataID_;

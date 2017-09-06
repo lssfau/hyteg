@@ -77,8 +77,10 @@ private:
     WALBERLA_ASSERT(false, "BubbleOperator::smooth_gs is not implemented!");
   }
 
-  void save_impl(BubbleFunction& src, BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+#ifdef HHG_BUILD_WITH_PETSC
+  void createMatrix_impl(BubbleFunction& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
+    /* //TODO
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
@@ -87,7 +89,9 @@ private:
         BubbleFace::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
       }
     }
+     */
   }
+#endif
 
 private:
   PrimitiveDataID<FaceBubbleStencilMemory, Face> faceStencilID_;

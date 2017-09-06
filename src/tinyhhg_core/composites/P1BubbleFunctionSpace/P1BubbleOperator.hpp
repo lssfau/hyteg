@@ -27,13 +27,15 @@ public:
     A_b.apply(src.b, dst.b, level, flag, updateType);
   }
 
-  void save(P1BubbleFunction& src, P1BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+#ifdef HHG_BUILD_WITH_PETSC
+  void createMatrix(P1BubbleFunction& src, P1BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
 //    WALBERLA_LOG_DEBUG_ON_ROOT("P1BubbleOperator::apply is missing off diagonal blocks!")
 
-    A_p1.save(src.p1, dst.p1, out, level, flag);
-    A_b.save(src.b, dst.b, out, level, flag);
+    /*A_p1.save(src.p1, dst.p1, mat, level, flag); //TODO Implement
+    A_b.save(src.b, dst.b, mat, level, flag);*/
   }
+#endif
 
   Opr_P1_to_P1 A_p1;
   Opr_B_to_B   A_b;
