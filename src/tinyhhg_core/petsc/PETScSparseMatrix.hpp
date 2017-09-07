@@ -18,9 +18,11 @@ public:
 
   PETScSparseMatrix(uint_t localSize, uint_t globalSize, const char name[] = "Mat") {
     MatCreate(walberla::MPIManager::instance()->comm(),&mat);
-    MatSetType(mat,MATAIJ);
+    MatSetType(mat,MATMPIAIJ);
     MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
-    MatSetUp(mat);
+    // Usually, we have about 7 nz entries in each matrix row, except in macro-vertex rows.
+    // Therefore, we can assume following preallocation for a huge performance gain.
+    MatMPIAIJSetPreallocation(mat, 7, NULL, 6, NULL);
     setName(name);
     reset();
   }
