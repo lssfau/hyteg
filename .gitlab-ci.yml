@@ -119,8 +119,6 @@
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "Release"
       HHG_BUILD_WITH_PETSC: "ON"
-      PETSC_DIR: ""
-      PETSC_ARCH: ""
 
 
 ###############################################################################
