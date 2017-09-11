@@ -111,7 +111,7 @@
       - make install
       - export PETSC_DIR="/tmp/petsc"
       - export PETSC_ARCH=""
-      - cd
+      - cd $CI_PROJECT_DIR
 
 .build_petsc_hybrid_template: &build_petsc_hybrid_template_definition
    <<: *build_petsc_definition
