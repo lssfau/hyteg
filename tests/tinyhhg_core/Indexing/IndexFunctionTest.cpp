@@ -1,10 +1,11 @@
 #include <cstddef>
 #include <array>
 #include <cmath>
+#include <iostream>
 
 typedef size_t uint_t;
 
-inline uint_t num_microvertices_per_edge(uint_t level)
+constexpr inline uint_t num_microvertices_per_edge(uint_t level)
 {
   return (uint_t) std::pow(2, level) + 1;
 }
@@ -19,12 +20,12 @@ enum DirVertex {
   VERTEX_N  = 6
 };
 
-const std::array<DirVertex,7> neighbors_with_center =
+constexpr std::array<DirVertex,7> neighbors_with_center =
   {VERTEX_C,
    VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
 
 template<uint_t Level>
-inline uint_t index(uint_t pos, DirVertex dir) {
+constexpr inline uint_t index(uint_t pos, DirVertex dir) {
   const uint_t vertexOnEdge = num_microvertices_per_edge(Level);
   const uint_t startFaceS = vertexOnEdge;
   const uint_t startFaceN = vertexOnEdge + vertexOnEdge - 1;
@@ -48,9 +49,14 @@ inline uint_t index(uint_t pos, DirVertex dir) {
 }
 
 int main(){
+  static_assert(index<3>(1,VERTEX_C)==1,"foo");
   uint_t sum = 0;
   for(uint_t i = 0; i < neighbors_with_center.size(); ++i) {
     sum += index<3>(1, neighbors_with_center[0]);
+  }
+
+  for(auto neighbor : neighbors_with_center){
+    sum += index<3>(1, neighbor);
   }
 
   printf("%zu",sum);

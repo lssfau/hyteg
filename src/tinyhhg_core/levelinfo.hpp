@@ -11,27 +11,27 @@ namespace levelinfo
 
 using walberla::uint_t;
 
-inline uint_t num_microvertices_per_vertex(uint_t /*level*/)
+constexpr inline uint_t num_microvertices_per_vertex(uint_t /*level*/)
 {
   return 1;
 }
 
-inline uint_t num_microvertices_per_edge(uint_t level)
+constexpr inline uint_t num_microvertices_per_edge(uint_t level)
 {
   return (uint_t) std::pow(2, level) + 1;
 }
 
-inline uint_t num_microedges_per_edge(uint_t level)
+constexpr inline uint_t num_microedges_per_edge(uint_t level)
 {
   return num_microvertices_per_edge(level) - 1;
 }
 
-inline uint_t num_microvertices_per_face(uint_t level)
+constexpr inline uint_t num_microvertices_per_face(uint_t level)
 {
   return (uint_t) ((std::pow(2, level)+1) * (std::pow(2, level-1) + 1));
 }
 
-inline uint_t num_microfaces_per_face(uint_t level)
+constexpr inline uint_t num_microfaces_per_face(uint_t level)
 {
   return (uint_t) (std::pow(4, level));
 }

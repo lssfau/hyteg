@@ -1,6 +1,13 @@
 #pragma once
 #include <iterator>
 
+#include <core/Abort.h>
+#include "tinyhhg_core/macros.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
+
+#include "core/DataTypes.h"
+#include "core/debug/all.h"
+
 namespace hhg
 {
 namespace P1Face
@@ -21,11 +28,12 @@ enum DirVertex {
 };
 
 /// all stencil directions including the center
-const DirVertex neighbors_with_center[] =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+constexpr std::array<DirVertex,7> neighbors_with_center =
+  {VERTEX_C,
+   VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+
 /// all stencil directions without the center
-const DirVertex neighbors[] =
+constexpr std::array<DirVertex,7> neighbors =
     {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
 
 /// returns the index inside the linearized P1FaceMemory for a given vertex point and stencil direction
@@ -33,7 +41,7 @@ const DirVertex neighbors[] =
 /// @param row row (y direction) inside the triangle
 /// @param dir stencil direction
 template<size_t Level>
-inline size_t index(size_t col, size_t row, DirVertex dir) {
+constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
   WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
