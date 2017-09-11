@@ -106,7 +106,7 @@
       - cd /tmp
       - git clone -b maint https://bitbucket.org/petsc/petsc petsc_src
       - cd petsc_src
-      - ./configure CC="$CC" CXX="$CXX" --prefix=/tmp/petsc --download-fblaslapack --download-scalapack --download-mumps
+      - ./configure --prefix=/tmp/petsc --download-fblaslapack --download-scalapack --download-mumps
       - make all test
       - make install
       - export PETSC_DIR="/tmp/petsc"
