@@ -1,5 +1,5 @@
-#ifndef P1VERTEX_HPP
-#define P1VERTEX_HPP
+
+#pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
@@ -10,17 +10,17 @@ namespace hhg {
 namespace P1Vertex {
 
 inline void interpolate(Vertex &vertex,
-                        const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &vertexMemoryId,
+                        const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &vertexMemoryId,
                         std::function<real_t(const hhg::Point3D &)> &expr,
                         size_t level) {
-  VertexP1FunctionMemory *vertexMemory = vertex.getData(vertexMemoryId);
+  VertexP1FunctionMemory< real_t > *vertexMemory = vertex.getData(vertexMemoryId);
   vertexMemory->data[level][0] = expr(vertex.getCoordinates());
 }
 
 inline void assign(Vertex &vertex,
                    const std::vector<real_t> &scalars,
-                   const std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
-                   const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                   const std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> &srcIds,
+                   const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
                    size_t level) {
   real_t tmp = scalars[0]*vertex.getData(srcIds[0])->data[level][0];
 
@@ -33,8 +33,8 @@ inline void assign(Vertex &vertex,
 
 inline void add(Vertex &vertex,
                 const std::vector<real_t> &scalars,
-                const std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> &srcIds,
-                const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                const std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> &srcIds,
+                const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
                 size_t level) {
   real_t tmp = 0.0;
 
@@ -46,16 +46,16 @@ inline void add(Vertex &vertex,
 }
 
 inline real_t dot(Vertex &vertex,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &lhsMemoryId,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &rhsMemoryId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &lhsMemoryId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &rhsMemoryId,
                   size_t level) {
   return vertex.getData(lhsMemoryId)->data[level][0]*vertex.getData(rhsMemoryId)->data[level][0];
 }
 
 inline void apply(Vertex &vertex,
                   const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &srcId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
                   size_t level,
                   UpdateType update) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
@@ -74,8 +74,8 @@ inline void apply(Vertex &vertex,
 }
 
 inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
-                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
-                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &rhsId, size_t level) {
+                      const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &rhsId, size_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
   auto &rhs = vertex.getData(rhsId)->data[level];
@@ -90,9 +90,9 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
-                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
-                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &rhsId,
-                      const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &tmpId, size_t level) {
+                      const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &rhsId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &tmpId, size_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
   auto &rhs = vertex.getData(rhsId)->data[level];
@@ -107,18 +107,18 @@ inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemo
   dst[0] /= opr_data[0];
 }
 
-inline void prolongate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId, size_t sourceLevel) {
+inline void prolongate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &memoryId, size_t sourceLevel) {
   vertex.getData(memoryId)->data[sourceLevel + 1][0] =
       vertex.getData(memoryId)->data[sourceLevel][0];
 }
 
 inline void prolongateQuadratic(Vertex &vertex,
-                                const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId,
+                                const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &memoryId,
                                 size_t level) {
   prolongate(vertex, memoryId, level);
 }
 
-inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &memoryId, size_t level) {
+inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &memoryId, size_t level) {
   auto &vertex_data_f = vertex.getData(memoryId)->data[level];
   auto &vertex_data_c = vertex.getData(memoryId)->data[level - 1];
 
@@ -130,7 +130,7 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
   }
 }
 
-inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, size_t level, uint_t& num) {
+inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, size_t level, uint_t& num) {
   auto &dst = vertex.getData(dstId)->data[level];
   dst[0] = static_cast< real_t >( num++ );
 }
@@ -138,8 +138,8 @@ inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemo
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId,
                          Mat& mat,
                          uint_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
@@ -168,8 +168,8 @@ inline void saveOperator(Vertex &vertex,
 }
 
 inline void createVectorFromFunction(Vertex &vertex,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &numeratorId,
                          Vec& vec,
                          uint_t level) {
 
@@ -181,8 +181,8 @@ inline void createVectorFromFunction(Vertex &vertex,
 }
 
 inline void createFunctionFromVector(Vertex &vertex,
-                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &srcId,
-                                     const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId,
+                                     const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &srcId,
+                                     const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &numeratorId,
                                      Vec& vec,
                                      uint_t level) {
 
@@ -194,7 +194,7 @@ inline void createFunctionFromVector(Vertex &vertex,
 }
 
 inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t level,
-                             const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &numeratorId){
+                             const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &numeratorId){
 
   mat.push_back((PetscInt)vertex.getData(numeratorId)->data[level][0]);
 
@@ -206,4 +206,3 @@ inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t l
 }
 }
 
-#endif /* P1VERTEX_HPP */

@@ -25,9 +25,9 @@ int main (int argc, char** argv) {
   auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling >(minLevel, maxLevel);
   auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >(minLevel, maxLevel);
 
-  PrimitiveDataID<FaceP1FunctionMemory  , Face  > faceDataID;
-  PrimitiveDataID<EdgeP1FunctionMemory  , Edge  > edgeDataID;
-  PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID;
+  PrimitiveDataID<FaceP1FunctionMemory< real_t >  , Face  > faceDataID;
+  PrimitiveDataID<EdgeP1FunctionMemory< real_t >  , Edge  > edgeDataID;
+  PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> vertexDataID;
 
   storage->addFaceData(faceDataID, faceP1FunctionMemoryDataHandling, "data");
   storage->addEdgeData(edgeDataID, edgeP1FunctionMemoryDataHandling, "data");

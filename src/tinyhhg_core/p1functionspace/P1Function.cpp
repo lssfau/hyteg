@@ -64,9 +64,9 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
 void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
-    std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>>     srcEdgeIDs;
-    std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>>     srcFaceIDs;
+    std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> srcVertexIDs;
+    std::vector<PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge>>     srcEdgeIDs;
+    std::vector<PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face>>     srcFaceIDs;
 
     for (auto& function : functions)
     {
@@ -110,9 +110,9 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
 void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
-  std::vector<PrimitiveDataID<VertexP1FunctionMemory, Vertex>> srcVertexIDs;
-  std::vector<PrimitiveDataID<EdgeP1FunctionMemory, Edge>>     srcEdgeIDs;
-  std::vector<PrimitiveDataID<FaceP1FunctionMemory, Face>>     srcFaceIDs;
+  std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge>>     srcEdgeIDs;
+  std::vector<PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face>>     srcFaceIDs;
 
   for (auto& function : functions)
   {

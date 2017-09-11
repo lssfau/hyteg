@@ -9,9 +9,9 @@ class BubblePackInfo : public communication::PackInfo {
 
 public:
   BubblePackInfo(uint_t level,
-                   PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> dataIDVertex,
-                   PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> dataIDEdge,
-                   PrimitiveDataID<FaceBubbleFunctionMemory, Face> dataIDFace,
+                   PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> dataIDVertex,
+                   PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> dataIDEdge,
+                   PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> dataIDFace,
                    std::weak_ptr<PrimitiveStorage> storage)
           : level_(level),
             dataIDVertex_(dataIDVertex),
@@ -47,9 +47,9 @@ public:
 
 private:
   uint_t level_;
-  PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> dataIDVertex_;
-  PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> dataIDEdge_;
-  PrimitiveDataID<FaceBubbleFunctionMemory, Face> dataIDFace_;
+  PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> dataIDVertex_;
+  PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> dataIDEdge_;
+  PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> dataIDFace_;
   std::weak_ptr<hhg::PrimitiveStorage> storage_;
 };
 

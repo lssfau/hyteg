@@ -3,11 +3,10 @@
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
+#include "tinyhhg_core/bubblefunctionspace/BubbleMemory.hpp"
+
 namespace hhg {
 
-class VertexBubbleFunctionMemory;
-class EdgeBubbleFunctionMemory;
-class FaceBubbleFunctionMemory;
 
 class BubbleFunction : public Function< BubbleFunction > {
  public:
@@ -18,11 +17,11 @@ class BubbleFunction : public Function< BubbleFunction > {
 
   ~BubbleFunction();
 
-  const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
-  const PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> &getEdgeDataID() const { return edgeDataID_; }
+  const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &getEdgeDataID() const { return edgeDataID_; }
 
-  const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &getFaceDataID() const { return faceDataID_; }
+  const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &getFaceDataID() const { return faceDataID_; }
 
  private:
 
@@ -61,8 +60,8 @@ class BubbleFunction : public Function< BubbleFunction > {
 
   void enumerate_impl(size_t level, uint_t& num);
 
-  PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> vertexDataID_;
-  PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> edgeDataID_;
-  PrimitiveDataID<FaceBubbleFunctionMemory, Face> faceDataID_;
+  PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> vertexDataID_;
+  PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> edgeDataID_;
+  PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> faceDataID_;
 };
 }

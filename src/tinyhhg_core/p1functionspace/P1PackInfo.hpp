@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/communication/PackInfo.hpp"
-#include "P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
 namespace hhg {
 
@@ -9,9 +9,9 @@ class P1PackInfo : public communication::PackInfo {
 
 public:
   P1PackInfo(uint_t level,
-                   PrimitiveDataID<VertexP1FunctionMemory, Vertex> dataIDVertex,
-                   PrimitiveDataID<EdgeP1FunctionMemory, Edge> dataIDEdge,
-                   PrimitiveDataID<FaceP1FunctionMemory, Face> dataIDFace,
+                   PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> dataIDVertex,
+                   PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> dataIDEdge,
+                   PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> dataIDFace,
                    std::weak_ptr<PrimitiveStorage> storage)
           : level_(level),
             dataIDVertex_(dataIDVertex),
@@ -47,9 +47,9 @@ public:
 
 private:
   uint_t level_;
-  PrimitiveDataID<VertexP1FunctionMemory, Vertex> dataIDVertex_;
-  PrimitiveDataID<EdgeP1FunctionMemory, Edge> dataIDEdge_;
-  PrimitiveDataID<FaceP1FunctionMemory, Face> dataIDFace_;
+  PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> dataIDVertex_;
+  PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> dataIDEdge_;
+  PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> dataIDFace_;
   std::weak_ptr<hhg::PrimitiveStorage> storage_;
 };
 

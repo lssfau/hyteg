@@ -5,13 +5,13 @@
 
 namespace hhg {
 
-class VertexBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexBubbleFunctionMemory, Vertex >
+class VertexBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexBubbleFunctionMemory< real_t >, Vertex >
 {
 public:
 
   VertexBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< VertexBubbleFunctionMemory > initialize( const Vertex * const vertex ) const;
+  std::shared_ptr< VertexBubbleFunctionMemory< real_t > > initialize( const Vertex * const vertex ) const;
 
 private:
 
@@ -20,13 +20,13 @@ private:
 
 };
 
-class EdgeBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeBubbleFunctionMemory, Edge >
+class EdgeBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeBubbleFunctionMemory< real_t >, Edge >
 {
 public:
 
   EdgeBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< EdgeBubbleFunctionMemory > initialize( const Edge * const edge ) const;
+  std::shared_ptr< EdgeBubbleFunctionMemory< real_t > > initialize( const Edge * const edge ) const;
 
 private:
 
@@ -35,13 +35,13 @@ private:
 
 };
 
-class FaceBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceBubbleFunctionMemory, Face >
+class FaceBubbleFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceBubbleFunctionMemory< real_t >, Face >
 {
 public:
 
   FaceBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< FaceBubbleFunctionMemory > initialize( const Face * const face ) const;
+  std::shared_ptr< FaceBubbleFunctionMemory< real_t > > initialize( const Face * const face ) const;
 
 private:
 

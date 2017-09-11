@@ -4,11 +4,9 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
-namespace hhg {
+#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
-class VertexP1FunctionMemory;
-class EdgeP1FunctionMemory;
-class FaceP1FunctionMemory;
+namespace hhg {
 
 class P1Function : public Function< P1Function > {
 public:
@@ -16,11 +14,11 @@ public:
 
     ~P1Function();
 
-  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
-  const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &getEdgeDataID() const { return edgeDataID_; }
+  const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &getEdgeDataID() const { return edgeDataID_; }
 
-  const PrimitiveDataID<FaceP1FunctionMemory, Face> &getFaceDataID() const { return faceDataID_; }
+  const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &getFaceDataID() const { return faceDataID_; }
 
 private:
 
@@ -51,8 +49,8 @@ private:
 
 
 
-  PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID_;
-  PrimitiveDataID<EdgeP1FunctionMemory, Edge> edgeDataID_;
-  PrimitiveDataID<FaceP1FunctionMemory, Face> faceDataID_;
+  PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> vertexDataID_;
+  PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> edgeDataID_;
+  PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> faceDataID_;
 };
 }

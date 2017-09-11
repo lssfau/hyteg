@@ -25,13 +25,13 @@ static void testP1DataHandling()
   auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
   auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
 
-  PrimitiveDataID< VertexP1FunctionMemory, Vertex > vertexP1FunctionMemoryID;
+  PrimitiveDataID< VertexP1FunctionMemory< real_t >, Vertex > vertexP1FunctionMemoryID;
   storage.addVertexData( vertexP1FunctionMemoryID, vertexP1FunctionMemoryDataHandling, "P1 vertex data" );
   
-  PrimitiveDataID< EdgeP1FunctionMemory,   Edge   > edgeP1FunctionMemoryID;
+  PrimitiveDataID< EdgeP1FunctionMemory< real_t >,   Edge   > edgeP1FunctionMemoryID;
   storage.addEdgeData  ( edgeP1FunctionMemoryID, edgeP1FunctionMemoryDataHandling,   "P1 edge data"   );
 
-  PrimitiveDataID< FaceP1FunctionMemory,   Face >   faceP1FunctionMemoryID;
+  PrimitiveDataID< FaceP1FunctionMemory< real_t >,   Face >   faceP1FunctionMemoryID;
   storage.addFaceData  ( faceP1FunctionMemoryID, faceP1FunctionMemoryDataHandling,   "P1 face data"   );
 
   for ( const auto & it : storage.getVertices() )
@@ -39,7 +39,7 @@ static void testP1DataHandling()
     PrimitiveID vertexID = it.first;
     auto        vertex   = it.second;
 
-    VertexP1FunctionMemory * mem = vertex->getData( vertexP1FunctionMemoryID );
+    VertexP1FunctionMemory< real_t > * mem = vertex->getData( vertexP1FunctionMemoryID );
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
@@ -52,7 +52,7 @@ static void testP1DataHandling()
     PrimitiveID edgeID = it.first;
     auto        edge   = it.second;
 
-    EdgeP1FunctionMemory * mem = edge->getData( edgeP1FunctionMemoryID );
+    EdgeP1FunctionMemory< real_t > * mem = edge->getData( edgeP1FunctionMemoryID );
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
@@ -65,7 +65,7 @@ static void testP1DataHandling()
     PrimitiveID faceID = it.first;
     auto        face   = it.second;
 
-    FaceP1FunctionMemory * mem = face->getData( faceP1FunctionMemoryID );
+    FaceP1FunctionMemory< real_t > * mem = face->getData( faceP1FunctionMemoryID );
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {

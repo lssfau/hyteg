@@ -43,9 +43,9 @@ void BubbleFunction::assign_impl(const std::vector<walberla::real_t> scalars,
                             size_t level,
                             DoFType flag) {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexBubbleFunctionMemory, Vertex>> srcVertexIDs;
-    std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory, Edge>> srcEdgeIDs;
-    std::vector<PrimitiveDataID<FaceBubbleFunctionMemory, Face>> srcFaceIDs;
+    std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex>> srcVertexIDs;
+    std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge>> srcEdgeIDs;
+    std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face>> srcFaceIDs;
 
     for (auto &function : functions) {
       srcVertexIDs.push_back(function->vertexDataID_);
@@ -67,9 +67,9 @@ void BubbleFunction::add_impl(const std::vector<walberla::real_t> scalars,
                          size_t level,
                          DoFType flag) {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexBubbleFunctionMemory, Vertex>> srcVertexIDs;
-    std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory, Edge>> srcEdgeIDs;
-    std::vector<PrimitiveDataID<FaceBubbleFunctionMemory, Face>> srcFaceIDs;
+    std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex>> srcVertexIDs;
+    std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge>> srcEdgeIDs;
+    std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face>> srcFaceIDs;
 
     for (auto &function : functions) {
       srcVertexIDs.push_back(function->vertexDataID_);

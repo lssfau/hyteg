@@ -7,13 +7,13 @@
 
 namespace hhg {
 
-class VertexP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexP1FunctionMemory, Vertex >
+class VertexP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexP1FunctionMemory< real_t >, Vertex >
 {
 public:
 
   VertexP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< VertexP1FunctionMemory > initialize( const Vertex * const vertex ) const;
+  std::shared_ptr< VertexP1FunctionMemory< real_t > > initialize( const Vertex * const vertex ) const;
 
 private:
 
@@ -22,13 +22,13 @@ private:
 
 };
 
-class EdgeP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeP1FunctionMemory, Edge >
+class EdgeP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< EdgeP1FunctionMemory< real_t >, Edge >
 {
 public:
 
   EdgeP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< EdgeP1FunctionMemory > initialize( const Edge * const edge ) const;
+  std::shared_ptr< EdgeP1FunctionMemory< real_t > > initialize( const Edge * const edge ) const;
 
 private:
 
@@ -37,13 +37,13 @@ private:
 
 };
 
-class FaceP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceP1FunctionMemory, Face >
+class FaceP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< FaceP1FunctionMemory< real_t >, Face >
 {
 public:
 
   FaceP1FunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  std::shared_ptr< FaceP1FunctionMemory > initialize( const Face * const face ) const;
+  std::shared_ptr< FaceP1FunctionMemory< real_t > > initialize( const Face * const face ) const;
 
 private:
 
