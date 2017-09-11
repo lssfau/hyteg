@@ -50,6 +50,7 @@
 #include "petsc/PETScSparseMatrix.hpp"
 #include "petsc/PETScVector.hpp"
 #include "petsc/PETScLUSolver.hpp"
+#include "petsc/PETScPreconditioner.hpp"
 
 
 
