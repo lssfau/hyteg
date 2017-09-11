@@ -33,12 +33,12 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::P1Function r("r", storage, minLevel, maxLevel);
-  hhg::P1Function f("f", storage, minLevel, maxLevel);
-  hhg::P1Function u("u", storage, minLevel, maxLevel);
-  hhg::P1Function u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P1Function err("err", storage, minLevel, maxLevel);
-  hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > f("f", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > u("u", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
@@ -66,10 +66,10 @@ int main(int argc, char* argv[])
   uint_t localSize = numerator->enumerate(maxLevel, globalSize);
   auto prec = std::make_shared<PreconditionerType>(L, numerator, localSize, globalSize);
 #else
-  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
+  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
   auto prec = std::make_shared<PreconditionerType>(L, 30);
 #endif
-  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
+  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  hhg::VTKWriter< P1Function >({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "cg_P1");
+  hhg::VTKWriter< P1Function< real_t > >({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "cg_P1");
 
   walberla::WcTimingTree tt = timingTree->getReduced();
   WALBERLA_LOG_INFO_ON_ROOT( tt );

@@ -42,13 +42,13 @@ int main(int argc, char* argv[])
   size_t coarse_maxiter = 100;
   real_t coarse_tolerance = 1e-6;
 
-  hhg::P1Function r("r", storage, minLevel, maxLevel);
-  hhg::P1Function b("b", storage, minLevel, maxLevel);
-  hhg::P1Function x("x", storage, minLevel, maxLevel);
-  hhg::P1Function x_exact("x_exact", storage, minLevel, maxLevel);
-  hhg::P1Function ax("ax", storage, minLevel, maxLevel);
-  hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
-  hhg::P1Function err("err", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > b("b", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > x_exact("x_exact", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > ax("ax", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > tmp("tmp", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
       M.apply(tmp, b, ll, hhg::Inner);
   }
 
-  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
+  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
 
   std::function<void(size_t)> cscycle;
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
       }
     }
   };
-  hhg::VTKWriter< hhg::P1Function >({ &x, &x_exact, &b }, minLevel, "../output", "fullmg");
+  hhg::VTKWriter< hhg::P1Function< real_t > >({ &x, &x_exact, &b }, minLevel, "../output", "fullmg");
 
   LIKWID_MARKER_START("Compute");
   for (size_t ll = minLevel; ll <= maxLevel; ++ll)
