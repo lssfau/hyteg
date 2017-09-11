@@ -97,7 +97,8 @@
       WALBERLA_DOUBLE_ACCURACY: "OFF"
 
 .build_petsc_template: &build_petsc_definition
-   script:
+   <<: *build_definition
+   before_script:
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
       - cd /tmp
@@ -107,20 +108,19 @@
       - make all test
       - make install
       - ls /tmp/petsc
-   tags:
-      - docker
 
-.build_petsc_mpionly_template: &build_petsc_mpionly_definition
+.build_petsc_hybrid_template: &build_petsc_hybrid_template_definition
    <<: *build_petsc_definition
-   <<: *build_definition
    variables:
-       CTEST_EXCLUDE_LABELS: "longrun"
-       WALBERLA_BUILD_WITH_MPI: "ON"
-       WALBERLA_BUILD_WITH_OPENMP: "OFF"
-       HHG_BUILD_WITH_PETSC: "ON"
-       PETSC_DIR: ""
-       PETSC_ARCH: ""
-       CMAKE_BUILD_TYPE: "Release"
+      CTEST_EXCLUDE_LABELS: "longrun"
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "ON"
+      OMP_NUM_THREADS: "4"
+      OMP_WAIT_POLICY: "PASSIVE"
+      CMAKE_BUILD_TYPE: "Release"
+      HHG_BUILD_WITH_PETSC: "ON"
+      PETSC_DIR: ""
+      PETSC_ARCH: ""
 
 
 ###############################################################################
@@ -665,9 +665,9 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
       - triggers
 
 # with PETSc
-gcc-4.9_PETSc_MpiOnly:
-   <<: *build_petsc_mpionly_definition
-   image: walberla/buildenv-ubuntu-gcc:4.9
+gcc-6_PETSc_Hybrid:
+   <<: *build_petsc_hybrid_template_definition
+   image: walberla/buildenv-ubuntu-gcc:6
 
 ###############################################################################
 ##                                                                           ##
