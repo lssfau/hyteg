@@ -99,6 +99,7 @@
 .build_petsc_template: &build_petsc_definition
    <<: *build_definition
    before_script:
+      - cd
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
