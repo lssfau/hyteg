@@ -61,3 +61,8 @@ endif()
 waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME MeshInfoTest1 COMMAND $<TARGET_FILE:MeshInfoTest> )
 waLBerla_execute_test(NAME MeshInfoTest2 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 2 )
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES PetscTest.cpp DEPENDS tinyhhg_core core fmt)
+  waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
+endif()

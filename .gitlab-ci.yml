@@ -17,7 +17,7 @@
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR -DPETSC_ARCH=$PETSC_ARCH
       - cmake . -LAH
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $(nproc) -l $(nproc)
@@ -95,6 +95,32 @@
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUFFER_DEBUG: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "OFF"
+
+.build_petsc_template: &build_petsc_definition
+   script:
+      - echo "Building PETSc"
+      - echo "Using up to $(nproc) processors for compilation"
+      - cd /tmp
+      - git clone -b maint https://bitbucket.org/petsc/petsc petsc_src
+      - cd petsc_src
+      - ./configure --prefix=/tmp/petsc --download-fblaslapack --download-mumps
+      - make all test
+      - make install
+      - ls /tmp/petsc
+   tags:
+      - docker
+
+.build_petsc_mpionly_template: &build_petsc_mpionly_definition
+   <<: *build_petsc_definition
+   <<: *build_definition
+   variables:
+       CTEST_EXCLUDE_LABELS: "longrun"
+       WALBERLA_BUILD_WITH_MPI: "ON"
+       WALBERLA_BUILD_WITH_OPENMP: "OFF"
+       HHG_BUILD_WITH_PETSC: "ON"
+       PETSC_DIR: ""
+       PETSC_ARCH: ""
+       CMAKE_BUILD_TYPE: "Release"
 
 
 ###############################################################################
@@ -638,6 +664,12 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
    only:
       - triggers
 
+# with PETSc
+gcc-4.9_MpiOnly:
+   <<: *build_petsc_mpionly_definition
+   image: walberla/buildenv-ubuntu-gcc:4.9
+   only:
+      - triggers
 
 ###############################################################################
 ##                                                                           ##
