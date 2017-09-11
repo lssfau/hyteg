@@ -17,12 +17,12 @@ protected:
 public:
   PETScVector() = delete;
 
-  PETScVector(uint_t size,const char name[] = "Vec") {
+  PETScVector(uint_t localSize, const std::string& name = "Vec") {
     VecCreate(walberla::MPIManager::instance()->comm(), &vec);
     VecSetType(vec, VECSTANDARD);
-    VecSetSizes(vec, PETSC_DECIDE, size);
+    VecSetSizes(vec, (PetscInt)localSize, PETSC_DECIDE);
     VecSetUp(vec);
-    setName(name);
+    setName(name.c_str());
   }
 
   ~PETScVector() { VecDestroy(&vec); }

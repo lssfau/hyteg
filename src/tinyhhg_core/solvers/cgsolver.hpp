@@ -13,11 +13,12 @@ class CGSolver
 public:
 
   CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
-    : p("p", storage, minLevel, maxLevel), z("z", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel)
+    : p("p", storage, minLevel, maxLevel), z("z", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel),
+      prec(std::make_shared<Preconditioner>())
   {
   }
 
-  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, Preconditioner& prec_)
+  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, std::shared_ptr<Preconditioner> prec_)
       : p("p", storage, minLevel, maxLevel), z("z", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel),
         prec(prec_)
   {
@@ -28,7 +29,7 @@ public:
     A.apply(x, p, level, flag, Replace);
     r.assign({1.0, -1.0}, {&b, &p}, level, flag);
     real_t res_start = std::sqrt(r.dot(r, level, flag));
-    prec.apply(r, z, level, flag);
+    prec->apply(r, z, level, flag);
     p.assign({1.0}, {&z}, level, flag);
     real_t rsold = r.dot(r, level, flag);
     real_t prsold = r.dot(z, level, flag);
@@ -65,7 +66,7 @@ public:
         break;
       }
 
-      prec.apply(r, z, level, flag);
+      prec->apply(r, z, level, flag);
       prsnew = r.dot(z, level, flag);
       beta = prsnew / prsold;
 
@@ -78,7 +79,7 @@ private:
   F p;
   F z;
   F ap;
-  Preconditioner prec;
+  std::shared_ptr<Preconditioner> prec;
 };
 
 }

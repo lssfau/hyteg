@@ -16,7 +16,11 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/bfs_126el.msh";
+#ifdef HHG_BUILD_WITH_PETSC
+  PETScManager petscManager;
+#endif
+
+  std::string meshFileName = "../data/meshes/bfs_12el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -55,8 +59,17 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto prec = hhg::GaussSeidelPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator>(L, 30);
-  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator, decltype(prec)>(storage, minLevel, maxLevel, prec);
+#ifdef HHG_BUILD_WITH_PETSC
+  typedef hhg::PETScPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
+  std::shared_ptr<hhg::P1Function> numerator = std::make_shared<hhg::P1Function>("numerator", storage, maxLevel, maxLevel);
+  uint_t globalSize = 0;
+  uint_t localSize = numerator->enumerate(maxLevel, globalSize);
+  auto prec = std::make_shared<PreconditionerType>(L, numerator, localSize, globalSize);
+#else
+  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
+  auto prec = std::make_shared<PreconditionerType>(L, 30);
+#endif
+  auto solver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();

@@ -50,11 +50,11 @@ int main(int argc, char* argv[])
   x_exact.interpolate(exact, Level);
 
   uint_t num = 0;
-  numerator->enumerate(Level,num);
+  uint_t dofsOnRank = numerator->enumerate(Level,num);
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)num))
 
 
-  PETScLUSolver<hhg::P1Function,hhg::P1LaplaceOperator> solver(numerator,num);
+  PETScLUSolver<hhg::P1Function,hhg::P1LaplaceOperator> solver(numerator, dofsOnRank, num);
 
   WALBERLA_LOG_INFO_ON_ROOT("Solving System")
   walberla::WcTimer timer;
