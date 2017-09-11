@@ -101,13 +101,16 @@
    before_script:
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
+      - apt-get update
+      - apt-get -q -y install gfortran
       - cd /tmp
       - git clone -b maint https://bitbucket.org/petsc/petsc petsc_src
       - cd petsc_src
-      - ./configure --prefix=/tmp/petsc --download-fblaslapack --download-mumps
+      - ./configure --prefix=/tmp/petsc --download-fblaslapack --download-scalapack --download-mumps
       - make all test
       - make install
-      - ls /tmp/petsc
+      - export PETSC_DIR="/tmp/petsc"
+      - export PETSC_ARCH=""
 
 .build_petsc_hybrid_template: &build_petsc_hybrid_template_definition
    <<: *build_petsc_definition
