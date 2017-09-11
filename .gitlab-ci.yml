@@ -99,7 +99,6 @@
 .build_petsc_template: &build_petsc_definition
    <<: *build_definition
    before_script:
-      - cd
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
@@ -112,6 +111,7 @@
       - make install
       - export PETSC_DIR="/tmp/petsc"
       - export PETSC_ARCH=""
+      - cd
 
 .build_petsc_hybrid_template: &build_petsc_hybrid_template_definition
    <<: *build_petsc_definition
