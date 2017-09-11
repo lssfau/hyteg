@@ -665,11 +665,9 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
       - triggers
 
 # with PETSc
-gcc-4.9_MpiOnly:
+gcc-4.9_PETSc_MpiOnly:
    <<: *build_petsc_mpionly_definition
    image: walberla/buildenv-ubuntu-gcc:4.9
-   only:
-      - triggers
 
 ###############################################################################
 ##                                                                           ##
