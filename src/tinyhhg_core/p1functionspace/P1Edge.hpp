@@ -362,7 +362,7 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
   PetscInt* numeratorInt = new PetscInt[rowsize-2];
   for(PetscInt i = 0;i<rowsize-2; i++)
   {
-    numeratorInt[i] = (PetscInt)numerator[i+1];
+    numeratorInt[i] = (PetscInt)numerator[(uint_t)(i+1)];
   }
 
   VecSetValues(vec,rowsize-2,numeratorInt,&src[1],INSERT_VALUES);
@@ -383,7 +383,7 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
   PetscInt* numeratorInt = new PetscInt[rowsize-2];
   for(PetscInt i = 0;i<rowsize-2; i++)
   {
-    numeratorInt[i] = (PetscInt)numerator[i+1];
+    numeratorInt[i] = (PetscInt)numerator[(uint_t)(i+1)];
   }
 
   VecGetValues(vec,rowsize-2,numeratorInt,&edge.getData(srcId)->data[Level][1]);
