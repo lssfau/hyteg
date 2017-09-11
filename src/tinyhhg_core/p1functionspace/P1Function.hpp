@@ -4,6 +4,12 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
+#include "tinyhhg_core/primitives/vertex.hpp"
+#include "tinyhhg_core/primitives/edge.hpp"
+#include "tinyhhg_core/primitives/face.hpp"
+
+#include "tinyhhg_core/communication/BufferedCommunication.hpp"
+
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1Vertex.hpp"
 #include "tinyhhg_core/p1functionspace/P1Edge.hpp"
@@ -13,10 +19,15 @@
 
 namespace hhg {
 
-class P1Function : public Function< P1Function > {
+template< typename ValueType >
+class P1Function : public Function< P1Function< ValueType > > {
 public:
+
+  using Function< P1Function< ValueType > >::storage_;
+  using Function< P1Function< ValueType > >::communicators_;
+
   P1Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
-      Function( name, storage, minLevel, maxLevel )
+      Function< P1Function< ValueType > >( name, storage, minLevel, maxLevel )
   {
     auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling >( minLevel, maxLevel );
     auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling >( minLevel, maxLevel );
@@ -39,36 +50,37 @@ public:
 private:
 
   /// Interpolates a given expression to a P1Function
-  void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
+  inline void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
-  void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, uint_t level, DoFType flag = All);
+  inline void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, uint_t level, DoFType flag = All);
+  inline void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  real_t dot_impl(P1Function& rhs, uint_t level, DoFType flag = All);
+  inline real_t dot_impl(P1Function< ValueType >& rhs, uint_t level, DoFType flag = All);
 
-  void prolongate_impl(uint_t level, DoFType flag = All);
+  inline void prolongate_impl(uint_t level, DoFType flag = All);
 
-  void prolongateQuadratic_impl(uint_t level, DoFType flag = All);
+  inline void prolongateQuadratic_impl(uint_t level, DoFType flag = All);
 
-  void restrict_impl(uint_t level, DoFType flag = All);
+  inline void restrict_impl(uint_t level, DoFType flag = All);
 
-  void enumerate_impl(uint_t level, uint_t& num);
+  inline void enumerate_impl(uint_t level, uint_t& num);
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+  inline void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
-  void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+  inline void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
 
-  void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
+  inline void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
 #endif
 
-  PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> vertexDataID_;
-  PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> edgeDataID_;
-  PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> faceDataID_;
+  PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> vertexDataID_;
+  PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> edgeDataID_;
+  PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> faceDataID_;
 };
 
-void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag)
 {
     for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
@@ -78,7 +90,7 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
         }
     }
 
-    communicators_[level]->startCommunication<Vertex, Edge>();
+    communicators_[level]->template startCommunication<Vertex, Edge>();
 
     for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
@@ -88,8 +100,8 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
         }
     }
 
-    communicators_[level]->endCommunication<Vertex, Edge>();
-    communicators_[level]->startCommunication<Edge, Face>();
+    communicators_[level]->template endCommunication<Vertex, Edge>();
+    communicators_[level]->template startCommunication<Edge, Face>();
 
     for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
@@ -99,10 +111,11 @@ void P1Function::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& ex
         }
     }
 
-    communicators_[level]->endCommunication<Edge, Face>();
+    communicators_[level]->template endCommunication<Edge, Face>();
 }
 
-void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> srcVertexIDs;
@@ -124,7 +137,7 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
         }
     }
 
-    communicators_[level]->startCommunication<Vertex, Edge>();
+    communicators_[level]->template startCommunication<Vertex, Edge>();
 
     for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
@@ -134,8 +147,8 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
         }
     }
 
-    communicators_[level]->endCommunication<Vertex, Edge>();
-    communicators_[level]->startCommunication<Edge, Face>();
+    communicators_[level]->template endCommunication<Vertex, Edge>();
+    communicators_[level]->template startCommunication<Edge, Face>();
 
     for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
@@ -145,15 +158,16 @@ void P1Function::assign_impl(const std::vector<walberla::real_t> scalars, const 
         }
     }
 
-    communicators_[level]->endCommunication<Edge, Face>();
+    communicators_[level]->template endCommunication<Edge, Face>();
 }
 
-void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function*> functions, size_t level, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
-  std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> srcVertexIDs;
-  std::vector<PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge>>     srcEdgeIDs;
-  std::vector<PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face>>     srcFaceIDs;
+  std::vector<PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge>>     srcEdgeIDs;
+  std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>>     srcFaceIDs;
 
   for (auto& function : functions)
   {
@@ -170,7 +184,7 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
       }
   }
 
-  communicators_[level]->startCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Vertex, Edge>();
 
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -180,8 +194,8 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
       }
   }
 
-  communicators_[level]->endCommunication<Vertex, Edge>();
-  communicators_[level]->startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -191,10 +205,11 @@ void P1Function::add_impl(const std::vector<walberla::real_t> scalars, const std
       }
   }
 
-  communicators_[level]->endCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
 }
 
-real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
+template< typename ValueType >
+inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, size_t level, DoFType flag)
 {
   real_t scalarProduct = 0.0;
 
@@ -227,7 +242,8 @@ real_t P1Function::dot_impl(P1Function& rhs, size_t level, DoFType flag)
   return scalarProduct;
 }
 
-void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -240,7 +256,7 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
 
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -251,8 +267,8 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
-  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -263,10 +279,11 @@ void P1Function::prolongate_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->endCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
 }
 
-void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -279,7 +296,7 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
     }
   }
 
-  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
@@ -290,8 +307,8 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
     }
   }
 
-  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
-  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -302,21 +319,22 @@ void P1Function::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
     }
   }
 
-  communicators_[destinationLevel]->endCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
 }
 
-void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel - 1;
 
   // start pulling vertex halos
-  communicators_[sourceLevel]->startCommunication<Edge, Vertex>();
+  communicators_[sourceLevel]->template startCommunication<Edge, Vertex>();
 
   // start pulling edge halos
-  communicators_[sourceLevel]->startCommunication<Face, Edge>();
+  communicators_[sourceLevel]->template startCommunication<Face, Edge>();
 
   // end pulling vertex halos
-  communicators_[sourceLevel]->endCommunication<Edge, Vertex>();
+  communicators_[sourceLevel]->template endCommunication<Edge, Vertex>();
 
   for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -327,10 +345,10 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->startCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
 
   // end pulling edge halos
-  communicators_[sourceLevel]->endCommunication<Face, Edge>();
+  communicators_[sourceLevel]->template endCommunication<Face, Edge>();
 
   for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -341,9 +359,9 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->endCommunication<Vertex, Edge>();
+  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
 
-  communicators_[destinationLevel]->startCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -354,42 +372,44 @@ void P1Function::restrict_impl(size_t sourceLevel, DoFType flag)
       }
   }
 
-  communicators_[destinationLevel]->endCommunication<Edge, Face>();
+  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
 
 }
 
-void P1Function::enumerate_impl(uint_t level, uint_t& num)
+template< typename ValueType >
+inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
     P1Vertex::enumerate(vertex, vertexDataID_, level, num);
   }
 
-  communicators_[level]->startCommunication<Vertex, Edge>();
-  communicators_[level]->endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
     P1Edge::enumerate(level, edge, edgeDataID_, num);
   }
 
-  communicators_[level]->startCommunication<Edge, Face>();
-  communicators_[level]->endCommunication<Edge, Face>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
     P1Face::enumerate(face, faceDataID_, level, num);
   }
 
-  communicators_[level]->startCommunication<Face, Edge>();
-  communicators_[level]->endCommunication<Face, Edge>();
+  communicators_[level]->template startCommunication<Face, Edge>();
+  communicators_[level]->template endCommunication<Face, Edge>();
 
-  communicators_[level]->startCommunication<Edge, Vertex>();
-  communicators_[level]->endCommunication<Edge, Vertex>();
+  communicators_[level]->template startCommunication<Edge, Vertex>();
+  communicators_[level]->template endCommunication<Edge, Vertex>();
 }
 
 #ifdef HHG_BUILD_WITH_PETSC
-void P1Function::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
@@ -421,8 +441,8 @@ void P1Function::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, u
   }
 }
 
-
-void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+template< typename ValueType >
+inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
@@ -433,8 +453,8 @@ void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, u
     }
   }
 
-  communicators_[level]->startCommunication<Vertex, Edge>();
-  communicators_[level]->endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
@@ -445,8 +465,8 @@ void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, u
     }
   }
 
-  communicators_[level]->startCommunication<Edge, Face>();
-  communicators_[level]->endCommunication<Edge, Face>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -458,7 +478,8 @@ void P1Function::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, u
   }
 }
 
-void P1Function::applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level)
+template< typename ValueType >
+inline void P1Function< ValueType >::applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;

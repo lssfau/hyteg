@@ -34,7 +34,7 @@ namespace hhg
 {
 
 template<class UFCOperator,  bool Diagonal = false>
-class P1Operator : public Operator< P1Function, P1Function >
+class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -166,7 +166,7 @@ public:
 
 private:
 
-  void apply_impl(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function< real_t > & src, P1Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -216,7 +216,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_gs_impl(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -266,7 +266,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_jac_impl(P1Function& dst, P1Function& rhs, P1Function& tmp, size_t level, DoFType flag)
+  void smooth_jac_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, P1Function< real_t > & tmp, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     tmp.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -317,7 +317,7 @@ private:
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function< real_t > & src, P1Function< real_t > & dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;

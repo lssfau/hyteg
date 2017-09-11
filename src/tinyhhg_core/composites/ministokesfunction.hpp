@@ -28,7 +28,7 @@ public:
   {
     std::vector<P1BubbleFunction*> functions_u;
     std::vector<P1BubbleFunction*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< real_t > *> functions_p;
 
     for (auto& function : functions)
     {
@@ -46,7 +46,7 @@ public:
   {
     std::vector<P1BubbleFunction*> functions_u;
     std::vector<P1BubbleFunction*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< real_t > *> functions_p;
 
     for (auto& function : functions)
     {
@@ -91,7 +91,7 @@ public:
 
   P1BubbleFunction u;
   P1BubbleFunction v;
-  P1Function p;
+  P1Function< real_t > p;
 };
 
 }

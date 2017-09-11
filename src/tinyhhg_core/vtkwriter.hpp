@@ -187,7 +187,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
       file << std::scientific;
 
       // FIXME: How to check type of Function properly?
-      const P1Function* p1Function = dynamic_cast<const P1Function*>(function);
+      const P1Function< real_t >* p1Function = dynamic_cast<const P1Function< real_t >*>(function);
 
       for (size_t i = 0; i < len; ++i)
       {

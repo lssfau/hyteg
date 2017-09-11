@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   size_t nbr_v_perEdge = v_perEdge - 1;
   size_t v_perVertex = levelinfo::num_microvertices_per_vertex(maxLevel);
 
-  P1Function x("x", storage, minLevel, maxLevel);
+  P1Function< real_t > x("x", storage, minLevel, maxLevel);
 
   for (auto face : storage->getFaces())
   {

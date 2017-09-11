@@ -8,6 +8,7 @@
 
 using namespace hhg;
 using walberla::real_t;
+using walberla::uint_t;
 
 int main (int argc, char ** argv )
 {
@@ -23,7 +24,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hhg::P1Function x("x", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
 
   size_t num = 1;
   x.enumerate(maxLevel,num);
