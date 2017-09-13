@@ -21,9 +21,9 @@ static void testP1DataHandling()
 
   WALBERLA_LOG_INFO( setupStorage );
 
-  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >( minLevel, maxLevel );
-  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
-  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling > ( minLevel, maxLevel );
+  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling< real_t > >( minLevel, maxLevel );
+  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling< real_t > > ( minLevel, maxLevel );
+  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling< real_t > > ( minLevel, maxLevel );
 
   PrimitiveDataID< VertexP1FunctionMemory< real_t >, Vertex > vertexP1FunctionMemoryID;
   storage.addVertexData( vertexP1FunctionMemoryID, vertexP1FunctionMemoryDataHandling, "P1 vertex data" );

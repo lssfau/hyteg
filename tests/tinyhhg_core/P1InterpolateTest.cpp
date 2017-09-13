@@ -67,7 +67,7 @@ int main(int argc, char **argv)
     xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((v_perEdge-1));
     yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((v_perEdge-1));
 
-    P1Face::interpolate(maxLevel, *face, x.getFaceDataID(), exact);
+    P1Face::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::P1Edge::interpolate(maxLevel, *edge,x.getEdgeDataID(),exact);
+    hhg::P1Edge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),exact);
     value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
     xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));

@@ -24,8 +24,6 @@ static void testFunctionSpaceDataTypes()
   P1Function< int >    intFunction  ( "int    P1Function", storage, minLevel, maxLevel );
   P1Function< float >  floatFunction( "float  P1Function", storage, minLevel, maxLevel );
 
-
-
 }
 
 } // namespace hhg

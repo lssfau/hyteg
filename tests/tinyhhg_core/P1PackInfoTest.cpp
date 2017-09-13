@@ -21,9 +21,9 @@ int main (int argc, char** argv) {
   std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(setupStorage));
 
 
-  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling >(minLevel, maxLevel);
-  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling >(minLevel, maxLevel);
-  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >(minLevel, maxLevel);
+  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
+  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
+  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
 
   PrimitiveDataID<FaceP1FunctionMemory< real_t >  , Face  > faceDataID;
   PrimitiveDataID<EdgeP1FunctionMemory< real_t >  , Edge  > edgeDataID;
