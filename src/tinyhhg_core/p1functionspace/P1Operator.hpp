@@ -182,7 +182,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
+        P1Vertex::apply< real_t >(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
     }
 
@@ -196,7 +196,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        P1Edge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -209,7 +209,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        P1Face::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -246,7 +246,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_gs(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        P1Edge::smooth_gs< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -259,7 +259,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_gs(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        P1Face::smooth_gs< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -296,7 +296,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_jac(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
+        P1Edge::smooth_jac< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
       }
     }
 
@@ -309,7 +309,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_jac(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
+        P1Face::smooth_jac< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
       }
     }
 
