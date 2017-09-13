@@ -7,6 +7,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 
