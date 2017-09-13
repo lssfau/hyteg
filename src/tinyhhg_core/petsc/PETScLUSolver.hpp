@@ -10,11 +10,11 @@
 namespace hhg{
 
 
-template <class Functiontype,class Operatortype>
+template <typename ValueType, template <typename> class FunctionType, class OperatorType>
 class PETScLUSolver {
 public:
 
-  PETScLUSolver(std::shared_ptr<Functiontype> &numerator, uint_t localSize, uint_t globalSize)
+  PETScLUSolver(std::shared_ptr<FunctionType<PetscInt>> &numerator, uint_t localSize, uint_t globalSize)
       :num(numerator), Amat(localSize, globalSize), xVec(localSize), bVec(localSize)
   {
     KSPCreate(PETSC_COMM_WORLD, &ksp);
@@ -24,7 +24,7 @@ public:
     KSPDestroy(&ksp);
   }
 
-  void solve(Operatortype& A, Functiontype& x, Functiontype& b, Functiontype& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false) {
+  void solve(OperatorType& A, FunctionType<ValueType>& x, FunctionType<ValueType>& b, FunctionType<ValueType>& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false) {
 
     bVec.createVectorFromFunction(b,*num.get(),level,All);
 
@@ -52,10 +52,10 @@ public:
 
 
 private:
-  std::shared_ptr<Functiontype> num;
-  PETScSparseMatrix<Operatortype,Functiontype> Amat;
-  PETScVector<Functiontype> xVec;
-  PETScVector<Functiontype> bVec;
+  std::shared_ptr<FunctionType<PetscInt>> num;
+  PETScSparseMatrix<OperatorType,FunctionType> Amat;
+  PETScVector<ValueType, FunctionType> xVec;
+  PETScVector<ValueType, FunctionType> bVec;
   KSP ksp;
   PC pc;
   //Mat F; //factored Matrix
