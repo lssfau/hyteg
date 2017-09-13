@@ -12,7 +12,7 @@
       - cmake --version
       - ccache --version
       - mpirun --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/thoennes/walberla.git
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
