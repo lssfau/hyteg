@@ -6,6 +6,7 @@
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/matrix.hpp"
 #include "P1DataHandling.hpp"
 
 #ifdef _MSC_VER
@@ -55,21 +56,21 @@ public:
 
         auto& face_stencil = face.getData(faceStencilID_)->data[level];
 
-        real_t local_stiffness_up[3][3];
-        real_t local_stiffness_down[3][3];
+        Matrix3r local_stiffness_up;
+        Matrix3r local_stiffness_down;
         compute_local_stiffness(face, level, local_stiffness_up, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_down, fenics::BLUE);
 
-        face_stencil[0] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
-        face_stencil[1] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
-        face_stencil[2] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
+        face_stencil[0] = local_stiffness_down(0,2) + local_stiffness_up(2,0);
+        face_stencil[1] = local_stiffness_down(1,2) + local_stiffness_up(2,1);
+        face_stencil[2] = local_stiffness_down(0,1) + local_stiffness_up(1,0);
 
-        face_stencil[4] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
-        face_stencil[5] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
-        face_stencil[6] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
+        face_stencil[4] = local_stiffness_down(1,0) + local_stiffness_up(0,1);
+        face_stencil[5] = local_stiffness_down(2,1) + local_stiffness_up(1,2);
+        face_stencil[6] = local_stiffness_down(2,0) + local_stiffness_up(0,2);
 
-        face_stencil[3] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
-            + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
+        face_stencil[3] = local_stiffness_up(0,0) + local_stiffness_up(1,1) + local_stiffness_up(2,2)
+            + local_stiffness_down(0,0) + local_stiffness_down(1,1) + local_stiffness_down(2,2);
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
@@ -79,8 +80,8 @@ public:
 
         auto& edge_stencil = edge.getData(edgeStencilID_)->data[level];
 
-        real_t local_stiffness_up[3][3];
-        real_t local_stiffness_down[3][3];
+        Matrix3r local_stiffness_up;
+        Matrix3r local_stiffness_down;
         // first face
         Face* face = storage_->getFace(edge.neighborFaces()[0]);
         compute_local_stiffness(*face, level, local_stiffness_up, fenics::GRAY);
@@ -90,13 +91,13 @@ public:
         size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
         size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-        edge_stencil[0] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-        edge_stencil[1] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+        edge_stencil[0] = local_stiffness_up(end_id, opposite_id) + local_stiffness_down(opposite_id, end_id);
+        edge_stencil[1] = local_stiffness_up(start_id, opposite_id) + local_stiffness_down(opposite_id, start_id);
 
-        edge_stencil[2] = local_stiffness_up[end_id][start_id];
-        edge_stencil[4] = local_stiffness_up[start_id][end_id];
+        edge_stencil[2] = local_stiffness_up(end_id, start_id);
+        edge_stencil[4] = local_stiffness_up(start_id, end_id);
 
-        edge_stencil[3] = local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+        edge_stencil[3] = local_stiffness_up(start_id, start_id) + local_stiffness_up(end_id, end_id) + local_stiffness_down(opposite_id, opposite_id);
 
         if (edge.getNumNeighborFaces() == 2)
         {
@@ -109,13 +110,13 @@ public:
           size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
           size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-          edge_stencil[5] = local_stiffness_up[end_id][opposite_id] + local_stiffness_down[opposite_id][end_id];
-          edge_stencil[6] = local_stiffness_up[start_id][opposite_id] + local_stiffness_down[opposite_id][start_id];
+          edge_stencil[5] = local_stiffness_up(end_id, opposite_id) + local_stiffness_down(opposite_id, end_id);
+          edge_stencil[6] = local_stiffness_up(start_id, opposite_id) + local_stiffness_down(opposite_id, start_id);
 
-          edge_stencil[2] += local_stiffness_up[end_id][start_id];
-          edge_stencil[4] += local_stiffness_up[start_id][end_id];
+          edge_stencil[2] += local_stiffness_up(end_id, start_id);
+          edge_stencil[4] += local_stiffness_up(start_id, end_id);
 
-          edge_stencil[3] += local_stiffness_up[start_id][start_id] + local_stiffness_up[end_id][end_id] + local_stiffness_down[opposite_id][opposite_id];
+          edge_stencil[3] += local_stiffness_up(start_id, start_id) + local_stiffness_up(end_id, end_id) + local_stiffness_down(opposite_id, opposite_id);
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
@@ -131,7 +132,7 @@ public:
         {
           Face* face = storage_->getFace(faceId);
 
-          real_t local_stiffness[3][3];
+          Matrix3r local_stiffness;
           compute_local_stiffness(*face, level, local_stiffness, fenics::GRAY);
 
           uint_t v_i = face->vertex_index(vertex.getID());
@@ -147,10 +148,10 @@ public:
 
             uint_t v_j = face->vertex_index(vertex_j);
 
-            vertex_stencil[edge_idx] += local_stiffness[v_i][v_j];
+            vertex_stencil[edge_idx] += local_stiffness(v_i, v_j);
           }
 
-          vertex_stencil[0] += local_stiffness[v_i][v_i];
+          vertex_stencil[0] += local_stiffness(v_i, v_i);
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("VERTEX.id = {}:vertex_stencil = {}", vertex.getID().getID(), PointND<real_t, 3>(&vertex_stencil[0])));
         }
@@ -352,24 +353,17 @@ private:
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
 
-  void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[3][3], fenics::ElementType element_type) {
-    real_t A[9];
+  void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
     fenics::compute_micro_coords(face, level, coords, element_type);
     UFCOperator gen;
-    gen.tabulate_tensor(A, NULL, coords, 0);
-
-    for (size_t i = 0; i < 3; ++i) {
-      for (size_t j = 0; j < 3; ++j) {
-        local_stiffness[i][j] = A[3 * j + i];
-      }
-    }
+    gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 
     if (Diagonal) {
       for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
           if (i != j) {
-            local_stiffness[i][j] = real_t(0);
+            local_stiffness(i,j) = real_t(0);
           }
         }
       }

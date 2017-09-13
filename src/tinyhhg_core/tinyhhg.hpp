@@ -14,6 +14,7 @@
 #include "bubblefunctionspace/BubbleOperator.hpp"
 
 #include "types/pointnd.hpp"
+#include "types/matrix.hpp"
 #include "types/flags.hpp"
 
 #include "solvers/cgsolver.hpp"
