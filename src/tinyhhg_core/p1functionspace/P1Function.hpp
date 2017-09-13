@@ -43,11 +43,11 @@ public:
     }
   }
 
-  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
-  const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &getEdgeDataID() const { return edgeDataID_; }
+  const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
 
-  const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &getFaceDataID() const { return faceDataID_; }
+  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
 private:
 
@@ -69,9 +69,9 @@ private:
   inline void enumerate_impl(uint_t level, uint_t& num);
 
 #ifdef HHG_BUILD_WITH_PETSC
-  inline void createVectorFromFunction_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+  inline void createVectorFromFunction_impl(P1Function< ValueType > &numerator, Vec &vec, uint_t level, DoFType flag);
 
-  inline void createFunctionFromVector_impl(P1Function &numerator, Vec &vec, uint_t level, DoFType flag);
+  inline void createFunctionFromVector_impl(P1Function< ValueType > &numerator, Vec &vec, uint_t level, DoFType flag);
 
   inline void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
 #endif
@@ -411,14 +411,20 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< typename ValueType >
-inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function< ValueType > &,Vec &, uint_t ,DoFType )
+{
+  WALBERLA_LOG_WARNING( "P1 createVectorFromFunction should only be used with ValueType == PETSCScalar!" );
+}
+
+template<>
+inline void P1Function< PetscScalar >::createVectorFromFunction_impl(P1Function< PetscScalar > &numerator,Vec &vec, uint_t level,DoFType flag)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      P1Vertex::createVectorFromFunction(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
+      P1Vertex::createVectorFromFunction< PetscScalar >(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
     }
   }
 
@@ -428,7 +434,7 @@ inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function &n
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::createVectorFromFunction(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
+      P1Edge::createVectorFromFunction< PetscScalar >(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
     }
   }
 
@@ -438,20 +444,26 @@ inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function &n
 
     if (testFlag(face.type, flag))
     {
-      P1Face::createVectorFromFunction(level, face, faceDataID_, numerator.getFaceDataID(), vec);
+      P1Face::createVectorFromFunction< PetscScalar >(level, face, faceDataID_, numerator.getFaceDataID(), vec);
     }
   }
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function &numerator,Vec &vec, uint_t level,DoFType flag)
+inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function< ValueType > &,Vec &, uint_t ,DoFType )
+{
+  WALBERLA_LOG_WARNING( "P1 createFunctionFromVector should only be used with ValueType == PETSCScalar!" );
+}
+
+template<>
+inline void P1Function< PetscScalar >::createFunctionFromVector_impl(P1Function< PetscScalar > &numerator,Vec &vec, uint_t level,DoFType flag)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      P1Vertex::createFunctionFromVector(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
+      P1Vertex::createFunctionFromVector< PetscScalar >(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
     }
   }
 
@@ -463,7 +475,7 @@ inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function &n
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::createFunctionFromVector(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
+      P1Edge::createFunctionFromVector< PetscScalar >(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
     }
   }
 
@@ -475,7 +487,7 @@ inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function &n
 
     if (testFlag(face.type, flag))
     {
-      P1Face::createFunctionFromVector(level, face, faceDataID_, numerator.getFaceDataID(), vec);
+      P1Face::createFunctionFromVector< PetscScalar >(level, face, faceDataID_, numerator.getFaceDataID(), vec);
     }
   }
 }
@@ -488,7 +500,7 @@ inline void P1Function< ValueType >::applyDirichletBC_impl(std::vector<PetscInt>
 
     if (testFlag(vertex.getDoFType(), DirichletBoundary))
     {
-      P1Vertex::applyDirichletBC(vertex,mat,level,vertexDataID_);
+      P1Vertex::applyDirichletBC< ValueType >(vertex,mat,level,vertexDataID_);
     }
   }
 
@@ -497,7 +509,7 @@ inline void P1Function< ValueType >::applyDirichletBC_impl(std::vector<PetscInt>
 
     if (testFlag(edge.getDoFType(), DirichletBoundary))
     {
-      P1Edge::applyDirichletBC(level,edge,mat,edgeDataID_);
+      P1Edge::applyDirichletBC< ValueType >(level,edge,mat,edgeDataID_);
     }
   }
 
