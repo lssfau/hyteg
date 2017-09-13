@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
   u_exact.interpolate(exact, maxLevel);
 
 #ifdef HHG_BUILD_WITH_PETSC
-  typedef hhg::PETScPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
-  std::shared_ptr<hhg::P1Function> numerator = std::make_shared<hhg::P1Function>("numerator", storage, maxLevel, maxLevel);
+  typedef hhg::PETScPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
+  std::shared_ptr< hhg::P1Function< real_t > > numerator = std::make_shared< hhg::P1Function< real_t > >("numerator", storage, maxLevel, maxLevel);
   uint_t globalSize = 0;
   uint_t localSize = numerator->enumerate(maxLevel, globalSize);
   auto prec = std::make_shared<PreconditionerType>(L, numerator, localSize, globalSize);
