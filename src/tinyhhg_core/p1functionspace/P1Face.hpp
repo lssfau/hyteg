@@ -406,10 +406,10 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 #ifdef HHG_BUILD_WITH_PETSC
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &dstId, Mat& mat) {
+                              const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, Mat& mat) {
   using namespace CoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -437,13 +437,13 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
   }
 }
 
-SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
 
 
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void createVectorFromFunctionTmpl(Face &face,
-                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &numeratorId,
+                              const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &numeratorId,
                               Vec& vec) {
   using namespace CoordsVertex;
 
@@ -463,14 +463,14 @@ inline void createVectorFromFunctionTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 
 
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void createFunctionFromVectorTmpl(Face &face,
-                                         const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &srcId,
-                                         const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &numeratorId,
+                                         const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                                         const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &numeratorId,
                                          Vec& vec) {
   using namespace CoordsVertex;
 
@@ -490,7 +490,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
 }// namespace P1Face

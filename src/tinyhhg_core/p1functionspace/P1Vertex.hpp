@@ -143,7 +143,7 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
 template< typename ValueType >
 inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId, size_t level, uint_t& num) {
   auto &dst = vertex.getData(dstId)->data[level];
-  dst[0] = static_cast< real_t >( num++ );
+  dst[0] = static_cast< ValueType >( num++ );
 }
 
 #ifdef HHG_BUILD_WITH_PETSC

@@ -308,10 +308,10 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 #ifdef HHG_BUILD_WITH_PETSC
-template<uint_t Level>
+template< typename ValueType, uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
-                         const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &srcId,
-                         const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &dstId, Mat& mat) {
+                         const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
+                         const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId, Mat& mat) {
   using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -349,12 +349,12 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
   }
 }
 
-SPECIALIZE(void, saveOperatorTmpl, saveOperator)
+SPECIALIZE_WITH_VALUETYPE(void, saveOperatorTmpl, saveOperator)
 
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void createVectorFromFunctionTmpl(Edge &edge,
-                                     const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &srcId,
-                                     const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &numeratorId,
+                                     const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
+                                     const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &numeratorId,
                                      Vec& vec) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -371,12 +371,12 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
   delete[] numeratorInt;
 
 }
-SPECIALIZE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void createFunctionFromVectorTmpl(Edge &edge,
-                                         const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &srcId,
-                                         const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &numeratorId,
+                                         const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
+                                         const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &numeratorId,
                                          Vec& vec) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -392,11 +392,11 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
   delete[] numeratorInt;
 
 }
-SPECIALIZE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
-template<uint_t Level>
+template< typename ValueType, uint_t Level >
 inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
-                                 const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &numeratorId){
+                                 const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &numeratorId){
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -406,7 +406,7 @@ inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
   }
 
 }
-SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
+SPECIALIZE_WITH_VALUETYPE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif
 
 }
