@@ -333,7 +333,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+        P1Edge::saveOperator< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
       }
     }
 
@@ -342,7 +342,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
+        P1Face::saveOperator< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
       }
     }
   }
