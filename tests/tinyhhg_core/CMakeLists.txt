@@ -18,8 +18,10 @@ waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
-waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME ConstexprIndexTest)
+if(CMAKE_BUILD_TYPE EQUAL "RELEASE")
+  waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
+  waLBerla_execute_test(NAME ConstexprIndexTest)
+endif()
 
 waLBerla_compile_test(FILES P1EnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1EnumerateTest)
@@ -35,6 +37,9 @@ waLBerla_execute_test(NAME PrimitiveIDTest)
 
 waLBerla_compile_test(FILES PrimitiveDataTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveDataTest)
+
+waLBerla_compile_test(FILES LevelinfoTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME LevelinfoTest)
 
 waLBerla_compile_test(FILES PrimitiveStorageTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveStorageTest1 COMMAND $<TARGET_FILE:PrimitiveStorageTest> )

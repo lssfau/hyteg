@@ -25,7 +25,7 @@ constexpr size_t sumIndicesEdge(const uint_t x){
 
 
 int main() {
-
+#ifdef NDEBUG
   std::vector<size_t> refOneOne = {10, 1, 2, 11, 18, 17, 9};
 
 
@@ -35,5 +35,5 @@ int main() {
 
   static_assert(hhg::P1Face::CoordsVertex::index<3>(1,1,hhg::P1Face::CoordsVertex::VERTEX_C)==10,"P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"foo");
-
+#endif
 }
