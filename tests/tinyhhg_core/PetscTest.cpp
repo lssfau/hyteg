@@ -4,7 +4,7 @@
 #include <core/Environment.h>
 
 #ifndef HHG_BUILD_WITH_PETSC
-#error "This app only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON"
+#error "This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON"
 #endif
 
 using walberla::real_t;
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
   PETScManager petscManager;
 
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
+  std::string meshFileName = "../../data/meshes/quad_4el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -68,10 +68,8 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
+//  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
+//  hhg::VTKWriter< P1Function >({ &x, &x_exact, &err }, Level, "../output", "exact_solver");
 
-  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
-  hhg::VTKWriter< P1Function< real_t > >({ &x, &x_exact, &err }, Level, "../output", "exact_solver");
-
-
-  return 0;
+  return EXIT_SUCCESS;
 }

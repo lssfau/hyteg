@@ -356,15 +356,15 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
                                      const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
                                      const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &numeratorId,
                                      Vec& vec) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(Level);
 
   auto &src = edge.getData(srcId)->data[Level];
   auto &numerator = edge.getData(numeratorId)->data[Level];
 
   PetscInt* numeratorInt = new PetscInt[rowsize-2];
-  for(uint_t i = 0;i<rowsize-2; i++)
+  for(PetscInt i = 0;i<rowsize-2; i++)
   {
-    numeratorInt[i] = (PetscInt)numerator[i+1];
+    numeratorInt[i] = (PetscInt)numerator[(uint_t)(i+1)];
   }
 
   VecSetValues(vec,rowsize-2,numeratorInt,&src[1],INSERT_VALUES);
@@ -378,14 +378,14 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
                                          const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
                                          const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &numeratorId,
                                          Vec& vec) {
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(Level);
 
   auto &numerator = edge.getData(numeratorId)->data[Level];
 
   PetscInt* numeratorInt = new PetscInt[rowsize-2];
-  for(uint_t i = 0;i<rowsize-2; i++)
+  for(PetscInt i = 0;i<rowsize-2; i++)
   {
-    numeratorInt[i] = (PetscInt)numerator[i+1];
+    numeratorInt[i] = (PetscInt)numerator[(uint_t)(i+1)];
   }
 
   VecGetValues(vec,rowsize-2,numeratorInt,&edge.getData(srcId)->data[Level][1]);
