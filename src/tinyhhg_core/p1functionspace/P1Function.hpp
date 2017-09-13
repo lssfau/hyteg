@@ -19,6 +19,8 @@
 
 namespace hhg {
 
+
+
 template< typename ValueType >
 class P1Function : public Function< P1Function< ValueType > > {
 public:
@@ -29,15 +31,15 @@ public:
   P1Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< P1Function< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling >( minLevel, maxLevel );
-    auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling >( minLevel, maxLevel );
-    auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >( minLevel, maxLevel );
+    auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
     storage->addFaceData( faceDataID_, faceP1FunctionMemoryDataHandling, name );
     storage->addEdgeData( edgeDataID_, edgeP1FunctionMemoryDataHandling, name );
     storage->addVertexData( vertexDataID_, vertexP1FunctionMemoryDataHandling, name );
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->addPackInfo( std::make_shared< P1PackInfo >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
+      communicators_[level]->addPackInfo( std::make_shared< P1PackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
     }
   }
 
@@ -50,11 +52,11 @@ public:
 private:
 
   /// Interpolates a given expression to a P1Function
-  inline void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
+  inline void interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag = All);
 
-  inline void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
+  inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  inline void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
+  inline void add_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
 
   inline real_t dot_impl(P1Function< ValueType >& rhs, uint_t level, DoFType flag = All);
 
@@ -80,7 +82,7 @@ private:
 };
 
 template< typename ValueType >
-inline void P1Function< ValueType >::interpolate_impl(std::function<real_t(const hhg::Point3D&)>& expr, uint_t level, DoFType flag)
+inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType(const hhg::Point3D&) > & expr, uint_t level, DoFType flag)
 {
     for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
@@ -96,7 +98,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function<real_t(const
         Edge& edge = *it.second;
 
         if (testFlag(edge.getDoFType(), flag)) {
-            P1Edge::interpolate(level, edge, edgeDataID_, expr);
+            P1Edge::interpolate< ValueType >(level, edge, edgeDataID_, expr);
         }
     }
 
@@ -107,7 +109,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function<real_t(const
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::interpolate(level, face, faceDataID_, expr);
+            P1Face::interpolate< ValueType >(level, face, faceDataID_, expr);
         }
     }
 
@@ -115,12 +117,12 @@ inline void P1Function< ValueType >::interpolate_impl(std::function<real_t(const
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
+inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex>> srcVertexIDs;
-    std::vector<PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge>>     srcEdgeIDs;
-    std::vector<PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face>>     srcFaceIDs;
+    std::vector<PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+    std::vector<PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge>>     srcEdgeIDs;
+    std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>>     srcFaceIDs;
 
     for (auto& function : functions)
     {
@@ -143,7 +145,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<walberla::rea
         Edge& edge = *it.second;
 
         if (testFlag(edge.getDoFType(), flag)) {
-            P1Edge::assign(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+            P1Edge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
         }
     }
 
@@ -154,7 +156,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<walberla::rea
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::assign(level, face, scalars, srcFaceIDs, faceDataID_);
+            P1Face::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
         }
     }
 
@@ -162,7 +164,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<walberla::rea
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::add_impl(const std::vector<walberla::real_t> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
+inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
@@ -190,7 +192,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<walberla::real_t
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-          P1Edge::add(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+          P1Edge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
       }
   }
 
@@ -201,7 +203,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<walberla::real_t
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-          P1Face::add(level, face, scalars, srcFaceIDs, faceDataID_);
+          P1Face::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
   }
 
@@ -225,7 +227,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-        scalarProduct += P1Edge::dot(level, edge, edgeDataID_, rhs.edgeDataID_);
+        scalarProduct += P1Edge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
       }
   }
 
@@ -233,7 +235,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-        scalarProduct += P1Face::dot(level, face, faceDataID_, rhs.faceDataID_);
+        scalarProduct += P1Face::dot< ValueType >(level, face, faceDataID_, rhs.faceDataID_);
       }
   }
 
@@ -263,7 +265,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::prolongate(sourceLevel, edge, edgeDataID_);
+        P1Edge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -275,7 +277,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(face.type, flag))
       {
-        P1Face::prolongate(sourceLevel, face, faceDataID_);
+        P1Face::prolongate< ValueType >(sourceLevel, face, faceDataID_);
       }
   }
 
@@ -303,7 +305,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::prolongateQuadratic(sourceLevel, edge, edgeDataID_);
+      P1Edge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
     }
   }
 
@@ -315,7 +317,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(face.type, flag))
     {
-      P1Face::prolongateQuadratic(sourceLevel, face, faceDataID_);
+      P1Face::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
     }
   }
 
@@ -355,7 +357,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::restrict(sourceLevel, edge, edgeDataID_);
+        P1Edge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -368,7 +370,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(face.type, flag))
       {
-        P1Face::restrict(sourceLevel, face, faceDataID_);
+        P1Face::restrict< ValueType >(sourceLevel, face, faceDataID_);
       }
   }
 
@@ -389,7 +391,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
-    P1Edge::enumerate(level, edge, edgeDataID_, num);
+    P1Edge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -397,7 +399,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
-    P1Face::enumerate(face, faceDataID_, level, num);
+    P1Face::enumerate< ValueType >(level, face, faceDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Face, Edge>();
@@ -501,5 +503,6 @@ inline void P1Function< ValueType >::applyDirichletBC_impl(std::vector<PetscInt>
 
 }
 #endif
+
 
 }
