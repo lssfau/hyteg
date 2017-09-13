@@ -84,7 +84,7 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function< real_t >& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
     /*for (auto& it : storage_->getFaces()) { //TODO: IMPLEMENT
       Face& face = *it.second;
