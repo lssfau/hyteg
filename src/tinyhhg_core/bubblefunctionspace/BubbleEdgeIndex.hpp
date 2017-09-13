@@ -59,7 +59,7 @@ SPECIALIZE(size_t, index, edge_index)
 
 }//namespace EdgeCoordsVertex
 
-inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> &memoryId, uint_t level)
+inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &memoryId, uint_t level)
 {
   using namespace std;
   using namespace hhg::BubbleEdge::EdgeCoordsVertex;
@@ -130,7 +130,7 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   cout << setfill('=') << setw(100) << "" << setfill(' ') << std::endl;
 }
 
-inline void printFunctionMemory(Vertex& vertex, const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &memoryId, uint_t level)
+inline void printFunctionMemory(Vertex& vertex, const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &memoryId, uint_t level)
 {
   real_t* vertexData = vertex.getData(memoryId)->data[level].get();
 

@@ -34,7 +34,7 @@ namespace hhg
 {
 
 template<class UFCOperator,  bool Diagonal = false>
-class P1Operator : public Operator< P1Function, P1Function >
+class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -166,7 +166,7 @@ public:
 
 private:
 
-  void apply_impl(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function< real_t > & src, P1Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -182,7 +182,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
+        P1Vertex::apply< real_t >(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
     }
 
@@ -196,7 +196,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        P1Edge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -209,14 +209,14 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        P1Face::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_gs_impl(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -246,7 +246,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_gs(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        P1Edge::smooth_gs< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -259,14 +259,14 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_gs(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        P1Face::smooth_gs< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_jac_impl(P1Function& dst, P1Function& rhs, P1Function& tmp, size_t level, DoFType flag)
+  void smooth_jac_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, P1Function< real_t > & tmp, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     tmp.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -296,7 +296,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_jac(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
+        P1Edge::smooth_jac< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
       }
     }
 
@@ -309,7 +309,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_jac(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
+        P1Face::smooth_jac< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
       }
     }
 
@@ -317,7 +317,7 @@ private:
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function< real_t > & src, P1Function< real_t > & dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -333,7 +333,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+        P1Edge::saveOperator< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
       }
     }
 
@@ -342,7 +342,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
+        P1Face::saveOperator< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
       }
     }
   }

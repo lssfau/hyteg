@@ -9,8 +9,8 @@ namespace hhg {
 namespace BubbleToP1Edge {
 template<size_t Level>
 inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
-                       const PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> &srcId,
-                       const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, UpdateType update) {
+                       const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &srcId,
+                       const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
@@ -44,8 +44,8 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 template<size_t Level>
 inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
-                              const PrimitiveDataID<EdgeBubbleFunctionMemory, Edge> &srcId,
-                              const PrimitiveDataID<EdgeP1FunctionMemory, Edge> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &srcId,
+                              const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &dstId, std::ostream& out) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];

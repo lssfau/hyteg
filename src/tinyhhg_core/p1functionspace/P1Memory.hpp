@@ -40,16 +40,16 @@ public:
 
 };
 
-
-class VertexP1FunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class VertexP1FunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  VertexP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  VertexP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {
-    return levelinfo::num_microvertices_per_vertex(level) + numDependencies_;
+    return levelinfo::num_microvertices_per_vertex(level) + this->numDependencies_;
   }
 
 };
@@ -81,16 +81,17 @@ public:
 };
 
 
-class EdgeP1FunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class EdgeP1FunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  EdgeP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  EdgeP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {
     size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-    return num_dofs_per_edge + numDependencies_*(num_dofs_per_edge-1);
+    return num_dofs_per_edge + this->numDependencies_*(num_dofs_per_edge-1);
   }
 };
 
@@ -120,11 +121,12 @@ public:
 };
 
 
-class FaceP1FunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class FaceP1FunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  FaceP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  FaceP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {

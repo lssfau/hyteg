@@ -31,7 +31,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
+class BubbleToP1Operator : public Operator< BubbleFunction, P1Function< real_t > >
 {
  public:
   BubbleToP1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -135,7 +135,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
 
  private:
 
-  void apply_impl(BubbleFunction& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(BubbleFunction& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first
     src.getCommunicator(level)->startCommunication<Face, Edge>();
@@ -181,7 +181,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function >
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(BubbleFunction& src, P1Function& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(BubbleFunction& src, P1Function<real_t>& dst, Mat &mat, size_t level, DoFType flag)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first //TODO: Implement!
     /*src.getCommunicator(level)->startCommunication<Face, Edge>();

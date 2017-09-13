@@ -52,6 +52,6 @@
 #include "petsc/PETScLUSolver.hpp"
 #include "petsc/PETScPreconditioner.hpp"
 
-
+#include "FunctionTraits.hpp"
 
 #endif /* TINYHHG_HPP */

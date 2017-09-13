@@ -1,0 +1,49 @@
+
+#pragma once
+
+namespace hhg {
+
+// To define correct method signatures in the Function base class, we
+// need to know the value type of the derived classes.
+//
+// (AFAIK) It is not possible to access typedefs of the derived class from the
+// base class when using the CRTP. This means we need to provide them via traits to
+// the function space base class "Function".
+//
+// See also: https://stackoverflow.com/a/6006629
+
+//////////////////////////
+// Forward declarations //
+//////////////////////////
+
+template< typename VType >
+class P1Function;
+
+class BubbleFunction;
+
+///////////////////////////////////////////////////////////////////
+// Function trait defining the value type of the derived classes //
+///////////////////////////////////////////////////////////////////
+
+// Empty trait
+
+template< typename FunctionType >
+struct FunctionTrait;
+
+// P1 specialization (Vertex DoFs)
+
+template< typename VType >
+struct FunctionTrait< P1Function< VType > >
+{
+  typedef VType ValueType;
+};
+
+// Bubble specialization (Cell DoFs)
+
+template<>
+struct FunctionTrait< BubbleFunction >
+{
+  typedef real_t ValueType;
+};
+
+}

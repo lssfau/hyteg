@@ -14,29 +14,31 @@
 namespace hhg
 {
 
-class VertexBubbleFunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class VertexBubbleFunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  VertexBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  VertexBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {
     WALBERLA_UNUSED( level );
-    return numDependencies_;
+    return this->numDependencies_;
   }
 
 };
 
-class EdgeBubbleFunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class EdgeBubbleFunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  EdgeBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  EdgeBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {
-    size_t num_cell_dofs = numDependencies_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
+    size_t num_cell_dofs = this->numDependencies_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
     return num_cell_dofs;
   }
 };
@@ -75,11 +77,12 @@ public:
 };
 
 
-class FaceBubbleFunctionMemory : public FunctionMemory< real_t >
+template< typename ValueType >
+class FaceBubbleFunctionMemory : public FunctionMemory< ValueType >
 {
 public:
 
-  FaceBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
+  FaceBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
 
   inline size_t getSize(size_t level) const
   {

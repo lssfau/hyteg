@@ -11,8 +11,8 @@ namespace hhg {
 namespace BubbleToP1Face {
 template<size_t Level>
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &srcId,
-                       const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, UpdateType update) {
+                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
+                       const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -44,8 +44,8 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 template<size_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory, Face> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &dstId, std::ostream& out) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 

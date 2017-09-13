@@ -2,9 +2,9 @@
 
 namespace hhg {
 
-std::shared_ptr< VertexBubbleFunctionMemory > VertexBubbleFunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
+std::shared_ptr< VertexBubbleFunctionMemory< real_t > > VertexBubbleFunctionMemoryDataHandling::initialize( const Vertex * const vertex ) const
 {
-  auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory >( vertex->getNumNeighborFaces() );
+  auto vertexBubbleFunctionMemory = std::make_shared< VertexBubbleFunctionMemory< real_t > >( vertex->getNumNeighborFaces() );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     vertexBubbleFunctionMemory->addlevel( level );
@@ -12,9 +12,9 @@ std::shared_ptr< VertexBubbleFunctionMemory > VertexBubbleFunctionMemoryDataHand
   return vertexBubbleFunctionMemory;
 }
 
-std::shared_ptr< EdgeBubbleFunctionMemory > EdgeBubbleFunctionMemoryDataHandling::initialize( const Edge * const edge ) const
+std::shared_ptr< EdgeBubbleFunctionMemory< real_t > > EdgeBubbleFunctionMemoryDataHandling::initialize( const Edge * const edge ) const
 {
-  auto edgeBubbleFunctionMemory = std::make_shared< EdgeBubbleFunctionMemory >( edge->getNumNeighborFaces() );
+  auto edgeBubbleFunctionMemory = std::make_shared< EdgeBubbleFunctionMemory< real_t > >( edge->getNumNeighborFaces() );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     edgeBubbleFunctionMemory->addlevel( level );
@@ -22,9 +22,9 @@ std::shared_ptr< EdgeBubbleFunctionMemory > EdgeBubbleFunctionMemoryDataHandling
   return edgeBubbleFunctionMemory;
 }
 
-std::shared_ptr< FaceBubbleFunctionMemory > FaceBubbleFunctionMemoryDataHandling::initialize( const Face * const ) const
+std::shared_ptr< FaceBubbleFunctionMemory< real_t > > FaceBubbleFunctionMemoryDataHandling::initialize( const Face * const ) const
 {
-  auto faceBubbleFunctionMemory = std::make_shared< FaceBubbleFunctionMemory >( 0 );
+  auto faceBubbleFunctionMemory = std::make_shared< FaceBubbleFunctionMemory< real_t > >( 0 );
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
     faceBubbleFunctionMemory->addlevel( level );
