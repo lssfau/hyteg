@@ -78,7 +78,7 @@ enum DirVertex {
 };
 /// all stencil directions
 /// note that the center can not be contained since a P1-Function has no face dof
-const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
+constexpr std::array<DirVertex,3> neighbors = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
 
 /// returns the index inside the linearized P1FaceMemory for a given gray cell point and stencil direction
 /// @param col column (x direction) inside the triangle
@@ -114,7 +114,7 @@ enum DirVertex {
 
 /// all stencil directions
 /// note that the center can not be contained since a P1-Function has no face dof
-const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
+constexpr std::array<DirVertex,3> neighbors  = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
 
 /// returns the index inside the linearized P1FaceMemory for a given blue cell point and stencil direction
 /// @param col column (x direction) inside the triangle

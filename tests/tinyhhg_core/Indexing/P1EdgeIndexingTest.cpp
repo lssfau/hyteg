@@ -11,6 +11,13 @@ int main(int argc, char* argv[])
   walberla::mpi::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
+  WALBERLA_CHECK_EQUAL(EdgeCoordsVertex::neighbors.size(),6);
+  WALBERLA_CHECK_EQUAL(EdgeCoordsVertex::neighbors_with_center.size(),7);
+  WALBERLA_CHECK_EQUAL(EdgeCoordsVertex::neighbors_on_edge.size(),2);
+  WALBERLA_CHECK_EQUAL(EdgeCoordsVertex::neighbors_south.size(),2);
+  WALBERLA_CHECK_EQUAL(EdgeCoordsVertex::neighbors_north.size(),2);
+
+
 //  std::string enumStrings[] = {
 //      "VERTEX_C",
 //      "VERTEX_S",
