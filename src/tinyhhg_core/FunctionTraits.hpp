@@ -19,6 +19,7 @@ namespace hhg {
 template< typename VType >
 class P1Function;
 
+template< typename VType >
 class BubbleFunction;
 
 ///////////////////////////////////////////////////////////////////
@@ -40,10 +41,10 @@ struct FunctionTrait< P1Function< VType > >
 
 // Bubble specialization (Cell DoFs)
 
-template<>
-struct FunctionTrait< BubbleFunction >
+template< typename VType >
+struct FunctionTrait< BubbleFunction< VType > >
 {
-  typedef real_t ValueType;
+  typedef VType ValueType;
 };
 
 }
