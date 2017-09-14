@@ -5,9 +5,11 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+#include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+
 namespace hhg {
 
-template <typename OperatorType,typename FunctionType>
+template <class OperatorType, template <class> class FunctionType>
 class PETScSparseMatrix {
 protected:
   Mat mat;
@@ -33,15 +35,15 @@ public:
     MatDestroy(&mat);
   }
 
-  inline void createMatrixFromFunction(OperatorType& op, uint_t level,FunctionType& numerator,DoFType flag = All){
+  inline void createMatrixFromFunction(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
     //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
-    op.createMatrix(numerator, numerator, mat, level, flag);
+    hhg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
   }
 
-  inline bool createMatrixFromFunctionOnce(OperatorType& op, uint_t level,FunctionType& numerator,DoFType flag = All){
+  inline bool createMatrixFromFunctionOnce(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
     if(assembled)
       return false;
     createMatrixFromFunction(op,level,numerator,flag);
@@ -58,10 +60,10 @@ public:
     PetscViewerDestroy(&viewer);
   }
 
-  void applyDirichletBC(FunctionType& numerator, uint_t level){
+  void applyDirichletBC(FunctionType<PetscInt>& numerator, uint_t level){
     //WALBERLA_LOG_INFO_ON_ROOT("")
     std::vector<PetscInt> ind;
-    numerator.applyDirichletBC(ind,level);
+    hhg::petsc::applyDirichletBC(numerator,ind,level);
 
     MatZeroRows(mat,ind.size(),ind.data(),1.0,0,0);
 

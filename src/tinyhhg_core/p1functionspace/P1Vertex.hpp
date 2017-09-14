@@ -147,47 +147,28 @@ inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemo
 }
 
 #ifdef HHG_BUILD_WITH_PETSC
-template< typename ValueType >
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
-                         const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &dstId,
                          Mat& mat,
                          uint_t level) {
   auto &opr_data = vertex.getData(operatorId)->data[level];
   auto &src = vertex.getData(srcId)->data[level];
   auto &dst = vertex.getData(dstId)->data[level];
 
-  PetscInt* srcint = new PetscInt[vertex.getNumNeighborEdges()+1];
-  PetscInt dstint = (PetscInt) dst[0];
-
-
-  for(uint_t i = 0;i<vertex.getNumNeighborEdges()+1;++i)
-    srcint[i] = (PetscInt)src[i];
-
-
-
-  MatSetValues(mat,1,&dstint,(PetscInt) (vertex.getNumNeighborEdges()+1),srcint,opr_data.get() ,INSERT_VALUES);
-
-  delete[] srcint;
-
-  /*out << fmt::format("{}\t{}\t{}\n", dst[0], src[0], opr_data[0]);
-
-  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
-    out << fmt::format("{}\t{}\t{}\n", dst[0], src[i + 1], opr_data[i + 1]);
-  }
-  */
+  MatSetValues(mat,1,dst.get(),(PetscInt) (vertex.getNumNeighborEdges()+1),src.get(),opr_data.get() ,INSERT_VALUES);
 }
 
 template< typename ValueType >
 inline void createVectorFromFunction(Vertex &vertex,
                          const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &numeratorId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &numeratorId,
                          Vec& vec,
                          uint_t level) {
 
   auto &src = vertex.getData(srcId)->data[level];
-  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+  PetscInt numerator = vertex.getData(numeratorId)->data[level][0];
 
   VecSetValues(vec,1,&numerator,src.get(),INSERT_VALUES);
 
@@ -196,22 +177,21 @@ inline void createVectorFromFunction(Vertex &vertex,
 template< typename ValueType >
 inline void createFunctionFromVector(Vertex &vertex,
                                      const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
-                                     const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &numeratorId,
+                                     const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &numeratorId,
                                      Vec& vec,
                                      uint_t level) {
 
 
-  PetscInt numerator = (PetscInt)vertex.getData(numeratorId)->data[level][0];
+  PetscInt numerator = vertex.getData(numeratorId)->data[level][0];
 
   VecGetValues(vec,1,&numerator,vertex.getData(srcId)->data[level].get());
 
 }
 
-template< typename ValueType >
 inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t level,
-                             const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &numeratorId){
+                             const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &numeratorId){
 
-  mat.push_back((PetscInt)vertex.getData(numeratorId)->data[level][0]);
+  mat.push_back(vertex.getData(numeratorId)->data[level][0]);
 
 }
 

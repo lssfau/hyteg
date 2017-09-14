@@ -6,8 +6,6 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include <core/mpi/Gather.h>
 
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
-
 #include "tinyhhg_core/FunctionTraits.hpp"
 
 #include <string>
@@ -67,14 +65,6 @@ public:
   inline uint_t enumerate( uint_t   level,
                            uint_t & num );
 
-#ifdef HHG_BUILD_WITH_PETSC
-  inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level, DoFType flag);
-
-  inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
-
-  inline void applyDirichletBC(std::vector<PetscInt> &mat , uint_t level);
-#endif
-
 
   const std::string &getFunctionName() const { return functionName_; }
 
@@ -126,14 +116,6 @@ protected:
 
     virtual void
     enumerate_impl( uint_t level, uint_t& num ) = 0;
-
-#ifdef HHG_BUILD_WITH_PETSC
-  virtual void createVectorFromFunction_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;} //TODO make this abstract
-
-  virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
-
-  virtual void applyDirichletBC_impl(std::vector<PetscInt>& mat, uint_t level){;}
-#endif
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -266,39 +248,5 @@ uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
   stopTiming( "Enumerate" );
   return counter;
 }
-
-#ifdef HHG_BUILD_WITH_PETSC
-template< typename FunctionType >
-void Function< FunctionType >::createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  startTiming( "createVectorFromFunction" );
-
-  createVectorFromFunction_impl(numerator, vec, level,flag);
-
-  stopTiming( "createVectorFromFunction" );
-}
-
-
-template< typename FunctionType >
-void Function< FunctionType >::createFunctionFromVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  startTiming( "createFunctionFromVector" );
-
-  createFunctionFromVector_impl(numerator, vec, level,flag);
-
-  stopTiming( "createFunctionFromVector" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::applyDirichletBC(std::vector<PetscInt> &mat, uint_t level)
-{
-  startTiming( "applyDirichletBC" );
-
-  applyDirichletBC_impl(mat, level);
-
-  stopTiming( "applyDirichletBC" );
-}
-#endif
-
 
 }

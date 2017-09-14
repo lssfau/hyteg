@@ -5,9 +5,11 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+#include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+
 namespace hhg {
 
-template<typename FunctionType>
+template<typename ValueType, template <class> class FunctionType>
 class PETScVector {
 protected:
 
@@ -27,17 +29,17 @@ public:
 
   ~PETScVector() { VecDestroy(&vec); }
 
-  void createVectorFromFunction(FunctionType &src, FunctionType &numerator, uint_t level, DoFType flag = All) {
+  void createVectorFromFunction(FunctionType<ValueType> &src, FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All) {
 
-    src.createVectorFromFunction(numerator, vec, level, flag);
+    hhg::petsc::createVectorFromFunction(src, numerator, vec, level, flag);
 
     VecAssemblyBegin(vec);
     VecAssemblyEnd(vec);
   }
 
-  void createFunctionFromVector(FunctionType &src, FunctionType &numerator, uint_t level, DoFType flag = All){
+  void createFunctionFromVector(FunctionType<ValueType> &src, FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All){
 
-    src.createFunctionFromVector(numerator, vec, level, flag);
+    hhg::petsc::createFunctionFromVector(src, numerator, vec, level, flag);
 
   }
 

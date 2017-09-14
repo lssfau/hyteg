@@ -164,6 +164,12 @@ public:
   {
   }
 
+  const PrimitiveDataID<VertexP1StencilMemory, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+
+  const PrimitiveDataID<EdgeP1StencilMemory, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+
+  const PrimitiveDataID<FaceP1StencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
+
 private:
 
   void apply_impl(P1Function< real_t > & src, P1Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
@@ -315,38 +321,6 @@ private:
 
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
-
-#ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function< real_t > & src, P1Function< real_t > & dst, Mat& mat, size_t level, DoFType flag)
-  {
-    for (auto& it : storage_->getVertices()) {
-      Vertex& vertex = *it.second;
-
-      if (testFlag(vertex.getDoFType(), flag))
-      {
-        P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
-      }
-    }
-
-    for (auto& it : storage_->getEdges()) {
-      Edge& edge = *it.second;
-
-      if (testFlag(edge.getDoFType(), flag))
-      {
-        P1Edge::saveOperator< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-      }
-    }
-
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        P1Face::saveOperator< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
-      }
-    }
-  }
-#endif
 
   PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;

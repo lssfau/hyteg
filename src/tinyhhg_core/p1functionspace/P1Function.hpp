@@ -2,7 +2,6 @@
 
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 #include "tinyhhg_core/primitives/vertex.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
@@ -67,14 +66,6 @@ private:
   inline void restrict_impl(uint_t level, DoFType flag = All);
 
   inline void enumerate_impl(uint_t level, uint_t& num);
-
-#ifdef HHG_BUILD_WITH_PETSC
-  inline void createVectorFromFunction_impl(P1Function< ValueType > &numerator, Vec &vec, uint_t level, DoFType flag);
-
-  inline void createFunctionFromVector_impl(P1Function< ValueType > &numerator, Vec &vec, uint_t level, DoFType flag);
-
-  inline void applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level);
-#endif
 
   PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> vertexDataID_;
   PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> edgeDataID_;
@@ -408,113 +399,5 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
 }
-
-#ifdef HHG_BUILD_WITH_PETSC
-template< typename ValueType >
-inline void P1Function< ValueType >::createVectorFromFunction_impl(P1Function< ValueType > &,Vec &, uint_t ,DoFType )
-{
-  WALBERLA_LOG_WARNING( "P1 createVectorFromFunction should only be used with ValueType == PETSCScalar!" );
-}
-
-template<>
-inline void P1Function< PetscScalar >::createVectorFromFunction_impl(P1Function< PetscScalar > &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if (testFlag(vertex.getDoFType(), flag))
-    {
-      P1Vertex::createVectorFromFunction< PetscScalar >(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
-    }
-  }
-
-
-  for (auto& it : storage_->getEdges()) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.getDoFType(), flag))
-    {
-      P1Edge::createVectorFromFunction< PetscScalar >(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
-    }
-  }
-
-
-  for (auto& it : storage_->getFaces()) {
-    Face& face = *it.second;
-
-    if (testFlag(face.type, flag))
-    {
-      P1Face::createVectorFromFunction< PetscScalar >(level, face, faceDataID_, numerator.getFaceDataID(), vec);
-    }
-  }
-}
-
-template< typename ValueType >
-inline void P1Function< ValueType >::createFunctionFromVector_impl(P1Function< ValueType > &,Vec &, uint_t ,DoFType )
-{
-  WALBERLA_LOG_WARNING( "P1 createFunctionFromVector should only be used with ValueType == PETSCScalar!" );
-}
-
-template<>
-inline void P1Function< PetscScalar >::createFunctionFromVector_impl(P1Function< PetscScalar > &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if (testFlag(vertex.getDoFType(), flag))
-    {
-      P1Vertex::createFunctionFromVector< PetscScalar >(vertex, vertexDataID_, numerator.getVertexDataID(), vec, level);
-    }
-  }
-
-  communicators_[level]->template startCommunication<Vertex, Edge>();
-  communicators_[level]->template endCommunication<Vertex, Edge>();
-
-  for (auto& it : storage_->getEdges()) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.getDoFType(), flag))
-    {
-      P1Edge::createFunctionFromVector< PetscScalar >(level, edge, edgeDataID_, numerator.getEdgeDataID(), vec);
-    }
-  }
-
-  communicators_[level]->template startCommunication<Edge, Face>();
-  communicators_[level]->template endCommunication<Edge, Face>();
-
-  for (auto& it : storage_->getFaces()) {
-    Face& face = *it.second;
-
-    if (testFlag(face.type, flag))
-    {
-      P1Face::createFunctionFromVector< PetscScalar >(level, face, faceDataID_, numerator.getFaceDataID(), vec);
-    }
-  }
-}
-
-template< typename ValueType >
-inline void P1Function< ValueType >::applyDirichletBC_impl(std::vector<PetscInt> &mat, uint_t level)
-{
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if (testFlag(vertex.getDoFType(), DirichletBoundary))
-    {
-      P1Vertex::applyDirichletBC< ValueType >(vertex,mat,level,vertexDataID_);
-    }
-  }
-
-  for (auto& it : storage_->getEdges()) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.getDoFType(), DirichletBoundary))
-    {
-      P1Edge::applyDirichletBC< ValueType >(level,edge,mat,edgeDataID_);
-    }
-  }
-
-}
-#endif
-
 
 }
