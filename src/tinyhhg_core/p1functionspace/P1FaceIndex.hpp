@@ -33,7 +33,7 @@ constexpr std::array<DirVertex,7> neighbors_with_center =
    VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 /// all stencil directions without the center
-constexpr std::array<DirVertex,7> neighbors =
+constexpr std::array<DirVertex,6> neighbors =
   {{VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 
