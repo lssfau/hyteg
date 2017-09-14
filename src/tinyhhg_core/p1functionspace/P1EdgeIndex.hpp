@@ -24,20 +24,20 @@ enum DirVertex {
 };
 
 constexpr std::array<DirVertex,7> neighbors_with_center =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+  {{VERTEX_C,
+    VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 constexpr std::array<DirVertex,6> neighbors =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+  {{VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 constexpr std::array<DirVertex,2> neighbors_on_edge =
-    {VERTEX_E, VERTEX_W};
+  {{VERTEX_E, VERTEX_W}};
 
 constexpr std::array<DirVertex,2> neighbors_south =
-    {VERTEX_S, VERTEX_SE};
+  {{VERTEX_S, VERTEX_SE}};
 
 constexpr std::array<DirVertex,2> neighbors_north =
-    {VERTEX_N, VERTEX_NW};
+  {{VERTEX_N, VERTEX_NW}};
 
 //first face is south face by convention
 

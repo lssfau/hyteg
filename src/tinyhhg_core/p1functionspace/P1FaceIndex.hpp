@@ -29,12 +29,12 @@ enum DirVertex {
 
 /// all stencil directions including the center
 constexpr std::array<DirVertex,7> neighbors_with_center =
-  {VERTEX_C,
-   VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+  {{VERTEX_C,
+   VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 /// all stencil directions without the center
 constexpr std::array<DirVertex,7> neighbors =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+  {{VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
 /// returns the index inside the linearized P1FaceMemory for a given vertex point and stencil direction
 /// @param col column (x direction) inside the triangle
