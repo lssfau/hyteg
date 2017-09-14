@@ -303,41 +303,6 @@ intel-17_Hybrid_SP_Dbg:
 
 ## GCC
 
-gcc-4.8_Serial:
-   <<: *build_serial_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
-
-gcc-4.8_MpiOnly:
-   <<: *build_mpionly_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
-
-gcc-4.8_Hybrid:
-   <<: *build_hybrid_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-
-gcc-4.8_Serial_Dbg:
-   <<: *build_serial_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
-
-gcc-4.8_MpiOnly_Dbg:
-   <<: *build_mpionly_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
-
-gcc-4.8_Hybrid_Dbg:
-   <<: *build_hybrid_dbg_definition
-   image: walberla/buildenv-ubuntu-gcc:4.8
-   only:
-      - triggers
-
-
 gcc-4.9_Serial:
    <<: *build_serial_definition
    image: walberla/buildenv-ubuntu-gcc:4.9
@@ -353,8 +318,6 @@ gcc-4.9_MpiOnly:
 gcc-4.9_Hybrid:
    <<: *build_hybrid_definition
    image: walberla/buildenv-ubuntu-gcc:4.9
-   only:
-      - triggers
 
 gcc-4.9_Serial_Dbg:
    <<: *build_serial_dbg_definition
@@ -447,29 +410,6 @@ gcc-6_Hybrid_SP_Dbg:
 
 ## Clang
 
-clang-3.4_Serial:
-   <<: *build_serial_definition
-   image: walberla/buildenv-ubuntu-clang:3.4
-   only:
-      - triggers
-
-clang-3.4_MpiOnly:
-   <<: *build_mpionly_definition
-   image: walberla/buildenv-ubuntu-clang:3.4
-   only:
-      - triggers
-
-clang-3.4_Serial_Dbg:
-   <<: *build_serial_dbg_definition
-   image: walberla/buildenv-ubuntu-clang:3.4
-   only:
-      - triggers
-
-clang-3.4_MpiOnly_Dbg:
-   <<: *build_mpionly_dbg_definition
-   image: walberla/buildenv-ubuntu-clang:3.4
-
-
 clang-3.5_Serial:
    <<: *build_serial_definition
    image: walberla/buildenv-ubuntu-clang:3.5
@@ -479,8 +419,6 @@ clang-3.5_Serial:
 clang-3.5_MpiOnly:
    <<: *build_mpionly_definition
    image: walberla/buildenv-ubuntu-clang:3.5
-   only:
-      - triggers
 
 clang-3.5_Serial_Dbg:
    <<: *build_serial_dbg_definition
