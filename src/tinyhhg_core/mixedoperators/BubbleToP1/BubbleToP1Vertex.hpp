@@ -8,8 +8,8 @@ namespace hhg {
 namespace BubbleToP1Vertex {
 
 inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex>& operatorId,
-                  const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &srcId,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, size_t level, UpdateType update)
+                  const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &srcId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, size_t level, UpdateType update)
 {
   auto& opr_data = vertex.getData(operatorId)->data[level];
   auto& src = vertex.getData(srcId)->data[level];
@@ -31,8 +31,8 @@ inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilM
 }
 
 inline void saveOperator(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex>& operatorId,
-                         const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, std::ostream &out, size_t level)
+                         const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, std::ostream &out, size_t level)
 {
   auto& opr_data = vertex.getData(operatorId)->data[level];
   auto& src = vertex.getData(srcId)->data[level];

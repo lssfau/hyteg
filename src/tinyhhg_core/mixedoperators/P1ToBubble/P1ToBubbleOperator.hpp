@@ -29,7 +29,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class P1ToBubbleOperator : public Operator<P1Function, BubbleFunction>
+class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
 {
  public:
   P1ToBubbleOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -71,7 +71,7 @@ class P1ToBubbleOperator : public Operator<P1Function, BubbleFunction>
   {
   }
 
-  void apply_impl(P1Function& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function< real_t > & src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -83,17 +83,19 @@ class P1ToBubbleOperator : public Operator<P1Function, BubbleFunction>
     }
   }
 
-  void save_impl(P1Function& src, BubbleFunction& dst, std::ostream& out, size_t level, DoFType flag)
+#ifdef HHG_BUILD_WITH_PETSC
+  void createMatrix_impl(P1Function< real_t >& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
   {
-    for (auto& it : storage_->getFaces()) {
+    /*for (auto& it : storage_->getFaces()) { //TODO: IMPLEMENT
       Face& face = *it.second;
 
       if (testFlag(face.type, flag))
       {
         P1ToBubbleFace::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
       }
-    }
+    }*/
   }
+#endif
 
  private:
   PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> faceStencilID_;

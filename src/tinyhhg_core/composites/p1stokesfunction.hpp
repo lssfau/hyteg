@@ -26,9 +26,9 @@ public:
 
   void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
   {
-    std::vector<P1Function*> functions_u;
-    std::vector<P1Function*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< real_t > * > functions_u;
+    std::vector< P1Function< real_t > * > functions_v;
+    std::vector< P1Function< real_t > * > functions_p;
 
     for (auto& function : functions)
     {
@@ -44,9 +44,9 @@ public:
 
   void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
   {
-    std::vector<P1Function*> functions_u;
-    std::vector<P1Function*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< real_t > * > functions_u;
+    std::vector< P1Function< real_t > * > functions_v;
+    std::vector< P1Function< real_t > * > functions_p;
 
     for (auto& function : functions)
     {
@@ -82,9 +82,9 @@ public:
     p.restrict(level, flag | DirichletBoundary);
   }
 
-  P1Function u;
-  P1Function v;
-  P1Function p;
+  P1Function< real_t > u;
+  P1Function< real_t > v;
+  P1Function< real_t > p;
 };
 
 }

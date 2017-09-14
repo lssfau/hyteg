@@ -46,5 +46,12 @@
 #include "communication/PackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
+#include "petsc/PETScManager.hpp"
+#include "petsc/PETScSparseMatrix.hpp"
+#include "petsc/PETScVector.hpp"
+#include "petsc/PETScLUSolver.hpp"
+#include "petsc/PETScPreconditioner.hpp"
+
+#include "FunctionTraits.hpp"
 
 #endif /* TINYHHG_HPP */

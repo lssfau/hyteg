@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   hhg::P1StokesFunction u("u", storage, minLevel, maxLevel);
   hhg::P1StokesFunction u_exact("u_exact", storage, minLevel, maxLevel);
   hhg::P1StokesFunction err("err", storage, minLevel, maxLevel);
-  hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1BlockLaplaceOperator L(storage, minLevel, maxLevel);
 

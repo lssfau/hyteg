@@ -84,6 +84,6 @@ int main(int argc, char* argv[])
 //  }
 //  std::cout << "=======================================" << std::endl;
 
-  hhg::VTKWriter<hhg::P1Function>({ &u.u.p1, &u.v.p1, &u.p }, maxLevel, "../output", "stokes_mini_test");
+  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u.p1, &u.v.p1, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
 }

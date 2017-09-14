@@ -87,13 +87,13 @@ int main(int argc, char* argv[])
   real_t coarse_tolerance = 1e-6;
   real_t mg_tolerance = 1e-8;
 
-  hhg::P1Function r("r", storage, minLevel, maxLevel);
-  hhg::P1Function b("b", storage, minLevel, maxLevel);
-  hhg::P1Function x("x", storage, minLevel, maxLevel);
-  hhg::P1Function x_exact("x_exact", storage, minLevel, maxLevel);
-  hhg::P1Function ax("ax", storage, minLevel, maxLevel);
-  hhg::P1Function tmp("tmp", storage, minLevel, maxLevel);
-  hhg::P1Function err("err", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > b("b", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > x_exact("x_exact", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > ax("ax", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > tmp("tmp", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   tmp.interpolate(ones, maxLevel);
   real_t npoints = tmp.dot(tmp, maxLevel);
 
-  auto csolver = hhg::CGSolver<hhg::P1Function, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
+  auto csolver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_CHECK_LESS( i, outer );
 
-  hhg::VTKWriter< hhg::P1Function >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
+  hhg::VTKWriter< hhg::P1Function< real_t > >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;
 }
