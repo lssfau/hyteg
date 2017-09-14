@@ -44,7 +44,8 @@ constexpr std::array<DirVertex,6> neighbors =
 template<size_t Level>
 constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  //the check can be reinserted if walberla supports constexpr
+  //WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
   switch (dir) {
@@ -63,8 +64,8 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
     case VERTEX_NW:
       return center + vertexBaseLength - row - 1;
   }
-
-  WALBERLA_ASSERT(false, "wrong dir");
+  //the check can be reinserted if walberla supports constexpr
+  //WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 }//namespace CoordsVertex
