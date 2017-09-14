@@ -42,11 +42,6 @@ int main(int argc, char* argv[])
   walberla::mpi::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  WALBERLA_CHECK_EQUAL(CoordsVertex::neighbors_with_center.size(),7);
-  WALBERLA_CHECK_EQUAL(CoordsVertex::neighbors.size(),6);
-  WALBERLA_CHECK_EQUAL(CoordsCellBlue::neighbors.size(),3);
-  WALBERLA_CHECK_EQUAL(CoordsCellGray::neighbors.size(),3);
-
   /// CHECK VERTEX INDEXING ///
   std::vector<size_t> refOneOne = {10,1,2,11,18,17,9};
   checkIndices(1,1,refOneOne,0);
