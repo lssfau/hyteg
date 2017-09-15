@@ -11,7 +11,7 @@ namespace BubbleFace
 
 using walberla::uint_t;
 
-namespace CoordsVertex {
+namespace FaceCoordsVertex {
 enum DirVertex : uint_t {
   CELL_GRAY_SE = 0,
   CELL_GRAY_NW = 1,
@@ -55,9 +55,9 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
   }
 
 }
-}//namespace CoordsVertex
+}//namespace FaceCoordsVertex
 
-namespace CoordsCellGray {
+namespace FaceCoordsCellGray {
 enum Dir {
     CELL_GRAY_C = 0
 };
@@ -67,16 +67,16 @@ inline size_t index(size_t col, size_t row, Dir dir) {
   using namespace hhg::BubbleFace;
   if(dir == CELL_GRAY_C)
   {
-    return CoordsVertex::index<Level>(col, row, CoordsVertex::CELL_GRAY_NE);
+    return FaceCoordsVertex::index<Level>(col, row, FaceCoordsVertex::CELL_GRAY_NE);
   }
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 
 
-}//namesapce CoordsCellGray
+}//namesapce FaceCoordsCellGray
 
-namespace CoordsCellBlue {
+namespace FaceCoordsCellBlue {
 enum Dir {
     CELL_BLUE_C = 0
 };
@@ -86,13 +86,13 @@ inline size_t index(size_t col, size_t row, Dir dir) {
   using namespace hhg::BubbleFace;
   if(dir == CELL_BLUE_C)
   {
-    return CoordsVertex::index<Level>(col + 1, row + 1, CoordsVertex::CELL_BLUE_SW);
+    return FaceCoordsVertex::index<Level>(col + 1, row + 1, FaceCoordsVertex::CELL_BLUE_SW);
   }
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 
-}//namespace CoordsCellBlue
+}//namespace FaceCoordsCellBlue
 
 
 enum DofType {

@@ -9,21 +9,21 @@ void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
   switch(type){
     //vertex
     case 0:
-      for(auto n : CoordsVertex::neighbors_with_center)
+      for(auto n : FaceCoordsVertex::neighbors_with_center)
       {
-        result.push_back(CoordsVertex::index<3>(col, row, n));
+        result.push_back(FaceCoordsVertex::index<3>(col, row, n));
       }
       break;
     case 1:
-      for(auto n : CoordsCellGray::neighbors)
+      for(auto n : FaceCoordsCellGray::neighbors)
       {
-        result.push_back(CoordsCellGray::index<3>(col, row, n));
+        result.push_back(FaceCoordsCellGray::index<3>(col, row, n));
       }
       break;
     case 2:
-      for(auto n : CoordsCellBlue::neighbors)
+      for(auto n : FaceCoordsCellBlue::neighbors)
       {
-        result.push_back(CoordsCellBlue::index<3>(col, row, n));
+        result.push_back(FaceCoordsCellBlue::index<3>(col, row, n));
       }
       break;
     default:

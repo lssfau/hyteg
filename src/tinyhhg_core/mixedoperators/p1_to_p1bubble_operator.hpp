@@ -251,7 +251,7 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
         continue;
       }
 
-//      tmp = face_gray_stencil[P1BubbleFace::CoordsCellGray::CELL_GRAY_C] * src[P1BubbleFace::CoordsCellGray::index<Level>(i, j, P1BubbleFace::CoordsCellGray::CELL_GRAY_C)];
+//      tmp = face_gray_stencil[P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C] * src[P1BubbleFace::FaceCoordsCellGray::index<Level>(i, j, P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)];
       tmp = 0.0;
 
       for (auto neighbor : P1BubbleFace::CoordsCellGray::neighbors)
@@ -274,7 +274,7 @@ inline void apply_tmpl(Face& face, size_t opr_id, size_t src_id, size_t dst_id, 
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-//      tmp = face_blue_stencil[P1BubbleFace::CoordsCellBlue::CELL_BLUE_C] * src[P1BubbleFace::CoordsCellBlue::index<Level>(i, j, P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)];
+//      tmp = face_blue_stencil[P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C] * src[P1BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)];
       tmp = 0.0;
 
       for (auto neighbor : P1BubbleFace::CoordsCellBlue::neighbors)
@@ -313,11 +313,11 @@ inline void saveOperator_tmpl(Face& face, Mat &mat, size_t opr_id, size_t src_id
   {
     for (size_t j = 1; j  < inner_rowsize - 2; ++j)
     {
-      out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], src[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_C]);
+      out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::FaceCoordsVertex::index<Level>(i, j, P1BubbleFace::FaceCoordsVertex::VERTEX_C)], src[P1BubbleFace::FaceCoordsVertex::index<Level>(i, j, P1BubbleFace::FaceCoordsVertex::VERTEX_C)], face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_C]);
 
-      for (auto neighbor : P1BubbleFace::CoordsVertex::neighbors_vertex)
+      for (auto neighbor : P1BubbleFace::FaceCoordsVertex::neighbors_vertex)
       {
-        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsVertex::index<Level>(i, j, P1BubbleFace::CoordsVertex::VERTEX_C)], src[P1BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)], face_vertex_stencil[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::FaceCoordsVertex::index<Level>(i, j, P1BubbleFace::FaceCoordsVertex::VERTEX_C)], src[P1BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)], face_vertex_stencil[neighbor]);
       }
     }
     --inner_rowsize;
@@ -334,9 +334,9 @@ inline void saveOperator_tmpl(Face& face, Mat &mat, size_t opr_id, size_t src_id
         continue;
       }
 
-      for (auto neighbor : P1BubbleFace::CoordsCellGray::neighbors)
+      for (auto neighbor : P1BubbleFace::FaceCoordsCellGray::neighbors)
       {
-        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsCellGray::index<Level>(i, j, P1BubbleFace::CoordsCellGray::CELL_GRAY_C)], src[P1BubbleFace::CoordsCellGray::index<Level>(i, j, neighbor)], face_gray_stencil[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::FaceCoordsCellGray::index<Level>(i, j, P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)], src[P1BubbleFace::FaceCoordsCellGray::index<Level>(i, j, neighbor)], face_gray_stencil[neighbor]);
       }
     }
     --inner_rowsize;
@@ -348,9 +348,9 @@ inline void saveOperator_tmpl(Face& face, Mat &mat, size_t opr_id, size_t src_id
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      for (auto neighbor : P1BubbleFace::CoordsCellBlue::neighbors)
+      for (auto neighbor : P1BubbleFace::FaceCoordsCellBlue::neighbors)
       {
-        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::CoordsCellBlue::index<Level>(i, j, P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)], src[P1BubbleFace::CoordsCellBlue::index<Level>(i, j, neighbor)], face_blue_stencil[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst[P1BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)], src[P1BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, neighbor)], face_blue_stencil[neighbor]);
       }
     }
     --inner_rowsize;
@@ -446,34 +446,34 @@ public:
         P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_up, P1Bubble::GRAY);
         P1Bubble::compute_local_stiffness<UFCOperator>(face, level, local_stiffness_down, P1Bubble::BLUE);
 
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_S] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_SE] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_W] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_S] = local_stiffness_down[0][2] + local_stiffness_up[2][0];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_SE] = local_stiffness_down[1][2] + local_stiffness_up[2][1];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_W] = local_stiffness_down[0][1] + local_stiffness_up[1][0];
 
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_E] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_NW] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_N] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_E] = local_stiffness_down[1][0] + local_stiffness_up[0][1];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_NW] = local_stiffness_down[2][1] + local_stiffness_up[1][2];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_N] = local_stiffness_down[2][0] + local_stiffness_up[0][2];
 
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::VERTEX_C] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::VERTEX_C] = local_stiffness_up[0][0] + local_stiffness_up[1][1] + local_stiffness_up[2][2]
                             + local_stiffness_down[0][0] + local_stiffness_down[1][1] + local_stiffness_down[2][2];
 
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_GRAY_SE] = local_stiffness_up[2][3];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_GRAY_NW] = local_stiffness_up[1][3];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_GRAY_NE] = local_stiffness_up[0][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_GRAY_SE] = local_stiffness_up[2][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_GRAY_NW] = local_stiffness_up[1][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_GRAY_NE] = local_stiffness_up[0][3];
 
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_BLUE_SW] = local_stiffness_down[0][3];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_BLUE_SE] = local_stiffness_down[1][3];
-        face_vertex_stencil[P1BubbleFace::CoordsVertex::CELL_BLUE_NW] = local_stiffness_down[2][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_BLUE_SW] = local_stiffness_down[0][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_BLUE_SE] = local_stiffness_down[1][3];
+        face_vertex_stencil[P1BubbleFace::FaceCoordsVertex::CELL_BLUE_NW] = local_stiffness_down[2][3];
 
-        face_gray_stencil[P1BubbleFace::CoordsCellGray::VERTEX_SW] = local_stiffness_up[3][0];
-        face_gray_stencil[P1BubbleFace::CoordsCellGray::VERTEX_SE] = local_stiffness_up[3][1];
-        face_gray_stencil[P1BubbleFace::CoordsCellGray::VERTEX_NW] = local_stiffness_up[3][2];
-        face_gray_stencil[P1BubbleFace::CoordsCellGray::CELL_GRAY_C] = local_stiffness_up[3][3];
+        face_gray_stencil[P1BubbleFace::FaceCoordsCellGray::VERTEX_SW] = local_stiffness_up[3][0];
+        face_gray_stencil[P1BubbleFace::FaceCoordsCellGray::VERTEX_SE] = local_stiffness_up[3][1];
+        face_gray_stencil[P1BubbleFace::FaceCoordsCellGray::VERTEX_NW] = local_stiffness_up[3][2];
+        face_gray_stencil[P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C] = local_stiffness_up[3][3];
 
-        face_blue_stencil[P1BubbleFace::CoordsCellBlue::VERTEX_SE] = local_stiffness_down[3][2];
-        face_blue_stencil[P1BubbleFace::CoordsCellBlue::VERTEX_NW] = local_stiffness_down[3][1];
-        face_blue_stencil[P1BubbleFace::CoordsCellBlue::VERTEX_NE] = local_stiffness_down[3][0];
-        face_blue_stencil[P1BubbleFace::CoordsCellBlue::CELL_BLUE_C] = local_stiffness_down[3][3];
+        face_blue_stencil[P1BubbleFace::FaceCoordsCellBlue::VERTEX_SE] = local_stiffness_down[3][2];
+        face_blue_stencil[P1BubbleFace::FaceCoordsCellBlue::VERTEX_NW] = local_stiffness_down[3][1];
+        face_blue_stencil[P1BubbleFace::FaceCoordsCellBlue::VERTEX_NE] = local_stiffness_down[3][0];
+        face_blue_stencil[P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C] = local_stiffness_down[3][3];
       }
 
       for (Edge& edge : mesh.edges)

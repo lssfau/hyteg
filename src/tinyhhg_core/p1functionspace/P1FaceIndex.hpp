@@ -15,7 +15,7 @@ namespace P1Face
 
 using walberla::uint_t;
 /// contains stencil directions and index functions for vertices in a P1-Function
-namespace CoordsVertex {
+namespace FaceCoordsVertex {
 /// possible stencil directions
 enum DirVertex {
   VERTEX_S  = 0,
@@ -68,10 +68,10 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
   //WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
-}//namespace CoordsVertex
+}//namespace FaceCoordsVertex
 /// contains stencil directions and index functions for gray cells in a P1-Function
 /// see documentation for description of gray and blue cells
-namespace CoordsCellGray {
+namespace FaceCoordsCellGray {
 enum DirVertex {
   VERTEX_SW = 0,
   VERTEX_SE = 1,
@@ -87,25 +87,25 @@ constexpr std::array<DirVertex,3> neighbors = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
 /// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
-  //typedef hhg::P1Face::CoordsVertex CoordsVertex;
+  //typedef hhg::P1Face::FaceCoordsVertex FaceCoordsVertex;
 
   switch(dir){
     case VERTEX_SW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_C);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_C);
     case VERTEX_SE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_E);
     case VERTEX_NW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_N);
   }
 
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
-} //namespace CoordsCellGray
+} //namespace FaceCoordsCellGray
 
 /// contains stencil directions and index functions for blue cells in a P1-Function
 /// see documentation for description of gray and blue cells
-namespace CoordsCellBlue {
+namespace FaceCoordsCellBlue {
 /// possible stencil directions
 enum DirVertex {
   VERTEX_SE = 0,
@@ -125,17 +125,17 @@ template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   switch(dir){
     case VERTEX_SE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_E);
     case VERTEX_NW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_N);
     case VERTEX_NE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::CoordsVertex::VERTEX_C);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::FaceCoordsVertex::VERTEX_C);
   }
 
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
-} //namespace CoordsCellBlue
+} //namespace FaceCoordsCellBlue
 
 enum DofType {
   VERTEX = 0,
