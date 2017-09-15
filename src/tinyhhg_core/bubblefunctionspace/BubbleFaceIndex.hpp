@@ -21,14 +21,14 @@ enum DirVertex {
   CELL_BLUE_NW = 5
 };
 
-const DirVertex neighbors[] =
-    {CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-     CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW};
+constexpr std::array<DirVertex,6> neighbors =
+  {{CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
+   CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW}};
 
 template<size_t Level>
-inline size_t index(size_t col, size_t row, DirVertex dir) {
+constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  //WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t blueBaseLength = vertexBaseLength -2;
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
@@ -50,7 +50,7 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
     case CELL_BLUE_SW:
       return cellBlueNW - (blueBaseLength - row) -1;
     default:
-      WALBERLA_ASSERT(false, "wrong dir");
+    //WALBERLA_ASSERT(false, "wrong dir");
       return std::numeric_limits<size_t>::max();
   }
 

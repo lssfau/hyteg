@@ -1,5 +1,7 @@
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
 
 typedef size_t uint_t;
 
@@ -27,7 +29,9 @@ constexpr size_t sumIndicesEdge(const uint_t x){
 int main() {
   std::vector<size_t> refOneOne = {10, 1, 2, 11, 18, 17, 9};
 
+  static_assert(hhg::BubbleFace::CoordsVertex::index<3>(1,1,hhg::BubbleFace::CoordsVertex::CELL_GRAY_SE)==4,"BubbleFace Index failed");
 
+  static_assert(hhg::BubbleEdge::CoordsVertex::index<3>(1,1,hhg::BubbleEdge::CoordsVertex::CELL_GRAY_SE)==4,"BubbleFace Index failed");
 
   static_assert(hhg::P1Edge::EdgeCoordsVertex::index<3>(4,hhg::P1Edge::EdgeCoordsVertex::VERTEX_SE)==13,"P1Edge Index failed");
   static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
