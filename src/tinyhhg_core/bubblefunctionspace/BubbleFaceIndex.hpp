@@ -12,7 +12,7 @@ namespace BubbleFace
 using walberla::uint_t;
 
 namespace CoordsVertex {
-enum DirVertex {
+enum DirVertex : uint_t {
   CELL_GRAY_SE = 0,
   CELL_GRAY_NW = 1,
   CELL_GRAY_NE = 2,

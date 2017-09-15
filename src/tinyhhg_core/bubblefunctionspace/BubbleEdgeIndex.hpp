@@ -19,15 +19,15 @@ enum DirVertex {
   CELL_GRAY_NE = 5
 };
 
-const DirVertex neighbors[] =
-    {CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW, CELL_GRAY_SW,
-     CELL_BLUE_SE, CELL_BLUE_NW};
+constexpr std::array<DirVertex,6> neighbors =
+  {{CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW, CELL_GRAY_SW,
+    CELL_BLUE_SE, CELL_BLUE_NW}};
 
-const DirVertex neighbors_south[] =
-    {CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE};
+constexpr std::array<DirVertex,3> neighbors_south =
+  {{CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE}};
 
-const DirVertex neighbors_north[] =
-    {CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE};
+constexpr std::array<DirVertex,3> neighbors_north =
+  {{CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE}};
 
 //first face is south face by convention
 
