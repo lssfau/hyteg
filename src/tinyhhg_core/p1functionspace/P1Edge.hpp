@@ -11,6 +11,20 @@ namespace hhg {
 
 namespace P1Edge {
 
+template<typename ValueType, uint_t Level>
+inline ValueType assembleLocal(uint_t pos, const Matrix3f& localMatrix, DirVertex[3] vertices)
+{
+  using namespace EdgeCoordsVertex;
+
+  ValueType meanCoef = 1.0/3.0 * (coeff[index<Level>(pos, vertices[0])]
+                                + coeff[index<Level>(pos, vertices[1])]
+                                + coeff[index<Level>(pos, vertices[2])]);
+
+  tmp += meanCoeff * localMatrix(0,0) * src[index<Level>(pos, vertices[0])];
+  tmp += meanCoeff * localMatrix(0,1) * src[index<Level>(pos, vertices[1])];
+  tmp += meanCoeff * localMatrix(0,2) * src[index<Level>(pos, vertices[2])];
+}
+
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Edge &edge,
                         const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &edgeMemoryId,
@@ -136,6 +150,56 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, applyTmpl, apply )
+
+template< typename ValueType, uint_t Level >
+inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> &operatorId,
+                                 const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
+                                 const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
+                                 const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &coeffId,
+                                 UpdateType update) {
+  using namespace EdgeCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto &localMatrices = edge.getData(operatorId)->data[Level];
+  auto &src = edge.getData(srcId)->data[Level];
+  auto &dst = edge.getData(dstId)->data[Level];
+  auto &coeff = edge.getData(coeffId)->data[Level];
+
+  ValueType tmp;
+  ValueType meanCoefficient;
+
+  DirVertex triangleGraySW[] = { VERTEX_C, VERTEX_W,  VERTEX_S  };
+  DirVertex triangleBlueS[]  = { VERTEX_C, VERTEX_S,  VERTEX_SE };
+  DirVertex triangleGraySE[] = { VERTEX_C, VERTEX_SE, VERTEX_E  };
+  DirVertex triangleGrayNW[] = { VERTEX_C, VERTEX_W,  VERTEX_NW };
+  DirVertex triangleBlueN[]  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
+  DirVertex triangleGrayNE[] = { VERTEX_C, VERTEX_N,  VERTEX_E  };
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    if (update == Replace) {
+      tmp = ValueType(0);
+    }
+    else {
+      tmp = dst[index<Level>(i, VERTEX_C)];
+    }
+
+    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySW);
+    tmp += assembleLocal(i, localMatrices[0].getBlueMatrix(), src, coeff, triangleBlueS);
+    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySE);
+
+    if (edge.getNumNeighborFaces() == 2) {
+      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNW);
+      tmp += assembleLocal(i, localMatrices[1].getBlueMatrix(), src, coeff, triangleBlueN);
+      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNE);
+    }
+
+    dst[index<Level>(i, VERTEX_C)] = tmp;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, applyCoefficientTmpl, applyCoefficient )
 
 template< typename ValueType, uint_t Level >
 inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
