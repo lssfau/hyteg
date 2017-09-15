@@ -6,6 +6,10 @@
 #ifdef HHG_BUILD_WITH_PETSC
 
 #include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubblePetsc.hpp"
+
+#include "tinyhhg_core/composites/P1BubbleFunctionSpace/P1BubblePetsc.hpp"
+#include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
 
 namespace hhg {
 

@@ -83,19 +83,7 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction<
     }
   }
 
-#ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function< real_t >& src, BubbleFunction< real_t > & dst, Mat &mat, size_t level, DoFType flag)
-  {
-    /*for (auto& it : storage_->getFaces()) { //TODO: IMPLEMENT
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        P1ToBubbleFace::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
-      }
-    }*/
-  }
-#endif
+  const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
 
  private:
   PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> faceStencilID_;
