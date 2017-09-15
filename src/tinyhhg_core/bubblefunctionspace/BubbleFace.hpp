@@ -8,11 +8,11 @@
 namespace hhg {
 namespace BubbleFace {
 
-template<size_t Level>
+template< typename ValueType, size_t Level >
 inline void assign_tmpl(Face &face,
-                        const std::vector<real_t> &scalars,
-                        const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face>> &srcIds,
-                        const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId) {
+                        const std::vector<ValueType> &scalars,
+                        const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
+                        const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -20,7 +20,7 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      real_t tmp = scalars[0] * face.getData(srcIds[0])->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->data[Level][CoordsCellGray::index<Level>(i, j, CoordsCellGray::CELL_GRAY_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
@@ -37,7 +37,7 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      real_t tmp = scalars[0] * face.getData(srcIds[0])->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->data[Level][CoordsCellBlue::index<Level>(i, j, CoordsCellBlue::CELL_BLUE_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
@@ -49,13 +49,13 @@ inline void assign_tmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, assign_tmpl, assign)
+SPECIALIZE_WITH_VALUETYPE(void, assign_tmpl, assign)
 
-template<size_t Level>
+template< typename ValueType, size_t Level >
 inline void add_tmpl(Face &face,
-                     const std::vector<real_t> &scalars,
-                     const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face>> &srcIds,
-                     const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId) {
+                     const std::vector<ValueType> &scalars,
+                     const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
+                     const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -63,7 +63,7 @@ inline void add_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      real_t tmp = 0.0;
+      ValueType tmp = 0.0;
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
@@ -80,7 +80,7 @@ inline void add_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      real_t tmp = 0.0;
+      ValueType tmp = 0.0;
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
@@ -92,12 +92,12 @@ inline void add_tmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, add_tmpl, add)
+SPECIALIZE_WITH_VALUETYPE(void, add_tmpl, add)
 
-template<size_t Level>
+template< typename ValueType, size_t Level >
 inline real_t dot_tmpl(Face &face,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &lhsId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &rhsId) {
+                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &lhsId,
+                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &rhsId) {
   real_t sp = 0.0;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -126,12 +126,12 @@ inline real_t dot_tmpl(Face &face,
   return sp;
 }
 
-SPECIALIZE(real_t, dot_tmpl, dot)
+SPECIALIZE_WITH_VALUETYPE(real_t, dot_tmpl, dot)
 
-template<size_t Level>
+template< typename ValueType, size_t Level >
 inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, UpdateType update)
+                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, UpdateType update)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -144,7 +144,7 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   auto& src = face.getData(srcId)->data[Level];
   auto& dst = face.getData(dstId)->data[Level];
 
-  real_t tmp;
+  ValueType tmp;
 
   for (size_t i = 0; i < rowsize - 1; ++i)
   {
@@ -179,10 +179,10 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
+SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
 
-template<size_t Level>
-inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, uint_t& num) {
+template< typename ValueType, size_t Level >
+inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, uint_t& num) {
   using walberla::real_c;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -208,12 +208,12 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   }
 }
 
-SPECIALIZE(void, enumerate_tmpl, enumerate)
+SPECIALIZE_WITH_VALUETYPE(void, enumerate_tmpl, enumerate)
 
-template<size_t Level>
+template< typename ValueType, size_t Level >
 inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, std::ostream& out)
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, std::ostream& out)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -226,7 +226,7 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   auto& src = face.getData(srcId)->data[Level];
   auto& dst = face.getData(dstId)->data[Level];
 
-  real_t tmp;
+  ValueType tmp;
 
   for (size_t i = 0; i < rowsize - 1; ++i)
   {
@@ -253,12 +253,12 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   }
 }
 
-SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
 
-template<size_t Level>
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId){
+template< typename ValueType, size_t Level >
+inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
   using namespace std;
-  real_t* faceMemory = face.getData(dstId)->data[Level].get();
+  ValueType* faceMemory = face.getData(dstId)->data[Level].get();
   uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
   cout << setfill('=') << setw(100) << "" << endl;
   cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;

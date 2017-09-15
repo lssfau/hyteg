@@ -21,7 +21,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hhg::BubbleFunction x("x", storage, minLevel, maxLevel);
+  hhg::BubbleFunction< real_t > x("x", storage, minLevel, maxLevel);
 
   size_t num = 1;
   x.enumerate(maxLevel,num);
