@@ -669,20 +669,20 @@ clang-4.0_Hybrid_Dbg_BufferDebug:
 gcc-6_PETSc_Hybrid:
    <<: *build_petsc_hybrid_definition
    image: walberla/buildenv-ubuntu-gcc:6
-   only:
-      - schedules
+ #  only:
+ #     - schedules
 
 clang-4.0_PETSc_Hybrid:
    <<: *build_petsc_hybrid_definition
    image: walberla/buildenv-ubuntu-clang:4.0
-   only:
-      - schedules
+ #  only:
+ #     - schedules
 
 intel-17_PETSc_Hybrid:
    <<: *build_petsc_hybrid_definition
    image: i10git.cs.fau.de:5005/administration/buildenv-intel:2017
-   only:
-      - schedules
+#   only:
+#      - schedules
    tags:
       - docker
       - intel
