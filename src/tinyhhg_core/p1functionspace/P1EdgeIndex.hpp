@@ -23,28 +23,29 @@ enum DirVertex {
   VERTEX_N  = 6
 };
 
-const DirVertex neighbors_with_center[] =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+constexpr std::array<DirVertex,7> neighbors_with_center =
+  {{VERTEX_C,
+    VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
-const DirVertex neighbors[] =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+constexpr std::array<DirVertex,6> neighbors =
+  {{VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
-const DirVertex neighbors_on_edge[] =
-    {VERTEX_E, VERTEX_W};
+constexpr std::array<DirVertex,2> neighbors_on_edge =
+  {{VERTEX_E, VERTEX_W}};
 
-const DirVertex neighbors_south[] =
-    {VERTEX_S, VERTEX_SE};
+constexpr std::array<DirVertex,2> neighbors_south =
+  {{VERTEX_S, VERTEX_SE}};
 
-const DirVertex neighbors_north[] =
-    {VERTEX_N, VERTEX_NW};
+constexpr std::array<DirVertex,2> neighbors_north =
+  {{VERTEX_N, VERTEX_NW}};
 
 //first face is south face by convention
 
 template<uint_t Level>
-inline uint_t index(uint_t pos, DirVertex dir) {
+constexpr inline uint_t index(uint_t pos, DirVertex dir) {
   const uint_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  //the check can be reinserted if walberla supports constexpr
+  //WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const uint_t startFaceS = vertexOnEdge;
   const uint_t startFaceN = vertexOnEdge + vertexOnEdge - 1;
   const uint_t center = pos;
@@ -64,8 +65,8 @@ inline uint_t index(uint_t pos, DirVertex dir) {
     case VERTEX_W:
       return center - 1;
   }
-
-  WALBERLA_ASSERT(false, "wrong dir");
+  //the check can be reinserted if walberla supports constexpr
+  //WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<uint_t>::max();
 }
 

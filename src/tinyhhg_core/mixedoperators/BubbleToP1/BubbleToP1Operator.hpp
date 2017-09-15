@@ -59,13 +59,13 @@ class BubbleToP1Operator : public Operator< BubbleFunction< real_t >, P1Function
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
 
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
       }
 
       // assemble edge stencil

@@ -19,7 +19,7 @@ template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
                             std::function<ValueType(const hhg::Point3D &)> &expr) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
 
@@ -53,7 +53,7 @@ inline void assignTmpl(Face &face,
                    const std::vector<ValueType>& scalars,
                    const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
                    const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -78,7 +78,7 @@ inline void addTmpl(Face &face,
                 const std::vector<ValueType>& scalars,
                 const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -104,7 +104,7 @@ template< typename ValueType, uint_t Level >
 inline real_t dotTmpl(Face &face,
                   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& lhsId,
                   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& rhsId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   real_t sp = 0.0;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -127,7 +127,7 @@ template< typename ValueType, uint_t Level >
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -162,7 +162,7 @@ template< typename ValueType, uint_t Level >
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -194,7 +194,7 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &tmpId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -224,7 +224,7 @@ SPECIALIZE_WITH_VALUETYPE(void, smooth_jac_tmpl, smooth_jac)
 
 template< typename ValueType, uint_t Level >
 inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
@@ -255,7 +255,7 @@ SPECIALIZE_WITH_VALUETYPE(void, prolongate_tmpl, prolongate)
 
 template< typename ValueType, uint_t Level >
 inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
@@ -344,7 +344,7 @@ SPECIALIZE_WITH_VALUETYPE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template< typename ValueType, uint_t Level >
 inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &memoryId) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   uint_t N_c_i = N_c;
@@ -410,7 +410,7 @@ template< uint_t Level >
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -445,7 +445,7 @@ inline void createVectorFromFunctionTmpl(Face &face,
                               const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                               Vec& vec) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -472,7 +472,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
                                          const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                          const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                                          Vec& vec) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;

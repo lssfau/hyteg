@@ -26,14 +26,14 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
       tmp = 0.0;
 
-      for (auto neighbor : BubbleFace::CoordsVertex::neighbors) {
-        tmp += opr_data[neighbor]*src[BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)];
+      for (auto neighbor : BubbleFace::FaceCoordsVertex::neighbors) {
+        tmp += opr_data[neighbor]*src[BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)];
       }
 
       if (update==Replace) {
-        dst[P1Face::CoordsVertex::index<Level>(i, j, P1Face::CoordsVertex::VERTEX_C)] = tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[P1Face::CoordsVertex::index<Level>(i, j, P1Face::CoordsVertex::VERTEX_C)] += tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -56,10 +56,10 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-      uint_t dst_id = dst[P1Face::CoordsVertex::index<Level>(i, j, P1Face::CoordsVertex::VERTEX_C)];
+      uint_t dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)];
 
-      for (auto neighbor : BubbleFace::CoordsVertex::neighbors) {
-        out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleFace::CoordsVertex::index<Level>(i, j, neighbor)], opr_data[neighbor]);
+      for (auto neighbor : BubbleFace::FaceCoordsVertex::neighbors) {
+        out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)], opr_data[neighbor]);
       }
     }
     --inner_rowsize;

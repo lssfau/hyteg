@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 //  std::cout << "Face 0 Cell Gray: " << std::endl;
 //  for (size_t i = 0; i < v_perEdge-1; ++i) {
 //    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
-//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)]);
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::FaceCoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)]);
 //    }
 //    std::cout << std::endl;
 //  }
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 //  std::cout << "Face 0 Cell Blue: " << std::endl;
 //  for (size_t i = 0; i < v_perEdge-2; ++i) {
 //    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
-//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::FaceCoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)]);
 //    }
 //    std::cout << std::endl;
 //  }

@@ -31,15 +31,15 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
     {
       tmp = 0.0;
 
-      for (auto neighbor : P1Face::CoordsCellGray::neighbors)
+      for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
       {
-        tmp += face_gray_stencil[neighbor] * src[P1Face::CoordsCellGray::index<Level>(i, j, neighbor)];
+        tmp += face_gray_stencil[neighbor] * src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)];
       }
 
       if (update == Replace) {
-        dst[BubbleFace::CoordsCellGray::index<Level>(i, j, BubbleFace::CoordsCellGray::CELL_GRAY_C)] = tmp;
+        dst[BubbleFace::FaceCoordsCellGray::index<Level>(i, j, BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::CoordsCellGray::index<Level>(i, j, BubbleFace::CoordsCellGray::CELL_GRAY_C)] += tmp;
+        dst[BubbleFace::FaceCoordsCellGray::index<Level>(i, j, BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -53,15 +53,15 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
     {
       tmp = 0.0;
 
-      for (auto neighbor : P1Face::CoordsCellBlue::neighbors)
+      for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
       {
-        tmp += face_blue_stencil[neighbor] * src[P1Face::CoordsCellBlue::index<Level>(i, j, neighbor)];
+        tmp += face_blue_stencil[neighbor] * src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)];
       }
 
       if (update == Replace) {
-        dst[BubbleFace::CoordsCellBlue::index<Level>(i, j, BubbleFace::CoordsCellBlue::CELL_BLUE_C)] = tmp;
+        dst[BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::CoordsCellBlue::index<Level>(i, j, BubbleFace::CoordsCellBlue::CELL_BLUE_C)] += tmp;
+        dst[BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -88,11 +88,11 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      uint_t dst_id = dst[BubbleFace::CoordsCellGray::index<Level>(i, j, BubbleFace::CoordsCellGray::CELL_GRAY_C)];
+      uint_t dst_id = dst[BubbleFace::FaceCoordsCellGray::index<Level>(i, j, BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)];
 
-      for (auto neighbor : P1Face::CoordsCellGray::neighbors)
+      for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
       {
-        out << fmt::format("{}\t{}\t{}\n", dst_id, src[P1Face::CoordsCellGray::index<Level>(i, j, neighbor)], face_gray_stencil[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst_id, src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)], face_gray_stencil[neighbor]);
       }
     }
     --inner_rowsize;
@@ -104,11 +104,11 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      uint_t dst_id = dst[BubbleFace::CoordsCellBlue::index<Level>(i, j, BubbleFace::CoordsCellBlue::CELL_BLUE_C)];
+      uint_t dst_id = dst[BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)];
 
-      for (auto neighbor : P1Face::CoordsCellBlue::neighbors)
+      for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
       {
-        out << fmt::format("{}\t{}\t{}\n", dst_id, src[P1Face::CoordsCellBlue::index<Level>(i, j, neighbor)], face_blue_stencil[neighbor]);
+        out << fmt::format("{}\t{}\t{}\n", dst_id, src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)], face_blue_stencil[neighbor]);
       }
     }
     --inner_rowsize;
