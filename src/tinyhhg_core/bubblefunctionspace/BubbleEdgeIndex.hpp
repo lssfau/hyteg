@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tinyhhg_core/macros.hpp"
+#include "tinyhhg_core/primitives/edge.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleMemory.hpp"
 
 namespace hhg{
 namespace BubbleEdge{
@@ -30,9 +32,9 @@ const DirVertex neighbors_north[] =
 //first face is south face by convention
 
 template<size_t Level>
-inline size_t index(size_t pos, DirVertex dir) {
+constexpr inline size_t index(size_t pos, DirVertex dir) {
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  //WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {
@@ -49,7 +51,7 @@ inline size_t index(size_t pos, DirVertex dir) {
     case CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      WALBERLA_ASSERT(false, "wrong dir");
+      //WALBERLA_ASSERT(false, "wrong dir");
       return std::numeric_limits<size_t>::max();
   }
 
