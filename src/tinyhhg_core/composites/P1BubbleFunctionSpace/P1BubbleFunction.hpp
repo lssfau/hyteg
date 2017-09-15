@@ -6,6 +6,7 @@
 namespace hhg
 {
 
+template< typename ValueType >
 class P1BubbleFunction
 {
 public:
@@ -69,14 +70,16 @@ public:
     WALBERLA_ASSERT(false, "P1BubbleFunction::restrict is not implemented!");
   }
 
-  void enumerate(size_t level, uint_t& num)
+  uint_t enumerate(size_t level, uint_t& num)
   {
-    p1.enumerate(level, num);
-    b.enumerate(level, num);
+    uint_t localSize = 0;
+    localSize += p1.enumerate(level, num);
+    localSize += b.enumerate(level, num);
+    return localSize;
   }
 
-  P1Function< real_t > p1;
-  BubbleFunction< real_t > b;
+  P1Function<ValueType> p1;
+  BubbleFunction<ValueType> b;
 };
 
 }

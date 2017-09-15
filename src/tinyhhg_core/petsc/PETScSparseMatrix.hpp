@@ -6,6 +6,14 @@
 #ifdef HHG_BUILD_WITH_PETSC
 
 #include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubblePetsc.hpp"
+
+#include "tinyhhg_core/mixedoperators/P1ToBubble/P1ToBubblePetsc.hpp"
+#include "tinyhhg_core/mixedoperators/BubbleToP1/BubbleToP1Petsc.hpp"
+
+#include "tinyhhg_core/composites/P1BubbleFunctionSpace/P1BubblePetsc.hpp"
+#include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
+#include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
 
 namespace hhg {
 
@@ -24,7 +32,8 @@ public:
     MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
     // Usually, we have about 7 nz entries in each matrix row, except in macro-vertex rows.
     // Therefore, we can assume following preallocation for a huge performance gain.
-    MatMPIAIJSetPreallocation(mat, 7, NULL, 6, NULL);
+//    MatMPIAIJSetPreallocation(mat, 20, NULL, 20, NULL);
+    MatSetUp(mat);
     setName(name);
     reset();
   }
@@ -51,9 +60,9 @@ public:
     return true;
   }
 
-  inline void print(const char name[]) {
+  inline void print(const std::string& name) {
     PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD,name,&viewer);
+    PetscViewerASCIIOpen(PETSC_COMM_WORLD,name.c_str(),&viewer);
     PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB );
     //PetscViewerMatlabOpen(PETSC_COMM_WORLD,name,FILE_MODE_WRITE,&viewer);
     MatView(mat,viewer);

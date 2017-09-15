@@ -20,11 +20,11 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::MiniStokesFunction r("r", storage, minLevel, maxLevel);
-  hhg::MiniStokesFunction f("f", storage, minLevel, maxLevel);
-  hhg::MiniStokesFunction u("u", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> u("u", storage, minLevel, maxLevel);
 
-  hhg::MiniStokesFunction numerator("numerator", storage, minLevel, maxLevel);
+//  hhg::MiniStokesFunction numerator("numerator", storage, minLevel, maxLevel);
 
   hhg::MiniStokesOperator L(storage, minLevel, maxLevel);
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
 
-  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction<real_t>, hhg::MiniStokesOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 //
 //  for (auto vertex: u.v.mesh.vertices) {

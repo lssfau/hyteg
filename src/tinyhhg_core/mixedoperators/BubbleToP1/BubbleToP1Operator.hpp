@@ -133,6 +133,12 @@ class BubbleToP1Operator : public Operator< BubbleFunction< real_t >, P1Function
   {
   }
 
+  const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+
+  const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+
+  const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
+
  private:
 
   void apply_impl(BubbleFunction< real_t > & src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
@@ -179,46 +185,6 @@ class BubbleToP1Operator : public Operator< BubbleFunction< real_t >, P1Function
 
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
-
-#ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(BubbleFunction< real_t > & src, P1Function<real_t>& dst, Mat &mat, size_t level, DoFType flag)
-  {
-    // Since the Bubble dofs are in the interior, we have to pull them through the edges first //TODO: Implement!
-    /*src.getCommunicator(level)->startCommunication<Face, Edge>();
-    src.getCommunicator(level)->endCommunication<Face, Edge>();
-
-    src.getCommunicator(level)->startCommunication<Edge, Vertex>();
-    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
-
-    for (auto& it : storage_->getVertices()) {
-      Vertex& vertex = *it.second;
-
-      if (testFlag(vertex.getDoFType(), flag))
-      {
-        BubbleToP1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), out, level);
-      }
-    }
-
-    for (auto& it : storage_->getEdges()) {
-      Edge& edge = *it.second;
-
-      if (testFlag(edge.getDoFType(), flag))
-      {
-        BubbleToP1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), out);
-      }
-    }
-
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        BubbleToP1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
-      }
-    }
-     */
-  }
-#endif
 
   PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> edgeStencilID_;

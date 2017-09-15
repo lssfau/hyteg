@@ -16,20 +16,11 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag, UpdateType updateType)
+  void apply(P1StokesFunction<real_t>& src, P1StokesFunction<real_t>& dst, size_t level, DoFType flag, UpdateType updateType)
   {
     A.apply(src.u, dst.u, level, flag, updateType);
     A.apply(src.v, dst.v, level, flag, updateType);
     A.apply(src.p, dst.p, level, flag, updateType);
-  }
-
-  void createMatrix(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
-  {
-    WALBERLA_UNUSED(src);
-    WALBERLA_UNUSED(dst);
-    WALBERLA_UNUSED(level);
-    WALBERLA_UNUSED(flag);
-    WALBERLA_ABORT("not implemented");
   }
 
   P1LaplaceOperator A;
