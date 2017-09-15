@@ -8,7 +8,7 @@ typedef size_t uint_t;
 constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
   using namespace hhg::P1Face::FaceCoordsVertex;
   uint_t sum = 0;
-  for(uint i = 0; i < neighbors_with_center.size(); ++i)
+  for(uint_t i = 0; i < neighbors_with_center.size(); ++i)
   {
     sum += index<3>(x, y, neighbors_with_center[i]);
   }
@@ -28,7 +28,7 @@ constexpr size_t sumIndicesEdge(const uint_t x){
 constexpr size_t sumBubbleFaceIndices(const uint_t x, const uint_t y){
   using namespace hhg::BubbleFace::FaceCoordsVertex;
   uint_t sum = 0;
-  for(uint i = 0; i < neighbors.size(); ++i)
+  for(uint_t i = 0; i < neighbors.size(); ++i)
   {
     sum += index<3>(x, y, neighbors[i]);
   }
