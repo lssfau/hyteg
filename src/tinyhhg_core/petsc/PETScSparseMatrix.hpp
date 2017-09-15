@@ -13,6 +13,7 @@
 
 #include "tinyhhg_core/composites/P1BubbleFunctionSpace/P1BubblePetsc.hpp"
 #include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
+#include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
 
 namespace hhg {
 

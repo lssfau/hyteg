@@ -22,11 +22,11 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::P1StokesFunction r("r", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction f("f", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction u("u", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction err("err", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> u("u", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> err("err", storage, minLevel, maxLevel);
   hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1BlockLaplaceOperator L(storage, minLevel, maxLevel);
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   u_exact.v.interpolate(exact, maxLevel);
   u_exact.p.interpolate(exact, maxLevel);
 
-  auto solver = hhg::CGSolver<hhg::P1StokesFunction, hhg::P1BlockLaplaceOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1StokesFunction<real_t>, hhg::P1BlockLaplaceOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();

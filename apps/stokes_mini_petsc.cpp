@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 
   size_t minLevel = 2;
   size_t maxLevel = 4;
-  size_t maxiter = 1000;
+//  size_t maxiter = 1000;
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
