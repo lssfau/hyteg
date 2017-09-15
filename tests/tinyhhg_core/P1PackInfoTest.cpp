@@ -87,18 +87,18 @@ int main (int argc, char** argv) {
 //  std::cout << "++++ Face 0 Vertex Dofs: ++++" << std::endl;
 //  for(size_t i = 0; i < v_perEdge; ++i){
 //    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      //std::cout << face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)]);
-//      //std::cout << face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)];
+//      //std::cout << face0mem[FaceCoordsVertex::index<maxLevel>(i, j, FaceCoordsVertex::VERTEX_C)] << " ";
+//      fmt::print("{0:.2f}  ",face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)]);
+//      //std::cout << face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)];
 //    }
 //    std::cout << std::endl;
 //  }
 //  std::cout << "++++ Face 1 Vertex Dofs: ++++" << std::endl;
 //  for(size_t i = 0; i < v_perEdge; ++i){
 //    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      //std::cout << face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face1data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)]);
-//      //std::cout << face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)];
+//      //std::cout << face0mem[FaceCoordsVertex::index<maxLevel>(i, j, FaceCoordsVertex::VERTEX_C)] << " ";
+//      fmt::print("{0:.2f}  ",face1data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)]);
+//      //std::cout << face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)];
 //    }
 //    std::cout << std::endl;
 //  }

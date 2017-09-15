@@ -29,7 +29,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
+class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction< real_t > >
 {
  public:
   P1ToBubbleOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -56,13 +56,13 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_gray_stencil[P1Face::CoordsCellGray::VERTEX_SW] = local_stiffness_gray[0][0];
-        face_gray_stencil[P1Face::CoordsCellGray::VERTEX_SE] = local_stiffness_gray[0][1];
-        face_gray_stencil[P1Face::CoordsCellGray::VERTEX_NW] = local_stiffness_gray[0][2];
+        face_gray_stencil[P1Face::FaceCoordsCellGray::VERTEX_SW] = local_stiffness_gray[0][0];
+        face_gray_stencil[P1Face::FaceCoordsCellGray::VERTEX_SE] = local_stiffness_gray[0][1];
+        face_gray_stencil[P1Face::FaceCoordsCellGray::VERTEX_NW] = local_stiffness_gray[0][2];
 
-        face_blue_stencil[P1Face::CoordsCellBlue::VERTEX_SE] = local_stiffness_blue[0][2];
-        face_blue_stencil[P1Face::CoordsCellBlue::VERTEX_NW] = local_stiffness_blue[0][1];
-        face_blue_stencil[P1Face::CoordsCellBlue::VERTEX_NE] = local_stiffness_blue[0][0];
+        face_blue_stencil[P1Face::FaceCoordsCellBlue::VERTEX_SE] = local_stiffness_blue[0][2];
+        face_blue_stencil[P1Face::FaceCoordsCellBlue::VERTEX_NW] = local_stiffness_blue[0][1];
+        face_blue_stencil[P1Face::FaceCoordsCellBlue::VERTEX_NE] = local_stiffness_blue[0][0];
       }
     }
   }
@@ -71,7 +71,7 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
   {
   }
 
-  void apply_impl(P1Function< real_t > & src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function< real_t > & src, BubbleFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -84,7 +84,7 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction>
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function< real_t >& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function< real_t >& src, BubbleFunction< real_t > & dst, Mat &mat, size_t level, DoFType flag)
   {
     /*for (auto& it : storage_->getFaces()) { //TODO: IMPLEMENT
       Face& face = *it.second;

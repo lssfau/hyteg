@@ -31,7 +31,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class BubbleToP1Operator : public Operator< BubbleFunction, P1Function< real_t > >
+class BubbleToP1Operator : public Operator< BubbleFunction< real_t >, P1Function< real_t > >
 {
  public:
   BubbleToP1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -59,13 +59,13 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function< real_t >
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_SE] = local_stiffness_gray[2][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_NW] = local_stiffness_gray[1][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_GRAY_NE] = local_stiffness_gray[0][0];
 
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
-        face_stencil[BubbleFace::CoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_SW] = local_stiffness_blue[0][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_SE] = local_stiffness_blue[1][0];
+        face_stencil[BubbleFace::FaceCoordsVertex::CELL_BLUE_NW] = local_stiffness_blue[2][0];
       }
 
       // assemble edge stencil
@@ -135,7 +135,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function< real_t >
 
  private:
 
-  void apply_impl(BubbleFunction& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(BubbleFunction< real_t > & src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first
     src.getCommunicator(level)->startCommunication<Face, Edge>();
@@ -181,7 +181,7 @@ class BubbleToP1Operator : public Operator< BubbleFunction, P1Function< real_t >
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(BubbleFunction& src, P1Function<real_t>& dst, Mat &mat, size_t level, DoFType flag)
+  void createMatrix_impl(BubbleFunction< real_t > & src, P1Function<real_t>& dst, Mat &mat, size_t level, DoFType flag)
   {
     // Since the Bubble dofs are in the interior, we have to pull them through the edges first //TODO: Implement!
     /*src.getCommunicator(level)->startCommunication<Face, Edge>();

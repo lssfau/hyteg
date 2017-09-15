@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = P1Face::CoordsVertex::index<maxLevel>(j, i, P1Face::CoordsVertex::VERTEX_C);
+        uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, P1Face::FaceCoordsVertex::VERTEX_C);
         if (P1Face::is_boundary(idx, v_perEdge))
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], 0.0,

@@ -11,6 +11,7 @@ int main(int argc, char* argv[])
   walberla::mpi::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
+
 //  std::string enumStrings[] = {
 //      "VERTEX_C",
 //      "VERTEX_S",

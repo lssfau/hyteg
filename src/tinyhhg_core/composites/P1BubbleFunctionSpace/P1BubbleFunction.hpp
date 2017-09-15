@@ -25,7 +25,7 @@ public:
   void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1BubbleFunction*> functions, size_t level, DoFType flag = All)
   {
     std::vector< P1Function< real_t > * > functions_p1;
-    std::vector<BubbleFunction*> functions_b;
+    std::vector< BubbleFunction< real_t > * > functions_b;
 
     for (auto& function : functions)
     {
@@ -40,7 +40,7 @@ public:
   void add(const std::vector<walberla::real_t> scalars, const std::vector<P1BubbleFunction*> functions, size_t level, DoFType flag = All)
   {
     std::vector< P1Function< real_t > * > functions_p1;
-    std::vector<BubbleFunction*> functions_b;
+    std::vector< BubbleFunction< real_t > * > functions_b;
 
     for (auto& function : functions)
     {
@@ -76,7 +76,7 @@ public:
   }
 
   P1Function< real_t > p1;
-  BubbleFunction b;
+  BubbleFunction< real_t > b;
 };
 
 }
