@@ -17,8 +17,8 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
   size_t inner_rowsize = rowsize;
 
   auto& face_stencil_stack = face.getData(operatorId)->data[Level];
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   auto& face_gray_stencil = face_stencil_stack[0];
   auto& face_blue_stencil = face_stencil_stack[1];
@@ -78,8 +78,8 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   size_t inner_rowsize = rowsize;
 
   auto& face_stencil_stack = face.getData(operatorId)->data[Level];
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   auto& face_gray_stencil = face_stencil_stack[0];
   auto& face_blue_stencil = face_stencil_stack[1];

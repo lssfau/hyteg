@@ -34,6 +34,9 @@ public:
   /// Returns the length of the allocated array for a certain level
   virtual uint_t getSize( uint_t level ) const = 0;
 
+  // Returns a pointer to the first entry of the allocated array
+  inline ValueType * getPointer( const uint_t & level ) { return data[ level ].get(); }
+
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
   inline std::unique_ptr< ValueType[] > & addlevel( uint_t level )
@@ -80,6 +83,7 @@ public:
     }
   }
 
+private:
   /// Maps a level to the respective allocated data
   std::map< uint_t, std::unique_ptr< ValueType[] > > data;
 

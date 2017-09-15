@@ -11,9 +11,9 @@ inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilM
                   const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &srcId,
                   const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, size_t level, UpdateType update)
 {
-  auto& opr_data = vertex.getData(operatorId)->data[level];
-  auto& src = vertex.getData(srcId)->data[level];
-  auto& dst = vertex.getData(dstId)->data[level];
+  auto& opr_data = vertex.getData(operatorId)->data[ level ];
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
 
   real_t tmp = 0.0;
 
@@ -35,8 +35,8 @@ inline void saveOperator(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1S
                          const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, std::ostream &out, size_t level)
 {
   auto& opr_data = vertex.getData(operatorId)->data[level];
-  auto& src = vertex.getData(srcId)->data[level];
-  auto& dst = vertex.getData(dstId)->data[level];
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
 
   for (size_t i = 0; i < vertex.getNumNeighborFaces(); ++i)
   {

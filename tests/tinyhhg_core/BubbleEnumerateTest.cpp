@@ -4,6 +4,7 @@
 #include "core/debug/all.h"
 
 using namespace hhg;
+
 using walberla::real_t;
 
 int main (int argc, char ** argv )
@@ -33,12 +34,12 @@ int main (int argc, char ** argv )
     Face &face = *faceIt.second;
     //BubbleFace::printFunctionMemory<maxLevel>(face,x.getFaceDataID());
     using namespace BubbleEdge::EdgeCoordsVertex;
-    real_t *faceData = face.getData(x.getFaceDataID())->data[maxLevel].get();
+    real_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     for(uint_t i = 0; i < nbrEdges.size(); ++i){
       Edge* edge = storage->getEdge(nbrEdges[0].getID());
-      real_t* edgeData = edge->getData(x.getEdgeDataID())->data[maxLevel].get();
+      real_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
       uint_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face.getID());
 //////////////////// GRAY CELL //////////////////////
@@ -99,13 +100,13 @@ int main (int argc, char ** argv )
     using namespace BubbleEdge::EdgeCoordsVertex;
     Edge &edge = *edgeIt.second;
     //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
-    real_t *edgeData = edge.getData(x.getEdgeDataID())->data[maxLevel].get();
+    real_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
     for(uint_t i = 0; i < nbrVertices.size(); ++i)
     {
       Vertex* vertex = storage->getVertex(nbrVertices[i].getID());
-      real_t* vertexData = vertex->getData(x.getVertexDataID())->data[maxLevel].get();
+      real_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       if(vertexIdOnEdge == 0){

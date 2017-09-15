@@ -14,8 +14,8 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
 
   real_t tmp;
 
@@ -49,8 +49,8 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 

@@ -89,7 +89,7 @@ void BubblePackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sen
 template< typename ValueType >
 void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   using namespace BubbleEdge::EdgeCoordsVertex;
-  ValueType *edgeData = sender->getData(dataIDEdge_)->data[level_].get();
+  ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   const uint_t vertexIdOnEdge = sender->vertex_index(receiver);
   if(vertexIdOnEdge == 0){
     buffer << edgeData[edge_index(level_,0u,CELL_GRAY_SE)];
@@ -113,7 +113,7 @@ void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Pr
 
 template< typename ValueType >
 void BubblePackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-  ValueType *vertexData = receiver->getData(dataIDVertex_)->data[level_].get();
+  ValueType *vertexData = receiver->getData(dataIDVertex_)->getPointer( level_ );
   for(PrimitiveID faceId : storage_.lock()->getEdge(sender)->neighborFaces())
   {
     const uint_t faceIdOnVertex = receiver->face_index(faceId);
@@ -124,8 +124,8 @@ void BubblePackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const P
 template< typename ValueType >
 void BubblePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) {
   using namespace BubbleEdge::EdgeCoordsVertex;
-  ValueType *edgeData = sender->getData(dataIDEdge_)->data[level_].get();
-  ValueType *vertexData = receiver->getData(dataIDVertex_)->data[level_].get();
+  ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
+  ValueType *vertexData = receiver->getData(dataIDVertex_)->getPointer( level_ );
   const uint_t vertexIdOnEdge = sender->vertex_index(receiver->getID());
 
   if(vertexIdOnEdge == 0){
@@ -187,7 +187,7 @@ void BubblePackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender,
 template< typename ValueType >
 void BubblePackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
   using namespace hhg::BubbleFace;
-  ValueType *faceData = sender->getData(dataIDFace_)->data[level_].get();
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_); it != indexIterator(); ++it){
     buffer << faceData[*it];
@@ -199,7 +199,7 @@ void BubblePackInfo< ValueType >::packFaceForEdge(const Face *sender, const Prim
 
 template< typename ValueType >
 void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-  ValueType *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
   uint_t edgeIdOnFace = receiver->face_index(sender);
   BubbleEdge::EdgeCoordsVertex::DirVertex dirCellGray;
@@ -230,8 +230,8 @@ void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primi
 template< typename ValueType >
 void BubblePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
   using namespace hhg::BubbleFace;
-  ValueType *edgeData = receiver->getData(dataIDEdge_)->data[level_].get();
-  ValueType *faceData = sender->getData(dataIDFace_)->data[level_].get();
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIdOnFace = receiver->face_index(sender->getID());
   BubbleEdge::EdgeCoordsVertex::DirVertex dirCellGray;
   BubbleEdge::EdgeCoordsVertex::DirVertex dirCellBlue;

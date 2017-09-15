@@ -17,8 +17,8 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
   size_t inner_rowsize = rowsize;
 
   auto& opr_data = face.getData(operatorId)->data[Level];
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   real_t tmp;
 
@@ -50,8 +50,8 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   size_t inner_rowsize = rowsize;
 
   auto& opr_data = face.getData(operatorId)->data[Level];
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {

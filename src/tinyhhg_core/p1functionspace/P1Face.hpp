@@ -38,7 +38,7 @@ inline void interpolateTmpl(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      faceMemory->data[Level][index<Level>(j, i, VERTEX_C)] = expr(x);
+      faceMemory->getPointer( Level )[index<Level>(j, i, VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -60,12 +60,12 @@ inline void assignTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      ValueType tmp = scalars[0]*face.getData(srcIds[0])->data[Level][index<Level>(i, j, VERTEX_C)];
+      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->data[Level][index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
       }
-      face.getData(dstId)->data[Level][index<Level>(i, j, VERTEX_C)] = tmp;
+      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -88,10 +88,10 @@ inline void addTmpl(Face &face,
       ValueType tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->data[Level][index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
       }
 
-      face.getData(dstId)->data[Level][index<Level>(i, j, VERTEX_C)] += tmp;
+      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] += tmp;
     }
 
     --inner_rowsize;
@@ -112,8 +112,8 @@ inline real_t dotTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      sp += face.getData(lhsId)->data[Level][index<Level>(i, j, VERTEX_C)]
-          *face.getData(rhsId)->data[Level][index<Level>(i, j, VERTEX_C)];
+      sp += face.getData(lhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)]
+          *face.getData(rhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -133,8 +133,8 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
   uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
-  auto &src = face.getData(srcId)->data[Level];
-  auto &dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -168,8 +168,8 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
   uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
-  auto &dst = face.getData(dstId)->data[Level];
-  auto &rhs = face.getData(rhsId)->data[Level];
+  auto dst = face.getData(dstId)->getPointer( Level );
+  auto rhs = face.getData(rhsId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -200,9 +200,9 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
   uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
-  auto &dst = face.getData(dstId)->data[Level];
-  auto &rhs = face.getData(rhsId)->data[Level];
-  auto &tmpVar = face.getData(tmpId)->data[Level];
+  auto dst = face.getData(dstId)->getPointer( Level );
+  auto rhs = face.getData(rhsId)->getPointer( Level );
+  auto tmpVar = face.getData(tmpId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -229,8 +229,8 @@ inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemo
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
 
-  auto &v_f = face.getData(memoryId)->data[Level + 1];
-  auto &v_c = face.getData(memoryId)->data[Level];
+  auto v_f = face.getData(memoryId)->getPointer( Level + 1 );
+  auto v_c = face.getData(memoryId)->getPointer( Level );
 
   uint_t j;
 
@@ -259,8 +259,8 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
-  auto &v_f = face.getData(memoryId)->data[Level + 1];
-  auto &v_c = face.getData(memoryId)->data[Level];
+  auto v_f = face.getData(memoryId)->getPointer( Level + 1 );
+  auto v_c = face.getData(memoryId)->getPointer( Level );
 
   uint_t i, j;
   ValueType linearx, lineary, linearxy, offx, offy, offxy;
@@ -349,8 +349,8 @@ inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   uint_t N_c_i = N_c;
 
-  auto &v_f = face.getData(memoryId)->data[Level];
-  auto &v_c = face.getData(memoryId)->data[Level - 1];
+  auto v_f = face.getData(memoryId)->getPointer( Level );
+  auto v_c = face.getData(memoryId)->getPointer( Level - 1 );
 
   ValueType tmp;
 
@@ -393,7 +393,7 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
   for (uint_t i = 0; i < rowsize - 3; ++i) {
     for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
 
-      face.getData(dstId)->data[Level][mr] = walberla::real_c(num++);
+      face.getData(dstId)->getPointer( Level )[mr] = walberla::real_c(num++);
 
       mr += 1;
     }
@@ -416,8 +416,8 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
   uint_t inner_rowsize = rowsize;
 
   auto &opr_data = face.getData(operatorId)->data[Level];
-  auto &src = face.getData(srcId)->data[Level];
-  auto &dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
@@ -450,8 +450,8 @@ inline void createVectorFromFunctionTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
@@ -477,8 +477,8 @@ inline void createFunctionFromVectorTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
