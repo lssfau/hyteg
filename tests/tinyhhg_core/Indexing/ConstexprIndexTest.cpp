@@ -2,6 +2,7 @@
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
+#include "tinyhhg_core/dgfunctionspace/DgFaceIndex.hpp"
 
 typedef size_t uint_t;
 
@@ -43,6 +44,10 @@ constexpr size_t sumBubbleEdgeIndices(const uint_t x){
     sum += index<3>(x, neighbors[i]);
   }
   return sum;
+}
+
+constexpr uint_t sumDGFaceIndices(const uint_t x, const uint_t y){
+  return uint_c(hhg::stencilDirection::VERTEX_C);
 }
 
 
