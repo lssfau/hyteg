@@ -51,4 +51,26 @@ int main(int argc, char* argv[])
     WALBERLA_CHECK_EQUAL_3(refFive[i],result[i],"i: " << i);
   }
   result.clear();
+
+  uint_t counter = 0;
+  for(auto it = edgeIndexIterator(-1,3);it != edgeIndexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL(counter,*it);
+    counter++;
+  }
+  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(3));
+
+  //counter = hhg::levelinfo::num_microvertices_per_edge(4);
+
+  for(auto it = edgeIndexIterator(0,3);it != edgeIndexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL(counter,*it);
+    counter++;
+  }
+  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(3) * 2 -1);
+
+  counter = hhg::levelinfo::num_microvertices_per_edge(4) * 2 - 1;
+  for(auto it = edgeIndexIterator(1,4);it != edgeIndexIterator(); ++it){
+    WALBERLA_CHECK_EQUAL(counter,*it);
+    counter++;
+  }
+  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(4) * 3 - 2);
 }

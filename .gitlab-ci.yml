@@ -553,6 +553,8 @@ pages:
   artifacts:
     paths:
     - public
+  only:
+    - master
   tags:
    - docker
 

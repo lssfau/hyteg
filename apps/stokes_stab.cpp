@@ -20,9 +20,9 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::P1StokesFunction r("r", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction f("f", storage, minLevel, maxLevel);
-  hhg::P1StokesFunction u("u", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> u("u", storage, minLevel, maxLevel);
 
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   u.u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
-  auto solver = hhg::MinResSolver<hhg::P1StokesFunction, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::MinResSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");

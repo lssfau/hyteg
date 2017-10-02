@@ -42,10 +42,11 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
 
 SPECIALIZE(void, apply_tmpl, apply)
 
+#ifdef HHG_BUILD_WITH_PETSC
 template<size_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
+                              const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -56,10 +57,10 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-      uint_t dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)];
+      PetscInt dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)];
 
       for (auto neighbor : BubbleFace::FaceCoordsVertex::neighbors) {
-        out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)], opr_data[neighbor]);
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)], &opr_data[neighbor], INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -67,5 +68,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
 }
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+#endif
+
 }
 }

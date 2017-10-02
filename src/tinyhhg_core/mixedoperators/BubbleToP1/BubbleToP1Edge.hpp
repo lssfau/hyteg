@@ -42,10 +42,11 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
 
 SPECIALIZE(void, apply_tmpl, apply)
 
+#ifdef HHG_BUILD_WITH_PETSC
 template<size_t Level>
 inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
-                              const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &srcId,
-                              const PrimitiveDataID<EdgeP1FunctionMemory< real_t >, Edge> &dstId, std::ostream& out) {
+                              const PrimitiveDataID<EdgeBubbleFunctionMemory< PetscInt >, Edge> &srcId,
+                              const PrimitiveDataID<EdgeP1FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
@@ -54,20 +55,22 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    uint_t dst_id = dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)];
+    PetscInt dst_id = dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)];
 
     for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_south) {
-      out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+      MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_north) {
-        out << fmt::format("{}\t{}\t{}\n", dst_id, src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], edge_vertex_stencil[neighbor]);
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
       }
     }
   }
 }
 
 SPECIALIZE(void, saveOperator_tmpl, saveOperator)
+#endif
+
 }
 }

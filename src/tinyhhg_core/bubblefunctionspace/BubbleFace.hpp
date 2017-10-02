@@ -211,54 +211,9 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
 SPECIALIZE_WITH_VALUETYPE(void, enumerate_tmpl, enumerate)
 
 template< typename ValueType, size_t Level >
-inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, std::ostream& out)
-{
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  size_t inner_rowsize = rowsize;
-
-  auto& opr_data = face.getData(operatorId)->data[Level];
-
-  auto& face_gray_stencil = opr_data[0];
-  auto& face_blue_stencil = opr_data[1];
-
-  auto src = face.getData(srcId)->getPointer( Level );
-  auto dst = face.getData(dstId)->getPointer( Level );
-
-  ValueType tmp;
-
-  for (size_t i = 0; i < rowsize - 1; ++i)
-  {
-    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
-    {
-      tmp = face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C] * src[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
-
-      out << fmt::format("{}\t{}\t{}\n", dst[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], src[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C]);
-    }
-    --inner_rowsize;
-  }
-
-  inner_rowsize = rowsize;
-
-  for (size_t i = 0; i < rowsize - 2; ++i)
-  {
-    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
-    {
-      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
-
-      out << fmt::format("{}\t{}\t{}\n", dst[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], src[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C]);
-    }
-    --inner_rowsize;
-  }
-}
-
-SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
-
-template< typename ValueType, size_t Level >
 inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
   using namespace std;
-  ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
+  ValueType* faceMemory = face.getData(dstId)->data[Level].get();
   uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
   cout << setfill('=') << setw(100) << "" << endl;
   cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
@@ -279,6 +234,80 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunc
   cout << setw(100) << setfill(' ') << endl;
 
 }
+
+#ifdef HHG_BUILD_WITH_PETSC
+
+template< typename ValueType, uint_t Level >
+inline void createVectorFromFunctionTmpl(Face &face,
+                                     const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                                     const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &numeratorId,
+                                     Vec& vec) {
+  PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+  VecSetValues(vec, dofs, &numerator[0], &src[0], INSERT_VALUES);
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+template< typename ValueType, uint_t Level >
+inline void createFunctionFromVectorTmpl(Face &face,
+                                         const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                                         const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &numeratorId,
+                                         Vec& vec) {
+  PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
+
+  auto &src = face.getData(srcId)->data[Level];
+  auto &numerator = face.getData(numeratorId)->data[Level];
+
+  VecGetValues(vec, dofs, &numerator[0], &src[0]);
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+
+template< typename ValueType, size_t Level >
+inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
+                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat)
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto& opr_data = face.getData(operatorId)->data[Level];
+
+  auto& face_gray_stencil = opr_data[0];
+  auto& face_blue_stencil = opr_data[1];
+
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
+
+  for (size_t i = 0; i < rowsize - 1; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 1; ++j)
+    {
+      MatSetValues(mat, 1, &dst[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], 1, &src[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], &face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C], INSERT_VALUES);
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t i = 0; i < rowsize - 2; ++i)
+  {
+    for (size_t j = 0; j  < inner_rowsize - 2; ++j)
+    {
+      MatSetValues(mat, 1, &dst[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], 1, &src[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
+
+#endif
+
 
 }// namespace P1BubbleFace
 }// namespace hhg

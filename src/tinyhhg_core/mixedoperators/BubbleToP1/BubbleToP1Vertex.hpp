@@ -30,9 +30,10 @@ inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilM
   }
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex>& operatorId,
-                         const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, std::ostream &out, size_t level)
+                         const PrimitiveDataID<VertexBubbleFunctionMemory< PetscInt >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &dstId, Mat &mat, size_t level)
 {
   auto& opr_data = vertex.getData(operatorId)->data[level];
   auto src = vertex.getData(srcId)->getPointer( level );
@@ -40,9 +41,10 @@ inline void saveOperator(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1S
 
   for (size_t i = 0; i < vertex.getNumNeighborFaces(); ++i)
   {
-    out << fmt::format("{}\t{}\t{}\n", dst[0], src[i], opr_data[i]);
+    MatSetValues(mat, 1, &dst[0], 1, &src[i], &opr_data[i], INSERT_VALUES);
   }
 }
+#endif
 
 }
 }
