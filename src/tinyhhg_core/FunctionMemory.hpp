@@ -39,16 +39,10 @@ public:
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
-  inline void addlevel( uint_t level )
+  inline void addlevel( const uint_t & level )
   {
-    if (data.count(level)>0)
-    {
-      WALBERLA_LOG_WARNING("Level already exists.");
-    }
-    else
-    {
-      data[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( getSize( level ) ) );
-    }
+    WALBERLA_ASSERT_EQUAL( data.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
+    data[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( getSize( level ) ) );
   }
 
   /// Serializes the allocated data to a send buffer
@@ -66,7 +60,7 @@ public:
     }
   }
 
-  /// Deserializes the allocated data from a recv buffer
+  /// Deserializes data from a recv buffer (clears all already allocated data and replaces it with the recv buffer's content)
   inline void deserialize( RecvBuffer & recvBuffer )
   {
     data.clear();
