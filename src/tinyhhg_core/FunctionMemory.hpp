@@ -35,23 +35,23 @@ public:
   virtual uint_t getSize( uint_t level ) const = 0;
 
   // Returns a pointer to the first entry of the allocated array
-  inline ValueType * getPointer( const uint_t & level ) const { return data.at( level )->data(); }
+  inline ValueType * getPointer( const uint_t & level ) const { return data_.at( level )->data(); }
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
   inline void addlevel( const uint_t & level )
   {
-    WALBERLA_ASSERT_EQUAL( data.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
-    data[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( getSize( level ) ) );
+    WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
+    data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( getSize( level ) ) );
   }
 
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
   {
     sendBuffer << numDependencies_;
-    sendBuffer << data.size();
+    sendBuffer << data_.size();
 
-    for ( const auto & it : data )
+    for ( const auto & it : data_ )
     {
       const uint_t level = it.first;
 
@@ -63,7 +63,7 @@ public:
   /// Deserializes data from a recv buffer (clears all already allocated data and replaces it with the recv buffer's content)
   inline void deserialize( RecvBuffer & recvBuffer )
   {
-    data.clear();
+    data_.clear();
 
     uint_t numLevels;
 
@@ -84,11 +84,11 @@ public:
 
 private:
 
-  inline const std::vector< ValueType > & getVector( const uint_t & level ) const { return *( data.at( level ) ); }
-  inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data[ level ] ); }
+  inline const std::vector< ValueType > & getVector( const uint_t & level ) const { return *( data_.at( level ) ); }
+  inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data_[ level ] ); }
 
   /// Maps a level to the respective allocated data
-  std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data;
+  std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
 
 protected:
 
