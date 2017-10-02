@@ -2,6 +2,8 @@
 
 #include "core/DataTypes.h"
 
+using walberla::uint_t;
+
 namespace hhg {
 
 enum class stencilDirection : uint_t {

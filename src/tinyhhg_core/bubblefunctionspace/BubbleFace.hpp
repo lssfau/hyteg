@@ -43,7 +43,7 @@ inline void assign_tmpl(Face &face,
       {
         tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -85,9 +85,9 @@ inline void add_tmpl(Face &face,
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
         tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromBlueFace<Level>(i, j,
-                                                                                                                  FaceCoordsCellBlue::CELL_BLUE_C)];
+                                                                                                                  stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
     }
     --inner_rowsize;
   }
@@ -118,8 +118,8 @@ inline real_t dot_tmpl(Face &face,
 
   for (size_t i = 0; i < rowsize - 2; ++i) {
     for (size_t j = 0; j < inner_rowsize - 2; ++j) {
-      sp += lhs_data[indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)]
-          *rhs_data[indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+      sp += lhs_data[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)]
+          *rhs_data[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
     }
     --inner_rowsize;
   }
@@ -168,13 +168,12 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[indexFaceFromBlueFace<Level>(i, j,
-                                                                                                                      FaceCoordsCellBlue::CELL_BLUE_C)];
+      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       if (update == Replace) {
-        dst[indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+        dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
       } else if (update == Add) {
-        dst[indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+        dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -204,7 +203,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = real_c(num++);
+      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -222,7 +221,7 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunc
   std::cout << "Cell Blue: " << std::endl;
   for (size_t i = 0; i < verticesPerDge-2; ++i) {
     for (size_t j = 0; j < verticesPerDge-2 - i; ++j) {
-      cout << setw(5) << faceMemory[indexFaceFromBlueFace<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] << "|";
+      cout << setw(5) << faceMemory[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] << "|";
     }
     std::cout << std::endl;
   }

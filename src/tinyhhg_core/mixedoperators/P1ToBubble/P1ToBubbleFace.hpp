@@ -59,9 +59,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
       }
 
       if (update == Replace) {
-        dst[BubbleFace::FaceCoordsCellBlue::indexFacefromBlueFace<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::FaceCoordsCellBlue::indexFacefromBlueFace<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
       }
     }
     --inner_rowsize;
