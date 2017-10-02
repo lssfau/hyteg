@@ -35,7 +35,7 @@ public:
   virtual uint_t getSize( uint_t level ) const = 0;
 
   // Returns a pointer to the first entry of the allocated array
-  inline ValueType * getPointer( const uint_t & level ) { return data[ level ].get(); }
+  inline ValueType * getPointer( const uint_t & level ) const { return data.at( level )->data(); }
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
@@ -47,17 +47,21 @@ public:
     }
     else
     {
-      data[level] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
+      data[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( getSize( level ) ) );
     }
   }
 
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
   {
+    sendBuffer << numDependencies_;
+    sendBuffer << data.size();
+
     for ( const auto & it : data )
     {
-      uint_t level = it.first;
-      const ValueType * dataPtr = it.second.get();
+      const uint_t      level   = it.first;
+      const ValueType * dataPtr = getPointer( level );
+
       sendBuffer << level;
       for ( uint_t idx = 0; idx < getSize( level ); idx++ )
       {
@@ -70,21 +74,29 @@ public:
   inline void deserialize( RecvBuffer & recvBuffer )
   {
     data.clear();
-    while ( !recvBuffer.isEmpty() )
+
+    uint_t numLevels;
+
+    recvBuffer >> numDependencies_;
+    recvBuffer >> numLevels;
+
+    for ( uint_t levelCnt = 0; levelCnt < numLevels; levelCnt++ )
     {
       uint_t level;
       recvBuffer >> level;
-      data[ level ] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
+
+      addlevel( level );
+      ValueType * dataPtr = getPointer( level );
       for ( uint_t idx = 0; idx < getSize( level ); idx++ )
       {
-        recvBuffer >> data[ level ][ idx ];
+        recvBuffer >> dataPtr[ idx ];
       }
     }
   }
 
 private:
   /// Maps a level to the respective allocated data
-  std::map< uint_t, std::unique_ptr< ValueType[] > > data;
+  std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data;
 
 protected:
 
