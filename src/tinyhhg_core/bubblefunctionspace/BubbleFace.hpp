@@ -244,8 +244,8 @@ inline void createVectorFromFunctionTmpl(Face &face,
                                      Vec& vec) {
   PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
   VecSetValues(vec, dofs, &numerator[0], &src[0], INSERT_VALUES);
 }
@@ -259,8 +259,8 @@ inline void createFunctionFromVectorTmpl(Face &face,
                                          Vec& vec) {
   PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
   VecGetValues(vec, dofs, &numerator[0], &src[0]);
 }
