@@ -39,7 +39,7 @@ public:
 
   /// Allocates an array for a certain level
   /// Uses the virtual member \ref getSize() to determine the length of the array
-  inline std::unique_ptr< ValueType[] > & addlevel( uint_t level )
+  inline void addlevel( uint_t level )
   {
     if (data.count(level)>0)
     {
@@ -49,7 +49,6 @@ public:
     {
       data[level] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
     }
-    return data[level];
   }
 
   /// Serializes the allocated data to a send buffer
