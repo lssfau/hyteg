@@ -59,14 +59,10 @@ public:
 
     for ( const auto & it : data )
     {
-      const uint_t      level   = it.first;
-      const ValueType * dataPtr = getPointer( level );
+      const uint_t level = it.first;
 
       sendBuffer << level;
-      for ( uint_t idx = 0; idx < getSize( level ); idx++ )
-      {
-        sendBuffer << dataPtr[ idx ];
-      }
+      sendBuffer << getVector( level );
     }
   }
 
@@ -86,15 +82,17 @@ public:
       recvBuffer >> level;
 
       addlevel( level );
-      ValueType * dataPtr = getPointer( level );
-      for ( uint_t idx = 0; idx < getSize( level ); idx++ )
-      {
-        recvBuffer >> dataPtr[ idx ];
-      }
+
+      std::vector< ValueType > & dataVector = getVector( level );
+      recvBuffer >> dataVector;
     }
   }
 
 private:
+
+  inline const std::vector< ValueType > & getVector( const uint_t & level ) const { return *( data.at( level ) ); }
+  inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data[ level ] ); }
+
   /// Maps a level to the respective allocated data
   std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data;
 
