@@ -37,9 +37,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
       }
 
       if (update == Replace) {
-        dst[BubbleFace::FaceCoordsCellGray::index<Level>(i, j, BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)] = tmp;
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::FaceCoordsCellGray::index<Level>(i, j, BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)] += tmp;
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -59,9 +59,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
       }
 
       if (update == Replace) {
-        dst[BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+        dst[BubbleFace::FaceCoordsCellBlue::indexFacefromBlueFace<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::FaceCoordsCellBlue::index<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+        dst[BubbleFace::FaceCoordsCellBlue::indexFacefromBlueFace<Level>(i, j, BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
       }
     }
     --inner_rowsize;

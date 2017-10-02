@@ -3,6 +3,7 @@
 #include <core/logging/Logging.h>
 
 #include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
 
 namespace hhg
 {
@@ -10,6 +11,7 @@ namespace BubbleFace
 {
 
 using walberla::uint_t;
+typedef hhg::stencilDirection sD;
 
 namespace FaceCoordsVertex {
 enum DirVertex : uint_t {
@@ -21,12 +23,37 @@ enum DirVertex : uint_t {
   CELL_BLUE_NW = 5
 };
 
-constexpr std::array<DirVertex,6> neighbors =
-  {{CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW,
-   CELL_BLUE_SE, CELL_BLUE_NW, CELL_BLUE_SW}};
+}//namespace FaceCoordsVertex
+
+constexpr inline uint_t indexFaceStencil(const stencilDirection dir){
+  //these return are random but need to be keeped constant
+  switch (dir) {
+    case sD::CELL_GRAY_SE:
+      return 0;
+    case sD::CELL_GRAY_NE:
+      return 2;
+    case sD::CELL_GRAY_NW:
+      return 1;
+    case sD::CELL_BLUE_SE:
+      return 4;
+    case sD::CELL_BLUE_NW:
+      return 5;
+    case sD::CELL_BLUE_SW:
+      return 3;
+    default:
+      //WALBERLA_ASSERT(false, "wrong dir");
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+
+constexpr std::array<hhg::stencilDirection ,6> neighbors =
+  {{sD::CELL_GRAY_SE, sD::CELL_GRAY_NE, sD::CELL_GRAY_NW,
+   sD::CELL_BLUE_SE, sD::CELL_BLUE_NW, sD::CELL_BLUE_SW}};
 
 template<size_t Level>
-constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
+constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, const stencilDirection dir) {
+
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
   //WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t grayBaseLength = vertexBaseLength -1;
@@ -37,17 +64,17 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
   const size_t cellGrayNE = center - row;
   const size_t cellBlueNW = cellGrayNE + (totalCellGray - row) -1;
   switch (dir) {
-    case CELL_GRAY_SE:
+    case sD::CELL_GRAY_SE:
       return cellGrayNE - (grayBaseLength - row) -1;
-    case CELL_GRAY_NE:
+    case sD::CELL_GRAY_NE:
       return cellGrayNE;
-    case CELL_GRAY_NW:
+    case sD::CELL_GRAY_NW:
       return cellGrayNE - 1;
-    case CELL_BLUE_SE:
+    case sD::CELL_BLUE_SE:
       return cellBlueNW - (blueBaseLength - row);
-    case CELL_BLUE_NW:
+    case sD::CELL_BLUE_NW:
       return cellBlueNW;
-    case CELL_BLUE_SW:
+    case sD::CELL_BLUE_SW:
       return cellBlueNW - (blueBaseLength - row) -1;
     default:
     //WALBERLA_ASSERT(false, "wrong dir");
@@ -55,44 +82,45 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
   }
 
 }
-}//namespace FaceCoordsVertex
 
 namespace FaceCoordsCellGray {
 enum Dir {
     CELL_GRAY_C = 0
 };
+}//namesapce FaceCoordsCellGray
+
 
 template<size_t Level>
-inline size_t index(size_t col, size_t row, Dir dir) {
+inline size_t indexFaceFromGrayFace(const uint_t col, const uint_t row, stencilDirection dir) {
   using namespace hhg::BubbleFace;
-  if(dir == CELL_GRAY_C)
+  if(dir == stencilDirection ::CELL_GRAY_C)
   {
-    return FaceCoordsVertex::index<Level>(col, row, FaceCoordsVertex::CELL_GRAY_NE);
+    return indexFaceFromVertex<Level>(col, row, stencilDirection::CELL_GRAY_NE);
   }
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 
 
-}//namesapce FaceCoordsCellGray
+
 
 namespace FaceCoordsCellBlue {
 enum Dir {
     CELL_BLUE_C = 0
 };
+}//namespace FaceCoordsCellBlue
 
 template<size_t Level>
-inline size_t index(size_t col, size_t row, Dir dir) {
+inline size_t indexFaceFromBlueFace(const uint_t col, const uint_t row, const stencilDirection dir) {
   using namespace hhg::BubbleFace;
-  if(dir == CELL_BLUE_C)
+  if(dir == stencilDirection::CELL_BLUE_C)
   {
-    return FaceCoordsVertex::index<Level>(col + 1, row + 1, FaceCoordsVertex::CELL_BLUE_SW);
+    return indexFaceFromVertex<Level>(col + 1, row + 1, stencilDirection::CELL_BLUE_SW);
   }
   WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<size_t>::max();
 }
 
-}//namespace FaceCoordsCellBlue
 
 
 enum DofType {

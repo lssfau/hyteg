@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   std::vector<size_t> result;
   for(auto n : FaceCoordsVertex::neighbors)
   {
-    size_t idx = FaceCoordsVertex::index<3>(1, 1, n);
+    size_t idx = FaceCoordsVertex::indexFaceFromVertex<3>(1, 1, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   result.clear();
   for(auto n : FaceCoordsVertex::neighbors)
   {
-    size_t idx = FaceCoordsVertex::index<3>(2, 5, n);
+    size_t idx = FaceCoordsVertex::indexFaceFromVertex<3>(2, 5, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
   WALBERLA_CHECK_EQUAL(24,FaceCoordsCellGray::index<3>(3,3,FaceCoordsCellGray::CELL_GRAY_C));
 
   /// CHECK CELL BLUE //
-  WALBERLA_CHECK_EQUAL(36,FaceCoordsCellBlue::index<3>(0,0,FaceCoordsCellBlue::CELL_BLUE_C));
-  WALBERLA_CHECK_EQUAL(41,FaceCoordsCellBlue::index<3>(5,0,FaceCoordsCellBlue::CELL_BLUE_C));
+  WALBERLA_CHECK_EQUAL(36, FaceCoordsCellBlue::indexFacefromBlueFace<3>(0, 0, FaceCoordsCellBlue::CELL_BLUE_C));
+  WALBERLA_CHECK_EQUAL(41, FaceCoordsCellBlue::indexFacefromBlueFace<3>(5, 0, FaceCoordsCellBlue::CELL_BLUE_C));
 
 
   /// ATTENTION: The - 45 is a hack since I was to lazy too change all the numbers
