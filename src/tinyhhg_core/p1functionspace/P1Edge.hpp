@@ -26,7 +26,7 @@ inline void interpolateTmpl(Edge &edge,
   x += dx;
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edgeMemory->data[Level][index<Level>(i, VERTEX_C)] = expr(x);
+    edgeMemory->getPointer( Level )[index<Level>(i, VERTEX_C)] = expr(x);
     x += dx;
   }
 }
@@ -43,13 +43,13 @@ inline void assignTmpl(Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    ValueType tmp = scalars[0]*edge.getData(srcIds[0])->data[Level][index<Level>(i, VERTEX_C)];
+    ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[index<Level>(i, VERTEX_C)];
 
     for (size_t k = 1; k < srcIds.size(); ++k) {
-      tmp += scalars[k]*edge.getData(srcIds[k])->data[Level][index<Level>(i, VERTEX_C)];
+      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[index<Level>(i, VERTEX_C)];
     }
 
-    edge.getData(dstId)->data[Level][index<Level>(i, VERTEX_C)] = tmp;
+    edge.getData(dstId)->getPointer( Level )[index<Level>(i, VERTEX_C)] = tmp;
   }
 }
 
@@ -68,10 +68,10 @@ inline void addTmpl(Edge &edge,
     ValueType tmp = 0.0;
 
     for (size_t k = 0; k < srcIds.size(); ++k) {
-      tmp += scalars[k]*edge.getData(srcIds[k])->data[Level][index<Level>(i, VERTEX_C)];
+      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[index<Level>(i, VERTEX_C)];
     }
 
-    edge.getData(dstId)->data[Level][index<Level>(i, VERTEX_C)] += tmp;
+    edge.getData(dstId)->getPointer( Level )[index<Level>(i, VERTEX_C)] += tmp;
   }
 }
 
@@ -86,8 +86,8 @@ inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory< Va
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    sp += edge.getData(lhsMemoryId)->data[Level][index<Level>(i, VERTEX_C)]
-        * edge.getData(rhsMemoryId)->data[Level][index<Level>(i, VERTEX_C)];
+    sp += edge.getData(lhsMemoryId)->getPointer( Level )[index<Level>(i, VERTEX_C)]
+        * edge.getData(rhsMemoryId)->getPointer( Level )[index<Level>(i, VERTEX_C)];
   }
 
   return sp;
@@ -104,8 +104,8 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &opr_data = edge.getData(operatorId)->data[Level];
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -146,8 +146,8 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &opr_data = edge.getData(operatorId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
-  auto &rhs = edge.getData(rhsId)->data[Level];
+  auto dst = edge.getData(dstId)->getPointer( Level );
+  auto rhs = edge.getData(rhsId)->getPointer( Level );
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
@@ -183,9 +183,9 @@ inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &opr_data = edge.getData(operatorId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
-  auto &rhs = edge.getData(rhsId)->data[Level];
-  auto &tmp = edge.getData(tmpId)->data[Level];
+  auto dst = edge.getData(dstId)->getPointer( Level );
+  auto rhs = edge.getData(rhsId)->getPointer( Level );
+  auto tmp = edge.getData(tmpId)->getPointer( Level );
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
@@ -217,8 +217,8 @@ inline void prolongateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemor
 
   size_t rowsize_c = levelinfo::num_microvertices_per_edge(SourceLevel);
 
-  auto &edge_data_f = edge.getData(memoryId)->data[SourceLevel + 1];
-  auto &edge_data_c = edge.getData(memoryId)->data[SourceLevel];
+  auto edge_data_f = edge.getData(memoryId)->getPointer( SourceLevel + 1 );
+  auto edge_data_c = edge.getData(memoryId)->getPointer( SourceLevel );
 
   size_t i_c;
   for (i_c = 1; i_c < rowsize_c - 1; ++i_c) {
@@ -246,8 +246,8 @@ inline void prolongateQuadraticTmpl(Edge &edge, const PrimitiveDataID<EdgeP1Func
   const ValueType s1[3] = {3*invtemp, 6*invtemp, -invtemp};
   const ValueType s2[3] = {-invtemp, 6*invtemp, 3*invtemp};
 
-  auto &edge_data_f = edge.getData(memoryId)->data[Level + 1];
-  auto &edge_data_c = edge.getData(memoryId)->data[Level];
+  auto edge_data_f = edge.getData(memoryId)->getPointer( Level + 1 );
+  auto edge_data_c = edge.getData(memoryId)->getPointer( Level );
   size_t i_coarse;
   for (i_coarse = 0; i_coarse < rowsize_coarse - 2; ++i_coarse) {
     edge_data_f[i_fine] =
@@ -269,8 +269,8 @@ inline void restrictTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory<
 
   size_t rowsize_c = levelinfo::num_microvertices_per_edge(Level - 1);
 
-  auto &edge_data_f = edge.getData(memoryId)->data[Level];
-  auto &edge_data_c = edge.getData(memoryId)->data[Level - 1];
+  auto edge_data_f = edge.getData(memoryId)->getPointer( Level );
+  auto edge_data_c = edge.getData(memoryId)->getPointer( Level - 1 );
 
   uint_t i_c;
   for ( i_c = 1; i_c < rowsize_c - 1; ++i_c) {
@@ -301,7 +301,7 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edge.getData(dstId)->data[Level][index<Level>(i, VERTEX_C)] = walberla::real_c(num++);
+    edge.getData(dstId)->getPointer( Level )[index<Level>(i, VERTEX_C)] = walberla::real_c(num++);
   }
 }
 
@@ -317,8 +317,8 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &opr_data = edge.getData(operatorId)->data[Level];
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
 
 
   for (uint_t i = 1; i < rowsize - 1; ++i) {
@@ -358,8 +358,8 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
                                      Vec& vec) {
   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(Level);
 
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &numerator = edge.getData(numeratorId)->data[Level];
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
 
   VecSetValues(vec,rowsize-2,&numerator[1],&src[1],INSERT_VALUES);
 }
@@ -373,9 +373,9 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
                                          Vec& vec) {
   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(Level);
 
-  auto &numerator = edge.getData(numeratorId)->data[Level];
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
 
-  VecGetValues(vec,rowsize-2,&numerator[1],&edge.getData(srcId)->data[Level][1]);
+  VecGetValues(vec,rowsize-2,&numerator[1],&edge.getData(srcId)->getPointer( Level )[1]);
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
@@ -388,7 +388,7 @@ inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
 
   for(uint_t i = 1;i<rowsize-1; i++)
   {
-    mat.push_back(edge.getData(numeratorId)->data[Level][i]);
+    mat.push_back(edge.getData(numeratorId)->getPointer( Level )[i]);
   }
 
 }

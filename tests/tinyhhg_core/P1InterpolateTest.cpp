@@ -34,21 +34,21 @@ int main(int argc, char **argv)
   {
     for (size_t i = 0; i < v_perFace; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(face.second->getData(x.getFaceDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(face.second->getData(x.getFaceDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
   for (auto edge : storage->getEdges())
   {
     for (size_t i = 0; i < v_perEdge + edge.second->getNumHigherDimNeighbors() * nbr_v_perEdge; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(edge.second->getData(x.getEdgeDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(edge.second->getData(x.getEdgeDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
   for (auto vertex : storage->getVertices())
   {
     for (size_t i = 0; i < v_perVertex + vertex.second->getNumHigherDimNeighbors(); ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(vertex.second->getData(x.getVertexDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(vertex.second->getData(x.getVertexDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
 
@@ -75,11 +75,11 @@ int main(int argc, char **argv)
         uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, P1Face::FaceCoordsVertex::VERTEX_C);
         if (P1Face::is_boundary(idx, v_perEdge))
         {
-          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], 0.0,
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], 0.0,
                                      "i: " << i << " j: " << j << " idx: " << idx << " value was " << value);
         } else
         {
-          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], value,
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], value,
                                      "i: " << i << " j: " << j << " idx: " << idx << " value was " << value);
         }
         value += 2 * xStepSize;
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     value += yStepSize;
     for(uint_t i = 1; i < v_perEdge-1; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(edge->getData(x.getEdgeDataID())->data[maxLevel][i], value,
+      WALBERLA_CHECK_FLOAT_EQUAL(edge->getData(x.getEdgeDataID())->getPointer(maxLevel)[i], value,
                                  "i: " << i << " edge: "<< *edge);
       value += 2*xStepSize;
       value += yStepSize;
