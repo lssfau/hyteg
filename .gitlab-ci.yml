@@ -336,8 +336,8 @@ coverage:
       - mkdir coverage
       - cd coverage
       - pwd
-      - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/.*" -k
-      - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/.*" --html --html-details -o coverage.html -g
+      - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/.*" --html --html-details -o coverage.html
+      # - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/.*" --html --html-details -o coverage.html -g
    artifacts:
       paths:
          - coverage/
