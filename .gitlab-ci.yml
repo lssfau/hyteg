@@ -229,8 +229,6 @@ gcc_6_hybrid_dbg_sp:
 clang_3.5_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
-   only:
-      - triggers
    tags:
       - cuda
       - docker
