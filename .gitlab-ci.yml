@@ -341,8 +341,6 @@ coverage:
    artifacts:
       paths:
          - coverage/
-   only:
-      - triggers
    tags:
       - docker
    variables:
