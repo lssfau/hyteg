@@ -35,7 +35,7 @@ public:
     WALBERLA_ASSERT_LESS_EQUAL( minLevel, maxLevel, "minLevel should be equal or less than maxLevel during FunctionMemory allocation." );
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      addlevel( level, sizeFunction( level, numDependencies ) );
+      addLevel( level, sizeFunction( level, numDependencies ) );
     }
   }
 
@@ -49,7 +49,8 @@ public:
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
   {
-    sendBuffer << data_.size();
+    const uint_t numLevels = data_.size();
+    sendBuffer << numLevels;
 
     for ( const auto & it : data_ )
     {
@@ -79,7 +80,7 @@ public:
       recvBuffer >> level;
       recvBuffer >> levelSize;
 
-      addlevel( level, levelSize );
+      addLevel( level, levelSize );
 
       std::vector< ValueType > & dataVector = getVector( level );
       recvBuffer >> dataVector;
@@ -92,7 +93,7 @@ private:
   inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data_[ level ] ); }
 
   /// Allocates an array of size size for a certain level
-  inline void addlevel( const uint_t & level, const uint_t & size )
+  inline void addLevel( const uint_t & level, const uint_t & size )
   {
     WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
     data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size ) );
