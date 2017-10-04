@@ -30,7 +30,7 @@ public:
   FunctionMemory( const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction,
                   const uint_t & numDependencies,
                   const uint_t & minLevel,
-                  const uint_t & maxLevel ) : numDependencies_( numDependencies )
+                  const uint_t & maxLevel )
   {
     WALBERLA_ASSERT_LESS_EQUAL( minLevel, maxLevel, "minLevel should be equal or less than maxLevel during FunctionMemory allocation." );
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
@@ -49,7 +49,6 @@ public:
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
   {
-    sendBuffer << numDependencies_;
     sendBuffer << data_.size();
 
     for ( const auto & it : data_ )
@@ -70,7 +69,6 @@ public:
 
     uint_t numLevels;
 
-    recvBuffer >> numDependencies_;
     recvBuffer >> numLevels;
 
     for ( uint_t levelCnt = 0; levelCnt < numLevels; levelCnt++ )
@@ -102,10 +100,6 @@ private:
 
   /// Maps a level to the respective allocated data
   std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
-
-protected:
-
-  uint_t numDependencies_;
 
 };
 
