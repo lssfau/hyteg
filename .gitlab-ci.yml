@@ -336,8 +336,7 @@ coverage:
       - mkdir coverage
       - cd coverage
       - pwd
-      - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/tinyhhg_core\\/.*" -k --html -o coverage.html
-      # - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/.*" --html --html-details -o coverage.html -g
+      - gcovr -r $CI_PROJECT_DIR -f ".*\\/src\\/tinyhhg_core\\/.*" -k --html --html-details -o coverage.html --sort-uncovered --print-summary --verbose
    artifacts:
       paths:
          - coverage/
