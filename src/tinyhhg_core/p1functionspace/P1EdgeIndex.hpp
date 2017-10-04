@@ -45,7 +45,7 @@ template<uint_t Level>
 constexpr inline uint_t index(uint_t pos, DirVertex dir) {
   const uint_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
   //the check can be reinserted if walberla supports constexpr
-  //WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const uint_t startFaceS = vertexOnEdge;
   const uint_t startFaceN = vertexOnEdge + vertexOnEdge - 1;
   const uint_t center = pos;
@@ -66,7 +66,7 @@ constexpr inline uint_t index(uint_t pos, DirVertex dir) {
       return center - 1;
   }
   //the check can be reinserted if walberla supports constexpr
-  //WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false, "wrong dir");
   return std::numeric_limits<uint_t>::max();
 }
 

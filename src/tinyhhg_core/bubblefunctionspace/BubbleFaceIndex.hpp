@@ -11,7 +11,6 @@ namespace BubbleFace
 {
 
 using walberla::uint_t;
-typedef hhg::stencilDirection sD;
 
 namespace FaceCoordsVertex {
 enum DirVertex : uint_t {
@@ -26,6 +25,7 @@ enum DirVertex : uint_t {
 }//namespace FaceCoordsVertex
 
 constexpr inline uint_t indexFaceStencil(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
   //these return are random but need to be keeped constant
   switch (dir) {
     case sD::CELL_GRAY_SE:
@@ -41,21 +41,20 @@ constexpr inline uint_t indexFaceStencil(const stencilDirection dir){
     case sD::CELL_BLUE_SW:
       return 3;
     default:
-      //WALBERLA_ASSERT(false, "wrong dir");
       return std::numeric_limits<size_t>::max();
   }
 }
 
 
 constexpr std::array<hhg::stencilDirection ,6> neighbors =
-  {{sD::CELL_GRAY_SE, sD::CELL_GRAY_NE, sD::CELL_GRAY_NW,
-   sD::CELL_BLUE_SE, sD::CELL_BLUE_NW, sD::CELL_BLUE_SW}};
+  {{stencilDirection::CELL_GRAY_SE, stencilDirection::CELL_GRAY_NE, stencilDirection::CELL_GRAY_NW,
+   stencilDirection::CELL_BLUE_SE, stencilDirection::CELL_BLUE_NW, stencilDirection::CELL_BLUE_SW}};
 
 template<size_t Level>
 constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, const stencilDirection dir) {
-
+  typedef hhg::stencilDirection sD;
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  //WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t blueBaseLength = vertexBaseLength -2;
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;

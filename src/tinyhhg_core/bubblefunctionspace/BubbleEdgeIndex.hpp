@@ -34,7 +34,7 @@ constexpr std::array<DirVertex,3> neighbors_north =
 template<size_t Level>
 constexpr inline size_t index(size_t pos, DirVertex dir) {
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  //WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {
@@ -51,7 +51,7 @@ constexpr inline size_t index(size_t pos, DirVertex dir) {
     case CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      //WALBERLA_ASSERT(false, "wrong dir");
+      WALBERLA_ASSERT(false, "wrong dir");
       return std::numeric_limits<size_t>::max();
   }
 

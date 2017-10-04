@@ -46,9 +46,9 @@ constexpr size_t sumBubbleEdgeIndices(const uint_t x){
   return sum;
 }
 
-constexpr uint_t sumDGFaceIndices(const uint_t x, const uint_t y){
-  return 5;
-}
+//constexpr uint_t sumDGFaceIndices(const uint_t x, const uint_t y){
+//  return 5;
+//}
 
 
 int main() {
@@ -65,4 +65,7 @@ int main() {
 
   static_assert(hhg::P1Face::FaceCoordsVertex::index<3>(1,1,hhg::P1Face::FaceCoordsVertex::VERTEX_C)==10,"P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"P1Face Index sum failed");
+
+  //static_assert(hhg::DgFace::indexDGcellFromGrayDGCell<3>(2,3, hhg::stencilDirection::CELL_BLUE_S)==45, "DGFace Index failed");
+
 }
