@@ -154,24 +154,6 @@ stages:
 
 
 
-intel_17_serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   only:
-      - triggers
-   tags:
-      - docker
-      - intel
-
-intel_17_mpionly:
-   <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   only:
-      - triggers
-   tags:
-      - docker
-      - intel
-
 intel_17_hybrid:
    <<: *build_hybrid_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
@@ -207,109 +189,11 @@ intel_17_hybrid_dbg_sp:
       - docker
       - intel
 
-intel_17_petsc:
-   <<: *build_petsc_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   tags:
-      - docker
-      - intel
-
-intel_17_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   tags:
-      - docker
-      - intel
-
-gcc_5_serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-gcc_5_mpionly:
-   <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
 gcc_5_hybrid:
    <<: *build_hybrid_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
    tags:
       - cuda
-      - docker
-
-gcc_5_serial_dbg:
-   <<: *build_serial_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   tags:
-      - cuda
-      - docker
-
-gcc_5_mpionly_dbg:
-   <<: *build_mpionly_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-gcc_5_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   tags:
-      - cuda
-      - docker
-
-gcc_5_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-gcc_5_petsc:
-   <<: *build_petsc_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-gcc_5_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-gcc_6_serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   only:
-      - triggers
-   tags:
-      - docker
-
-gcc_6_mpionly:
-   <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   only:
-      - triggers
-   tags:
       - docker
 
 gcc_6_hybrid:
@@ -342,27 +226,6 @@ gcc_6_hybrid_dbg_sp:
    tags:
       - docker
 
-gcc_6_petsc:
-   <<: *build_petsc_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   tags:
-      - docker
-
-gcc_6_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   tags:
-      - docker
-
-clang_3.5_serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
 clang_3.5_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
@@ -370,49 +233,6 @@ clang_3.5_mpionly:
       - triggers
    tags:
       - cuda
-      - docker
-
-clang_3.5_serial_dbg:
-   <<: *build_serial_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-clang_3.5_mpionly_dbg:
-   <<: *build_mpionly_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-clang_3.5_petsc:
-   <<: *build_petsc_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
-   only:
-      - triggers
-   tags:
-      - cuda
-      - docker
-
-clang_4.0_serial:
-   <<: *build_serial_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   only:
-      - triggers
-   tags:
-      - docker
-
-clang_4.0_mpionly:
-   <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   only:
-      - triggers
-   tags:
       - docker
 
 clang_4.0_hybrid:
@@ -441,18 +261,6 @@ clang_4.0_hybrid_dbg:
 
 clang_4.0_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   tags:
-      - docker
-
-clang_4.0_petsc:
-   <<: *build_petsc_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   tags:
-      - docker
-
-clang_4.0_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
@@ -561,7 +369,7 @@ pages:
       - cmake --build . --config $BUILD_CONFIGURATION -- /maxcpucount:4
       #- cd tests
       #- ctest -LE $CTEST_EXCLUDE_LABELS -C $BUILD_CONFIGURATION --output-on-failure -j 4
-           
+
       
 msvc-14.1_Hybrid_Dbg:
    <<: *win_build_definition
@@ -572,16 +380,6 @@ msvc-14.1_Hybrid_Dbg:
       WALBERLA_BUILD_WITH_MPI: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "ON"
       WALBERLA_DOUBLE_ACCURACY: "ON"
-      
-msvc-14.1_Hybrid_SP_Dbg:
-   <<: *win_build_definition
-   variables:
-      CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-      BUILD_CONFIGURATION: "DebugOptimized"
-      CTEST_EXCLUDE_LABELS: "longrun"
-      WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BUILD_WITH_OPENMP: "ON"
-      WALBERLA_DOUBLE_ACCURACY: "OFF"
       
 msvc-14.1_Hybrid:
    <<: *win_build_definition
@@ -603,18 +401,6 @@ msvc-14.1_Serial_Dbg:
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
       
-msvc-14.1_Serial:
-   <<: *win_build_definition
-   variables:
-      CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-      BUILD_CONFIGURATION: "Release"
-      CTEST_EXCLUDE_LABELS: "longrun"
-      WALBERLA_BUILD_WITH_MPI: "OFF"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "ON"
-   only:
-      - triggers
-      
 msvc-14.1_MpiOnly_Dbg:
    <<: *win_build_definition
    variables:
@@ -624,15 +410,3 @@ msvc-14.1_MpiOnly_Dbg:
       WALBERLA_BUILD_WITH_MPI: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
-      
-msvc-14.1_MpiOnly:
-   <<: *win_build_definition
-   variables:
-      CMAKE_GENERATOR: "Visual Studio 15 2017 Win64"
-      BUILD_CONFIGURATION: "Release"
-      CTEST_EXCLUDE_LABELS: "longrun"
-      WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BUILD_WITH_OPENMP: "OFF"
-      WALBERLA_DOUBLE_ACCURACY: "ON"
-   only:
-      - triggers
