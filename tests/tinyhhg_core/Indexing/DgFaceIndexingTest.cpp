@@ -53,7 +53,13 @@ int main(int argc, char* argv[]) {
   result.clear();
 
 
-  //WALBERLA_CHECK_EQUAL(50,indexDGcellFromGrayDGCell<3>(1,3,hhg::stencilDirection::CELL_BLUE_S));
+  WALBERLA_CHECK_EQUAL(50,indexDGcellFromGrayDGCell<3>(1,3,hhg::stencilDirection::CELL_BLUE_S));
+  WALBERLA_CHECK_EQUAL(55,indexDGcellFromGrayDGCell<3>(2,3,hhg::stencilDirection::CELL_BLUE_W));
+  WALBERLA_CHECK_EQUAL(48,indexDGcellFromGrayDGCell<3>(5,1,hhg::stencilDirection::CELL_BLUE_E));
 
+
+  WALBERLA_CHECK_EQUAL(27,indexDGcellFromBlueDGCell<3>(1,3,hhg::stencilDirection::CELL_GRAY_N));
+  WALBERLA_CHECK_EQUAL(23,indexDGcellFromBlueDGCell<3>(2,3,hhg::stencilDirection::CELL_GRAY_W));
+  WALBERLA_CHECK_EQUAL(14,indexDGcellFromBlueDGCell<3>(5,1,hhg::stencilDirection::CELL_GRAY_E));
 
 }
