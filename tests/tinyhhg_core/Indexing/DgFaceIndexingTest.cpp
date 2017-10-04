@@ -26,8 +26,34 @@ int main(int argc, char* argv[]) {
 //      "CELL_BLUE_SW"
 //  };
 
-  /// CHECK VERTEX ///
+  /// CHECK VERTEX this is the same as for bubble///
   std::vector <size_t> refOneOne = {1, 9, 8, 37, 43, 36};
   std::vector <size_t> refTwoFive = {28, 32, 31, 60, 62, 59};
   std::vector <size_t> result;
+  for(auto n : hhg::BubbleFace::neighbors)
+  {
+    size_t idx = indexDGcellFromVertex<3>(1, 1, n);
+    result.push_back(idx);
+    //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
+  }
+  for(size_t i = 0; i < refOneOne.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refOneOne[i],result[i],"i: " << i);
+  }
+  result.clear();
+  for(auto n : hhg::BubbleFace::neighbors)
+  {
+    size_t idx = indexDGcellFromVertex<3>(2, 5, n);
+    result.push_back(idx);
+    //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
+  }
+  for(size_t i = 0; i < refTwoFive.size(); ++i){
+    WALBERLA_CHECK_EQUAL_3(refTwoFive[i],result[i],"i: " << i);
+  }
+  /// END CHECK VERTEX ///
+  result.clear();
+
+
+  //WALBERLA_CHECK_EQUAL(50,indexDGcellFromGrayDGCell<3>(1,3,hhg::stencilDirection::CELL_BLUE_S));
+
+
 }
