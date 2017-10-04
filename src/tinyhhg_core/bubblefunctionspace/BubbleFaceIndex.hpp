@@ -76,7 +76,7 @@ constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, 
     case sD::CELL_BLUE_SW:
       return cellBlueNW - (blueBaseLength - row) -1;
     default:
-    //WALBERLA_ASSERT(false, "wrong dir");
+      WALBERLA_ASSERT(false);
       return std::numeric_limits<size_t>::max();
   }
 
@@ -96,7 +96,7 @@ inline size_t indexFaceFromGrayFace(const uint_t col, const uint_t row, stencilD
   {
     return indexFaceFromVertex<Level>(col, row, stencilDirection::CELL_GRAY_NE);
   }
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 
@@ -116,7 +116,7 @@ inline size_t indexFaceFromBlueFace(const uint_t col, const uint_t row, const st
   {
     return indexFaceFromVertex<Level>(col + 1, row + 1, stencilDirection::CELL_BLUE_SW);
   }
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 

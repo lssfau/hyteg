@@ -66,7 +66,7 @@ constexpr inline uint_t index(uint_t pos, DirVertex dir) {
       return center - 1;
   }
   //the check can be reinserted if walberla supports constexpr
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<uint_t>::max();
 }
 

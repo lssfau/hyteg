@@ -51,7 +51,7 @@ constexpr inline size_t index(size_t pos, DirVertex dir) {
     case CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      WALBERLA_ASSERT(false, "wrong dir");
+      WALBERLA_ASSERT(false);
       return std::numeric_limits<size_t>::max();
   }
 
