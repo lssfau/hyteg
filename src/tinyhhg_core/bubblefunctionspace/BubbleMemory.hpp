@@ -14,34 +14,32 @@
 namespace hhg
 {
 
-template< typename ValueType >
-class VertexBubbleFunctionMemory : public FunctionMemory< ValueType >
+inline uint_t bubbleVertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
-public:
+  WALBERLA_UNUSED( level );
+  return numDependencies;
+}
 
-  VertexBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
+inline uint_t bubbleEdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  size_t num_cell_dofs = numDependencies * ( 2 * levelinfo::num_microedges_per_edge( level ) - 1 );
+  return num_cell_dofs;
+}
 
-  inline size_t getSize(size_t level) const
-  {
-    WALBERLA_UNUSED( level );
-    return this->numDependencies_;
-  }
-
-};
+inline uint_t bubbleFaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  WALBERLA_UNUSED( numDependencies );
+  return levelinfo::num_microfaces_per_face( level );
+}
 
 template< typename ValueType >
-class EdgeBubbleFunctionMemory : public FunctionMemory< ValueType >
-{
-public:
+using VertexBubbleFunctionMemory = FunctionMemory< ValueType >;
 
-  EdgeBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
+template< typename ValueType >
+using EdgeBubbleFunctionMemory = FunctionMemory< ValueType >;
 
-  inline size_t getSize(size_t level) const
-  {
-    size_t num_cell_dofs = this->numDependencies_ * (2 * levelinfo::num_microedges_per_edge(level) - 1);
-    return num_cell_dofs;
-  }
-};
+template< typename ValueType >
+using FaceBubbleFunctionMemory = FunctionMemory< ValueType >;
 
 
 class FaceBubbleStencilMemory
@@ -76,19 +74,5 @@ public:
 
 };
 
-
-template< typename ValueType >
-class FaceBubbleFunctionMemory : public FunctionMemory< ValueType >
-{
-public:
-
-  FaceBubbleFunctionMemory( const uint_t & numDependencies ) : FunctionMemory< ValueType >( numDependencies ) {}
-
-  inline size_t getSize(size_t level) const
-  {
-    return levelinfo::num_microfaces_per_face(level);
-  }
-
-};
 
 }

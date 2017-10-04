@@ -27,69 +27,80 @@ class FunctionMemory
 public:
 
   /// Constructs memory for a function
-  FunctionMemory( const uint_t & numDependencies ) : numDependencies_( numDependencies ) {}
+  FunctionMemory( const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction,
+                  const uint_t & numDependencies,
+                  const uint_t & minLevel,
+                  const uint_t & maxLevel )
+  {
+    WALBERLA_ASSERT_LESS_EQUAL( minLevel, maxLevel, "minLevel should be equal or less than maxLevel during FunctionMemory allocation." );
+    for ( uint_t level = minLevel; level <= maxLevel; level++ )
+    {
+      addLevel( level, sizeFunction( level, numDependencies ) );
+    }
+  }
+
+  uint_t getSize( const uint_t & level ) const { WALBERLA_ASSERT_GREATER( data_.count( level ), 0, "Requested level not allocated" ); return data_.at( level )->size(); }
 
   virtual ~FunctionMemory(){}
 
-  /// Returns the length of the allocated array for a certain level
-  virtual uint_t getSize( uint_t level ) const = 0;
-
   // Returns a pointer to the first entry of the allocated array
-  inline ValueType * getPointer( const uint_t & level ) { return data[ level ].get(); }
-
-  /// Allocates an array for a certain level
-  /// Uses the virtual member \ref getSize() to determine the length of the array
-  inline std::unique_ptr< ValueType[] > & addlevel( uint_t level )
-  {
-    if (data.count(level)>0)
-    {
-      WALBERLA_LOG_WARNING("Level already exists.");
-    }
-    else
-    {
-      data[level] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
-    }
-    return data[level];
-  }
+  inline ValueType * getPointer( const uint_t & level ) const { return data_.at( level )->data(); }
 
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
   {
-    for ( const auto & it : data )
+    const uint_t numLevels = data_.size();
+    sendBuffer << numLevels;
+
+    for ( const auto & it : data_ )
     {
-      uint_t level = it.first;
-      const ValueType * dataPtr = it.second.get();
+      const uint_t level     = it.first;
+      const uint_t levelSize = it.second->size();
+
       sendBuffer << level;
-      for ( uint_t idx = 0; idx < getSize( level ); idx++ )
-      {
-        sendBuffer << dataPtr[ idx ];
-      }
+      sendBuffer << levelSize;
+      sendBuffer << getVector( level );
     }
   }
 
-  /// Deserializes the allocated data from a recv buffer
+  /// Deserializes data from a recv buffer (clears all already allocated data and replaces it with the recv buffer's content)
   inline void deserialize( RecvBuffer & recvBuffer )
   {
-    data.clear();
-    while ( !recvBuffer.isEmpty() )
+    data_.clear();
+
+    uint_t numLevels;
+
+    recvBuffer >> numLevels;
+
+    for ( uint_t levelCnt = 0; levelCnt < numLevels; levelCnt++ )
     {
       uint_t level;
+      uint_t levelSize;
+
       recvBuffer >> level;
-      data[ level ] = std::unique_ptr< ValueType[] >( new ValueType[ getSize( level ) ] );
-      for ( uint_t idx = 0; idx < getSize( level ); idx++ )
-      {
-        recvBuffer >> data[ level ][ idx ];
-      }
+      recvBuffer >> levelSize;
+
+      addLevel( level, levelSize );
+
+      std::vector< ValueType > & dataVector = getVector( level );
+      recvBuffer >> dataVector;
     }
   }
 
 private:
+
+  inline const std::vector< ValueType > & getVector( const uint_t & level ) const { return *( data_.at( level ) ); }
+  inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data_[ level ] ); }
+
+  /// Allocates an array of size size for a certain level
+  inline void addLevel( const uint_t & level, const uint_t & size )
+  {
+    WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
+    data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size ) );
+  }
+
   /// Maps a level to the respective allocated data
-  std::map< uint_t, std::unique_ptr< ValueType[] > > data;
-
-protected:
-
-  uint_t numDependencies_;
+  std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
 
 };
 

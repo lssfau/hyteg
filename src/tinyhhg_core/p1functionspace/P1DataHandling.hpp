@@ -7,6 +7,7 @@
 
 namespace hhg {
 
+
 template< typename ValueType >
 class VertexP1FunctionMemoryDataHandling : public FunctionMemoryDataHandling< VertexP1FunctionMemory< ValueType >, Vertex >
 {
@@ -109,34 +110,19 @@ class FaceP1StencilMemoryDataHandling : public OnlyInitializeDataHandling< FaceP
 template< typename ValueType >
 std::shared_ptr< VertexP1FunctionMemory< ValueType > > VertexP1FunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  auto vertexP1FunctionMemory = std::make_shared< VertexP1FunctionMemory< ValueType > >( vertex->getNumNeighborEdges() );
-  for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-  {
-    vertexP1FunctionMemory->addlevel( level );
-  }
-  return vertexP1FunctionMemory;
+  return std::make_shared< FunctionMemory< ValueType > >( P1VertexFunctionMemorySize, vertex->getNumNeighborEdges(), minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
 std::shared_ptr< EdgeP1FunctionMemory< ValueType > > EdgeP1FunctionMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
 {
-  auto edgeP1FunctionMemory = std::make_shared< EdgeP1FunctionMemory< ValueType > >( edge->getNumNeighborFaces() );
-  for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-  {
-    edgeP1FunctionMemory->addlevel( level );
-  }
-  return edgeP1FunctionMemory;
+  return std::make_shared< EdgeP1FunctionMemory< ValueType > >( P1EdgeFunctionMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
 std::shared_ptr< FaceP1FunctionMemory< ValueType > > FaceP1FunctionMemoryDataHandling< ValueType >::initialize( const Face * const ) const
 {
-  auto faceP1FunctionMemory = std::make_shared< FaceP1FunctionMemory< ValueType > >( 0 );
-  for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
-  {
-    faceP1FunctionMemory->addlevel( level );
-  }
-  return faceP1FunctionMemory;
+  return std::make_shared< FaceP1FunctionMemory< ValueType > >( P1FaceFunctionMemorySize, 0, minLevel_, maxLevel_ );
 }
 
 
