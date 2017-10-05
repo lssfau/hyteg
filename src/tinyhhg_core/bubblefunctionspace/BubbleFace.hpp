@@ -20,13 +20,13 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      ValueType tmp = scalars[0] * face.getData(srcIds[0])->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -37,13 +37,13 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      ValueType tmp = scalars[0] * face.getData(srcIds[0])->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -67,9 +67,9 @@ inline void add_tmpl(Face &face,
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
     }
     --inner_rowsize;
   }
@@ -84,10 +84,10 @@ inline void add_tmpl(Face &face,
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->data[Level][indexFaceFromBlueFace<Level>(i, j,
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j,
                                                                                                                   stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
     }
     --inner_rowsize;
   }
@@ -103,8 +103,8 @@ inline real_t dot_tmpl(Face &face,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
-  auto &lhs_data = face.getData(lhsId)->data[Level];
-  auto &rhs_data = face.getData(rhsId)->data[Level];
+  auto lhs_data = face.getData(lhsId)->getPointer( Level );
+  auto rhs_data = face.getData(rhsId)->getPointer( Level );
 
   for (size_t i = 0; i < rowsize - 1; ++i) {
     for (size_t j = 0; j < inner_rowsize - 1; ++j) {
@@ -142,8 +142,8 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   auto& face_gray_stencil = opr_data[0];
   auto& face_blue_stencil = opr_data[1];
 
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -192,7 +192,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      face.getData(dstId)->data[Level][indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = real_c(num++);
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -203,7 +203,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      face.getData(dstId)->data[Level][indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = real_c(num++);
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -245,8 +245,8 @@ inline void createVectorFromFunctionTmpl(Face &face,
                                      Vec& vec) {
   PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
   VecSetValues(vec, dofs, &numerator[0], &src[0], INSERT_VALUES);
 }
@@ -260,8 +260,8 @@ inline void createFunctionFromVectorTmpl(Face &face,
                                          Vec& vec) {
   PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
 
-  auto &src = face.getData(srcId)->data[Level];
-  auto &numerator = face.getData(numeratorId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
 
   VecGetValues(vec, dofs, &numerator[0], &src[0]);
 }
@@ -281,8 +281,8 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   auto& face_gray_stencil = opr_data[0];
   auto& face_blue_stencil = opr_data[1];
 
-  auto& src = face.getData(srcId)->data[Level];
-  auto& dst = face.getData(dstId)->data[Level];
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
 
   for (size_t i = 0; i < rowsize - 1; ++i)
   {
@@ -308,6 +308,7 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
 SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
 
 #endif
+
 
 }// namespace P1BubbleFace
 }// namespace hhg

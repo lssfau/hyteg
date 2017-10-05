@@ -67,7 +67,7 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   using namespace hhg::BubbleEdge::EdgeCoordsVertex;
 
   uint_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(level);
-  real_t* edgeData = edge.getData(memoryId)->data[level].get();
+  real_t* edgeData = edge.getData(memoryId)->getPointer( level );
   cout << setfill('=') << setw(100) << std::left << "" << endl;
   cout << edge << " South Face ID: " << edge.neighborFaces()[0].getID();  // edge->neighborFaces()[0]->getID().getID();
   if (edge.getNumHigherDimNeighbors() == 2)
@@ -134,7 +134,7 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
 
 inline void printFunctionMemory(Vertex& vertex, const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &memoryId, uint_t level)
 {
-  real_t* vertexData = vertex.getData(memoryId)->data[level].get();
+  real_t* vertexData = vertex.getData(memoryId)->getPointer( level );
 
   std::cout <<  std::string(10,'*');
   std::cout << " Vertex ID: " << vertex.getID().getID();
