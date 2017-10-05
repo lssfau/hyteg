@@ -22,13 +22,13 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
   for (size_t i = 1; i < rowsize - 1; ++i) {
     tmp = 0.0;
 
-    for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_south) {
-      tmp += edge_vertex_stencil[neighbor]*src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+    for (auto neighbor : BubbleEdge::neighbors_south) {
+      tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)];
     }
 
     if (edge.getNumNeighborFaces() == 2) {
-      for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_north) {
-        tmp += edge_vertex_stencil[neighbor]*src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)];
+      for (auto neighbor : BubbleEdge::neighbors_north) {
+        tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)];
       }
     }
 
@@ -55,15 +55,15 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    PetscInt dst_id = dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)];
+    PetscInt dst_id = dst[P1Edge::index<Level>(i, P1Edge::VERTEX_C)];
 
-    for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_south) {
-      MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
+    for (auto neighbor : BubbleEdge::neighbors_south) {
+      MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
-      for (auto neighbor : BubbleEdge::EdgeCoordsVertex::neighbors_north) {
-        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::EdgeCoordsVertex::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
+      for (auto neighbor : BubbleEdge::neighbors_north) {
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
       }
     }
   }

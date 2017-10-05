@@ -4,12 +4,12 @@
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {
-namespace DgFace{
+namespace DGFace{
 
 using walberla::uint_t;
 
 template<size_t Level>
-constexpr inline uint_t indexDGfaceFromVertex(const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGFaceFromVertex(const uint_t col, const uint_t row, const stencilDirection dir){
   return BubbleFace::indexFaceFromVertex<Level>(col, row, dir);
 }
 
@@ -35,7 +35,7 @@ constexpr std::array<hhg::stencilDirection ,3> blueDGfaceneighbors =
   {{stencilDirection::CELL_GRAY_E, stencilDirection::CELL_GRAY_N, stencilDirection::CELL_GRAY_W}};
 
 template<size_t Level>
-constexpr inline uint_t indexDGfaceFromBlueDGface(const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGFaceFromBlueDGface(const uint_t col, const uint_t row, const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir){
     case sD::CELL_GRAY_E:
@@ -51,6 +51,6 @@ constexpr inline uint_t indexDGfaceFromBlueDGface(const uint_t col, const uint_t
 
 
 
-}// namespace DgFace
+}// namespace DGFace
 
 }// namespace hhg

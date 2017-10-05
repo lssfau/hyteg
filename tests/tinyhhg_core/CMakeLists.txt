@@ -15,7 +15,7 @@ waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
-waLBerla_compile_test(FILES Indexing/DgFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME DgFaceIndexingTest)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
