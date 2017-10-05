@@ -9,12 +9,15 @@ namespace DgFace{
 using walberla::uint_t;
 
 template<size_t Level>
-constexpr inline uint_t indexDGcellFromVertex( const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGfaceFromVertex(const uint_t col, const uint_t row, const stencilDirection dir){
   return BubbleFace::indexFaceFromVertex<Level>(col, row, dir);
 }
 
+constexpr std::array<hhg::stencilDirection ,3> grayDGfaceneighbors =
+  {{stencilDirection::CELL_BLUE_S, stencilDirection::CELL_BLUE_E, stencilDirection::CELL_BLUE_W}};
+
 template<size_t Level>
-constexpr inline uint_t indexDGcellFromGrayDGCell( const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGfaceFromGrayDGface(const uint_t col, const uint_t row, const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir){
     case sD::CELL_BLUE_S:
@@ -28,8 +31,11 @@ constexpr inline uint_t indexDGcellFromGrayDGCell( const uint_t col, const uint_
   return std::numeric_limits<size_t>::max();
 }
 
+constexpr std::array<hhg::stencilDirection ,3> blueDGfaceneighbors =
+  {{stencilDirection::CELL_GRAY_E, stencilDirection::CELL_GRAY_N, stencilDirection::CELL_GRAY_W}};
+
 template<size_t Level>
-constexpr inline uint_t indexDGcellFromBlueDGCell( const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGfaceFromBlueDGface(const uint_t col, const uint_t row, const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir){
     case sD::CELL_GRAY_E:

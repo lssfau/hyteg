@@ -46,10 +46,25 @@ constexpr size_t sumBubbleEdgeIndices(const uint_t x){
   return sum;
 }
 
-//constexpr uint_t sumDGFaceIndices(const uint_t x, const uint_t y){
-//  return 5;
-//}
+constexpr size_t sumGrayDGFaceIndices(const uint_t x, const uint_t y){
+  using namespace hhg::DgFace;
+  uint_t sum = 0;
+  for(uint_t i = 0; i < grayDGfaceneighbors.size(); ++i)
+  {
+    sum += indexDGfaceFromGrayDGface<3>(x, y, grayDGfaceneighbors[i]);
+  }
+  return sum;
+}
 
+constexpr size_t sumBlueDGFaceIndices(const uint_t x, const uint_t y){
+  using namespace hhg::DgFace;
+  uint_t sum = 0;
+  for(uint_t i = 0; i < blueDGfaceneighbors.size(); ++i)
+  {
+    sum += indexDGfaceFromBlueDGface<3>(x, y, blueDGfaceneighbors[i]);
+  }
+  return sum;
+}
 
 int main() {
   std::vector<size_t> refOneOne = {10, 1, 2, 11, 18, 17, 9};
@@ -66,6 +81,10 @@ int main() {
   static_assert(hhg::P1Face::FaceCoordsVertex::index<3>(1,1,hhg::P1Face::FaceCoordsVertex::VERTEX_C)==10,"P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"P1Face Index sum failed");
 
-  //static_assert(hhg::DgFace::indexDGcellFromGrayDGCell<3>(2,3, hhg::stencilDirection::CELL_BLUE_S)==45, "DGFace Index failed");
+  static_assert(hhg::DgFace::indexDGfaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_S)==51, "DGFace Index failed");
+  static_assert(sumGrayDGFaceIndices(2, 4)==175,"P1Face Index sum failed");
+
+  static_assert(hhg::DgFace::indexDGfaceFromBlueDGface<3>(5, 0, hhg::stencilDirection::CELL_GRAY_N)==13, "DGFace Index failed");
+  static_assert(sumBlueDGFaceIndices(6, 0)==27,"P1Face Index sum failed");
 
 }
