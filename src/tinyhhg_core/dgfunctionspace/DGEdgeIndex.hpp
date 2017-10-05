@@ -10,8 +10,7 @@ using walberla::uint_t;
 
 template<uint_t Level>
 constexpr inline uint_t indexDGFaceFromVertex(const uint_t pos, stencilDirection dir){
-  return 1;
-  //hhg::BubbleEdge::EdgeCoordsVertex::index<3>(pos,);
+  return hhg::BubbleEdge::indexFaceFromVertex<Level>(pos,dir);
 }
 
 

@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
   for(size_t i = 0; i < refOne.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refOne[i],result[i],"i: " << i);
+    WALBERLA_CHECK_EQUAL(refOne[i],result[i],"i: " << i);
   }
   result.clear();
   for(auto n : neighbors)
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
   for(size_t i = 0; i < refFive.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refFive[i],result[i],"i: " << i);
+    WALBERLA_CHECK_EQUAL(refFive[i],result[i],"i: " << i);
   }
   result.clear();
 }
