@@ -12,6 +12,9 @@ waLBerla_execute_test(NAME P1FaceIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroEdgeIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME EdgeDoFOnMacroEdgeIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME EdgeDoFOnMacroFaceIndexingTest)
+
 waLBerla_compile_test(FILES Indexing/BubbleEdgeIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 
