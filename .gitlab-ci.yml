@@ -344,6 +344,9 @@ coverage:
    variables:
       CXXFLAGS: "-fprofile-arcs -ftest-coverage -fPIC -O0"
       LDFLAGS: "-fprofile-arcs -ftest-coverage -fPIC -O0"
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      CMAKE_BUILD_TYPE: "Debug"
 
 
 
