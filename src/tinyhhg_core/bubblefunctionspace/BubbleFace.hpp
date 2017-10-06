@@ -299,7 +299,12 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      MatSetValues(mat, 1, &dst[index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], 1, &src[index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
+      MatSetValues(mat,
+                   1,
+                   &dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
+                   1,
+                   &src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
+                   &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
     }
     --inner_rowsize;
   }

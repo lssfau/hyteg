@@ -55,15 +55,19 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    PetscInt dst_id = dst[P1Edge::index<Level>(i, P1Edge::VERTEX_C)];
+    PetscInt dst_id = dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)];
 
     for (auto neighbor : BubbleEdge::neighbors_south) {
-      MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
+      MatSetValues(mat, 1, &dst_id, 1,
+                   &src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)],
+                   &edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)], INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto neighbor : BubbleEdge::neighbors_north) {
-        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleEdge::index<Level>(i, neighbor)], &edge_vertex_stencil[neighbor], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1,
+                     &src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)],
+                     &edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)], INSERT_VALUES);
       }
     }
   }

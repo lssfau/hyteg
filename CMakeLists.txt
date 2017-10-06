@@ -31,14 +31,15 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
 
-find_package( waLBerla )
-
 if ( HHG_BUILD_WITH_PETSC )
     find_package( PETSc )
     include_directories ( ${PETSC_INCLUDE_DIRS} )
     link_directories    ( ${PETSC_LIBRARY_DIR} )
     list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
 endif()
+
+find_package( waLBerla )
 
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
                  src/tinyhhg_core/HHGDefinitions.hpp )
