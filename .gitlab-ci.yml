@@ -125,15 +125,7 @@ stages:
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
-      - apt-get -q -y install pkg-config gfortran
-      - cd /tmp
-      - git clone -b maint https://bitbucket.org/petsc/petsc petsc_src
-      - cd petsc_src
-      - ./configure --prefix=/tmp/petsc --download-fblaslapack --download-scalapack --download-mumps
-      - make all test
-      - make install
-      - export PETSC_DIR="/tmp/petsc"
-      - export PETSC_ARCH=""
+      - apt-get -q -y install pkg-config gfortran petsc-dev
       - cd $CI_PROJECT_DIR
 
 .build_petsc_hybrid_template: &build_petsc_hybrid_definition
