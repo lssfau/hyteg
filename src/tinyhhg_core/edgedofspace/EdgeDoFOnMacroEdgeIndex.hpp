@@ -39,12 +39,12 @@ constexpr inline uint_t indexFromVertex( const uint_t pos, const stencilDirectio
     return pos - 1;
     break;
   case sD::EDGE_HO_NW:
-    WALBERLA_ASSERT( pos <= maxVertexPos );
+    WALBERLA_ASSERT( pos <  maxVertexPos );
     WALBERLA_ASSERT( pos >  0 );
     return pos - 1 + numHorizontalEdgeDoFsCenter + numHorizontalEdgeDoFsHalo + numDiagonalEdgeDoFsHalo + numVerticalEdgeDoFsHalo;
     break;
   case sD::EDGE_HO_SE:
-    WALBERLA_ASSERT( pos <= maxVertexPos );
+    WALBERLA_ASSERT( pos <  maxVertexPos );
     WALBERLA_ASSERT( pos >  0 );
     return pos - 1 + numHorizontalEdgeDoFsCenter;
     break;
