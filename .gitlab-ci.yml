@@ -189,6 +189,13 @@ intel_17_hybrid_dbg_sp:
       - docker
       - intel
 
+intel_17_petsc_hybrid:
+   <<: *build_petsc_hybrid_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   tags:
+      - docker
+      - intel
+
 gcc_5_hybrid:
    <<: *build_hybrid_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
@@ -226,6 +233,12 @@ gcc_6_hybrid_dbg_sp:
    tags:
       - docker
 
+gcc_6_petsc_hybrid:
+   <<: *build_petsc_hybrid_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   tags:
+      - docker
+
 clang_3.5_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
@@ -259,6 +272,12 @@ clang_4.0_hybrid_dbg:
 
 clang_4.0_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   tags:
+      - docker
+
+clang_4.0_petsc_hybrid:
+   <<: *build_petsc_hybrid_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
