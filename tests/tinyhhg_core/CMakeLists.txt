@@ -16,7 +16,7 @@ waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
 waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME DgFaceIndexingTest)
+waLBerla_execute_test(NAME DGIndexingTest)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
@@ -40,7 +40,7 @@ waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fm
 waLBerla_execute_test(NAME BubbleEnumerateTest)
 
 waLBerla_compile_test(FILES P1PackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1BPackInfoTest)
+waLBerla_execute_test(NAME P1PackInfoTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)
