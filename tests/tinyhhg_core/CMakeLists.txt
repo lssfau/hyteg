@@ -19,8 +19,10 @@ waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core cor
 waLBerla_execute_test(NAME DgFaceIndexingTest)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
-  waLBerla_execute_test(NAME ConstexprIndexTest)
+  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
+    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
+    waLBerla_execute_test(NAME ConstexprIndexTest)
+  endif()
 endif()
 
 ###############
