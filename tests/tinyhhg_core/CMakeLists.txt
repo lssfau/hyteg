@@ -21,12 +21,14 @@ waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
-waLBerla_compile_test(FILES Indexing/DgFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME DgFaceIndexingTest)
+waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME DGIndexingTest)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
-  waLBerla_execute_test(NAME ConstexprIndexTest)
+  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
+    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
+    waLBerla_execute_test(NAME ConstexprIndexTest)
+  endif()
 endif()
 
 ###############
@@ -42,9 +44,6 @@ waLBerla_execute_test(NAME P1EnumerateTest)
 
 waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleEnumerateTest)
-
-waLBerla_compile_test(FILES P1PackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1BPackInfoTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)

@@ -59,8 +59,9 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
 
       PetscInt dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)];
 
-      for (auto neighbor : BubbleFace::FaceCoordsVertex::neighbors) {
-        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::FaceCoordsVertex::index<Level>(i, j, neighbor)], &opr_data[neighbor], INSERT_VALUES);
+      for (auto neighbor : BubbleFace::neighbors) {
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)],
+                     &opr_data[BubbleFace::indexFaceStencil(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;

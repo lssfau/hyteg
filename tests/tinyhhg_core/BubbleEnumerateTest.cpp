@@ -32,8 +32,6 @@ int main (int argc, char ** argv )
 
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
-    //BubbleFace::printFunctionMemory<maxLevel>(face,x.getFaceDataID());
-    using namespace BubbleEdge::EdgeCoordsVertex;
     real_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
@@ -50,10 +48,10 @@ int main (int argc, char ** argv )
                                             maxLevel);
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, CELL_GRAY_NE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, idxCounter, stencilDirection::CELL_GRAY_NE)], faceData[*it]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -68,10 +66,10 @@ int main (int argc, char ** argv )
                                             maxLevel);
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter + 1, CELL_BLUE_NW)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_NW)], faceData[*it]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -97,7 +95,6 @@ int main (int argc, char ** argv )
 
 
   for (auto &edgeIt : storage->getEdges()) {
-    using namespace BubbleEdge::EdgeCoordsVertex;
     Edge &edge = *edgeIt.second;
     //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
     real_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
@@ -110,22 +107,22 @@ int main (int argc, char ** argv )
       uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       if(vertexIdOnEdge == 0){
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 0, CELL_GRAY_SE )],
+        WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_SE )],
                              vertexData[vertex->face_index(edge.neighborFaces()[0])]);
         numberOfChecks++;
         if(edge.getNumHigherDimNeighbors() == 2)
         {
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 0, CELL_GRAY_NE)],
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_NE)],
                                vertexData[vertex->face_index(edge.neighborFaces()[1])]);
           numberOfChecks++;
         }
       } else if( vertexIdOnEdge == 1){
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 1, CELL_GRAY_SW )],
+        WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, vPerEdge - 1, stencilDirection::CELL_GRAY_SW )],
                              vertexData[vertex->face_index(edge.neighborFaces()[0])]);
         numberOfChecks++;
         if(edge.getNumHigherDimNeighbors() == 2)
         {
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 1, CELL_GRAY_NW)],
+          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, vPerEdge - 1, stencilDirection::CELL_GRAY_NW)],
                                vertexData[vertex->face_index(edge.neighborFaces()[1])]);
           numberOfChecks++;
         }
