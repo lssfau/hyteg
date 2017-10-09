@@ -2,8 +2,9 @@
 
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
+#include "DGMemory.hpp"
 
-
+using namespace hhg;
 
 namespace hhg{
 
@@ -12,7 +13,7 @@ class VertexDGFunctionMemoryDataHandling : public FunctionMemoryDataHandling< Fu
 {
 public:
 
-VertexBubbleFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
+VertexDGFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
   : minLevel_( minLevel ),
     maxLevel_( maxLevel )
 {}
@@ -27,9 +28,9 @@ uint_t maxLevel_;
 };
 
 template< typename ValueType >
-std::shared_ptr< VertexBubbleFunctionMemory< ValueType > > VertexBubbleFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
+std::shared_ptr< FunctionMemory< ValueType > > VertexDGFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< VertexBubbleFunctionMemory< ValueType > >( bubbleVertexFunctionMemorySize, vertex->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, vertex->getNumNeighborFaces(), minLevel_, maxLevel_ );
 }
 
 

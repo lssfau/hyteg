@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/Function.hpp"
 #include "DGPackInfo.hpp"
+#include "DGDataHandling.hpp"
 
 using namespace hhg;
 
@@ -16,12 +17,14 @@ public:
              uint_t maxLevel) :
       Function<DGFunction<ValueType> >(name, storage, minLevel, maxLevel)
   {
-    auto faceDGFunctionMemoryDataHandling =
-        std::make_shared<FaceDGFunctionMemoryDataHandling < ValueType> > (minLevel, maxLevel);
-    auto edgeDGFunctionMemoryDataHandling =
-        std::make_shared<EdgeDGFunctionMemoryDataHandling < ValueType> > (minLevel, maxLevel);
     auto vertexDGFunctionMemoryDataHandling =
         std::make_shared<VertexDGFunctionMemoryDataHandling < ValueType> > (minLevel, maxLevel);
+    auto edgeDGFunctionMemoryDataHandling =
+        std::make_shared<EdgeDGFunctionMemoryDataHandling < ValueType> > (minLevel, maxLevel);
+    auto faceDGFunctionMemoryDataHandling =
+        std::make_shared<FaceDGFunctionMemoryDataHandling < ValueType> > (minLevel, maxLevel);
+
+
     storage->addFaceData(faceDataID_, faceDGFunctionMemoryDataHandling, name);
     storage->addEdgeData(edgeDataID_, edgeDGFunctionMemoryDataHandling, name);
     storage->addVertexData(vertexDataID_, vertexDGFunctionMemoryDataHandling, name);

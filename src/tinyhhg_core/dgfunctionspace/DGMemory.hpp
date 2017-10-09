@@ -1,5 +1,9 @@
 #pragma once
 
+#include "tinyhhg_core/levelinfo.hpp"
+
+using namespace hhg;
+
 namespace hhg
 {
 
