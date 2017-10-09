@@ -40,6 +40,7 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     return result;
     break;
   }
+#if 1
   case sD::EDGE_HO_W:
   {
     WALBERLA_ASSERT( col >  0 );
@@ -74,6 +75,72 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     return result;
     break;
   }
+  case sD::EDGE_VE_S:
+  {
+    WALBERLA_ASSERT( row > 0 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_VE_NW:
+  {
+    WALBERLA_ASSERT( col > 0 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - 1;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_VE_SE:
+  {
+    WALBERLA_ASSERT( row > 0 );
+    WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow + 1;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_DI_NW:
+  {
+    WALBERLA_ASSERT( col >  0 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + col - 1 + numHorizontalEdgeDoFsBelowRow;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
+    WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_DI_NE:
+  {
+    WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
+    WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_DI_SE:
+  {
+    WALBERLA_ASSERT( row > 0 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
+    WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    return result;
+    break;
+  }
+  case sD::EDGE_DI_SW:
+  {
+    WALBERLA_ASSERT( row > 0 );
+    WALBERLA_ASSERT( col > 0 );
+    const uint_t result = numOverallHorizontalEdgeDoFs + col - 1 + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
+    WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
+    WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
+    return result;
+    break;
+  }
+#endif
   default:
     WALBERLA_ASSERT( false );
     break;
