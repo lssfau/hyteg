@@ -39,9 +39,6 @@ waLBerla_execute_test(NAME P1EnumerateTest)
 waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleEnumerateTest)
 
-waLBerla_compile_test(FILES P1PackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1PackInfoTest)
-
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)
 
