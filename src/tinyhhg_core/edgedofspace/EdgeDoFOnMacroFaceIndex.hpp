@@ -30,70 +30,63 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
 
   WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge );
 
-  switch ( dir )
-  {
-  case sD::EDGE_HO_E:
+  // Since gcc5 + gcc6 raise internal errors when using switch-case here for
+  // some reason, we use if-else instead. smh
+
+  if ( dir == sD::EDGE_HO_E )
   {
     WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
     const uint_t result = col + numHorizontalEdgeDoFsBelowRow;
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs );
     return result;
-    break;
   }
-#if 1
-  case sD::EDGE_HO_W:
+  else if( dir == sD::EDGE_HO_W )
   {
     WALBERLA_ASSERT( col >  0 );
     const uint_t result = col - 1 + numHorizontalEdgeDoFsBelowRow;
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_HO_NW:
+  else if( dir == sD::EDGE_HO_NW )
   {
     WALBERLA_ASSERT( col > 0 );
     WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
     const uint_t result = col - 1 + numHorizontalEdgeDoFsBelowRow + numMicroEdgesInRow;
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_HO_SE:
+  else if ( dir == sD::EDGE_HO_SE )
   {
     WALBERLA_ASSERT( row > 0 );
     const uint_t result = col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_VE_N:
+  else if ( dir == sD::EDGE_VE_N )
   {
     WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
     const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_VE_S:
+  else if ( dir == sD::EDGE_VE_S )
   {
     WALBERLA_ASSERT( row > 0 );
     const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_VE_NW:
+  else if ( dir == sD::EDGE_VE_NW )
   {
     WALBERLA_ASSERT( col > 0 );
     const uint_t result = numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - 1;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_VE_SE:
+  else if ( dir == sD::EDGE_VE_SE )
   {
     WALBERLA_ASSERT( row > 0 );
     WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
@@ -101,36 +94,32 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     WALBERLA_ASSERT( result <  numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs + numOverallVerticalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_DI_NW:
+  else if ( dir == sD::EDGE_DI_NW )
   {
     WALBERLA_ASSERT( col >  0 );
     const uint_t result = numOverallHorizontalEdgeDoFs + col - 1 + numHorizontalEdgeDoFsBelowRow;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_DI_NE:
+  else if ( dir == sD::EDGE_DI_NE )
   {
     WALBERLA_ASSERT( col + row < numMicroVerticesPerEdge - 1 );
     const uint_t result = numOverallHorizontalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_DI_SE:
+  else if ( dir == sD::EDGE_DI_SE )
   {
     WALBERLA_ASSERT( row > 0 );
     const uint_t result = numOverallHorizontalEdgeDoFs + col + numHorizontalEdgeDoFsBelowRow - numMicroEdgesInRowBelow;
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     return result;
-    break;
   }
-  case sD::EDGE_DI_SW:
+  else if ( dir == sD::EDGE_DI_SW )
   {
     WALBERLA_ASSERT( row > 0 );
     WALBERLA_ASSERT( col > 0 );
@@ -138,14 +127,14 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     WALBERLA_ASSERT( result >= numOverallHorizontalEdgeDoFs );
     WALBERLA_ASSERT( result < numOverallHorizontalEdgeDoFs + numOverallDiagonalEdgeDoFs );
     return result;
-    break;
   }
-#endif
-  default:
+  else
+  {
     WALBERLA_ASSERT( false );
-    break;
+    return std::numeric_limits< uint_t >::max();
   }
-  return std::numeric_limits< uint_t >::max();
+
+
 }
 
 }
