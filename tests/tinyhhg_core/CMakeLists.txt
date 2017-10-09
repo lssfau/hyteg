@@ -1,10 +1,7 @@
 waLBerla_link_files_to_builddir(*.msh)
 
-waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1InterpolateTest)
 
-waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
+## Indexing ##
 
 waLBerla_compile_test(FILES Indexing/P1EdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1EdgeIndexingTest)
@@ -18,19 +15,29 @@ waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleFaceIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME DGIndexingTest)
+
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
-  waLBerla_execute_test(NAME ConstexprIndexTest)
+  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
+    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core fmt)
+    waLBerla_execute_test(NAME ConstexprIndexTest)
+  endif()
 endif()
+
+###############
+
+waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P1InterpolateTest)
+
+waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
 waLBerla_compile_test(FILES P1EnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1EnumerateTest)
 
 waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BubbleEnumerateTest)
-
-waLBerla_compile_test(FILES P1PackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1BPackInfoTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)

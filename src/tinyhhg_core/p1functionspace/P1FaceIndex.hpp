@@ -45,7 +45,7 @@ template<size_t Level>
 constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
   //the check can be reinserted if walberla supports constexpr
-  //WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  WALBERLA_ASSERT_LESS(col + row,vertexBaseLength);
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
   switch (dir) {
@@ -65,7 +65,7 @@ constexpr inline size_t index(const size_t col,const size_t row,const DirVertex 
       return center + vertexBaseLength - row - 1;
   }
   //the check can be reinserted if walberla supports constexpr
-  //WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 }//namespace FaceCoordsVertex
@@ -98,7 +98,7 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
       return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_N);
   }
 
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 } //namespace FaceCoordsCellGray
@@ -132,7 +132,7 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
       return hhg::P1Face::FaceCoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::FaceCoordsVertex::VERTEX_C);
   }
 
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 } //namespace FaceCoordsCellBlue

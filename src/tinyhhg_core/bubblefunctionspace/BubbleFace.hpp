@@ -20,13 +20,13 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
       }
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] = tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -37,13 +37,13 @@ inline void assign_tmpl(Face &face,
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+      ValueType tmp = scalars[0] * face.getData(srcIds[0])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       for (size_t k = 1; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -67,9 +67,9 @@ inline void add_tmpl(Face &face,
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
       }
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] += tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
     }
     --inner_rowsize;
   }
@@ -84,9 +84,10 @@ inline void add_tmpl(Face &face,
 
       for (size_t k = 0; k < srcIds.size(); ++k)
       {
-        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+        tmp += scalars[k] * face.getData(srcIds[k])->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j,
+                                                                                                                  stencilDirection::CELL_BLUE_C)];
       }
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
     }
     --inner_rowsize;
   }
@@ -107,8 +108,8 @@ inline real_t dot_tmpl(Face &face,
 
   for (size_t i = 0; i < rowsize - 1; ++i) {
     for (size_t j = 0; j < inner_rowsize - 1; ++j) {
-      sp += lhs_data[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)]
-          *rhs_data[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
+      sp += lhs_data[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)]
+          *rhs_data[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
     }
     --inner_rowsize;
   }
@@ -117,8 +118,8 @@ inline real_t dot_tmpl(Face &face,
 
   for (size_t i = 0; i < rowsize - 2; ++i) {
     for (size_t j = 0; j < inner_rowsize - 2; ++j) {
-      sp += lhs_data[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)]
-          *rhs_data[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+      sp += lhs_data[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)]
+          *rhs_data[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
     }
     --inner_rowsize;
   }
@@ -150,12 +151,12 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      tmp = face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C] * src[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)];
+      tmp = face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C] * src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
 
       if (update == Replace) {
-        dst[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] = tmp;
+        dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
       } else if (update == Add) {
-        dst[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] += tmp;
+        dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -167,12 +168,12 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)];
+      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       if (update == Replace) {
-        dst[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = tmp;
+        dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
       } else if (update == Add) {
-        dst[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] += tmp;
+        dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -191,7 +192,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] = real_c(num++);
+      face.getData(dstId)->getPointer( Level )[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -202,7 +203,7 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      face.getData(dstId)->getPointer( Level )[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] = real_c(num++);
+      face.getData(dstId)->getPointer( Level )[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = real_c(num++);
     }
     --inner_rowsize;
   }
@@ -220,14 +221,14 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunc
   std::cout << "Cell Blue: " << std::endl;
   for (size_t i = 0; i < verticesPerDge-2; ++i) {
     for (size_t j = 0; j < verticesPerDge-2 - i; ++j) {
-      cout << setw(5) << faceMemory[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)] << "|";
+      cout << setw(5) << faceMemory[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] << "|";
     }
     std::cout << std::endl;
   }
   cout << "Cell Gray: " << std::endl;
   for (size_t i = 0; i < verticesPerDge-1; ++i) {
     for (size_t j = 0; j < verticesPerDge-1 - i; ++j) {
-      cout << setw(5) << faceMemory[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)] << "|";
+      cout << setw(5) << faceMemory[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] << "|";
     }
     std::cout << std::endl;
   }
@@ -287,7 +288,7 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      MatSetValues(mat, 1, &dst[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], 1, &src[FaceCoordsCellGray::index<Level>(i, j, FaceCoordsCellGray::CELL_GRAY_C)], &face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C], INSERT_VALUES);
+      MatSetValues(mat, 1, &dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], 1, &src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], &face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C], INSERT_VALUES);
     }
     --inner_rowsize;
   }
@@ -298,7 +299,12 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      MatSetValues(mat, 1, &dst[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], 1, &src[FaceCoordsCellBlue::index<Level>(i, j, FaceCoordsCellBlue::CELL_BLUE_C)], &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
+      MatSetValues(mat,
+                   1,
+                   &dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
+                   1,
+                   &src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
+                   &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
     }
     --inner_rowsize;
   }

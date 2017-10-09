@@ -1,5 +1,4 @@
-#ifndef FLAGS_HPP
-#define FLAGS_HPP
+#pragma once
 
 namespace hhg
 {
@@ -53,4 +52,3 @@ enum class MemoryType {
 
 } // namespace hhg
 
-#endif /* FLAGS_HPP */

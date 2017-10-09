@@ -3,6 +3,7 @@
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/primitives/edge.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleMemory.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
 
 namespace hhg{
 namespace BubbleEdge{
@@ -19,52 +20,74 @@ enum DirVertex {
   CELL_GRAY_NE = 5
 };
 
-constexpr std::array<DirVertex,6> neighbors =
-  {{CELL_GRAY_SE, CELL_GRAY_NE, CELL_GRAY_NW, CELL_GRAY_SW,
-    CELL_BLUE_SE, CELL_BLUE_NW}};
+}//namespace EdgeCoordsVertex
 
-constexpr std::array<DirVertex,3> neighbors_south =
-  {{CELL_GRAY_SW, CELL_BLUE_SE, CELL_GRAY_SE}};
+constexpr inline uint_t indexEdgeStencil(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
+  switch(dir) {
+    case sD::CELL_GRAY_SW:
+      return 0;
+    case sD::CELL_BLUE_SE:
+      return 1;
+    case sD::CELL_GRAY_SE:
+      return 2;
+    case sD::CELL_GRAY_NW:
+      return 3;
+    case sD::CELL_BLUE_NW:
+      return 4;
+    case sD::CELL_GRAY_NE:
+      return 5;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
 
-constexpr std::array<DirVertex,3> neighbors_north =
-  {{CELL_GRAY_NW, CELL_BLUE_NW, CELL_GRAY_NE}};
+constexpr std::array<stencilDirection,6> neighbors =
+  {{stencilDirection::CELL_GRAY_SE, stencilDirection::CELL_GRAY_NE, stencilDirection::CELL_GRAY_NW, stencilDirection::CELL_GRAY_SW,
+    stencilDirection::CELL_BLUE_SE, stencilDirection::CELL_BLUE_NW}};
+
+constexpr std::array<stencilDirection,3> neighbors_south =
+  {{stencilDirection::CELL_GRAY_SW, stencilDirection::CELL_BLUE_SE, stencilDirection::CELL_GRAY_SE}};
+
+constexpr std::array<stencilDirection,3> neighbors_north =
+  {{stencilDirection::CELL_GRAY_NW, stencilDirection::CELL_BLUE_NW, stencilDirection::CELL_GRAY_NE}};
 
 //first face is south face by convention
 
 template<size_t Level>
-constexpr inline size_t index(size_t pos, DirVertex dir) {
+constexpr inline size_t indexFaceFromVertex(size_t pos, stencilDirection dir) {
+  typedef stencilDirection sD;
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  //WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {
-    case CELL_GRAY_SE:
+    case sD::CELL_GRAY_SE:
       return startFaceS + pos * 2;
-    case CELL_GRAY_NE:
+    case sD::CELL_GRAY_NE:
       return startFaceN + pos * 2;
-    case CELL_GRAY_NW:
+    case sD::CELL_GRAY_NW:
       return startFaceN + pos * 2 - 2;
-    case CELL_GRAY_SW:
+    case sD::CELL_GRAY_SW:
       return startFaceS + (pos -1) * 2;
-    case CELL_BLUE_SE:
+    case sD::CELL_BLUE_SE:
       return startFaceS + pos * 2 -1;
-    case CELL_BLUE_NW:
+    case sD::CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      //WALBERLA_ASSERT(false, "wrong dir");
+      WALBERLA_ASSERT(false);
       return std::numeric_limits<size_t>::max();
   }
 
 }
 
-SPECIALIZE(size_t, index, edge_index)
-
-}//namespace EdgeCoordsVertex
+SPECIALIZE(size_t, indexFaceFromVertex, edge_index)
 
 inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &memoryId, uint_t level)
 {
   using namespace std;
-  using namespace hhg::BubbleEdge::EdgeCoordsVertex;
+  using namespace hhg::BubbleEdge;
+  typedef stencilDirection sD;
 
   uint_t v_perEdge = hhg::levelinfo::num_microvertices_per_edge(level);
   real_t* edgeData = edge.getData(memoryId)->getPointer( level );
@@ -87,10 +110,10 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
     for (size_t i = 0; i < v_perEdge - 2; ++i)
     {
       cout << "|" << setw(3)
-           << edgeData[edge_index(level, i, CELL_GRAY_NE)];
-      cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1, CELL_BLUE_NW)];
+           << edgeData[edge_index(level, i, sD::CELL_GRAY_NE)];
+      cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1, sD::CELL_BLUE_NW)];
     }
-    cout << "|" << setw(3) << edgeData[edge_index(level, v_perEdge - 1, CELL_GRAY_NW)] << "\\" << endl;
+    cout << "|" << setw(3) << edgeData[edge_index(level, v_perEdge - 1, sD::CELL_GRAY_NW)] << "\\" << endl;
     for (size_t i = 0; i < v_perEdge - 2; ++i)
     { cout << "|    \\  "; }
     cout << "|    \\" << endl;
@@ -109,11 +132,11 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   { cout << "  \\    |"; }
   cout << endl;
 //cell South
-  cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0u, CELL_GRAY_SE)] << "|";
+  cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0u, sD::CELL_GRAY_SE)] << "|";
   for (size_t i = 0; i < v_perEdge - 2; ++i)
   {
-    cout << setw(3) << edgeData[edge_index(level, i + 1u, CELL_BLUE_SE)];
-    cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1u, CELL_GRAY_SE)] << "|";
+    cout << setw(3) << edgeData[edge_index(level, i + 1u, sD::CELL_BLUE_SE)];
+    cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1u, sD::CELL_GRAY_SE)] << "|";
   }
   cout << "\n     \\  |";
   for (size_t i = 0; i < v_perEdge - 2; ++i)
