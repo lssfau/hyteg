@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tinyhhg_core/primitives/edge.hpp>
+#include <tinyhhg_core/primitives/Edge.hpp>
 #include "tinyhhg_core/primitiveid.hpp"
 
 namespace hhg {

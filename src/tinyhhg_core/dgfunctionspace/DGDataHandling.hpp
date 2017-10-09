@@ -1,5 +1,10 @@
 #pragma once
 
+#include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+
+
+
 namespace hhg{
 
 template< typename ValueType >

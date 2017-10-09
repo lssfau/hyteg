@@ -1,5 +1,5 @@
-#include "edge.hpp"
-#include "vertex.hpp"
+#include "Edge.hpp"
+#include "Vertex.hpp"
 
 #include <fmt/format.h>
 

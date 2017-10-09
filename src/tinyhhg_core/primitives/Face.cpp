@@ -1,8 +1,8 @@
 #include <fmt/ostream.h>
 
-#include "face.hpp"
-#include "edge.hpp"
-#include "vertex.hpp"
+#include "Face.hpp"
+#include "Edge.hpp"
+#include "Vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/math.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"

@@ -4,9 +4,9 @@
 #include "core/logging/Logging.h"
 #include "tinyhhg_core/primitiveid.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
-#include "tinyhhg_core/primitives/face.hpp"
-#include "tinyhhg_core/primitives/vertex.hpp"
-#include "tinyhhg_core/primitives/edge.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Vertex.hpp"
+#include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
 #include <map>
