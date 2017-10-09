@@ -577,10 +577,12 @@ static void testEdgeDoFsOnMacroFace()
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing: EDGE_DI_SW correct!" );
 
 #ifdef NDEBUG
+#ifndef _MSC_VER
   static_assert( EdgeDoFOnMacroFace::indexFromVertex < 3 >( 0, 0, sD::EDGE_HO_E )  ==   0 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
   static_assert( EdgeDoFOnMacroFace::indexFromVertex < 3 >( 2, 1, sD::EDGE_HO_E )  ==  10 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
   static_assert( EdgeDoFOnMacroFace::indexFromVertex < 3 >( 2, 2, sD::EDGE_HO_E )  ==  17 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
   static_assert( EdgeDoFOnMacroFace::indexFromVertex < 3 >( 0, 5, sD::EDGE_VE_N )  == 102 , "EDGE_VE_N  cannot be statically computed by the compiler!" );
+#endif
 #endif
 
 }
