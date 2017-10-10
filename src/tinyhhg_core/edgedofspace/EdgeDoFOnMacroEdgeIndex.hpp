@@ -99,6 +99,18 @@ constexpr inline uint_t indexFromHorizontalEdge( const uint_t pos, const stencil
 
   switch ( dir )
   {
+  case sD::EDGE_DI_N:
+    return indexFromVertex< Level >( pos, sD::EDGE_DI_NE );
+    break;
+  case sD::EDGE_DI_S:
+    return indexFromVertex< Level >( pos, sD::EDGE_DI_SE );
+    break;
+  case sD::EDGE_VE_NW:
+    return indexFromVertex< Level >( pos, sD::EDGE_VE_N );
+    break;
+  case sD::EDGE_VE_SE:
+    return indexFromVertex< Level >( pos, sD::EDGE_VE_SE );
+    break;
   default:
     WALBERLA_ASSERT( false );
     break;

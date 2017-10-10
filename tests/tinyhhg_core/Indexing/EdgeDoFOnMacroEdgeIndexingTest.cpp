@@ -230,10 +230,10 @@ static void testEdgeDoFsOnMacroEdge()
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_DI_N correct!" );
 
-  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_N),  7 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_N),  8 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_DI_N),  9 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_DI_N), 10 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_S),  7 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_S),  8 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_DI_S),  9 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_DI_S), 10 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_DI_S correct!" );
 
@@ -250,6 +250,13 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_VE_SE), 14 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_VE_SE correct!" );
+
+#ifdef NDEBUG
+  static_assert( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_N)  == 18, "EDGE_DI_N  cannot be statically computed by the compiler!" );
+  static_assert( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_S)  ==  8, "EDGE_DI_S  cannot be statically computed by the compiler!" );
+  static_assert( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_VE_NW) == 24, "EDGE_VE_NW cannot be statically computed by the compiler!" );
+  static_assert( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_VE_SE) == 14, "EDGE_VE_SE cannot be statically computed by the compiler!" );
+#endif
 
 }
 
