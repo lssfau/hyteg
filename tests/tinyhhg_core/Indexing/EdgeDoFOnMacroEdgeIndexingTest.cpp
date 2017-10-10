@@ -12,6 +12,10 @@ static void testEdgeDoFsOnMacroEdge()
 {
   typedef stencilDirection sD;
 
+  ///////////////////////
+  // index from vertex //
+  ///////////////////////
+
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 0, sD::EDGE_HO_E), 0 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_HO_E), 1 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_HO_E), 2 );
@@ -26,7 +30,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_HO_E), 6 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_HO_E), 7 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_HO_E correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_HO_E correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_HO_W), 0 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_HO_W), 1 );
@@ -42,7 +46,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_HO_W), 6 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 8, sD::EDGE_HO_W), 7 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_HO_W correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_HO_W correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_HO_NW), 15 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_HO_NW), 16 );
@@ -56,7 +60,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_HO_NW), 36 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_HO_NW), 37 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_HO_NW correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_HO_NW correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_HO_SE), 4 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_HO_SE), 5 );
@@ -70,7 +74,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_HO_SE), 13 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_HO_SE), 14 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_HO_SE correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_HO_SE correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_VE_S), 11 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_VE_S), 12 );
@@ -86,7 +90,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_VE_S), 29 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 8, sD::EDGE_VE_S), 30 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_VE_S correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_VE_S correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 0, sD::EDGE_VE_N), 22 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_VE_N), 23 );
@@ -102,7 +106,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_VE_N), 52 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_VE_N), 53 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_VE_N correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_VE_N correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_VE_NW), 22 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_VE_NW), 23 );
@@ -118,7 +122,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_VE_NW), 52 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 8, sD::EDGE_VE_NW), 53 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_VE_NW correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_VE_NW correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 0, sD::EDGE_VE_SE), 11 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_VE_SE), 12 );
@@ -134,7 +138,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_VE_SE), 29 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_VE_SE), 30 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_VE_SE correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_VE_SE correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_DI_NW), 18 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_DI_NW), 19 );
@@ -150,7 +154,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_DI_NW), 44 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 8, sD::EDGE_DI_NW), 45 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_DI_NW correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_DI_NW correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 0, sD::EDGE_DI_NE), 18 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_DI_NE), 19 );
@@ -166,7 +170,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_DI_NE), 44 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_DI_NE), 45 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_DI_NE correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_DI_NE correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_DI_SW),  7 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 2, sD::EDGE_DI_SW),  8 );
@@ -182,7 +186,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_DI_SW), 21 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 8, sD::EDGE_DI_SW), 22 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_DI_SW correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_DI_SW correct!" );
 
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 0, sD::EDGE_DI_SE),  7 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 2 >( 1, sD::EDGE_DI_SE),  8 );
@@ -198,7 +202,7 @@ static void testEdgeDoFsOnMacroEdge()
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_DI_SE), 21 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 7, sD::EDGE_DI_SE), 22 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing: EDGE_DI_SE correct!" );
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_DI_SE correct!" );
 
 #ifdef NDEBUG
   static_assert( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 3, sD::EDGE_HO_E)  ==  3 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
@@ -214,6 +218,38 @@ static void testEdgeDoFsOnMacroEdge()
   static_assert( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 1, sD::EDGE_VE_NW) == 46 , "EDGE_VE_NW cannot be statically computed by the compiler!" );
   static_assert( EdgeDoFOnMacroEdge::indexFromVertex< 3 >( 6, sD::EDGE_VE_SE) == 29 , "EDGE_VE_SE cannot be statically computed by the compiler!" );
 #endif
+
+  ////////////////////////////////
+  // index from horizontal edge //
+  ////////////////////////////////
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_N), 18 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_N), 19 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_DI_N), 20 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_DI_N), 21 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_DI_N correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_N),  7 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_N),  8 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_DI_N),  9 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_DI_N), 10 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_DI_S correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_VE_NW), 22 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_VE_NW), 23 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_VE_NW), 24 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_VE_NW), 25 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_VE_NW correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_VE_SE), 11 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_VE_SE), 12 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_VE_SE), 13 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_VE_SE), 14 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_VE_SE correct!" );
 
 }
 

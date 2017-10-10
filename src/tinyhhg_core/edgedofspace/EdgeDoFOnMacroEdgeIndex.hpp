@@ -91,5 +91,20 @@ constexpr inline uint_t indexFromVertex( const uint_t pos, const stencilDirectio
   return std::numeric_limits< uint_t >::max();
 }
 
+
+template<size_t Level>
+constexpr inline uint_t indexFromHorizontalEdge( const uint_t pos, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  switch ( dir )
+  {
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+  return std::numeric_limits< uint_t >::max();
+}
+
 }
 }
