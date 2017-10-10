@@ -45,6 +45,7 @@ enum class stencilDirection : uint_t {
   EDGE_HO_NW,
   EDGE_HO_SE,
 
+  EDGE_VE_C,
   EDGE_VE_N,
   EDGE_VE_S,
   EDGE_VE_W,
@@ -52,6 +53,7 @@ enum class stencilDirection : uint_t {
   EDGE_VE_NW,
   EDGE_VE_SE,
 
+  EDGE_DI_C,
   EDGE_DI_N,
   EDGE_DI_S,
   EDGE_DI_W,
