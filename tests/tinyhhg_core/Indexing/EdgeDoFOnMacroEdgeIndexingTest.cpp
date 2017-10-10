@@ -223,6 +223,13 @@ static void testEdgeDoFsOnMacroEdge()
   // index from horizontal edge //
   ////////////////////////////////
 
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_HO_C), 0 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_HO_C), 1 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_HO_C), 2 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 3, sD::EDGE_HO_C), 3 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_HO_C correct!" );
+
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 0, sD::EDGE_DI_N), 18 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 1, sD::EDGE_DI_N), 19 );
   WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroEdge::indexFromHorizontalEdge< 2 >( 2, sD::EDGE_DI_N), 20 );

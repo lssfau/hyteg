@@ -101,6 +101,9 @@ constexpr inline uint_t indexFromHorizontalEdge( const uint_t pos, const stencil
 
   switch ( dir )
   {
+  case sD::EDGE_HO_C:
+    return indexFromVertex< Level >( pos, sD::EDGE_HO_E );
+    break;
   case sD::EDGE_DI_N:
     return indexFromVertex< Level >( pos, sD::EDGE_DI_NE );
     break;
