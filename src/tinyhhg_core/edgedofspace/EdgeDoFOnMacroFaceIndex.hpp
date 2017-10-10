@@ -133,9 +133,36 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     WALBERLA_ASSERT( false );
     return std::numeric_limits< uint_t >::max();
   }
-
-
 }
+
+
+template<size_t Level>
+constexpr inline uint_t indexFromHorizontalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  switch ( dir )
+  {
+  case sD::EDGE_DI_N:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
+    break;
+  case sD::EDGE_DI_S:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_SE );
+    break;
+  case sD::EDGE_VE_NW:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_N );
+    break;
+  case sD::EDGE_VE_SE:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_SE );
+    break;
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+
+  return std::numeric_limits< uint_t >::max();
+}
+
 
 }
 }
