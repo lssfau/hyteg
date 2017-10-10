@@ -8,7 +8,7 @@ namespace EdgeDoFOnMacroFace {
 
 using walberla::uint_t;
 
-template<size_t Level>
+template< size_t Level >
 constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, const stencilDirection dir )
 {
   typedef stencilDirection sD;
@@ -133,8 +133,98 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
     WALBERLA_ASSERT( false );
     return std::numeric_limits< uint_t >::max();
   }
+}
 
 
+template< size_t Level >
+constexpr inline uint_t indexFromHorizontalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
+  switch ( dir )
+  {
+  case sD::EDGE_DI_N:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
+    break;
+  case sD::EDGE_DI_S:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_SE );
+    break;
+  case sD::EDGE_VE_NW:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_N );
+    break;
+  case sD::EDGE_VE_SE:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_SE );
+    break;
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+
+  return std::numeric_limits< uint_t >::max();
+}
+
+
+template< size_t Level >
+constexpr inline uint_t indexFromVerticalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
+  switch ( dir )
+  {
+  case sD::EDGE_DI_E:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
+    break;
+  case sD::EDGE_DI_W:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_NW );
+    break;
+  case sD::EDGE_HO_NW:
+    return indexFromVertex< Level >( col, row, sD::EDGE_HO_NW );
+    break;
+  case sD::EDGE_HO_SE:
+    return indexFromVertex< Level >( col, row, sD::EDGE_HO_E );
+    break;
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+
+  return std::numeric_limits< uint_t >::max();
+}
+
+
+template< size_t Level >
+constexpr inline uint_t indexFromDiagonalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
+  switch ( dir )
+  {
+  case sD::EDGE_HO_N:
+    WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) - 1 );
+    return indexFromVertex< Level >( col + 1, row, sD::EDGE_HO_NW );
+    break;
+  case sD::EDGE_HO_S:
+    return indexFromVertex< Level >( col, row, sD::EDGE_HO_E );
+    break;
+  case sD::EDGE_VE_W:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_N );
+    break;
+  case sD::EDGE_VE_E:
+    WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) - 1 );
+    return indexFromVertex< Level >( col + 1, row, sD::EDGE_VE_N );
+    break;
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+
+  return std::numeric_limits< uint_t >::max();
 }
 
 }
