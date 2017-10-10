@@ -145,6 +145,9 @@ constexpr inline uint_t indexFromHorizontalEdge( const uint_t col, const uint_t 
 
   switch ( dir )
   {
+  case sD::EDGE_HO_C:
+    return indexFromVertex< Level >( col, row, sD::EDGE_HO_E );
+    break;
   case sD::EDGE_DI_N:
     return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
     break;
@@ -175,6 +178,9 @@ constexpr inline uint_t indexFromVerticalEdge( const uint_t col, const uint_t ro
 
   switch ( dir )
   {
+  case sD::EDGE_VE_C:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_N );
+    break;
   case sD::EDGE_DI_E:
     return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
     break;
@@ -205,6 +211,9 @@ constexpr inline uint_t indexFromDiagonalEdge( const uint_t col, const uint_t ro
 
   switch ( dir )
   {
+  case sD::EDGE_DI_C:
+    return indexFromVertex< Level >( col, row, sD::EDGE_DI_NE );
+    break;
   case sD::EDGE_HO_N:
     WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) - 1 );
     return indexFromVertex< Level >( col + 1, row, sD::EDGE_HO_NW );
