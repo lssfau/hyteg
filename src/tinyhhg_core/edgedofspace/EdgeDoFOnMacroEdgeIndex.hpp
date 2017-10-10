@@ -97,6 +97,8 @@ constexpr inline uint_t indexFromHorizontalEdge( const uint_t pos, const stencil
 {
   typedef stencilDirection sD;
 
+  WALBERLA_ASSERT( pos < levelinfo::num_microedges_per_edge( Level ) );
+
   switch ( dir )
   {
   case sD::EDGE_DI_N:
