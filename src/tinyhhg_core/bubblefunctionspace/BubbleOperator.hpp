@@ -26,7 +26,7 @@ namespace hhg
 {
 
 template<class UFCOperator>
-class BubbleOperator : public Operator< BubbleFunction, BubbleFunction >
+class BubbleOperator : public Operator< BubbleFunction< real_t >, BubbleFunction< real_t > >
 {
 public:
   BubbleOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -58,40 +58,26 @@ public:
   {
   }
 
+const PrimitiveDataID<FaceBubbleStencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
+
 private:
 
-  void apply_impl(BubbleFunction& src, BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(BubbleFunction< real_t > & src, BubbleFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag))
       {
-        BubbleFace::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        BubbleFace::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
   }
 
-  void smooth_gs_impl(BubbleFunction& dst, BubbleFunction& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(BubbleFunction< real_t > & dst, BubbleFunction< real_t > & rhs, size_t level, DoFType flag)
   {
     WALBERLA_ASSERT(false, "BubbleOperator::smooth_gs is not implemented!");
   }
-
-#ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(BubbleFunction& src, BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
-  {
-    /* //TODO
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        BubbleFace::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), out);
-      }
-    }
-     */
-  }
-#endif
 
 private:
   PrimitiveDataID<FaceBubbleStencilMemory, Face> faceStencilID_;

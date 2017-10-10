@@ -21,7 +21,7 @@ public:
   {
   }
 
-  void apply(P1StokesFunction& src, P1StokesFunction& dst, size_t level, DoFType flag)
+  void apply(P1StokesFunction<real_t>& src, P1StokesFunction<real_t>& dst, size_t level, DoFType flag)
   {
     A.apply(src.u, dst.u, level, flag, Replace);
     divT_x.apply(src.p, dst.u, level, flag, Add);

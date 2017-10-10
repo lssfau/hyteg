@@ -21,13 +21,13 @@ int main (int argc, char** argv) {
   std::shared_ptr<hhg::PrimitiveStorage> storage(new hhg::PrimitiveStorage(setupStorage));
 
 
-  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling >(minLevel, maxLevel);
-  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling >(minLevel, maxLevel);
-  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling >(minLevel, maxLevel);
+  auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
+  auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
+  auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling< real_t > >(minLevel, maxLevel);
 
-  PrimitiveDataID<FaceP1FunctionMemory  , Face  > faceDataID;
-  PrimitiveDataID<EdgeP1FunctionMemory  , Edge  > edgeDataID;
-  PrimitiveDataID<VertexP1FunctionMemory, Vertex> vertexDataID;
+  PrimitiveDataID<FaceP1FunctionMemory< real_t >  , Face  > faceDataID;
+  PrimitiveDataID<EdgeP1FunctionMemory< real_t >  , Edge  > edgeDataID;
+  PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> vertexDataID;
 
   storage->addFaceData(faceDataID, faceP1FunctionMemoryDataHandling, "data");
   storage->addEdgeData(edgeDataID, edgeP1FunctionMemoryDataHandling, "data");
@@ -87,18 +87,18 @@ int main (int argc, char** argv) {
 //  std::cout << "++++ Face 0 Vertex Dofs: ++++" << std::endl;
 //  for(size_t i = 0; i < v_perEdge; ++i){
 //    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      //std::cout << face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)]);
-//      //std::cout << face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)];
+//      //std::cout << face0mem[FaceCoordsVertex::index<maxLevel>(i, j, FaceCoordsVertex::VERTEX_C)] << " ";
+//      fmt::print("{0:.2f}  ",face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)]);
+//      //std::cout << face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)];
 //    }
 //    std::cout << std::endl;
 //  }
 //  std::cout << "++++ Face 1 Vertex Dofs: ++++" << std::endl;
 //  for(size_t i = 0; i < v_perEdge; ++i){
 //    for(size_t j = 0; j < v_perEdge - i; ++j) {
-//      //std::cout << face0mem[CoordsVertex::index<maxLevel>(i, j, CoordsVertex::VERTEX_C)] << " ";
-//      fmt::print("{0:.2f}  ",face1data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)]);
-//      //std::cout << face0data[hhg::P1BubbleFace::CoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsVertex::VERTEX_C)];
+//      //std::cout << face0mem[FaceCoordsVertex::index<maxLevel>(i, j, FaceCoordsVertex::VERTEX_C)] << " ";
+//      fmt::print("{0:.2f}  ",face1data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)]);
+//      //std::cout << face0data[hhg::P1BubbleFace::FaceCoordsVertex::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsVertex::VERTEX_C)];
 //    }
 //    std::cout << std::endl;
 //  }

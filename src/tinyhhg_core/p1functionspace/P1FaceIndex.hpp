@@ -1,14 +1,22 @@
 #pragma once
 #include <iterator>
 
+#include <core/Abort.h>
+#include "tinyhhg_core/macros.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
+
+#include "core/DataTypes.h"
+#include "core/debug/all.h"
+
 namespace hhg
 {
 namespace P1Face
 {
 
 using walberla::uint_t;
-
-namespace CoordsVertex {
+/// contains stencil directions and index functions for vertices in a P1-Function
+namespace FaceCoordsVertex {
+/// possible stencil directions
 enum DirVertex {
   VERTEX_S  = 0,
   VERTEX_SE = 1,
@@ -19,16 +27,25 @@ enum DirVertex {
   VERTEX_N  = 6
 };
 
-const DirVertex neighbors_with_center[] =
-    {VERTEX_C,
-     VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
-const DirVertex neighbors[] =
-    {VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W};
+/// all stencil directions including the center
+constexpr std::array<DirVertex,7> neighbors_with_center =
+  {{VERTEX_C,
+   VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
 
+/// all stencil directions without the center
+constexpr std::array<DirVertex,6> neighbors =
+  {{VERTEX_S, VERTEX_SE, VERTEX_E, VERTEX_N, VERTEX_NW, VERTEX_W}};
+
+
+/// returns the index inside the linearized P1FaceMemory for a given vertex point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
-inline size_t index(size_t col, size_t row, DirVertex dir) {
+constexpr inline size_t index(const size_t col,const size_t row,const DirVertex dir) {
   const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  //the check can be reinserted if walberla supports constexpr
+  WALBERLA_ASSERT_LESS(col + row,vertexBaseLength);
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
   const size_t center = (totalVertices - (vertexBaseLength-row)*(vertexBaseLength-row+1)/2) + col;
   switch (dir) {
@@ -47,63 +64,78 @@ inline size_t index(size_t col, size_t row, DirVertex dir) {
     case VERTEX_NW:
       return center + vertexBaseLength - row - 1;
   }
-
-  WALBERLA_ASSERT(false, "wrong dir");
+  //the check can be reinserted if walberla supports constexpr
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
-}//namespace CoordsVertex
-
-namespace CoordsCellGray {
+}//namespace FaceCoordsVertex
+/// contains stencil directions and index functions for gray cells in a P1-Function
+/// see documentation for description of gray and blue cells
+namespace FaceCoordsCellGray {
 enum DirVertex {
   VERTEX_SW = 0,
   VERTEX_SE = 1,
   VERTEX_NW = 2
 };
+/// all stencil directions
+/// note that the center can not be contained since a P1-Function has no face dof
+constexpr std::array<DirVertex,3> neighbors = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
 
-const DirVertex neighbors[] = {VERTEX_SW, VERTEX_SE, VERTEX_NW};
-
+/// returns the index inside the linearized P1FaceMemory for a given gray cell point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
-  //typedef hhg::P1Face::CoordsVertex CoordsVertex;
+  //typedef hhg::P1Face::FaceCoordsVertex FaceCoordsVertex;
 
   switch(dir){
     case VERTEX_SW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_C);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_C);
     case VERTEX_SE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_E);
     case VERTEX_NW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_N);
   }
 
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
-} //namespace CoordsCellGray
+} //namespace FaceCoordsCellGray
 
-namespace CoordsCellBlue {
+/// contains stencil directions and index functions for blue cells in a P1-Function
+/// see documentation for description of gray and blue cells
+namespace FaceCoordsCellBlue {
+/// possible stencil directions
 enum DirVertex {
   VERTEX_SE = 0,
   VERTEX_NW = 1,
   VERTEX_NE = 2
 };
 
-const DirVertex neighbors[] = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
+/// all stencil directions
+/// note that the center can not be contained since a P1-Function has no face dof
+constexpr std::array<DirVertex,3> neighbors  = {VERTEX_SE, VERTEX_NW, VERTEX_NE};
 
+/// returns the index inside the linearized P1FaceMemory for a given blue cell point and stencil direction
+/// @param col column (x direction) inside the triangle
+/// @param row row (y direction) inside the triangle
+/// @param dir stencil direction
 template<size_t Level>
 inline size_t index(size_t col, size_t row, DirVertex dir) {
   switch(dir){
     case VERTEX_SE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_E);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_E);
     case VERTEX_NW:
-      return hhg::P1Face::CoordsVertex::index<Level>(col,row,hhg::P1Face::CoordsVertex::VERTEX_N);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col,row,hhg::P1Face::FaceCoordsVertex::VERTEX_N);
     case VERTEX_NE:
-      return hhg::P1Face::CoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::CoordsVertex::VERTEX_C);
+      return hhg::P1Face::FaceCoordsVertex::index<Level>(col+1,row+1,hhg::P1Face::FaceCoordsVertex::VERTEX_C);
   }
 
-  WALBERLA_ASSERT(false, "wrong dir");
+  WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
-} //namespace CoordsCellBlue
+} //namespace FaceCoordsCellBlue
 
 enum DofType {
   VERTEX = 0,

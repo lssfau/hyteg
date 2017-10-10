@@ -27,12 +27,12 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::P1BubbleFunction r("r", storage, minLevel, maxLevel);
-  hhg::P1BubbleFunction f("f", storage, minLevel, maxLevel);
-  hhg::P1BubbleFunction u("u", storage, minLevel, maxLevel);
-  hhg::P1BubbleFunction u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P1BubbleFunction err("err", storage, minLevel, maxLevel);
-  hhg::P1BubbleFunction npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> u("u", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> err("err", storage, minLevel, maxLevel);
+  hhg::P1BubbleFunction<real_t> npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1BubbleLaplaceOperator L(storage, minLevel, maxLevel);
 
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::CGSolver<hhg::P1BubbleFunction, hhg::P1BubbleLaplaceOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1BubbleFunction<real_t>, hhg::P1BubbleLaplaceOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
@@ -59,6 +59,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  hhg::VTKWriter<hhg::P1Function>({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "cg_bubble");
+  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.p1, &u_exact.p1, &f.p1, &r.p1, &err.p1 }, maxLevel, "../output", "cg_bubble");
   return 0;
 }

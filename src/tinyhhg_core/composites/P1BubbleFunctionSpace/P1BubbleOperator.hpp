@@ -19,23 +19,13 @@ public:
   {
   }
 
-  void apply(P1BubbleFunction& src, P1BubbleFunction& dst, size_t level, DoFType flag, UpdateType updateType)
+  void apply(P1BubbleFunction<real_t>& src, P1BubbleFunction<real_t>& dst, size_t level, DoFType flag, UpdateType updateType)
   {
 //    WALBERLA_LOG_DEBUG_ON_ROOT("P1BubbleOperator::apply is missing off diagonal blocks!")
 
     A_p1.apply(src.p1, dst.p1, level, flag, updateType);
     A_b.apply(src.b, dst.b, level, flag, updateType);
   }
-
-#ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix(P1BubbleFunction& src, P1BubbleFunction& dst, Mat &mat, size_t level, DoFType flag)
-  {
-//    WALBERLA_LOG_DEBUG_ON_ROOT("P1BubbleOperator::apply is missing off diagonal blocks!")
-
-    /*A_p1.save(src.p1, dst.p1, mat, level, flag); //TODO Implement
-    A_b.save(src.b, dst.b, mat, level, flag);*/
-  }
-#endif
 
   Opr_P1_to_P1 A_p1;
   Opr_B_to_B   A_b;

@@ -1,26 +1,52 @@
 # TinyHHG C++
 
-### Build instructions
+TinyHHG (HHG stands for hierarchical hybrid grids) is a C++ framework for large scale high performance finite element simulations based on (but not limited to) geometric multigrid.
 
-    git clone git@i10git.cs.fau.de:walberla/walberla.git
-    cd walberla
-    git checkout master
-    cd ..
-    git clone git@i10git.cs.fau.de:terraneo/tinyhhg.git
-    cd tinyhhg_cpp
-    git checkout master
-    cd ..
-    mkdir build
-    cd build
-    cmake ../tinyhhg_cpp -DWALBERLA_DIR=../walberla
-    cd apps
-    make
-
-### Execution instructions
-
-    cd apps
-    ./tinytest_fmg
 
 ### Documentation
 
-http://terraneo.pages.walberla.net/tinyhhg/index.html
+Access the [main documentation](https://i10git.cs.fau.de/terraneo/hhg_doku "Main Documentation") (work in progress) or the [doxygen documentation](http://terraneo.pages.walberla.net/tinyhhg/index.html "TinyHHG Doxygen").
+
+
+### Dependencies
+
+The framework is built on top of the core of the [waLBerla framework](http://walberla.net "waLBerla homepage") and therefore requires the its source code to be cloned.
+
+Required:
+
+* the waLBerla source code ([waLBerla GitLab repository](https://i10git.cs.fau.de/walberla/walberla "waLBerla repository"))
+* [Boost](https://www.boost.org "boost homepage")
+* [CMake](https://cmake.org/ "CMake homepage")
+* a C++14 compliant compiler (e.g. gcc, clang, Intel or MSVC)
+
+Optional:
+
+* MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
+* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") for efficient coarse grid solvers
+* [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
+* VTK visualization software (e.g. [ParaView](https://www.paraview.org/ "ParaView homepage"))
+
+
+### Build instructions
+
+To build TinyHHG, clone the TinyHHG and the waLBerla source code:
+
+    $ git clone https://i10git.cs.fau.de/terraneo/tinyhhg
+    $ git clone https://i10git.cs.fau.de/walberla/walberla
+
+Then run cmake (out-of-source build recommended) and supply the waLBerla source code directory via `-DWALBERLA_DIR=<walberla-source-directory>`:
+
+    $ mkdir tinyhhg-build && cd tinyhhg-build
+    $ cmake ../tinyhhg -DWALBERLA_DIR=../walberla
+
+CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a stabilized stokes solver) invoke:
+
+    tinyhhg-build $ cd apps
+    tinyhhg-build/apps $ make stokes_stab
+    tinyhhg-build/apps $ ./stokes_stab
+
+... or for a parallel run:
+
+    tinyhhg-build/apps $ mpirun -np 4 ./stokes_stab
+
+

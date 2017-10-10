@@ -18,12 +18,12 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::P1Function r("r", storage, minLevel, maxLevel);
-  hhg::P1Function f("f", storage, minLevel, maxLevel);
-  hhg::P1Function u("u", storage, minLevel, maxLevel);
-  hhg::P1Function u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P1Function err("err", storage, minLevel, maxLevel);
-  hhg::P1Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > f("f", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > u("u", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
@@ -34,9 +34,9 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  typedef hhg::JacobiPreconditioner<hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
+  typedef hhg::JacobiPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
   auto prec = std::make_shared<PreconditionerType>(storage, minLevel, maxLevel, L, 10);
-  auto solver = hhg::MinResSolver<hhg::P1Function, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
+  auto solver = hhg::MinResSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
 
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
@@ -48,6 +48,6 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("discrete L2 error = {:e}", discr_l2_err));
 
-  hhg::VTKWriter<hhg::P1Function>({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
+  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
   return EXIT_SUCCESS;
 }

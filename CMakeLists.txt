@@ -2,9 +2,13 @@ cmake_minimum_required (VERSION 2.8)
 
 PROJECT ( tinyhhg )
 enable_testing()
+
 option ( HHG_ENABLE_LIKWID                "Compile with LIKWID"                       OFF)
 option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                          OFF)
-
+option ( WALBERLA_BUILD_WITH_CXX14        "Build with c++14 support" ON)
+set(CMAKE_CXX_STANDARD 14)
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if ( HHG_ENABLE_LIKWID )
     find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )
@@ -27,14 +31,15 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
 
-find_package( waLBerla )
-
 if ( HHG_BUILD_WITH_PETSC )
     find_package( PETSc )
     include_directories ( ${PETSC_INCLUDE_DIRS} )
     link_directories    ( ${PETSC_LIBRARY_DIR} )
     list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
+    set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
 endif()
+
+find_package( waLBerla )
 
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
                  src/tinyhhg_core/HHGDefinitions.hpp )

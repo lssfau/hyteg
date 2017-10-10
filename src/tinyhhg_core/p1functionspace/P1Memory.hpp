@@ -14,6 +14,31 @@
 namespace hhg
 {
 
+inline uint_t P1VertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
+}
+
+inline uint_t P1EdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge( level );
+  return num_dofs_per_edge + numDependencies * ( num_dofs_per_edge - 1 );
+}
+
+inline uint_t P1FaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  return levelinfo::num_microvertices_per_face(level);
+}
+
+template< typename ValueType >
+using VertexP1FunctionMemory = FunctionMemory< ValueType >;
+
+template< typename ValueType >
+using EdgeP1FunctionMemory = FunctionMemory< ValueType >;
+
+template< typename ValueType >
+using FaceP1FunctionMemory = FunctionMemory< ValueType >;
+
 class VertexP1StencilMemory
 {
 public:
@@ -36,20 +61,6 @@ public:
   inline size_t getSize(size_t level)
   {
     return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
-  }
-
-};
-
-
-class VertexP1FunctionMemory : public FunctionMemory< real_t >
-{
-public:
-
-  VertexP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
-
-  inline size_t getSize(size_t level) const
-  {
-    return levelinfo::num_microvertices_per_vertex(level) + numDependencies_;
   }
 
 };
@@ -81,20 +92,6 @@ public:
 };
 
 
-class EdgeP1FunctionMemory : public FunctionMemory< real_t >
-{
-public:
-
-  EdgeP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
-
-  inline size_t getSize(size_t level) const
-  {
-    size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge(level);
-    return num_dofs_per_edge + numDependencies_*(num_dofs_per_edge-1);
-  }
-};
-
-
 class FaceP1StencilMemory
 {
 public:
@@ -119,18 +116,5 @@ public:
 
 };
 
-
-class FaceP1FunctionMemory : public FunctionMemory< real_t >
-{
-public:
-
-  FaceP1FunctionMemory( const uint_t & numDependencies ) : FunctionMemory( numDependencies ) {}
-
-  inline size_t getSize(size_t level) const
-  {
-    return levelinfo::num_microvertices_per_face(level);
-  }
-
-};
 
 }

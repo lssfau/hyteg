@@ -31,9 +31,9 @@ int main(int argc, char* argv[])
   std::vector<size_t> refOneOne = {1,9,8,37,43,36};
   std::vector<size_t> refTwoFive = {28,32,31,60,62,59};
   std::vector<size_t> result;
-  for(auto n : CoordsVertex::neighbors)
+  for(auto n : neighbors)
   {
-    size_t idx = CoordsVertex::index<3>(1, 1, n);
+    size_t idx = indexFaceFromVertex<3>(1, 1, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -41,9 +41,9 @@ int main(int argc, char* argv[])
     WALBERLA_CHECK_EQUAL_3(refOneOne[i],result[i],"i: " << i);
   }
   result.clear();
-  for(auto n : CoordsVertex::neighbors)
+  for(auto n : neighbors)
   {
-    size_t idx = CoordsVertex::index<3>(2, 5, n);
+    size_t idx = indexFaceFromVertex<3>(2, 5, n);
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -52,12 +52,12 @@ int main(int argc, char* argv[])
   }
   result.clear();
   /// CHECK CELL GRAY ///
-  WALBERLA_CHECK_EQUAL(22,CoordsCellGray::index<3>(1,3,CoordsCellGray::CELL_GRAY_C));
-  WALBERLA_CHECK_EQUAL(24,CoordsCellGray::index<3>(3,3,CoordsCellGray::CELL_GRAY_C));
+  WALBERLA_CHECK_EQUAL(22,indexFaceFromGrayFace<3>(1,3,hhg::stencilDirection::CELL_GRAY_C));
+  WALBERLA_CHECK_EQUAL(24,indexFaceFromGrayFace<3>(3,3,hhg::stencilDirection::CELL_GRAY_C));
 
   /// CHECK CELL BLUE //
-  WALBERLA_CHECK_EQUAL(36,CoordsCellBlue::index<3>(0,0,CoordsCellBlue::CELL_BLUE_C));
-  WALBERLA_CHECK_EQUAL(41,CoordsCellBlue::index<3>(5,0,CoordsCellBlue::CELL_BLUE_C));
+  WALBERLA_CHECK_EQUAL(36, indexFaceFromBlueFace<3>(0, 0, hhg::stencilDirection::CELL_BLUE_C));
+  WALBERLA_CHECK_EQUAL(41, indexFaceFromBlueFace<3>(5, 0, hhg::stencilDirection::CELL_BLUE_C));
 
 
   /// ATTENTION: The - 45 is a hack since I was to lazy too change all the numbers

@@ -20,11 +20,11 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::MiniStokesFunction r("r", storage, minLevel, maxLevel);
-  hhg::MiniStokesFunction f("f", storage, minLevel, maxLevel);
-  hhg::MiniStokesFunction u("u", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::MiniStokesFunction<real_t> u("u", storage, minLevel, maxLevel);
 
-  hhg::MiniStokesFunction numerator("numerator", storage, minLevel, maxLevel);
+//  hhg::MiniStokesFunction numerator("numerator", storage, minLevel, maxLevel);
 
   hhg::MiniStokesOperator L(storage, minLevel, maxLevel);
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
 
-  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction, hhg::MiniStokesOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::MinResSolver<hhg::MiniStokesFunction<real_t>, hhg::MiniStokesOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 //
 //  for (auto vertex: u.v.mesh.vertices) {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 //  std::cout << "Face 0 Cell Gray: " << std::endl;
 //  for (size_t i = 0; i < v_perEdge-1; ++i) {
 //    for (size_t j = 0; j < v_perEdge-1 - i; ++j) {
-//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellGray::CELL_GRAY_C)]);
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::FaceCoordsCellGray::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsCellGray::CELL_GRAY_C)]);
 //    }
 //    std::cout << std::endl;
 //  }
@@ -78,12 +78,12 @@ int main(int argc, char* argv[])
 //  std::cout << "Face 0 Cell Blue: " << std::endl;
 //  for (size_t i = 0; i < v_perEdge-2; ++i) {
 //    for (size_t j = 0; j < v_perEdge-2 - i; ++j) {
-//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::CoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::CoordsCellBlue::CELL_BLUE_C)]);
+//      fmt::print("{0:.8f}  ", face0mem[hhg::P1BubbleFace::FaceCoordsCellBlue::index<maxLevel>(i, j, hhg::P1BubbleFace::FaceCoordsCellBlue::CELL_BLUE_C)]);
 //    }
 //    std::cout << std::endl;
 //  }
 //  std::cout << "=======================================" << std::endl;
 
-  hhg::VTKWriter<hhg::P1Function>({ &u.u.p1, &u.v.p1, &u.p }, maxLevel, "../output", "stokes_mini_test");
+  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u.p1, &u.v.p1, &u.p }, maxLevel, "../output", "stokes_mini_test");
   return EXIT_SUCCESS;
 }

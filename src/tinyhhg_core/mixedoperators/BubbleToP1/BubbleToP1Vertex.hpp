@@ -8,12 +8,12 @@ namespace hhg {
 namespace BubbleToP1Vertex {
 
 inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex>& operatorId,
-                  const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &srcId,
-                  const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, size_t level, UpdateType update)
+                  const PrimitiveDataID<VertexBubbleFunctionMemory< real_t >, Vertex> &srcId,
+                  const PrimitiveDataID<VertexP1FunctionMemory< real_t >, Vertex> &dstId, size_t level, UpdateType update)
 {
-  auto& opr_data = vertex.getData(operatorId)->data[level];
-  auto& src = vertex.getData(srcId)->data[level];
-  auto& dst = vertex.getData(dstId)->data[level];
+  auto& opr_data = vertex.getData(operatorId)->data[ level ];
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
 
   real_t tmp = 0.0;
 
@@ -30,19 +30,21 @@ inline void apply(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilM
   }
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex& vertex, const PrimitiveDataID<VertexBubbleToP1StencilMemory, Vertex>& operatorId,
-                         const PrimitiveDataID<VertexBubbleFunctionMemory, Vertex> &srcId,
-                         const PrimitiveDataID<VertexP1FunctionMemory, Vertex> &dstId, std::ostream &out, size_t level)
+                         const PrimitiveDataID<VertexBubbleFunctionMemory< PetscInt >, Vertex> &srcId,
+                         const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &dstId, Mat &mat, size_t level)
 {
   auto& opr_data = vertex.getData(operatorId)->data[level];
-  auto& src = vertex.getData(srcId)->data[level];
-  auto& dst = vertex.getData(dstId)->data[level];
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
 
   for (size_t i = 0; i < vertex.getNumNeighborFaces(); ++i)
   {
-    out << fmt::format("{}\t{}\t{}\n", dst[0], src[i], opr_data[i]);
+    MatSetValues(mat, 1, &dst[0], 1, &src[i], &opr_data[i], INSERT_VALUES);
   }
 }
+#endif
 
 }
 }

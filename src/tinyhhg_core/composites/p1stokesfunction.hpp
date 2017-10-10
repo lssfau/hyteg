@@ -6,6 +6,7 @@
 namespace hhg
 {
 
+template <typename ValueType>
 class P1StokesFunction
 {
 public:
@@ -24,11 +25,11 @@ public:
     p.interpolate(expr, level, flag | DirichletBoundary);
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
+  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
   {
-    std::vector<P1Function*> functions_u;
-    std::vector<P1Function*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< ValueType > * > functions_u;
+    std::vector< P1Function< ValueType > * > functions_v;
+    std::vector< P1Function< ValueType > * > functions_p;
 
     for (auto& function : functions)
     {
@@ -42,11 +43,11 @@ public:
     p.assign(scalars, functions_p, level, flag | DirichletBoundary);
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction*> functions, size_t level, DoFType flag = All)
+  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
   {
-    std::vector<P1Function*> functions_u;
-    std::vector<P1Function*> functions_v;
-    std::vector<P1Function*> functions_p;
+    std::vector< P1Function< ValueType > * > functions_u;
+    std::vector< P1Function< ValueType > * > functions_v;
+    std::vector< P1Function< ValueType > * > functions_p;
 
     for (auto& function : functions)
     {
@@ -60,7 +61,7 @@ public:
     p.add(scalars, functions_p, level, flag | DirichletBoundary);
   }
 
-  walberla::real_t dot(P1StokesFunction& rhs, size_t level, DoFType flag = All)
+  walberla::real_t dot(P1StokesFunction<ValueType>& rhs, size_t level, DoFType flag = All)
   {
     walberla::real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
@@ -82,9 +83,9 @@ public:
     p.restrict(level, flag | DirichletBoundary);
   }
 
-  P1Function u;
-  P1Function v;
-  P1Function p;
+  P1Function< ValueType > u;
+  P1Function< ValueType > v;
+  P1Function< ValueType > p;
 };
 
 }

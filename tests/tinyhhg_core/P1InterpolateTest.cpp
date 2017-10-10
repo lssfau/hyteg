@@ -28,27 +28,27 @@ int main(int argc, char **argv)
   size_t nbr_v_perEdge = v_perEdge - 1;
   size_t v_perVertex = levelinfo::num_microvertices_per_vertex(maxLevel);
 
-  P1Function x("x", storage, minLevel, maxLevel);
+  P1Function< real_t > x("x", storage, minLevel, maxLevel);
 
   for (auto face : storage->getFaces())
   {
     for (size_t i = 0; i < v_perFace; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(face.second->getData(x.getFaceDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(face.second->getData(x.getFaceDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
   for (auto edge : storage->getEdges())
   {
     for (size_t i = 0; i < v_perEdge + edge.second->getNumHigherDimNeighbors() * nbr_v_perEdge; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(edge.second->getData(x.getEdgeDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(edge.second->getData(x.getEdgeDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
   for (auto vertex : storage->getVertices())
   {
     for (size_t i = 0; i < v_perVertex + vertex.second->getNumHigherDimNeighbors(); ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(vertex.second->getData(x.getVertexDataID())->data[maxLevel][i], 0.0);
+      WALBERLA_CHECK_FLOAT_EQUAL(vertex.second->getData(x.getVertexDataID())->getPointer(maxLevel)[i], 0.0);
     }
   }
 
@@ -67,19 +67,19 @@ int main(int argc, char **argv)
     xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((v_perEdge-1));
     yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((v_perEdge-1));
 
-    P1Face::interpolate(maxLevel, *face, x.getFaceDataID(), exact);
+    P1Face::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = P1Face::CoordsVertex::index<maxLevel>(j, i, P1Face::CoordsVertex::VERTEX_C);
+        uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, P1Face::FaceCoordsVertex::VERTEX_C);
         if (P1Face::is_boundary(idx, v_perEdge))
         {
-          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], 0.0,
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], 0.0,
                                      "i: " << i << " j: " << j << " idx: " << idx << " value was " << value);
         } else
         {
-          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->data[maxLevel][idx], value,
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], value,
                                      "i: " << i << " j: " << j << " idx: " << idx << " value was " << value);
         }
         value += 2 * xStepSize;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::P1Edge::interpolate(maxLevel, *edge,x.getEdgeDataID(),exact);
+    hhg::P1Edge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),exact);
     value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
     xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
     value += yStepSize;
     for(uint_t i = 1; i < v_perEdge-1; ++i)
     {
-      WALBERLA_CHECK_FLOAT_EQUAL(edge->getData(x.getEdgeDataID())->data[maxLevel][i], value,
+      WALBERLA_CHECK_FLOAT_EQUAL(edge->getData(x.getEdgeDataID())->getPointer(maxLevel)[i], value,
                                  "i: " << i << " edge: "<< *edge);
       value += 2*xStepSize;
       value += yStepSize;

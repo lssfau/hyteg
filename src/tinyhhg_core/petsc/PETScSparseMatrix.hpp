@@ -5,9 +5,19 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+#include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubblePetsc.hpp"
+
+#include "tinyhhg_core/mixedoperators/P1ToBubble/P1ToBubblePetsc.hpp"
+#include "tinyhhg_core/mixedoperators/BubbleToP1/BubbleToP1Petsc.hpp"
+
+#include "tinyhhg_core/composites/P1BubbleFunctionSpace/P1BubblePetsc.hpp"
+#include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
+#include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
+
 namespace hhg {
 
-template <typename OperatorType,typename FunctionType>
+template <class OperatorType, template <class> class FunctionType>
 class PETScSparseMatrix {
 protected:
   Mat mat;
@@ -22,7 +32,8 @@ public:
     MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
     // Usually, we have about 7 nz entries in each matrix row, except in macro-vertex rows.
     // Therefore, we can assume following preallocation for a huge performance gain.
-    MatMPIAIJSetPreallocation(mat, 7, NULL, 6, NULL);
+//    MatMPIAIJSetPreallocation(mat, 20, NULL, 20, NULL);
+    MatSetUp(mat);
     setName(name);
     reset();
   }
@@ -33,15 +44,15 @@ public:
     MatDestroy(&mat);
   }
 
-  inline void createMatrixFromFunction(OperatorType& op, uint_t level,FunctionType& numerator,DoFType flag = All){
+  inline void createMatrixFromFunction(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
     //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
-    op.createMatrix(numerator, numerator, mat, level, flag);
+    hhg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
   }
 
-  inline bool createMatrixFromFunctionOnce(OperatorType& op, uint_t level,FunctionType& numerator,DoFType flag = All){
+  inline bool createMatrixFromFunctionOnce(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
     if(assembled)
       return false;
     createMatrixFromFunction(op,level,numerator,flag);
@@ -49,19 +60,19 @@ public:
     return true;
   }
 
-  inline void print(const char name[]) {
+  inline void print(const std::string& name) {
     PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD,name,&viewer);
+    PetscViewerASCIIOpen(PETSC_COMM_WORLD,name.c_str(),&viewer);
     PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB );
     //PetscViewerMatlabOpen(PETSC_COMM_WORLD,name,FILE_MODE_WRITE,&viewer);
     MatView(mat,viewer);
     PetscViewerDestroy(&viewer);
   }
 
-  void applyDirichletBC(FunctionType& numerator, uint_t level){
+  void applyDirichletBC(FunctionType<PetscInt>& numerator, uint_t level){
     //WALBERLA_LOG_INFO_ON_ROOT("")
     std::vector<PetscInt> ind;
-    numerator.applyDirichletBC(ind,level);
+    hhg::petsc::applyDirichletBC(numerator,ind,level);
 
     MatZeroRows(mat,ind.size(),ind.data(),1.0,0,0);
 

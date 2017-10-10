@@ -6,7 +6,7 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include <core/mpi/Gather.h>
 
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/FunctionTraits.hpp"
 
 #include <string>
 #include <functional>
@@ -18,6 +18,9 @@ namespace hhg {
 template< typename FunctionType >
 class Function {
 public:
+
+  typedef typename FunctionTrait< FunctionType >::ValueType ValueType;
+
   Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
       : functionName_(name)
       , storage_(storage)
@@ -30,33 +33,37 @@ public:
     }
   }
 
-  virtual ~Function()
-  {
-  }
+  virtual ~Function() {}
 
-  inline void interpolate(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All);
+  inline void interpolate( std::function< ValueType( const Point3D & ) > & expr,
+                           uint_t                                          level,
+                           DoFType                                         flag = All );
 
-  inline void assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
+  inline void assign( const std::vector< ValueType >      scalars,
+                      const std::vector< FunctionType * > functions,
+                      uint_t                              level,
+                      DoFType                             flag = All );
 
-  inline void add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All);
+  inline void add( const std::vector< ValueType >      scalars,
+                   const std::vector< FunctionType * > functions,
+                   uint_t                              level,
+                   DoFType                             flag = All );
 
-  inline real_t dot(FunctionType& rhs, uint_t level, DoFType flag = All);
+  inline real_t dot( FunctionType & rhs,
+                     uint_t         level,
+                     DoFType        flag = All );
 
-  inline void prolongate(uint_t level, DoFType flag = All);
+  inline void prolongate( uint_t  level,
+                          DoFType flag = All );
 
-  inline void prolongateQuadratic(uint_t level, DoFType flag = All);
+  inline void prolongateQuadratic( uint_t  level,
+                                   DoFType flag = All );
 
-  inline void restrict(uint_t level, DoFType flag = All);
+  inline void restrict( uint_t  level,
+                        DoFType flag = All );
 
-  inline uint_t enumerate(uint_t level, uint_t& num);
-
-#ifdef HHG_BUILD_WITH_PETSC
-  inline void createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level, DoFType flag);
-
-  inline void createFunctionFromVector(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag);
-
-  inline void applyDirichletBC(std::vector<PetscInt> &mat , uint_t level);
-#endif
+  inline uint_t enumerate( uint_t   level,
+                           uint_t & num );
 
 
   const std::string &getFunctionName() const { return functionName_; }
@@ -83,29 +90,32 @@ public:
 
 protected:
 
-  virtual void interpolate_impl(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag = All) = 0;
+    virtual void
+    interpolate_impl( std::function< ValueType
+    ( const Point3D& ) >& expr,
+                      uint_t level, DoFType flag = All ) = 0;
 
-  virtual void assign_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
+    virtual void
+    assign_impl( const std::vector< ValueType > scalars, const std::vector< FunctionType* > functions, uint_t level,
+                 DoFType flag = All ) = 0;
 
-  virtual void add_impl(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, uint_t level, DoFType flag = All) = 0;
+    virtual void
+    add_impl( const std::vector< ValueType > scalars, const std::vector< FunctionType* > functions, uint_t level, DoFType flag = All ) = 0;
 
-  virtual real_t dot_impl(FunctionType& rhs, uint_t level, DoFType flag = All) = 0;
+    virtual real_t
+    dot_impl( FunctionType& rhs, uint_t level, DoFType flag = All ) = 0;
 
-  virtual void prolongate_impl(uint_t level, DoFType flag = All) = 0;
+    virtual void
+    prolongate_impl( uint_t level, DoFType flag = All ) = 0;
 
-  virtual void prolongateQuadratic_impl(uint_t level, DoFType flag = All) = 0;
+    virtual void
+    prolongateQuadratic_impl( uint_t level, DoFType flag = All ) = 0;
 
-  virtual void restrict_impl(uint_t level, DoFType flag = All) = 0;
+    virtual void
+    restrict_impl( uint_t level, DoFType flag = All ) = 0;
 
-  virtual void enumerate_impl(uint_t level, uint_t& num) = 0;
-
-#ifdef HHG_BUILD_WITH_PETSC
-  virtual void createVectorFromFunction_impl(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag){;} //TODO make this abstract
-
-  virtual void createFunctionFromVector_impl(FunctionType &numerator, Vec &vec, uint_t level, DoFType flag){;}
-
-  virtual void applyDirichletBC_impl(std::vector<PetscInt>& mat, uint_t level){;}
-#endif
+    virtual void
+    enumerate_impl( uint_t level, uint_t& num ) = 0;
 
   const std::string functionName_;
   const std::shared_ptr< PrimitiveStorage > storage_;
@@ -140,7 +150,7 @@ private:
 
 
 template< typename FunctionType >
-void Function< FunctionType >::interpolate(std::function<real_t(const Point3D&)>& expr, uint_t level, DoFType flag)
+void Function< FunctionType >::interpolate(std::function< ValueType(const Point3D&)>& expr, uint_t level, DoFType flag)
 {
   startTiming( "Interpolate" );
 
@@ -150,7 +160,7 @@ void Function< FunctionType >::interpolate(std::function<real_t(const Point3D&)>
 }
 
 template< typename FunctionType >
-void Function< FunctionType >::assign(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag)
+void Function< FunctionType >::assign(const std::vector<ValueType> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag)
 {
   startTiming( "Assign" );
 
@@ -160,7 +170,7 @@ void Function< FunctionType >::assign(const std::vector<walberla::real_t> scalar
 }
 
 template< typename FunctionType >
-void Function< FunctionType >::add(const std::vector<walberla::real_t> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag)
+void Function< FunctionType >::add(const std::vector<ValueType> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag)
 {
   startTiming( "Add" );
 
@@ -238,39 +248,5 @@ uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
   stopTiming( "Enumerate" );
   return counter;
 }
-
-#ifdef HHG_BUILD_WITH_PETSC
-template< typename FunctionType >
-void Function< FunctionType >::createVectorFromFunction(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  startTiming( "createVectorFromFunction" );
-
-  createVectorFromFunction_impl(numerator, vec, level,flag);
-
-  stopTiming( "createVectorFromFunction" );
-}
-
-
-template< typename FunctionType >
-void Function< FunctionType >::createFunctionFromVector(FunctionType &numerator,Vec &vec, uint_t level,DoFType flag)
-{
-  startTiming( "createFunctionFromVector" );
-
-  createFunctionFromVector_impl(numerator, vec, level,flag);
-
-  stopTiming( "createFunctionFromVector" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::applyDirichletBC(std::vector<PetscInt> &mat, uint_t level)
-{
-  startTiming( "applyDirichletBC" );
-
-  applyDirichletBC_impl(mat, level);
-
-  stopTiming( "applyDirichletBC" );
-}
-#endif
-
 
 }
