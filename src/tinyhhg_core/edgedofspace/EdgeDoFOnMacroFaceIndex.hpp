@@ -8,7 +8,7 @@ namespace EdgeDoFOnMacroFace {
 
 using walberla::uint_t;
 
-template<size_t Level>
+template< size_t Level >
 constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, const stencilDirection dir )
 {
   typedef stencilDirection sD;
@@ -136,7 +136,7 @@ constexpr inline uint_t indexFromVertex( const uint_t col, const uint_t row, con
 }
 
 
-template<size_t Level>
+template< size_t Level >
 constexpr inline uint_t indexFromHorizontalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
 {
   typedef stencilDirection sD;
