@@ -681,6 +681,55 @@ static void testEdgeDoFsOnMacroFace()
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from vertical edge): EDGE_HO_NW correct!" );
 
+  ///////////////////////////////
+  // access from diagonal edge //
+  ///////////////////////////////
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 0, sD::EDGE_HO_N ), 4 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 0, sD::EDGE_HO_N ), 5 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 0, sD::EDGE_HO_N ), 6 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 1, sD::EDGE_HO_N ), 7 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 1, sD::EDGE_HO_N ), 8 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 2, sD::EDGE_HO_N ), 9 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from diagonal edge): EDGE_HO_N correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 0, sD::EDGE_HO_S ), 0 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 0, sD::EDGE_HO_S ), 1 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 0, sD::EDGE_HO_S ), 2 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 3, 0, sD::EDGE_HO_S ), 3 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 1, sD::EDGE_HO_S ), 4 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 1, sD::EDGE_HO_S ), 5 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 1, sD::EDGE_HO_S ), 6 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 2, sD::EDGE_HO_S ), 7 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 2, sD::EDGE_HO_S ), 8 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 3, sD::EDGE_HO_S ), 9 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from diagonal edge): EDGE_HO_S correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 0, sD::EDGE_VE_W ), 20 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 0, sD::EDGE_VE_W ), 21 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 0, sD::EDGE_VE_W ), 22 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 3, 0, sD::EDGE_VE_W ), 23 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 1, sD::EDGE_VE_W ), 24 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 1, sD::EDGE_VE_W ), 25 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 1, sD::EDGE_VE_W ), 26 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 2, sD::EDGE_VE_W ), 27 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 2, sD::EDGE_VE_W ), 28 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 3, sD::EDGE_VE_W ), 29 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from diagonal edge): EDGE_VE_W correct!" );
+
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 0, sD::EDGE_VE_E ), 21 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 0, sD::EDGE_VE_E ), 22 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 2, 0, sD::EDGE_VE_E ), 23 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 1, sD::EDGE_VE_E ), 25 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 1, 1, sD::EDGE_VE_E ), 26 );
+  WALBERLA_CHECK_EQUAL( EdgeDoFOnMacroFace::indexFromDiagonalEdge < 2 >( 0, 2, sD::EDGE_VE_E ), 28 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from diagonal edge): EDGE_VE_E correct!" );
+
+
 }
 
 } // namespace hhg

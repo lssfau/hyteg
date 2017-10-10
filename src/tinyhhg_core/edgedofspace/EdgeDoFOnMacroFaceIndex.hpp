@@ -141,6 +141,8 @@ constexpr inline uint_t indexFromHorizontalEdge( const uint_t col, const uint_t 
 {
   typedef stencilDirection sD;
 
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
   switch ( dir )
   {
   case sD::EDGE_DI_N:
@@ -169,6 +171,8 @@ constexpr inline uint_t indexFromVerticalEdge( const uint_t col, const uint_t ro
 {
   typedef stencilDirection sD;
 
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
   switch ( dir )
   {
   case sD::EDGE_DI_E:
@@ -182,6 +186,38 @@ constexpr inline uint_t indexFromVerticalEdge( const uint_t col, const uint_t ro
     break;
   case sD::EDGE_HO_SE:
     return indexFromVertex< Level >( col, row, sD::EDGE_HO_E );
+    break;
+  default:
+    WALBERLA_ASSERT( false );
+    break;
+  }
+
+  return std::numeric_limits< uint_t >::max();
+}
+
+
+template< size_t Level >
+constexpr inline uint_t indexFromDiagonalEdge( const uint_t col, const uint_t row, const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+
+  WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) );
+
+  switch ( dir )
+  {
+  case sD::EDGE_HO_N:
+    WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) - 1 );
+    return indexFromVertex< Level >( col + 1, row, sD::EDGE_HO_NW );
+    break;
+  case sD::EDGE_HO_S:
+    return indexFromVertex< Level >( col, row, sD::EDGE_HO_E );
+    break;
+  case sD::EDGE_VE_W:
+    return indexFromVertex< Level >( col, row, sD::EDGE_VE_N );
+    break;
+  case sD::EDGE_VE_E:
+    WALBERLA_ASSERT( col + row < levelinfo::num_microedges_per_edge( Level ) - 1 );
+    return indexFromVertex< Level >( col + 1, row, sD::EDGE_VE_N );
     break;
   default:
     WALBERLA_ASSERT( false );
