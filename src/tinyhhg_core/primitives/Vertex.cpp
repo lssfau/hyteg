@@ -1,4 +1,4 @@
-#include "vertex.hpp"
+#include "Vertex.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include <core/mpi/MPIManager.h>

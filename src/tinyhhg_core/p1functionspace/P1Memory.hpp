@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tinyhhg_core/primitives/vertex.hpp"
-#include "tinyhhg_core/primitives/edge.hpp"
-#include "tinyhhg_core/primitives/face.hpp"
+#include "tinyhhg_core/primitives/Vertex.hpp"
+#include "tinyhhg_core/primitives/Edge.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
 
 #include "tinyhhg_core/FunctionMemory.hpp"
 

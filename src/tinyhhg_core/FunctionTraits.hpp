@@ -22,6 +22,10 @@ class P1Function;
 template< typename VType >
 class BubbleFunction;
 
+template< typename VType >
+class DGFunction;
+
+
 ///////////////////////////////////////////////////////////////////
 // Function trait defining the value type of the derived classes //
 ///////////////////////////////////////////////////////////////////
@@ -46,5 +50,12 @@ struct FunctionTrait< BubbleFunction< VType > >
 {
   typedef VType ValueType;
 };
+
+template< typename VType >
+struct FunctionTrait< DGFunction< VType > >
+{
+  typedef VType ValueType;
+};
+
 
 }
