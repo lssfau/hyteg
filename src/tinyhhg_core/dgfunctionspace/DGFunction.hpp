@@ -8,11 +8,9 @@
 namespace hhg {
 
 template<typename ValueType>
-class DGFunction : public Function<DGFunction<ValueType> > {
+class DGFunction : public Function<DGFunction<ValueType> >
+{
 public:
-
-  using Function<DGFunction<ValueType> >::storage_;
-  using Function<DGFunction<ValueType> >::communicators_;
 
   DGFunction(const std::string &name, const std::shared_ptr<PrimitiveStorage> &storage, uint_t minLevel,
              uint_t maxLevel) :
@@ -42,6 +40,10 @@ public:
   const PrimitiveDataID<FunctionMemory<ValueType>, Face> &getFaceDataID() const { return faceDataID_; }
 
 private:
+
+  using Function<DGFunction<ValueType> >::storage_;
+  using Function<DGFunction<ValueType> >::communicators_;
+
   PrimitiveDataID<FunctionMemory<ValueType>, Vertex> vertexDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Edge> edgeDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
