@@ -10,7 +10,9 @@ namespace communication {
 std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );
 
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
-    primitiveStorage_( primitiveStorage ), primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ), localCommunicationMode_( localCommunicationMode )
+    primitiveStorage_( primitiveStorage ),
+    primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ),
+    localCommunicationMode_( localCommunicationMode )
 {
   const bool serialSends = true;
   const bool serialRecvs = true;

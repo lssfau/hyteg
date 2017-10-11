@@ -27,11 +27,6 @@ endif()
 
 ###############
 
-## DG Tests ##
-
-waLBerla_compile_test(FILES DGPackInfoTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME DGPackInfoTest)
-
 
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1InterpolateTest)
