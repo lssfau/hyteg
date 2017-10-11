@@ -21,11 +21,9 @@ namespace hhg {
 
 
 template< typename ValueType >
-class P1Function : public Function< P1Function< ValueType > > {
+class P1Function : public Function< P1Function< ValueType > >
+{
 public:
-
-  using Function< P1Function< ValueType > >::storage_;
-  using Function< P1Function< ValueType > >::communicators_;
 
   P1Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< P1Function< ValueType > >( name, storage, minLevel, maxLevel )
@@ -49,6 +47,9 @@ public:
   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
 private:
+
+  using Function< P1Function< ValueType > >::storage_;
+  using Function< P1Function< ValueType > >::communicators_;
 
   /// Interpolates a given expression to a P1Function
   inline void interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag = All);
