@@ -168,7 +168,7 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &localMatrices = edge.getData(operatorId);
+  const auto &localMatrices = edge.getData(operatorId);
   auto &src = edge.getData(srcId)->getPointer( Level );
   auto &dst = edge.getData(dstId)->getPointer( Level );
   auto &coeff = edge.getData(coeffId)->getPointer( Level );

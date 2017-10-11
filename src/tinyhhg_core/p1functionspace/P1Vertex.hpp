@@ -88,7 +88,7 @@ inline void applyCoefficient(Vertex &vertex,
                              const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &coeffId,
                              uint_t level,
                              UpdateType update) {
-  auto &localMatrices = vertex.getData(operatorId);
+  const auto &localMatrices = vertex.getData(operatorId);
   auto &src = vertex.getData(srcId)->getPointer( level );
   auto &dst = vertex.getData(dstId)->getPointer( level );
   auto &coeff = vertex.getData(coeffId)->getPointer( level );

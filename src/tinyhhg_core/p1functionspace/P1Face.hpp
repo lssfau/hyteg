@@ -189,7 +189,7 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &localMatrices = face.getData(operatorId);
+  const auto &localMatrices = face.getData(operatorId);
   auto &src = face.getData(srcId)->getPointer(Level);
   auto &dst = face.getData(dstId)->getPointer(Level);
   auto &coeff = face.getData(coeffId)->getPointer(Level);
