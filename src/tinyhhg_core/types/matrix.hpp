@@ -60,8 +60,8 @@ public:
   /// \returns Reference to component at position [row,col] in matrix
   T& operator() (uint_t row, uint_t col)
   {
-    WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M)
-    WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N)
+    WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
+    WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
     return x[M*row + col];
   }
 
@@ -71,8 +71,8 @@ public:
   /// \returns Const reference to component at position [row,col] in matrix
   const T& operator() (uint_t row, uint_t col) const
   {
-    WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M)
-    WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N)
+    WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
+    WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
     return x[M*row + col];
   }
 
