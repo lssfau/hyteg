@@ -89,9 +89,9 @@ inline void applyCoefficient(Vertex &vertex,
                              uint_t level,
                              UpdateType update) {
   auto &localMatrices = vertex.getData(operatorId);
-  auto &src = vertex.getData(srcId)->data[level];
-  auto &dst = vertex.getData(dstId)->data[level];
-  auto &coeff = vertex.getData(coeffId)->data[level];
+  auto &src = vertex.getData(srcId)->getPointer( level );
+  auto &dst = vertex.getData(dstId)->getPointer( level );
+  auto &coeff = vertex.getData(coeffId)->getPointer( level );
 
   if (update == Replace) {
     dst[0] = real_t(0);

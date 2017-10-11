@@ -168,10 +168,10 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &localMatrices = edge.getData(operatorId)->data[Level];
-  auto &src = edge.getData(srcId)->data[Level];
-  auto &dst = edge.getData(dstId)->data[Level];
-  auto &coeff = edge.getData(coeffId)->data[Level];
+  auto &localMatrices = edge.getData(operatorId);
+  auto &src = edge.getData(srcId)->getPointer( Level );
+  auto &dst = edge.getData(dstId)->getPointer( Level );
+  auto &coeff = edge.getData(coeffId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -205,15 +205,15 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
       tmp = dst[index<Level>(i, VERTEX_C)];
     }
 
-    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySW, {e_south, s_south, o_south});
-    tmp += assembleLocal(i, localMatrices[0].getBlueMatrix(), src, coeff, triangleBlueS, {o_south, e_south, s_south});
-    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySE, {s_south, o_south, e_south});
+    tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySW, {e_south, s_south, o_south});
+    tmp += assembleLocal(i, localMatrices->getBlueMatrix(Level, 0), src, coeff, triangleBlueS, {o_south, e_south, s_south});
+    tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySE, {s_south, o_south, e_south});
 
     if (edge.getNumNeighborFaces() == 2) {
 
-      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNW, {e_north, s_north, o_north});
-      tmp += assembleLocal(i, localMatrices[1].getBlueMatrix(), src, coeff, triangleBlueN, {o_north, e_north, s_north});
-      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
+      tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNW, {e_north, s_north, o_north});
+      tmp += assembleLocal(i, localMatrices->getBlueMatrix(Level, 1), src, coeff, triangleBlueN, {o_north, e_north, s_north});
+      tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
     }
 
     dst[index<Level>(i, VERTEX_C)] = tmp;

@@ -19,10 +19,10 @@ template<typename ValueType, uint_t Level>
 inline ValueType assembleLocal(uint_t i, uint_t j, const Matrix3r& localMatrix,
                                const std::unique_ptr< ValueType[] > &src,
                                const std::unique_ptr< ValueType[] > &coeff,
-                               const std::array<CoordsVertex::DirVertex,3>& vertices,
+                               const std::array<FaceCoordsVertex::DirVertex,3>& vertices,
                                const std::array<uint_t,3>& idx)
 {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   ValueType meanCoeff = 1.0/3.0 * (coeff[index<Level>(i, j, vertices[0])]
                                  + coeff[index<Level>(i, j, vertices[1])]
@@ -184,15 +184,15 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId,
                                  UpdateType update) {
-  using namespace CoordsVertex;
+  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &localMatrices = face.getData(operatorId)->data[Level];
-  auto &src = face.getData(srcId)->data[Level];
-  auto &dst = face.getData(dstId)->data[Level];
-  auto &coeff = face.getData(coeffId)->data[Level];
+  auto &localMatrices = face.getData(operatorId);
+  auto &src = face.getData(srcId)->getPointer(Level);
+  auto &dst = face.getData(dstId)->getPointer(Level);
+  auto &coeff = face.getData(coeffId)->getPointer(Level);
 
   ValueType tmp;
 
@@ -213,12 +213,12 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
         tmp = dst[index<Level>(i, j, VERTEX_C)];
       }
 
-      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueSW, {0,1,2});
-      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayS, {2,0,1});
-      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueSE, {1,2,0});
-      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayNW, {1,0,2});
-      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueN, {2,1,0});
-      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayNE, {0,2,1});
+      tmp += assembleLocal(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayS, {2,0,1});
+      tmp += assembleLocal(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueSE, {1,2,0});
+      tmp += assembleLocal(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueSW, {0,1,2});
+      tmp += assembleLocal(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayNW, {1,0,2});
+      tmp += assembleLocal(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueN, {2,1,0});
+      tmp += assembleLocal(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayNE, {0,2,1});
 
       dst[index<Level>(i, j, VERTEX_C)] = tmp;
     }
