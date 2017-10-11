@@ -34,10 +34,10 @@ namespace hhg
 {
 
 template<class UFCOperator,  bool Diagonal = false>
-class P1CoefficientOperator : public Operator< P1Function, P1Function >
+class P1CoefficientOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function>& coefficient, size_t minLevel, size_t maxLevel)
+  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel), coefficient_(coefficient)
   {
     auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
@@ -53,23 +53,21 @@ public:
       for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
-        auto& faceLocalMatrices = face.getData(faceStencilID_)->data[level];
+        auto& faceLocalMatrices = face.getData(faceStencilID_);
 
-        // TODO: getGrayMatrix and getBlueMatrix are to be implemented by Boerge
-        compute_local_stiffness(face, level, faceLocalMatrices.getGrayMatrix(), fenics::GRAY);
-        compute_local_stiffness(face, level, faceLocalMatrices.getBlueMatrix(), fenics::BLUE);
+        compute_local_stiffness(face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
+        compute_local_stiffness(face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
       }
 
       for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        auto& edgeLocalMatrices = edge.getData(edgeStencilID_)->data[level];
+        auto& edgeLocalMatrices = edge.getData(edgeStencilID_);
 
         // first face
         Face* face = storage_->getFace(edge.neighborFaces()[0]);
-        // TODO: getGrayMatrix and getBlueMatrix are to be implemented by Boerge
-        compute_local_stiffness(*face, level, edgeLocalMatrices[0].getGrayMatrix(), fenics::GRAY);
-        compute_local_stiffness(*face, level, edgeLocalMatrices[0].getBlueMatrix(), fenics::BLUE);
+        compute_local_stiffness(*face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
+        compute_local_stiffness(*face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
 
 
 
@@ -77,16 +75,15 @@ public:
         {
           // second face
           Face* face = storage_->getFace(edge.neighborFaces()[1]);
-          // TODO: getGrayMatrix and getBlueMatrix are to be implemented by Boerge
-          compute_local_stiffness(*face, level, edgeLocalMatrices[1].getGrayMatrix(), fenics::GRAY);
-          compute_local_stiffness(*face, level, edgeLocalMatrices[1].getBlueMatrix(), fenics::BLUE);
+          compute_local_stiffness(*face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
+          compute_local_stiffness(*face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
         }
       }
 
       for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        auto& vertexLocalMatrices = vertex.getData(vertexStencilID_)->data[level];
+        auto& vertexLocalMatrices = vertex.getData(vertexStencilID_);
 
         // iterate over adjacent faces
         uint_t neighborId = 0;
@@ -94,8 +91,7 @@ public:
         {
           Face* face = storage_->getFace(faceId);
 
-          // TODO: getGrayMatrix is to be implemented by Boerge
-          compute_local_stiffness(*face, level, vertexLocalMatrices[neighborId].getGrayMatrix(), fenics::GRAY);
+          compute_local_stiffness(*face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
           ++neighborId;
         }
       }
@@ -110,7 +106,7 @@ public:
 
 private:
 
-  void apply_impl(P1Function& src, P1Function& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -163,7 +159,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_gs_impl(P1Function& dst, P1Function& rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -216,7 +212,7 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  void smooth_jac_impl(P1Function& dst, P1Function& rhs, P1Function& tmp, size_t level, DoFType flag)
+  void smooth_jac_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, P1Function< real_t >& tmp, size_t level, DoFType flag)
   {
     // start pulling vertex halos
     tmp.getCommunicator(level)->startCommunication<Edge, Vertex>();
@@ -270,7 +266,7 @@ private:
   }
 
 #ifdef HHG_BUILD_WITH_PETSC
-  void createMatrix_impl(P1Function& src, P1Function& dst, Mat& mat, size_t level, DoFType flag)
+  void createMatrix_impl(P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag)
   {
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -304,9 +300,9 @@ private:
   }
 #endif
 
-  PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
-  PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
+  PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> vertexStencilID_;
+  PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> edgeStencilID_;
+  PrimitiveDataID<FaceP1LocalMatrixMemory, Face> faceStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
@@ -326,7 +322,7 @@ private:
   }
 
 private:
-  std::shared_ptr<P1Function> coefficient_;
+  std::shared_ptr<P1Function< real_t >> coefficient_;
 };
 
 typedef P1Operator<p1_diffusion_cell_integral_0_otherwise> P1LaplaceOperator;
