@@ -21,15 +21,15 @@ public:
 
   typedef typename FunctionTrait< FunctionType >::ValueType ValueType;
 
-  Function(const std::string& name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
-      : functionName_(name)
+  Function(std::string name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
+      : functionName_(std::move(name))
       , storage_(storage)
       , minLevel_(minLevel)
       , maxLevel_(maxLevel)
   {
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      communicators_[ level ] = std::shared_ptr< communication::BufferedCommunicator >( new communication::BufferedCommunicator( storage ) );
+      communicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
     }
   }
 
