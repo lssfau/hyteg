@@ -14,8 +14,8 @@ namespace P1Edge {
 
 template<typename ValueType, uint_t Level>
 inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
-                               const std::unique_ptr< ValueType[] > &src,
-                               const std::unique_ptr< ValueType[] > &coeff,
+                               double* src,
+                               double* coeff,
                                const std::array<EdgeCoordsVertex::DirVertex,3>& vertices,
                                const std::array<uint_t,3>& idx)
 {
@@ -159,7 +159,9 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edg
 SPECIALIZE_WITH_VALUETYPE( void, applyTmpl, apply )
 
 template< typename ValueType, uint_t Level >
-inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> &operatorId,
+inline void applyCoefficientTmpl(Edge &edge,
+                                 const std::shared_ptr< PrimitiveStorage >& storage,
+                                 const PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> &operatorId,
                                  const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
                                  const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
                                  const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &coeffId,
@@ -168,10 +170,10 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  const auto &localMatrices = edge.getData(operatorId);
-  auto &src = edge.getData(srcId)->getPointer( Level );
-  auto &dst = edge.getData(dstId)->getPointer( Level );
-  auto &coeff = edge.getData(coeffId)->getPointer( Level );
+  auto localMatrices = edge.getData(operatorId);
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
+  auto coeff = edge.getData(coeffId)->getPointer( Level );
 
   ValueType tmp;
 
@@ -182,7 +184,7 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
   std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
   std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
 
-  Face* face = dst.getStorage()->getFace(edge.neighborFaces()[0]);
+  Face* face = storage->getFace(edge.neighborFaces()[0]);
   uint_t s_south = face->vertex_index(edge.neighborVertices()[0]);
   uint_t e_south = face->vertex_index(edge.neighborVertices()[1]);
   uint_t o_south = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
@@ -190,7 +192,7 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
   uint_t s_north, e_north, o_north;
 
   if (edge.getNumNeighborFaces() == 2) {
-    face = dst.getStorage()->getFace(edge.neighborFaces()[1]);
+    face = storage->getFace(edge.neighborFaces()[1]);
     s_north = face->vertex_index(edge.neighborVertices()[0]);
     e_north = face->vertex_index(edge.neighborVertices()[1]);
     o_north = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
@@ -205,15 +207,15 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
       tmp = dst[index<Level>(i, VERTEX_C)];
     }
 
-    tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySW, {e_south, s_south, o_south});
-    tmp += assembleLocal(i, localMatrices->getBlueMatrix(Level, 0), src, coeff, triangleBlueS, {o_south, e_south, s_south});
-    tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySE, {s_south, o_south, e_south});
+    tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySW, {e_south, s_south, o_south});
+    tmp += assembleLocal<ValueType, Level>(i, localMatrices->getBlueMatrix(Level, 0), src, coeff, triangleBlueS, {o_south, e_south, s_south});
+    tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySE, {s_south, o_south, e_south});
 
     if (edge.getNumNeighborFaces() == 2) {
 
-      tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNW, {e_north, s_north, o_north});
-      tmp += assembleLocal(i, localMatrices->getBlueMatrix(Level, 1), src, coeff, triangleBlueN, {o_north, e_north, s_north});
-      tmp += assembleLocal(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
+      tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNW, {e_north, s_north, o_north});
+      tmp += assembleLocal<ValueType, Level>(i, localMatrices->getBlueMatrix(Level, 1), src, coeff, triangleBlueN, {o_north, e_north, s_north});
+      tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
     }
 
     dst[index<Level>(i, VERTEX_C)] = tmp;

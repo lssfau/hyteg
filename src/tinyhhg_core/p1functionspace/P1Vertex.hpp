@@ -81,17 +81,17 @@ inline void apply(Vertex &vertex,
 /// Apply function in the case of a coefficient
 template< typename ValueType >
 inline void applyCoefficient(Vertex &vertex,
-                             std::shared_ptr< PrimitiveStorage >& storage,
+                             const std::shared_ptr< PrimitiveStorage >& storage,
                              const PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> &operatorId,
                              const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
                              const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                              const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &coeffId,
                              uint_t level,
                              UpdateType update) {
-  const auto &localMatrices = vertex.getData(operatorId);
-  auto &src = vertex.getData(srcId)->getPointer( level );
-  auto &dst = vertex.getData(dstId)->getPointer( level );
-  auto &coeff = vertex.getData(coeffId)->getPointer( level );
+  auto localMatrices = vertex.getData(operatorId);
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+  auto coeff = vertex.getData(coeffId)->getPointer( level );
 
   if (update == Replace) {
     dst[0] = real_t(0);

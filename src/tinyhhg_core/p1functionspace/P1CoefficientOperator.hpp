@@ -43,9 +43,9 @@ public:
     auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
-    storage->addFaceData(faceStencilID_, faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
-    storage->addEdgeData(edgeStencilID_, edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
-    storage->addVertexData(vertexStencilID_, vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
+    storage->addFaceData(faceLocalMatrixID_, faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
+    storage->addEdgeData(edgeLocalMatrixID_, edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
+    storage->addVertexData(vertexLocalMatrixID_, vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
@@ -53,7 +53,7 @@ public:
       for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
-        auto& faceLocalMatrices = face.getData(faceStencilID_);
+        auto faceLocalMatrices = face.getData(faceLocalMatrixID_);
 
         compute_local_stiffness(face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
         compute_local_stiffness(face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
@@ -62,7 +62,7 @@ public:
       for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        auto& edgeLocalMatrices = edge.getData(edgeStencilID_);
+        auto edgeLocalMatrices = edge.getData(edgeLocalMatrixID_);
 
         // first face
         Face* face = storage_->getFace(edge.neighborFaces()[0]);
@@ -83,7 +83,7 @@ public:
       for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        auto& vertexLocalMatrices = vertex.getData(vertexStencilID_);
+        auto vertexLocalMatrices = vertex.getData(vertexLocalMatrixID_);
 
         // iterate over adjacent faces
         uint_t neighborId = 0;
@@ -122,8 +122,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Vertex::apply(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
+        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficient_->getVertexDataID(), level, updateType);
       }
     }
 
@@ -137,8 +136,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Edge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficient_->getEdgeDataID(), updateType);
       }
     }
 
@@ -151,8 +149,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Face::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficient_->getFaceDataID(), updateType);
       }
     }
 
@@ -176,7 +173,7 @@ private:
       if (testFlag(vertex.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Vertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
+//        P1Vertex::smooth_gs(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
       }
     }
 
@@ -191,7 +188,7 @@ private:
       if (testFlag(edge.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Edge::smooth_gs(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+//        P1Edge::smooth_gs(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -205,7 +202,7 @@ private:
       if (testFlag(face.type, flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Face::smooth_gs(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+//        P1Face::smooth_gs(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -229,7 +226,7 @@ private:
       if (testFlag(vertex.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Vertex::smooth_jac(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
+//        P1Vertex::smooth_jac(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
       }
     }
 
@@ -244,7 +241,7 @@ private:
       if (testFlag(edge.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Edge::smooth_jac(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
+//        P1Edge::smooth_jac(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
       }
     }
 
@@ -258,7 +255,7 @@ private:
       if (testFlag(face.type, flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Face::smooth_jac(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
+//        P1Face::smooth_jac(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
       }
     }
 
@@ -274,7 +271,7 @@ private:
       if (testFlag(vertex.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Vertex::saveOperator(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
+//        P1Vertex::saveOperator(vertex, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
       }
     }
 
@@ -284,7 +281,7 @@ private:
       if (testFlag(edge.getDoFType(), flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Edge::saveOperator(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+//        P1Edge::saveOperator(level, edge, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
       }
     }
 
@@ -294,15 +291,15 @@ private:
       if (testFlag(face.type, flag))
       {
         WALBERLA_ABORT("To be implemented")
-//        P1Face::saveOperator(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
+//        P1Face::saveOperator(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
       }
     }
   }
 #endif
 
-  PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> vertexStencilID_;
-  PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceP1LocalMatrixMemory, Face> faceStencilID_;
+  PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> vertexLocalMatrixID_;
+  PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> edgeLocalMatrixID_;
+  PrimitiveDataID<FaceP1LocalMatrixMemory, Face> faceLocalMatrixID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
@@ -325,18 +322,7 @@ private:
   std::shared_ptr<P1Function< real_t >> coefficient_;
 };
 
-typedef P1Operator<p1_diffusion_cell_integral_0_otherwise> P1LaplaceOperator;
-typedef P1Operator<p1_diffusion_cell_integral_0_otherwise, true> P1DiagonalLaplaceOperator;
-
-typedef P1Operator<p1_div_cell_integral_0_otherwise> P1DivxOperator;
-typedef P1Operator<p1_div_cell_integral_1_otherwise> P1DivyOperator;
-
-typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
-typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
-
-typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
-
-typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
+typedef P1CoefficientOperator<p1_diffusion_cell_integral_0_otherwise> P1VariableCoefficientLaplaceOperator;
 
 }
 
