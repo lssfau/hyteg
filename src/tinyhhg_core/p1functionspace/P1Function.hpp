@@ -59,11 +59,11 @@ private:
 
   inline real_t dot_impl(P1Function< ValueType >& rhs, uint_t level, DoFType flag = All);
 
-  inline void prolongate_impl(uint_t level, DoFType flag = All);
+  inline void prolongate_impl(uint_t sourceLevel, DoFType flag = All);
 
-  inline void prolongateQuadratic_impl(uint_t level, DoFType flag = All);
+  inline void prolongateQuadratic_impl(uint_t sourceLevel, DoFType flag = All);
 
-  inline void restrict_impl(uint_t level, DoFType flag = All);
+  inline void restrict_impl(uint_t sourceLevel, DoFType flag = All);
 
   inline void enumerate_impl(uint_t level, uint_t& num);
 
