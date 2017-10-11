@@ -35,8 +35,33 @@ enum class stencilDirection : uint_t {
   CELL_GRAY_N = 25,
   CELL_GRAY_NW = 26,
   CELL_GRAY_W = 27,
-  CELL_GRAY_SW = 28
+  CELL_GRAY_SW = 28,
 
+  EDGE_HO_C,
+  EDGE_HO_N,
+  EDGE_HO_S,
+  EDGE_HO_W,
+  EDGE_HO_E,
+  EDGE_HO_NW,
+  EDGE_HO_SE,
+
+  EDGE_VE_C,
+  EDGE_VE_N,
+  EDGE_VE_S,
+  EDGE_VE_W,
+  EDGE_VE_E,
+  EDGE_VE_NW,
+  EDGE_VE_SE,
+
+  EDGE_DI_C,
+  EDGE_DI_N,
+  EDGE_DI_S,
+  EDGE_DI_W,
+  EDGE_DI_E,
+  EDGE_DI_NW,
+  EDGE_DI_NE,
+  EDGE_DI_SW,
+  EDGE_DI_SE,
 
 };
 

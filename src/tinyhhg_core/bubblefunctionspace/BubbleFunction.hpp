@@ -11,11 +11,9 @@
 namespace hhg {
 
 template< typename ValueType >
-class BubbleFunction : public Function< BubbleFunction< ValueType > > {
- public:
-
-  using Function< BubbleFunction< ValueType > >::storage_;
-  using Function< BubbleFunction< ValueType > >::communicators_;
+class BubbleFunction : public Function< BubbleFunction< ValueType > >
+{
+public:
 
   BubbleFunction( const std::string &name, const std::shared_ptr< PrimitiveStorage > &storage, uint_t minLevel, uint_t maxLevel ) :
       Function< BubbleFunction< ValueType > >( name, storage, minLevel, maxLevel )
@@ -40,6 +38,9 @@ class BubbleFunction : public Function< BubbleFunction< ValueType > > {
   const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
  private:
+
+  using Function< BubbleFunction< ValueType > >::storage_;
+  using Function< BubbleFunction< ValueType > >::communicators_;
 
   /// Interpolates a given expression to a P1Function
   void interpolate_impl(std::function<ValueType(const Point3D &)> &expr, uint_t level, DoFType flag = All);
