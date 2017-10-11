@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
@@ -12,17 +13,23 @@ namespace hhg {
 namespace P1Edge {
 
 template<typename ValueType, uint_t Level>
-inline ValueType assembleLocal(uint_t pos, const Matrix3f& localMatrix, DirVertex[3] vertices)
+inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
+                               const std::unique_ptr< ValueType[] > &src,
+                               const std::unique_ptr< ValueType[] > &coeff,
+                               const std::array<EdgeCoordsVertex::DirVertex,3>& vertices,
+                               const std::array<uint_t,3>& idx)
 {
   using namespace EdgeCoordsVertex;
 
-  ValueType meanCoef = 1.0/3.0 * (coeff[index<Level>(pos, vertices[0])]
-                                + coeff[index<Level>(pos, vertices[1])]
-                                + coeff[index<Level>(pos, vertices[2])]);
+  ValueType meanCoeff = 1.0/3.0 * (coeff[index<Level>(pos, vertices[0])]
+                                 + coeff[index<Level>(pos, vertices[1])]
+                                 + coeff[index<Level>(pos, vertices[2])]);
 
-  tmp += meanCoeff * localMatrix(0,0) * src[index<Level>(pos, vertices[0])];
-  tmp += meanCoeff * localMatrix(0,1) * src[index<Level>(pos, vertices[1])];
-  tmp += meanCoeff * localMatrix(0,2) * src[index<Level>(pos, vertices[2])];
+  ValueType tmp;
+  tmp  = meanCoeff * localMatrix(idx[0],idx[0]) * src[index<Level>(pos, vertices[0])];
+  tmp += meanCoeff * localMatrix(idx[0],idx[1]) * src[index<Level>(pos, vertices[1])];
+  tmp += meanCoeff * localMatrix(idx[0],idx[2]) * src[index<Level>(pos, vertices[2])];
+  return tmp;
 }
 
 template< typename ValueType, uint_t Level >
@@ -167,14 +174,27 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
   auto &coeff = edge.getData(coeffId)->data[Level];
 
   ValueType tmp;
-  ValueType meanCoefficient;
 
-  DirVertex triangleGraySW[] = { VERTEX_C, VERTEX_W,  VERTEX_S  };
-  DirVertex triangleBlueS[]  = { VERTEX_C, VERTEX_S,  VERTEX_SE };
-  DirVertex triangleGraySE[] = { VERTEX_C, VERTEX_SE, VERTEX_E  };
-  DirVertex triangleGrayNW[] = { VERTEX_C, VERTEX_W,  VERTEX_NW };
-  DirVertex triangleBlueN[]  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
-  DirVertex triangleGrayNE[] = { VERTEX_C, VERTEX_N,  VERTEX_E  };
+  std::array<DirVertex,3> triangleGraySW = { VERTEX_C, VERTEX_W,  VERTEX_S  };
+  std::array<DirVertex,3> triangleBlueS  = { VERTEX_C, VERTEX_S,  VERTEX_SE };
+  std::array<DirVertex,3> triangleGraySE = { VERTEX_C, VERTEX_SE, VERTEX_E  };
+  std::array<DirVertex,3> triangleGrayNW = { VERTEX_C, VERTEX_W,  VERTEX_NW };
+  std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
+  std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
+
+  Face* face = dst.getStorage()->getFace(edge.neighborFaces()[0]);
+  uint_t s_south = face->vertex_index(edge.neighborVertices()[0]);
+  uint_t e_south = face->vertex_index(edge.neighborVertices()[1]);
+  uint_t o_south = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+  uint_t s_north, e_north, o_north;
+
+  if (edge.getNumNeighborFaces() == 2) {
+    face = dst.getStorage()->getFace(edge.neighborFaces()[1]);
+    s_north = face->vertex_index(edge.neighborVertices()[0]);
+    e_north = face->vertex_index(edge.neighborVertices()[1]);
+    o_north = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+  }
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
@@ -185,14 +205,15 @@ inline void applyCoefficientTmpl(Edge &edge, const PrimitiveDataID<EdgeP1LocalMa
       tmp = dst[index<Level>(i, VERTEX_C)];
     }
 
-    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySW);
-    tmp += assembleLocal(i, localMatrices[0].getBlueMatrix(), src, coeff, triangleBlueS);
-    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySE);
+    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySW, {e_south, s_south, o_south});
+    tmp += assembleLocal(i, localMatrices[0].getBlueMatrix(), src, coeff, triangleBlueS, {o_south, e_south, s_south});
+    tmp += assembleLocal(i, localMatrices[0].getGrayMatrix(), src, coeff, triangleGraySE, {s_south, o_south, e_south});
 
     if (edge.getNumNeighborFaces() == 2) {
-      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNW);
-      tmp += assembleLocal(i, localMatrices[1].getBlueMatrix(), src, coeff, triangleBlueN);
-      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNE);
+
+      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNW, {e_north, s_north, o_north});
+      tmp += assembleLocal(i, localMatrices[1].getBlueMatrix(), src, coeff, triangleBlueN, {o_north, e_north, s_north});
+      tmp += assembleLocal(i, localMatrices[1].getGrayMatrix(), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
     }
 
     dst[index<Level>(i, VERTEX_C)] = tmp;

@@ -15,6 +15,26 @@ namespace P1Face {
 using walberla::uint_t;
 using walberla::real_c;
 
+template<typename ValueType, uint_t Level>
+inline ValueType assembleLocal(uint_t i, uint_t j, const Matrix3r& localMatrix,
+                               const std::unique_ptr< ValueType[] > &src,
+                               const std::unique_ptr< ValueType[] > &coeff,
+                               const std::array<CoordsVertex::DirVertex,3>& vertices,
+                               const std::array<uint_t,3>& idx)
+{
+  using namespace CoordsVertex;
+
+  ValueType meanCoeff = 1.0/3.0 * (coeff[index<Level>(i, j, vertices[0])]
+                                 + coeff[index<Level>(i, j, vertices[1])]
+                                 + coeff[index<Level>(i, j, vertices[2])]);
+
+  ValueType tmp;
+  tmp  = meanCoeff * localMatrix(idx[0],idx[0]) * src[index<Level>(i, j, vertices[0])];
+  tmp += meanCoeff * localMatrix(idx[0],idx[1]) * src[index<Level>(i, j, vertices[1])];
+  tmp += meanCoeff * localMatrix(idx[0],idx[2]) * src[index<Level>(i, j, vertices[2])];
+  return tmp;
+}
+
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
@@ -157,6 +177,56 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
+
+template< typename ValueType, uint_t Level >
+inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId,
+                                 UpdateType update) {
+  using namespace CoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &localMatrices = face.getData(operatorId)->data[Level];
+  auto &src = face.getData(srcId)->data[Level];
+  auto &dst = face.getData(dstId)->data[Level];
+  auto &coeff = face.getData(coeffId)->data[Level];
+
+  ValueType tmp;
+
+  std::array<DirVertex,3> triangleBlueSW = { VERTEX_C, VERTEX_W,  VERTEX_S  };
+  std::array<DirVertex,3> triangleGrayS  = { VERTEX_C, VERTEX_S,  VERTEX_SE };
+  std::array<DirVertex,3> triangleBlueSE = { VERTEX_C, VERTEX_SE, VERTEX_E  };
+  std::array<DirVertex,3> triangleGrayNW = { VERTEX_C, VERTEX_W,  VERTEX_NW };
+  std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
+  std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+
+      if (update == Replace) {
+        tmp = ValueType(0);
+      }
+      else {
+        tmp = dst[index<Level>(i, j, VERTEX_C)];
+      }
+
+      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueSW, {0,1,2});
+      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayS, {2,0,1});
+      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueSE, {1,2,0});
+      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayNW, {1,0,2});
+      tmp += assembleLocal(i, j, localMatrices.getBlueMatrix(), src, coeff, triangleBlueN, {2,1,0});
+      tmp += assembleLocal(i, j, localMatrices.getGrayMatrix(), src, coeff, triangleGrayNE, {0,2,1});
+
+      dst[index<Level>(i, j, VERTEX_C)] = tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientTmpl, applyCoefficient)
 
 template< typename ValueType, uint_t Level >
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,

@@ -65,9 +65,27 @@ public:
     return x[M*row + col];
   }
 
+  /// Get const reference to a single matrix component
+  /// \param row Row index
+  /// \param col Column index
+  /// \returns Const reference to component at position [row,col] in matrix
+  const T& operator() (uint_t row, uint_t col) const
+  {
+    WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M)
+    WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N)
+    return x[M*row + col];
+  }
+
   /// Get raw pointer to underlying matrix data
   /// \returns Pointer to first element of unerlying matrix data
   T* data()
+  {
+    return &x[0];
+  }
+
+  /// Get const raw pointer to underlying matrix data
+  /// \returns Constant pointer to first element of unerlying matrix data
+  const T* data() const
   {
     return &x[0];
   }
