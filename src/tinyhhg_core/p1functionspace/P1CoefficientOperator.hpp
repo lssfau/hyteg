@@ -110,11 +110,14 @@ private:
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    coefficient_->getCommunicator(level)->startCommunication<Edge, Vertex>();
 
     // start pulling edge halos
     src.getCommunicator(level)->startCommunication<Face, Edge>();
+    coefficient_->getCommunicator(level)->startCommunication<Face, Edge>();
 
     // end pulling vertex halos
+    coefficient_->getCommunicator(level)->endCommunication<Edge, Vertex>();
     src.getCommunicator(level)->endCommunication<Edge, Vertex>();
 
     for (auto& it : storage_->getVertices()) {
@@ -129,6 +132,7 @@ private:
     dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
 
     // end pulling edge halos
+    coefficient_->getCommunicator(level)->endCommunication<Face, Edge>();
     src.getCommunicator(level)->endCommunication<Face, Edge>();
 
     for (auto& it : storage_->getEdges()) {
