@@ -1,32 +1,23 @@
 #pragma once
 
-#include "tinyhhg_core/communication/PackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-
-#include "tinyhhg_core/p1functionspace/P1PackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Edge.hpp"
+#include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1Face.hpp"
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 namespace hhg {
 
 template< typename ValueType >
-class P1PackInfo : public communication::PackInfo {
+class P1PackInfo : public communication::DoFSpacePackInfo<ValueType> {
 
 public:
   P1PackInfo(uint_t level,
-                   PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> dataIDVertex,
-                   PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> dataIDEdge,
-                   PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> dataIDFace,
-                   std::weak_ptr<PrimitiveStorage> storage)
-          : level_(level),
-            dataIDVertex_(dataIDVertex),
-            dataIDEdge_(dataIDEdge),
-            dataIDFace_(dataIDFace),
-            storage_(storage){
-
-  }
+             PrimitiveDataID<FunctionMemory< ValueType >, Vertex> dataIDVertex,
+             PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge,
+             PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace,
+             std::weak_ptr<PrimitiveStorage> storage)
+    : communication::DoFSpacePackInfo< ValueType >(level,dataIDVertex,dataIDEdge,dataIDFace,storage)
+  {}
   virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer);
 
   virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer);
@@ -51,13 +42,13 @@ public:
 
   virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver);
 
-
 private:
-  uint_t level_;
-  PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> dataIDVertex_;
-  PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> dataIDEdge_;
-  PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> dataIDFace_;
-  std::weak_ptr<hhg::PrimitiveStorage> storage_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
+  using communication::DoFSpacePackInfo< ValueType >::level_;
+
+
 };
 
 

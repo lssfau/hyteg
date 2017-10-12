@@ -46,6 +46,7 @@
 #include "mesh/MeshInfo.hpp"
 
 #include "communication/PackInfo.hpp"
+#include "communication/DoFSpacePackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
 #include "petsc/PETScManager.hpp"
