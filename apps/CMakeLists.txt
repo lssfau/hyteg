@@ -44,6 +44,10 @@ waLBerla_add_executable( NAME stokes_mini
         FILES stokes_mini.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME stokes_stab_varcoeff
+        FILES stokes_stab_varcoeff.cpp
+        DEPENDS tinyhhg_core fmt)
+
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp

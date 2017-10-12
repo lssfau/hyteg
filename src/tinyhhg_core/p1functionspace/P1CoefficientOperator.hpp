@@ -19,6 +19,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -327,6 +328,11 @@ private:
 };
 
 typedef P1CoefficientOperator<p1_diffusion_cell_integral_0_otherwise> P1VariableCoefficientLaplaceOperator;
+
+typedef P1CoefficientOperator<p1_stokes_epsilon_cell_integral_0_otherwise> P1CoefficientEpsilonOperator_uu;
+typedef P1CoefficientOperator<p1_stokes_epsilon_cell_integral_1_otherwise> P1CoefficientEpsilonOperator_uv;
+typedef P1CoefficientOperator<p1_stokes_epsilon_cell_integral_2_otherwise> P1CoefficientEpsilonOperator_vu;
+typedef P1CoefficientOperator<p1_stokes_epsilon_cell_integral_3_otherwise> P1CoefficientEpsilonOperator_vv;
 
 }
 

@@ -27,6 +27,7 @@
 #include "composites/p1stokesfunction.hpp"
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
+#include "composites/P1CoefficientStokesOperator.hpp"
 
 #include "composites/P1BubbleFunctionSpace/P1BubbleFunction.hpp"
 #include "composites/P1BubbleFunctionSpace/P1BubbleOperator.hpp"
