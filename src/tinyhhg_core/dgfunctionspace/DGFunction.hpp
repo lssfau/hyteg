@@ -4,6 +4,7 @@
 #include "DGPackInfo.hpp"
 #include "DGMemory.hpp"
 #include "DGDataHandling.hpp"
+#include "DGVertex.hpp"
 
 namespace hhg {
 
@@ -117,7 +118,32 @@ void DGFunction< ValueType >::restrict_impl(uint_t level, DoFType flag) {
 
 template< typename ValueType >
 void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+    DGVertex::enumerate(vertex,vertexDataID_,level,num);
+  }
 
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+    P1Edge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+  }
+
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+    P1Face::enumerate< ValueType >(level, face, faceDataID_, num);
+  }
+
+  communicators_[level]->template startCommunication<Face, Edge>();
+  communicators_[level]->template endCommunication<Face, Edge>();
+
+  communicators_[level]->template startCommunication<Edge, Vertex>();
+  communicators_[level]->template endCommunication<Edge, Vertex>();
 }
 
 }
