@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_2el.msh";
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 7;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);

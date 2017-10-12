@@ -38,7 +38,7 @@ std::shared_ptr< VertexP1LocalMatrixMemory > VertexP1LocalMatrixMemoryDataHandli
   auto vertexP1LocalMatrixMemory = std::make_shared< VertexP1LocalMatrixMemory >();
   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
   {
-    vertexP1LocalMatrixMemory->addlevel( level, vertex->getNumNeighborEdges());
+    vertexP1LocalMatrixMemory->addlevel( level, vertex->getNumNeighborFaces());
   }
   return vertexP1LocalMatrixMemory;
 }

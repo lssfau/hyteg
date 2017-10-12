@@ -123,8 +123,11 @@ inline void applyCoefficient(Vertex &vertex,
 
       uint_t v_j = face->vertex_index(vertex_j);
 
-      dst[0] += meanCoefficient * (local_stiffness(v_i, v_j) * src[edge_idx] + local_stiffness(v_i, v_i) * src[0]);
+      dst[0] += meanCoefficient * local_stiffness(v_i, v_j) * src[edge_idx];
     }
+
+    // add contribution of center vertex
+    dst[0] += meanCoefficient * local_stiffness(v_i, v_i) * src[0];
     ++neighborId;
   }
 }
