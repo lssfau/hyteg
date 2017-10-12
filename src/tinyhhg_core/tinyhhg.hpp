@@ -14,6 +14,7 @@
 #include "bubblefunctionspace/BubbleOperator.hpp"
 
 #include "tinyhhg_core/dgfunctionspace/DGMemory.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
 #include "types/pointnd.hpp"
 #include "types/flags.hpp"

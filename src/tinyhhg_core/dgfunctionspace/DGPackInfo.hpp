@@ -1,13 +1,13 @@
 #pragma once
 
-#include "tinyhhg_core/communication/PackInfo.hpp"
+#include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 
 namespace hhg{
 
 
 template< typename ValueType >
-class DGPackInfo : public communication::PackInfo {
+class DGPackInfo : public communication::DoFSpacePackInfo< ValueType > {
 
 public:
   DGPackInfo(uint_t level,
@@ -15,11 +15,7 @@ public:
                  PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge,
                  PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace,
                  std::weak_ptr<PrimitiveStorage> storage)
-      : level_(level),
-        dataIDVertex_(dataIDVertex),
-        dataIDEdge_(dataIDEdge),
-        dataIDFace_(dataIDFace),
-        storage_(storage){
+      : communication::DoFSpacePackInfo< ValueType >(level, dataIDVertex, dataIDEdge, dataIDFace, storage){
 
   }
   virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
@@ -46,13 +42,13 @@ public:
 
   virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) override;
 
-
 private:
-  uint_t level_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Vertex> dataIDVertex_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace_;
-  std::weak_ptr<hhg::PrimitiveStorage> storage_;
+  using communication::DoFSpacePackInfo< ValueType >::level_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
+  using communication::DoFSpacePackInfo< ValueType >::storage_;
+
 };
 
 template< typename ValueType >
