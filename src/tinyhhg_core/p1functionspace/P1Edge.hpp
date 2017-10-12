@@ -26,10 +26,10 @@ inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
                                  + coeff[index<Level>(pos, vertices[2])]);
 
   ValueType tmp;
-  tmp  = meanCoeff * localMatrix(idx[0],idx[0]) * src[index<Level>(pos, vertices[0])];
-  tmp += meanCoeff * localMatrix(idx[0],idx[1]) * src[index<Level>(pos, vertices[1])];
-  tmp += meanCoeff * localMatrix(idx[0],idx[2]) * src[index<Level>(pos, vertices[2])];
-  return tmp;
+  tmp  = localMatrix(idx[0],idx[0]) * src[index<Level>(pos, vertices[0])]
+         + localMatrix(idx[0],idx[1]) * src[index<Level>(pos, vertices[1])]
+         + localMatrix(idx[0],idx[2]) * src[index<Level>(pos, vertices[2])];
+  return meanCoeff * tmp;
 }
 
 template< typename ValueType, uint_t Level >
