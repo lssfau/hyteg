@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
   PETScManager petscManager;
 #endif
 
-  std::string meshFileName = "../data/meshes/bfs_12el.msh";
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
   hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
   hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
+  hhg::P1MassOperator M(storage, minLevel, maxLevel);
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -52,12 +53,14 @@ int main(int argc, char* argv[])
 
   L.enableTiming( timingTree );
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]; };
-  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return (1.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return (3.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
+  npoints_helper.interpolate(rhs, maxLevel);
+  M.apply(npoints_helper, f, maxLevel, hhg::All);
 
 #ifdef HHG_BUILD_WITH_PETSC
   typedef hhg::PETScPreconditioner<real_t, hhg::P1Function, hhg::P1LaplaceOperator> PreconditionerType;
