@@ -17,7 +17,7 @@ constexpr std::array<hhg::stencilDirection ,3> grayDGfaceneighbors =
   {{stencilDirection::CELL_BLUE_S, stencilDirection::CELL_BLUE_E, stencilDirection::CELL_BLUE_W}};
 
 template<size_t Level>
-constexpr inline uint_t indexDGfaceFromGrayDGface(const uint_t col, const uint_t row, const stencilDirection dir){
+constexpr inline uint_t indexDGFaceFromGrayDGface(const uint_t col, const uint_t row, const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir){
     case sD::CELL_BLUE_S:

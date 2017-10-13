@@ -5,6 +5,7 @@
 #include "DGMemory.hpp"
 #include "DGDataHandling.hpp"
 #include "DGVertex.hpp"
+#include "DGEdge.hpp"
 
 namespace hhg {
 
@@ -128,7 +129,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
-    P1Edge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+    DGEdge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -136,7 +137,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
-    P1Face::enumerate< ValueType >(level, face, faceDataID_, num);
+    DGFace::enumerate< ValueType >(level, face, faceDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Face, Edge>();

@@ -49,6 +49,9 @@ waLBerla_execute_test(NAME BubbleCommTest)
 waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME DGCommTest)
 
+waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME DGEnumerateTest)
+
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)
 
