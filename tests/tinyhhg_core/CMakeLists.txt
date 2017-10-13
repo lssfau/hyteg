@@ -40,14 +40,14 @@ waLBerla_execute_test(NAME P1InterpolateTest)
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
-waLBerla_compile_test(FILES P1EnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME P1EnumerateTest)
+waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P1CommTest)
 
-waLBerla_compile_test(FILES BubbleEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME BubbleEnumerateTest)
+waLBerla_compile_test(FILES BubbleCommTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME BubbleCommTest)
 
-waLBerla_compile_test(FILES DGEnumerateTest.cpp DEPENDS tinyhhg_core core fmt)
-waLBerla_execute_test(NAME DGEnumerateTest)
+waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME DGCommTest)
 
 waLBerla_compile_test(FILES PrimitiveIDTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME PrimitiveIDTest)
