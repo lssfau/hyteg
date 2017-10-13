@@ -375,7 +375,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
-    P1Vertex::enumerate(vertex, vertexDataID_, level, num);
+    P1Vertex::enumerate(level, vertex, vertexDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();

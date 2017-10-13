@@ -69,7 +69,7 @@ private:
 template< typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > > VertexDGFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, vertex->getNumNeighborEdges(), minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, vertex->getNumNeighborFaces(), minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >

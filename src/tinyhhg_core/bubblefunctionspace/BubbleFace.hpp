@@ -214,7 +214,7 @@ SPECIALIZE_WITH_VALUETYPE(void, enumerate_tmpl, enumerate)
 template< typename ValueType, size_t Level >
 inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
   using namespace std;
-  ValueType* faceMemory = face.getData(dstId)->data[Level].get();
+  ValueType* faceMemory = face.getData(dstId)->getPointer(Level);
   uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
   cout << setfill('=') << setw(100) << "" << endl;
   cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;

@@ -10,7 +10,7 @@ inline void enumerate(Vertex &vertex,
 {
   auto dst = vertex.getData(dstId)->getPointer( level );
   //for each adjacent edge there are two DoF where the first one is owned by the vertex
-  for( uint_t i = 0; i < vertex.getNumHigherDimNeighbors(); ++i){
+  for( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
     dst[i * 2] = static_cast< ValueType >(num++);
   }
 

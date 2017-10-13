@@ -17,7 +17,8 @@ inline void enumerateTmpl(Edge &edge,
   }
   for(auto dir : dirs) {
     for (uint_t i = 1; i < (hhg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
-      dst[indexDGFaceFromVertex< Level >(i, dir)] = num++;
+      dst[indexDGFaceFromVertex< Level >(i, dir)] = num;
+      ++num;
     }
   }
 }

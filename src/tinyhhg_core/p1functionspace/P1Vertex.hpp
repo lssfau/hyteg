@@ -141,7 +141,7 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
 }
 
 template< typename ValueType >
-inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId, size_t level, uint_t& num) {
+inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <VertexP1FunctionMemory<ValueType>, Vertex> &dstId, uint_t &num) {
   auto dst = vertex.getData(dstId)->getPointer( level );
   dst[0] = static_cast< ValueType >( num++ );
 }

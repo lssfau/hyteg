@@ -6,6 +6,7 @@
 #include "DGDataHandling.hpp"
 #include "DGVertex.hpp"
 #include "DGEdge.hpp"
+#include "DGFace.hpp"
 
 namespace hhg {
 
