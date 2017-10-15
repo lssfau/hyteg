@@ -26,15 +26,18 @@ int main (int argc, char ** argv )
 
   size_t num = 1;
   uint_t check = 1;
+  uint_t sum = 0;
   x.enumerate(maxLevel,num);
 
   uint_t totalDoFs = (hhg::levelinfo::num_microfaces_per_face(maxLevel) * storage->getNumberOfLocalFaces());
+  uint_t expectedSum = (totalDoFs * (totalDoFs + 1))/2;
 
   for (auto &vertexIt : storage->getVertices()){
     Vertex &vertex = *vertexIt.second;
     uint_t *vertexData = vertex.getData(x.getVertexDataID())->getPointer(maxLevel);
     for(uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
       WALBERLA_CHECK_EQUAL(vertexData[i*2],check);
+      sum += check;
       check++;
     }
   }
@@ -50,6 +53,7 @@ int main (int argc, char ** argv )
       uint_t start = FaceDoFonFace * i;
       for(uint_t j = 2; j < hhg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 5; j += 2){
         WALBERLA_CHECK_EQUAL(edgeData[start + j],check);
+        sum += check;
         check++;
       }
     }
@@ -64,7 +68,8 @@ int main (int argc, char ** argv )
       for(uint_t j = 1; j < ( inner_rowsize - 1 ); ++j){
         WALBERLA_CHECK_EQUAL(
           faceData[DGFace::indexDGFaceFromVertex<maxLevel>(i,j,stencilDirection::CELL_GRAY_NE)],
-          check)
+          check);
+        sum += check;
         ++check;
       }
       --inner_rowsize;
@@ -74,7 +79,8 @@ int main (int argc, char ** argv )
       for(uint_t j = 0; j <  inner_rowsize ; ++j){
         WALBERLA_CHECK_EQUAL(
           faceData[DGFace::indexDGFaceFromGrayDGface<maxLevel>(i,j,stencilDirection::CELL_BLUE_E)],
-          check)
+          check);
+        sum += check;
         ++check;
       }
       --inner_rowsize;
@@ -82,6 +88,7 @@ int main (int argc, char ** argv )
   }
   --check;
   WALBERLA_CHECK_EQUAL(check,totalDoFs);
+  WALBERLA_CHECK_EQUAL(sum,expectedSum);
 
   return 0;
 }
