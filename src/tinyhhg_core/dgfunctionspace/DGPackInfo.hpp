@@ -120,12 +120,37 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, V
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-
+  ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
+  uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
+  uint_t faceIdOnEdge = sender->face_index(receiver);
+  stencilDirection dirCellGray;
+  //the first face is the south face and the second the north face
+  if(faceIdOnEdge == 0)
+  {
+    dirCellGray = stencilDirection::CELL_GRAY_SE;
+  }
+  else if(faceIdOnEdge == 1)
+  {
+    dirCellGray = stencilDirection::CELL_GRAY_NE;
+  }
+  for (uint_t i = 0; i < vPerEdge - 1; ++i)
+  {
+    buffer << edgeData[BubbleEdge::edge_index(level_,i,dirCellGray)];
+  }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-
+  using namespace BubbleFace;
+  ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
+  uint_t edgeIndexOnFace = receiver->edge_index(sender);
+  for(auto it = indexIterator(edgeIndexOnFace,
+                              receiver->edge_orientation[edgeIndexOnFace],
+                              CELL_GRAY, level_);
+      it != indexIterator();
+      ++it){
+    buffer >> faceData[*it];
+  }
 }
 
 template< typename ValueType >
@@ -135,12 +160,38 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-
+  using namespace BubbleFace;
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
+  uint_t edgeIndexOnFace = sender->edge_index(receiver);
+  for(auto it = indexIterator(edgeIndexOnFace,
+                              sender->edge_orientation[edgeIndexOnFace],
+                              CELL_BLUE, level_);
+      it != indexIterator();
+      ++it){
+    buffer << faceData[*it];
+  }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
+  uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
+  uint_t faceIdOnEdge = receiver->face_index(sender);
+  stencilDirection dirCellBlue;
+  //the first face is the south face and the second the north face
+  if(faceIdOnEdge == 0)
+  {
+    dirCellBlue = stencilDirection::CELL_BLUE_SE;
+  }
+  else if(faceIdOnEdge == 1)
+  {
+    dirCellBlue = stencilDirection::CELL_BLUE_NW;
+  }
+  //unpack Blue Cell
+  for (uint_t i = 1; i < vPerEdge - 1; ++i)
+  {
+    buffer >> edgeData[BubbleEdge::edge_index(level_,i,dirCellBlue)];
+  }
 }
 
 template< typename ValueType >
