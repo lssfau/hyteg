@@ -14,7 +14,7 @@ int main (int argc, char ** argv )
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -22,7 +22,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hhg::DGFunction< real_t > x("x", storage, minLevel, maxLevel);
+  hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
 
   size_t num = 1;
   x.enumerate(maxLevel,num);
@@ -35,18 +35,19 @@ int main (int argc, char ** argv )
   for (auto &edgeIt : storage->getEdges()) {
     Edge &edge = *edgeIt.second;
     //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
-    real_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
+    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
     for(uint_t i = 0; i < nbrVertices.size(); ++i)
     {
       Vertex* vertex = storage->getVertex(nbrVertices[i].getID());
-      real_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
+      uint_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       if(vertexIdOnEdge == 0){
-        WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_SE )],
-                             vertexData[vertex->face_index(edge.neighborFaces()[0])]);
+        uint_t edgeIndex = BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_SE );
+        WALBERLA_CHECK_EQUAL(edgeData[edgeIndex],
+                             vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
         numberOfChecks++;
         if(edge.getNumHigherDimNeighbors() == 2)
         {
@@ -73,12 +74,12 @@ int main (int argc, char ** argv )
 
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
-    real_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
+    uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     for(uint_t i = 0; i < nbrEdges.size(); ++i){
       Edge* edge = storage->getEdge(nbrEdges[0].getID());
-      real_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
+      uint_t* edgeData = edge->getData(x.getEdgeDataID())->getPointer(maxLevel);
       uint_t idxCounter = 0;
       uint_t faceIdOnEdge = edge->face_index(face.getID());
 //////////////////// GRAY CELL //////////////////////

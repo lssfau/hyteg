@@ -57,7 +57,7 @@ template< typename ValueType >
 void DGPackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
 /// see DGMemory.hpp for a description of the Vertex Memory
   ValueType *vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
-  for(const PrimitiveID& faceID: storage_.lock()->getEdge(receiver)->neighborFaces()){
+  for(const PrimitiveID& faceID: storage_.lock()->getEdge(receiver)->neighborFaces()) {
     buffer << vertexData[ sender->face_index(faceID) * 2];
   }
 }
