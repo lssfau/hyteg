@@ -38,35 +38,31 @@ int main (int argc, char ** argv )
     uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrVertices;
     edge.getNeighborVertices(nbrVertices);
-    for(uint_t i = 0; i < nbrVertices.size(); ++i)
-    {
-      Vertex* vertex = storage->getVertex(nbrVertices[i].getID());
+    for(auto& vertexIt : nbrVertices){
+      Vertex* vertex = storage->getVertex(vertexIt.getID());
       uint_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
-      uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
-      if(vertexIdOnEdge == 0){
-        uint_t edgeIndex = BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_SE );
-        WALBERLA_CHECK_EQUAL(edgeData[edgeIndex],
-                             vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
-        numberOfChecks++;
-        if(edge.getNumHigherDimNeighbors() == 2)
-        {
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, 0, stencilDirection::CELL_GRAY_NE)],
-                               vertexData[vertex->face_index(edge.neighborFaces()[1])]);
-          numberOfChecks++;
-        }
-      } else if( vertexIdOnEdge == 1){
-        WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, vPerEdge - 1, stencilDirection::CELL_GRAY_SW )],
-                             vertexData[vertex->face_index(edge.neighborFaces()[0])]);
-        numberOfChecks++;
-        if(edge.getNumHigherDimNeighbors() == 2)
-        {
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, vPerEdge - 1, stencilDirection::CELL_GRAY_NW)],
-                               vertexData[vertex->face_index(edge.neighborFaces()[1])]);
-          numberOfChecks++;
-        }
+      uint_t pos;
+      if(edge.vertex_index(vertex->getID()) == 0){
+        pos = 0;
+      } else if(edge.vertex_index(vertex->getID()) == 1) {
+        pos = vPerEdge - 2;
       } else {
-        WALBERLA_CHECK(false);
+        WALBERLA_CHECK(false, "vertex not on Edge");
+      }
+      uint_t index = BubbleEdge::edge_index(maxLevel, pos, stencilDirection::CELL_GRAY_SE );
+      WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+      WALBERLA_CHECK_EQUAL(edgeData[index],
+                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
+      index = BubbleEdge::edge_index(maxLevel, pos + 1, stencilDirection::CELL_BLUE_SE );
+      WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+      WALBERLA_CHECK_EQUAL(edgeData[index],
+                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2 + 1]);
+      if(edge.getNumNeighborFaces() == 2){
+        index = BubbleEdge::edge_index(maxLevel, pos, stencilDirection::CELL_GRAY_NE );
+        WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+        WALBERLA_CHECK_EQUAL(edgeData[index],
+                             vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2]);
       }
     }
   }
