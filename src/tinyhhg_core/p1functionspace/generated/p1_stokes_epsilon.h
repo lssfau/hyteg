@@ -20,23 +20,23 @@
 //   representation:                 'auto'
 //   split:                          False
 
-#ifndef __P1_DIVT_H
-#define __P1_DIVT_H
+#ifndef __P1_STOKES_EPSILON_H
+#define __P1_STOKES_EPSILON_H
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include "ufc.h"
 
-class p1_divt_finite_element_0: public ufc::finite_element
+class p1_stokes_epsilon_finite_element_0: public ufc::finite_element
 {
 public:
 
-  p1_divt_finite_element_0() : ufc::finite_element()
+  p1_stokes_epsilon_finite_element_0() : ufc::finite_element()
   {
     // Do nothing
   }
 
-  ~p1_divt_finite_element_0() override
+  ~p1_stokes_epsilon_finite_element_0() override
   {
     // Do nothing
   }
@@ -107,28 +107,28 @@ public:
   }
 
   static void _evaluate_basis(std::size_t i,
-                              real_t * values,
-                              const real_t * x,
-                              const real_t * coordinate_dofs,
+                              double * values,
+                              const double * x,
+                              const double * coordinate_dofs,
                               int cell_orientation)
   {
     // Compute Jacobian
-    real_t J[4];
+    double J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    real_t K[4];
-    real_t detJ;
+    double K[4];
+    double detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Reset values
     *values = 0.0;
@@ -138,10 +138,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -152,7 +152,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -166,10 +166,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -180,7 +180,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -194,10 +194,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -208,7 +208,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -223,21 +223,21 @@ public:
   }
 
   void evaluate_basis(std::size_t i,
-                      real_t * values,
-                      const real_t * x,
-                      const real_t * coordinate_dofs,
+                      double * values,
+                      const double * x,
+                      const double * coordinate_dofs,
                       int cell_orientation) const final override
   {
     _evaluate_basis(i, values, x, coordinate_dofs, cell_orientation);
   }
 
-  static void _evaluate_basis_all(real_t * values,
-                                  const real_t * x,
-                                  const real_t * coordinate_dofs,
+  static void _evaluate_basis_all(double * values,
+                                  const double * x,
+                                  const double * coordinate_dofs,
                                   int cell_orientation)
   {
     // Helper variable to hold values of a single dof.
-    real_t dof_values = 0.0;
+    double dof_values = 0.0;
     
     // Loop dofs and call evaluate_basis
     for (unsigned int r = 0; r < 3; r++)
@@ -247,9 +247,9 @@ public:
     } // end loop over 'r'
   }
 
-  void evaluate_basis_all(real_t * values,
-                          const real_t * x,
-                          const real_t * coordinate_dofs,
+  void evaluate_basis_all(double * values,
+                          const double * x,
+                          const double * coordinate_dofs,
                           int cell_orientation) const final override
   {
     _evaluate_basis_all(values, x, coordinate_dofs, cell_orientation);
@@ -257,9 +257,9 @@ public:
 
   static void _evaluate_basis_derivatives(std::size_t i,
                                           std::size_t n,
-                                          real_t * values,
-                                          const real_t * x,
-                                          const real_t * coordinate_dofs,
+                                          double * values,
+                                          const double * x,
+                                          const double * coordinate_dofs,
                                           int cell_orientation)
   {
     
@@ -290,22 +290,22 @@ public:
     }
     
     // Compute Jacobian
-    real_t J[4];
+    double J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    real_t K[4];
-    real_t detJ;
+    double K[4];
+    double detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Declare two dimensional array that holds combinations of derivatives and initialise
     unsigned int combinations[2][1];
@@ -334,11 +334,11 @@ public:
     }
     
     // Compute inverse of Jacobian
-    const real_t Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
+    const double Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
     
     // Declare transformation matrix
     // Declare pointer to two dimensional array and initialise
-    real_t transform[2][2];
+    double transform[2][2];
     for (unsigned int j = 0; j < num_derivatives; j++)
     {
       for (unsigned int k = 0; k < num_derivatives; k++)
@@ -360,10 +360,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -374,36 +374,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -491,10 +491,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -505,36 +505,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -622,10 +622,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -636,36 +636,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -755,18 +755,18 @@ public:
 
   void evaluate_basis_derivatives(std::size_t i,
                                   std::size_t n,
-                                  real_t * values,
-                                  const real_t * x,
-                                  const real_t * coordinate_dofs,
+                                  double * values,
+                                  const double * x,
+                                  const double * coordinate_dofs,
                                   int cell_orientation) const final override
   {
     _evaluate_basis_derivatives(i, n, values, x, coordinate_dofs, cell_orientation);
   }
 
   static void _evaluate_basis_derivatives_all(std::size_t n,
-                                              real_t * values,
-                                              const real_t * x,
-                                              const real_t * coordinate_dofs,
+                                              double * values,
+                                              const double * x,
+                                              const double * coordinate_dofs,
                                               int cell_orientation)
   {
     // Call evaluate_basis_all if order of derivatives is equal to zero.
@@ -799,7 +799,7 @@ public:
     }
     
     // Helper variable to hold values of a single dof.
-    real_t dof_values[2];
+    double dof_values[2];
     for (unsigned int r = 0; r < 2; r++)
     {
       dof_values[r] = 0.0;
@@ -817,25 +817,25 @@ public:
   }
 
   void evaluate_basis_derivatives_all(std::size_t n,
-                                      real_t * values,
-                                      const real_t * x,
-                                      const real_t * coordinate_dofs,
+                                      double * values,
+                                      const double * x,
+                                      const double * coordinate_dofs,
                                       int cell_orientation) const final override
   {
     _evaluate_basis_derivatives_all(n, values, x, coordinate_dofs, cell_orientation);
   }
 
-  real_t evaluate_dof(std::size_t i,
+  double evaluate_dof(std::size_t i,
                       const ufc::function& f,
-                      const real_t * coordinate_dofs,
+                      const double * coordinate_dofs,
                       int cell_orientation,
                       const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    real_t vals[1];
+    double vals[1];
     
     // Declare variable for physical coordinates
-    real_t y[2];
+    double y[2];
     switch (i)
     {
     case 0:
@@ -867,17 +867,17 @@ public:
     return 0.0;
   }
 
-  void evaluate_dofs(real_t * values,
+  void evaluate_dofs(double * values,
                              const ufc::function& f,
-                             const real_t * coordinate_dofs,
+                             const double * coordinate_dofs,
                              int cell_orientation,
                              const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    real_t vals[1];
+    double vals[1];
     
     // Declare variable for physical coordinates
-    real_t y[2];
+    double y[2];
     y[0] = coordinate_dofs[0];
     y[1] = coordinate_dofs[1];
     f.evaluate(vals, y, c);
@@ -892,9 +892,9 @@ public:
     values[2] = vals[0];
   }
 
-  void interpolate_vertex_values(real_t * vertex_values,
-                                 const real_t * dof_values,
-                                 const real_t * coordinate_dofs,
+  void interpolate_vertex_values(double * vertex_values,
+                                 const double * dof_values,
+                                 const double * coordinate_dofs,
                                  int cell_orientation,
                                  const ufc::cell& c) const final override
   {
@@ -904,8 +904,8 @@ public:
     vertex_values[2] = dof_values[2];
   }
 
-  void tabulate_dof_coordinates(real_t * dof_coordinates,
-                                const real_t * coordinate_dofs) const final override
+  void tabulate_dof_coordinates(double * dof_coordinates,
+                                const double * coordinate_dofs) const final override
   {
     dof_coordinates[0] = coordinate_dofs[0];
     dof_coordinates[1] = coordinate_dofs[1];
@@ -927,22 +927,22 @@ public:
 
   ufc::finite_element * create() const final override
   {
-    return new p1_divt_finite_element_0();
+    return new p1_stokes_epsilon_finite_element_0();
   }
 
 };
 
 
-class p1_divt_finite_element_1: public ufc::finite_element
+class p1_stokes_epsilon_finite_element_1: public ufc::finite_element
 {
 public:
 
-  p1_divt_finite_element_1() : ufc::finite_element()
+  p1_stokes_epsilon_finite_element_1() : ufc::finite_element()
   {
     // Do nothing
   }
 
-  ~p1_divt_finite_element_1() override
+  ~p1_stokes_epsilon_finite_element_1() override
   {
     // Do nothing
   }
@@ -1031,28 +1031,28 @@ public:
   }
 
   static void _evaluate_basis(std::size_t i,
-                              real_t * values,
-                              const real_t * x,
-                              const real_t * coordinate_dofs,
+                              double * values,
+                              const double * x,
+                              const double * coordinate_dofs,
                               int cell_orientation)
   {
     // Compute Jacobian
-    real_t J[4];
+    double J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    real_t K[4];
-    real_t detJ;
+    double K[4];
+    double detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Reset values
     values[0] = 0.0;
@@ -1063,10 +1063,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1077,7 +1077,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1091,10 +1091,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1105,7 +1105,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1119,10 +1119,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1133,7 +1133,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -1147,10 +1147,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1161,7 +1161,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1175,10 +1175,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1189,7 +1189,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Compute value(s)
@@ -1203,10 +1203,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1217,7 +1217,7 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Compute value(s)
@@ -1232,21 +1232,21 @@ public:
   }
 
   void evaluate_basis(std::size_t i,
-                      real_t * values,
-                      const real_t * x,
-                      const real_t * coordinate_dofs,
+                      double * values,
+                      const double * x,
+                      const double * coordinate_dofs,
                       int cell_orientation) const final override
   {
     _evaluate_basis(i, values, x, coordinate_dofs, cell_orientation);
   }
 
-  static void _evaluate_basis_all(real_t * values,
-                                  const real_t * x,
-                                  const real_t * coordinate_dofs,
+  static void _evaluate_basis_all(double * values,
+                                  const double * x,
+                                  const double * coordinate_dofs,
                                   int cell_orientation)
   {
     // Helper variable to hold values of a single dof.
-    real_t dof_values[2] = {0.0, 0.0};
+    double dof_values[2] = {0.0, 0.0};
     
     // Loop dofs and call evaluate_basis
     for (unsigned int r = 0; r < 6; r++)
@@ -1259,9 +1259,9 @@ public:
     } // end loop over 'r'
   }
 
-  void evaluate_basis_all(real_t * values,
-                          const real_t * x,
-                          const real_t * coordinate_dofs,
+  void evaluate_basis_all(double * values,
+                          const double * x,
+                          const double * coordinate_dofs,
                           int cell_orientation) const final override
   {
     _evaluate_basis_all(values, x, coordinate_dofs, cell_orientation);
@@ -1269,9 +1269,9 @@ public:
 
   static void _evaluate_basis_derivatives(std::size_t i,
                                           std::size_t n,
-                                          real_t * values,
-                                          const real_t * x,
-                                          const real_t * coordinate_dofs,
+                                          double * values,
+                                          const double * x,
+                                          const double * coordinate_dofs,
                                           int cell_orientation)
   {
     
@@ -1302,22 +1302,22 @@ public:
     }
     
     // Compute Jacobian
-    real_t J[4];
+    double J[4];
     compute_jacobian_triangle_2d(J, coordinate_dofs);
     
     // Compute Jacobian inverse and determinant
-    real_t K[4];
-    real_t detJ;
+    double K[4];
+    double detJ;
     compute_jacobian_inverse_triangle_2d(K, detJ, J);
     
     
     // Compute constants
-    const real_t C0 = coordinate_dofs[2] + coordinate_dofs[4];
-    const real_t C1 = coordinate_dofs[3] + coordinate_dofs[5];
+    const double C0 = coordinate_dofs[2] + coordinate_dofs[4];
+    const double C1 = coordinate_dofs[3] + coordinate_dofs[5];
     
     // Get coordinates and map to the reference (FIAT) element
-    real_t X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
-    real_t Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
+    double X = (J[1]*(C1 - 2.0*x[1]) + J[3]*(2.0*x[0] - C0)) / detJ;
+    double Y = (J[0]*(2.0*x[1] - C1) + J[2]*(C0 - 2.0*x[0])) / detJ;
     
     // Declare two dimensional array that holds combinations of derivatives and initialise
     unsigned int combinations[2][1];
@@ -1346,11 +1346,11 @@ public:
     }
     
     // Compute inverse of Jacobian
-    const real_t Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
+    const double Jinv[2][2] = {{K[0], K[1]}, {K[2], K[3]}};
     
     // Declare transformation matrix
     // Declare pointer to two dimensional array and initialise
-    real_t transform[2][2];
+    double transform[2][2];
     for (unsigned int j = 0; j < num_derivatives; j++)
     {
       for (unsigned int k = 0; k < num_derivatives; k++)
@@ -1372,10 +1372,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1386,36 +1386,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1503,10 +1503,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1517,36 +1517,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1634,10 +1634,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1648,36 +1648,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1765,10 +1765,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1779,36 +1779,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, -0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -1896,10 +1896,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -1910,36 +1910,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910317, 0.2886751345948129, -0.1666666666666667};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -2027,10 +2027,10 @@ public:
       {
         
       // Array of basisvalues
-      real_t basisvalues[3] = {0.0, 0.0, 0.0};
+      double basisvalues[3] = {0.0, 0.0, 0.0};
       
       // Declare helper variables
-      real_t tmp0 = (1.0 + Y + 2.0*X)/2.0;
+      double tmp0 = (1.0 + Y + 2.0*X)/2.0;
       
       // Compute basisvalues
       basisvalues[0] = 1.0;
@@ -2041,36 +2041,36 @@ public:
       basisvalues[1] *= std::sqrt(3.0);
       
       // Table(s) of coefficients
-      static const real_t coefficients0[3] = \
+      static const double coefficients0[3] = \
       {0.4714045207910316, 0.0, 0.3333333333333333};
       
       // Tables of derivatives of the polynomial base (transpose).
-      static const real_t dmats0[3][3] = \
+      static const double dmats0[3][3] = \
       {{0.0, 0.0, 0.0},
       {4.89897948556635, 0.0, 0.0},
       {0.0, 0.0, 0.0}};
       
-      static const real_t dmats1[3][3] = \
+      static const double dmats1[3][3] = \
       {{0.0, 0.0, 0.0},
       {2.449489742783182, 0.0, 0.0},
       {4.242640687119285, 0.0, 0.0}};
       
       // Compute reference derivatives.
       // Declare array of derivatives on FIAT element.
-      real_t derivatives[2];
+      double derivatives[2];
       for (unsigned int r = 0; r < 2; r++)
       {
         derivatives[r] = 0.0;
       } // end loop over 'r'
       
       // Declare derivative matrix (of polynomial basis).
-      real_t dmats[3][3] = \
+      double dmats[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
       
       // Declare (auxiliary) derivative matrix (of polynomial basis).
-      real_t dmats_old[3][3] = \
+      double dmats_old[3][3] = \
       {{1.0, 0.0, 0.0},
       {0.0, 1.0, 0.0},
       {0.0, 0.0, 1.0}};
@@ -2160,18 +2160,18 @@ public:
 
   void evaluate_basis_derivatives(std::size_t i,
                                   std::size_t n,
-                                  real_t * values,
-                                  const real_t * x,
-                                  const real_t * coordinate_dofs,
+                                  double * values,
+                                  const double * x,
+                                  const double * coordinate_dofs,
                                   int cell_orientation) const final override
   {
     _evaluate_basis_derivatives(i, n, values, x, coordinate_dofs, cell_orientation);
   }
 
   static void _evaluate_basis_derivatives_all(std::size_t n,
-                                              real_t * values,
-                                              const real_t * x,
-                                              const real_t * coordinate_dofs,
+                                              double * values,
+                                              const double * x,
+                                              const double * coordinate_dofs,
                                               int cell_orientation)
   {
     // Call evaluate_basis_all if order of derivatives is equal to zero.
@@ -2204,7 +2204,7 @@ public:
     }
     
     // Helper variable to hold values of a single dof.
-    real_t dof_values[4];
+    double dof_values[4];
     for (unsigned int r = 0; r < 4; r++)
     {
       dof_values[r] = 0.0;
@@ -2222,25 +2222,25 @@ public:
   }
 
   void evaluate_basis_derivatives_all(std::size_t n,
-                                      real_t * values,
-                                      const real_t * x,
-                                      const real_t * coordinate_dofs,
+                                      double * values,
+                                      const double * x,
+                                      const double * coordinate_dofs,
                                       int cell_orientation) const final override
   {
     _evaluate_basis_derivatives_all(n, values, x, coordinate_dofs, cell_orientation);
   }
 
-  real_t evaluate_dof(std::size_t i,
+  double evaluate_dof(std::size_t i,
                       const ufc::function& f,
-                      const real_t * coordinate_dofs,
+                      const double * coordinate_dofs,
                       int cell_orientation,
                       const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    real_t vals[2];
+    double vals[2];
     
     // Declare variable for physical coordinates
-    real_t y[2];
+    double y[2];
     switch (i)
     {
     case 0:
@@ -2296,17 +2296,17 @@ public:
     return 0.0;
   }
 
-  void evaluate_dofs(real_t * values,
+  void evaluate_dofs(double * values,
                              const ufc::function& f,
-                             const real_t * coordinate_dofs,
+                             const double * coordinate_dofs,
                              int cell_orientation,
                              const ufc::cell& c) const final override
   {
     // Declare variables for result of evaluation
-    real_t vals[2];
+    double vals[2];
     
     // Declare variable for physical coordinates
-    real_t y[2];
+    double y[2];
     y[0] = coordinate_dofs[0];
     y[1] = coordinate_dofs[1];
     f.evaluate(vals, y, c);
@@ -2324,9 +2324,9 @@ public:
     values[5] = vals[1];
   }
 
-  void interpolate_vertex_values(real_t * vertex_values,
-                                 const real_t * dof_values,
-                                 const real_t * coordinate_dofs,
+  void interpolate_vertex_values(double * vertex_values,
+                                 const double * dof_values,
+                                 const double * coordinate_dofs,
                                  int cell_orientation,
                                  const ufc::cell& c) const final override
   {
@@ -2340,8 +2340,8 @@ public:
     vertex_values[5] = dof_values[5];
   }
 
-  void tabulate_dof_coordinates(real_t * dof_coordinates,
-                                const real_t * coordinate_dofs) const final override
+  void tabulate_dof_coordinates(double * dof_coordinates,
+                                const double * coordinate_dofs) const final override
   {
     dof_coordinates[0] = coordinate_dofs[0];
     dof_coordinates[1] = coordinate_dofs[1];
@@ -2368,12 +2368,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     }
@@ -2383,22 +2383,22 @@ public:
 
   ufc::finite_element * create() const final override
   {
-    return new p1_divt_finite_element_1();
+    return new p1_stokes_epsilon_finite_element_1();
   }
 
 };
 
 
-class p1_divt_dofmap_0: public ufc::dofmap
+class p1_stokes_epsilon_dofmap_0: public ufc::dofmap
 {
 public:
 
-  p1_divt_dofmap_0() : ufc::dofmap()
+  p1_stokes_epsilon_dofmap_0() : ufc::dofmap()
   {
     // Do nothing
   }
 
-  ~p1_divt_dofmap_0() override
+  ~p1_stokes_epsilon_dofmap_0() override
   {
     // Do nothing
   }
@@ -2687,22 +2687,22 @@ public:
 
   ufc::dofmap * create() const final override
   {
-    return new p1_divt_dofmap_0();
+    return new p1_stokes_epsilon_dofmap_0();
   }
 
 };
 
 
-class p1_divt_dofmap_1: public ufc::dofmap
+class p1_stokes_epsilon_dofmap_1: public ufc::dofmap
 {
 public:
 
-  p1_divt_dofmap_1() : ufc::dofmap()
+  p1_stokes_epsilon_dofmap_1() : ufc::dofmap()
   {
     // Do nothing
   }
 
-  ~p1_divt_dofmap_1() override
+  ~p1_stokes_epsilon_dofmap_1() override
   {
     // Do nothing
   }
@@ -3017,12 +3017,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     }
@@ -3032,22 +3032,22 @@ public:
 
   ufc::dofmap * create() const final override
   {
-    return new p1_divt_dofmap_1();
+    return new p1_stokes_epsilon_dofmap_1();
   }
 
 };
 
 
-class p1_divt_cell_integral_0_otherwise: public ufc::cell_integral
+class p1_stokes_epsilon_cell_integral_0_otherwise: public ufc::cell_integral
 {
 public:
 
-  p1_divt_cell_integral_0_otherwise() : ufc::cell_integral()
+  p1_stokes_epsilon_cell_integral_0_otherwise() : ufc::cell_integral()
   {
 
   }
 
-  ~p1_divt_cell_integral_0_otherwise() override
+  ~p1_stokes_epsilon_cell_integral_0_otherwise() override
   {
 
   }
@@ -3058,9 +3058,9 @@ static const std::vector<bool> enabled({});
 return enabled;
   }
 
-  void tabulate_tensor(real_t * A,
-                       const real_t * const * w,
-                       const real_t * coordinate_dofs,
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
                        int cell_orientation) const final override
   {
     // This function was generated using 'uflacs' representation
@@ -3069,16 +3069,16 @@ return enabled;
     //   num_cells:         None
     //   optimize:          True
     //   precision:         16
-    //   quadrature_degree: 1
+    //   quadrature_degree: 0
     //   quadrature_rule:   'default'
     //   representation:    'uflacs'
     // 
     // and the following integral 0 metadata:
     // 
-    //   estimated_polynomial_degree: 1
+    //   estimated_polynomial_degree: 0
     //   optimize:                    True
     //   precision:                   16
-    //   quadrature_degree:           1
+    //   quadrature_degree:           0
     //   quadrature_rule:             'default'
     //   representation:              'uflacs'
     
@@ -3086,129 +3086,329 @@ return enabled;
     // FE* dimensions: [entities][points][dofs]
     // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
     // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const real_t FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
+    alignas(32) static const double FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
     // Unstructured piecewise computations
-    const real_t J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
-    alignas(32) real_t sp[8];
-    sp[0] = J_c0 * J_c3;
-    sp[1] = J_c1 * J_c2;
-    sp[2] = sp[0] + -1 * sp[1];
-    sp[3] = J_c3 / sp[2];
-    sp[4] = -1 * J_c2 / sp[2];
-    sp[5] = std::abs(sp[2]);
-    sp[6] = -1 * sp[3] * sp[5];
-    sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
-    A[1] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
-    A[2] = -0.1666666666666667 * sp[6] + -0.1666666666666667 * sp[7];
-    A[3] = 0.1666666666666667 * sp[6];
-    A[4] = 0.1666666666666667 * sp[6];
-    A[5] = 0.1666666666666667 * sp[6];
-    A[6] = 0.1666666666666667 * sp[7];
-    A[7] = 0.1666666666666667 * sp[7];
-    A[8] = 0.1666666666666667 * sp[7];
-  }
-
-};
-
-
-class p1_divt_cell_integral_1_otherwise: public ufc::cell_integral
-{
-public:
-
-  p1_divt_cell_integral_1_otherwise() : ufc::cell_integral()
-  {
-
-  }
-
-  ~p1_divt_cell_integral_1_otherwise() override
-  {
-
-  }
-
-  const std::vector<bool> & enabled_coefficients() const final override
-  {
-static const std::vector<bool> enabled({});
-return enabled;
-  }
-
-  void tabulate_tensor(real_t * A,
-                       const real_t * const * w,
-                       const real_t * coordinate_dofs,
-                       int cell_orientation) const final override
-  {
-    // This function was generated using 'uflacs' representation
-    // with the following integrals metadata:
-    // 
-    //   num_cells:         None
-    //   optimize:          True
-    //   precision:         16
-    //   quadrature_degree: 1
-    //   quadrature_rule:   'default'
-    //   representation:    'uflacs'
-    // 
-    // and the following integral 0 metadata:
-    // 
-    //   estimated_polynomial_degree: 1
-    //   optimize:                    True
-    //   precision:                   16
-    //   quadrature_degree:           1
-    //   quadrature_rule:             'default'
-    //   representation:              'uflacs'
-    
-    // Precomputed values of basis functions and precomputations
-    // FE* dimensions: [entities][points][dofs]
-    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
-    // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const real_t FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
-    // Unstructured piecewise computations
-    const real_t J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
-    const real_t J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
-    alignas(32) real_t sp[8];
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
+    alignas(32) double sp[23];
     sp[0] = J_c0 * J_c3;
     sp[1] = J_c1 * J_c2;
     sp[2] = sp[0] + -1 * sp[1];
     sp[3] = J_c0 / sp[2];
     sp[4] = -1 * J_c1 / sp[2];
-    sp[5] = std::abs(sp[2]);
-    sp[6] = -1 * sp[3] * sp[5];
-    sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
-    A[1] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
-    A[2] = -0.1666666666666667 * sp[7] + -0.1666666666666667 * sp[6];
-    A[3] = 0.1666666666666667 * sp[7];
-    A[4] = 0.1666666666666667 * sp[7];
-    A[5] = 0.1666666666666667 * sp[7];
-    A[6] = 0.1666666666666667 * sp[6];
-    A[7] = 0.1666666666666667 * sp[6];
-    A[8] = 0.1666666666666667 * sp[6];
+    sp[5] = sp[3] * sp[3];
+    sp[6] = sp[3] * sp[4];
+    sp[7] = sp[4] * sp[4];
+    sp[8] = J_c3 / sp[2];
+    sp[9] = -1 * J_c2 / sp[2];
+    sp[10] = sp[9] * sp[9];
+    sp[11] = sp[8] * sp[9];
+    sp[12] = sp[8] * sp[8];
+    sp[13] = sp[5] + sp[10];
+    sp[14] = sp[6] + sp[11];
+    sp[15] = sp[12] + sp[7];
+    sp[16] = sp[13] + sp[10];
+    sp[17] = sp[14] + sp[11];
+    sp[18] = sp[15] + sp[12];
+    sp[19] = std::abs(sp[2]);
+    sp[20] = sp[16] * sp[19];
+    sp[21] = sp[17] * sp[19];
+    sp[22] = sp[18] * sp[19];
+    A[0] = 0.5 * sp[22] + 0.5 * sp[21] + 0.5 * sp[21] + 0.5 * sp[20];
+    A[1] = -0.5 * sp[22] + -0.5 * sp[21];
+    A[2] = -0.5 * sp[21] + -0.5 * sp[20];
+    A[3] = -0.5 * sp[22] + -0.5 * sp[21];
+    A[4] = 0.5 * sp[22];
+    A[5] = 0.5 * sp[21];
+    A[6] = -0.5 * sp[21] + -0.5 * sp[20];
+    A[7] = 0.5 * sp[21];
+    A[8] = 0.5 * sp[20];
   }
 
 };
 
 
-class p1_divt_form_0: public ufc::form
+class p1_stokes_epsilon_cell_integral_1_otherwise: public ufc::cell_integral
 {
 public:
 
-  p1_divt_form_0() : ufc::form()
+  p1_stokes_epsilon_cell_integral_1_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p1_stokes_epsilon_cell_integral_1_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    //   num_cells:         None
+    //   optimize:          True
+    //   precision:         16
+    //   quadrature_degree: 0
+    //   quadrature_rule:   'default'
+    //   representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    //   estimated_polynomial_degree: 0
+    //   optimize:                    True
+    //   precision:                   16
+    //   quadrature_degree:           0
+    //   quadrature_rule:             'default'
+    //   representation:              'uflacs'
+    
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
+    alignas(32) double sp[16];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = J_c3 / sp[2];
+    sp[6] = -1 * J_c2 / sp[2];
+    sp[7] = sp[3] * sp[5];
+    sp[8] = sp[3] * sp[6];
+    sp[9] = sp[5] * sp[4];
+    sp[10] = sp[4] * sp[6];
+    sp[11] = std::abs(sp[2]);
+    sp[12] = sp[7] * sp[11];
+    sp[13] = sp[8] * sp[11];
+    sp[14] = sp[9] * sp[11];
+    sp[15] = sp[10] * sp[11];
+    A[0] = 0.5 * sp[14] + 0.5 * sp[15] + 0.5 * sp[12] + 0.5 * sp[13];
+    A[1] = -0.5 * sp[14] + -0.5 * sp[12];
+    A[2] = -0.5 * sp[15] + -0.5 * sp[13];
+    A[3] = -0.5 * sp[14] + -0.5 * sp[15];
+    A[4] = 0.5 * sp[14];
+    A[5] = 0.5 * sp[15];
+    A[6] = -0.5 * sp[12] + -0.5 * sp[13];
+    A[7] = 0.5 * sp[12];
+    A[8] = 0.5 * sp[13];
+  }
+
+};
+
+
+class p1_stokes_epsilon_cell_integral_2_otherwise: public ufc::cell_integral
+{
+public:
+
+  p1_stokes_epsilon_cell_integral_2_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p1_stokes_epsilon_cell_integral_2_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    //   num_cells:         None
+    //   optimize:          True
+    //   precision:         16
+    //   quadrature_degree: 0
+    //   quadrature_rule:   'default'
+    //   representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    //   estimated_polynomial_degree: 0
+    //   optimize:                    True
+    //   precision:                   16
+    //   quadrature_degree:           0
+    //   quadrature_rule:             'default'
+    //   representation:              'uflacs'
+    
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
+    alignas(32) double sp[16];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = J_c3 / sp[2];
+    sp[6] = -1 * J_c2 / sp[2];
+    sp[7] = sp[3] * sp[5];
+    sp[8] = sp[3] * sp[6];
+    sp[9] = sp[5] * sp[4];
+    sp[10] = sp[4] * sp[6];
+    sp[11] = std::abs(sp[2]);
+    sp[12] = sp[7] * sp[11];
+    sp[13] = sp[8] * sp[11];
+    sp[14] = sp[9] * sp[11];
+    sp[15] = sp[10] * sp[11];
+    A[0] = 0.5 * sp[14] + 0.5 * sp[12] + 0.5 * sp[15] + 0.5 * sp[13];
+    A[1] = -0.5 * sp[14] + -0.5 * sp[15];
+    A[2] = -0.5 * sp[12] + -0.5 * sp[13];
+    A[3] = -0.5 * sp[14] + -0.5 * sp[12];
+    A[4] = 0.5 * sp[14];
+    A[5] = 0.5 * sp[12];
+    A[6] = -0.5 * sp[15] + -0.5 * sp[13];
+    A[7] = 0.5 * sp[15];
+    A[8] = 0.5 * sp[13];
+  }
+
+};
+
+
+class p1_stokes_epsilon_cell_integral_3_otherwise: public ufc::cell_integral
+{
+public:
+
+  p1_stokes_epsilon_cell_integral_3_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p1_stokes_epsilon_cell_integral_3_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    //   num_cells:         None
+    //   optimize:          True
+    //   precision:         16
+    //   quadrature_degree: 0
+    //   quadrature_rule:   'default'
+    //   representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    //   estimated_polynomial_degree: 0
+    //   optimize:                    True
+    //   precision:                   16
+    //   quadrature_degree:           0
+    //   quadrature_rule:             'default'
+    //   representation:              'uflacs'
+    
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q1[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q1[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q1[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q1[0][0][1];
+    alignas(32) double sp[23];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = sp[3] * sp[3];
+    sp[6] = sp[3] * sp[4];
+    sp[7] = sp[4] * sp[4];
+    sp[8] = J_c3 / sp[2];
+    sp[9] = -1 * J_c2 / sp[2];
+    sp[10] = sp[9] * sp[9];
+    sp[11] = sp[8] * sp[9];
+    sp[12] = sp[8] * sp[8];
+    sp[13] = sp[5] + sp[10];
+    sp[14] = sp[6] + sp[11];
+    sp[15] = sp[12] + sp[7];
+    sp[16] = sp[13] + sp[5];
+    sp[17] = sp[14] + sp[6];
+    sp[18] = sp[15] + sp[7];
+    sp[19] = std::abs(sp[2]);
+    sp[20] = sp[16] * sp[19];
+    sp[21] = sp[17] * sp[19];
+    sp[22] = sp[18] * sp[19];
+    A[0] = 0.5 * sp[22] + 0.5 * sp[21] + 0.5 * sp[21] + 0.5 * sp[20];
+    A[1] = -0.5 * sp[22] + -0.5 * sp[21];
+    A[2] = -0.5 * sp[21] + -0.5 * sp[20];
+    A[3] = -0.5 * sp[22] + -0.5 * sp[21];
+    A[4] = 0.5 * sp[22];
+    A[5] = 0.5 * sp[21];
+    A[6] = -0.5 * sp[21] + -0.5 * sp[20];
+    A[7] = 0.5 * sp[21];
+    A[8] = 0.5 * sp[20];
+  }
+
+};
+
+
+class p1_stokes_epsilon_form_0: public ufc::form
+{
+public:
+
+  p1_stokes_epsilon_form_0() : ufc::form()
   {
     // Do nothing
   }
 
-  ~p1_divt_form_0() override
+  ~p1_stokes_epsilon_form_0() override
   {
     // Do nothing
   }
 
   const char * signature() const final override
   {
-    return "fc70458ca90de0cc1cd702163bd7a6122e18c33bddde3e283e2932872c0aa88a127fde183b4af68036abde0466dbc46b88b45efe019a33e58b7d3f0d5a25f410";
+    return "1299d01d4e4cab9d6516f2fd8e642e80001242721f55435217dc1941278ef6f527d8c21fc3fb0655b00440177d1c81386e33dc4ec945a87619bcde102aaa9423";
   }
 
   std::size_t rank() const final override
@@ -3229,12 +3429,12 @@ public:
 
   ufc::finite_element * create_coordinate_finite_element() const final override
   {
-    return new p1_divt_finite_element_1();
+    return new p1_stokes_epsilon_finite_element_1();
   }
 
   ufc::dofmap * create_coordinate_dofmap() const final override
   {
-    return new p1_divt_dofmap_1();
+    return new p1_stokes_epsilon_dofmap_1();
    }
 
   ufc::coordinate_mapping * create_coordinate_mapping() const final override
@@ -3248,12 +3448,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     }
@@ -3267,12 +3467,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     }
@@ -3402,7 +3602,7 @@ public:
 
   ufc::cell_integral * create_default_cell_integral() const final override
   {
-    return new p1_divt_cell_integral_0_otherwise();
+    return new p1_stokes_epsilon_cell_integral_0_otherwise();
   }
 
   ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
@@ -3443,23 +3643,23 @@ public:
 };
 
 
-class p1_divt_form_1: public ufc::form
+class p1_stokes_epsilon_form_1: public ufc::form
 {
 public:
 
-  p1_divt_form_1() : ufc::form()
+  p1_stokes_epsilon_form_1() : ufc::form()
   {
     // Do nothing
   }
 
-  ~p1_divt_form_1() override
+  ~p1_stokes_epsilon_form_1() override
   {
     // Do nothing
   }
 
   const char * signature() const final override
   {
-    return "e33cd4ff7e87f4ba911882536d22fc1dcf21da4a48aff3c67cbcb588b88015e0a54aba7623b49f6149b7383d258785bd73bec54603b699d1e5be0b6f0814de0c";
+    return "95d8f4354162938ec57a80adc88eba0ac36b910d31a822ce1fd03654ecb222ec38729f8ec15bc6a1495790b9f8f008074bd2858bb5b43b33e05e07690d6e6aaf";
   }
 
   std::size_t rank() const final override
@@ -3480,12 +3680,12 @@ public:
 
   ufc::finite_element * create_coordinate_finite_element() const final override
   {
-    return new p1_divt_finite_element_1();
+    return new p1_stokes_epsilon_finite_element_1();
   }
 
   ufc::dofmap * create_coordinate_dofmap() const final override
   {
-    return new p1_divt_dofmap_1();
+    return new p1_stokes_epsilon_dofmap_1();
    }
 
   ufc::coordinate_mapping * create_coordinate_mapping() const final override
@@ -3499,12 +3699,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_finite_element_0();
+        return new p1_stokes_epsilon_finite_element_0();
         break;
       }
     }
@@ -3518,12 +3718,12 @@ public:
     {
     case 0:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     case 1:
       {
-        return new p1_divt_dofmap_0();
+        return new p1_stokes_epsilon_dofmap_0();
         break;
       }
     }
@@ -3653,7 +3853,509 @@ public:
 
   ufc::cell_integral * create_default_cell_integral() const final override
   {
-    return new p1_divt_cell_integral_1_otherwise();
+    return new p1_stokes_epsilon_cell_integral_1_otherwise();
+  }
+
+  ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::interior_facet_integral * create_default_interior_facet_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::vertex_integral * create_default_vertex_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::custom_integral * create_default_custom_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::cutcell_integral * create_default_cutcell_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::interface_integral * create_default_interface_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::overlap_integral * create_default_overlap_integral() const final override
+  {
+    return 0;
+  }
+
+};
+
+
+class p1_stokes_epsilon_form_2: public ufc::form
+{
+public:
+
+  p1_stokes_epsilon_form_2() : ufc::form()
+  {
+    // Do nothing
+  }
+
+  ~p1_stokes_epsilon_form_2() override
+  {
+    // Do nothing
+  }
+
+  const char * signature() const final override
+  {
+    return "d3fa4211ea3543350abe166c1ff2eb2a477297caa463e618865bf0d70f63fa89eae56cb96a73ec789705a5b362229b61b2de3cae4e44293b5664904dfca39f00";
+  }
+
+  std::size_t rank() const final override
+  {
+    return 2;
+  }
+
+  std::size_t num_coefficients() const final override
+  {
+    return 0;
+  }
+
+  std::size_t original_coefficient_position(std::size_t i) const final override
+  {
+    static const std::vector<std::size_t> position({});
+    return position[i];
+  }
+
+  ufc::finite_element * create_coordinate_finite_element() const final override
+  {
+    return new p1_stokes_epsilon_finite_element_1();
+  }
+
+  ufc::dofmap * create_coordinate_dofmap() const final override
+  {
+    return new p1_stokes_epsilon_dofmap_1();
+   }
+
+  ufc::coordinate_mapping * create_coordinate_mapping() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::finite_element * create_finite_element(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+      {
+        return new p1_stokes_epsilon_finite_element_0();
+        break;
+      }
+    case 1:
+      {
+        return new p1_stokes_epsilon_finite_element_0();
+        break;
+      }
+    }
+    
+    return 0;
+  }
+
+  ufc::dofmap * create_dofmap(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+      {
+        return new p1_stokes_epsilon_dofmap_0();
+        break;
+      }
+    case 1:
+      {
+        return new p1_stokes_epsilon_dofmap_0();
+        break;
+      }
+    }
+    
+    return 0;
+  }
+
+  std::size_t max_cell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_exterior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_vertex_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_custom_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_cutcell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interface_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_overlap_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  bool has_cell_integrals() const final override
+  {
+    return true;
+  }
+
+  bool has_exterior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_vertex_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_custom_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_cutcell_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interface_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_overlap_integrals() const final override
+  {
+    return false;
+  }
+
+  ufc::cell_integral * create_cell_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::exterior_facet_integral * create_exterior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::interior_facet_integral * create_interior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::vertex_integral * create_vertex_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::custom_integral * create_custom_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::cutcell_integral * create_cutcell_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::interface_integral * create_interface_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::overlap_integral * create_overlap_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::cell_integral * create_default_cell_integral() const final override
+  {
+    return new p1_stokes_epsilon_cell_integral_2_otherwise();
+  }
+
+  ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::interior_facet_integral * create_default_interior_facet_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::vertex_integral * create_default_vertex_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::custom_integral * create_default_custom_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::cutcell_integral * create_default_cutcell_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::interface_integral * create_default_interface_integral() const final override
+  {
+    return 0;
+  }
+
+  ufc::overlap_integral * create_default_overlap_integral() const final override
+  {
+    return 0;
+  }
+
+};
+
+
+class p1_stokes_epsilon_form_3: public ufc::form
+{
+public:
+
+  p1_stokes_epsilon_form_3() : ufc::form()
+  {
+    // Do nothing
+  }
+
+  ~p1_stokes_epsilon_form_3() override
+  {
+    // Do nothing
+  }
+
+  const char * signature() const final override
+  {
+    return "9f46ab1e3297a0ccb4278e59c152a9b4c492965817e516fa62063cdc10cce44147d894a8a1530e344cd0af442b9d68c3dae2e766a037272b01b564b0cbd080a1";
+  }
+
+  std::size_t rank() const final override
+  {
+    return 2;
+  }
+
+  std::size_t num_coefficients() const final override
+  {
+    return 0;
+  }
+
+  std::size_t original_coefficient_position(std::size_t i) const final override
+  {
+    static const std::vector<std::size_t> position({});
+    return position[i];
+  }
+
+  ufc::finite_element * create_coordinate_finite_element() const final override
+  {
+    return new p1_stokes_epsilon_finite_element_1();
+  }
+
+  ufc::dofmap * create_coordinate_dofmap() const final override
+  {
+    return new p1_stokes_epsilon_dofmap_1();
+   }
+
+  ufc::coordinate_mapping * create_coordinate_mapping() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::finite_element * create_finite_element(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+      {
+        return new p1_stokes_epsilon_finite_element_0();
+        break;
+      }
+    case 1:
+      {
+        return new p1_stokes_epsilon_finite_element_0();
+        break;
+      }
+    }
+    
+    return 0;
+  }
+
+  ufc::dofmap * create_dofmap(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+      {
+        return new p1_stokes_epsilon_dofmap_0();
+        break;
+      }
+    case 1:
+      {
+        return new p1_stokes_epsilon_dofmap_0();
+        break;
+      }
+    }
+    
+    return 0;
+  }
+
+  std::size_t max_cell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_exterior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_vertex_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_custom_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_cutcell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interface_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_overlap_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  bool has_cell_integrals() const final override
+  {
+    return true;
+  }
+
+  bool has_exterior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_vertex_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_custom_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_cutcell_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interface_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_overlap_integrals() const final override
+  {
+    return false;
+  }
+
+  ufc::cell_integral * create_cell_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::exterior_facet_integral * create_exterior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::interior_facet_integral * create_interior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::vertex_integral * create_vertex_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::custom_integral * create_custom_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::cutcell_integral * create_cutcell_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::interface_integral * create_interface_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::overlap_integral * create_overlap_integral(std::size_t subdomain_id) const final override
+  {
+    return 0;
+  }
+
+  ufc::cell_integral * create_default_cell_integral() const final override
+  {
+    return new p1_stokes_epsilon_cell_integral_3_otherwise();
   }
 
   ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override

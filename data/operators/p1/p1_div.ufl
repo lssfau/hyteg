@@ -3,6 +3,5 @@ element = FiniteElement("Lagrange", triangle, 1)
 
 u = TrialFunction(element)
 q = TestFunction(element)
-u, q = q, u # HHG uses FORTRAN layout
 
 forms = [-u.dx(i)*q*dx for i in range(2)]
