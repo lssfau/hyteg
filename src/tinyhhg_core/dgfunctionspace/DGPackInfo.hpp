@@ -75,7 +75,7 @@ void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver)
   }
   buffer >> edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_GRAY_SE)];
-  if(receiver->getNumNeighborEdges() == 2){
+  if(receiver->getNumNeighborFaces() == 2){
     buffer >> edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_GRAY_NE)];
   }
 
