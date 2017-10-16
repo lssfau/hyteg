@@ -54,7 +54,7 @@ int main (int argc, char ** argv )
       WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
       WALBERLA_CHECK_EQUAL(edgeData[index],
                            vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
-      index = BubbleEdge::edge_index(maxLevel, pos + 1, stencilDirection::CELL_BLUE_SE );
+      index = BubbleEdge::edge_index(maxLevel, pos == 0 ? pos + 1 : pos, stencilDirection::CELL_BLUE_SE );
       WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
       WALBERLA_CHECK_EQUAL(edgeData[index],
                            vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2 + 1]);

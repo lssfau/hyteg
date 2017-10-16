@@ -88,12 +88,29 @@ void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-
+  ///the blue face DoF which are owned by the face need to communicated to the vertex
+  typedef stencilDirection sD;
+  ValueType *edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t pos = std::numeric_limits<uint_t>::max();
+  if(sender->vertex_index(receiver) == 0) {
+    pos = 1;
+  } else if (sender->vertex_index(receiver) == 1) {
+    pos = levelinfo::num_microvertices_per_edge(level_) - 2;
+  } else {
+    WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender)
+  }
+  buffer << edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_BLUE_SE)];
+  if(sender-> getNumNeighborFaces() == 2){
+    buffer << edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_BLUE_NW)];
+  }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-
+  ValueType *vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+  for(const PrimitiveID& faceID: storage_.lock()->getEdge(sender)->neighborFaces()) {
+    buffer >> vertexData[ receiver->face_index(faceID) * 2 + 1];
+  }
 }
 
 template< typename ValueType >

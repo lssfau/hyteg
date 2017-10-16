@@ -58,7 +58,8 @@ template<size_t Level>
 constexpr inline size_t indexFaceFromVertex(size_t pos, stencilDirection dir) {
   typedef stencilDirection sD;
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  WALBERLA_ASSERT_GREATER_EQUAL(pos,0);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge - 1);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {
