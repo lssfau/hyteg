@@ -7,6 +7,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 
@@ -16,6 +17,7 @@
 #include "tinyhhg_core/dgfunctionspace/DGMemory.hpp"
 
 #include "types/pointnd.hpp"
+#include "types/matrix.hpp"
 #include "types/flags.hpp"
 
 #include "solvers/cgsolver.hpp"
@@ -27,6 +29,7 @@
 #include "composites/p1stokesfunction.hpp"
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
+#include "composites/P1CoefficientStokesOperator.hpp"
 
 #include "composites/P1BubbleFunctionSpace/P1BubbleFunction.hpp"
 #include "composites/P1BubbleFunctionSpace/P1BubbleOperator.hpp"

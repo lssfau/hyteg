@@ -1,0 +1,9 @@
+# generate code with ffc p1_stokes_epsilon.ufl
+element = FiniteElement('Lagrange', triangle, 1)
+
+u = TrialFunction(element)
+v = TestFunction(element)
+
+forms = [ u.dx(i)*v.dx(j)*dx for i in range(2) for j in range(2) ]
+for i in range(2):
+  forms[2*i+i] += dot(grad(u),grad(v))*dx

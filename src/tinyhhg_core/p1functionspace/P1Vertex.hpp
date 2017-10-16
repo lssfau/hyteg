@@ -78,6 +78,60 @@ inline void apply(Vertex &vertex,
   }
 }
 
+/// Apply function in the case of a coefficient
+template< typename ValueType >
+inline void applyCoefficient(Vertex &vertex,
+                             const std::shared_ptr< PrimitiveStorage >& storage,
+                             const PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> &operatorId,
+                             const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
+                             const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
+                             const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &coeffId,
+                             uint_t level,
+                             UpdateType update) {
+  auto localMatrices = vertex.getData(operatorId);
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+  auto coeff = vertex.getData(coeffId)->getPointer( level );
+
+  if (update == Replace) {
+    dst[0] = real_t(0);
+  }
+
+  uint_t neighborId = 0;
+  for (auto& faceId : vertex.neighborFaces()) {
+    real_t meanCoefficient = coeff[0];
+    Matrix3r& local_stiffness = localMatrices->getGrayMatrix(level, neighborId);
+
+    Face* face = storage->getFace(faceId);
+
+    uint_t v_i = face->vertex_index(vertex.getID());
+
+    std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
+
+    for (auto &edgeId : adj_edges) {
+      uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+      meanCoefficient += coeff[edge_idx];
+    }
+
+    meanCoefficient *= 1.0/3.0;
+
+    // iterate over adjacent edges
+    for (auto &edgeId : adj_edges) {
+      uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+      Edge *edge = storage->getEdge(edgeId);
+      PrimitiveID vertex_j = edge->get_opposite_vertex(vertex.getID());
+
+      uint_t v_j = face->vertex_index(vertex_j);
+
+      dst[0] += meanCoefficient * local_stiffness(v_i, v_j) * src[edge_idx];
+    }
+
+    // add contribution of center vertex
+    dst[0] += meanCoefficient * local_stiffness(v_i, v_i) * src[0];
+    ++neighborId;
+  }
+}
+
 template< typename ValueType >
 inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
@@ -200,4 +254,3 @@ inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t l
 
 }
 }
-
