@@ -49,7 +49,8 @@ constexpr inline uint_t indexDGFaceFromBlueDGface(const uint_t col, const uint_t
   return std::numeric_limits<size_t>::max();
 }
 
-
+//we can use the same indexIterator as in Bubble
+using BubbleFace::indexIterator;
 
 }// namespace DGFace
 
