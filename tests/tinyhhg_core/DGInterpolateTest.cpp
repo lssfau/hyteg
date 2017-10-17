@@ -4,6 +4,7 @@
 #include "core/Environment.h"
 
 using walberla::real_t;
+using walberla::real_c;
 using namespace hhg;
 
 int main(int argc, char **argv) {
@@ -11,7 +12,7 @@ int main(int argc, char **argv) {
   walberla::mpi::Environment MPIenv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_2el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -19,18 +20,43 @@ int main(int argc, char **argv) {
   const size_t minLevel = 2;
   const size_t maxLevel = 5;
 
-  size_t v_perFace = levelinfo::num_microvertices_per_face(maxLevel);
   size_t v_perEdge = levelinfo::num_microvertices_per_edge(maxLevel);
-  size_t nbr_v_perEdge = v_perEdge - 1;
-  size_t v_perVertex = levelinfo::num_microvertices_per_vertex(maxLevel);
 
   std::function<real_t(const Point3D &)> exact = [](const Point3D & xx) { return 2*xx[0] + xx[1]; };
 
-  std::shared_ptr<Edge> edge0 = (*storage->getEdges().begin()).second;
+  std::shared_ptr<Edge> edgeWithTwoFaces;
+  for(auto edgeIt : storage->getEdges()){
+    if(edgeIt.second.get()->getNumNeighborFaces() == 2){
+      edgeWithTwoFaces = edgeIt.second;
+    }
+  }
   DGFunction < real_t > x("x", storage, minLevel, maxLevel);
 
-  DGEdge::interpolate< real_t >(maxLevel,*edge0,x.getEdgeDataID(),exact,storage);
+  DGEdge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),exact,storage);
 
-  x.interpolate(exact,maxLevel);
+  Point3D edgeZeroPoint = edgeWithTwoFaces->getCoordinates()[0];
+  Point3D edgeDirectionDx = edgeWithTwoFaces->getDirection()/(real_c(v_perEdge) -1.);
+  auto face0 = storage->getFace(edgeWithTwoFaces->neighborFaces()[0]);
+  uint_t vertexOnFace0 = face0->vertex_index(face0->get_vertex_opposite_to_edge(edgeWithTwoFaces->getID()));
+  Point3D face0Dx = (face0->getCoordinates()[vertexOnFace0] - edgeZeroPoint) / (real_c(v_perEdge) - 1.);
+  Point3D xPoint = edgeZeroPoint + 1.0/3.0 * (face0Dx + edgeDirectionDx);
+  for(uint_t i = 1; i < v_perEdge - 2; ++i){
+    WALBERLA_CHECK_FLOAT_EQUAL(
+      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_SE)],
+      exact(xPoint), i )
+    xPoint += edgeDirectionDx;
+  }
 
+  auto face1 = storage->getFace(edgeWithTwoFaces->neighborFaces()[1]);
+  uint_t vertexOnFace1 = face1->vertex_index(face1->get_vertex_opposite_to_edge(edgeWithTwoFaces->getID()));
+  Point3D face1Dx = (face1->getCoordinates()[vertexOnFace1] - edgeZeroPoint) / (real_c(v_perEdge) - 1.);
+  xPoint = edgeZeroPoint + 1.0/3.0 * (face1Dx + edgeDirectionDx);
+  for(uint_t i = 1; i < v_perEdge - 2; ++i){
+    WALBERLA_CHECK_FLOAT_EQUAL(
+      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_NE)],
+      exact(xPoint), i )
+    xPoint += edgeDirectionDx;
+  }
+
+  //BubbleEdge::printFunctionMemory(*edgeWithTwoFaces,x.getEdgeDataID(),maxLevel);
 }

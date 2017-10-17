@@ -53,7 +53,7 @@ inline void interpolateTmpl(Edge &edge,
 
   // gray south cells
   x = x0 + 1.0/3.0 * (face0d0 + face0d2);
-  for (size_t i = 1; i < rowsize - 3; ++i) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
     edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x);
     x += dx;
   }
@@ -68,7 +68,7 @@ inline void interpolateTmpl(Edge &edge,
                       (walberla::real_c(rowsize - 1));
 
     x = x0 + 1.0 / 3.0 * (face1d0 + face1d2);
-    for (size_t i = 1; i < rowsize - 3; ++i) {
+    for (size_t i = 1; i < rowsize - 2; ++i) {
       edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x);
       x += dx;
     }
