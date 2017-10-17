@@ -55,11 +55,11 @@ inline void interpolateTmpl(Face &face,
   uint_t inner_rowsize = rowsize;
 
   // gray cells
-  for (size_t i = 0; i < rowsize - 1; ++i) {
+  for (size_t j = 1; j < rowsize - 2; ++j) {
 
-    x = x0 + 1.0/3.0 * (d0 + d2) + walberla::real_c(i) * d2;
+    x = x0 + 1.0/3.0 * (d0 + d2) + walberla::real_c(j) * d2 + d0;
 
-    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+    for (size_t i = 1; i < inner_rowsize - 3; ++i) {
       faceMemory[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = expr(x);
       x += d0;
     }
@@ -69,11 +69,11 @@ inline void interpolateTmpl(Face &face,
   inner_rowsize = rowsize;
 
   // blue cells
-  for (size_t i = 0; i < rowsize - 2; ++i) {
+  for (size_t j = 0; j < rowsize - 2; ++j) {
 
-    x = x0 + 2.0/3.0 * (d0 + d2) + walberla::real_c(i) * d2;
+    x = x0 + 2.0/3.0 * (d0 + d2) + walberla::real_c(j) * d2;
 
-    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+    for (size_t i = 0; i < inner_rowsize - 2; ++i) {
       faceMemory[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = expr(x);
       x += d0;
     }
@@ -95,8 +95,8 @@ inline void addTmpl(Face &face,
   auto dst = face.getData(dstId)->getPointer(Level);
 
   // gray cells
-  for (size_t i = 1; i < rowsize - 2; ++i) {
-    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (size_t j = 1; j < rowsize - 2; ++j) {
+    for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
       auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
 
@@ -115,8 +115,8 @@ inline void addTmpl(Face &face,
   inner_rowsize = rowsize;
 
   // blue cells
-  for (size_t i = 0; i < rowsize - 2; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+  for (size_t j = 0; j < rowsize - 2; ++j) {
+    for (size_t i = 0; i < inner_rowsize - 2; ++i) {
 
       auto cellIndex = BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C);
 
@@ -147,8 +147,8 @@ inline void assignTmpl(Face &face,
   auto dst = face.getData(dstId)->getPointer(Level);
 
   // gray cells
-  for (size_t i = 1; i < rowsize - 2; ++i) {
-    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (size_t j = 1; j < rowsize - 2; ++j) {
+    for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
       auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
 
@@ -167,8 +167,8 @@ inline void assignTmpl(Face &face,
   inner_rowsize = rowsize;
 
   // blue cells
-  for (size_t i = 0; i < rowsize - 2; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+  for (size_t j = 0; j < rowsize - 2; ++j) {
+    for (size_t i = 0; i < inner_rowsize - 2; ++i) {
 
       auto cellIndex = BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C);
 
@@ -239,7 +239,7 @@ inline void upwindTmpl(Face &face,
 
   for (size_t j = 1; j < rowsize - 2; ++j)
   {
-    for (size_t i = 1; i  < inner_rowsize - 2; ++i)
+    for (size_t i = 1; i  < inner_rowsize - 3; ++i)
     {
       // evalate velocities
       u_0[0] = 0.5 * (u[index<Level>(i, j, VERTEX_C)] + u[index<Level>(i+1, j, VERTEX_C)]);
