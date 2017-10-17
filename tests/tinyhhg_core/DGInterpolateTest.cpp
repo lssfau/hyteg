@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   auto face0 = storage->getFace(edgeWithTwoFaces->neighborFaces()[0]);
   uint_t vertexOnFace0 = face0->vertex_index(face0->get_vertex_opposite_to_edge(edgeWithTwoFaces->getID()));
   Point3D face0Dx = (face0->getCoordinates()[vertexOnFace0] - edgeZeroPoint) / (real_c(v_perEdge) - 1.);
-  Point3D xPoint = edgeZeroPoint + 1.0/3.0 * (face0Dx + edgeDirectionDx);
+  Point3D xPoint = edgeZeroPoint + 1.0/3.0 * (face0Dx + edgeDirectionDx) + edgeDirectionDx;
   for(uint_t i = 1; i < v_perEdge - 2; ++i){
     WALBERLA_CHECK_FLOAT_EQUAL(
       edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_SE)],
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   auto face1 = storage->getFace(edgeWithTwoFaces->neighborFaces()[1]);
   uint_t vertexOnFace1 = face1->vertex_index(face1->get_vertex_opposite_to_edge(edgeWithTwoFaces->getID()));
   Point3D face1Dx = (face1->getCoordinates()[vertexOnFace1] - edgeZeroPoint) / (real_c(v_perEdge) - 1.);
-  xPoint = edgeZeroPoint + 1.0/3.0 * (face1Dx + edgeDirectionDx);
+  xPoint = edgeZeroPoint + 1.0/3.0 * (face1Dx + edgeDirectionDx) + edgeDirectionDx;
   for(uint_t i = 1; i < v_perEdge - 2; ++i){
     WALBERLA_CHECK_FLOAT_EQUAL(
       edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_NE)],
