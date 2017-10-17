@@ -45,17 +45,11 @@ inline void interpolateTmpl(Edge &edge,
   Face* face0 = storage->getFace(edge.neighborFaces()[0].getID());
   uint_t outerVertexOnFace0 = face0->vertex_index(face0->get_vertex_opposite_to_edge(edge.getID()));
 
-  Face* face1 = storage->getFace(edge.neighborFaces()[0].getID());
-  uint_t outerVertexOnFace1 = face1->vertex_index(face1->get_vertex_opposite_to_edge(edge.getID()));
-
 
   Point3D face0d0 = dx;
   Point3D face0d2 = (face0->getCoordinates()[outerVertexOnFace0] - x0) /
                     (walberla::real_c(rowsize - 1));
 
-  Point3D face1d0 = dx;
-  Point3D face1d2 = (face1->getCoordinates()[outerVertexOnFace1] - x0)/
-                    (walberla::real_c(rowsize - 1));
 
   // gray south cells
   x = x0 + 1.0/3.0 * (face0d0 + face0d2);
@@ -64,11 +58,20 @@ inline void interpolateTmpl(Edge &edge,
     x += dx;
   }
 
-  // gray north cells
-  x = x0 + 1.0/3.0 * (face1d0 + face1d2);
-  for (size_t i = 1; i < rowsize - 3; ++i) {
-    edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_NE)] = expr(x);
-    x += dx;
+  if(edge.getNumNeighborFaces() == 2) {
+    // gray north cells
+    Face *face1 = storage->getFace(edge.neighborFaces()[1].getID());
+    uint_t outerVertexOnFace1 = face1->vertex_index(face1->get_vertex_opposite_to_edge(edge.getID()));
+
+    Point3D face1d0 = dx;
+    Point3D face1d2 = (face1->getCoordinates()[outerVertexOnFace1] - x0) /
+                      (walberla::real_c(rowsize - 1));
+
+    x = x0 + 1.0 / 3.0 * (face1d0 + face1d2);
+    for (size_t i = 1; i < rowsize - 3; ++i) {
+      edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x);
+      x += dx;
+    }
   }
 }
 

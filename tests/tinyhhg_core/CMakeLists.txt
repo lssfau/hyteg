@@ -37,6 +37,9 @@ endif()
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1InterpolateTest)
 
+waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME DGInterpolateTest)
+
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
