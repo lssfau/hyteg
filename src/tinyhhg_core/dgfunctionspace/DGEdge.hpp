@@ -70,9 +70,14 @@ inline void upwindTmpl(Edge &edge,
     real_t d2Length = d2.norm();
 
     // compute normals
-    auto n_0 = -1.0*d0.normal2D()/d0Length;
-    auto n_1 = -1.0*d1.normal2D()/d1Length;
-    auto n_2 = -1.0*d2.normal2D()/d2Length;
+    auto n_0 = d0.normal2D()/d0Length;
+    auto n_1 = d1.normal2D()/d1Length;
+    auto n_2 = d2.normal2D()/d2Length;
+
+    real_t faceOrientation = math::faceOrientation2D(face->coords[v0], face->coords[v1], face->coords[v2]);
+    n_0 *= faceOrientation;
+    n_1 *= faceOrientation;
+    n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
       u_0[0] = 0.5*(u[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)]
@@ -152,9 +157,14 @@ inline void upwindTmpl(Edge &edge,
     real_t d2Length = d2.norm();
 
     // compute normals
-    auto n_0 = 1.0*d0.normal2D()/d0Length;
-    auto n_1 = 1.0*d1.normal2D()/d1Length;
-    auto n_2 = 1.0*d2.normal2D()/d2Length;
+    auto n_0 = d0.normal2D()/d0Length;
+    auto n_1 = d1.normal2D()/d1Length;
+    auto n_2 = d2.normal2D()/d2Length;
+
+    real_t faceOrientation = math::faceOrientation2D(face->coords[v0], face->coords[v1], face->coords[v2]);
+    n_0 *= faceOrientation;
+    n_1 *= faceOrientation;
+    n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
       u_0[0] = 0.5*(u[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)]

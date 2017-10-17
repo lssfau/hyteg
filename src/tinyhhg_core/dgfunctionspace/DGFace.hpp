@@ -221,12 +221,12 @@ inline void upwindTmpl(Face &face,
   auto n_1 = d1.normal2D() / d1Length;
   auto n_2 = d2.normal2D() / d2Length;
 
+  real_t faceOrientation = math::faceOrientation2D(face.coords[0], face.coords[1], face.coords[2]);
+
   // correct normals if all normals point in wrong direction
-  if (n_0.dot(n_1) > 0) {
-    n_0 *= -1.0;
-    n_1 *= -1.0;
-    n_2 *= -1.0;
-  }
+  n_0 *= faceOrientation;
+  n_1 *= faceOrientation;
+  n_2 *= faceOrientation;
 
   real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
   real_t faceAreaInv = 1.0 / faceArea;

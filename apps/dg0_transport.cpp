@@ -22,13 +22,13 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 3;
-  const uint_t timesteps = 100;
+  const uint_t maxLevel = 7;
+  const uint_t timesteps = 10000;
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
   std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
-    if ((x - Point3D{{1.0/3.0, 2.0/3.0, 0.0}}).norm() < 0.1) {
+    if ((x - Point3D{{0.15, 0.85, 0.0}}).norm() < 0.1) {
       return 1.0;
     } else {
       return 0.0;
@@ -37,11 +37,11 @@ int main(int argc, char* argv[])
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D& x) {
-    return 1.0;
+    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D& x) {
-    return 0.0;
+    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -59,19 +59,19 @@ int main(int argc, char* argv[])
   v->interpolate(vel_y, maxLevel);
   c_old.interpolate(initialConcentration, maxLevel);
 
-  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ u.get(), v.get() }, { &c_old, &c }, "../output", fmt::format("dg0_transport-{:0>4}", 0));
+  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ u.get(), v.get() }, { &c_old, &c }, "../output", fmt::format("dg0_transport-{:0>6}", 0));
 
   for(uint_t i = 1; i <= timesteps; i++) {
     N.apply(c_old, c, maxLevel, hhg::Inner, Replace);
     c.assign({1.0, -dt}, {&c_old, &c}, maxLevel, hhg::Inner);
 
-//    if (i % 10 == 0) {
+    if (i % 50 == 0) {
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>, maxLevel>({u.get(), v.get()},
                                                                                  {&c_old, &c},
                                                                                  "../output",
-                                                                                 fmt::format("dg0_transport-{:0>4}",
+                                                                                 fmt::format("dg0_transport-{:0>6}",
                                                                                              i));
-//    }
+    }
 
     c_old.assign({1.0}, {&c}, maxLevel, hhg::Inner);
   }
