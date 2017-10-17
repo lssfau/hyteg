@@ -152,9 +152,9 @@ inline void upwindTmpl(Edge &edge,
     real_t d2Length = d2.norm();
 
     // compute normals
-    auto n_0 = -1.0*d0.normal2D()/d0Length;
-    auto n_1 = -1.0*d1.normal2D()/d1Length;
-    auto n_2 = -1.0*d2.normal2D()/d2Length;
+    auto n_0 = 1.0*d0.normal2D()/d0Length;
+    auto n_1 = 1.0*d1.normal2D()/d1Length;
+    auto n_2 = 1.0*d2.normal2D()/d2Length;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
       u_0[0] = 0.5*(u[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)]
@@ -240,7 +240,7 @@ inline void interpolateTmpl(Edge &edge,
 
 
   // gray south cells
-  x = x0 + 1.0/3.0 * (face0d0 + face0d2);
+  x = x0 + 1.0/3.0 * (face0d0 + face0d2) + dx;
   for (size_t i = 1; i < rowsize - 2; ++i) {
     edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x);
     x += dx;
@@ -255,7 +255,7 @@ inline void interpolateTmpl(Edge &edge,
     Point3D face1d2 = (face1->getCoordinates()[outerVertexOnFace1] - x0) /
                       (walberla::real_c(rowsize - 1));
 
-    x = x0 + 1.0 / 3.0 * (face1d0 + face1d2);
+    x = x0 + 1.0 / 3.0 * (face1d0 + face1d2) + dx;
     for (size_t i = 1; i < rowsize - 2; ++i) {
       edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x);
       x += dx;
@@ -278,7 +278,7 @@ inline void assignTmpl(Edge &edge,
   auto dst = edge.getData(dstId)->getPointer(Level);
 
   // gray south cells
-  for (size_t i = 1; i < rowsize - 3; ++i) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
     uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE);
     ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
     for (uint_t k = 1; k < srcIds.size(); ++k) {
@@ -287,7 +287,7 @@ inline void assignTmpl(Edge &edge,
     dst[cellIndex] = tmp;
   }
 
-  for (size_t i = 1; i < rowsize - 3; ++i) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
     uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE);
     ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
     for (uint_t k = 1; k < srcIds.size(); ++k) {

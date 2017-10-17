@@ -22,17 +22,18 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 7;
-  const uint_t timesteps = 1;
+  const uint_t maxLevel = 3;
+  const uint_t timesteps = 100;
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
   std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
-    if ((x - Point3D{{1.0/3.0, 1.0/3.0, 0.0}}).norm() < 0.1) {
+    if ((x - Point3D{{1.0/3.0, 2.0/3.0, 0.0}}).norm() < 0.1) {
       return 1.0;
     } else {
       return 0.0;
     }
+//    return x[0]+1;
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D& x) {

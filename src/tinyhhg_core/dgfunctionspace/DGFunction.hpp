@@ -146,15 +146,37 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
                                           DoFType flag) {
   // Collect all source IDs in a vector
 //  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
 
   for (auto& function : functions)
   {
 //    srcVertexIDs.push_back(function->vertexDataID_);
-//    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcEdgeIDs.push_back(function->edgeDataID_);
     srcFaceIDs.push_back(function->faceDataID_);
   }
+
+  for (auto &it : storage_->getVertices()) {
+    Vertex &vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag)) {
+      // TODO
+//      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
+    }
+  }
+
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+
+  for (auto &it : storage_->getEdges()) {
+    Edge &edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+      DGEdge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
 
   for (auto &it : storage_->getFaces()) {
     Face &face = *it.second;
@@ -163,6 +185,8 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
       DGFace::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
     }
   }
+
+  communicators_[level]->template endCommunication<Edge, Face>();
 }
 
 template< typename ValueType >
