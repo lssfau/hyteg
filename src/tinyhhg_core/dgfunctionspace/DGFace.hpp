@@ -95,8 +95,8 @@ inline void addTmpl(Face &face,
   auto dst = face.getData(dstId)->getPointer(Level);
 
   // gray cells
-  for (size_t i = 0; i < rowsize - 1; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
       auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
 
@@ -147,8 +147,8 @@ inline void assignTmpl(Face &face,
   auto dst = face.getData(dstId)->getPointer(Level);
 
   // gray cells
-  for (size_t i = 0; i < rowsize - 1; ++i) {
-    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
       auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
 
@@ -237,9 +237,9 @@ inline void upwindTmpl(Face &face,
   real_t un_0, un_1, un_2;
   real_t c_up_0, c_up_1, c_up_2;
 
-  for (size_t j = 0; j < rowsize - 1; ++j)
+  for (size_t j = 1; j < rowsize - 2; ++j)
   {
-    for (size_t i = 0; i  < inner_rowsize - 1; ++i)
+    for (size_t i = 1; i  < inner_rowsize - 2; ++i)
     {
       // evalate velocities
       u_0[0] = 0.5 * (u[index<Level>(i, j, VERTEX_C)] + u[index<Level>(i+1, j, VERTEX_C)]);
