@@ -9,6 +9,8 @@ namespace communication {
 
 std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );
 
+const uint_t BufferedCommunicator::SYNC_WORD( 1234 );
+
 BufferedCommunicator::BufferedCommunicator( std::weak_ptr< PrimitiveStorage > primitiveStorage, const LocalCommunicationMode & localCommunicationMode ) :
     primitiveStorage_( primitiveStorage ),
     primitiveStorageModificationStamp_( primitiveStorage_.lock()->getModificationStamp() ),
@@ -48,11 +50,21 @@ void BufferedCommunicator::setLocalCommunicationMode( const LocalCommunicationMo
 
 void BufferedCommunicator::writeHeader( SendBuffer & sendBuffer, const PrimitiveID & senderID, const PrimitiveID & receiverID )
 {
+  WALBERLA_DEBUG_SECTION()
+  {
+    sendBuffer << SYNC_WORD;
+  }
   sendBuffer << senderID << receiverID;
 }
 
 void BufferedCommunicator::readHeader ( RecvBuffer & recvBuffer,       PrimitiveID & senderID,       PrimitiveID & receiverID )
 {
+  WALBERLA_DEBUG_SECTION()
+  {
+    uint_t syncWord;
+    recvBuffer >> syncWord;
+    WALBERLA_ASSERT_EQUAL( syncWord, SYNC_WORD, "Could not sync during unpacking. Chances are that the amount of data packed was not equal the amount of data unpacked." );
+  }
   recvBuffer >> senderID >> receiverID;
 }
 
