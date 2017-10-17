@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/tri_1el.msh";
+  std::string meshFileName = "../data/meshes/quad_2el.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 7;
-  const uint_t timesteps = 1000;
+  const uint_t timesteps = 1;
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
@@ -36,11 +36,11 @@ int main(int argc, char* argv[])
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D& x) {
-    return 0.0;
+    return 1.0;
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D& x) {
-    return -1.0;
+    return 0.0;
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -64,13 +64,13 @@ int main(int argc, char* argv[])
     N.apply(c_old, c, maxLevel, hhg::Inner, Replace);
     c.assign({1.0, -dt}, {&c_old, &c}, maxLevel, hhg::Inner);
 
-    if (i % 10 == 0) {
+//    if (i % 10 == 0) {
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>, maxLevel>({u.get(), v.get()},
                                                                                  {&c_old, &c},
                                                                                  "../output",
                                                                                  fmt::format("dg0_transport-{:0>4}",
                                                                                              i));
-    }
+//    }
 
     c_old.assign({1.0}, {&c}, maxLevel, hhg::Inner);
   }

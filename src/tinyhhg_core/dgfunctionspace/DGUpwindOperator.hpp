@@ -69,7 +69,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-//        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficient_->getEdgeDataID(), updateType);
+        DGEdge::upwind< real_t >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), std::array<PrimitiveDataID< FunctionMemory< real_t >, Edge>, 2>{{velocity_[0]->getEdgeDataID(), velocity_[1]->getEdgeDataID()}}, updateType);
       }
     }
 
