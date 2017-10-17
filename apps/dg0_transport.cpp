@@ -46,8 +46,8 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  hhg::DGFunction<real_t> c_old("c_old", storage, minLevel, maxLevel);
-  hhg::DGFunction<real_t> c("c", storage, minLevel, maxLevel);
+  std::shared_ptr<hhg::DGFunction<real_t>> c_old = std::make_shared<hhg::DGFunction<real_t>>("c_old", storage, minLevel, maxLevel);
+  std::shared_ptr<hhg::DGFunction<real_t>> c = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
   std::shared_ptr<hhg::P1Function<real_t>> u = std::make_shared<hhg::P1Function<real_t>>("u", storage, minLevel, maxLevel);
   std::shared_ptr<hhg::P1Function<real_t>> v = std::make_shared<hhg::P1Function<real_t>>("v", storage, minLevel, maxLevel);
 
@@ -57,23 +57,23 @@ int main(int argc, char* argv[])
 
   u->interpolate(vel_x, maxLevel);
   v->interpolate(vel_y, maxLevel);
-  c_old.interpolate(initialConcentration, maxLevel);
+  c_old->interpolate(initialConcentration, maxLevel);
 
-  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ u.get(), v.get() }, { &c_old, &c }, "../output", fmt::format("dg0_transport-{:0>6}", 0));
+  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ u.get(), v.get() }, { c_old.get(), c.get() }, "../output", fmt::format("dg0_transport-{:0>6}", 0));
 
   for(uint_t i = 1; i <= timesteps; i++) {
-    N.apply(c_old, c, maxLevel, hhg::Inner, Replace);
-    c.assign({1.0, -dt}, {&c_old, &c}, maxLevel, hhg::Inner);
+    N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
+    c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
     if (i % 50 == 0) {
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>, maxLevel>({u.get(), v.get()},
-                                                                                 {&c_old, &c},
+                                                                                 {c_old.get(), c.get()},
                                                                                  "../output",
                                                                                  fmt::format("dg0_transport-{:0>6}",
                                                                                              i));
     }
 
-    c_old.assign({1.0}, {&c}, maxLevel, hhg::Inner);
+    c_old.swap(c);
   }
 
   return EXIT_SUCCESS;
