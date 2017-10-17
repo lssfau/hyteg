@@ -1,5 +1,7 @@
 #pragma once
 #include "DGFaceIndex.hpp"
+#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {
 namespace DGFace {
@@ -34,6 +36,319 @@ inline void enumerateTmpl(Face &face,
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+
+template< typename ValueType, uint_t Level >
+inline void interpolateTmpl(Face &face,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
+                            std::function<ValueType(const hhg::Point3D &)> &expr) {
+
+  auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  Point3D x, x0;
+
+  x0 = face.coords[0];
+
+  Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
+  Point3D d2 = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsize - 1));
+
+  uint_t inner_rowsize = rowsize;
+
+  // gray cells
+  for (size_t i = 0; i < rowsize - 1; ++i) {
+
+    x = x0 + 1.0/3.0 * (d0 + d2) + walberla::real_c(i) * d2;
+
+    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+      faceMemory[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = expr(x);
+      x += d0;
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  // blue cells
+  for (size_t i = 0; i < rowsize - 2; ++i) {
+
+    x = x0 + 2.0/3.0 * (d0 + d2) + walberla::real_c(i) * d2;
+
+    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+      faceMemory[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = expr(x);
+      x += d0;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
+
+template< typename ValueType, uint_t Level >
+inline void addTmpl(Face &face,
+                            const std::vector<ValueType>& scalars,
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto dst = face.getData(dstId)->getPointer(Level);
+
+  // gray cells
+  for (size_t i = 0; i < rowsize - 1; ++i) {
+    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+
+      auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
+
+      ValueType tmp = 0.0;
+
+      for (uint_t k = 0; k < srcIds.size(); ++k) {
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+      }
+
+      dst[cellIndex] += tmp;
+
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  // blue cells
+  for (size_t i = 0; i < rowsize - 2; ++i) {
+    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+
+      auto cellIndex = BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C);
+
+      ValueType tmp = 0.0;
+
+      for (uint_t k = 0; k < srcIds.size(); ++k) {
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+      }
+
+      dst[cellIndex] += tmp;
+
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, addTmpl, add)
+
+template< typename ValueType, uint_t Level >
+inline void assignTmpl(Face &face,
+                    const std::vector<ValueType>& scalars,
+                    const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                    const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  auto dst = face.getData(dstId)->getPointer(Level);
+
+  // gray cells
+  for (size_t i = 0; i < rowsize - 1; ++i) {
+    for (size_t j = 0; j < inner_rowsize - 1; ++j) {
+
+      auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
+
+      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[cellIndex];
+
+      for (uint_t k = 1; k < srcIds.size(); ++k) {
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+      }
+
+      dst[cellIndex] = tmp;
+
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  // blue cells
+  for (size_t i = 0; i < rowsize - 2; ++i) {
+    for (size_t j = 0; j < inner_rowsize - 2; ++j) {
+
+      auto cellIndex = BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C);
+
+      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[cellIndex];
+
+      for (uint_t k = 1; k < srcIds.size(); ++k) {
+        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+      }
+
+      dst[cellIndex] = tmp;
+
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
+
+template< typename ValueType, uint_t Level >
+inline void upwindTmpl(Face &face,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &srcId,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                       const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Face>, 2> &velocityIds,
+                       UpdateType updateType) {
+
+  using namespace P1Face::FaceCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  // get memories
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
+  auto u = face.getData(velocityIds[0])->getPointer(Level);
+  auto v = face.getData(velocityIds[1])->getPointer(Level);
+
+  // get edge directions
+  auto d0 = (face.coords[1] - face.coords[0]) / walberla::real_c(rowsize-1);
+  auto d1 = (face.coords[2] - face.coords[1]) / walberla::real_c(rowsize-1);
+  auto d2 = (face.coords[0] - face.coords[2]) / walberla::real_c(rowsize-1);
+
+  // compute edge lengths
+  real_t d0Length = d0.norm();
+  real_t d1Length = d1.norm();
+  real_t d2Length = d2.norm();
+
+  // compute normals
+  auto n_0 = d0.normal2D() / d0Length;
+  auto n_1 = d1.normal2D() / d1Length;
+  auto n_2 = d2.normal2D() / d2Length;
+
+  // correct normals if all normals point in wrong direction
+  if (n_0.dot(n_1) > 0) {
+    n_0 *= -1.0;
+    n_1 *= -1.0;
+    n_2 *= -1.0;
+  }
+
+  real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
+  real_t faceAreaInv = 1.0 / faceArea;
+
+  ValueType tmp;
+
+  Point2D u_0, u_1, u_2;
+  real_t un_0, un_1, un_2;
+  real_t c_up_0, c_up_1, c_up_2;
+
+  for (size_t j = 0; j < rowsize - 1; ++j)
+  {
+    for (size_t i = 0; i  < inner_rowsize - 1; ++i)
+    {
+      // evalate velocities
+      u_0[0] = 0.5 * (u[index<Level>(i, j, VERTEX_C)] + u[index<Level>(i+1, j, VERTEX_C)]);
+      u_0[1] = 0.5 * (v[index<Level>(i, j, VERTEX_C)] + v[index<Level>(i+1, j, VERTEX_C)]);
+
+      u_1[0] = 0.5 * (u[index<Level>(i+1, j, VERTEX_C)] + u[index<Level>(i, j+1, VERTEX_C)]);
+      u_1[1] = 0.5 * (v[index<Level>(i+1, j, VERTEX_C)] + v[index<Level>(i, j+1, VERTEX_C)]);
+
+      u_2[0] = 0.5 * (u[index<Level>(i, j, VERTEX_C)] + u[index<Level>(i, j+1, VERTEX_C)]);
+      u_2[1] = 0.5 * (v[index<Level>(i, j, VERTEX_C)] + v[index<Level>(i, j+1, VERTEX_C)]);
+
+      un_0 = d0Length * u_0.dot(n_0);
+      un_1 = d1Length * u_1.dot(n_1);
+      un_2 = d2Length * u_2.dot(n_2);
+
+      if (un_0 >= 0) {
+        c_up_0 = src[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      }
+      else {
+        c_up_0 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_S)];
+      }
+
+      if (un_1 >= 0) {
+        c_up_1 = src[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      }
+      else {
+        c_up_1 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_E)];
+      }
+
+      if (un_2 >= 0) {
+        c_up_2 = src[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      }
+      else {
+        c_up_2 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_W)];
+      }
+
+      tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;
+      tmp *= faceAreaInv;
+
+      if (updateType == Replace) {
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
+      } else if (updateType == Add) {
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  // flip normals
+  n_0 *= -1.0;
+  n_1 *= -1.0;
+  n_2 *= -1.0;
+
+  for (size_t j = 0; j < rowsize - 2; ++j)
+  {
+    for (size_t i = 0; i  < inner_rowsize - 2; ++i)
+    {
+      // evalate velocities
+      u_0[0] = 0.5 * (u[index<Level>(i, j+1, VERTEX_C)] + u[index<Level>(i+1, j+1, VERTEX_C)]);
+      u_0[1] = 0.5 * (v[index<Level>(i, j+1, VERTEX_C)] + v[index<Level>(i+1, j+1, VERTEX_C)]);
+
+      u_1[0] = 0.5 * (u[index<Level>(i, j+1, VERTEX_C)] + u[index<Level>(i+1, j, VERTEX_C)]);
+      u_1[1] = 0.5 * (v[index<Level>(i, j+1, VERTEX_C)] + v[index<Level>(i+1, j, VERTEX_C)]);
+
+      u_2[0] = 0.5 * (u[index<Level>(i+1, j, VERTEX_C)] + u[index<Level>(i+1, j+1, VERTEX_C)]);
+      u_2[1] = 0.5 * (v[index<Level>(i+1, j, VERTEX_C)] + v[index<Level>(i+1, j+1, VERTEX_C)]);
+
+      un_0 = d0Length * u_0.dot(n_0);
+      un_1 = d1Length * u_1.dot(n_1);
+      un_2 = d2Length * u_2.dot(n_2);
+
+      if (un_0 >= 0) {
+        c_up_0 = src[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      }
+      else {
+        c_up_0 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_N)];
+      }
+
+      if (un_1 >= 0) {
+        c_up_1 = src[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      }
+      else {
+        c_up_1 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_W)];
+      }
+
+      if (un_2 >= 0) {
+        c_up_2 = src[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      }
+      else {
+        c_up_2 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_E)];
+      }
+
+      tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;
+      tmp *= faceAreaInv;
+
+      if (updateType == Replace) {
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
+      } else if (updateType == Add) {
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
 
 }//namespace DGFace
 }//namespace hhg

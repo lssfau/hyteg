@@ -79,12 +79,41 @@ template< typename ValueType >
 void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<DGFunction<ValueType> *> functions, uint_t level,
                           DoFType flag) {
 
+  // Collect all source IDs in a vector
+//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
+
+  for (auto& function : functions)
+  {
+//    srcVertexIDs.push_back(function->vertexDataID_);
+//    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcFaceIDs.push_back(function->faceDataID_);
+  }
+
+  for (auto &it : storage_->getFaces()) {
+    Face &face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      DGFace::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
+    }
+  }
+
 }
 
 template< typename ValueType >
 void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &)> &expr,
                                                uint_t level,
                                                DoFType flag) {
+
+  // TODO: lower dimensional primitives and communication
+  for (auto &it : storage_->getFaces()) {
+    Face &face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      DGFace::interpolate< ValueType >(level, face, faceDataID_, expr);
+    }
+  }
 
 }
 
@@ -93,7 +122,25 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
                                           const std::vector<DGFunction<ValueType> *> functions,
                                           uint_t level,
                                           DoFType flag) {
+  // Collect all source IDs in a vector
+//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
 
+  for (auto& function : functions)
+  {
+//    srcVertexIDs.push_back(function->vertexDataID_);
+//    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcFaceIDs.push_back(function->faceDataID_);
+  }
+
+  for (auto &it : storage_->getFaces()) {
+    Face &face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      DGFace::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
+    }
+  }
 }
 
 template< typename ValueType >

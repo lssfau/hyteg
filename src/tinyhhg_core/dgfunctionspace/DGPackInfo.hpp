@@ -3,6 +3,7 @@
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "DGEdgeIndex.hpp"
+#include "DGFaceIndex.hpp"
 
 namespace hhg{
 

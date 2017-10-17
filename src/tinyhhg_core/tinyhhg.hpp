@@ -16,6 +16,7 @@
 
 #include "tinyhhg_core/dgfunctionspace/DGMemory.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
 
 #include "types/pointnd.hpp"
 #include "types/matrix.hpp"

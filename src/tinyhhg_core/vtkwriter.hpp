@@ -6,6 +6,8 @@
 #include "p1functionspace/P1Function.hpp"
 #include "p1functionspace/P1Memory.hpp"
 
+#include "dgfunctionspace/DGFunction.hpp"
+
 #include <string>
 
 namespace hhg
@@ -18,8 +20,8 @@ using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
 typedef walberla::uint64_t uint64_t;
 
-template< typename FunctionType >
-void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t level, const std::string& dir, const std::string& filename)
+template< typename ContinuousFunctionType, typename DiscontinuousFunctionType, uint_t Level >
+void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functionsC, std::vector<const Function< DiscontinuousFunctionType > *> functionsD, const std::string& dir, const std::string& filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
@@ -27,7 +29,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   if (rk == 0)
   {
     std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
-    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", level, pvtu_filename);
+    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", Level, pvtu_filename);
     std::ofstream pvtu_file;
     pvtu_file.open(pvtu_filename.c_str());
 
@@ -45,13 +47,20 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
     pvtu_file << "    </PPoints>\n";
     pvtu_file << "    <PPointData>\n";
 
-    for (auto function : functions)
+    for (auto function : functionsC)
     {
       pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\"/>\n";
     }
 
     pvtu_file << "    </PPointData>\n";
-    pvtu_file << "    <PCellData/>\n";
+    pvtu_file << "    <PCellData>\n";
+
+    for (auto function : functionsD)
+    {
+      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\"/>\n";
+    }
+
+    pvtu_file << "    </PCellData>\n";
 
     for (uint_t i = 0; i < np; ++i)
     {
@@ -63,7 +72,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
     pvtu_file.close();
   }
 
-  auto& storage = functions[0]->getStorage();
+  auto& storage = functionsC[0]->getStorage();
 
   std::ofstream file;
   std::string vtu_filename(fmt::format("{}/{}-rk{:0>4}.vtu", dir, filename, rk));
@@ -80,7 +89,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   file << "<?xml version=\"1.0\"?>\n";
   file << "<VTKFile type=\"UnstructuredGrid\">\n";
   file << "<UnstructuredGrid>\n";
-  file << "<Piece NumberOfPoints=\"" << num_faces * levelinfo::num_microvertices_per_face(level) << "\" NumberOfCells=\"" << num_faces * levelinfo::num_microfaces_per_face(level) << "\">\n";
+  file << "<Piece NumberOfPoints=\"" << num_faces * levelinfo::num_microvertices_per_face(Level) << "\" NumberOfCells=\"" << num_faces * levelinfo::num_microfaces_per_face(Level) << "\">\n";
   file << "<Points>\n";
   file << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
@@ -88,7 +97,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-    size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+    size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
     Point3D x, x0;
 
     x0 = face.coords[0];
@@ -124,7 +133,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   for (auto& it : storage->getFaces()) {
     //TODO is it really unused?
     WALBERLA_UNUSED(it);
-    size_t rowsize = levelinfo::num_microvertices_per_edge(level) - 1;
+    size_t rowsize = levelinfo::num_microvertices_per_edge(Level) - 1;
     size_t inner_rowsize = rowsize;
 
     for (size_t i = 0; i < rowsize; ++i)
@@ -153,7 +162,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
 
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
+    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(Level); ++i)
     {
       file << offset << " ";
       offset += 3;
@@ -166,7 +175,7 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   // cell types
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
+    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(Level); ++i)
     {
       file << "5 ";
     }
@@ -177,21 +186,20 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   file << "<PointData>\n";
 
   // point data
-  for (const auto function : functions)
+  for (const auto function : functionsC)
   {
     file << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
     for (auto& it : storage->getFaces()) {
       Face &face = *it.second;
 
-      size_t len = levelinfo::num_microvertices_per_face(level);
+      size_t len = levelinfo::num_microvertices_per_face(Level);
       file << std::scientific;
 
-      // FIXME: How to check type of Function properly?
       const P1Function< real_t >* p1Function = dynamic_cast<const P1Function< real_t >*>(function);
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << face.getData(p1Function->getFaceDataID())->getPointer(level)[i] << " ";
+        file << face.getData(p1Function->getFaceDataID())->getPointer(Level)[i] << " ";
       }
     }
     file << "\n</DataArray>\n";
@@ -201,6 +209,32 @@ void VTKWriter(std::vector<const Function< FunctionType > *> functions, size_t l
   file << "<CellData>";
 
   // cell data
+  for (const auto function : functionsD)
+  {
+    file << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
+    for (auto& it : storage->getFaces()) {
+      Face &face = *it.second;
+
+      uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+      uint_t inner_rowsize = rowsize;
+      file << std::scientific;
+
+      auto dgFunction = dynamic_cast<const DGFunction< real_t >*>(function);
+      if (dgFunction == nullptr) {
+        WALBERLA_ABORT("Function is of wrong type");
+      }
+
+      for (size_t j = 0; j < rowsize - 1; ++j) {
+        for (size_t i = 0; i < inner_rowsize - 2; ++i) {
+          file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] << " ";
+          file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] << " ";
+        }
+        file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromGrayFace<Level>(inner_rowsize-2, j, stencilDirection::CELL_GRAY_C)] << " ";
+        --inner_rowsize;
+      }
+    }
+    file << "\n</DataArray>\n";
+  }
 
   file << "\n</CellData>\n";
   file << "</Piece>\n";
