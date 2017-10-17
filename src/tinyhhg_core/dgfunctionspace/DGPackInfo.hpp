@@ -83,7 +83,21 @@ void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) {
-
+  typedef stencilDirection sD;
+  ValueType *vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
+  ValueType *edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t pos = std::numeric_limits<uint_t>::max();
+  if(receiver->vertex_index(sender->getID()) == 0) {
+    pos = 0;
+  } else if (receiver->vertex_index(sender->getID()) == 1) {
+    pos = levelinfo::num_microvertices_per_edge(level_) - 2;
+  } else {
+    WALBERLA_LOG_WARNING("Vertex with ID: " << sender << " is not in Edge: " << receiver)
+  }
+  edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_GRAY_SE)] = vertexData[ sender->face_index(receiver->neighborFaces()[0]) * 2];
+  if(receiver->getNumNeighborFaces() == 2){
+    edgeData[BubbleEdge::edge_index(level_,pos,sD::CELL_GRAY_NE)] = vertexData[ sender->face_index(receiver->neighborFaces()[1]) * 2];
+  }
 }
 
 template< typename ValueType >
