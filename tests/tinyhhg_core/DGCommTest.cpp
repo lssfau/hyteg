@@ -7,21 +7,21 @@ using namespace hhg;
 
 using walberla::real_t;
 
-int main (int argc, char ** argv )
-{
+void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = false){
 
-  walberla::mpi::Environment MPIenv( argc, argv);
-  walberla::MPIManager::instance()->useWorldComm();
-  walberla::debug::enterTestMode();
-
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  //MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  MeshInfo meshInfo = MeshInfo::fromGmshFile(meshfile);
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 4;
+  //const uint_t maxLevel = 4;
   hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  if(bufferComm) {
+    x.getCommunicator(maxLevel).get()->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+  }
+
   size_t num = 1;
   x.enumerate(maxLevel,num);
 
@@ -30,6 +30,7 @@ int main (int argc, char ** argv )
 
   for(auto &edgeIt : storage->getEdges()){
     if(edgeIt.second.get()->getNumHigherDimNeighbors() == 1){
+
       totalExpectedChecks += 4;
     } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
       totalExpectedChecks += 8;
@@ -104,9 +105,9 @@ int main (int argc, char ** argv )
 //////////////////// GRAY CELL //////////////////////
       idxCounter = 0;
       auto it = BubbleFace::indexIterator(face.edge_index(edge->getID()),
-                                            face.edge_orientation[face.edge_index(edge->getID())],
-                                            BubbleFace::CELL_GRAY,
-                                            maxLevel);
+                                          face.edge_orientation[face.edge_index(edge->getID())],
+                                          BubbleFace::CELL_GRAY,
+                                          maxLevel);
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
@@ -124,9 +125,9 @@ int main (int argc, char ** argv )
 //////////////////// BLUE CELL //////////////////////
       idxCounter = 0;
       it = BubbleFace::indexIterator(face.edge_index(edge->getID()),
-                                            face.edge_orientation[face.edge_index(edge->getID())],
-                                            BubbleFace::CELL_BLUE,
-                                            maxLevel);
+                                     face.edge_orientation[face.edge_index(edge->getID())],
+                                     BubbleFace::CELL_BLUE,
+                                     maxLevel);
       for(; it != BubbleFace::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::edge_index(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
@@ -142,5 +143,30 @@ int main (int argc, char ** argv )
     }
   }
   WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+
+}
+
+int main (int argc, char ** argv )
+{
+
+  walberla::mpi::Environment MPIenv( argc, argv);
+  walberla::MPIManager::instance()->useWorldComm();
+  walberla::debug::enterTestMode();
+
+  checkComm("../../data/meshes/quad_4el.msh",4,true);
+
+  checkComm("../../data/meshes/quad_4el.msh",5,true);
+
+  checkComm("../../data/meshes/quad_4el.msh",4,false);
+
+  checkComm("../../data/meshes/quad_4el.msh",5,false);
+
+  checkComm("../../data/meshes/bfs_12el.msh",3,true);
+
+  checkComm("../../data/meshes/bfs_12el.msh",3,false);
+
   return 0;
+
+
+
 }

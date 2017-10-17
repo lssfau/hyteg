@@ -30,7 +30,7 @@ public:
     storage->addEdgeData(edgeDataID_, edgeDGFunctionMemoryDataHandling, name);
     storage->addVertexData(vertexDataID_, vertexDGFunctionMemoryDataHandling, name);
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
-      communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+      //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo(
         std::make_shared<DGPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, storage_));
     }

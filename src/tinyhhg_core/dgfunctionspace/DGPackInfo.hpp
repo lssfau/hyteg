@@ -129,7 +129,22 @@ void DGPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const Primi
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) {
-
+  ValueType *edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t pos = std::numeric_limits<uint_t>::max();
+  if(sender->vertex_index(receiver->getID()) == 0) {
+    pos = 1;
+  } else if (sender->vertex_index(receiver->getID()) == 1) {
+    pos = levelinfo::num_microvertices_per_edge(level_) - 2;
+  } else {
+    WALBERLA_LOG_WARNING("Vertex with ID: " << receiver << " is not in Edge: " << sender)
+  }
+  ValueType *vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+  vertexData[ receiver->face_index(sender->neighborFaces()[0]) * 2 + 1] =
+    edgeData[BubbleEdge::edge_index(level_,pos,stencilDirection::CELL_BLUE_SE)];;
+  if(sender->getNumNeighborFaces() == 2){
+    vertexData[ receiver->face_index(sender->neighborFaces()[1]) * 2 + 1] =
+      edgeData[BubbleEdge::edge_index(level_,pos,stencilDirection::CELL_BLUE_NW)];
+  }
 }
 
 template< typename ValueType >
@@ -169,7 +184,28 @@ void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Primitive
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
-
+  using namespace BubbleFace;
+  ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
+  ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
+  uint_t faceIdOnEdge = sender->face_index(receiver->getID());
+  uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
+  stencilDirection dirCellGray;
+  //the first face is the south face and the second the north face
+  if(faceIdOnEdge == 0)
+  {
+    dirCellGray = stencilDirection::CELL_GRAY_SE;
+  }
+  else if(faceIdOnEdge == 1)
+  {
+    dirCellGray = stencilDirection::CELL_GRAY_NE;
+  }
+  uint_t pos = 0;
+  for(auto it = indexIterator(edgeIndexOnFace,
+                              receiver->edge_orientation[edgeIndexOnFace],
+                              CELL_GRAY, level_); it != indexIterator(); ++it){
+    faceData[*it] = edgeData[BubbleEdge::edge_index(level_,pos,dirCellGray)];
+    pos++;
+  }
 }
 
 template< typename ValueType >
@@ -210,7 +246,30 @@ void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
-
+  using namespace hhg::BubbleFace;
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
+  const uint_t faceIdOnEdge = receiver->face_index(sender->getID());
+  const uint_t edgeIndexOnFace = sender->edge_index(receiver->getID());
+  uint_t pos = 1;
+  stencilDirection dirCellBlue;
+  //the first face is the south face and the second the north face
+  if(faceIdOnEdge == 0)
+  {
+    dirCellBlue = stencilDirection::CELL_BLUE_SE;
+  }
+  else if(faceIdOnEdge == 1)
+  {
+    dirCellBlue = stencilDirection::CELL_BLUE_NW;
+  }
+  for(auto it = BubbleFace::indexIterator(edgeIndexOnFace,
+                                          sender->edge_orientation[edgeIndexOnFace],
+                                          CELL_BLUE,
+                                          level_); it != indexIterator(); ++it)
+  {
+    edgeData[BubbleEdge::edge_index(level_,pos,dirCellBlue)] = faceData[*it];
+    pos++;
+  }
 }
 
 
