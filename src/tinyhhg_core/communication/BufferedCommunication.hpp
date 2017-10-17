@@ -115,6 +115,8 @@ private:
     NUM_COMMUNICATION_DIRECTIONS
   };
 
+  static const uint_t SYNC_WORD;
+
   static const std::array< std::string, CommunicationDirection::NUM_COMMUNICATION_DIRECTIONS >  COMMUNICATION_DIRECTION_STRINGS;
   static const std::array< std::string, LocalCommunicationMode::NUM_LOCAL_COMMUNICATION_MODES > LOCAL_COMMUNICATION_MODE_STRINGS;
 
