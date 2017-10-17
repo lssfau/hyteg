@@ -106,7 +106,28 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
                                                uint_t level,
                                                DoFType flag) {
 
-  // TODO: lower dimensional primitives and communication
+  for (auto &it : storage_->getVertices()) {
+    Vertex &vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag)) {
+      // TODO
+//      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
+    }
+  }
+
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+
+  for (auto &it : storage_->getEdges()) {
+    Edge &edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+      DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, expr, storage_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+
   for (auto &it : storage_->getFaces()) {
     Face &face = *it.second;
 
@@ -115,6 +136,7 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
     }
   }
 
+  communicators_[level]->template endCommunication<Edge, Face>();
 }
 
 template< typename ValueType >
