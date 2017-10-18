@@ -297,15 +297,16 @@ inline void assignTmpl(Edge &edge,
     dst[cellIndex] = tmp;
   }
 
-  for (size_t i = 1; i < rowsize - 2; ++i) {
-    uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE);
-    ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
-    for (uint_t k = 1; k < srcIds.size(); ++k) {
-      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[cellIndex];
+  if(edge.getNumNeighborFaces() == 2) {
+    for (size_t i = 1; i < rowsize - 2; ++i) {
+      uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE);
+      ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer(Level)[cellIndex];
+      for (uint_t k = 1; k < srcIds.size(); ++k) {
+        tmp += scalars[k]*edge.getData(srcIds[k])->getPointer(Level)[cellIndex];
+      }
+      dst[cellIndex] = tmp;
     }
-    dst[cellIndex] = tmp;
   }
-
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)

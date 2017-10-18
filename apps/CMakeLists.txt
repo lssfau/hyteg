@@ -52,6 +52,10 @@ waLBerla_add_executable( NAME dg0_transport
         FILES dg0_transport.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME geophysics_plume
+        FILES geophysics_plume.cpp
+        DEPENDS tinyhhg_core fmt)
+
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp

@@ -145,13 +145,13 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
                                           uint_t level,
                                           DoFType flag) {
   // Collect all source IDs in a vector
-//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
 
   for (auto& function : functions)
   {
-//    srcVertexIDs.push_back(function->vertexDataID_);
+    srcVertexIDs.push_back(function->vertexDataID_);
     srcEdgeIDs.push_back(function->edgeDataID_);
     srcFaceIDs.push_back(function->faceDataID_);
   }
