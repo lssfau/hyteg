@@ -264,10 +264,10 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
   ValueType tmp;
 
   std::array<DirVertex,3> triangleBlueSW = { VERTEX_C, VERTEX_W,  VERTEX_S  };
-  std::array<DirVertex,3> triangleGrayS  = { VERTEX_C, VERTEX_S,  VERTEX_SE };
+  std::array<DirVertex,3> triangleGraySE = { VERTEX_C, VERTEX_S,  VERTEX_SE };
   std::array<DirVertex,3> triangleBlueSE = { VERTEX_C, VERTEX_SE, VERTEX_E  };
   std::array<DirVertex,3> triangleGrayNW = { VERTEX_C, VERTEX_W,  VERTEX_NW };
-  std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
+  std::array<DirVertex,3> triangleBlueNW = { VERTEX_C, VERTEX_NW, VERTEX_N  };
   std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
 
 
@@ -282,11 +282,11 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
         tmp = dst[index<Level>(i, j, VERTEX_C)];
       }
 
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_S)]  * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayS, {2,0,1});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGraySE, {2,0,1});
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSE, {1,2,0});
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSW, {0,1,2});
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNW, {1,0,2});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_N)]  * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueN, {2,1,0});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueNW, {2,1,0});
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNE, {0,2,1});
 
       dst[index<Level>(i, j, VERTEX_C)] = tmp;
@@ -544,6 +544,42 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+
+template< typename ValueType, uint_t Level >
+inline void integrateDGTmpl(Face &face,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
+  using namespace FaceCoordsVertex;
+  typedef stencilDirection sD;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto rhs = face.getData(rhsId)->getPointer(Level);
+  auto dst = face.getData(dstId)->getPointer(Level);
+
+  real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
+  real_t weightedFaceArea = faceArea / 3.0;
+
+  ValueType tmp;
+
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+
+      tmp =   rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)]
+            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)]
+            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)]
+            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)]
+            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)]
+            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)];
+
+      dst[index<Level>(i, j, VERTEX_C)] = weightedFaceArea  * tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >

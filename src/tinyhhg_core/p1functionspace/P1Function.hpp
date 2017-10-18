@@ -46,6 +46,9 @@ public:
 
   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
+  // TODO: split this function into impl
+  inline void integrateDG(DGFunction< ValueType >& rhs, uint_t level, DoFType flag);
+
 private:
 
   using Function< P1Function< ValueType > >::storage_;
@@ -399,6 +402,41 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+}
+
+template< typename ValueType >
+inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, uint_t level, DoFType flag)
+{
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag)) {
+//      P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+    }
+  }
+
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+//      P1Edge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      P1Face::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), faceDataID_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Edge, Face>();
 }
 
 }
