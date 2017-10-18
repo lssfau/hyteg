@@ -16,7 +16,30 @@ inline void enumerate(Vertex &vertex,
 
 }
 
+template< typename ValueType, uint_t Level >
+inline void interpolateTmpl(Vertex &vertex,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex>& vertexMemoryId,
+                            std::function<ValueType(const hhg::Point3D &)> &expr,
+                            const std::shared_ptr< PrimitiveStorage >& storage ) {
 
+  auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer( Level );
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  Point3D dir1;
+  Point3D dir2;
+  Point3D x;
+
+  for(auto faceIt : vertex.neighborFaces()){
+    Face* face = storage->getFace(faceIt.getID());
+    uint_t vertexIdOnFace = face->vertex_index(vertex.getID());
+    dir1 = face->getCoordinates()[(vertexIdOnFace + 1) % 3] - vertex.getCoordinates();
+    dir2 = face->getCoordinates()[(vertexIdOnFace + 2) % 3] - vertex.getCoordinates();
+    x = vertex.getCoordinates() + 1.0 / 3.0 * (dir1 + dir2);
+    vertexMemory[vertex.face_index(face->getID()) * 2] = expr(x);
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 
 template< typename ValueType, uint_t Level >
 inline void assignTmpl(Vertex &vertex,
