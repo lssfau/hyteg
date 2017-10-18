@@ -18,6 +18,26 @@ inline void enumerate(Vertex &vertex,
 
 
 
+template< typename ValueType, uint_t Level >
+inline void assignTmpl(Vertex &vertex,
+                       const std::vector<ValueType>& scalars,
+                       const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
+                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId) {
+
+  auto dst = vertex.getData(dstId)->getPointer(Level);
+
+  for(uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
+    uint_t index = i * 2;
+    dst[index] = scalars[0] * *vertex.getData(srcIds[0])->getPointer( Level )[index];
+    for(uint_t k = 1; k < srcIds.size(); ++k){
+      dst[index] += scalars[k] * *vertex.getData(srcIds[k])->getPointer( Level )[index];
+    }
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
+
+
 
 
 }//namespace DGVertex
