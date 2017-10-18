@@ -39,14 +39,31 @@ class P1CoefficientOperator : public Operator< P1Function< real_t >, P1Function<
 {
 public:
   P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
-    : Operator(storage, minLevel, maxLevel), coefficient_(coefficient)
+    : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient)
+  {
+    init(minLevel, maxLevel);
+  }
+
+  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<DGFunction< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
+      : Operator(storage, minLevel, maxLevel), coefficientDG_(coefficient)
+  {
+    init(minLevel, maxLevel);
+  }
+
+  ~P1CoefficientOperator()
+  {
+  }
+
+private:
+
+  void init(uint_t minLevel, uint_t maxLevel)
   {
     auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
-    storage->addFaceData(faceLocalMatrixID_, faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
-    storage->addEdgeData(edgeLocalMatrixID_, edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
-    storage->addVertexData(vertexLocalMatrixID_, vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
+    storage_->addFaceData(faceLocalMatrixID_, faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
+    storage_->addEdgeData(edgeLocalMatrixID_, edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
+    storage_->addVertexData(vertexLocalMatrixID_, vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
@@ -98,27 +115,32 @@ public:
       }
 
     }
-
   }
-
-  ~P1CoefficientOperator()
-  {
-  }
-
-private:
 
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
-    coefficient_->getCommunicator(level)->startCommunication<Edge, Vertex>();
+    if (coefficientP1_ != nullptr) {
+      coefficientP1_->getCommunicator(level)->startCommunication<Edge, Vertex>();
+    } else {
+      coefficientDG_->getCommunicator(level)->startCommunication<Edge, Vertex>();
+    }
 
     // start pulling edge halos
     src.getCommunicator(level)->startCommunication<Face, Edge>();
-    coefficient_->getCommunicator(level)->startCommunication<Face, Edge>();
+    if (coefficientP1_ != nullptr) {
+      coefficientP1_->getCommunicator(level)->startCommunication<Face, Edge>();
+    } else {
+      coefficientDG_->getCommunicator(level)->startCommunication<Face, Edge>();
+    }
 
     // end pulling vertex halos
-    coefficient_->getCommunicator(level)->endCommunication<Edge, Vertex>();
+    if (coefficientP1_ != nullptr) {
+      coefficientP1_->getCommunicator(level)->endCommunication<Edge, Vertex>();
+    } else {
+      coefficientDG_->getCommunicator(level)->endCommunication<Edge, Vertex>();
+    }
     src.getCommunicator(level)->endCommunication<Edge, Vertex>();
 
     for (auto& it : storage_->getVertices()) {
@@ -126,14 +148,18 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficient_->getVertexDataID(), level, updateType);
+        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
       }
     }
 
     dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
 
     // end pulling edge halos
-    coefficient_->getCommunicator(level)->endCommunication<Face, Edge>();
+    if (coefficientP1_ != nullptr) {
+      coefficientP1_->getCommunicator(level)->endCommunication<Face, Edge>();
+    } else {
+      coefficientDG_->getCommunicator(level)->endCommunication<Face, Edge>();
+    }
     src.getCommunicator(level)->endCommunication<Face, Edge>();
 
     for (auto& it : storage_->getEdges()) {
@@ -141,7 +167,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficient_->getEdgeDataID(), updateType);
+        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
       }
     }
 
@@ -154,7 +180,11 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficient_->getFaceDataID(), updateType);
+        if (coefficientP1_ != nullptr) {
+          P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
+        } else {
+          P1Face::applyCoefficientDG< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientDG_->getFaceDataID(), updateType);
+        }
       }
     }
 
@@ -324,7 +354,8 @@ private:
   }
 
 private:
-  std::shared_ptr<P1Function< real_t >> coefficient_;
+  std::shared_ptr<P1Function< real_t >> coefficientP1_;
+  std::shared_ptr<DGFunction< real_t >> coefficientDG_;
 };
 
 typedef P1CoefficientOperator<p1_diffusion_cell_integral_0_otherwise> P1VariableCoefficientLaplaceOperator;
