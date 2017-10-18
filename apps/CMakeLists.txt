@@ -58,7 +58,16 @@ waLBerla_add_executable( NAME stokes_mini_petsc
         DEPENDS tinyhhg_core fmt)
 endif()
 
-#add_executable (tinytest_fmg fmg_test.cpp)
+if( HHG_BUILD_WITH_LIKWID )
+    waLBerla_add_executable( NAME DGUpwind
+            FILES benchmarks/DGUpwind.cpp
+            DEPENDS tinyhhg_core fmt)
+endif()
+
+
+
+
+    #add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
 #
 #add_executable (tinytest_chorin chorin_test.cpp)
