@@ -4,6 +4,7 @@
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 #include "core/DataTypes.h"
@@ -393,6 +394,53 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+
+template< typename ValueType, uint_t Level >
+inline void integrateDGTmpl(Edge &edge,
+                            const std::shared_ptr< PrimitiveStorage >& storage,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
+
+  using namespace EdgeCoordsVertex;
+  typedef stencilDirection sD;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto rhs = edge.getData(rhsId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
+
+  ValueType tmp;
+
+  Face* face = storage->getFace(edge.neighborFaces()[0]);
+  real_t weightedFaceArea0, weightedFaceArea1;
+
+  weightedFaceArea0 = std::pow(4.0, -walberla::real_c(Level)) * face->area / 3.0;
+
+  uint_t s_north, e_north, o_north;
+
+  if (edge.getNumNeighborFaces() == 2) {
+    face = storage->getFace(edge.neighborFaces()[1]);
+    weightedFaceArea1 = std::pow(4.0, -walberla::real_c(Level)) * face->area / 3.0;
+  }
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    tmp =  weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SW)];
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_SE)];
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SE)];
+
+    if (edge.getNumNeighborFaces() == 2) {
+
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NW)];
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_NW)];
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NE)];
+    }
+
+    dst[index<Level>(i, VERTEX_C)] = tmp;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>

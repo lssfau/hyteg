@@ -407,6 +407,12 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 template< typename ValueType >
 inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, uint_t level, DoFType flag)
 {
+  rhs.getCommunicator(level)->template startCommunication<Face, Edge>();
+  rhs.getCommunicator(level)->template endCommunication<Face, Edge>();
+
+  rhs.getCommunicator(level)->template startCommunication<Edge, Vertex>();
+  rhs.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
 
@@ -421,7 +427,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, u
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-//      P1Edge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), edgeDataID_);
     }
   }
 
