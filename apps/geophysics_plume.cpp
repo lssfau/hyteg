@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 6;
+  const uint_t maxLevel = 4;
   const uint_t solverMaxiter = 200;
   const uint_t timesteps = 50000;
   real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     if (t % 40 == 0) {
       f->v.integrateDG(*c_old, maxLevel, hhg::All);
       solver.solve(L, *u, *f, *r, maxLevel, 1e-3, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
-      hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ &u->u, &u->v, &u->p, &f->u, &f->v }, { c_old.get() }, "../output", fmt::format("plume-{:0>6}", t));
+      hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &u->u, &u->v, &u->p, &f->u, &f->v }, { c_old.get() }, "../output", fmt::format("plume-{:0>6}", t),maxLevel);
     }
 
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);

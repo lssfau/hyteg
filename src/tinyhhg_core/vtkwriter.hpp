@@ -13,6 +13,11 @@
 namespace hhg
 {
 
+namespace vtkDetail{
+SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
+SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
+}
+
 using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
@@ -20,8 +25,12 @@ using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
 typedef walberla::uint64_t uint64_t;
 
-template< typename ContinuousFunctionType, typename DiscontinuousFunctionType, uint_t Level >
-void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functionsC, std::vector<const Function< DiscontinuousFunctionType > *> functionsD, const std::string& dir, const std::string& filename)
+template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
+void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functionsC,
+               std::vector<const Function< DiscontinuousFunctionType > *> functionsD,
+               const std::string& dir,
+               const std::string& filename,
+               const uint_t level)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
@@ -29,7 +38,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   if (rk == 0)
   {
     std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
-    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", Level, pvtu_filename);
+    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", level, pvtu_filename);
     std::ofstream pvtu_file;
     pvtu_file.open(pvtu_filename.c_str());
 
@@ -89,7 +98,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   file << "<?xml version=\"1.0\"?>\n";
   file << "<VTKFile type=\"UnstructuredGrid\">\n";
   file << "<UnstructuredGrid>\n";
-  file << "<Piece NumberOfPoints=\"" << num_faces * levelinfo::num_microvertices_per_face(Level) << "\" NumberOfCells=\"" << num_faces * levelinfo::num_microfaces_per_face(Level) << "\">\n";
+  file << "<Piece NumberOfPoints=\"" << num_faces * levelinfo::num_microvertices_per_face(level) << "\" NumberOfCells=\"" << num_faces * levelinfo::num_microfaces_per_face(level) << "\">\n";
   file << "<Points>\n";
   file << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
@@ -97,7 +106,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-    size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+    size_t rowsize = levelinfo::num_microvertices_per_edge(level);
     Point3D x, x0;
 
     x0 = face.coords[0];
@@ -133,7 +142,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   for (auto& it : storage->getFaces()) {
     //TODO is it really unused?
     WALBERLA_UNUSED(it);
-    size_t rowsize = levelinfo::num_microvertices_per_edge(Level) - 1;
+    size_t rowsize = levelinfo::num_microvertices_per_edge(level) - 1;
     size_t inner_rowsize = rowsize;
 
     for (size_t i = 0; i < rowsize; ++i)
@@ -162,7 +171,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
 
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(Level); ++i)
+    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
       file << offset << " ";
       offset += 3;
@@ -175,7 +184,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
   // cell types
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(Level); ++i)
+    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
     {
       file << "5 ";
     }
@@ -192,14 +201,14 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
     for (auto& it : storage->getFaces()) {
       Face &face = *it.second;
 
-      size_t len = levelinfo::num_microvertices_per_face(Level);
+      size_t len = levelinfo::num_microvertices_per_face(level);
       file << std::scientific;
 
       const P1Function< real_t >* p1Function = dynamic_cast<const P1Function< real_t >*>(function);
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << face.getData(p1Function->getFaceDataID())->getPointer(Level)[i] << " ";
+        file << face.getData(p1Function->getFaceDataID())->getPointer(level)[i] << " ";
       }
     }
     file << "\n</DataArray>\n";
@@ -215,7 +224,7 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
     for (auto& it : storage->getFaces()) {
       Face &face = *it.second;
 
-      uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+      uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
       uint_t inner_rowsize = rowsize;
       file << std::scientific;
 
@@ -224,12 +233,17 @@ void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functions
         WALBERLA_ABORT("Function is of wrong type");
       }
 
+      uint_t idx;
+
       for (size_t j = 0; j < rowsize - 1; ++j) {
         for (size_t i = 0; i < inner_rowsize - 2; ++i) {
-          file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] << " ";
-          file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] << " ";
+          idx = vtkDetail::bubbleGrayFaceIndex(level,i, j, stencilDirection::CELL_GRAY_C);
+          file << face.getData(dgFunction->getFaceDataID())->getPointer(level)[idx] << " ";
+          idx = vtkDetail::bubbleBlueFaceIndex(level,i, j, stencilDirection::CELL_BLUE_C);
+          file << face.getData(dgFunction->getFaceDataID())->getPointer(level)[idx] << " ";
         }
-        file << face.getData(dgFunction->getFaceDataID())->getPointer(Level)[BubbleFace::indexFaceFromGrayFace<Level>(inner_rowsize-2, j, stencilDirection::CELL_GRAY_C)] << " ";
+        idx = vtkDetail::bubbleGrayFaceIndex(level,inner_rowsize-2, j, stencilDirection::CELL_GRAY_C);
+        file << face.getData(dgFunction->getFaceDataID())->getPointer(level)[idx] << " ";
         --inner_rowsize;
       }
     }

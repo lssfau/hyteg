@@ -283,7 +283,6 @@ inline void assignTmpl(Edge &edge,
                        const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  size_t inner_rowsize = rowsize;
 
   auto dst = edge.getData(dstId)->getPointer(Level);
 

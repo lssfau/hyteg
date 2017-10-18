@@ -23,7 +23,6 @@ inline void interpolateTmpl(Vertex &vertex,
                             const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer( Level );
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   Point3D dir1;
   Point3D dir2;
