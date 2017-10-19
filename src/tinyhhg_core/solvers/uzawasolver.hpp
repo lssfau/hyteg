@@ -32,15 +32,8 @@ public:
 
     if (level == minLevel_) {
       WALBERLA_LOG_DEVEL("Coarse grid solve..." << level)
-
-      hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &x.u, &x.v, &x.p, &b.u, &b.v, &b.p }, { }, "../output", "coarse_before", level);
-
-      for (uint_t i = 0; i < 10; ++i) {
-        coarseSolver_.solve(A, x, b, r, level, tolerance, 10, flag, true);
-//        hhg::projectMean(x.p, ax_.p, level);
-      }
-
-      hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &x.u, &x.v, &x.p, &b.u, &b.v, &b.p }, { }, "../output", "coarse_after", level);
+      coarseSolver_.solve(A, x, b, r, level, tolerance, maxiter, flag, false);
+//      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
       WALBERLA_LOG_DEVEL("Smooth..." << level)
@@ -51,7 +44,6 @@ public:
         uzawaSmooth(A, x, b, r, level, flag);
       }
 
-//      hhg::projectMean(x.p, ax_.p, level);
 
       A.apply(x, ax_, level, flag);
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
@@ -80,9 +72,6 @@ public:
       {
         uzawaSmooth(A, x, b, r, level, flag);
       }
-
-//      hhg::projectMean(x.p, ax_.p, level);
-
     }
 
   }
@@ -105,12 +94,7 @@ private:
 
     r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
 
-    tmp_.p.assign({1.0}, {&x.p}, level, flag | DirichletBoundary);
-    A.pspg.smooth_gs(tmp_.p, r.p, level, flag | DirichletBoundary);
-
-    uint_t relax = 0.3;
-
-    x.p.assign({1.0-relax, relax}, {&x.p, &tmp_.p}, level, flag | DirichletBoundary);
+    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag | DirichletBoundary);
   }
 
   uint_t nuPre_;

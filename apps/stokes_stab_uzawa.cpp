@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_2el_neumann.msh";
+  std::string meshFileName = "../data/meshes/quad_2el.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 3;
-  size_t coarseMaxiter = 100;
+  size_t maxLevel = 5;
+  size_t coarseMaxiter = 20;
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
   for (uint_t outer = 0; outer < 10; ++outer) {
     solver.solve(L, *u, *f, *r, maxLevel, 1e-15, coarseMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
-//    hhg::projectMean(u->p, *tmp, maxLevel);
+    hhg::projectMean(u->p, *tmp, maxLevel);
 
 
     L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);

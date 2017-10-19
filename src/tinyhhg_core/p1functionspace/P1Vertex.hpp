@@ -150,6 +150,25 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 template< typename ValueType >
+inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId, size_t level,
+                      ValueType relax) {
+  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto dst = vertex.getData(dstId)->getPointer( level );
+  auto rhs = vertex.getData(rhsId)->getPointer( level );
+
+  ValueType tmp;
+  tmp = rhs[0];
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    tmp -= opr_data[i + 1]*dst[i + 1];
+  }
+
+  dst[0] = (1.0-relax) * dst[0] + relax * tmp/opr_data[0];
+}
+
+template< typename ValueType >
 inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId,

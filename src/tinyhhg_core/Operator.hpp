@@ -27,6 +27,8 @@ public:
 
   void smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag );
 
+  void smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag );
+
   void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
@@ -37,6 +39,10 @@ public:
 
   virtual void apply_impl( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) = 0;
   virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
+    WALBERLA_ASSERT(false, "Not implemented");
+  };
+
+  virtual void smooth_sor_impl( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag ) {
     WALBERLA_ASSERT(false, "Not implemented");
   };
 
@@ -90,6 +96,16 @@ void Operator< SourceFunction, DestinationFunction  >::smooth_gs( DestinationFun
   smooth_gs_impl( dst, rhs, level, flag );
 
   stopTiming( "Smooth GS" );
+}
+
+template< typename SourceFunction, typename DestinationFunction >
+void Operator< SourceFunction, DestinationFunction  >::smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag )
+{
+  startTiming( "Smooth SOR" );
+
+  smooth_sor_impl( dst, rhs, relax, level, flag );
+
+  stopTiming( "Smooth SOR" );
 }
 
 template< typename SourceFunction, typename DestinationFunction >

@@ -25,19 +25,17 @@ int main(int argc, char* argv[])
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 7;
-  const uint_t solverMaxiter = 2000;
-  const uint_t timesteps = 1;
+  const uint_t solverMaxiter = 20;
+  const uint_t timesteps = 500000;
   real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
 
   std::function<real_t(const hhg::Point3D&)> initialConcentration = [dt](const hhg::Point3D& x) {
 
-//    if (x[1] < 2.1/3.0 * dt/0.75) {
-//      return 20.0 * sin(M_PI*x[0]);
-//    } else {
-//      return 0.0;
-//    }
-
-    return x[0] + 2.0 * x[1] + x[0] * x[1];
+    if (x[1] < 2.1/3.0 * dt/0.75) {
+      return 100.0 * sin(M_PI*x[0]);
+    } else {
+      return 0.0;
+    }
 
   };
 
@@ -69,19 +67,14 @@ int main(int argc, char* argv[])
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
-//  typedef StokesBlockDiagonalPreconditioner<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, hhg::P1MassOperator> Prec;
-
-//  std::shared_ptr<Prec> prec = std::make_shared<Prec>(L, M, storage, minLevel, maxLevel);
-//  auto solver = hhg::MinResSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, Prec>(storage, minLevel, maxLevel, prec);
-
   for (uint_t t = 0; t <= timesteps; ++t) {
 
     if (t % 100 == 0) {
       f->v.integrateDG(*c_old, maxLevel, hhg::All);
 
-//      solver.solve(L, *u, *f, *r, maxLevel, 1e-5, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
       for (uint_t outer = 0; outer < 5; ++outer) {
         solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
+        hhg::projectMean(u->p, *tmp, maxLevel);
 
         L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
         projectMean(u->p, *tmp, maxLevel);

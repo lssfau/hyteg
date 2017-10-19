@@ -262,6 +262,45 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, 
 SPECIALIZE_WITH_VALUETYPE( void, smoothGSTmpl, smooth_gs )
 
 template< typename ValueType, uint_t Level >
+inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+                          const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
+                          const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId,
+                          ValueType relax) {
+  using namespace EdgeCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto dst = edge.getData(dstId)->getPointer( Level );
+  auto rhs = edge.getData(rhsId)->getPointer( Level );
+
+  ValueType tmp;
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    tmp = rhs[index<Level>(i, VERTEX_C)];
+
+    for (auto& neighbor : neighbors_on_edge) {
+      tmp -= opr_data[neighbor] * dst[index<Level>(i, neighbor)];
+    }
+
+    for (auto& neighbor : neighbors_south) {
+      tmp -= opr_data[neighbor] * dst[index<Level>(i, neighbor)];
+    }
+
+    if (edge.getNumNeighborFaces() == 2) {
+      for (auto& neighbor : neighbors_north) {
+        tmp -= opr_data[neighbor] * dst[index<Level>(i, neighbor)];
+      }
+    }
+    
+    dst[index<Level>(i, VERTEX_C)] = (1.0-relax) * dst[index<Level>(i, VERTEX_C)] + relax * tmp/opr_data[VERTEX_C];
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, smoothSORTmpl, smooth_sor )
+
+template< typename ValueType, uint_t Level >
 inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId,
