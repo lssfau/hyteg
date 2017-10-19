@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
   std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
-    if ((x - Point3D{{0.15, 0.85, 0.0}}).norm() < 0.1) {
+    if ((x - Point3D{{{0.15, 0.85, 0.0}}}).norm() < 0.1) {
       return 1.0;
     } else {
       return 0.0;

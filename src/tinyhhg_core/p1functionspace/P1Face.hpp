@@ -312,12 +312,14 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
-      for (auto neighbor : neighbors) {
-        tmp -= opr_data[neighbor]*dst[index<Level>(i, j, neighbor)];
+      //for (auto neighbor : neighbors) {
+      for(uint_t k = 0; k < neighbors.size(); ++k){
+        tmp -= opr_data[neighbors[k]]*dst[index<Level>(i, j, neighbors[k])];
       }
 
       dst[index<Level>(i, j, VERTEX_C)] = tmp/opr_data[VERTEX_C];

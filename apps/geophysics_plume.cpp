@@ -11,20 +11,6 @@ using walberla::uint_c;
 
 using namespace hhg;
 
-void projectMean(hhg::P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {
-
-  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D& x) {
-    return 1.0;
-  };
-
-  tmp.interpolate(ones, level);
-
-  real_t numGlobalVertices = tmp.dot(tmp, level, hhg::All);
-  real_t mean = pressure.dot(tmp, level, hhg::All);
-
-  pressure.assign({1.0, -mean/numGlobalVertices}, {&pressure, &tmp}, level, hhg::All);
-}
-
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
