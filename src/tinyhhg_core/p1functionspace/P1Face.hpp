@@ -125,15 +125,21 @@ inline void addTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
+  ValueType* dstPtr = face.getData(dstId)->getPointer( Level );
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       ValueType tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k] * srcPtr[k][index<Level>(i, j, VERTEX_C)];
       }
 
-      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] += tmp;
+      dstPtr[index<Level>(i, j, VERTEX_C)] += tmp;
     }
 
     --inner_rowsize;
@@ -152,10 +158,13 @@ inline real_t dotTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
+  ValueType* lhsPtr = face.getData(lhsId)->getPointer( Level );
+  ValueType* rhsPtr = face.getData(rhsId)->getPointer( Level );
+
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      sp += face.getData(lhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)]
-          *face.getData(rhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+      sp += lhsPtr[index<Level>(i, j, VERTEX_C)]
+          * rhsPtr[index<Level>(i, j, VERTEX_C)];
     }
     --inner_rowsize;
   }
