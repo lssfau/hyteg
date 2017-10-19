@@ -447,7 +447,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, u
 
 inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {
 
-  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) {
     return 1.0;
   };
 

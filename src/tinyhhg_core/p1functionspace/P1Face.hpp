@@ -94,14 +94,20 @@ inline void assignTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
+  ValueType* dst = face.getData(dstId)->getPointer( Level );
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+      ValueType tmp = scalars[0]*srcPtr[0][index<Level>(i, j, VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k]*srcPtr[k][index<Level>(i, j, VERTEX_C)];
       }
-      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] = tmp;
+      dst[index<Level>(i, j, VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }

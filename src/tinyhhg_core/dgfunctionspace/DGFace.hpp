@@ -145,17 +145,20 @@ inline void assignTmpl(Face &face,
   size_t inner_rowsize = rowsize;
 
   auto dst = face.getData(dstId)->getPointer(Level);
-
+  std::vector<ValueType*> srcPtr(srcIds.size());
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
   // gray cells
   for (size_t j = 1; j < rowsize - 2; ++j) {
     for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
       auto cellIndex = BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C);
 
-      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[cellIndex];
+      ValueType tmp = scalars[0]*srcPtr[0][cellIndex];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+        tmp += scalars[k]*srcPtr[k][cellIndex];
       }
 
       dst[cellIndex] = tmp;
