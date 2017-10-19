@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_CHECK_LESS( i, outer );
 
-  hhg::VTKWriter< hhg::P1Function< real_t > >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
+  //hhg::VTKWriter< hhg::P1Function< real_t > >({ &x, &b, &x_exact }, maxLevel, "../../output", "test");
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;
 }
