@@ -145,7 +145,7 @@ inline void assignTmpl(Face &face,
   size_t inner_rowsize = rowsize;
 
   auto dst = face.getData(dstId)->getPointer(Level);
-  std::vector<ValueType*> srcPtr(srcIds.size());
+  std::vector<ValueType*> srcPtr;
   for(auto src : srcIds){
     srcPtr.push_back(face.getData(src)->getPointer( Level ));
   }
