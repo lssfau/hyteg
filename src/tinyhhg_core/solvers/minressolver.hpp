@@ -70,9 +70,11 @@ public:
     real_t c_old = 1.0;
     real_t c_new = 1.0;
 
-    if (gamma_new < tolerance && printInfo)
+    if (gamma_new < tolerance)
     {
-      WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
+      if (printInfo) {
+        WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
+      }
       return;
     }
 
