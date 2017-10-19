@@ -110,8 +110,7 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      // TODO
-//      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
+      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
     }
   }
 
