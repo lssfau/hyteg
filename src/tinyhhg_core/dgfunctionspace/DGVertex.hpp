@@ -52,9 +52,9 @@ inline void assignTmpl(Vertex &vertex,
   for(uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
     uint_t index = i * 2;
     //tmp is necessary since dstId can also be in srcIds
-    ValueType tmp = scalars[0] * *vertex.getData(srcIds[0])->getPointer( Level )[index];
+    ValueType tmp = scalars[0] * vertex.getData(srcIds[0])->getPointer( Level )[index];
     for(uint_t k = 1; k < srcIds.size(); ++k){
-      tmp += scalars[k] * *vertex.getData(srcIds[k])->getPointer( Level )[index];
+      tmp += scalars[k] * vertex.getData(srcIds[k])->getPointer( Level )[index];
     }
     dst[index] = tmp;
   }

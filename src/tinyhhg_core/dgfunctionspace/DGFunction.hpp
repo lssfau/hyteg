@@ -159,8 +159,7 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      // TODO
-//      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
+      DGVertex::assign< ValueType >(level, vertex, scalars, srcVertexIDs, vertexDataID_);
     }
   }
 
