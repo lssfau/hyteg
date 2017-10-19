@@ -40,7 +40,7 @@ public:
       // pre-smooth
       for (size_t i = 0; i < nuPre_; ++i)
       {
-        uzawaSmooth(A, x, b, r, level, flag);
+//        uzawaSmooth(A, x, b, r, level, flag);
       }
 
       A.apply(x, ax_, level, flag);
@@ -67,7 +67,7 @@ public:
       // post-smooth
       for (size_t i = 0; i < nuPost_; ++i)
       {
-        uzawaSmooth(A, x, b, r, level, flag);
+//        uzawaSmooth(A, x, b, r, level, flag);
       }
 
     }
