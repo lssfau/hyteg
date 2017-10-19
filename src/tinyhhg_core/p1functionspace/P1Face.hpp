@@ -99,9 +99,9 @@ inline void assignTmpl(Face &face,
   for(auto src : srcIds){
     srcPtr.push_back(face.getData(src)->getPointer( Level ));
   }
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       ValueType tmp = scalars[0]*srcPtr[0][index<Level>(i, j, VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {

@@ -31,6 +31,9 @@ public:
     {
       communicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
     }
+    if(storage->getTimingTree()){
+      enableTiming(storage->getTimingTree());
+    }
   }
 
   virtual ~Function() {}

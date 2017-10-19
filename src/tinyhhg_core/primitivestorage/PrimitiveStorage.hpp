@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/logging/Logging.h"
+#include "core/timing/TimingTree.h"
 #include "tinyhhg_core/primitiveid.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
@@ -212,6 +213,14 @@ public:
   void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
 
+  inline void enableGlobalTiming(){
+    timingTree_ = std::make_shared<walberla::WcTimingTree>();
+  }
+
+  inline std::shared_ptr< walberla::WcTimingTree >& getTimingTree(){
+    return timingTree_;
+  }
+
 private:
 
   // needed to differentiate when migrating primitives
@@ -348,6 +357,8 @@ private:
 
   void wasModified() { modificationStamp_++; }
   uint_t modificationStamp_;
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
 };
 
