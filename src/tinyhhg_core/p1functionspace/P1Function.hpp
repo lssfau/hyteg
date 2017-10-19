@@ -445,4 +445,18 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, u
   communicators_[level]->template endCommunication<Edge, Face>();
 }
 
+inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {
+
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D& x) {
+    return 1.0;
+  };
+
+  tmp.interpolate(ones, level);
+
+  real_t numGlobalVertices = tmp.dot(tmp, level, hhg::All);
+  real_t mean = pressure.dot(tmp, level, hhg::All);
+
+  pressure.assign({1.0, -mean/numGlobalVertices}, {&pressure, &tmp}, level, hhg::All);
+}
+
 }

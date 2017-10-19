@@ -70,6 +70,10 @@ public:
     real_t c_old = 1.0;
     real_t c_new = 1.0;
 
+    if (printInfo) {
+      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", std::abs(gamma_new)));
+    }
+
     if (gamma_new < tolerance)
     {
       if (printInfo) {
