@@ -17,6 +17,9 @@ public:
   Operator(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
     : storage_(storage), minLevel_(minLevel), maxLevel_(maxLevel)
   {
+  if(storage->getTimingTree()){
+      enableTiming(storage->getTimingTree());
+    }
   }
 
   virtual ~Operator()
