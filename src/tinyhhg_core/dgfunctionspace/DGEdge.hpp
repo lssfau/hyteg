@@ -249,11 +249,21 @@ inline void interpolateTmpl(Edge &edge,
   Point3D face0d2 = (face0->getCoordinates()[outerVertexOnFace0] - x0) /
                     (walberla::real_c(rowsize - 1));
 
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcMemoryIds){
+    srcPtr.push_back(edge.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcMemoryIds.size());
 
   // gray south cells
   x = x0 + 1.0/3.0 * (face0d0 + face0d2) + dx;
   for (size_t i = 1; i < rowsize - 2; ++i) {
-    edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x);
+
+    for (size_t k = 0; k < srcPtr.size(); ++k) {
+      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)];
+    }
+    edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x,srcVector);
     x += dx;
   }
 
@@ -268,7 +278,12 @@ inline void interpolateTmpl(Edge &edge,
 
     x = x0 + 1.0 / 3.0 * (face1d0 + face1d2) + dx;
     for (size_t i = 1; i < rowsize - 2; ++i) {
-      edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x);
+
+      for (size_t k = 0; k < srcPtr.size(); ++k) {
+        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+      }
+
+      edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x,srcVector);
       x += dx;
     }
   }

@@ -30,13 +30,26 @@ inline void interpolateTmpl(Vertex &vertex,
   Point3D dir2;
   Point3D x;
 
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcMemoryIds){
+    srcPtr.push_back(vertex.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcMemoryIds.size());
+
+
+
   for(auto faceIt : vertex.neighborFaces()){
     Face* face = storage->getFace(faceIt.getID());
     uint_t vertexIdOnFace = face->vertex_index(vertex.getID());
     dir1 = (face->getCoordinates()[(vertexIdOnFace + 1) % 3] - vertex.getCoordinates())/(walberla::real_c(rowsize - 1));
     dir2 = (face->getCoordinates()[(vertexIdOnFace + 2) % 3] - vertex.getCoordinates())/(walberla::real_c(rowsize - 1));
     x = vertex.getCoordinates() + 1.0 / 3.0 * (dir1 + dir2);
-    vertexMemory[vertex.face_index(face->getID()) * 2] = expr(x);
+    for (size_t k = 0; k < srcPtr.size(); ++k) {
+      srcVector[k] = srcPtr[k][vertex.face_index(face->getID()) * 2];
+    }
+
+    vertexMemory[vertex.face_index(face->getID()) * 2] = expr(x, srcVector);
   }
 }
 

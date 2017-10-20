@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_2el.msh";
+  std::string meshFileName = "../data/meshes/annulus.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -29,13 +29,19 @@ int main(int argc, char* argv[])
   const uint_t timesteps = 500000;
   real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
 
-  std::function<real_t(const hhg::Point3D&)> initialConcentration = [dt](const hhg::Point3D& x) {
-
-    if (x[1] < 2.1/3.0 * dt/0.75) {
-      return 100.0 * sin(M_PI*x[0]);
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [dt](const hhg::Point3D& x,const std::vector<real_t>&) {
+    if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
+      return 1;
     } else {
-      return 0.0;
+      return 0;
     }
+//
+//
+//    if (x[1] < 2.1/3.0 * dt/0.75) {
+//      return 100.0 * sin(M_PI*x[0]);
+//    } else {
+//      return 0.0;
+//    }
 
   };
 
@@ -57,7 +63,7 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   // Interpolate initial functions
-  c_old->interpolate(initialConcentration, maxLevel);
+  c_old->interpolate(initialConcentration,{}, maxLevel);
   c->assign({1.0}, {c_old.get()}, maxLevel);
   f->v.integrateDG(*c_old, maxLevel, hhg::All);
 
