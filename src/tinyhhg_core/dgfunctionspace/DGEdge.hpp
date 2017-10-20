@@ -227,7 +227,8 @@ SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Edge &edge,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
-                            std::function<ValueType(const hhg::Point3D &)> &expr,
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<real_t>& f)> &expr,
                             const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto edgeMemory = edge.getData(edgeMemoryId)->getPointer( Level );

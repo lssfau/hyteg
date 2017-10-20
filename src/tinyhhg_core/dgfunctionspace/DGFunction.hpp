@@ -42,6 +42,8 @@ public:
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Face> &getFaceDataID() const { return faceDataID_; }
 
+  void interpolate(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr, const std::vector<DGFunction<ValueType>*> srcFunctions, uint_t level, DoFType flag = All);
+
 private:
 
   using Function<DGFunction<ValueType> >::storage_;
@@ -102,15 +104,28 @@ void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, con
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &)> &expr,
-                                               uint_t level,
-                                               DoFType flag) {
+void DGFunction< ValueType >::interpolate(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                          const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                          uint_t level,
+                                          DoFType flag) {
+
+  // Collect all source IDs in a vector
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
+
+  for (auto& function : srcFunctions)
+  {
+    srcVertexIDs.push_back(function->vertexDataID_);
+    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcFaceIDs.push_back(function->faceDataID_);
+  }
 
   for (auto &it : storage_->getVertices()) {
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, expr, storage_);
+      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, srcVertexIDs, expr, storage_);
     }
   }
 
@@ -120,7 +135,7 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, expr, storage_);
+      DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr, storage_);
     }
   }
 
@@ -131,11 +146,19 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
-      DGFace::interpolate< ValueType >(level, face, faceDataID_, expr);
+      DGFace::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
     }
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+}
+
+template< typename ValueType >
+inline void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag) {
+  std::function<ValueType(const Point3D&, const std::vector<ValueType>&)> tmpExpr = [&] (const Point3D& x, const std::vector<ValueType>&) {
+    return expr(x);
+  };
+  interpolate(tmpExpr, {}, level, flag);
 }
 
 template< typename ValueType >

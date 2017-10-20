@@ -40,7 +40,8 @@ SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
-                            std::function<ValueType(const hhg::Point3D &)> &expr) {
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>& srcMemoryIds,
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<real_t>& f)> &expr) {
 
   auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
 
@@ -54,13 +55,25 @@ inline void interpolateTmpl(Face &face,
 
   uint_t inner_rowsize = rowsize;
 
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcMemoryIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcMemoryIds.size());
+
   // gray cells
   for (size_t j = 1; j < rowsize - 2; ++j) {
 
     x = x0 + 1.0/3.0 * (d0 + d2) + walberla::real_c(j) * d2 + d0;
 
     for (size_t i = 1; i < inner_rowsize - 3; ++i) {
-      faceMemory[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = expr(x);
+
+      for (size_t k = 0; k < srcPtr.size(); ++k) {
+        srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      }
+
+      faceMemory[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = expr(x, srcVector);
       x += d0;
     }
     --inner_rowsize;
