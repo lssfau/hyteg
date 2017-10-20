@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 7;
-  const uint_t solverMaxiter = 20;
+  const uint_t maxLevel = 3;
+  const uint_t solverMaxiter = 100;
   const uint_t timesteps = 500000;
   real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
 
@@ -35,14 +35,14 @@ int main(int argc, char* argv[])
     } else {
       return 0;
     }
-//
-//
-//    if (x[1] < 2.1/3.0 * dt/0.75) {
-//      return 100.0 * sin(M_PI*x[0]);
-//    } else {
-//      return 0.0;
-//    }
+  };
 
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_x = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
+    return val[0] * std::cos(std::atan2 (x[1], x[0]));
+  };
+
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_y = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
+    return val[0] * std::sin(std::atan2 (x[1], x[0]));
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -50,6 +50,10 @@ int main(int argc, char* argv[])
   // Setting up Functions
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
   auto c = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
+
+  auto f_dg_x = std::make_shared<hhg::DGFunction<real_t>>("f_dg_x", storage, minLevel, maxLevel);
+  auto f_dg_y = std::make_shared<hhg::DGFunction<real_t>>("f_dg_y", storage, minLevel, maxLevel);
+
   auto r = std::make_shared<hhg::P1StokesFunction<real_t>>("r", storage, minLevel, maxLevel);
   auto f = std::make_shared<hhg::P1StokesFunction<real_t>>("f", storage, minLevel, maxLevel);
   auto u = std::make_shared<hhg::P1StokesFunction<real_t>>("u", storage, minLevel, maxLevel);
@@ -65,7 +69,12 @@ int main(int argc, char* argv[])
   // Interpolate initial functions
   c_old->interpolate(initialConcentration,{}, maxLevel);
   c->assign({1.0}, {c_old.get()}, maxLevel);
-  f->v.integrateDG(*c_old, maxLevel, hhg::All);
+
+  f_dg_x->interpolate(expr_f_x, { c_old.get() }, maxLevel);
+  f_dg_y->interpolate(expr_f_y, { c_old.get() }, maxLevel);
+
+  f->u.integrateDG(*f_dg_x, maxLevel, hhg::All);
+  f->v.integrateDG(*f_dg_y, maxLevel, hhg::All);
 
   L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
@@ -76,7 +85,12 @@ int main(int argc, char* argv[])
   for (uint_t t = 0; t <= timesteps; ++t) {
 
     if (t % 100 == 0) {
-      f->v.integrateDG(*c_old, maxLevel, hhg::All);
+
+      f_dg_x->interpolate(expr_f_x, { c_old.get() }, maxLevel);
+      f_dg_y->interpolate(expr_f_y, { c_old.get() }, maxLevel);
+
+      f->u.integrateDG(*f_dg_x, maxLevel, hhg::All);
+      f->v.integrateDG(*f_dg_y, maxLevel, hhg::All);
 
       for (uint_t outer = 0; outer < 5; ++outer) {
         solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
