@@ -42,5 +42,3 @@ public:
 };
 
 }
-
-#endif //TINYHHG_P1STOKESOPERATOR_HPP
