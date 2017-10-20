@@ -219,6 +219,32 @@ inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <Verte
   dst[0] = static_cast< ValueType >( num++ );
 }
 
+template< typename ValueType >
+inline void integrateDG(Vertex &vertex,
+                            const std::shared_ptr< PrimitiveStorage >& storage,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
+                            uint_t level) {
+
+  auto rhs = vertex.getData(rhsId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+
+  ValueType tmp = 0.0;
+
+  for(auto faceIt : vertex.neighborFaces()) {
+    Face *face = storage->getFace(faceIt.getID());
+
+    real_t weightedFaceArea = std::pow(4.0, -walberla::real_c(level))*face->area / 3.0;
+
+    uint_t localFaceId = vertex.face_index(face->getID());
+
+    uint_t faceMemoryIndex = 2 * localFaceId;
+    tmp += weightedFaceArea * rhs[faceMemoryIndex];
+  }
+
+  dst[0] = tmp;
+}
+
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,

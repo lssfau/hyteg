@@ -417,7 +417,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, u
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-//      P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), vertexDataID_, level);
     }
   }
 
