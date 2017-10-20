@@ -214,7 +214,9 @@ public:
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
 
   inline void enableGlobalTiming(){
-    timingTree_ = std::make_shared<walberla::WcTimingTree>();
+    if(!timingTree_) {
+      timingTree_ = std::make_shared<walberla::WcTimingTree>();
+    }
   }
 
   inline std::shared_ptr< walberla::WcTimingTree >& getTimingTree(){

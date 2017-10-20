@@ -1,5 +1,4 @@
-#ifndef TINYHHG_P1STOKESOPERATOR_HPP
-#define TINYHHG_P1STOKESOPERATOR_HPP
+#pragma once
 
 #include "tinyhhg_core/composites/p1stokesfunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
