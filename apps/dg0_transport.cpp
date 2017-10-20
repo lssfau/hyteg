@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_2el.msh";
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -23,25 +23,27 @@ int main(int argc, char* argv[])
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 7;
-  const uint_t timesteps = 10000;
+  const uint_t timesteps = 10;
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
   std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
-    if ((x - Point3D{{{0.15, 0.85, 0.0}}}).norm() < 0.1) {
+    if ((x - Point3D{{{0.5, 0.5, 0.0}}}).norm() < 0.1) {
       return 1.0;
     } else {
       return 0.0;
     }
-//    return x[0]+1;
+//    return 1.0;
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D& x) {
-    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
+//    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
+    return 1.0;
   };
 
   std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D& x) {
-    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
+//    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
+    return 0.0;
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -59,18 +61,18 @@ int main(int argc, char* argv[])
   v->interpolate(vel_y, maxLevel);
   c_old->interpolate(initialConcentration, maxLevel);
 
-  //hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >, maxLevel>({ u.get(), v.get() }, { c_old.get(), c.get() }, "../output", fmt::format("dg0_transport-{:0>6}", 0));
+  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ u.get(), v.get() }, { c_old.get(), c.get() }, "../output", fmt::format("dg0_transport-{:0>6}", 0), maxLevel);
 
   for(uint_t i = 1; i <= timesteps; i++) {
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
     c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
 //    if (i % 50 == 0) {
-//      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>, maxLevel>({u.get(), v.get()},
-//                                                                                 {c_old.get(), c.get()},
-//                                                                                 "../output",
-//                                                                                 fmt::format("dg0_transport-{:0>6}",
-//                                                                                             i));
+      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({u.get(), v.get()},
+                                                                                 {c_old.get(), c.get()},
+                                                                                 "../output",
+                                                                                 fmt::format("dg0_transport-{:0>6}",
+                                                                                             i),  maxLevel);
 //    }
 
     c_old.swap(c);

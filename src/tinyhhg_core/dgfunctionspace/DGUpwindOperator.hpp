@@ -28,21 +28,28 @@ private:
 
   void apply_impl(DGFunction< real_t >& src, DGFunction< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType = Replace)
   {
+    // start pulling edge halos
+    src.getCommunicator(level)->startCommunication<Face, Edge>();
+
+    // end pulling edge halos
+    src.getCommunicator(level)->endCommunication<Face, Edge>();
+
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
+
+    // end pulling vertex halos
+    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
 
     for(auto velocityComponent : velocity_) {
       velocityComponent->getCommunicator(level)->template startCommunication<Edge, Vertex>();
     }
 
-    // start pulling edge halos
-    src.getCommunicator(level)->startCommunication<Face, Edge>();
+
     for(auto velocityComponent : velocity_) {
       velocityComponent->getCommunicator(level)->template startCommunication<Face, Edge>();
     }
 
-    // end pulling vertex halos
-    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
     for(auto velocityComponent : velocity_) {
       velocityComponent->getCommunicator(level)->template endCommunication<Edge, Vertex>();
     }
@@ -52,14 +59,12 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-//        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficient_->getVertexDataID(), level, updateType);
+        DGVertex::upwind< real_t >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), std::array<PrimitiveDataID< FunctionMemory< real_t >, Vertex>, 2>{{velocity_[0]->getVertexDataID(), velocity_[1]->getVertexDataID()}}, updateType);
       }
     }
 
     dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
 
-    // end pulling edge halos
-    src.getCommunicator(level)->endCommunication<Face, Edge>();
     for(auto velocityComponent : velocity_) {
       velocityComponent->getCommunicator(level)->template endCommunication<Face, Edge>();
     }
