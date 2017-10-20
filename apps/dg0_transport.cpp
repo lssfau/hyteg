@@ -61,18 +61,17 @@ int main(int argc, char* argv[])
   v->interpolate(vel_y, maxLevel);
   c_old->interpolate(initialConcentration,{}, maxLevel);
 
-  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ u.get(), v.get() }, { c_old.get(), c.get() }, "../output", fmt::format("dg0_transport-{:0>6}", 0), maxLevel);
+  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({u.get(), v.get()}, {c_old.get(), c.get()}, maxLevel,
+                                                                    "../output", fmt::format("dg0_transport-{:0>6}", 0));
 
   for(uint_t i = 1; i <= timesteps; i++) {
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
     c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
 //    if (i % 50 == 0) {
-      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({u.get(), v.get()},
-                                                                                 {c_old.get(), c.get()},
-                                                                                 "../output",
-                                                                                 fmt::format("dg0_transport-{:0>6}",
-                                                                                             i),  maxLevel);
+    hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({u.get(), v.get()}, {c_old.get(), c.get()}, maxLevel,
+                                                                     "../output", fmt::format("dg0_transport-{:0>6}",
+                                                                                              i));
 //    }
 
     c_old.swap(c);

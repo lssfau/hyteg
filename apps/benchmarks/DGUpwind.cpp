@@ -11,13 +11,13 @@ using namespace hhg;
 
 int main(int argc, char **argv) {
 
-  LIKWID_MARKER_INIT;
+  //LIKWID_MARKER_INIT;
 
   walberla::debug::enterTestMode();
   walberla::mpi::Environment MPIenv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  LIKWID_MARKER_THREADINIT;
+  //LIKWID_MARKER_THREADINIT;
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile("../data/meshes/tri_1el.msh");
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
@@ -27,15 +27,16 @@ int main(int argc, char **argv) {
 
   std::minstd_rand0 generator(42);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [&](const hhg::Point3D&) { return generator(); };
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> exact =
+    [&](const hhg::Point3D& x,const std::vector<real_t>&) { return generator(); };
 
   std::shared_ptr<Face> face = storage->getFaces().begin().operator*().second;
 
   DGFunction< real_t > x("x", storage, level, level);
 
-  LIKWID_MARKER_START("interpolate");
-  DGFace::interpolate< real_t >(level,*face,x.getFaceDataID(),exact);
-  LIKWID_MARKER_STOP("interpolate");
+  //LIKWID_MARKER_START("interpolate");
+  DGFace::interpolateTmpl< real_t, level>(*face,x.getFaceDataID(), {}, exact);
+  //LIKWID_MARKER_STOP("interpolate");
 
 
 

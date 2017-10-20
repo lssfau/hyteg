@@ -90,7 +90,8 @@ int main(int argc, char* argv[])
       }
 
 
-      hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &u->u, &u->v, &u->p, &f->u, &f->v }, { c_old.get() }, "../output", fmt::format("plume-{:0>6}", t),maxLevel);
+      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
+                                                                        "../output", fmt::format("plume-{:0>6}", t));
     }
 
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);

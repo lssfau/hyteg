@@ -36,7 +36,8 @@ static void testFunctionMemorySerialization()
   }
 
   writeDomainPartitioningVTK( storage, "../../output/", "function_memory_serialization_test_domain_before_migration" );
-  VTKWriter< P1Function< real_t > >( {&x}, maxLevel, "../../output/", "function_memory_serialization_test_data_before_migration" );
+  VTKWriter<P1Function<real_t>, DGFunction<real_t> >({&x},{}, maxLevel,
+                                 "../../output/", "function_memory_serialization_test_data_before_migration");
 
   WALBERLA_LOG_INFO( "Number of local primitives (before migration): " << storage->getNumberOfLocalPrimitives() );
 
@@ -52,7 +53,8 @@ static void testFunctionMemorySerialization()
   WALBERLA_LOG_INFO( "Number of local primitives (after migration): " << storage->getNumberOfLocalPrimitives() );
 
   writeDomainPartitioningVTK( storage, "../../output/", "function_memory_serialization_test_domain_after_migration" );
-  VTKWriter< P1Function< real_t > >( {&x}, maxLevel, "../../output/", "function_memory_serialization_test_data_after_migration" );
+  VTKWriter<P1Function<real_t>, DGFunction<real_t> >({&x},{}, maxLevel,
+                                 "../../output/", "function_memory_serialization_test_data_after_migration");
 
 }
 

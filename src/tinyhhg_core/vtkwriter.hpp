@@ -26,11 +26,9 @@ using walberla::real_c;
 typedef walberla::uint64_t uint64_t;
 
 template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
-void VTKWriter(std::vector<const Function< ContinuousFunctionType > *> functionsC,
-               std::vector<const Function< DiscontinuousFunctionType > *> functionsD,
-               const std::string& dir,
-               const std::string& filename,
-               const uint_t level)
+void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
+               std::vector<const Function<DiscontinuousFunctionType> *> functionsD, const uint_t level, const std::string &dir,
+               const std::string &filename)
 {
   uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());

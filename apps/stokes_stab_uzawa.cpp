@@ -54,7 +54,8 @@ int main(int argc, char* argv[])
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   WALBERLA_LOG_DEVEL("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
 
-  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &u->u, &u->v, &u->p, &f->u, &f->v, &f->p }, { }, "../output", "before", maxLevel);
+  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v, &f->p}, {}, maxLevel,
+                                                                    "../output", "before");
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
@@ -69,6 +70,7 @@ int main(int argc, char* argv[])
     WALBERLA_LOG_DEVEL("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
   }
 
-  hhg::VTKWriter<hhg::P1Function< real_t >, hhg::DGFunction< real_t >>({ &u->u, &u->v, &u->p, &f->u, &f->v, &f->p }, { }, "../output", "after", maxLevel);
+  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v, &f->p}, {}, maxLevel,
+                                                                    "../output", "after");
   return EXIT_SUCCESS;
 }
