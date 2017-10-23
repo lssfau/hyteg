@@ -88,7 +88,7 @@ inline void interpolateTmpl(Face &face,
 
     for (size_t i = 0; i < inner_rowsize - 2; ++i) {
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+        srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
       }
 
       faceMemory[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = expr(x, srcVector);
