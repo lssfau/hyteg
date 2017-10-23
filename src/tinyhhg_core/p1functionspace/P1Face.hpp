@@ -62,6 +62,8 @@ inline void interpolateTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
 
+  auto dstPtr = faceMemory->getPointer( Level );
+
   x0 = face.coords[0];
 
   Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
@@ -74,7 +76,7 @@ inline void interpolateTmpl(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      faceMemory->getPointer( Level )[index<Level>(j, i, VERTEX_C)] = expr(x);
+      dstPtr[index<Level>(j, i, VERTEX_C)] = expr(x);
       x += d0;
     }
 

@@ -66,11 +66,10 @@ waLBerla_add_executable( NAME stokes_mini_petsc
         DEPENDS tinyhhg_core fmt)
 endif()
 
-if( HHG_BUILD_WITH_LIKWID )
-    waLBerla_add_executable( NAME DGUpwind
-            FILES benchmarks/DGUpwind.cpp
-            DEPENDS tinyhhg_core fmt)
-endif()
+waLBerla_add_executable( NAME DGUpwind
+        FILES benchmarks/CompareInterpolate.cpp
+        DEPENDS tinyhhg_core fmt)
+
 
 
 
