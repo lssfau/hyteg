@@ -36,12 +36,12 @@ int main(int argc, char* argv[])
 //    return 1.0;
   };
 
-  std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D&) {
 //    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
     return 1.0;
   };
 
-  std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D&) {
 //    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
     return 0.0;
   };
