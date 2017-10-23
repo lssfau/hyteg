@@ -10,18 +10,6 @@ namespace BubbleEdge{
 //FIXME this can be removed after we moved into walberla namespace
 using namespace walberla::mpistubs;
 
-namespace EdgeCoordsVertex {
-enum DirVertex {
-  CELL_GRAY_SW = 0,
-  CELL_BLUE_SE = 1,
-  CELL_GRAY_SE = 2,
-  CELL_GRAY_NW = 3,
-  CELL_BLUE_NW = 4,
-  CELL_GRAY_NE = 5
-};
-
-}//namespace EdgeCoordsVertex
-
 constexpr inline uint_t indexEdgeStencil(const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir) {

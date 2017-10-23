@@ -151,7 +151,7 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      tmp = face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C] * src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      tmp = face_gray_stencil[0] * src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
 
       if (update == Replace) {
         dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
@@ -168,7 +168,7 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      tmp = face_blue_stencil[0] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       if (update == Replace) {
         dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
