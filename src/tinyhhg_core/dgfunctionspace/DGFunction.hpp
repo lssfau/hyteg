@@ -158,7 +158,8 @@ inline void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(co
   std::function<ValueType(const Point3D&, const std::vector<ValueType>&)> tmpExpr = [&] (const Point3D& x, const std::vector<ValueType>&) {
     return expr(x);
   };
-  interpolate(tmpExpr, {}, level, flag);
+  WALBERLA_ABORT("this does not work currently use other interpolate")
+  //interpolate(tmpExpr, {}, level, flag);
 }
 
 template< typename ValueType >
