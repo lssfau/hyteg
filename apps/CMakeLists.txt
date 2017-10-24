@@ -66,10 +66,13 @@ waLBerla_add_executable( NAME stokes_mini_petsc
         DEPENDS tinyhhg_core fmt)
 endif()
 
-waLBerla_add_executable( NAME DGUpwind
+waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME ApplyBenchmark
+        FILES benchmarks/ApplyBenchmark.cpp
+        DEPENDS tinyhhg_core fmt)
 
 
 

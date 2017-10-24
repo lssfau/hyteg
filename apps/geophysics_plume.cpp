@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
   L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-  WALBERLA_LOG_DEVEL("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
+  WALBERLA_LOG_PROGRESS("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
         projectMean(u->p, *tmp, maxLevel);
 
         r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-        WALBERLA_LOG_DEVEL("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
+        WALBERLA_LOG_PROGRESS("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
       }
 
       timingTree->start("VTK");
@@ -122,7 +122,8 @@ int main(int argc, char* argv[])
   }
 
   timingTree->stop("Global");
-  WALBERLA_LOG_INFO_ON_ROOT(timingTree->getReduced());
+  auto reduced_tt = timingTree->getReduced();
+  WALBERLA_LOG_INFO_ON_ROOT(reduced_tt);
 
   return EXIT_SUCCESS;
 }

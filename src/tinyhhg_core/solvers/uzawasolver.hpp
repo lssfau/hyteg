@@ -31,13 +31,10 @@ public:
   {
 
     if (level == minLevel_) {
-      WALBERLA_LOG_DEVEL("Coarse grid solve..." << level)
       coarseSolver_.solve(A, x, b, r, level, tolerance, maxiter, flag, false);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
-      WALBERLA_LOG_DEVEL("Smooth..." << level)
-
       // pre-smooth
       for (size_t i = 0; i < nuPre_; ++i)
       {
