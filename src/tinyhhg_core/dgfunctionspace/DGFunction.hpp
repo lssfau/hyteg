@@ -109,6 +109,8 @@ void DGFunction< ValueType >::interpolate(std::function<ValueType(const Point3D 
                                           uint_t level,
                                           DoFType flag) {
 
+  this->startTiming( "Interpolate");
+
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -151,6 +153,9 @@ void DGFunction< ValueType >::interpolate(std::function<ValueType(const Point3D 
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+
+  this->stopTiming( "Interpolate");
+
 }
 
 template< typename ValueType >

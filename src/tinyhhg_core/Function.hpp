@@ -129,8 +129,6 @@ protected:
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
-private:
-
   void startTiming( const std::string & timerString )
   {
     if ( timingTree_ )

@@ -16,6 +16,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+  timingTree->start("Global");
+
   std::string meshFileName = "../data/meshes/annulus.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
@@ -26,7 +30,7 @@ int main(int argc, char* argv[])
   const uint_t minLevel = 2;
   const uint_t maxLevel = 3;
   const uint_t solverMaxiter = 100;
-  const uint_t timesteps = 500000;
+  const uint_t timesteps = 5000;
   real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
 
   std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [dt](const hhg::Point3D& x,const std::vector<real_t>&) {
@@ -46,6 +50,8 @@ int main(int argc, char* argv[])
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+
+  storage->enableGlobalTiming(timingTree);
 
   // Setting up Functions
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
@@ -103,9 +109,10 @@ int main(int argc, char* argv[])
         WALBERLA_LOG_DEVEL("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
       }
 
-
+      timingTree->start("VTK");
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
                                                                         "../output", fmt::format("plume-{:0>6}", t));
+      timingTree->stop("VTK");
     }
 
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
@@ -113,6 +120,9 @@ int main(int argc, char* argv[])
 
     c_old.swap(c);
   }
+
+  timingTree->stop("Global");
+  WALBERLA_LOG_INFO_ON_ROOT(timingTree->getReduced());
 
   return EXIT_SUCCESS;
 }

@@ -192,10 +192,10 @@ inline void assignTmpl(Face &face,
 
       auto cellIndex = BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C);
 
-      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[cellIndex];
+      ValueType tmp = scalars[0]*srcPtr[0][cellIndex];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[cellIndex];
+        tmp += scalars[k]*srcPtr[0][cellIndex];
       }
 
       dst[cellIndex] = tmp;

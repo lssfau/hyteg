@@ -213,9 +213,18 @@ public:
   void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
 
+  /// enables timing in all methods of the function spaces
   inline void enableGlobalTiming(){
     if(!timingTree_) {
       timingTree_ = std::make_shared<walberla::WcTimingTree>();
+    }
+  }
+
+  /// enables timing in all methods of the function spaces
+  /// and adds them to an existing timing tree
+  inline void enableGlobalTiming(const std::shared_ptr< walberla::WcTimingTree > & timingTree){
+    if(!timingTree_) {
+      timingTree_ = timingTree;
     }
   }
 

@@ -582,10 +582,12 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 
   uint_t mr = 1 + rowsize;
 
+  ValueType* dstPtr = face.getData(dstId)->getPointer( Level );
+
   for (uint_t i = 0; i < rowsize - 3; ++i) {
     for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
 
-      face.getData(dstId)->getPointer( Level )[mr] = static_cast<ValueType>(num);
+      dstPtr[mr] = static_cast<ValueType>(num);
       num++;
 
       mr += 1;

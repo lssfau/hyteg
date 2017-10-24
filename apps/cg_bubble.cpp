@@ -1,6 +1,5 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -21,11 +20,12 @@ int main(int argc, char* argv[])
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  size_t minLevel = 2;
-  size_t maxLevel = 2;
-  size_t maxiter = 10000;
+  const size_t minLevel = 2;
+  const size_t maxLevel = 2;
+  const size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+
 
   hhg::P1BubbleFunction<real_t> r("r", storage, minLevel, maxLevel);
   hhg::P1BubbleFunction<real_t> f("f", storage, minLevel, maxLevel);
