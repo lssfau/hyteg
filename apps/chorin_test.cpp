@@ -1,30 +1,49 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 
+#include <boost/core/null_deleter.hpp>
 #include <fmt/format.h>
 
 using walberla::real_t;
+using walberla::uint_t;
+using walberla::uint_c;
 
 int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
-  WALBERLA_LOG_INFO_ON_ROOT("Navier-Stokes solver");
 
-  hhg::Mesh mesh("../data/meshes/bfs_12el_neumann.msh");
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
 
-  real_t viscosity = 1e-1;
-  real_t dt = 1e-4;
+  real_t viscosity = 1e-3;
+  real_t dt = 5e-5;
 
-  size_t minLevel = 2;
-  size_t maxLevel = 4;
+  uint_t minLevel = 2;
+  uint_t maxLevel = 3;
+
+  real_t time = 0.0;
+  uint_t iter = 0;
+  uint_t max_cg_iter = 1000;
+
+  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
+  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  hhg::loadbalancing::roundRobin( setupStorage );
+
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-    if (x[0] < 1e-8)
-    {
-      return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
+//    if (x[0] < 1e-8)
+//    {
+//      return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
+//    }
+//    else
+//    {
+//      return 0.0;
+//    }
+    if (x[1] > 1.0 - 1e-3) {
+      return std::sin(M_PI*x[0]);
     }
-    else
-    {
+    else {
       return 0.0;
     }
   };
@@ -36,52 +55,72 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> one = [](const hhg::Point3D&) { return 1.0; };
 
-  hhg::P1FunctionOld u("u", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld v("v", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld p("p", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld p_rhs("p_rhs", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld p_res("p_res", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld tmp("tmp", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld tmp2("tmp2", mesh, minLevel, maxLevel);
-  hhg::P1FunctionOld res("res", mesh, minLevel, maxLevel);
+  hhg::P1Function<real_t> u("u", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> v("v", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> p("p", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> p_rhs("p_rhs", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> p_res("p_res", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> tmp("tmp", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> tmp2("tmp2", storage, minLevel, maxLevel);
+  hhg::P1Function<real_t> res("res", storage, minLevel, maxLevel);
 
-  hhg::P1LaplaceOperator A(mesh, minLevel, maxLevel);
-  hhg::P1DivxOperator div_x(mesh, minLevel, maxLevel);
-  hhg::P1DivyOperator div_y(mesh, minLevel, maxLevel);
-  hhg::P1DivTxOperator divT_x(mesh, minLevel, maxLevel);
-  hhg::P1DivTyOperator divT_y(mesh, minLevel, maxLevel);
-  hhg::P1MassOperator mass(mesh, minLevel, maxLevel);
+  auto u_dg = std::make_shared<hhg::DGFunction<real_t>>("u_dg", storage, minLevel, maxLevel);
+  auto v_dg = std::make_shared<hhg::DGFunction<real_t>>("v_dg", storage, minLevel, maxLevel);
 
-  real_t time = 0.0;
-  size_t iter = 0;
-  size_t max_cg_iter = 10000;
+  auto u_dg_old = std::make_shared<hhg::DGFunction<real_t>>("u_dg", storage, minLevel, maxLevel);
+  auto v_dg_old = std::make_shared<hhg::DGFunction<real_t>>("v_dg", storage, minLevel, maxLevel);
 
-  auto mass_solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1MassOperator>(mesh, minLevel, maxLevel);
-  auto laplace_solver = hhg::CGSolver<hhg::P1FunctionOld, hhg::P1LaplaceOperator>(mesh, minLevel, maxLevel);
+  hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
+  hhg::P1DivxOperator div_x(storage, minLevel, maxLevel);
+  hhg::P1DivyOperator div_y(storage, minLevel, maxLevel);
+  hhg::P1DivTxOperator divT_x(storage, minLevel, maxLevel);
+  hhg::P1DivTyOperator divT_y(storage, minLevel, maxLevel);
+  hhg::P1MassOperator mass(storage, minLevel, maxLevel);
+
+  std::array<std::shared_ptr<hhg::P1Function<real_t>>, 2> velocity{{std::shared_ptr<hhg::P1Function<real_t>>(&u, boost::null_deleter()), std::shared_ptr<hhg::P1Function<real_t>>(&v, boost::null_deleter())}};
+  hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
+
+  auto mass_solver = hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1MassOperator>(storage, minLevel, maxLevel);
+  auto laplace_solver = hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator>(storage, minLevel, maxLevel);
 
   u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
   p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
 
-  hhg::VTKWriter({&u, &v, &p, &p_rhs}, maxLevel, "../output", fmt::format("test_{:0>4}", iter));
+  u_dg->projectP1(u, maxLevel, hhg::All);
+  v_dg->projectP1(v, maxLevel, hhg::All);
+
+  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({&u, &v, &p, &p_rhs}, { u_dg.get(), v_dg.get() }, maxLevel, "../output", fmt::format("test_{:0>7}", iter));
   ++iter;
 
-  while (time < 1.0)
+  while (time < 10.0)
   {
     u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
     v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
 
+    u_dg_old->projectP1(u, maxLevel, hhg::All);
+    v_dg_old->projectP1(v, maxLevel, hhg::All);
+
+    N.apply(*u_dg_old, *u_dg, maxLevel, hhg::Inner, Replace);
+    N.apply(*v_dg_old, *v_dg, maxLevel, hhg::Inner, Replace);
+
     fmt::print("predict u\n");
     A.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.integrateDG(*u_dg, maxLevel, hhg::All);
+    tmp.assign({0.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    u.assign({1.0, -dt * viscosity}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("predict v\n");
     A.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    tmp2.integrateDG(*v_dg, maxLevel, hhg::All);
+    tmp.assign({0.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
-    v.assign({1.0, -dt * viscosity}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("solve p\n");
     p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
@@ -92,27 +131,36 @@ int main(int argc, char* argv[])
     p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
     laplace_solver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-8, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, true);
+    hhg::projectMean(p, tmp, maxLevel-1);
 
     p.prolongate(maxLevel-1, hhg::Inner | hhg::DirichletBoundary);
 
     fmt::print("correct u\n");
-    divT_x.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    divT_x.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
     u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     fmt::print("correct v\n");
-    divT_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    divT_y.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-8, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, true); // project
     v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    hhg::VTKWriter({&u, &v, &p, &p_rhs}, maxLevel, "../output", fmt::format("test_{:0>4}", iter));
+    if (iter % 1 == 0) {
+      hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p, &p_rhs }, {u_dg.get(),
+                                                                                                          v_dg.get()}, maxLevel, "../output", fmt::format(
+          "test_{:0>7}",
+          iter));
+    }
     time += dt;
     ++iter;
 
-    if (iter >= 100)
+    if (iter >= 10000)
       break;
+
+    u_dg_old.swap(u_dg);
+    v_dg_old.swap(v_dg);
   }
 
   return 0;

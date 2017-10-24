@@ -44,6 +44,8 @@ public:
 
   void interpolate(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr, const std::vector<DGFunction<ValueType>*> srcFunctions, uint_t level, DoFType flag = All);
 
+  void projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType = Replace);
+
 private:
 
   using Function<DGFunction<ValueType> >::storage_;
@@ -266,6 +268,51 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+}
+
+template< typename ValueType >
+void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType)
+{
+  src.getCommunicator(level)->template startCommunication<Edge, Vertex>();
+  src.getCommunicator(level)->template startCommunication<Face, Edge>();
+  src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      DGVertex::projectP1< real_t >(level, vertex, storage_, src.getVertexDataID(), this->getVertexDataID(), updateType);
+    }
+  }
+
+  this->getCommunicator(level)->template startCommunication<Vertex, Edge>();
+
+  src.getCommunicator(level)->template endCommunication<Face, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      DGEdge::projectP1< real_t >(level, edge, storage_, src.getEdgeDataID(), this->getEdgeDataID(), updateType);
+    }
+  }
+
+  this->getCommunicator(level)->template endCommunication<Vertex, Edge>();
+
+  this->getCommunicator(level)->template startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      DGFace::projectP1<real_t>(level, face, storage_, src.getFaceDataID(), this->getFaceDataID(), updateType);
+    }
+  }
+
+  this->getCommunicator(level)->template endCommunication<Edge, Face>();
 }
 
 }

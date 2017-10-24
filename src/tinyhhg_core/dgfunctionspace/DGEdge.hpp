@@ -326,6 +326,56 @@ inline void assignTmpl(Edge &edge,
 
 SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 
+template< typename ValueType, uint_t Level >
+inline void projectP1Tmpl(Edge &edge,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                       UpdateType updateType) {
+
+  using namespace P1Edge;
+
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  ValueType tmp;
+
+  // first face (south)
+  {
+    for (uint_t i = 1; i < rowsize - 2; ++i) {
+      tmp = 1.0/3.0*(src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)]
+                   + src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_E)]
+                   + src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_SE)]);
+
+      if (updateType==Replace) {
+        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
+      } else if (updateType==Add) {
+        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] += tmp;
+      }
+    }
+  }
+
+  // second face (north)
+  if (edge.getNumNeighborFaces() == 2)
+  {
+    for (uint_t i = 1; i < rowsize - 2; ++i) {
+      tmp = 1.0/3.0*(src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_C)]
+                   + src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_E)]
+                   + src[EdgeCoordsVertex::index<Level>(i, EdgeCoordsVertex::VERTEX_N)]);
+
+      if (updateType==Replace) {
+        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;
+      } else if (updateType==Add) {
+        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] += tmp;
+      }
+    }
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, projectP1Tmpl, projectP1 )
+
 
 }//namespace DGEdge
 }//namespace hhg

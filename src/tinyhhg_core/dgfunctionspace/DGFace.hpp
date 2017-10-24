@@ -370,5 +370,61 @@ inline void upwindTmpl(Face &face,
 
 SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
 
+template< typename ValueType, uint_t Level >
+inline void projectP1Tmpl(Face &face,
+                       const std::shared_ptr< PrimitiveStorage >& storage,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &srcId,
+                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                       UpdateType updateType) {
+
+  using namespace P1Face::FaceCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  // get memories
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto dst = face.getData(dstId)->getPointer( Level );
+
+  ValueType tmp;
+
+  for (size_t j = 1; j < rowsize - 2; ++j)
+  {
+    for (size_t i = 1; i  < inner_rowsize - 3; ++i)
+    {
+      // evalate velocities
+      tmp = 1.0/3.0 * (src[index<Level>(i, j, VERTEX_C)] + src[index<Level>(i+1, j, VERTEX_C)] + src[index<Level>(i, j+1, VERTEX_C)]);
+
+      if (updateType == Replace) {
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
+      } else if (updateType == Add) {
+        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+
+  inner_rowsize = rowsize;
+
+  for (size_t j = 0; j < rowsize - 2; ++j)
+  {
+    for (size_t i = 0; i  < inner_rowsize - 2; ++i)
+    {
+      // evalate velocities
+      tmp = 1.0/3.0 * (src[index<Level>(i, j+1, VERTEX_C)] + src[index<Level>(i+1, j+1, VERTEX_C)] + src[index<Level>(i+1, j, VERTEX_C)]);
+
+      if (updateType == Replace) {
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
+      } else if (updateType == Add) {
+        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, projectP1Tmpl, projectP1 )
+
 }//namespace DGFace
 }//namespace hhg
