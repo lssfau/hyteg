@@ -28,6 +28,10 @@ static void testCommonIndexing()
     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << VertexDoFOnMacroFaceIndexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
   }
 
+  const uint_t level = 3;
+  const uint_t size = macroFaceSize< levelToWidthVertexDoF< level > >();
+
+  WALBERLA_LOG_INFO_ON_ROOT( size );
 
   for ( uint_t i = 0; i < 2; i++ )
   {
@@ -53,43 +57,57 @@ static void testCommonIndexing()
     std::cout << "\n";
   }
 
-  const uint_t level = 3;
-  const uint_t size = macroFaceSize< levelToWidthVertexDoF< level > >();
 
   real_t * a = new real_t[ size ];
   real_t * b = new real_t[ size ];
 
-  for ( uint_t i = 0; i < size; i++ )
-  {
-    a[ i ] = (real_t) i * 0.001;
-    b[ i ] = (real_t) i * 0.002;
-  }
-
   walberla::WcTimingPool timer;
 
-  timer[ "loop" ].start();
 
 #if 0
-
-  real_t sp = 0.0;
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  const uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t inner_rowsize = rowsize;
 
   for (uint_t i = 0; i < rowsize; ++i) {
     for (uint_t j = 0; j < inner_rowsize; ++j) {
-      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ];
+      a[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] = 0.0001;
+      b[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] = 0.0002;
+    }
+    --inner_rowsize;
+  }
+
+  timer[ "loop" ].start();
+
+  real_t sp = 0.0;
+  inner_rowsize = rowsize;
+
+  for (uint_t i = 0; i < rowsize; ++i) {
+    for (uint_t j = 0; j < inner_rowsize; ++j) {
+      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ];
     }
     --inner_rowsize;
   }
 
 #else
 
+  for (uint_t i = 0; i < unwrapNumRows< levelToWidthVertexDoF< level > >(); ++i) {
+    for (uint_t j = 0; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
+
+      const uint_t actualRow = unwrapRow< levelToWidthVertexDoF< level > >(j, i);
+      const uint_t actualCol = unwrapCol< levelToWidthVertexDoF< level > >(j, i);
+
+      a[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] = 0.0001;
+      b[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] = 0.0002;
+
+    }
+  }
+
+  timer[ "loop" ].start();
+
   real_t sp = 0.0;
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  uint_t inner_rowsize = rowsize;
 
   for (uint_t i = 0; i < unwrapNumRows< levelToWidthVertexDoF< level > >(); ++i) {
-    for (uint_t j = 1; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
+    for (uint_t j = 0; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
 
       const uint_t actualRow = unwrapRow< levelToWidthVertexDoF< level > >(j, i);
       const uint_t actualCol = unwrapCol< levelToWidthVertexDoF< level > >(j, i);
