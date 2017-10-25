@@ -6,18 +6,20 @@
 namespace hhg {
 namespace indexing {
 
+using walberla::uint_t;
+
 /// Wrapper around Point3D for convenient access to logical indices.
-class Index : private PointND< int, 3 >
+class Index : private PointND< uint_t, 3 >
 {
 public:
-  const int & col() const { return x[0]; }
-        int & col()       { return x[0]; }
+  const uint_t & col() const { return x[0]; }
+        uint_t & col()       { return x[0]; }
 
-  const int & row() const { return x[1]; }
-        int & row()       { return x[1]; }
+  const uint_t & row() const { return x[1]; }
+        uint_t & row()       { return x[1]; }
 
-  const int & dep() const { return x[2]; }
-        int & dep()       { return x[2]; }
+  const uint_t & dep() const { return x[2]; }
+        uint_t & dep()       { return x[2]; }
 };
 
 }
