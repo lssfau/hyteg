@@ -4,6 +4,8 @@
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 #include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/indexing/Optimization.hpp"
+#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
 
 #include "core/Environment.h"
 
@@ -89,6 +91,54 @@ inline void apply(real_t * oprPtr,
   }
 }
 
+template< uint_t Level >
+inline void applyOptimized(real_t * oprPtr,
+                  real_t* srcPtr,
+                  real_t* dstPtr,
+                  UpdateType update) {
+  using namespace hhg::P1Face::FaceCoordsVertex;
+  using namespace hhg::indexing;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  real_t tmp;
+
+#ifdef WALBERLA_CXX_COMPILER_IS_INTEL
+#pragma ivdep
+#endif
+  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< Level > >(); ++i) {
+    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< Level > >(); ++j) {
+
+      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< Level > >(j, i);
+      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< Level > >(j, i);
+
+      if(actualRow == 0 || actualCol == 0 || (actualRow + actualCol) == (rowsize-1)){
+        continue;
+      }
+
+      tmp = oprPtr[VERTEX_C]*srcPtr[index<Level>(actualCol, actualRow, VERTEX_C)];
+
+      tmp += oprPtr[neighbors[0]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
+      tmp += oprPtr[neighbors[1]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
+      tmp += oprPtr[neighbors[2]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[2])];
+      tmp += oprPtr[neighbors[3]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[3])];
+      tmp += oprPtr[neighbors[4]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[4])];
+      tmp += oprPtr[neighbors[5]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[5])];
+      //for (auto neighbor : neighbors) {
+//      for(uint_t k = 0; k < neighbors.size(); ++k){
+//        tmp += oprPtr[neighbors[k]]*srcPtr[index<Level>(i, j, neighbors[k])];
+//      }
+
+      if (update==Replace) {
+        dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] = tmp;
+      } else if (update==Add) {
+        dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
+}
 
 int main(int argc, char **argv) {
 
@@ -130,9 +180,9 @@ int main(int argc, char **argv) {
 
   walberla::WcTimer timer;
   timer.reset();
-  LIKWID_MARKER_START("Manual");
-  manualApply< level >(oprPtr,srcPtr,dst1Ptr,Replace);
-  LIKWID_MARKER_STOP("Manual");
+  LIKWID_MARKER_START("Optimized");
+  applyOptimized< level >(oprPtr,srcPtr,dst1Ptr,Replace);
+  LIKWID_MARKER_STOP("Optimized");
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Manual: " << timer.last());
 
