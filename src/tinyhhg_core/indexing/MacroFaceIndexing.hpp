@@ -9,6 +9,11 @@ namespace indexing {
 
 using walberla::uint_t;
 
+/// Array access layouts - wrapped by general access function.
+/// The general memory layout can thus be switched globally by setting
+/// the called functions in the general size and access function.
+namespace layout {
+
 /// Required memory for the linear macro face layout
 template< uint_t width >
 inline constexpr uint_t linearMacroFaceSize()
@@ -22,6 +27,21 @@ inline constexpr uint_t linearMacroFaceIndex( const uint_t & col, const uint_t &
 {
   const uint_t rowOffset = row * ( width + 1 ) - ( ( ( row + 1 ) * ( row ) ) / 2 );
   return rowOffset + col;
+}
+
+}
+
+
+template< uint_t width >
+inline constexpr uint_t macroFaceSize()
+{
+  return layout::linearMacroFaceSize< width >();
+}
+
+template< uint_t width >
+inline constexpr uint_t macroFaceIndex( const uint_t & col, const uint_t & row )
+{
+  return layout::linearMacroFaceIndex< width >( col, row );
 }
 
 enum class FaceBorderDirection

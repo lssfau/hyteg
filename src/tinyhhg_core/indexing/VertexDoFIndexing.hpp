@@ -36,13 +36,13 @@ constexpr uint_t VertexDoFOnMacroEdgeIndex( const uint_t & col, const uint_t & n
 {
   if ( neighbor == 0 )
   {
-    return linearMacroEdgeIndex< levelToWidthVertexDoF< level > >( col );
+    return macroEdgeIndex< levelToWidthVertexDoF< level > >( col );
   }
   else
   {
-    return                      linearMacroEdgeSize< levelToWidthVertexDoF< level >     >
-           + ( neighbor - 1 ) * linearMacroEdgeSize< levelToWidthVertexDoF< level > - 1 >
-           + linearMacroEdgeIndex< levelToWidthVertexDoF< level > - 1 >( col );
+    return                      macroEdgeSize< levelToWidthVertexDoF< level >     >
+           + ( neighbor - 1 ) * macroEdgeSize< levelToWidthVertexDoF< level > - 1 >
+           + macroEdgeIndex< levelToWidthVertexDoF< level > - 1 >( col );
   }
 };
 
@@ -55,7 +55,7 @@ constexpr uint_t VertexDoFOnMacroEdgeIndex( const uint_t & col, const uint_t & n
 template< uint_t level >
 constexpr uint_t VertexDoFOnMacroFaceIndex( const uint_t & col, const uint_t & row )
 {
-  return linearMacroFaceIndex< levelToWidthVertexDoF< level > >( col, row );
+  return macroFaceIndex< levelToWidthVertexDoF< level > >( col, row );
 };
 
 // Stencil access functions

@@ -28,7 +28,7 @@ constexpr uint_t HorizontalEdgeDoFOnMacroEdgeIndex( const uint_t & col, const ui
 template< uint_t level >
 constexpr uint_t HorizontalEdgeDoFOnMacroFaceIndex( const uint_t & col, const uint_t & row )
 {
-  return linearMacroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
 };
 
 // Stencil access functions
