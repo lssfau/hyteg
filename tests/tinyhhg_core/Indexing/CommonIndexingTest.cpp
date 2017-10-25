@@ -11,6 +11,7 @@
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/indexing/Optimization.hpp"
 
 namespace hhg {
 
@@ -37,8 +38,8 @@ static void testCommonIndexing()
   {
     for ( uint_t j = 0; j < 5; j++ )
     {
-      const uint_t actualRow = unwrapRow<4>(j, i);
-      const uint_t actualCol = unwrapCol<4>(j, i);
+      const uint_t actualRow = optimization::unwrapRow<4>(j, i);
+      const uint_t actualCol = optimization::unwrapCol<4>(j, i);
 
       std::cout << macroFaceIndex<4>(actualCol, actualRow) << " ";
     }
@@ -49,8 +50,8 @@ static void testCommonIndexing()
   {
     for ( uint_t j = 0; j < 5; j++ )
     {
-      const uint_t actualRow = unwrapRow<5>(j, i);
-      const uint_t actualCol = unwrapCol<5>(j, i);
+      const uint_t actualRow = optimization::unwrapRow<5>(j, i);
+      const uint_t actualCol = optimization::unwrapCol<5>(j, i);
 
       std::cout << macroFaceIndex<5>(actualCol, actualRow) << " ";
     }
@@ -90,11 +91,11 @@ static void testCommonIndexing()
 
 #else
 
-  for (uint_t i = 0; i < unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
-    for (uint_t j = 0; j < unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
+  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
+    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
 
-      const uint_t actualRow = unwrapRow< vertexdof::levelToWidth< level > >(j, i);
-      const uint_t actualCol = unwrapCol< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< level > >(j, i);
 
       a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0001;
       b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0002;
@@ -106,11 +107,11 @@ static void testCommonIndexing()
 
   real_t sp = 0.0;
 
-  for (uint_t i = 0; i < unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
-    for (uint_t j = 0; j < unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
+  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
+    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
 
-      const uint_t actualRow = unwrapRow< vertexdof::levelToWidth< level > >(j, i);
-      const uint_t actualCol = unwrapCol< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< level > >(j, i);
 
       sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ];
     }

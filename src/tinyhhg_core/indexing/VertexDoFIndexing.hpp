@@ -27,6 +27,13 @@ constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
 
 namespace macroedge {
 
+/// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
+template< uint_t level >
+constexpr uint_t index( const uint_t & col )
+{
+  return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
+};
+
 /// Index of a vertex DoF on a macro edge.
 /// \param neighbor 0 to access the owned data, 1 to access first neighbor, ...
 template< uint_t level >
@@ -54,6 +61,13 @@ namespace macroface {
 
 /// Direct access functions
 
+/// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
+template< uint_t level >
+constexpr uint_t index( const uint_t & col, const uint_t & row )
+{
+  return macroFaceIndex< levelToWidth< level > >( col, row );
+};
+
 /// Index of a vertex DoF on a macro face.
 /// \param neighbor 0 to access the owned data, 1 to access first neighbor, 2 to access second neighbor
 template< uint_t level >
@@ -75,29 +89,38 @@ constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & n
 
 // Stencil access functions
 
+/// Index of neighboring vertices of a vertex DoF specified by the coordinates.
 template< uint_t level >
-constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
-                                                      const stencilDirection & dir )
+constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
   switch( dir )
   {
   case sD::VERTEX_C:
-    return index< level >( col, row, 0 );
+    return index< level >( col    , row     );
   case sD::VERTEX_E:
-    return index< level >( col + 1, row, 0 );
-
-    // ...
-
+    return index< level >( col + 1, row     );
+  case sD::VERTEX_W:
+    return index< level >( col - 1, row     );
+  case sD::VERTEX_N:
+    return index< level >( col    , row + 1 );
+  case sD::VERTEX_S:
+    return index< level >( col    , row - 1 );
+  case sD::VERTEX_NW:
+    return index< level >( col - 1, row + 1 );
+  case sD::VERTEX_SE:
+    return index< level >( col + 1, row - 1 );
   default:
-    return 0;
+    return std::numeric_limits< uint_t >::max();
     break;
   }
 }
 
 // Iterators
 
+/// Iterator over the border of a vertex DoF macro face.
+/// See \ref FaceBorderIterator for more information.
 template< uint_t level >
 using BorderIterator = FaceBorderIterator< levelToWidth< level > >;
 

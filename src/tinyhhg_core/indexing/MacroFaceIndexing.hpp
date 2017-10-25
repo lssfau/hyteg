@@ -45,38 +45,6 @@ inline constexpr uint_t macroFaceIndex( const uint_t & col, const uint_t & row )
 }
 
 
-template< uint_t width >
-inline constexpr uint_t unwrapNumCols()
-{
-  return width % 2 == 0 ? width + 1 : width;
-}
-
-template< uint_t width >
-inline constexpr uint_t unwrapNumRows()
-{
-  return width % 2 == 0 ? width / 2 : ( width + 1 ) / 2;
-}
-
-template< uint_t width >
-inline constexpr uint_t unwrapCol( const uint_t & col, const uint_t & row )
-{
-  return col >= width - row ? col - ( width - row ) : col;
-}
-
-template< uint_t width >
-inline constexpr uint_t unwrapRow( const uint_t & col, const uint_t & row )
-{
-  if ( width % 2 == 0 )
-  {
-    return col >= width - row ? ( width - 1 ) - row : row;
-  }
-  else
-  {
-    return col >= width - row ? ( width - 1 ) - ( row - 1 ) : row;
-  }
-}
-
-
 enum class FaceBorderDirection
 {
   BOTTOM_LEFT_TO_RIGHT,
@@ -94,7 +62,7 @@ enum class FaceBorderDirection
 ///
 ///   for ( const auto & it : FaceBorderIterator< 9 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
 ///   {
-///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it[0] << ", row = " << it[1] );
+///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
 ///   }
 ///
 template< uint_t width >
