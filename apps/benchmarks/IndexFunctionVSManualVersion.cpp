@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 
   real_t* oprPtr = face->getData(M.getFaceStencilID())->data[level].get();
   for(uint_t i = 0; i < 7; ++i){
-    oprPtr[i] = uint_c(i);
+    oprPtr[i] = real_c(i);
   }
   real_t* srcPtr = face->getData(src->getFaceDataID())->getPointer( level );
   real_t* dst1Ptr = face->getData(dst1->getFaceDataID())->getPointer( level );

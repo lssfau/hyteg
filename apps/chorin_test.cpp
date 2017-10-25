@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 //      return 0.0;
 //    }
     if (x[1] > 1.0 - 1e-3) {
-      return std::sin(M_PI*x[0]);
+      return std::sin(walberla::math::PI * x[0]);
     }
     else {
       return 0.0;
