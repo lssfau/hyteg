@@ -3,6 +3,9 @@ waLBerla_link_files_to_builddir(*.msh)
 
 ## Indexing ##
 
+waLBerla_compile_test(FILES Indexing/CommonIndexingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME CommonIndexingTest)
+
 waLBerla_compile_test(FILES Indexing/P1EdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1EdgeIndexingTest)
 
