@@ -195,7 +195,7 @@ inline void assignTmpl(Face &face,
       ValueType tmp = scalars[0]*srcPtr[0][cellIndex];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*srcPtr[0][cellIndex];
+        tmp += scalars[k]*srcPtr[k][cellIndex];
       }
 
       dst[cellIndex] = tmp;
