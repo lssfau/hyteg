@@ -60,7 +60,9 @@ inline void apply(real_t * oprPtr,
 
   real_t tmp;
 
+#ifdef WALBERLA_CXX_COMPILER_IS_INTEL
 #pragma ivdep
+#endif
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
