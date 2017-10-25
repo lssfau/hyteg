@@ -8,6 +8,7 @@
 
 #include "tinyhhg_core/tinyhhg.hpp"
 
+#include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
@@ -22,7 +23,7 @@ static void testCommonIndexing()
   using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << EdgeDoFFaceIndexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
 
   for ( const auto & it : vertexdof::macroface::BorderIterator< 3 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
   {

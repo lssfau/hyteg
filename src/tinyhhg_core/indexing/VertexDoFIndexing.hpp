@@ -9,8 +9,6 @@ namespace hhg {
 namespace indexing {
 namespace vertexdof {
 
-// TODO: All of this could also be pulled to the respective DoF space files / namespaces
-
 // ##############
 // ### Common ###
 // ##############
@@ -31,24 +29,17 @@ namespace macroedge {
 template< uint_t level >
 constexpr uint_t index( const uint_t & col )
 {
-  return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
+  return ::hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
 };
 
-/// Index of a vertex DoF on a macro edge.
-/// \param neighbor 0 to access the owned data, 1 to access first neighbor, ...
+/// Index of a vertex DoF on a ghost layer of a macro edge.
+/// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
 template< uint_t level >
 constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
-  if ( neighbor == 0 )
-  {
-    return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
-  }
-  else
-  {
-    return                      macroEdgeSize< levelToWidth< level >     >()
-           + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
-           + macroEdgeIndex< levelToWidth< level > - 1 >( col );
-  }
+  return                      macroEdgeSize< levelToWidth< level >     >()
+         + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
+         + macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
 }
@@ -68,23 +59,17 @@ constexpr uint_t index( const uint_t & col, const uint_t & row )
   return macroFaceIndex< levelToWidth< level > >( col, row );
 };
 
-/// Index of a vertex DoF on a macro face.
-/// \param neighbor 0 to access the owned data, 1 to access first neighbor, 2 to access second neighbor
+/// Index of a vertex DoF on a ghost layer of a macro face.
+/// \param neighbor 0 or 1 for the respective neighbor
 template< uint_t level >
 constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & neighbor )
 {
-  WALBERLA_ASSERT( neighbor <= 2 );
+  WALBERLA_ASSERT( neighbor <= 1 );
 
-  if ( neighbor == 0 )
-  {
-    return macroFaceIndex< levelToWidth< level > >( col, row );
-  }
-  else
-  {
-    return                      macroFaceSize< levelToWidth< level >     >()
-           + ( neighbor - 1 ) * macroFaceSize< levelToWidth< level > - 1 >()
-           + macroFaceIndex< levelToWidth< level > - 1 >( col, row );
-  }
+  return                      macroFaceSize< levelToWidth< level >     >()
+         + ( neighbor - 1 ) * macroFaceSize< levelToWidth< level > - 1 >()
+         + macroFaceIndex< levelToWidth< level > - 1 >( col, row );
+
 };
 
 // Stencil access functions
