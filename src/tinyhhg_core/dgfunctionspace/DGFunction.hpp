@@ -8,6 +8,8 @@
 #include "DGEdge.hpp"
 #include "DGFace.hpp"
 
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+
 namespace hhg {
 
 template<typename ValueType>
