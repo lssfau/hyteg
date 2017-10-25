@@ -60,14 +60,22 @@ inline void apply(real_t * oprPtr,
 
   real_t tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+#pragma ivdep
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       tmp = oprPtr[VERTEX_C]*srcPtr[index<Level>(i, j, VERTEX_C)];
 
+      tmp += oprPtr[neighbors[0]]*srcPtr[index<Level>(i, j, neighbors[1])];
+      tmp += oprPtr[neighbors[1]]*srcPtr[index<Level>(i, j, neighbors[1])];
+      tmp += oprPtr[neighbors[2]]*srcPtr[index<Level>(i, j, neighbors[2])];
+      tmp += oprPtr[neighbors[3]]*srcPtr[index<Level>(i, j, neighbors[3])];
+      tmp += oprPtr[neighbors[4]]*srcPtr[index<Level>(i, j, neighbors[4])];
+      tmp += oprPtr[neighbors[5]]*srcPtr[index<Level>(i, j, neighbors[5])];
       //for (auto neighbor : neighbors) {
-      for(uint_t k = 0; k < neighbors.size(); ++k){
-        tmp += oprPtr[neighbors[k]]*srcPtr[index<Level>(i, j, neighbors[k])];
-      }
+//      for(uint_t k = 0; k < neighbors.size(); ++k){
+//        tmp += oprPtr[neighbors[k]]*srcPtr[index<Level>(i, j, neighbors[k])];
+//      }
 
       if (update==Replace) {
         dstPtr[index<Level>(i, j, VERTEX_C)] = tmp;
@@ -118,12 +126,21 @@ int main(int argc, char **argv) {
   real_t* dst1Ptr = face->getData(dst1->getFaceDataID())->getPointer( level );
   real_t* dst2Ptr = face->getData(dst2->getFaceDataID())->getPointer( level );
 
+  walberla::WcTimer timer;
+  timer.reset();
   LIKWID_MARKER_START("Manual");
   manualApply< level >(oprPtr,srcPtr,dst1Ptr,Replace);
   LIKWID_MARKER_STOP("Manual");
+  timer.end();
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Manual: " << timer.last());
+
+  timer.reset();
   LIKWID_MARKER_START("Index");
   apply< level >(oprPtr,srcPtr,dst2Ptr,Replace);
   LIKWID_MARKER_STOP("Index");
+  timer.end();
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Index: " << timer.last());
+
 
   real_t sum1 = 0,sum2 = 0;
 
