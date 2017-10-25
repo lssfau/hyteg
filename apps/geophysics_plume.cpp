@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
   timingTree->start("Global");
 
-  std::string meshFileName = "../data/meshes/annulus.msh";
+  std::string meshFileName = "../data/meshes/annulus_coarse.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -30,10 +30,14 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 3;
+  const uint_t maxLevel = 4;
   const uint_t solverMaxiter = 100;
-  const uint_t timesteps = 5000;
-  real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
+  const real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
+  const real_t finalTime = 1000.0;
+  const real_t plotEach = 2.0;
+  const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
+  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
+  real_t time = 0.0;
 
   std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [dt](const hhg::Point3D& x,const std::vector<real_t>&) {
     if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
@@ -44,11 +48,11 @@ int main(int argc, char* argv[])
   };
 
   std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_x = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
-    return val[0] * std::cos(std::atan2 (x[1], x[0]));
+    return 75.0 * val[0] * std::cos(std::atan2 (x[1], x[0]));
   };
 
   std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_y = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
-    return val[0] * std::sin(std::atan2 (x[1], x[0]));
+    return 75.0 * val[0] * std::sin(std::atan2 (x[1], x[0]));
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -80,11 +84,13 @@ int main(int argc, char* argv[])
 
   // Interpolate initial functions
   c_old->interpolate(initialConcentration,{}, maxLevel);
+  c->assign({1.0}, {c_old.get()}, maxLevel);
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
+  uint_t plotIter = 0;
   for (uint_t t = 0; t <= timesteps; ++t) {
-    WALBERLA_LOG_PROGRESS_ON_ROOT("Current timestep: " << t);
+    WALBERLA_LOG_PROGRESS_ON_ROOT("Current timestep: " << time);
 
     if (t % 3 == 0) {
       WALBERLA_LOG_PROGRESS_ON_ROOT("Solving Stokes system...")
@@ -108,10 +114,11 @@ int main(int argc, char* argv[])
       }
     }
 
-    if (t % 25 == 0) {
+    if (t % plotModulo == 0) {
       timingTree->start("VTK");
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
-                                                                        "../output", fmt::format("plume-{:0>6}", t));
+                                                                        "../output", fmt::format("plume-{:0>6}", plotIter));
+      ++plotIter;
       timingTree->stop("VTK");
     }
 
@@ -120,6 +127,7 @@ int main(int argc, char* argv[])
     c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
     c_old.swap(c);
+    time += dt;
   }
 
   timingTree->stop("Global");
