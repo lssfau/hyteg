@@ -16,6 +16,8 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
   timingTree->start("Global");
@@ -35,9 +37,9 @@ int main(int argc, char* argv[])
 
   std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [dt](const hhg::Point3D& x,const std::vector<real_t>&) {
     if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
-      return 1;
+      return 1.0;
     } else {
-      return 0;
+      return 0.0;
     }
   };
 
@@ -50,6 +52,10 @@ int main(int argc, char* argv[])
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+
+  #ifdef WALBERLA_BUILD_WITH_PARMETIS
+    loadbalancing::distributed::parmetis( *storage );
+  #endif
 
   storage->enableGlobalTiming(timingTree);
 
@@ -74,23 +80,14 @@ int main(int argc, char* argv[])
 
   // Interpolate initial functions
   c_old->interpolate(initialConcentration,{}, maxLevel);
-  c->assign({1.0}, {c_old.get()}, maxLevel);
-
-  f_dg_x->interpolate(expr_f_x, { c_old.get() }, maxLevel);
-  f_dg_y->interpolate(expr_f_y, { c_old.get() }, maxLevel);
-
-  f->u.integrateDG(*f_dg_x, maxLevel, hhg::All);
-  f->v.integrateDG(*f_dg_y, maxLevel, hhg::All);
-
-  L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-  r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-  WALBERLA_LOG_PROGRESS("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
   for (uint_t t = 0; t <= timesteps; ++t) {
+    WALBERLA_LOG_PROGRESS_ON_ROOT("Current timestep: " << t);
 
-    if (t % 100 == 0) {
+    if (t % 3 == 0) {
+      WALBERLA_LOG_PROGRESS_ON_ROOT("Solving Stokes system...")
 
       f_dg_x->interpolate(expr_f_x, { c_old.get() }, maxLevel);
       f_dg_y->interpolate(expr_f_y, { c_old.get() }, maxLevel);
@@ -98,7 +95,7 @@ int main(int argc, char* argv[])
       f->u.integrateDG(*f_dg_x, maxLevel, hhg::All);
       f->v.integrateDG(*f_dg_y, maxLevel, hhg::All);
 
-      for (uint_t outer = 0; outer < 5; ++outer) {
+      for (uint_t outer = 0; outer < 2; ++outer) {
         solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
         hhg::projectMean(u->p, *tmp, maxLevel);
 
@@ -106,15 +103,19 @@ int main(int argc, char* argv[])
         projectMean(u->p, *tmp, maxLevel);
 
         r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-        WALBERLA_LOG_PROGRESS("[Uzawa] residuum: " << std::scientific << std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary)));
+        real_t residuum = std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+        WALBERLA_LOG_PROGRESS_ON_ROOT("[Uzawa] residuum: " << std::scientific << residuum);
       }
+    }
 
+    if (t % 25 == 0) {
       timingTree->start("VTK");
       hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
                                                                         "../output", fmt::format("plume-{:0>6}", t));
       timingTree->stop("VTK");
     }
 
+    WALBERLA_LOG_PROGRESS_ON_ROOT("Advecting temperature...")
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
     c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
