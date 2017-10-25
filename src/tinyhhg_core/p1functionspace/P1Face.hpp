@@ -133,8 +133,9 @@ inline void addTmpl(Face &face,
     srcPtr.push_back(face.getData(src)->getPointer( Level ));
   }
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       ValueType tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
@@ -163,8 +164,9 @@ inline real_t dotTmpl(Face &face,
   ValueType* lhsPtr = face.getData(lhsId)->getPointer( Level );
   ValueType* rhsPtr = face.getData(rhsId)->getPointer( Level );
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       sp += lhsPtr[index<Level>(i, j, VERTEX_C)]
           * rhsPtr[index<Level>(i, j, VERTEX_C)];
     }
@@ -185,14 +187,14 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  ValueType* opr_data = face.getData(operatorId)->data[Level].get();
   auto src = face.getData(srcId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
       tmp = opr_data[VERTEX_C]*src[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -236,8 +238,9 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
   std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
   std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
 
       if (update == Replace) {
         tmp = ValueType(0);
@@ -289,8 +292,9 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
 
 
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
 
       if (update == Replace) {
         tmp = ValueType(0);
@@ -398,8 +402,9 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -478,8 +483,9 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 
   N_c_i -= 1;
 
-  for (i = 2; i < N_c - 1; i += 2) {
-    for (j = 2; j < N_c_i - 1; j += 2) {
+  for (j = 2; j < N_c - 1; j += 2) {
+    for (i = 2; i < N_c_i - 1; i += 2) {
+
 // upper triangle inner points
 //calculate offsets
       linearx = 0.5*(v_c[index<Level>(i, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
@@ -546,8 +552,9 @@ inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < N_c - 2; ++i) {
-    for (uint_t j = 1; j < N_c_i - 2; ++j) {
+  for (uint_t j = 1; j < N_c - 2; ++j) {
+    for (uint_t i = 1; i < N_c_i - 2; ++i) {
+
       tmp = v_f[index<Level>(2*i, 2*j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -618,8 +625,9 @@ inline void integrateDGTmpl(Face &face,
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
 
       tmp =   rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)]
             + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)]

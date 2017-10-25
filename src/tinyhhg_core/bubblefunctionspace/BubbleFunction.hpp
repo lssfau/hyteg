@@ -26,7 +26,6 @@ public:
     storage->addVertexData( vertexDataID_, vertexBubbleFunctionMemoryDataHandling, name );
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->setLocalCommunicationMode( communication::BufferedCommunicator::BUFFERED_MPI );
       communicators_[level]->addPackInfo( std::make_shared< BubblePackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
     }
   }
