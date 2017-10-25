@@ -4,6 +4,7 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
+#include "core/timing/TimingPool.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
 
@@ -17,6 +18,7 @@ static void testCommonIndexing()
 {
   using namespace indexing;
   using walberla::uint_t;
+  using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << VertexDoFOnMacroFaceIndexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
   WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << EdgeDoFFaceIndexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
@@ -50,6 +52,62 @@ static void testCommonIndexing()
     }
     std::cout << "\n";
   }
+
+  const uint_t level = 3;
+  const uint_t size = macroFaceSize< levelToWidthVertexDoF< level > >();
+
+  real_t * a = new real_t[ size ];
+  real_t * b = new real_t[ size ];
+
+  for ( uint_t i = 0; i < size; i++ )
+  {
+    a[ i ] = (real_t) i * 0.001;
+    b[ i ] = (real_t) i * 0.002;
+  }
+
+  walberla::WcTimingPool timer;
+
+  timer[ "loop" ].start();
+
+#if 0
+
+  real_t sp = 0.0;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
+
+  for (uint_t i = 0; i < rowsize; ++i) {
+    for (uint_t j = 0; j < inner_rowsize; ++j) {
+      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ];
+    }
+    --inner_rowsize;
+  }
+
+#else
+
+  real_t sp = 0.0;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
+
+  for (uint_t i = 0; i < unwrapNumRows< levelToWidthVertexDoF< level > >(); ++i) {
+    for (uint_t j = 1; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
+
+      const uint_t actualRow = unwrapRow< levelToWidthVertexDoF< level > >(j, i);
+      const uint_t actualCol = unwrapCol< levelToWidthVertexDoF< level > >(j, i);
+
+      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ];
+    }
+  }
+
+#endif
+
+  timer[ "loop" ].end();
+
+  std::cout << sp << std::endl;
+  WALBERLA_LOG_INFO_ON_ROOT( "result = " << sp );
+  WALBERLA_LOG_INFO_ON_ROOT( timer );
+
+  delete[] a;
+  delete[] b;
 
 
 
