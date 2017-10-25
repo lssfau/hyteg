@@ -8,6 +8,12 @@
 namespace hhg {
 namespace indexing {
 
+template< uint_t level >
+constexpr uint_t levelToWidthAnyEdgeDoF = levelinfo::num_microedges_per_edge( level );
+
+template< uint_t level >
+constexpr uint_t levelToFaceSizeAnyEdgeDoF = levelinfo::num_microedges_per_face( level ) / 3;
+
 // ##################
 // ### Macro Edge ###
 // ##################

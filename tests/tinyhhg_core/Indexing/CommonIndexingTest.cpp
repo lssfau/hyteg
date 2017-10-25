@@ -20,16 +20,16 @@ static void testCommonIndexing()
   using walberla::uint_t;
   using walberla::real_t;
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << VertexDoFOnMacroFaceIndexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
   WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << EdgeDoFFaceIndexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
 
-  for ( const auto & it : VertexDoFFaceBorderIterator< 3 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
+  for ( const auto & it : vertexdof::macroface::BorderIterator< 3 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << VertexDoFOnMacroFaceIndexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
+    WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << vertexdof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
   }
 
   const uint_t level = 3;
-  const uint_t size = macroFaceSize< levelToWidthVertexDoF< level > >();
+  const uint_t size = macroFaceSize< vertexdof::levelToWidth< level > >();
 
   WALBERLA_LOG_INFO_ON_ROOT( size );
 
@@ -90,14 +90,14 @@ static void testCommonIndexing()
 
 #else
 
-  for (uint_t i = 0; i < unwrapNumRows< levelToWidthVertexDoF< level > >(); ++i) {
-    for (uint_t j = 0; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
+  for (uint_t i = 0; i < unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
+    for (uint_t j = 0; j < unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
 
-      const uint_t actualRow = unwrapRow< levelToWidthVertexDoF< level > >(j, i);
-      const uint_t actualCol = unwrapCol< levelToWidthVertexDoF< level > >(j, i);
+      const uint_t actualRow = unwrapRow< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualCol = unwrapCol< vertexdof::levelToWidth< level > >(j, i);
 
-      a[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] = 0.0001;
-      b[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] = 0.0002;
+      a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0001;
+      b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0002;
 
     }
   }
@@ -106,13 +106,13 @@ static void testCommonIndexing()
 
   real_t sp = 0.0;
 
-  for (uint_t i = 0; i < unwrapNumRows< levelToWidthVertexDoF< level > >(); ++i) {
-    for (uint_t j = 0; j < unwrapNumCols< levelToWidthVertexDoF< level > >(); ++j) {
+  for (uint_t i = 0; i < unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
+    for (uint_t j = 0; j < unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
 
-      const uint_t actualRow = unwrapRow< levelToWidthVertexDoF< level > >(j, i);
-      const uint_t actualCol = unwrapCol< levelToWidthVertexDoF< level > >(j, i);
+      const uint_t actualRow = unwrapRow< vertexdof::levelToWidth< level > >(j, i);
+      const uint_t actualCol = unwrapCol< vertexdof::levelToWidth< level > >(j, i);
 
-      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(actualCol, actualRow) ];
+      sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ];
     }
   }
 

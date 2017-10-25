@@ -7,6 +7,7 @@
 
 namespace hhg {
 namespace indexing {
+namespace vertexdof {
 
 // TODO: All of this could also be pulled to the respective DoF space files / namespaces
 
@@ -17,51 +18,65 @@ namespace indexing {
 // Conversion functions: level to width (i.e. number of DoFs in the longest 'line')
 
 template< uint_t level >
-constexpr uint_t levelToWidthVertexDoF = levelinfo::num_microvertices_per_edge( level );
+constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
 
-template< uint_t level >
-constexpr uint_t levelToWidthAnyEdgeDoF = levelinfo::num_microedges_per_edge( level );
-
-template< uint_t level >
-constexpr uint_t levelToFaceSizeAnyEdgeDoF = levelinfo::num_microedges_per_face( level ) / 3;
 
 // ##################
 // ### Macro Edge ###
 // ##################
 
+namespace macroedge {
+
 /// Index of a vertex DoF on a macro edge.
 /// \param neighbor 0 to access the owned data, 1 to access first neighbor, ...
 template< uint_t level >
-constexpr uint_t VertexDoFOnMacroEdgeIndex( const uint_t & col, const uint_t & neighbor )
+constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
   if ( neighbor == 0 )
   {
-    return macroEdgeIndex< levelToWidthVertexDoF< level > >( col );
+    return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
   }
   else
   {
-    return                      macroEdgeSize< levelToWidthVertexDoF< level >     >
-           + ( neighbor - 1 ) * macroEdgeSize< levelToWidthVertexDoF< level > - 1 >
-           + macroEdgeIndex< levelToWidthVertexDoF< level > - 1 >( col );
+    return                      macroEdgeSize< levelToWidth< level >     >()
+           + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
+           + macroEdgeIndex< levelToWidth< level > - 1 >( col );
   }
 };
+
+}
 
 // ##################
 // ### Macro Face ###
 // ##################
 
+namespace macroface {
+
 /// Direct access functions
 
+/// Index of a vertex DoF on a macro face.
+/// \param neighbor 0 to access the owned data, 1 to access first neighbor, 2 to access second neighbor
 template< uint_t level >
-constexpr uint_t VertexDoFOnMacroFaceIndex( const uint_t & col, const uint_t & row )
+constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & neighbor )
 {
-  return macroFaceIndex< levelToWidthVertexDoF< level > >( col, row );
+  WALBERLA_ASSERT( neighbor <= 2 );
+
+  if ( neighbor == 0 )
+  {
+    return macroFaceIndex< levelToWidth< level > >( col, row );
+  }
+  else
+  {
+    return                      macroFaceSize< levelToWidth< level >     >()
+           + ( neighbor - 1 ) * macroFaceSize< levelToWidth< level > - 1 >()
+           + macroFaceIndex< levelToWidth< level > - 1 >( col, row );
+  }
 };
 
 // Stencil access functions
 
 template< uint_t level >
-constexpr uint_t VertexDoFOnMacroFaceIndexFromVertex( const uint_t & col, const uint_t & row,
+constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
                                                       const stencilDirection & dir )
 {
   typedef stencilDirection sD;
@@ -69,9 +84,9 @@ constexpr uint_t VertexDoFOnMacroFaceIndexFromVertex( const uint_t & col, const 
   switch( dir )
   {
   case sD::VERTEX_C:
-    return VertexDoFOnMacroFaceIndex< level >( col, row );
+    return index< level >( col, row, 0 );
   case sD::VERTEX_E:
-    return VertexDoFOnMacroFaceIndex< level >( col + 1, row );
+    return index< level >( col + 1, row, 0 );
 
     // ...
 
@@ -84,7 +99,9 @@ constexpr uint_t VertexDoFOnMacroFaceIndexFromVertex( const uint_t & col, const 
 // Iterators
 
 template< uint_t level >
-using VertexDoFFaceBorderIterator = FaceBorderIterator< levelToWidthVertexDoF< level > >;
+using BorderIterator = FaceBorderIterator< levelToWidth< level > >;
 
+}
+}
 }
 }
