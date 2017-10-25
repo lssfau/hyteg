@@ -134,6 +134,7 @@ protected:
     if ( timingTree_ )
     {
       timingTree_->start( "Function" );
+      timingTree_->start( FunctionTrait< FunctionType >::getTypeName() );
       timingTree_->start( timerString );
     }
   }
@@ -143,6 +144,7 @@ protected:
     if ( timingTree_ )
     {
       timingTree_->stop( timerString );
+      timingTree_->stop( FunctionTrait< FunctionType >::getTypeName() );
       timingTree_->stop( "Function" );
     }
   }

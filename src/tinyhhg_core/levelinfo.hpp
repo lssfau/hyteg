@@ -26,6 +26,11 @@ constexpr inline uint_t num_microedges_per_edge(uint_t level)
   return num_microvertices_per_edge(level) - 1;
 }
 
+constexpr inline uint_t num_microedges_per_face(uint_t level)
+{
+  return 3 * ( ( ( num_microedges_per_edge( level ) + 1 ) * num_microedges_per_edge( level ) ) / 2 );
+}
+
 constexpr inline uint_t num_microvertices_per_face(uint_t level)
 {
   //(pow(2,level) + 1) * (pow(2,level) + 2) / 2

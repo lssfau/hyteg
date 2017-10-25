@@ -41,6 +41,8 @@ template< typename VType >
 struct FunctionTrait< P1Function< VType > >
 {
   typedef VType ValueType;
+
+  static std::string getTypeName() { return "P1Function"; }
 };
 
 // Bubble specialization (Cell DoFs)
@@ -49,12 +51,16 @@ template< typename VType >
 struct FunctionTrait< BubbleFunction< VType > >
 {
   typedef VType ValueType;
+
+  static std::string getTypeName() { return "BubbleFunction"; }
 };
 
 template< typename VType >
 struct FunctionTrait< DGFunction< VType > >
 {
   typedef VType ValueType;
+
+  static std::string getTypeName() { return "DGFunction"; }
 };
 
 
