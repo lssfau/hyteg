@@ -74,6 +74,10 @@ waLBerla_add_executable( NAME ApplyBenchmark
         FILES benchmarks/ApplyBenchmark.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME IndexFunctionVSManualVersion
+        FILES benchmarks/IndexFunctionVSManualVersion.cpp
+        DEPENDS tinyhhg_core fmt)
+
 
 
 
