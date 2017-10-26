@@ -223,10 +223,12 @@ template< typename ValueType >
 inline void integrateDG(Vertex &vertex,
                             const std::shared_ptr< PrimitiveStorage >& storage,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsP1Id,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                             uint_t level) {
 
   auto rhs = vertex.getData(rhsId)->getPointer( level );
+  auto rhsP1 = vertex.getData(rhsP1Id)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
   ValueType tmp = 0.0;
@@ -239,7 +241,11 @@ inline void integrateDG(Vertex &vertex,
     uint_t localFaceId = vertex.face_index(face->getID());
 
     uint_t faceMemoryIndex = 2 * localFaceId;
-    tmp += weightedFaceArea * rhs[faceMemoryIndex];
+
+    std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
+    uint_t edge_idx[2] = { vertex.edge_index(adj_edges[0]) + 1, vertex.edge_index(adj_edges[1]) + 1 };
+
+    tmp += weightedFaceArea * rhs[faceMemoryIndex] * (0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[0]]) + 0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[1]]));
   }
 
   dst[0] = tmp;

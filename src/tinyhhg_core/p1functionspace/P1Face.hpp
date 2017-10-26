@@ -610,6 +610,7 @@ SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 template< typename ValueType, uint_t Level >
 inline void integrateDGTmpl(Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsP1Id,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
   using namespace FaceCoordsVertex;
   typedef stencilDirection sD;
@@ -618,6 +619,7 @@ inline void integrateDGTmpl(Face &face,
   uint_t inner_rowsize = rowsize;
 
   auto rhs = face.getData(rhsId)->getPointer(Level);
+  auto rhsP1 = face.getData(rhsP1Id)->getPointer(Level);
   auto dst = face.getData(dstId)->getPointer(Level);
 
   real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
@@ -628,15 +630,15 @@ inline void integrateDGTmpl(Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
+      tmp  = rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_S)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_SE)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_E)]));
 
-      tmp =   rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)]
-            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)]
-            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)]
-            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)]
-            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)]
-            + rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)];
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_NW)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_N)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_E)]));
 
-      dst[index<Level>(i, j, VERTEX_C)] = weightedFaceArea  * tmp;
+      dst[index<Level>(i, j, VERTEX_C)] = weightedFaceArea * tmp;
     }
     --inner_rowsize;
   }

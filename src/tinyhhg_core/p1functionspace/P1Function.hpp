@@ -47,7 +47,7 @@ public:
   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
   // TODO: split this function into impl
-  inline void integrateDG(DGFunction< ValueType >& rhs, uint_t level, DoFType flag);
+  inline void integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag);
 
 private:
 
@@ -405,29 +405,35 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, uint_t level, DoFType flag)
+inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag)
 {
+  rhsP1.getCommunicator(level)->template startCommunication<Edge, Vertex>();
+  rhsP1.getCommunicator(level)->template startCommunication<Face, Edge>();
+
   rhs.getCommunicator(level)->template startCommunication<Face, Edge>();
   rhs.getCommunicator(level)->template endCommunication<Face, Edge>();
 
   rhs.getCommunicator(level)->template startCommunication<Edge, Vertex>();
   rhs.getCommunicator(level)->template endCommunication<Edge, Vertex>();
 
+  rhsP1.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), vertexDataID_, level);
+      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
     }
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
+  rhsP1.getCommunicator(level)->template endCommunication<Face, Edge>();
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), edgeDataID_);
+      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
     }
   }
 
@@ -438,7 +444,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, u
     Face& face = *it.second;
 
     if (testFlag(face.type, flag)) {
-      P1Face::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), faceDataID_);
+      P1Face::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_);
     }
   }
 

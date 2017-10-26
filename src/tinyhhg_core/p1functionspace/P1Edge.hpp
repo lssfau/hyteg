@@ -438,6 +438,7 @@ template< typename ValueType, uint_t Level >
 inline void integrateDGTmpl(Edge &edge,
                             const std::shared_ptr< PrimitiveStorage >& storage,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsP1Id,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
 
   using namespace EdgeCoordsVertex;
@@ -446,6 +447,7 @@ inline void integrateDGTmpl(Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto rhs = edge.getData(rhsId)->getPointer( Level );
+  auto rhsP1 = edge.getData(rhsP1Id)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
@@ -464,15 +466,15 @@ inline void integrateDGTmpl(Edge &edge,
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    tmp =  weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SW)];
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_SE)];
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SE)];
+    tmp =  weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_S)]));
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_SE)]));
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_E)]));
 
     if (edge.getNumNeighborFaces() == 2) {
 
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NW)];
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_NW)];
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NE)];
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_NW)]));
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_N)]));
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, VERTEX_C)] + rhsP1[index<Level>(i, VERTEX_E)]));
     }
 
     dst[index<Level>(i, VERTEX_C)] = tmp;

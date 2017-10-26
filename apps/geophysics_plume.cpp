@@ -41,12 +41,16 @@ int main(int argc, char* argv[])
     }
   };
 
-  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_x = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
-    return 75.0 * val[0] * std::cos(std::atan2 (x[1], x[0]));
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f = [](const hhg::Point3D&, const std::vector<real_t>& val) {
+    return 25.0 * val[0];
   };
 
-  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> expr_f_y = [](const hhg::Point3D& x,const std::vector<real_t>& val) {
-    return 75.0 * val[0] * std::sin(std::atan2 (x[1], x[0]));
+  std::function<real_t(const hhg::Point3D&)> expr_n_x = [](const hhg::Point3D& x) {
+    return std::cos(std::atan2 (x[1], x[0]));
+  };
+
+  std::function<real_t(const hhg::Point3D&)> expr_n_y = [](const hhg::Point3D& x) {
+    return std::sin(std::atan2 (x[1], x[0]));
   };
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -57,10 +61,10 @@ int main(int argc, char* argv[])
 
   storage->enableGlobalTiming(timingTree);
 
-  const real_t estimatedMaxVelocity = 1e-1;
+  const real_t estimatedMaxVelocity = 1.0;
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
   WALBERLA_LOG_INFO_ON_ROOT("minimalEdgeLength: " << minimalEdgeLength);
-  const real_t dt = 0.75 * minimalEdgeLength / estimatedMaxVelocity;
+  const real_t dt = minimalEdgeLength / estimatedMaxVelocity;
   WALBERLA_LOG_INFO_ON_ROOT("dt: " << dt);
   const real_t finalTime = 1000.0;
   const real_t plotEach = 2.0;
@@ -72,12 +76,14 @@ int main(int argc, char* argv[])
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
   auto c = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
 
-  auto f_dg_x = std::make_shared<hhg::DGFunction<real_t>>("f_dg_x", storage, minLevel, maxLevel);
-  auto f_dg_y = std::make_shared<hhg::DGFunction<real_t>>("f_dg_y", storage, minLevel, maxLevel);
+  auto f_dg = std::make_shared<hhg::DGFunction<real_t>>("f_dg", storage, minLevel, maxLevel);
 
   auto r = std::make_shared<hhg::P1StokesFunction<real_t>>("r", storage, minLevel, maxLevel);
   auto f = std::make_shared<hhg::P1StokesFunction<real_t>>("f", storage, minLevel, maxLevel);
   auto u = std::make_shared<hhg::P1StokesFunction<real_t>>("u", storage, minLevel, maxLevel);
+
+  auto n_x = std::make_shared<hhg::P1Function<real_t>>("n_x", storage, maxLevel, maxLevel);
+  auto n_y = std::make_shared<hhg::P1Function<real_t>>("n_y", storage, maxLevel, maxLevel);
 
   auto tmp = std::make_shared<hhg::P1Function<real_t>>("tmp", storage, minLevel, maxLevel);
 
@@ -86,6 +92,10 @@ int main(int argc, char* argv[])
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
+
+  // Interpolate normal components
+  n_x->interpolate(expr_n_x, maxLevel);
+  n_y->interpolate(expr_n_y, maxLevel);
 
   // Interpolate initial functions
   c_old->interpolate(initialConcentration,{}, maxLevel);
@@ -100,11 +110,10 @@ int main(int argc, char* argv[])
     if (t % 3 == 0) {
       WALBERLA_LOG_PROGRESS_ON_ROOT("Solving Stokes system...")
 
-      f_dg_x->interpolate(expr_f_x, { c_old.get() }, maxLevel);
-      f_dg_y->interpolate(expr_f_y, { c_old.get() }, maxLevel);
+      f_dg->interpolate(expr_f, { c_old.get() }, maxLevel);
 
-      f->u.integrateDG(*f_dg_x, maxLevel, hhg::All);
-      f->v.integrateDG(*f_dg_y, maxLevel, hhg::All);
+      f->u.integrateDG(*f_dg, *n_x, maxLevel, hhg::All);
+      f->v.integrateDG(*f_dg, *n_y, maxLevel, hhg::All);
 
       for (uint_t outer = 0; outer < 2; ++outer) {
         solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
