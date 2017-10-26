@@ -104,10 +104,15 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
 
 // Iterators
 
+/// Iterator over a vertex DoF macro face.
+/// See \ref FaceIterator for more information.
+template< uint_t level, uint_t offsetToCenter = 0 >
+using Iterator = FaceIterator< levelToWidth< level >, offsetToCenter >;
+
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-template< uint_t level >
-using BorderIterator = FaceBorderIterator< levelToWidth< level > >;
+template< uint_t level, uint_t offsetToCenter = 0 >
+using BorderIterator = FaceBorderIterator< levelToWidth< level >, offsetToCenter >;
 
 }
 }
