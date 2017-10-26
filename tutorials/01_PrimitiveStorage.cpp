@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 namespace hhg {
@@ -51,7 +52,9 @@ namespace hhg {
  *
  * The main purpose of the SetupPrimitiveStorage is to assign the primitives to the processes.
  * We achieve this by calling a load balancing function on it. There are some simple load balancers
- * available in the library.
+ * available in the library. However, it will call a default loadbalancer from the library so that
+ * the user does not have to call it in the application. Anyway, here is an example of how to use
+ * them in practice:
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp Loadbalancing
  *

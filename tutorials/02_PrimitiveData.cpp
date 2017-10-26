@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hhg {
 
@@ -145,8 +145,6 @@ void PrimitiveStorageTutorial()
 
   hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-
-  hhg::loadbalancing::roundRobin( setupStorage );
 
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
