@@ -24,6 +24,15 @@ using walberla::uint_t;
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
   primitiveDataHandlers_( 0 ), modificationStamp_( 0 )
 {
+  if ( setupStorage.getNumberOfPrimitives() < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
+  {
+    WALBERLA_LOG_WARNING_ON_ROOT( "[PrimitiveStorage] The domain consists of less primitives than MPI processes!\n" <<
+                                  "                   This might waste resources and some features might not work properly.\n" <<
+                                  "                   Consider using a different mesh or more MPI processes!\n" <<
+                                  "                   - number of primitives: " << std::setw(10) << setupStorage.getNumberOfPrimitives() << "\n" <<
+                                  "                   - number of processes:  " << std::setw(10) << walberla::mpi::MPIManager::instance()->numProcesses() );
+  }
+
   for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
   {
     if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it->first ) )
