@@ -23,7 +23,7 @@ namespace macroedge {
 
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
 template< uint_t level >
-constexpr uint_t horizontalIndex( const uint_t & col )
+inline constexpr uint_t horizontalIndex( const uint_t & col )
 {
   return ::hhg::indexing::macroEdgeIndex< levelToWidthAnyEdgeDoF< level > >( col );
 };
@@ -31,7 +31,7 @@ constexpr uint_t horizontalIndex( const uint_t & col )
 /// Index of a horizontal edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
 template< uint_t level >
-constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neighbor )
 {
   const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
   const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
@@ -45,7 +45,7 @@ constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neighbor )
 /// Index of a vertical edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
 template< uint_t level >
-constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighbor )
 {
   const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
   const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
@@ -59,7 +59,7 @@ constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighbor )
 /// Index of a diagonal edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
 template< uint_t level >
-constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighbor )
 {
   const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
   const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
@@ -151,11 +151,22 @@ namespace macroface {
 /// Direct access functions
 
 template< uint_t level >
-constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
+inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
 {
   return macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
 };
 
+template< uint_t level >
+inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & row )
+{
+  return 2 * levelToFaceSizeAnyEdgeDoF< level > + macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+}
+
+template< uint_t level >
+inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
+{
+  return levelToFaceSizeAnyEdgeDoF< level > + macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+}
 
 // Stencil access functions
 
@@ -164,16 +175,38 @@ constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const 
 {
   typedef stencilDirection sD;
 
+  // first  neighbor == south
+  // second neighbor == north
+
   switch( dir )
   {
-  case sD::EDGE_HO_C:
-    return horizontalIndex< level >( col, row );
-
-    // ...
-
+  case sD::EDGE_HO_W:
+    return horizontalIndex< level >( col - 1, row     );
+  case sD::EDGE_HO_E:
+    return horizontalIndex< level >( col    , row     );
+  case sD::EDGE_HO_NW:
+    return horizontalIndex< level >( col - 1, row + 1 );
+  case sD::EDGE_HO_SE:
+    return horizontalIndex< level >( col    , row - 1 );
+  case sD::EDGE_DI_SW:
+    return diagonalIndex< level >( col - 1, row - 1 );
+  case sD::EDGE_DI_SE:
+    return diagonalIndex< level >( col    , row - 1 );
+  case sD::EDGE_DI_NW:
+    return diagonalIndex< level >( col - 1, row     );
+  case sD::EDGE_DI_NE:
+    return diagonalIndex< level >( col    , row     );
+  case sD::EDGE_VE_N:
+    return verticalIndex< level >( col    , row     );
+  case sD::EDGE_VE_S:
+    return verticalIndex< level >( col    , row - 1 );
+  case sD::EDGE_VE_NW:
+    return verticalIndex< level >( col - 1, row     );
+  case sD::EDGE_VE_SE:
+    return verticalIndex< level >( col + 1, row - 1 );
   default:
-    return 0;
-    break;
+    WALBERLA_ASSERT( false );
+    return std::numeric_limits< uint_t >::max();
   }
 }
 
