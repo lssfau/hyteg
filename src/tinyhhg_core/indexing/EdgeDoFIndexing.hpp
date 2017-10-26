@@ -210,6 +210,14 @@ constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const 
   }
 }
 
+// Iterators
+
+template< uint_t level, uint_t offsetToCenter = 0 >
+using iterator = FaceIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+
+template< uint_t level, uint_t offsetToCenter = 0 >
+using borderIterator = FaceBorderIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+
 } // namespace macroface
 
 } // namespace edgedof
