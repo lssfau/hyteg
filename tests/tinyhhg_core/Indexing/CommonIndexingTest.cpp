@@ -23,7 +23,7 @@ static void testCommonIndexing()
   using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
 
   for ( const auto & it : vertexdof::macroface::BorderIterator< 3, 1 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
   {
@@ -37,7 +37,7 @@ static void testCommonIndexing()
 
   }
 
-  const uint_t level = 14;
+  const uint_t level = 3;
   const uint_t size = macroFaceSize< vertexdof::levelToWidth< level > >();
 
   WALBERLA_LOG_INFO_ON_ROOT( size );
