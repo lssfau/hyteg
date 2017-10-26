@@ -16,7 +16,7 @@ namespace vertexdof {
 // Conversion functions: level to width (i.e. number of DoFs in the longest 'line')
 
 template< uint_t level >
-constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
+inline constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
 
 
 // ##################
@@ -27,7 +27,7 @@ namespace macroedge {
 
 /// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
 template< uint_t level >
-constexpr uint_t index( const uint_t & col )
+inline constexpr uint_t index( const uint_t & col )
 {
   return ::hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
 };
@@ -35,7 +35,7 @@ constexpr uint_t index( const uint_t & col )
 /// Index of a vertex DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
 template< uint_t level >
-constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
   return                      macroEdgeSize< levelToWidth< level >     >()
          + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
@@ -54,7 +54,7 @@ namespace macroface {
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
 template< uint_t level >
-constexpr uint_t index( const uint_t & col, const uint_t & row )
+inline constexpr uint_t index( const uint_t & col, const uint_t & row )
 {
   return macroFaceIndex< levelToWidth< level > >( col, row );
 };
@@ -62,7 +62,7 @@ constexpr uint_t index( const uint_t & col, const uint_t & row )
 /// Index of a vertex DoF on a ghost layer of a macro face.
 /// \param neighbor 0 or 1 for the respective neighbor
 template< uint_t level >
-constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & neighbor )
+inline constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & neighbor )
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
@@ -76,7 +76,7 @@ constexpr uint_t index( const uint_t & col, const uint_t & row, const uint_t & n
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
 template< uint_t level >
-constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
