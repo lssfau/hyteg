@@ -63,5 +63,6 @@
 #include "petsc/PETScPreconditioner.hpp"
 
 #include "FunctionTraits.hpp"
+#include "MeshQuality.hpp"
 
 #endif /* TINYHHG_HPP */

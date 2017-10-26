@@ -32,14 +32,8 @@ int main(int argc, char* argv[])
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
   const uint_t solverMaxiter = 100;
-  const real_t dt = 0.75 * std::pow(2.0, -walberla::real_c(maxLevel));
-  const real_t finalTime = 1000.0;
-  const real_t plotEach = 2.0;
-  const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
-  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
-  real_t time = 0.0;
 
-  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [dt](const hhg::Point3D& x,const std::vector<real_t>&) {
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [](const hhg::Point3D& x,const std::vector<real_t>&) {
     if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
       return 1.0;
     } else {
@@ -62,6 +56,17 @@ int main(int argc, char* argv[])
   #endif
 
   storage->enableGlobalTiming(timingTree);
+
+  const real_t estimatedMaxVelocity = 1e-1;
+  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
+  WALBERLA_LOG_INFO_ON_ROOT("minimalEdgeLength: " << minimalEdgeLength);
+  const real_t dt = 0.75 * minimalEdgeLength / estimatedMaxVelocity;
+  WALBERLA_LOG_INFO_ON_ROOT("dt: " << dt);
+  const real_t finalTime = 1000.0;
+  const real_t plotEach = 2.0;
+  const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
+  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
+  real_t time = 0.0;
 
   // Setting up Functions
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
