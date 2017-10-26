@@ -16,7 +16,7 @@ namespace vertexdof {
 // Conversion functions: level to width (i.e. number of DoFs in the longest 'line')
 
 template< uint_t level >
-inline constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
+constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
 
 
 // ##################
