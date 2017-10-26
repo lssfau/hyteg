@@ -21,6 +21,7 @@ void roundRobin( SetupPrimitiveStorage & storage );
 
 
 /// \brief Load balancing function for \ref SetupPrimitiveStorage that distributes all primitives in a greedy fashion.
+/// It is expected to result in a much better edge-cut ratio than the roundRobin algorithm. But still not optimal.
 void greedy( SetupPrimitiveStorage & storage );
 
 
