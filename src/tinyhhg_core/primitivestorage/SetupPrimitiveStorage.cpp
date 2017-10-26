@@ -4,6 +4,7 @@
 #include "core/logging/Logging.h"
 
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include <algorithm>
 #include <iomanip>
@@ -285,14 +286,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     }
   }
 
-  // All to root by default
-  PrimitiveMap allPrimitives;
-  getSetupPrimitives( allPrimitives );
-  for ( const auto & it : allPrimitives )
-  {
-    PrimitiveID id = it.first;
-    setTargetRank( id, 0 );
-  }
+  loadbalancing::greedy( *this );
 }
 
 const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
