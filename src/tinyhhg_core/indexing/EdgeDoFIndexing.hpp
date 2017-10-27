@@ -282,10 +282,10 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
 // Iterators
 
 template< uint_t level, uint_t offsetToCenter = 0 >
-using iterator = FaceIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+using Iterator = FaceIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
 
 template< uint_t level, uint_t offsetToCenter = 0 >
-using borderIterator = FaceBorderIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+using BorderIterator = FaceBorderIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
 
 } // namespace macroface
 
