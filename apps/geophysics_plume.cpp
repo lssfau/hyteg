@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
   real_t dt = std::min(1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity);
   WALBERLA_LOG_INFO_ON_ROOT("dt: " << dt);
   const real_t finalTime = 100000.0;
-  const real_t plotEach = 2.0;
+//  const real_t plotEach = 2.0;
   const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
 //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
   const uint_t plotModulo = 10;

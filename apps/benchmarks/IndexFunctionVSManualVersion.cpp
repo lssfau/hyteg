@@ -100,7 +100,6 @@ inline void applyOptimized(real_t * oprPtr,
   using namespace hhg::indexing;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  uint_t inner_rowsize = rowsize;
 
   real_t tmp;
 
