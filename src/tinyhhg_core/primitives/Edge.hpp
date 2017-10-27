@@ -49,6 +49,8 @@ public:
   uint_t face_index(const PrimitiveID& face) const;
 
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
+  bool opposite_face_exists(const PrimitiveID& face) const;
+  PrimitiveID get_opposite_face(const PrimitiveID& face) const;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 

@@ -31,6 +31,9 @@ public:
     {
       communicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
     }
+    if(storage->getTimingTree()){
+      enableTiming(storage->getTimingTree());
+    }
   }
 
   virtual ~Function() {}
@@ -125,8 +128,6 @@ protected:
   std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
-
-private:
 
   void startTiming( const std::string & timerString )
   {

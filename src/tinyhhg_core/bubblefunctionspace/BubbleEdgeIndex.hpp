@@ -10,18 +10,6 @@ namespace BubbleEdge{
 //FIXME this can be removed after we moved into walberla namespace
 using namespace walberla::mpistubs;
 
-namespace EdgeCoordsVertex {
-enum DirVertex {
-  CELL_GRAY_SW = 0,
-  CELL_BLUE_SE = 1,
-  CELL_GRAY_SE = 2,
-  CELL_GRAY_NW = 3,
-  CELL_BLUE_NW = 4,
-  CELL_GRAY_NE = 5
-};
-
-}//namespace EdgeCoordsVertex
-
 constexpr inline uint_t indexEdgeStencil(const stencilDirection dir){
   typedef hhg::stencilDirection sD;
   switch(dir) {
@@ -58,7 +46,8 @@ template<size_t Level>
 constexpr inline size_t indexFaceFromVertex(size_t pos, stencilDirection dir) {
   typedef stencilDirection sD;
   const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge);
+  WALBERLA_ASSERT_GREATER_EQUAL(pos,0);
+  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge - 1);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {

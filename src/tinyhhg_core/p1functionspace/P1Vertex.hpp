@@ -150,6 +150,25 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 template< typename ValueType >
+inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
+                      const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId, size_t level,
+                      ValueType relax) {
+  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto dst = vertex.getData(dstId)->getPointer( level );
+  auto rhs = vertex.getData(rhsId)->getPointer( level );
+
+  ValueType tmp;
+  tmp = rhs[0];
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    tmp -= opr_data[i + 1]*dst[i + 1];
+  }
+
+  dst[0] = (1.0-relax) * dst[0] + relax * tmp/opr_data[0];
+}
+
+template< typename ValueType >
 inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId,
@@ -195,9 +214,41 @@ inline void restrict(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemor
 }
 
 template< typename ValueType >
-inline void enumerate(Vertex &vertex, const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId, size_t level, uint_t& num) {
+inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <VertexP1FunctionMemory<ValueType>, Vertex> &dstId, uint_t &num) {
   auto dst = vertex.getData(dstId)->getPointer( level );
   dst[0] = static_cast< ValueType >( num++ );
+}
+
+template< typename ValueType >
+inline void integrateDG(Vertex &vertex,
+                            const std::shared_ptr< PrimitiveStorage >& storage,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsP1Id,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
+                            uint_t level) {
+
+  auto rhs = vertex.getData(rhsId)->getPointer( level );
+  auto rhsP1 = vertex.getData(rhsP1Id)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+
+  ValueType tmp = 0.0;
+
+  for(auto faceIt : vertex.neighborFaces()) {
+    Face *face = storage->getFace(faceIt.getID());
+
+    real_t weightedFaceArea = std::pow(4.0, -walberla::real_c(level))*face->area / 3.0;
+
+    uint_t localFaceId = vertex.face_index(face->getID());
+
+    uint_t faceMemoryIndex = 2 * localFaceId;
+
+    std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
+    uint_t edge_idx[2] = { vertex.edge_index(adj_edges[0]) + 1, vertex.edge_index(adj_edges[1]) + 1 };
+
+    tmp += weightedFaceArea * rhs[faceMemoryIndex] * (0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[0]]) + 0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[1]]));
+  }
+
+  dst[0] = tmp;
 }
 
 #ifdef HHG_BUILD_WITH_PETSC

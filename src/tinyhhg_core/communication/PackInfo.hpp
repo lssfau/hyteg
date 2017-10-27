@@ -1,7 +1,7 @@
 #pragma once
 
-#include <tinyhhg_core/primitives/Edge.hpp>
 #include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 
 namespace hhg {
 /// namespace containing function for communication between primitives

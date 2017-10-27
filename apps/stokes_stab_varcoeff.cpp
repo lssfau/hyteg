@@ -43,6 +43,6 @@ int main(int argc, char* argv[])
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   // u_u*iHat + u_v*jHat
-  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p, coefficient.get() }, maxLevel, "../output", "stokes_stab_varcoeff");
+  //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p, coefficient.get() }, maxLevel, "../output", "stokes_stab_varcoeff");
   return EXIT_SUCCESS;
 }

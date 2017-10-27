@@ -7,6 +7,7 @@
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
@@ -35,6 +36,21 @@ inline ValueType assembleLocal(uint_t i, uint_t j, const Matrix3r& localMatrix,
   return meanCoeff * tmp;
 }
 
+template<typename ValueType, uint_t Level>
+inline ValueType assembleLocalDG(uint_t i, uint_t j, const Matrix3r& localMatrix,
+                               double* src,
+                               const std::array<FaceCoordsVertex::DirVertex,3>& vertices,
+                               const std::array<uint_t,3>& idx)
+{
+  using namespace FaceCoordsVertex;
+
+  ValueType tmp;
+  tmp  = localMatrix(idx[0],idx[0]) * src[index<Level>(i, j, vertices[0])]
+      + localMatrix(idx[0],idx[1]) * src[index<Level>(i, j, vertices[1])]
+      + localMatrix(idx[0],idx[2]) * src[index<Level>(i, j, vertices[2])];
+  return tmp;
+}
+
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
@@ -45,6 +61,8 @@ inline void interpolateTmpl(Face &face,
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
+
+  auto dstPtr = faceMemory->getPointer( Level );
 
   x0 = face.coords[0];
 
@@ -58,7 +76,7 @@ inline void interpolateTmpl(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      faceMemory->getPointer( Level )[index<Level>(j, i, VERTEX_C)] = expr(x);
+      dstPtr[index<Level>(j, i, VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -78,14 +96,20 @@ inline void assignTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      ValueType tmp = scalars[0]*face.getData(srcIds[0])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+  ValueType* dst = face.getData(dstId)->getPointer( Level );
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      ValueType tmp = scalars[0]*srcPtr[0][index<Level>(i, j, VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k]*srcPtr[k][index<Level>(i, j, VERTEX_C)];
       }
-      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] = tmp;
+      dst[index<Level>(i, j, VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -103,15 +127,22 @@ inline void addTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  ValueType* dstPtr = face.getData(dstId)->getPointer( Level );
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       ValueType tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*face.getData(srcIds[k])->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+        tmp += scalars[k] * srcPtr[k][index<Level>(i, j, VERTEX_C)];
       }
 
-      face.getData(dstId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)] += tmp;
+      dstPtr[index<Level>(i, j, VERTEX_C)] += tmp;
     }
 
     --inner_rowsize;
@@ -130,10 +161,14 @@ inline real_t dotTmpl(Face &face,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      sp += face.getData(lhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)]
-          *face.getData(rhsId)->getPointer( Level )[index<Level>(i, j, VERTEX_C)];
+  ValueType* lhsPtr = face.getData(lhsId)->getPointer( Level );
+  ValueType* rhsPtr = face.getData(rhsId)->getPointer( Level );
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      sp += lhsPtr[index<Level>(i, j, VERTEX_C)]
+          * rhsPtr[index<Level>(i, j, VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -152,14 +187,14 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  ValueType* opr_data = face.getData(operatorId)->data[Level].get();
   auto src = face.getData(srcId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
       tmp = opr_data[VERTEX_C]*src[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -203,8 +238,9 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
   std::array<DirVertex,3> triangleBlueN  = { VERTEX_C, VERTEX_NW, VERTEX_N  };
   std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
 
       if (update == Replace) {
         tmp = ValueType(0);
@@ -229,6 +265,60 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
 SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientTmpl, applyCoefficient)
 
 template< typename ValueType, uint_t Level >
+inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId,
+                                 UpdateType update) {
+  using namespace FaceCoordsVertex;
+  typedef stencilDirection sD;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto localMatrices = face.getData(operatorId);
+  auto src = face.getData(srcId)->getPointer(Level);
+  auto dst = face.getData(dstId)->getPointer(Level);
+  auto coeff = face.getData(coeffId)->getPointer(Level);
+
+  ValueType tmp;
+
+  std::array<DirVertex,3> triangleBlueSW = { VERTEX_C, VERTEX_W,  VERTEX_S  };
+  std::array<DirVertex,3> triangleGraySE = { VERTEX_C, VERTEX_S,  VERTEX_SE };
+  std::array<DirVertex,3> triangleBlueSE = { VERTEX_C, VERTEX_SE, VERTEX_E  };
+  std::array<DirVertex,3> triangleGrayNW = { VERTEX_C, VERTEX_W,  VERTEX_NW };
+  std::array<DirVertex,3> triangleBlueNW = { VERTEX_C, VERTEX_NW, VERTEX_N  };
+  std::array<DirVertex,3> triangleGrayNE = { VERTEX_C, VERTEX_N,  VERTEX_E  };
+
+
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+
+      if (update == Replace) {
+        tmp = ValueType(0);
+      }
+      else {
+        tmp = dst[index<Level>(i, j, VERTEX_C)];
+      }
+
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGraySE, {2,0,1});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSE, {1,2,0});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSW, {0,1,2});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNW, {1,0,2});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueNW, {2,1,0});
+      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNE, {0,2,1});
+
+      dst[index<Level>(i, j, VERTEX_C)] = tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
+
+template< typename ValueType, uint_t Level >
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
@@ -243,12 +333,14 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
-      for (auto neighbor : neighbors) {
-        tmp -= opr_data[neighbor]*dst[index<Level>(i, j, neighbor)];
+      //for (auto neighbor : neighbors) {
+      for(uint_t k = 0; k < neighbors.size(); ++k){
+        tmp -= opr_data[neighbors[k]]*dst[index<Level>(i, j, neighbors[k])];
       }
 
       dst[index<Level>(i, j, VERTEX_C)] = tmp/opr_data[VERTEX_C];
@@ -258,6 +350,40 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
+
+template< typename ValueType, uint_t Level >
+inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
+                            ValueType relax) {
+  using namespace FaceCoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto dst = face.getData(dstId)->getPointer( Level );
+  auto rhs = face.getData(rhsId)->getPointer( Level );
+
+  ValueType tmp;
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      tmp = rhs[index<Level>(i, j, VERTEX_C)];
+
+      //for (auto neighbor : neighbors) {
+      for(uint_t k = 0; k < neighbors.size(); ++k){
+        tmp -= opr_data[neighbors[k]]*dst[index<Level>(i, j, neighbors[k])];
+      }
+
+      dst[index<Level>(i, j, VERTEX_C)] = (1.0-relax) * dst[index<Level>(i, j, VERTEX_C)] + relax * tmp/opr_data[VERTEX_C];
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, smooth_sor_tmpl, smooth_sor)
 
 template< typename ValueType, uint_t Level >
 inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
@@ -276,8 +402,9 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
       tmp = rhs[index<Level>(i, j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -356,8 +483,9 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 
   N_c_i -= 1;
 
-  for (i = 2; i < N_c - 1; i += 2) {
-    for (j = 2; j < N_c_i - 1; j += 2) {
+  for (j = 2; j < N_c - 1; j += 2) {
+    for (i = 2; i < N_c_i - 1; i += 2) {
+
 // upper triangle inner points
 //calculate offsets
       linearx = 0.5*(v_c[index<Level>(i, j - 2, VERTEX_C)] + v_c[index<Level>(i, j, VERTEX_C)]);
@@ -424,8 +552,9 @@ inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 
   ValueType tmp;
 
-  for (uint_t i = 1; i < N_c - 2; ++i) {
-    for (uint_t j = 1; j < N_c_i - 2; ++j) {
+  for (uint_t j = 1; j < N_c - 2; ++j) {
+    for (uint_t i = 1; i < N_c_i - 2; ++i) {
+
       tmp = v_f[index<Level>(2*i, 2*j, VERTEX_C)];
 
       for (auto neighbor : neighbors) {
@@ -460,10 +589,13 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 
   uint_t mr = 1 + rowsize;
 
+  ValueType* dstPtr = face.getData(dstId)->getPointer( Level );
+
   for (uint_t i = 0; i < rowsize - 3; ++i) {
     for (uint_t j = 0; j < inner_rowsize - 3; ++j) {
 
-      face.getData(dstId)->getPointer( Level )[mr] = walberla::real_c(num++);
+      dstPtr[mr] = static_cast<ValueType>(num);
+      num++;
 
       mr += 1;
     }
@@ -474,6 +606,67 @@ inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+
+template< typename ValueType, uint_t Level >
+inline void integrateDGTmpl(Face &face,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsP1Id,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
+  using namespace FaceCoordsVertex;
+  typedef stencilDirection sD;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto rhs = face.getData(rhsId)->getPointer(Level);
+  auto rhsP1 = face.getData(rhsP1Id)->getPointer(Level);
+  auto dst = face.getData(dstId)->getPointer(Level);
+
+  real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
+  real_t weightedFaceArea = faceArea / 3.0;
+
+  ValueType tmp;
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      tmp  = rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_S)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_SE)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_E)]));
+
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_NW)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_N)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, sD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, VERTEX_C)] + rhsP1[index<Level>(i, j, VERTEX_E)]));
+
+      dst[index<Level>(i, j, VERTEX_C)] = weightedFaceArea * tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
+
+template< typename ValueType, uint_t Level >
+inline real_t getMaxValueTmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId) {
+  using namespace FaceCoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = face.getData(srcId)->getPointer( Level );
+  real_t localMax = std::numeric_limits<real_t>::min();
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+      localMax = std::max(localMax, src[index<Level>(i, j, VERTEX_C)]);
+    }
+    --inner_rowsize;
+  }
+
+  return localMax;
+}
+
+SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >

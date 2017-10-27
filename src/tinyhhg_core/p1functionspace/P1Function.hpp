@@ -46,6 +46,12 @@ public:
 
   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
+  // TODO: split this function into impl
+  inline void integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag);
+
+  // TODO: write more general version
+  inline real_t getMaxValue(uint_t level);
+
 private:
 
   using Function< P1Function< ValueType > >::storage_;
@@ -375,7 +381,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
-    P1Vertex::enumerate(vertex, vertexDataID_, level, num);
+    P1Vertex::enumerate(level, vertex, vertexDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
@@ -399,6 +405,87 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+}
+
+template< typename ValueType >
+inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag)
+{
+  rhsP1.getCommunicator(level)->template startCommunication<Edge, Vertex>();
+  rhsP1.getCommunicator(level)->template startCommunication<Face, Edge>();
+
+  rhs.getCommunicator(level)->template startCommunication<Face, Edge>();
+  rhs.getCommunicator(level)->template endCommunication<Face, Edge>();
+
+  rhs.getCommunicator(level)->template startCommunication<Edge, Vertex>();
+  rhs.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+
+  rhsP1.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag)) {
+      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
+    }
+  }
+
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  rhsP1.getCommunicator(level)->template endCommunication<Face, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      P1Face::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_);
+    }
+  }
+
+  communicators_[level]->template endCommunication<Edge, Face>();
+}
+
+inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {
+
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) {
+    return 1.0;
+  };
+
+  tmp.interpolate(ones, level);
+
+  real_t numGlobalVertices = tmp.dot(tmp, level, hhg::All);
+  real_t mean = pressure.dot(tmp, level, hhg::All);
+
+  pressure.assign({1.0, -mean/numGlobalVertices}, {&pressure, &tmp}, level, hhg::All);
+}
+
+template< typename ValueType >
+inline real_t P1Function< ValueType >::getMaxValue(uint_t level)
+{
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
+
+  real_t localMax = std::numeric_limits<real_t>::min();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+    localMax = std::max(localMax, P1Face::getMaxValue< ValueType >(level, face, faceDataID_));
+  }
+
+  real_t globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);
+
+  return globalMax;
 }
 
 }

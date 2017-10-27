@@ -78,6 +78,13 @@ public:
     return tmp;
   }
 
+  /// Computes the 2D normal of this PointND
+  /// \returns 2D Point normal to this PointND
+  PointND<T, 2> normal2D()
+  {
+    return PointND<T, 2>({ this->x[1], -this->x[0] });
+  }
+
   /// Computes the squared Euclidean norm of \p this
   /// \returns Squared Euclidean norm of \p this
   T normSq() const

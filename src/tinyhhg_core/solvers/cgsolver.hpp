@@ -34,9 +34,11 @@ public:
     real_t rsold = r.dot(r, level, flag);
     real_t prsold = r.dot(z, level, flag);
 
-    if (std::sqrt(rsold) < tolerance && printInfo)
+    if (std::sqrt(rsold) < tolerance)
     {
-      WALBERLA_LOG_INFO_ON_ROOT("[CG] converged");
+      if (printInfo) {
+        WALBERLA_LOG_INFO_ON_ROOT("[CG] converged");
+      }
       return;
     }
     real_t pAp, alpha, rsnew, sqrsnew, prsnew, beta;
