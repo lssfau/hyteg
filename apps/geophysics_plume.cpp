@@ -61,17 +61,6 @@ int main(int argc, char* argv[])
 
   storage->enableGlobalTiming(timingTree);
 
-  const real_t estimatedMaxVelocity = 1.0;
-  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
-  WALBERLA_LOG_INFO_ON_ROOT("minimalEdgeLength: " << minimalEdgeLength);
-  const real_t dt = minimalEdgeLength / estimatedMaxVelocity;
-  WALBERLA_LOG_INFO_ON_ROOT("dt: " << dt);
-  const real_t finalTime = 1000.0;
-  const real_t plotEach = 2.0;
-  const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
-  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
-  real_t time = 0.0;
-
   // Setting up Functions
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
   auto c = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
@@ -92,6 +81,18 @@ int main(int argc, char* argv[])
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
+
+  real_t estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({&u->u, &u->v}, maxLevel);
+  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
+  WALBERLA_LOG_INFO_ON_ROOT("minimalEdgeLength: " << minimalEdgeLength);
+  real_t dt = std::min(1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity);
+  WALBERLA_LOG_INFO_ON_ROOT("dt: " << dt);
+  const real_t finalTime = 100000.0;
+  const real_t plotEach = 2.0;
+  const uint_t timesteps = (uint_t) std::ceil(finalTime/dt);
+//  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
+  const uint_t plotModulo = 10;
+  real_t time = 0.0;
 
   // Interpolate normal components
   n_x->interpolate(expr_n_x, maxLevel);
@@ -142,6 +143,10 @@ int main(int argc, char* argv[])
 
     c_old.swap(c);
     time += dt;
+
+    // compute new dt by CFL condition
+    estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({&u->u, &u->v}, maxLevel);
+    dt = std::min(1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity);
   }
 
   timingTree->stop("Global");

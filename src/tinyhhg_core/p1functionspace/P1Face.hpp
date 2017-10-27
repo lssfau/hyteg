@@ -646,6 +646,28 @@ inline void integrateDGTmpl(Face &face,
 
 SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
+template< typename ValueType, uint_t Level >
+inline real_t getMaxValueTmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId) {
+  using namespace FaceCoordsVertex;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = face.getData(srcId)->getPointer( Level );
+  real_t localMax = std::numeric_limits<real_t>::min();
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+      localMax = std::max(localMax, src[index<Level>(i, j, VERTEX_C)]);
+    }
+    --inner_rowsize;
+  }
+
+  return localMax;
+}
+
+SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
+
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,

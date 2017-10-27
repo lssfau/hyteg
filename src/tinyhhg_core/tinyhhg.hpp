@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 
 #include "bubblefunctionspace/BubbleFunction.hpp"

@@ -49,6 +49,9 @@ public:
   // TODO: split this function into impl
   inline void integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag);
 
+  // TODO: write more general version
+  inline real_t getMaxValue(uint_t level);
+
 private:
 
   using Function< P1Function< ValueType > >::storage_;
@@ -463,6 +466,26 @@ inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& t
   real_t mean = pressure.dot(tmp, level, hhg::All);
 
   pressure.assign({1.0, -mean/numGlobalVertices}, {&pressure, &tmp}, level, hhg::All);
+}
+
+template< typename ValueType >
+inline real_t P1Function< ValueType >::getMaxValue(uint_t level)
+{
+  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
+
+  real_t localMax = std::numeric_limits<real_t>::min();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+    localMax = std::max(localMax, P1Face::getMaxValue< ValueType >(level, face, faceDataID_));
+  }
+
+  real_t globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);
+
+  return globalMax;
 }
 
 }
