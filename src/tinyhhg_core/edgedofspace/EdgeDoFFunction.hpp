@@ -147,8 +147,21 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( false, "To be implemented..." );
-  return real_c( 0 );
+  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
+
+  real_t scalarProduct = real_c( 0 );
+
+  for ( auto & it : storage_->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( face.type, flag ) )
+    {
+      scalarProduct += edgedof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
+    }
+  }
+
+  return scalarProduct;
 }
 
 template< typename ValueType >

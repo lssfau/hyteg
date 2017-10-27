@@ -96,6 +96,32 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
 
 SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add );
 
+template< typename ValueType, uint_t Level >
+inline real_t dotTmpl( Face & face,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+{
+  auto lhsData = face.getData( lhsId )->getPointer( Level );
+  auto rhsData = face.getData( rhsId )->getPointer( Level );
+
+  real_t scalarProduct = real_c( 0 );
+
+  for ( const auto & it : indexing::edgedof::macroface::Iterator< Level, 1 >() )
+  {
+    const uint_t horizontalIdx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+    const uint_t diagonalIdx   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t verticalIdx   = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+
+    scalarProduct += lhsData[ horizontalIdx ] * rhsData[ horizontalIdx ];
+    scalarProduct += lhsData[ diagonalIdx ]   * rhsData[ diagonalIdx ];
+    scalarProduct += lhsData[ verticalIdx ]   * rhsData[ verticalIdx ];
+  }
+
+  return scalarProduct;
+}
+
+SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot );
+
 }
 }
 }

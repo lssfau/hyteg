@@ -28,6 +28,14 @@ static void testEdgeDoFFunction()
   real_t * faceDataX = face->getData( x->getFaceDataID() )->getPointer( maxLevel );
   real_t * faceDataY = face->getData( y->getFaceDataID() )->getPointer( maxLevel );
 
+  // Stupid method to count number of inner face dofs :)
+  uint_t numInnerFaceDoFs = 0;
+  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  {
+    numInnerFaceDoFs++;
+  }
+  numInnerFaceDoFs *= 3;
+
   // Interpolate
 
   std::function<real_t(const hhg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
@@ -71,7 +79,13 @@ static void testEdgeDoFFunction()
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
   }
 
+  // Dot
 
+  timer["Dot"].start();
+  const real_t scalarProduct = y->dot( *x, maxLevel, DoFType::All );
+  timer["Dot"].end();
+
+  WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( numInnerFaceDoFs * 20 * 2 ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( timer );
 
