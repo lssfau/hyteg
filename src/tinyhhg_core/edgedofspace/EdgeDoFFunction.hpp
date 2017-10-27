@@ -93,44 +93,65 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueT
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_LOG_WARNING_ON_ROOT( "Assign not fully implemented!" );
+
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
+
+  for ( auto& function : functions )
+  {
+      srcVertexIDs.push_back( function->vertexDataID_ );
+      srcEdgeIDs.push_back( function->edgeDataID_);
+      srcFaceIDs.push_back( function->faceDataID_ );
+  }
+
+  for ( auto & it : storage_->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( face.type, flag ) )
+    {
+      edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+    }
+  }
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
 }
 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
   return real_c( 0 );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  WALBERLA_ASSERT( false, "To be implemented..." );
 }
 
 }
