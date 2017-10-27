@@ -25,12 +25,19 @@ static void testCommonIndexing()
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
   WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
 
-  for ( const auto & it : vertexdof::macroface::BorderIterator< 3 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
+  for ( const auto & it : vertexdof::macroface::BorderIterator< 3, 1 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
   {
     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << vertexdof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
   }
 
-  const uint_t level = 3;
+  WALBERLA_LOG_INFO_ON_ROOT( "FaceIterator:" )
+  for ( const auto & it : FaceIterator< 9, 1 >() )
+  {
+    std::cout << "(" << it.col() << ", " << it.row() << ") -> " << macroFaceIndex< 9 >( it.col(), it.row() ) << "\n";
+
+  }
+
+  const uint_t level = 14;
   const uint_t size = macroFaceSize< vertexdof::levelToWidth< level > >();
 
   WALBERLA_LOG_INFO_ON_ROOT( size );
@@ -66,14 +73,14 @@ static void testCommonIndexing()
   walberla::WcTimingPool timer;
 
 
-#if 0
+#if 1
   const uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t inner_rowsize = rowsize;
 
   for (uint_t i = 0; i < rowsize; ++i) {
     for (uint_t j = 0; j < inner_rowsize; ++j) {
-      a[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] = 0.0001;
-      b[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] = 0.0002;
+      a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0001;
+      b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0002;
     }
     --inner_rowsize;
   }
@@ -85,7 +92,7 @@ static void testCommonIndexing()
 
   for (uint_t i = 0; i < rowsize; ++i) {
     for (uint_t j = 0; j < inner_rowsize; ++j) {
-      sp += a[ macroFaceIndex< levelToWidthVertexDoF< level > >(j, i) ] * b[ macroFaceIndex< levelToWidthVertexDoF< level > >(i, j) ];
+      sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ];
     }
     --inner_rowsize;
   }

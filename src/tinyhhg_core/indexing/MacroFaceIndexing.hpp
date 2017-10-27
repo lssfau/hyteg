@@ -45,6 +45,95 @@ inline constexpr uint_t macroFaceIndex( const uint_t & col, const uint_t & row )
 }
 
 
+/// Iterator over a face.
+/// Iterates from bottom to top in a row wise fashion.
+/// It is possible to parameterize the iterator to only iterate over a inner part of the face.
+/// This is done by setting the offset parameter to the distance to the edge.
+/// If set to zero, the iterator iterates over the whole face (including the border).
+template< uint_t width, uint_t offsetToCenter = 0 >
+class FaceIterator
+{
+public:
+
+  using iterator_category = std::input_iterator_tag;
+  using value_type        = Index;
+  using reference         = value_type const&;
+  using pointer           = value_type const*;
+  using difference_type   = ptrdiff_t;
+
+  FaceIterator( const bool & end = false ) :
+    totalNumberOfDoFs_( ( ( width - 3 * offsetToCenter + 1 ) * ( width - 3 * offsetToCenter ) ) / 2 ), step_( 0 )
+  {
+    WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
+
+    coordinates_.dep() = 0;
+
+    coordinates_.col() = offsetToCenter;
+    coordinates_.row() = offsetToCenter;
+
+    if ( end )
+    {
+      step_ = totalNumberOfDoFs_;
+    }
+  }
+
+  FaceIterator begin() { return FaceIterator< width, offsetToCenter >(); }
+  FaceIterator end()   { return FaceIterator< width, offsetToCenter >( true ); }
+
+  bool operator==( const FaceIterator & other ) const
+  {
+    return other.step_ == step_;
+  }
+
+  bool operator!=( const FaceIterator & other ) const
+  {
+    return other.step_ != step_;
+  }
+
+  reference operator*()  const { return  coordinates_; };
+  pointer   operator->() const { return &coordinates_; };
+
+  FaceIterator & operator++() // prefix
+  {
+    WALBERLA_ASSERT_LESS_EQUAL( step_, totalNumberOfDoFs_, "Incrementing iterator beyond end!" );
+
+    step_++;
+
+    const uint_t currentRow = coordinates_.row();
+    const uint_t currentCol = coordinates_.col();
+
+    const uint_t lengthOfCurrentRowWithoutOffset = width - currentRow;
+
+    if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter - 1 )
+    {
+      coordinates_.col()++;
+    }
+    else
+    {
+      coordinates_.row()++;
+      coordinates_.col() = offsetToCenter;
+    }
+
+    return *this;
+  }
+
+  FaceIterator operator++( int ) // postfix
+  {
+    const FaceIterator tmp( *this );
+    ++*this;
+    return tmp;
+  }
+
+
+private:
+
+  const uint_t    totalNumberOfDoFs_;
+        uint_t    step_;
+        Index     coordinates_;
+
+};
+
+
 enum class FaceBorderDirection
 {
   BOTTOM_LEFT_TO_RIGHT,
@@ -54,6 +143,7 @@ enum class FaceBorderDirection
   DIAGONAL_BOTTOM_TO_TOP,
   DIAGONAL_TOP_TO_BOTTOM,
 };
+
 
 /// Iterator over the borders of a face.
 /// Decoupled from the indexing function, it returns the logical coordinates
@@ -65,7 +155,7 @@ enum class FaceBorderDirection
 ///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
 ///   }
 ///
-template< uint_t width >
+template< uint_t width, uint_t offsetToCenter = 0 >
 class FaceBorderIterator
 {
 public:
@@ -76,8 +166,8 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  FaceBorderIterator( const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const bool & end = false ) :
-    direction_( direction ), offsetToCenter_( offsetToCenter ), step_( 0 )
+  FaceBorderIterator( const FaceBorderDirection & direction, const bool & end = false ) :
+    direction_( direction ), step_( 0 )
   {
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
@@ -120,8 +210,8 @@ public:
     }
   }
 
-  FaceBorderIterator begin() { return FaceBorderIterator( direction_, offsetToCenter_ ); }
-  FaceBorderIterator end()   { return FaceBorderIterator( direction_, offsetToCenter_, true ); }
+  FaceBorderIterator begin() { return FaceBorderIterator< width, offsetToCenter >( direction_ ); }
+  FaceBorderIterator end()   { return FaceBorderIterator< width, offsetToCenter >( direction_, true ); }
 
   bool operator==( const FaceBorderIterator & other ) const
   {
@@ -184,7 +274,6 @@ public:
 private:
 
   const FaceBorderDirection direction_;
-  const uint_t    offsetToCenter_;
         uint_t    step_;
         Index     coordinates_;
 
