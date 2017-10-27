@@ -39,6 +39,9 @@ endif()
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME EdgeDoFMemoryTest)
 
+waLBerla_compile_test(FILES edgedofspace/EdgeDoFFunctionTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME EdgeDoFFunctionTest)
+
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1InterpolateTest)
 
