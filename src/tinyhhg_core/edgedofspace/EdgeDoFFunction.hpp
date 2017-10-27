@@ -10,6 +10,7 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFDataHandling.hpp"
 
 namespace hhg {
 
@@ -21,7 +22,18 @@ public:
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel ) :
       Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
+    auto edgeDoFMacroVertexFunctionMemoryDataHandling = std::make_shared< EdgeDoFMacroVertexFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto edgeDoFMacroEdgeFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroEdgeFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto edgeDoFMacroFaceFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroFaceFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+
+    storage->addVertexData( vertexDataID_, edgeDoFMacroVertexFunctionMemoryDataHandling, name );
+    storage->addEdgeData(   edgeDataID_,   edgeDoFMacroEdgeFunctionMemoryDataHandling,   name );
+    storage->addFaceData(   faceDataID_,   edgeDoFMacroFaceFunctionMemoryDataHandling,   name );
   }
+
+  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
 
 private:
 

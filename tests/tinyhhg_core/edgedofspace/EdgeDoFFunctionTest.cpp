@@ -17,9 +17,10 @@ static void testEdgeDoFFunction()
   SetupPrimitiveStorage setupStorage( mesh, walberla::mpi::MPIManager::instance()->numProcesses() );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  EdgeDoFFunction< real_t > edgeDoFFunction( "x", storage, minLevel, maxLevel );
-  WALBERLA_UNUSED( edgeDoFFunction );
+  auto edgeDoFFunction = std::make_shared< EdgeDoFFunction< real_t > >( "x", storage, minLevel, maxLevel );
 
+  auto vertexDataID = edgeDoFFunction->getVertexDataID();
+  WALBERLA_UNUSED( vertexDataID );
 }
 
 } // namespace hhg
