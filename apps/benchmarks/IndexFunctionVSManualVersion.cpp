@@ -99,8 +99,6 @@ inline void applyOptimized(real_t * oprPtr,
   using namespace hhg::P1Face::FaceCoordsVertex;
   using namespace hhg::indexing;
 
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-
   real_t tmp;
 
   uint_t actualCol;
