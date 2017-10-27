@@ -58,6 +58,18 @@ static void testEdgeDoFFunction()
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
   }
 
+  // Add
+
+  timer["Add"].start();
+  y->add( {{ 4.0, 3.0 }}, {{ x.get(), x.get() }}, maxLevel, DoFType::All );
+  timer["Add"].end();
+
+  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  {
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
+  }
 
 
 

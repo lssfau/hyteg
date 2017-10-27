@@ -120,7 +120,28 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( false, "To be implemented..." );
+  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
+
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
+
+  for ( auto& function : functions )
+  {
+      srcVertexIDs.push_back( function->vertexDataID_ );
+      srcEdgeIDs.push_back( function->edgeDataID_);
+      srcFaceIDs.push_back( function->faceDataID_ );
+  }
+
+  for ( auto & it : storage_->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( face.type, flag ) )
+    {
+      edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+    }
+  }
 }
 
 template< typename ValueType >
