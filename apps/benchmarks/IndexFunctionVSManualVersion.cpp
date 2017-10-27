@@ -104,40 +104,32 @@ inline void applyOptimized(real_t * oprPtr,
 
   real_t tmp;
 
+  uint_t actualCol;
+  uint_t actualRow;
 #ifdef WALBERLA_CXX_COMPILER_IS_INTEL
 #pragma ivdep
 #endif
-  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< Level > >(); ++i) {
-    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< Level > >(); ++j) {
+  for ( const auto & it : FaceIterator< vertexdof::levelToWidth< Level >, 1 >() ){
 
-      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< Level > >(j, i);
-      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< Level > >(j, i);
+    actualCol = it.col();
+    actualRow = it.row();
 
-      if(actualRow == 0 || actualCol == 0 || (actualRow + actualCol) == (rowsize-1)){
-        continue;
-      }
+    tmp = oprPtr[VERTEX_C]*srcPtr[index<Level>(actualCol, actualRow, VERTEX_C)];
 
-      tmp = oprPtr[VERTEX_C]*srcPtr[index<Level>(actualCol, actualRow, VERTEX_C)];
+    tmp += oprPtr[neighbors[0]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
+    tmp += oprPtr[neighbors[1]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
+    tmp += oprPtr[neighbors[2]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[2])];
+    tmp += oprPtr[neighbors[3]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[3])];
+    tmp += oprPtr[neighbors[4]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[4])];
+    tmp += oprPtr[neighbors[5]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[5])];
 
-      tmp += oprPtr[neighbors[0]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
-      tmp += oprPtr[neighbors[1]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[1])];
-      tmp += oprPtr[neighbors[2]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[2])];
-      tmp += oprPtr[neighbors[3]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[3])];
-      tmp += oprPtr[neighbors[4]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[4])];
-      tmp += oprPtr[neighbors[5]]*srcPtr[index<Level>(actualCol, actualRow, neighbors[5])];
-      //for (auto neighbor : neighbors) {
-//      for(uint_t k = 0; k < neighbors.size(); ++k){
-//        tmp += oprPtr[neighbors[k]]*srcPtr[index<Level>(i, j, neighbors[k])];
-//      }
-
-      if (update==Replace) {
-        dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] = tmp;
-      } else if (update==Add) {
-        dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] += tmp;
-      }
+    if (update==Replace) {
+      dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] = tmp;
+    } else if (update==Add) {
+      dstPtr[index<Level>(actualCol, actualRow, VERTEX_C)] += tmp;
     }
-    --inner_rowsize;
   }
+
 }
 
 int main(int argc, char **argv) {
@@ -184,7 +176,7 @@ int main(int argc, char **argv) {
   applyOptimized< level >(oprPtr,srcPtr,dst1Ptr,Replace);
   LIKWID_MARKER_STOP("Optimized");
   timer.end();
-  WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Manual: " << timer.last());
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Optimized: " << timer.last());
 
   timer.reset();
   LIKWID_MARKER_START("Index");
