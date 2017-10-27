@@ -188,26 +188,45 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
   uint_t inner_rowsize = rowsize;
 
   ValueType* opr_data = face.getData(operatorId)->data[Level].get();
-  auto src = face.getData(srcId)->getPointer( Level );
-  auto dst = face.getData(dstId)->getPointer( Level );
+  ValueType* src = face.getData(srcId)->getPointer( Level );
+  ValueType* dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
 
-  for (uint_t j = 1; j < rowsize - 2; ++j) {
-    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-      tmp = opr_data[VERTEX_C]*src[index<Level>(i, j, VERTEX_C)];
+  if( update == Replace ) {
+    for (uint_t j = 1; j < rowsize - 2; ++j) {
+      for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+        tmp = opr_data[VERTEX_C] * src[index<Level>(i, j, VERTEX_C)];
 
-      for (auto neighbor : neighbors) {
-        tmp += opr_data[neighbor]*src[index<Level>(i, j, neighbor)];
-      }
+        //strangely the intel compiler cant handle this if it is a loop
+        tmp += opr_data[neighbors[0]]*src[index<Level>(i, j, neighbors[0])];
+        tmp += opr_data[neighbors[1]]*src[index<Level>(i, j, neighbors[1])];
+        tmp += opr_data[neighbors[2]]*src[index<Level>(i, j, neighbors[2])];
+        tmp += opr_data[neighbors[3]]*src[index<Level>(i, j, neighbors[3])];
+        tmp += opr_data[neighbors[4]]*src[index<Level>(i, j, neighbors[4])];
+        tmp += opr_data[neighbors[5]]*src[index<Level>(i, j, neighbors[5])];
 
-      if (update==Replace) {
         dst[index<Level>(i, j, VERTEX_C)] = tmp;
-      } else if (update==Add) {
+      }
+      --inner_rowsize;
+    }
+  } else {
+    for (uint_t j = 1; j < rowsize - 2; ++j) {
+      for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+        tmp = opr_data[VERTEX_C] * src[index<Level>(i, j, VERTEX_C)];
+
+        //strangely the intel compiler cant handle this if it is a loop
+        tmp += opr_data[neighbors[0]]*src[index<Level>(i, j, neighbors[0])];
+        tmp += opr_data[neighbors[1]]*src[index<Level>(i, j, neighbors[1])];
+        tmp += opr_data[neighbors[2]]*src[index<Level>(i, j, neighbors[2])];
+        tmp += opr_data[neighbors[3]]*src[index<Level>(i, j, neighbors[3])];
+        tmp += opr_data[neighbors[4]]*src[index<Level>(i, j, neighbors[4])];
+        tmp += opr_data[neighbors[5]]*src[index<Level>(i, j, neighbors[5])];
+
         dst[index<Level>(i, j, VERTEX_C)] += tmp;
       }
+      --inner_rowsize;
     }
-    --inner_rowsize;
   }
 }
 
