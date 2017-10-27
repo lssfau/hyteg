@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-  real_t estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({&u->u, &u->v}, maxLevel);
+  real_t estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({{&u->u, &u->v}}, maxLevel);
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
   WALBERLA_LOG_INFO_ON_ROOT("minimalEdgeLength: " << minimalEdgeLength);
   real_t dt = std::min(1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity);
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
     time += dt;
 
     // compute new dt by CFL condition
-    estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({&u->u, &u->v}, maxLevel);
+    estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({{&u->u, &u->v}}, maxLevel);
     dt = std::min(1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity);
   }
 

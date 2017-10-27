@@ -36,9 +36,9 @@ waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Releas
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1           CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1_varcoeff  CONFIGURATIONS Release RelWithDbgInfo)
 
-waLBerla_add_executable( NAME chorin
-        FILES chorin_test.cpp
-        DEPENDS tinyhhg_core fmt)
+#waLBerla_add_executable( NAME chorin
+#        FILES chorin_test.cpp
+#        DEPENDS tinyhhg_core fmt)
 
 waLBerla_add_executable( NAME stokes_mini
         FILES stokes_mini.cpp
