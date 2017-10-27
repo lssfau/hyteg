@@ -19,7 +19,7 @@ template<size_t Level>
 inline void manualApply(real_t * oprPtr,
                         real_t* srcPtr,
                         real_t* dstPtr,
-                        UpdateType update) {
+                        UpdateType) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
