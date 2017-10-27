@@ -11,6 +11,8 @@
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFDataHandling.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+
 
 namespace hhg {
 
@@ -76,7 +78,15 @@ private:
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueType(const hhg::Point3D&) > & expr, uint_t level, DoFType flag)
 {
-  WALBERLA_ASSERT( "To be implemented..." );
+  for ( auto & it : storage_->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( face.type, flag ) )
+    {
+      edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, expr );
+    }
+  }
 }
 
 template< typename ValueType >
@@ -95,6 +105,7 @@ template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   WALBERLA_ASSERT( "To be implemented..." );
+  return real_c( 0 );
 }
 
 template< typename ValueType >
