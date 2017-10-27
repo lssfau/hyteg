@@ -23,7 +23,7 @@ static void testCommonIndexing()
   using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_C ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
 
   for ( const auto & it : vertexdof::macroface::BorderIterator< 3, 1 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
   {
@@ -37,35 +37,14 @@ static void testCommonIndexing()
 
   }
 
-  const uint_t level = 14;
+  WALBERLA_LOG_INFO_ON_ROOT( "P1FaceIterator (inner face), accessing neighboring horizontal edges" );
+  for ( const auto & it : vertexdof::macroface::Iterator< 3, 1 >() )
+  {
+    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
+  }
+
+  const uint_t level = 3;
   const uint_t size = macroFaceSize< vertexdof::levelToWidth< level > >();
-
-  WALBERLA_LOG_INFO_ON_ROOT( size );
-
-  for ( uint_t i = 0; i < 2; i++ )
-  {
-    for ( uint_t j = 0; j < 5; j++ )
-    {
-      const uint_t actualRow = optimization::unwrapRow<4>(j, i);
-      const uint_t actualCol = optimization::unwrapCol<4>(j, i);
-
-      std::cout << macroFaceIndex<4>(actualCol, actualRow) << " ";
-    }
-    std::cout << "\n";
-  }
-
-  for ( uint_t i = 0; i < 3; i++ )
-  {
-    for ( uint_t j = 0; j < 5; j++ )
-    {
-      const uint_t actualRow = optimization::unwrapRow<5>(j, i);
-      const uint_t actualCol = optimization::unwrapCol<5>(j, i);
-
-      std::cout << macroFaceIndex<5>(actualCol, actualRow) << " ";
-    }
-    std::cout << "\n";
-  }
-
 
   real_t * a = new real_t[ size ];
   real_t * b = new real_t[ size ];
@@ -73,12 +52,12 @@ static void testCommonIndexing()
   walberla::WcTimingPool timer;
 
 
-#if 1
+#if 0
   const uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t inner_rowsize = rowsize;
 
-  for (uint_t i = 0; i < rowsize; ++i) {
-    for (uint_t j = 0; j < inner_rowsize; ++j) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0001;
       b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0002;
     }
@@ -90,14 +69,16 @@ static void testCommonIndexing()
   real_t sp = 0.0;
   inner_rowsize = rowsize;
 
-  for (uint_t i = 0; i < rowsize; ++i) {
-    for (uint_t j = 0; j < inner_rowsize; ++j) {
+  for (uint_t i = 1; i < rowsize - 2; ++i) {
+    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
       sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ];
     }
     --inner_rowsize;
   }
 
 #else
+
+#if 0
 
   for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
     for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
@@ -124,6 +105,25 @@ static void testCommonIndexing()
       sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ];
     }
   }
+
+#else
+
+  for ( const auto & it : vertexdof::macroface::Iterator< level, 1 >() )
+  {
+    a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0001;
+    b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0002;
+  }
+
+  timer[ "loop" ].start();
+
+  real_t sp = 0.0;
+
+  for ( const auto & it : vertexdof::macroface::Iterator< level, 1 >() )
+  {
+    sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ];
+  }
+
+#endif
 
 #endif
 
