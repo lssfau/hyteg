@@ -251,6 +251,27 @@ inline void integrateDG(Vertex &vertex,
   dst[0] = tmp;
 }
 
+template< typename ValueType >
+inline void projectNormal(Vertex &vertex,
+                          const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &velocityIds,
+                          const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &normalIds,
+                          uint_t level) {
+
+  Point2D normal({ vertex.getData(normalIds[0])->getPointer(level)[0], vertex.getData(normalIds[1])->getPointer(level)[0] });
+  Point2D velocity({ vertex.getData(velocityIds[0])->getPointer(level)[0], vertex.getData(velocityIds[1])->getPointer(level)[0] });
+
+  Matrix2r projector;
+  projector(0,0) = 1.0 - normal[0]*normal[0];
+  projector(0,1) = normal[0]*normal[1];
+  projector(1,0) = normal[1]*normal[0];
+  projector(1,1) = 1.0 - normal[1]*normal[1];
+
+  Point2D projected = projector.multiply(velocity);
+
+  vertex.getData(velocityIds[0])->getPointer(level)[0] = projected(0);
+  vertex.getData(velocityIds[1])->getPointer(level)[0] = projected(1);
+}
+
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,

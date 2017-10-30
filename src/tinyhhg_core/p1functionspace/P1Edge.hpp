@@ -483,6 +483,45 @@ inline void integrateDGTmpl(Edge &edge,
 
 SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
+template< typename ValueType, uint_t Level >
+inline void projectNormalTmpl(Edge &edge,
+                              const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &velocityIds,
+                              const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &normalIds) {
+  using namespace EdgeCoordsVertex;
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  Point2D normal;
+  Point2D velocity;
+  Point2D projected;
+  Matrix2r projector;
+
+  auto normalData0 = edge.getData(normalIds[0])->getPointer(Level);
+  auto normalData1 = edge.getData(normalIds[1])->getPointer(Level);
+  auto velocityData0 = edge.getData(velocityIds[0])->getPointer(Level);
+  auto velocityData1 = edge.getData(velocityIds[1])->getPointer(Level);
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+    normal(0) = normalData0[index<Level>(i, VERTEX_C)];
+    normal(1) = normalData1[index<Level>(i, VERTEX_C)];
+
+    velocity(0) = velocityData0[index<Level>(i, VERTEX_C)];
+    velocity(1) = velocityData0[index<Level>(i, VERTEX_C)];
+
+    projector(0,0) = 1.0 - normal[0]*normal[0];
+    projector(0,1) = normal[0]*normal[1];
+    projector(1,0) = normal[1]*normal[0];
+    projector(1,1) = 1.0 - normal[1]*normal[1];
+
+    projected = projector.multiply(velocity);
+
+    velocityData0[index<Level>(i, VERTEX_C)] = projected(0);
+    velocityData1[index<Level>(i, VERTEX_C)] = projected(1);
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, projectNormalTmpl, projectNormal )
+
 #ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
