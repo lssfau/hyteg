@@ -262,8 +262,8 @@ inline void projectNormal(Vertex &vertex,
 
   Matrix2r projector;
   projector(0,0) = 1.0 - normal[0]*normal[0];
-  projector(0,1) = normal[0]*normal[1];
-  projector(1,0) = normal[1]*normal[0];
+  projector(0,1) = -normal[0]*normal[1];
+  projector(1,0) = -normal[1]*normal[0];
   projector(1,1) = 1.0 - normal[1]*normal[1];
 
   Point2D projected = projector.multiply(velocity);
