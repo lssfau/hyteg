@@ -24,7 +24,7 @@ inline real_t getApproximateEuclideanNorm(std::array<P1Function<real_t>*, N> fun
 }
 
 template<uint_t N>
-inline real_t projectNormal(const std::shared_ptr< PrimitiveStorage > & storage, std::array<P1Function<real_t>*, N> velocity, std::array<P1Function<real_t>*, N> normals, uint_t level, DoFType flag) {
+inline void projectNormal(const std::shared_ptr< PrimitiveStorage > & storage, std::array<P1Function<real_t>*, N> velocity, std::array<P1Function<real_t>*, N> normals, uint_t level, DoFType flag) {
 
   std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> velocityVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>>   velocityEdgeIDs;
