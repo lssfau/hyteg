@@ -129,8 +129,13 @@ inline void enumerateTmpl(Face &face,
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;
-  size_t diagonal_num = num + hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level >;
-  size_t vertical_num = num + hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > * 2;
+  size_t diagonal_num = num +
+                        hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        hhg::levelinfo::num_microedges_per_edge( Level ) ;
+  size_t vertical_num = num +
+                        (hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        hhg::levelinfo::num_microedges_per_edge( Level ))  *
+                        2;
   for ( const auto & it : hhg::indexing::FaceIterator< hhg::indexing::edgedof::levelToWidthAnyEdgeDoF< Level >, 0 >() )
   {
     /// the border edge DoFs belong to the corresponding edges
@@ -138,12 +143,12 @@ inline void enumerateTmpl(Face &face,
       dst[hhg::indexing::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
       ++horizontal_num;
     }
-    if( it.col() + it.row() != hhg::levelinfo::num_microedges_per_edge( Level )) {
-      //dst[hhg::indexing::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
+      dst[hhg::indexing::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
       ++diagonal_num;
     }
     if( it.col() != 0) {
-      //dst[hhg::indexing::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
+      dst[hhg::indexing::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
       ++vertical_num;
     }
 
