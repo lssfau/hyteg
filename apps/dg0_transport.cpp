@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
-  std::function<real_t(const hhg::Point3D&, const std::vector<real_t>&)> initialConcentration = [](const hhg::Point3D& x,  const std::vector<real_t>&) {
+  std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
     if ((x - Point3D{{{0.5, 0.5, 0.0}}}).norm() < 0.1) {
       return 1.0;
     } else {
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 
   u->interpolate(vel_x, maxLevel);
   v->interpolate(vel_y, maxLevel);
-  c_old->interpolate(initialConcentration,{}, maxLevel);
+  c_old->interpolate(initialConcentration, maxLevel);
 
   hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({u.get(), v.get()}, {c_old.get(), c.get()}, maxLevel,
                                                                     "../output", fmt::format("dg0_transport-{:0>6}", 0));

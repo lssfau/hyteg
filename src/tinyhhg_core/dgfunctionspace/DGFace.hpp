@@ -41,7 +41,7 @@ template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>& srcMemoryIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<real_t>& f)> &expr) {
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr) {
 
   auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
 

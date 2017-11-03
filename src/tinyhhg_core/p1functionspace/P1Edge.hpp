@@ -35,11 +35,19 @@ inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
 
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Edge &edge,
-                        const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &edgeMemoryId,
-                        std::function<ValueType(const hhg::Point3D &)> &expr) {
+                            const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &edgeMemoryId,
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr) {
   using namespace EdgeCoordsVertex;
 
   EdgeP1FunctionMemory< ValueType > *edgeMemory = edge.getData(edgeMemoryId);
+
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(edge.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcIds.size());
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x = edge.getCoordinates()[0];
@@ -48,7 +56,12 @@ inline void interpolateTmpl(Edge &edge,
   x += dx;
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edgeMemory->getPointer( Level )[index<Level>(i, VERTEX_C)] = expr(x);
+
+    for (uint_t k = 0; k < srcPtr.size(); ++k) {
+      srcVector[k] = srcPtr[k][index<Level>(i, VERTEX_C)];
+    }
+
+    edgeMemory->getPointer( Level )[index<Level>(i, VERTEX_C)] = expr(x, srcVector);
     x += dx;
   }
 }

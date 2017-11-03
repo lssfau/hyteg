@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   const uint_t maxLevel = 2;
   const uint_t solverMaxiter = 1000;
 
-  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [](const hhg::Point3D& x,const std::vector<real_t>&) {
+  std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
     if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
       return 1.0;
     } else {
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
   n_y->interpolate(expr_n_y, maxLevel);
 
   // Interpolate initial functions
-  c_old->interpolate(initialConcentration,{}, maxLevel);
+  c_old->interpolate(initialConcentration, maxLevel);
   c->assign({1.0}, {c_old.get()}, maxLevel);
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
     if (t % 3 == 0) {
       WALBERLA_LOG_PROGRESS_ON_ROOT("Solving Stokes system...")
 
-      f_dg->interpolate(expr_f, { c_old.get() }, maxLevel);
+      f_dg->interpolateExtended(expr_f, { c_old.get() }, maxLevel);
 
       f->u.integrateDG(*f_dg, *n_x, maxLevel, hhg::All);
       f->v.integrateDG(*f_dg, *n_y, maxLevel, hhg::All);

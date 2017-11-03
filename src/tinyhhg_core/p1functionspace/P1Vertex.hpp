@@ -12,10 +12,17 @@ namespace P1Vertex {
 template< typename ValueType >
 inline void interpolate(Vertex &vertex,
                         const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &vertexMemoryId,
-                        std::function<ValueType(const hhg::Point3D &)> &expr,
-                        size_t level) {
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
+                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr,
+                        uint_t level) {
   VertexP1FunctionMemory< ValueType > *vertexMemory = vertex.getData(vertexMemoryId);
-  vertexMemory->getPointer( level )[0] = expr(vertex.getCoordinates());
+  std::vector<ValueType> srcVector(srcIds.size());
+
+  for (uint_t k = 0; k < srcIds.size(); ++k) {
+    srcVector[k] = vertex.getData(srcIds[k])->getPointer(level)[0];
+  }
+
+  vertexMemory->getPointer( level )[0] = expr(vertex.getCoordinates(), srcVector);
 }
 
 template< typename ValueType >

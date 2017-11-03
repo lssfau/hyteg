@@ -20,7 +20,7 @@ template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Vertex &vertex,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Vertex>& vertexMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>>& srcMemoryIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<real_t>& f)> &expr,
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
                             const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer( Level );
