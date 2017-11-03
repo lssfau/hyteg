@@ -1,65 +1,54 @@
 #pragma once
 
-#include "tinyhhg_core/communication/PackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-
-#include "tinyhhg_core/p1functionspace/P1PackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Edge.hpp"
+#include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1Face.hpp"
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 namespace hhg {
 
 template< typename ValueType >
-class P1PackInfo : public communication::PackInfo {
+class P1PackInfo : public communication::DoFSpacePackInfo<ValueType> {
 
 public:
   P1PackInfo(uint_t level,
-                   PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> dataIDVertex,
-                   PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> dataIDEdge,
-                   PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> dataIDFace,
-                   std::weak_ptr<PrimitiveStorage> storage)
-          : level_(level),
-            dataIDVertex_(dataIDVertex),
-            dataIDEdge_(dataIDEdge),
-            dataIDFace_(dataIDFace),
-            storage_(storage){
+             PrimitiveDataID<FunctionMemory< ValueType >, Vertex> dataIDVertex,
+             PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge,
+             PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace,
+             std::weak_ptr<PrimitiveStorage> storage)
+    : communication::DoFSpacePackInfo< ValueType >(level,dataIDVertex,dataIDEdge,dataIDFace,storage)
+  {}
+  void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
 
-  }
-  virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer);
+  void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
 
-  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer);
+  void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) override;
 
-  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver);
+  void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
 
-  virtual void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer);
+  void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
 
-  virtual void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer);
+  void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) override;
 
-  virtual void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver);
+  void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
 
-  virtual void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer);
+  void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
 
-  virtual void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer);
+  void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) override;
 
-  virtual void communicateLocalEdgeToFace(const Edge *sender, Face *receiver);
+  void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
 
-  virtual void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer);
+  void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
 
-  virtual void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer);
-
-  virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver);
-
+  void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) override;
 
 private:
-  uint_t level_;
-  PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> dataIDVertex_;
-  PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> dataIDEdge_;
-  PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> dataIDFace_;
-  std::weak_ptr<hhg::PrimitiveStorage> storage_;
+  using communication::DoFSpacePackInfo< ValueType >::level_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
+  using communication::DoFSpacePackInfo< ValueType >::storage_;
 };
-
 
 /// @name Vertex to Edge
 ///@{

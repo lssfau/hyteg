@@ -83,6 +83,14 @@ public:
     p.restrict(level, flag | DirichletBoundary);
   }
 
+  void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree )
+  {
+    u.enableTiming(timingTree);
+    v.enableTiming(timingTree);
+    p.enableTiming(timingTree);
+  }
+
+
   P1Function< ValueType > u;
   P1Function< ValueType > v;
   P1Function< ValueType > p;

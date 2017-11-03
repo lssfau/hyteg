@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <iterator>
 #include <core/logging/Logging.h>
 
@@ -12,21 +13,10 @@ namespace BubbleFace
 
 using walberla::uint_t;
 
-namespace FaceCoordsVertex {
-enum DirVertex : uint_t {
-  CELL_GRAY_SE = 0,
-  CELL_GRAY_NW = 1,
-  CELL_GRAY_NE = 2,
-  CELL_BLUE_SW = 3,
-  CELL_BLUE_SE = 4,
-  CELL_BLUE_NW = 5
-};
-
-}//namespace FaceCoordsVertex
-
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
 constexpr inline uint_t indexFaceStencil(const stencilDirection dir){
   typedef hhg::stencilDirection sD;
-  //these return are random but need to be keeped constant
   switch (dir) {
     case sD::CELL_GRAY_SE:
       return 0;
@@ -45,7 +35,7 @@ constexpr inline uint_t indexFaceStencil(const stencilDirection dir){
   }
 }
 
-
+/// all possible Face DoF neighbors of a vertex
 constexpr std::array<hhg::stencilDirection ,6> neighbors =
   {{stencilDirection::CELL_GRAY_SE, stencilDirection::CELL_GRAY_NE, stencilDirection::CELL_GRAY_NW,
    stencilDirection::CELL_BLUE_SE, stencilDirection::CELL_BLUE_NW, stencilDirection::CELL_BLUE_SW}};
@@ -82,12 +72,6 @@ constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, 
 
 }
 
-namespace FaceCoordsCellGray {
-enum Dir {
-    CELL_GRAY_C = 0
-};
-}//namesapce FaceCoordsCellGray
-
 
 template<size_t Level>
 inline size_t indexFaceFromGrayFace(const uint_t col, const uint_t row, stencilDirection dir) {
@@ -101,14 +85,6 @@ inline size_t indexFaceFromGrayFace(const uint_t col, const uint_t row, stencilD
 }
 
 
-
-
-namespace FaceCoordsCellBlue {
-enum Dir {
-    CELL_BLUE_C = 0
-};
-}//namespace FaceCoordsCellBlue
-
 template<size_t Level>
 inline size_t indexFaceFromBlueFace(const uint_t col, const uint_t row, const stencilDirection dir) {
   using namespace hhg::BubbleFace;
@@ -119,7 +95,6 @@ inline size_t indexFaceFromBlueFace(const uint_t col, const uint_t row, const st
   WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
-
 
 
 enum DofType {

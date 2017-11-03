@@ -273,6 +273,56 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
+  void smooth_sor_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, real_t relax, size_t level, DoFType flag)
+  {
+    // start pulling vertex halos
+    dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
+
+    // start pulling edge halos
+    dst.getCommunicator(level)->startCommunication<Face, Edge>();
+
+    // end pulling vertex halos
+    dst.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.getDoFType(), flag))
+      {
+        P1Vertex::smooth_sor(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level, relax);
+      }
+    }
+
+    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+
+    // end pulling edge halos
+    dst.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.getDoFType(), flag))
+      {
+        P1Edge::smooth_sor< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P1Face::smooth_sor< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+  }
+
   void smooth_jac_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, P1Function< real_t > & tmp, size_t level, DoFType flag)
   {
     // start pulling vertex halos

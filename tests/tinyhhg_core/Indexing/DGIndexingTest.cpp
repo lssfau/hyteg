@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
   result.clear();
 
 
-  WALBERLA_CHECK_EQUAL(50, indexDGfaceFromGrayDGface<3>(1, 3, hhg::stencilDirection::CELL_BLUE_S));
-  WALBERLA_CHECK_EQUAL(55, indexDGfaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_W));
-  WALBERLA_CHECK_EQUAL(48, indexDGfaceFromGrayDGface<3>(5, 1, hhg::stencilDirection::CELL_BLUE_E));
+  WALBERLA_CHECK_EQUAL(50, indexDGFaceFromGrayDGface<3>(1, 3, hhg::stencilDirection::CELL_BLUE_S));
+  WALBERLA_CHECK_EQUAL(55, indexDGFaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_W));
+  WALBERLA_CHECK_EQUAL(48, indexDGFaceFromGrayDGface<3>(5, 1, hhg::stencilDirection::CELL_BLUE_E));
 
 
   WALBERLA_CHECK_EQUAL(27, indexDGFaceFromBlueDGface<3>(1, 3, hhg::stencilDirection::CELL_GRAY_N));

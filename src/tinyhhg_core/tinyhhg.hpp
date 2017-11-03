@@ -9,12 +9,15 @@
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 
 #include "bubblefunctionspace/BubbleFunction.hpp"
 #include "bubblefunctionspace/BubbleOperator.hpp"
 
 #include "tinyhhg_core/dgfunctionspace/DGMemory.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
 
 #include "types/pointnd.hpp"
 #include "types/matrix.hpp"
@@ -22,9 +25,11 @@
 
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
+#include "solvers/uzawasolver.hpp"
 
 #include "solvers/preconditioners/JacobiPreconditioner.hpp"
 #include "solvers/preconditioners/GaussSeidelPreconditioner.hpp"
+#include "solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 
 #include "composites/p1stokesfunction.hpp"
 #include "composites/p1blocklaplaceoperator.hpp"
@@ -49,6 +54,7 @@
 #include "mesh/MeshInfo.hpp"
 
 #include "communication/PackInfo.hpp"
+#include "communication/DoFSpacePackInfo.hpp"
 #include "communication/BufferedCommunication.hpp"
 
 #include "petsc/PETScManager.hpp"
@@ -58,5 +64,6 @@
 #include "petsc/PETScPreconditioner.hpp"
 
 #include "FunctionTraits.hpp"
+#include "MeshQuality.hpp"
 
 #endif /* TINYHHG_HPP */

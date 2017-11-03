@@ -151,7 +151,7 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      tmp = face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C] * src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
+      tmp = face_gray_stencil[0] * src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)];
 
       if (update == Replace) {
         dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
@@ -168,7 +168,7 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      tmp = face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      tmp = face_blue_stencil[0] * src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
       if (update == Replace) {
         dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
@@ -214,7 +214,7 @@ SPECIALIZE_WITH_VALUETYPE(void, enumerate_tmpl, enumerate)
 template< typename ValueType, size_t Level >
 inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
   using namespace std;
-  ValueType* faceMemory = face.getData(dstId)->data[Level].get();
+  ValueType* faceMemory = face.getData(dstId)->getPointer(Level);
   uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
   cout << setfill('=') << setw(100) << "" << endl;
   cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
@@ -288,7 +288,7 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      MatSetValues(mat, 1, &dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], 1, &src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], &face_gray_stencil[FaceCoordsCellGray::CELL_GRAY_C], INSERT_VALUES);
+      MatSetValues(mat, 1, &dst[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], 1, &src[indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)], &face_gray_stencil[0], INSERT_VALUES);
     }
     --inner_rowsize;
   }
@@ -304,7 +304,7 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
                    &dst[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
                    1,
                    &src[indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)],
-                   &face_blue_stencil[FaceCoordsCellBlue::CELL_BLUE_C], INSERT_VALUES);
+                   &face_blue_stencil[0], INSERT_VALUES);
     }
     --inner_rowsize;
   }

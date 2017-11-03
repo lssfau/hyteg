@@ -46,6 +46,6 @@ int main(int argc, char* argv[])
   auto solver = hhg::MinResSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
   solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
-  hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
+  //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
   return EXIT_SUCCESS;
 }

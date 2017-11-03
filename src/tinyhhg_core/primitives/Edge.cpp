@@ -63,6 +63,42 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
   WALBERLA_ABORT("Edge::get_opposite_vertex: Vertex does not belong to edge");
 }
 
+bool Edge::opposite_face_exists(const PrimitiveID& face) const
+{
+  if (face.getID() == neighborFaces_[0].getID()) {
+    if (getNumNeighborFaces() == 2) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  if (getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID())
+  {
+    return true;
+  }
+
+  WALBERLA_ABORT("Edge::opposite_face_exists: Face does not belong to edge");
+}
+
+PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
+{
+  if (face.getID() == neighborFaces_[0].getID()) {
+    if (getNumNeighborFaces() == 2) {
+      return neighborFaces_[1];
+    } else {
+      WALBERLA_ABORT("Edge::get_opposite_face: Requesting face that does not exist");
+    }
+  }
+
+  if (getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID())
+  {
+    return neighborFaces_[0];
+  }
+
+  WALBERLA_ABORT("Edge::get_opposite_face: Face does not belong to edge");
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "

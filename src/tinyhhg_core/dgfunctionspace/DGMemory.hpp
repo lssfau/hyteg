@@ -7,6 +7,10 @@ using namespace hhg;
 namespace hhg
 {
 
+/// Vertex Memory layout
+/// the vertex memory has two entries for each adjacent face,
+/// where the first entry is the Gray Face DoF and the Second one is the Blue Face DoF
+/// the Gray Face DoF is owned by the Vertex and the Blue Face DoF is owned by the Face
 inline uint_t DGVertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   WALBERLA_UNUSED( level );

@@ -36,7 +36,7 @@ waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Releas
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1           CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1_varcoeff  CONFIGURATIONS Release RelWithDbgInfo)
 
-#waLBerla_add_executable( NAME tinytest_chorin
+#waLBerla_add_executable( NAME chorin
 #        FILES chorin_test.cpp
 #        DEPENDS tinyhhg_core fmt)
 
@@ -48,13 +48,40 @@ waLBerla_add_executable( NAME stokes_stab_varcoeff
         FILES stokes_stab_varcoeff.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME dg0_transport
+        FILES dg0_transport.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME stokes_stab_uzawa
+        FILES stokes_stab_uzawa.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME geophysics_plume
+        FILES geophysics_plume.cpp
+        DEPENDS tinyhhg_core fmt)
+
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp
         DEPENDS tinyhhg_core fmt)
 endif()
 
-#add_executable (tinytest_fmg fmg_test.cpp)
+waLBerla_add_executable( NAME CompareInterpolate
+        FILES benchmarks/CompareInterpolate.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME ApplyBenchmark
+        FILES benchmarks/ApplyBenchmark.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME IndexFunctionVSManualVersion
+        FILES benchmarks/IndexFunctionVSManualVersion.cpp
+        DEPENDS tinyhhg_core fmt)
+
+
+
+
+    #add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg fmt ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
 #
 #add_executable (tinytest_chorin chorin_test.cpp)
