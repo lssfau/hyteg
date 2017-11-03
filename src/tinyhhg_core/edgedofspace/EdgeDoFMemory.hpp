@@ -1,7 +1,7 @@
-
 #pragma once
 
 #include "core/DataTypes.h"
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg {
 

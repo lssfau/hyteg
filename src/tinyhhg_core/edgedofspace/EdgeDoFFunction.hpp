@@ -149,7 +149,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
 {
   WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
 
-  real_t scalarProduct = real_c( 0 );
+  real_t scalarProduct =  0.0 ;
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -185,7 +185,25 @@ inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFT
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
-  WALBERLA_ASSERT( false, "To be implemented..." );
+//  for (auto& it : storage_->getEdges()) {
+//    Edge& edge = *it.second;
+//    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+//  }
+
+  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+    edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
+  }
+
+  communicators_[level]->template startCommunication<Face, Edge>();
+  communicators_[level]->template endCommunication<Face, Edge>();
+
+  communicators_[level]->template startCommunication<Edge, Vertex>();
+  communicators_[level]->template endCommunication<Edge, Vertex>();
+
 }
 
 }

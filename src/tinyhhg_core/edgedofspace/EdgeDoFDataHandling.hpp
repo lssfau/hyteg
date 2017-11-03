@@ -1,7 +1,8 @@
-
 #pragma once
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 
 namespace hhg {
 
