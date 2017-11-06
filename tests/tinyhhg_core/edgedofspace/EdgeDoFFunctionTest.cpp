@@ -57,7 +57,7 @@ static void testEdgeDoFFunction()
   // Assign
 
   timer["Assign"].start();
-  y->assign( {{ 3.0 }}, {{ x.get() }}, maxLevel, DoFType::All );
+  y->assign( { 3.0 }, { x.get() }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
   for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
