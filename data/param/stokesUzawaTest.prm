@@ -1,0 +1,9 @@
+Parameters
+{
+  mesh ../data/meshes/quad_4el.msh;
+  minlevel 2;
+  maxlevel 6;
+  outer_iter 20;
+  coarse_iter 100;
+  rel_tolerance 1e-8;
+}
