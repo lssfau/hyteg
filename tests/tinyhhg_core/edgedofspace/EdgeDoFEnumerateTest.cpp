@@ -22,13 +22,35 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   size_t num = 0;
   uint_t check = 0;
-  uint_t sum = 0;
 
   //x.enumerate(Level,num);
 
-  uint_t totalDoFs = (hhg::levelinfo::num_microfaces_per_face(Level) * storage->getNumberOfLocalFaces());
-  uint_t expectedSum = (totalDoFs * (totalDoFs + 1))/2;
+  uint_t totalDoFs = hhg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
 
+  for (auto &edgeIt : storage->getEdges()) {
+    hhg::edgedof::macroedge::enumerateTmpl< uint_t,Level >(*edgeIt.second,x.getEdgeDataID(),num);
+    Edge &edge = *edgeIt.second;
+    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
+
+    if(edgeIt.second->getNumNeighborFaces() == 2) totalDoFs -= levelinfo::num_microedges_per_edge( Level );
+
+    for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( Level ); ++i){
+      WALBERLA_CHECK_EQUAL(edgeData[i],check);
+      WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_DI_S)],0);
+      WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_VE_SE)],0);
+      if( i != 0){
+        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromVertex< Level >(i,stencilDirection::EDGE_HO_SE)],0);
+      }
+      if(edgeIt.second->getNumNeighborFaces() == 2) {
+        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_DI_N)], 0);
+        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_VE_NW)], 0);
+        if (i != 0) {
+          WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)], 0);
+        }
+      }
+      check++;
+    }
+  }
 
   for ( auto &faceIt : storage->getFaces() ) {
     hhg::edgedof::macroface::enumerateTmpl< uint_t,Level >(*faceIt.second,x.getFaceDataID(),num);
@@ -44,7 +66,6 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           ++idxCounter;
         } else {
           WALBERLA_CHECK_EQUAL(faceData[idxCounter], check, "idxCounter was: " << idxCounter);
-          sum += check;
           ++idxCounter;
           ++check;
         }
@@ -60,7 +81,6 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           ++idxCounter;
         } else {
           WALBERLA_CHECK_EQUAL(faceData[idxCounter], check, "idxCounter was: " << idxCounter);
-          sum += check;
           ++idxCounter;
           ++check;
         }
@@ -76,7 +96,6 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           ++idxCounter;
         } else {
           WALBERLA_CHECK_EQUAL(faceData[idxCounter], check, "idxCounter was: " << idxCounter);
-          sum += check;
           ++idxCounter;
           ++check;
         }
@@ -85,24 +104,10 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     }
   }
 
-  //  for (auto &edgeIt : storage->getEdges()) {
-//    Edge &edge = *edgeIt.second;
-//    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
-//    uint_t FaceDoFonFace = hhg::Levelinfo::num_microvertices_per_edge(Level) * 2 - 3 ;
-//    //this only works with the linear default layout; can be changed to use index function
-//    for(uint_t i = 0; i < edge.getNumHigherDimNeighbors(); ++i){
-//      uint_t start = FaceDoFonFace * i;
-//      for(uint_t j = 2; j < hhg::Levelinfo::num_microvertices_per_edge(Level) * 2 - 5; j += 2){
-//        WALBERLA_CHECK_EQUAL(edgeData[start + j],check);
-//        sum += check;
-//        check++;
-//      }
-//    }
-//  }
 
-  --check;
-  //WALBERLA_CHECK_EQUAL(check,totalDoFs);
-  //WALBERLA_CHECK_EQUAL(sum,expectedSum);
+
+  //--check;
+  WALBERLA_CHECK_EQUAL(check,totalDoFs);
 
 }
 
@@ -113,9 +118,19 @@ int main (int argc, char ** argv ) {
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-  const uint_t Level = 3;
 
-  checkComm< Level > ("../../data/meshes/tri_1el.msh");
+  checkComm< 2 > ("../../data/meshes/quad_2el.msh");
+  checkComm< 2 > ("../../data/meshes/quad_2el.msh");
+  checkComm< 2 > ("../../data/meshes/bfs_12el.msh");
+
+  checkComm< 3 > ("../../data/meshes/tri_1el.msh");
+  checkComm< 3 > ("../../data/meshes/quad_2el.msh");
+  checkComm< 3 > ("../../data/meshes/bfs_12el.msh");
+
+  checkComm< 4 > ("../../data/meshes/tri_1el.msh");
+  checkComm< 4 > ("../../data/meshes/quad_2el.msh");
+  checkComm< 4 > ("../../data/meshes/bfs_12el.msh");
+
 
 }
 

@@ -142,14 +142,17 @@ inline void enumerateTmpl(Face &face,
     if( it.row() != 0) {
       dst[hhg::indexing::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
       ++horizontal_num;
+      ++num;
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       dst[hhg::indexing::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
       ++diagonal_num;
+      ++num;
     }
     if( it.col() != 0) {
       dst[hhg::indexing::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
       ++vertical_num;
+      ++num;
     }
 
   }

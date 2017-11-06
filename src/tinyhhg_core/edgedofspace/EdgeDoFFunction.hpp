@@ -9,9 +9,10 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFDataHandling.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "EdgeDoFMemory.hpp"
+#include "EdgeDoFDataHandling.hpp"
+#include "EdgeDoFMacroFace.hpp"
+#include "EdgeDoFMacroEdge.hpp"
 
 
 namespace hhg {
@@ -185,10 +186,10 @@ inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFT
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
-//  for (auto& it : storage_->getEdges()) {
-//    Edge& edge = *it.second;
-//    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
-//  }
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+  }
 
   communicators_[level]->template startCommunication<Edge, Face>();
   communicators_[level]->template endCommunication<Edge, Face>();
