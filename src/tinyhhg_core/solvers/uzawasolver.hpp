@@ -12,6 +12,12 @@ class UzawaSolver
 {
 public:
 
+  enum class CycleType
+  {
+    VCYCLE,
+    WCYCLE
+  };
+
   UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, maxLevel),
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
@@ -20,6 +26,8 @@ public:
     nuPre_ = 3;
     nuPost_ = 3;
 
+    nuAdd_ = 2;
+
     zero_ = [](const hhg::Point3D&) { return 0.0; };
   }
 
@@ -27,7 +35,7 @@ public:
   {
   }
 
-  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
   {
 
     if (level == minLevel_) {
@@ -53,11 +61,14 @@ public:
       x.interpolate(zero_, level-1);
 
       // solve on coarser level
-      nuPre_ += 2;
-      nuPost_ += 2;
-      solve(A, x, b, r, level-1, tolerance, maxiter, flag, printInfo);
-      nuPre_ -= 2;
-      nuPost_ -= 2;
+      nuPre_ += nuAdd_;
+      nuPost_ += nuAdd_;
+      solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      if (cycleType == CycleType::WCYCLE) {
+        solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      }
+      nuPre_ -= nuAdd_;
+      nuPost_ -= nuAdd_;
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
@@ -96,6 +107,7 @@ private:
 
   uint_t nuPre_;
   uint_t nuPost_;
+  uint_t nuAdd_;
 
   uint_t minLevel_;
   uint_t maxLevel_;
