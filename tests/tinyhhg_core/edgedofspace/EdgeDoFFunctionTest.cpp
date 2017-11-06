@@ -32,6 +32,7 @@ static void testEdgeDoFFunction()
   uint_t numInnerFaceDoFs = 0;
   for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
   {
+    WALBERLA_UNUSED( it );
     numInnerFaceDoFs++;
   }
   numInnerFaceDoFs *= 3;
