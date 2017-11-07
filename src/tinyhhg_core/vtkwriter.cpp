@@ -9,7 +9,15 @@ namespace hhg
 
 using walberla::real_c;
 
-void VTKOutput::writeHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const
+const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
+{
+  { DoFType::VERTEX,          "VertexDoF" },
+  { DoFType::EDGE_HORIZONTAL, "HorizontalEdgeDoF" },
+  { DoFType::EDGE_VERTICAL,   "VerticalEdgeDoF" },
+  { DoFType::EDGE_DIAGONAL,   "DiagonalEdgeDoF" }
+};
+
+void VTKOutput::writeHeader( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const
 {
   WALBERLA_ROOT_SECTION()
   {
@@ -18,9 +26,30 @@ void VTKOutput::writeHeader( std::ostream & output, const uint_t & numberOfPoint
     output << "<UnstructuredGrid>\n";
   }
 
-  output << "<Piece NumberOfPoints=\"" << numberOfPoints << "\" "
+  output << "<Piece "
+         << "NumberOfPoints=\"" << numberOfPoints << "\" "
          << "NumberOfCells=\"" << numberOfCells << "\""
          << ">\n";
+}
+
+void VTKOutput::writeFooterAndFile( std::ostringstream & output, const std::string & completeFilePath ) const
+{
+  output << "</Piece>\n";
+
+  walberla::mpi::writeMPITextFile( completeFilePath, output.str() );
+
+  WALBERLA_ROOT_SECTION()
+  {
+    std::ofstream pvtu_file;
+
+    pvtu_file.open( completeFilePath.c_str(), std::ofstream::out | std::ofstream::app );
+
+    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << completeFilePath );
+
+    pvtu_file << " </UnstructuredGrid>\n";
+    pvtu_file << "</VTKFile>\n";
+    pvtu_file.close();
+  }
 }
 
 void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
@@ -60,8 +89,13 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
   output << "</Points>\n";
 }
 
-void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
+void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage,
+                                          const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
+  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
+                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
+                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
+
   output << "<Points>\n";
   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
@@ -77,15 +111,39 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
     const Point3D diagonalMicroEdgeOffset   = horizontalMicroEdgeOffset + verticalMicroEdgeOffset;
 
-    for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+    switch ( dofType )
     {
-      const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
-      const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
-      const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
-
-      // output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
-      // output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
-      output << diagonalMicroEdgePosition[0]   << " " << diagonalMicroEdgePosition[1]   << " " << diagonalMicroEdgePosition[2]   << "\n";
+    case DoFType::EDGE_HORIZONTAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      {
+        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
+        output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
+      }
+      break;
+    }
+    case DoFType::EDGE_VERTICAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      {
+        const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+        output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
+      }
+      break;
+    }
+    case DoFType::EDGE_DIAGONAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      {
+        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
+        const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
+        output << diagonalMicroEdgePosition[0]   << " " << diagonalMicroEdgePosition[1]   << " " << diagonalMicroEdgePosition[2]   << "\n";
+      }
+      break;
+    }
+    default:
+      WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
+      break;
     }
   }
 
@@ -158,14 +216,14 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
   output << "</Cells>\n";
 }
 
-void VTKOutput::writeP1( const uint_t & level )
+void VTKOutput::writeP1( const uint_t & level ) const
 {
   if ( p1Functions_.size() == 0 )
   {
     return;
   }
 
-  const std::string filenameExtension( "_P1" );
+  const std::string filenameExtension( fileNameExtension( VTKOutput::DoFType::VERTEX, level ) );
   const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
 
   WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
@@ -189,13 +247,15 @@ void VTKOutput::writeP1( const uint_t & level )
   for ( const auto & function : p1Functions_ )
   {
     output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
-    for (auto& it : storage->getFaces()) {
+
+    for ( const auto & it : storage->getFaces() )
+    {
       Face &face = *it.second;
 
       size_t len = levelinfo::num_microvertices_per_face( level );
       output << std::scientific;
 
-      for (size_t i = 0; i < len; ++i)
+      for ( size_t i = 0; i < len; ++i )
       {
         output << face.getData( function->getFaceDataID() )->getPointer( level )[i] << " ";
       }
@@ -205,33 +265,22 @@ void VTKOutput::writeP1( const uint_t & level )
 
   output << "</PointData>\n";
 
-  output << "</Piece>\n";
-
-  walberla::mpi::writeMPITextFile(pvtu_filename, output.str());
-
-  WALBERLA_ROOT_SECTION()
-  {
-    std::ofstream pvtu_file;
-
-    pvtu_file.open(pvtu_filename.c_str(), std::ofstream::out | std::ofstream::app);
-
-    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << pvtu_filename );
-
-    pvtu_file << " </UnstructuredGrid>\n";
-    pvtu_file << "</VTKFile>\n";
-    pvtu_file.close();
-  }
+  writeFooterAndFile( output, pvtu_filename );
 }
 
 
-void VTKOutput::writeEdgeDoFs( const uint_t & level )
+void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
+  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
+                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
+                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
+
   if ( edgeDoFFunctions_.size() == 0 )
   {
     return;
   }
 
-  const std::string filenameExtension( "_EdgeDoF" );
+  const std::string filenameExtension( fileNameExtension( dofType, level ) );
   const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
 
   WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
@@ -246,25 +295,52 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level )
 
   writeHeader( output, numberOfPoints, numberOfCells );
 
-  writePointsForMicroEdges( output, storage, level );
+  writePointsForMicroEdges( output, storage, level, dofType );
 
   output << "<PointData>\n";
 
-  // point data
   for ( const auto & function : edgeDoFFunctions_ )
   {
     output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
-    for (auto& it : storage->getFaces()) {
-      Face &face = *it.second;
+
+    for ( const auto & it : storage->getFaces() )
+    {
+
+      Face & face = *it.second;
 
       output << std::scientific;
 
-      for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+      switch ( dofType )
       {
-        // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
-        // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+      case VTKOutput::DoFType::EDGE_HORIZONTAL:
+      {
+        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        {
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+        }
+        break;
       }
+      case VTKOutput::DoFType::EDGE_VERTICAL:
+      {
+        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        {
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+        }
+        break;
+      }
+      case VTKOutput::DoFType::EDGE_DIAGONAL:
+      {
+        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        {
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+        }
+        break;
+      }
+      default:
+        WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
+        break;
+      }
+
     }
     output << "\n</DataArray>\n";
   }
@@ -273,29 +349,17 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level )
 
   writeCells( output, storage, faceWidth );
 
-  output << "</Piece>\n";
+  writeFooterAndFile( output, pvtu_filename );
 
-  walberla::mpi::writeMPITextFile(pvtu_filename, output.str());
-
-  WALBERLA_ROOT_SECTION()
-  {
-    std::ofstream pvtu_file;
-
-    pvtu_file.open(pvtu_filename.c_str(), std::ofstream::out | std::ofstream::app);
-
-    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << pvtu_filename );
-
-    pvtu_file << " </UnstructuredGrid>\n";
-    pvtu_file << "</VTKFile>\n";
-    pvtu_file.close();
-  }
 }
 
 
-void VTKOutput::write( const uint_t & level )
+void VTKOutput::write( const uint_t & level ) const
 {
   writeP1( level );
-  writeEdgeDoFs( level );
+  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_HORIZONTAL );
+  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_VERTICAL );
+  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_DIAGONAL );
 }
 
 }

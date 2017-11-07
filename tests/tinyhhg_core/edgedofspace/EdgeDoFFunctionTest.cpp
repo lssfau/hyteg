@@ -105,8 +105,8 @@ static void testEdgeDoFFunction()
   z->interpolate( linearX, maxLevel, DoFType::All );
 
   VTKOutput vtkOutput( "../../output", "interpolate_test" );
-  vtkOutput.add( p1.get() );
-  vtkOutput.add( z.get() );
+  vtkOutput.add( p1 );
+  vtkOutput.add( z );
   vtkOutput.write( maxLevel );
 
 }

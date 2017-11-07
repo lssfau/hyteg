@@ -52,17 +52,31 @@ public:
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
-  void write( const uint_t & level );
+  void write( const uint_t & level ) const;
 
 private:
 
-  void writeP1( const uint_t & level );
-  void writeEdgeDoFs( const uint_t & level );
+  enum class DoFType
+  {
+    VERTEX,
+    EDGE_HORIZONTAL,
+    EDGE_VERTICAL,
+    EDGE_DIAGONAL,
+  };
 
-  void writeHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
+  static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
+
+  void writeP1( const uint_t & level ) const;
+  void writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+
+  std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level ) const { return "_" + DoFTypeToString_.at( dofType ) + "_level" + std::to_string( level ); }
+
+  void writeHeader       ( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
+  void writeFooterAndFile( std::ostringstream & output, const std::string & completeFilePath ) const;
 
   void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
-  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
+  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+
   void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
 
   std::string dir_;
@@ -74,6 +88,9 @@ private:
   std::vector< const DGFunction     < real_t > * > dgFunctions_;
 
 };
+
+
+
 
 template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
 void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
