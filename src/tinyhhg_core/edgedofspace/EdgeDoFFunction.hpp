@@ -192,12 +192,14 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
-  communicators_[level]->template endCommunication<Edge, Face>();
+
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
     edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
   }
+
+  communicators_[level]->template endCommunication<Edge, Face>();
 
   communicators_[level]->template startCommunication<Face, Edge>();
   communicators_[level]->template endCommunication<Face, Edge>();
