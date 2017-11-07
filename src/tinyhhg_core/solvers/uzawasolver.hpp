@@ -19,7 +19,7 @@ public:
   };
 
   UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
-    : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, maxLevel),
+    : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, minLevel),
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
   {
     // TODO: remove hardcoded parameters
