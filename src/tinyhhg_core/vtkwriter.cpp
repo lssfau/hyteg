@@ -110,7 +110,6 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
 
     const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
     const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
-    const Point3D diagonalMicroEdgeOffset   = horizontalMicroEdgeOffset + verticalMicroEdgeOffset;
 
     switch ( dofType )
     {
@@ -118,7 +117,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     {
       for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
       {
-        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
+        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
         output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
       }
       break;
@@ -127,7 +126,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     {
       for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
       {
-        const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+        const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( real_c( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
         output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
       }
       break;
@@ -136,7 +135,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     {
       for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
       {
-        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
+        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
         const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
         output << diagonalMicroEdgePosition[0]   << " " << diagonalMicroEdgePosition[1]   << " " << diagonalMicroEdgePosition[2]   << "\n";
       }
@@ -244,7 +243,6 @@ void VTKOutput::writeP1( const uint_t & level ) const
 
   output << "<PointData>\n";
 
-  // point data
   for ( const auto & function : p1Functions_ )
   {
     output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
@@ -314,25 +312,25 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & 
       {
       case VTKOutput::DoFType::EDGE_HORIZONTAL:
       {
-        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
         {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }
         break;
       }
       case VTKOutput::DoFType::EDGE_VERTICAL:
       {
-        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
         {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }
         break;
       }
       case VTKOutput::DoFType::EDGE_DIAGONAL:
       {
-        for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
         {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }
         break;
       }
