@@ -62,12 +62,14 @@ private:
     EDGE_HORIZONTAL,
     EDGE_VERTICAL,
     EDGE_DIAGONAL,
+    DG
   };
 
   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
   void writeP1( const uint_t & level ) const;
   void writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+  void writeDGDoFs( const uint_t & level ) const;
 
   std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level ) const { return "_" + DoFTypeToString_.at( dofType ) + "_level" + std::to_string( level ); }
 

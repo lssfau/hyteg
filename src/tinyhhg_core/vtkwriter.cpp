@@ -14,7 +14,8 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
   { DoFType::VERTEX,          "VertexDoF" },
   { DoFType::EDGE_HORIZONTAL, "HorizontalEdgeDoF" },
   { DoFType::EDGE_VERTICAL,   "VerticalEdgeDoF" },
-  { DoFType::EDGE_DIAGONAL,   "DiagonalEdgeDoF" }
+  { DoFType::EDGE_DIAGONAL,   "DiagonalEdgeDoF" },
+  { DoFType::DG,              "DGDoF" },
 };
 
 void VTKOutput::writeHeader( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const
@@ -250,7 +251,7 @@ void VTKOutput::writeP1( const uint_t & level ) const
 
     for ( const auto & it : storage->getFaces() )
     {
-      Face &face = *it.second;
+      const Face &face = *it.second;
 
       size_t len = levelinfo::num_microvertices_per_face( level );
       output << std::scientific;
@@ -305,8 +306,7 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & 
 
     for ( const auto & it : storage->getFaces() )
     {
-
-      Face & face = *it.second;
+      const Face & face = *it.second;
 
       output << std::scientific;
 
@@ -353,6 +353,68 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & 
 
 }
 
+void VTKOutput::writeDGDoFs( const uint_t & level ) const
+{
+  if ( dgFunctions_.size() == 0 )
+  {
+    return;
+  }
+
+  const std::string filenameExtension( fileNameExtension( VTKOutput::DoFType::DG, level ) );
+  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
+
+  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
+
+  std::ostringstream output;
+
+  auto & storage = dgFunctions_[0]->getStorage();
+
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
+  const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
+
+  writeHeader( output, numberOfPoints, numberOfCells );
+
+  writePointsForMicroVertices( output, storage, level );
+
+  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level ) );
+
+  output << "<CellData>";
+
+  for ( const auto & function : dgFunctions_ )
+  {
+    output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+    for ( const auto & it : storage->getFaces() )
+    {
+      const Face & face = *it.second;
+
+      uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+      uint_t inner_rowsize = rowsize;
+      output << std::scientific;
+
+      uint_t idx;
+
+      for ( size_t j = 0; j < rowsize - 1; ++j )
+      {
+        for ( size_t i = 0; i < inner_rowsize - 2; ++i )
+        {
+          idx = vtkDetail::bubbleGrayFaceIndex( level, i, j, stencilDirection::CELL_GRAY_C );
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+          idx = vtkDetail::bubbleBlueFaceIndex( level, i, j, stencilDirection::CELL_BLUE_C );
+          output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+        }
+        idx = vtkDetail::bubbleGrayFaceIndex( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+        --inner_rowsize;
+      }
+    }
+    output << "\n</DataArray>\n";
+  }
+
+  output << "\n</CellData>\n";
+
+  writeFooterAndFile( output, pvtu_filename );
+}
+
 
 void VTKOutput::write( const uint_t & level ) const
 {
@@ -360,6 +422,7 @@ void VTKOutput::write( const uint_t & level ) const
   writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_HORIZONTAL );
   writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_VERTICAL );
   writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_DIAGONAL );
+  writeDGDoFs( level );
 }
 
 }
