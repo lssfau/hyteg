@@ -113,7 +113,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Prim
     } else if(edgeIndexOnFace == 1){
       buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)];
     } else if(edgeIndexOnFace == 2){
-    buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)];
+      buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)];
     } else {
       WALBERLA_ABORT("Wrong edgeIndexOnFace")
     }
@@ -122,6 +122,28 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Prim
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
+  using hhg::indexing::edgedof::macroface::BorderIterator;
+  using indexing::edgedof::macroface::indexFromHorizontalEdge;
+  ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
+  ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
+  indexing::FaceBorderDirection faceDir = indexing::getFaceBorderDirection(edgeIndexOnFace,receiver->edge_orientation[edgeIndexOnFace]);
+  uint_t indexOnEdge = 0;
+  for(const auto& it : BorderIterator(level_,faceDir,0)){
+    if(edgeIndexOnFace == 0) {
+      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)] =
+        edgeData[edgeIndexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
+    } else if(edgeIndexOnFace == 1){
+      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)] =
+        edgeData[edgeIndexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
+    } else if(edgeIndexOnFace == 2){
+      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)] =
+        edgeData[edgeIndexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
+    } else {
+      WALBERLA_ABORT("Wrong edgeIndexOnFace")
+    }
+    ++indexOnEdge;
+  }
 
 }
 
