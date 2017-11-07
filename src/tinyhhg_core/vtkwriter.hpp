@@ -38,8 +38,8 @@ class VTKOutput
 {
 public:
 
-  VTKOutput( const uint_t & level, const std::string & dir, const std::string & filename ) :
-    level_( level ), dir_( dir ), filename_( filename )
+  VTKOutput( const std::string & dir, const std::string & filename ) :
+     dir_( dir ), filename_( filename )
   {}
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
@@ -47,20 +47,24 @@ public:
   void add( const BubbleFunction < real_t > * function ) { bubbleFunctions_.push_back( function ); };
   void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
 
-  void write();
+  void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
+  void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
+  void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
+  void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
+
+  void write( const uint_t & level );
 
 private:
 
-  void writeP1();
-  void writeEdgeDoFs();
+  void writeP1( const uint_t & level );
+  void writeEdgeDoFs( const uint_t & level );
 
   void writeHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
 
-  void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const;
-  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const;
+  void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
+  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
   void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
 
-  uint_t level_;
   std::string dir_;
   std::string filename_;
 

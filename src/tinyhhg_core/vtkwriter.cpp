@@ -23,7 +23,7 @@ void VTKOutput::writeHeader( std::ostream & output, const uint_t & numberOfPoint
          << ">\n";
 }
 
-void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const
+void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
 {
   output << "<Points>\n";
   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
@@ -31,7 +31,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-    size_t rowsize = levelinfo::num_microvertices_per_edge( level_ );
+    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
     Point3D x, x0;
 
     x0 = face.coords[0];
@@ -60,7 +60,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
   output << "</Points>\n";
 }
 
-void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const
+void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
 {
   output << "<Points>\n";
   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
@@ -73,11 +73,11 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     const Point3D faceBottomRightCoords = face.coords[1];
     const Point3D faceTopLeftCoords     = face.coords[2];
 
-    const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level_ ) ) ) * 0.5;
-    const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level_ ) ) ) * 0.5;
+    const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
+    const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
     const Point3D diagonalMicroEdgeOffset   = horizontalMicroEdgeOffset + verticalMicroEdgeOffset;
 
-    for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level_, 0 ) )
+    for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
     {
       const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
       const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
@@ -158,7 +158,7 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
   output << "</Cells>\n";
 }
 
-void VTKOutput::writeP1()
+void VTKOutput::writeP1( const uint_t & level )
 {
   if ( p1Functions_.size() == 0 )
   {
@@ -168,20 +168,20 @@ void VTKOutput::writeP1()
   const std::string filenameExtension( "_P1" );
   const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
 
-  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level_ << " to '" << pvtu_filename << "'");
+  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
 
   std::ostringstream output;
 
   auto & storage = p1Functions_[0]->getStorage();
 
-  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level_ );
-  const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level_ );
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
+  const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
 
   writeHeader( output, numberOfPoints, numberOfCells );
 
-  writePointsForMicroVertices( output, storage );
+  writePointsForMicroVertices( output, storage, level );
 
-  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level_ ) );
+  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level ) );
 
   output << "<PointData>\n";
 
@@ -192,12 +192,12 @@ void VTKOutput::writeP1()
     for (auto& it : storage->getFaces()) {
       Face &face = *it.second;
 
-      size_t len = levelinfo::num_microvertices_per_face( level_ );
+      size_t len = levelinfo::num_microvertices_per_face( level );
       output << std::scientific;
 
       for (size_t i = 0; i < len; ++i)
       {
-        output << face.getData( function->getFaceDataID() )->getPointer( level_ )[i] << " ";
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[i] << " ";
       }
     }
     output << "\n</DataArray>\n";
@@ -224,7 +224,7 @@ void VTKOutput::writeP1()
 }
 
 
-void VTKOutput::writeEdgeDoFs()
+void VTKOutput::writeEdgeDoFs( const uint_t & level )
 {
   if ( edgeDoFFunctions_.size() == 0 )
   {
@@ -234,19 +234,19 @@ void VTKOutput::writeEdgeDoFs()
   const std::string filenameExtension( "_EdgeDoF" );
   const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
 
-  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level_ << " to '" << pvtu_filename << "'");
+  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
 
   std::ostringstream output;
 
   auto & storage = edgeDoFFunctions_[0]->getStorage();
 
-  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level_ ) / 3;
-  const uint_t faceWidth = levelinfo::num_microedges_per_edge( level_ );
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
+  const uint_t faceWidth = levelinfo::num_microedges_per_edge( level );
   const uint_t numberOfCells = storage->getNumberOfLocalFaces() * ((((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2));
 
   writeHeader( output, numberOfPoints, numberOfCells );
 
-  writePointsForMicroEdges( output, storage );
+  writePointsForMicroEdges( output, storage, level );
 
   output << "<PointData>\n";
 
@@ -259,11 +259,11 @@ void VTKOutput::writeEdgeDoFs()
 
       output << std::scientific;
 
-      for ( const auto & it : indexing::edgedof::macroface::Iterator( level_ ) )
+      for ( const auto & it : indexing::edgedof::macroface::Iterator( level ) )
       {
         // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
         // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
-        output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, it.col(), it.row() ) ] << "\n";
       }
     }
     output << "\n</DataArray>\n";
@@ -292,10 +292,10 @@ void VTKOutput::writeEdgeDoFs()
 }
 
 
-void VTKOutput::write()
+void VTKOutput::write( const uint_t & level )
 {
-  writeP1();
-  writeEdgeDoFs();
+  writeP1( level );
+  writeEdgeDoFs( level );
 }
 
 }

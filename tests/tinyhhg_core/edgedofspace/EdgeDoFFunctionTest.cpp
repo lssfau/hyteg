@@ -104,10 +104,10 @@ static void testEdgeDoFFunction()
   auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
   z->interpolate( linearX, maxLevel, DoFType::All );
 
-  VTKOutput vtkOutput( maxLevel, "../../output", "interpolate_test" );
+  VTKOutput vtkOutput( "../../output", "interpolate_test" );
   vtkOutput.add( p1.get() );
   vtkOutput.add( z.get() );
-  vtkOutput.write();
+  vtkOutput.write( maxLevel );
 
 }
 
