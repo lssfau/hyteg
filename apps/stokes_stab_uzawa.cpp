@@ -37,9 +37,8 @@ int main(int argc, char* argv[])
   auto r = std::make_shared<hhg::P1StokesFunction<real_t>>("r", storage, minLevel, maxLevel);
   auto f = std::make_shared<hhg::P1StokesFunction<real_t>>("f", storage, minLevel, maxLevel);
   auto u = std::make_shared<hhg::P1StokesFunction<real_t>>("u", storage, minLevel, maxLevel);
-  auto tmp_u = std::make_shared<hhg::P1StokesFunction<real_t>>("tmp_u", storage, minLevel, maxLevel);
 
-  auto tmp = std::make_shared<hhg::P1Function<real_t>>("tmp", storage, minLevel, maxLevel);
+  auto tmp = std::make_shared<hhg::P1Function<real_t>>("tmp", storage, maxLevel, maxLevel);
 
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
 
@@ -47,6 +46,10 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
   std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
+
+  r->interpolate(ones, maxLevel);
+  uint_t npoints = (uint_t) r->dot(*r, maxLevel);
+  r->interpolate(zero, maxLevel);
 
   u->u.interpolate(rand, maxLevel, hhg::Inner);
   u->v.interpolate(rand, maxLevel, hhg::Inner);
@@ -60,9 +63,6 @@ int main(int argc, char* argv[])
 
   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator> Solver;
   auto solver = Solver(storage, minLevel, maxLevel);
-
-  tmp_u->interpolate(ones, maxLevel);
-  uint_t npoints = (uint_t) tmp_u->dot(*tmp_u, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", npoints));
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
