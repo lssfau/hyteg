@@ -14,9 +14,14 @@ static void testEdgeDoFFunction()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+  MeshInfo mesh  = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+  MeshInfo mesh2 = MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" );
+
   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  SetupPrimitiveStorage setupStorage2( mesh2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+  std::shared_ptr< PrimitiveStorage > storage2 = std::make_shared< PrimitiveStorage >( setupStorage2 );
 
   auto x = std::make_shared< EdgeDoFFunction< real_t > >( "x", storage, minLevel, maxLevel );
   auto y = std::make_shared< EdgeDoFFunction< real_t > >( "y", storage, minLevel, maxLevel );
@@ -89,6 +94,20 @@ static void testEdgeDoFFunction()
   WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( numInnerFaceDoFs * 20 * 2 ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( timer );
+
+  // Output interpolate VTK
+
+  auto p1 = std::make_shared< P1Function< real_t > >( "p1", storage2, minLevel, maxLevel );
+  std::function<real_t(const hhg::Point3D&)> linearX = []( const Point3D & xx ) -> real_t { return xx[0] + xx[1]; };
+  p1->interpolate( linearX, maxLevel, DoFType::All );
+
+  auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
+  z->interpolate( linearX, maxLevel, DoFType::All );
+
+  VTKOutput vtkOutput( maxLevel, "../../output", "interpolate_test" );
+  vtkOutput.add( p1.get() );
+  vtkOutput.add( z.get() );
+  vtkOutput.write();
 
 }
 

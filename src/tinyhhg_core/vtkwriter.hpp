@@ -10,6 +10,9 @@
 
 #include "dgfunctionspace/DGFunction.hpp"
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
+
 #include <string>
 
 namespace hhg
@@ -18,6 +21,10 @@ namespace hhg
 namespace vtkDetail{
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
+
+SPECIALIZE(uint_t, indexing::edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
+SPECIALIZE(uint_t, indexing::edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
+SPECIALIZE(uint_t, indexing::edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
 }
 
 using walberla::uint_t;
@@ -26,6 +33,43 @@ using walberla::real_t;
 using walberla::real_c;
 ////FIXME this typedef can be remove when we move into walberla namespace
 typedef walberla::uint64_t uint64_t;
+
+class VTKOutput
+{
+public:
+
+  VTKOutput( const uint_t & level, const std::string & dir, const std::string & filename ) :
+    level_( level ), dir_( dir ), filename_( filename )
+  {}
+
+  void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
+  void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
+  void add( const BubbleFunction < real_t > * function ) { bubbleFunctions_.push_back( function ); };
+  void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
+
+  void write();
+
+private:
+
+  void writeP1();
+  void writeEdgeDoFs();
+
+  void writeHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
+
+  void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const;
+  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const;
+  void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+
+  uint_t level_;
+  std::string dir_;
+  std::string filename_;
+
+  std::vector< const P1Function     < real_t > * > p1Functions_;
+  std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;
+  std::vector< const BubbleFunction < real_t > * > bubbleFunctions_;
+  std::vector< const DGFunction     < real_t > * > dgFunctions_;
+
+};
 
 template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
 void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,

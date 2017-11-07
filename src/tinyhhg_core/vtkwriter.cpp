@@ -2,88 +2,36 @@
 #include "levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
 namespace hhg
 {
-#if 0
-using walberla::uint_t;
-using walberla::uint_c;
-using walberla::real_t;
+
 using walberla::real_c;
-////FIXME this typedef can be remove when we move into walberla namespace
-typedef walberla::uint64_t uint64_t;
 
-template< typename FunctionType >
-void VTKWriter(std::vector<const Function< FunctionType >*> functions, size_t level, const std::string& dir, const std::string& filename)
+void VTKOutput::writeHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const
 {
-  uint_t np = uint_c(walberla::mpi::MPIManager::instance()->numProcesses());
-  uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
-
-  if (rk == 0)
+  WALBERLA_ROOT_SECTION()
   {
-    std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
-    fmt::printf("[VTKWriter] Writing functions on level %d to '%s'\n", level, pvtu_filename);
-    std::ofstream pvtu_file;
-    pvtu_file.open(pvtu_filename.c_str());
-
-    if(!pvtu_file)
-    {
-      fmt::printf("[VTKWriter] Error opening file: %s\n", pvtu_filename);
-      std::exit(-1);
-    }
-
-    pvtu_file << "<?xml version=\"1.0\"?>\n";
-    pvtu_file << "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
-    pvtu_file << "  <PUnstructuredGrid GhostLevel=\"0\">\n";
-    pvtu_file << "    <PPoints>\n";
-    pvtu_file << "      <PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>\n";
-    pvtu_file << "    </PPoints>\n";
-    pvtu_file << "    <PPointData>\n";
-
-    for (auto function : functions)
-    {
-      pvtu_file << "      <DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\"/>\n";
-    }
-
-    pvtu_file << "    </PPointData>\n";
-    pvtu_file << "    <PCellData/>\n";
-
-    for (uint_t i = 0; i < np; ++i)
-    {
-      pvtu_file << "    <Piece Source=\"" << fmt::format("{}-rk{:0>4}.vtu", filename, i) << "\"/>\n";
-    }
-
-    pvtu_file << "  </PUnstructuredGrid>\n";
-    pvtu_file << "</VTKFile>\n";
-    pvtu_file.close();
+    output << "<?xml version=\"1.0\"?>\n";
+    output << "<VTKFile type=\"UnstructuredGrid\">\n";
+    output << "<UnstructuredGrid>\n";
   }
 
-  auto& storage = functions[0]->getStorage();
+  output << "<Piece NumberOfPoints=\"" << numberOfPoints << "\" "
+         << "NumberOfCells=\"" << numberOfCells << "\""
+         << ">\n";
+}
 
-  std::ofstream file;
-  std::string vtu_filename(fmt::format("{}/{}-rk{:0>4}.vtu", dir, filename, rk));
-  file.open(vtu_filename.c_str());
+void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const
+{
+  output << "<Points>\n";
+  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
-  if(!file)
-  {
-    fmt::printf("[VTKWriter] Error opening file: %s\n", vtu_filename);
-    std::exit(-1);
-  }
-
-  size_t num_faces = storage->getNumberOfLocalFaces();
-
-  file << "<?xml version=\"1.0\"?>\n";
-  file << "<VTKFile type=\"UnstructuredGrid\">\n";
-  file << "<UnstructuredGrid>\n";
-  file << "<Piece NumberOfPoints=\"" << num_faces * levelinfo::num_microvertices_per_face(level) << "\" NumberOfCells=\"" << num_faces * levelinfo::num_microfaces_per_face(level) << "\">\n";
-  file << "<Points>\n";
-  file << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
-
-  // write out coords
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-    size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+    size_t rowsize = levelinfo::num_microvertices_per_edge( level_ );
     Point3D x, x0;
 
     x0 = face.coords[0];
@@ -100,7 +48,7 @@ void VTKWriter(std::vector<const Function< FunctionType >*> functions, size_t le
 
       for (size_t j = 0; j < inner_rowsize; ++j)
       {
-        file << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
+        output << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
         x += d0;
       }
 
@@ -108,30 +56,69 @@ void VTKWriter(std::vector<const Function< FunctionType >*> functions, size_t le
     }
   }
 
-  file << "\n</DataArray>\n";
-  file << "</Points>\n";
-  file << "<Cells>\n";
-  file << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
+  output << "\n</DataArray>\n";
+  output << "</Points>\n";
+}
+
+void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage ) const
+{
+  output << "<Points>\n";
+  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
+
+  for ( const auto & it : storage->getFaces() )
+  {
+    Face &face = *it.second;
+
+    const Point3D faceBottomLeftCoords  = face.coords[0];
+    const Point3D faceBottomRightCoords = face.coords[1];
+    const Point3D faceTopLeftCoords     = face.coords[2];
+
+    const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level_ ) ) ) * 0.5;
+    const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level_ ) ) ) * 0.5;
+    const Point3D diagonalMicroEdgeOffset   = horizontalMicroEdgeOffset + verticalMicroEdgeOffset;
+
+    for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level_, 0 ) )
+    {
+      const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
+      const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + ( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+      const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
+
+      // output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
+      // output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
+      output << diagonalMicroEdgePosition[0]   << " " << diagonalMicroEdgePosition[1]   << " " << diagonalMicroEdgePosition[2]   << "\n";
+    }
+  }
+
+  output << "\n</DataArray>\n";
+  output << "</Points>\n";
+}
+
+void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const
+{
+  const uint_t numberOfCells = (((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2);
+
+  output << "<Cells>\n";
+  output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
 
   // connectivity
   size_t offset = 0;
 
-  for (auto& it : storage->getFaces()) {
+  for (auto & it : storage->getFaces()) {
     //TODO is it really unused?
     WALBERLA_UNUSED(it);
-    size_t rowsize = levelinfo::num_microvertices_per_edge(level) - 1;
+    size_t rowsize = faceWidth - 1;
     size_t inner_rowsize = rowsize;
 
     for (size_t i = 0; i < rowsize; ++i)
     {
       for (size_t j = 0; j < inner_rowsize-1; ++j)
       {
-        file << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
-        file << offset + 1 << " " << offset + inner_rowsize + 2 << " " << offset + inner_rowsize + 1 << " ";
+        output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
+        output << offset + 1 << " " << offset + inner_rowsize + 2 << " " << offset + inner_rowsize + 1 << " ";
         ++offset;
       }
 
-      file << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
+      output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
 
       offset += 2;
       --inner_rowsize;
@@ -140,70 +127,175 @@ void VTKWriter(std::vector<const Function< FunctionType >*> functions, size_t le
     ++offset;
   }
 
-  file << "\n</DataArray>\n";
-  file << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
 
   // offsets
   offset = 3;
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
 
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
+    for (size_t i = 0; i < numberOfCells; ++i)
     {
-      file << offset << " ";
+      output << offset << " ";
       offset += 3;
     }
   }
 
-  file << "\n</DataArray>\n";
-  file << "<DataArray type=\"UInt8\" Name=\"types\">\n";
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
 
   // cell types
   for (auto& it : storage->getFaces()) {
     WALBERLA_UNUSED(it);
-    for (size_t i = 0; i < levelinfo::num_microfaces_per_face(level); ++i)
+    for (size_t i = 0; i < numberOfCells; ++i)
     {
-      file << "5 ";
+      output << "5 ";
     }
   }
 
-  file << "\n</DataArray>\n";
-  file << "</Cells>\n";
-  file << "<PointData>\n";
+  output << "\n</DataArray>\n";
+  output << "</Cells>\n";
+}
+
+void VTKOutput::writeP1()
+{
+  if ( p1Functions_.size() == 0 )
+  {
+    return;
+  }
+
+  const std::string filenameExtension( "_P1" );
+  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
+
+  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level_ << " to '" << pvtu_filename << "'");
+
+  std::ostringstream output;
+
+  auto & storage = p1Functions_[0]->getStorage();
+
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level_ );
+  const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level_ );
+
+  writeHeader( output, numberOfPoints, numberOfCells );
+
+  writePointsForMicroVertices( output, storage );
+
+  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level_ ) );
+
+  output << "<PointData>\n";
 
   // point data
-  for (const Function* function : functions)
+  for ( const auto & function : p1Functions_ )
   {
-    file << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
+    output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
     for (auto& it : storage->getFaces()) {
       Face &face = *it.second;
 
-      size_t len = levelinfo::num_microvertices_per_face(level);
-      file << std::scientific;
-
-      // FIXME: How to check type of Function properly?
-      const P1Function* p1Function = dynamic_cast<const P1Function*>(function);
+      size_t len = levelinfo::num_microvertices_per_face( level_ );
+      output << std::scientific;
 
       for (size_t i = 0; i < len; ++i)
       {
-        file << face.getData(p1Function->getFaceDataID())->data[level][i] << " ";
+        output << face.getData( function->getFaceDataID() )->getPointer( level_ )[i] << " ";
       }
     }
-    file << "\n</DataArray>\n";
+    output << "\n</DataArray>\n";
   }
 
-  file << "</PointData>\n";
-  file << "<CellData>";
+  output << "</PointData>\n";
 
-  // cell data
+  output << "</Piece>\n";
 
-  file << "\n</CellData>\n";
-  file << "</Piece>\n";
-  file << "</UnstructuredGrid>\n";
-  file << "</VTKFile>\n";
+  walberla::mpi::writeMPITextFile(pvtu_filename, output.str());
 
-  file.close();
+  WALBERLA_ROOT_SECTION()
+  {
+    std::ofstream pvtu_file;
 
+    pvtu_file.open(pvtu_filename.c_str(), std::ofstream::out | std::ofstream::app);
+
+    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << pvtu_filename );
+
+    pvtu_file << " </UnstructuredGrid>\n";
+    pvtu_file << "</VTKFile>\n";
+    pvtu_file.close();
+  }
 }
-#endif
+
+
+void VTKOutput::writeEdgeDoFs()
+{
+  if ( edgeDoFFunctions_.size() == 0 )
+  {
+    return;
+  }
+
+  const std::string filenameExtension( "_EdgeDoF" );
+  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
+
+  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level_ << " to '" << pvtu_filename << "'");
+
+  std::ostringstream output;
+
+  auto & storage = edgeDoFFunctions_[0]->getStorage();
+
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level_ ) / 3;
+  const uint_t faceWidth = levelinfo::num_microedges_per_edge( level_ );
+  const uint_t numberOfCells = storage->getNumberOfLocalFaces() * ((((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2));
+
+  writeHeader( output, numberOfPoints, numberOfCells );
+
+  writePointsForMicroEdges( output, storage );
+
+  output << "<PointData>\n";
+
+  // point data
+  for ( const auto & function : edgeDoFFunctions_ )
+  {
+    output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
+    for (auto& it : storage->getFaces()) {
+      Face &face = *it.second;
+
+      output << std::scientific;
+
+      for ( const auto & it : indexing::edgedof::macroface::Iterator( level_ ) )
+      {
+        // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
+        // output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
+        output << face.getData( function->getFaceDataID() )->getPointer( level_ )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level_, it.col(), it.row() ) ] << "\n";
+      }
+    }
+    output << "\n</DataArray>\n";
+  }
+
+  output << "</PointData>\n";
+
+  writeCells( output, storage, faceWidth );
+
+  output << "</Piece>\n";
+
+  walberla::mpi::writeMPITextFile(pvtu_filename, output.str());
+
+  WALBERLA_ROOT_SECTION()
+  {
+    std::ofstream pvtu_file;
+
+    pvtu_file.open(pvtu_filename.c_str(), std::ofstream::out | std::ofstream::app);
+
+    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << pvtu_filename );
+
+    pvtu_file << " </UnstructuredGrid>\n";
+    pvtu_file << "</VTKFile>\n";
+    pvtu_file.close();
+  }
+}
+
+
+void VTKOutput::write()
+{
+  writeP1();
+  writeEdgeDoFs();
+}
+
 }
