@@ -2,6 +2,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
 
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
@@ -41,6 +42,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     }
   }
 
+  using hhg::indexing::edgedof::macroface::BorderIterator;
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
     uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(level);
@@ -50,14 +52,21 @@ void checkComm(std::string meshfile, bool bufferComm = false){
       Edge *edge = storage->getEdge(nbrEdges[0].getID());
       uint_t *edgeData = edge->getData(x.getEdgeDataID())->getPointer(level);
       uint_t idxCounter = 0;
-      uint_t faceIdOnEdge = edge->face_index(face.getID());
+      uint_t edgeIdOnFace = face.edge_index(edge->getID());
       idxCounter = 0;
-      auto it = hhg::indexing::edgedof::macroface::BorderIterator< level,0 >(indexing::getFaceBorderDirection(0,face.edge_orientation[0]));
-
+      /// horizontal Dof on Edge
+      for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(edgeIdOnFace,face.edge_orientation[edgeIdOnFace]),0)){
+        WALBERLA_CHECK_EQUAL(
+        edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge< level >(idxCounter,stencilDirection::EDGE_HO_C)],
+        faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_HO_C)]
+        , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
+        idxCounter++;
+      }
     }
   }
 
-  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+
+  //WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
 
 }
 
@@ -67,17 +76,22 @@ int main (int argc, char ** argv ) {
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
+
+  checkComm<4>("../../data/meshes/tri_1el.msh", true);
+
+  checkComm<4>("../../data/meshes/tri_1el.msh", false);
+
   checkComm<4>("../../data/meshes/quad_4el.msh", true);
 
-//  checkComm("../../data/meshes/quad_4el.msh", 5, true);
-//
-//  checkComm("../../data/meshes/quad_4el.msh", 4, false);
-//
-//  checkComm("../../data/meshes/quad_4el.msh", 5, false);
-//
-//  checkComm("../../data/meshes/bfs_12el.msh", 3, true);
-//
-//  checkComm("../../data/meshes/bfs_12el.msh", 3, false);
+  checkComm<5>("../../data/meshes/quad_4el.msh", true);
+
+  checkComm<4>("../../data/meshes/quad_4el.msh", false);
+
+  checkComm<4>("../../data/meshes/quad_4el.msh", false);
+
+  checkComm<3>("../../data/meshes/bfs_12el.msh", true);
+
+  checkComm<3>("../../data/meshes/bfs_12el.msh", false);
 
   return 0;
 

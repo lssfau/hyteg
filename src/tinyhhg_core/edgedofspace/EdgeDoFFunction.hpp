@@ -13,6 +13,7 @@
 #include "EdgeDoFDataHandling.hpp"
 #include "EdgeDoFMacroFace.hpp"
 #include "EdgeDoFMacroEdge.hpp"
+#include "EdgeDoFPackInfo.hpp"
 
 
 namespace hhg {
@@ -32,6 +33,12 @@ public:
     storage->addVertexData( vertexDataID_, edgeDoFMacroVertexFunctionMemoryDataHandling, name );
     storage->addEdgeData(   edgeDataID_,   edgeDoFMacroEdgeFunctionMemoryDataHandling,   name );
     storage->addFaceData(   faceDataID_,   edgeDoFMacroFaceFunctionMemoryDataHandling,   name );
+
+    for (uint_t level = minLevel; level <= maxLevel; ++level) {
+      //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+      communicators_[level]->addPackInfo(
+        std::make_shared<EdgeDoFPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, storage_));
+    }
   }
 
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
