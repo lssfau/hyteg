@@ -50,7 +50,6 @@ inline constexpr uint_t macroFaceIndex( const uint_t & col, const uint_t & row )
 /// It is possible to parameterize the iterator to only iterate over a inner part of the face.
 /// This is done by setting the offset parameter to the distance to the edge.
 /// If set to zero, the iterator iterates over the whole face (including the border).
-template< uint_t width, uint_t offsetToCenter = 0 >
 class FaceIterator
 {
 public:
@@ -61,7 +60,8 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  FaceIterator( const bool & end = false ) :
+  FaceIterator( const uint_t & width, const uint_t & offsetToCenter = 0, const bool & end = false ) :
+    width_( width ), offsetToCenter_( offsetToCenter ),
     totalNumberOfDoFs_( ( ( width - 3 * offsetToCenter + 1 ) * ( width - 3 * offsetToCenter ) ) / 2 ), step_( 0 )
   {
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
@@ -77,8 +77,8 @@ public:
     }
   }
 
-  FaceIterator begin() { return FaceIterator< width, offsetToCenter >(); }
-  FaceIterator end()   { return FaceIterator< width, offsetToCenter >( true ); }
+  FaceIterator begin() { return FaceIterator( width_, offsetToCenter_ ); }
+  FaceIterator end()   { return FaceIterator( width_, offsetToCenter_, true ); }
 
   bool operator==( const FaceIterator & other ) const
   {
@@ -102,16 +102,16 @@ public:
     const uint_t currentRow = coordinates_.row();
     const uint_t currentCol = coordinates_.col();
 
-    const uint_t lengthOfCurrentRowWithoutOffset = width - currentRow;
+    const uint_t lengthOfCurrentRowWithoutOffset = width_ - currentRow;
 
-    if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter - 1 )
+    if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter_ - 1 )
     {
       coordinates_.col()++;
     }
     else
     {
       coordinates_.row()++;
-      coordinates_.col() = offsetToCenter;
+      coordinates_.col() = offsetToCenter_;
     }
 
     return *this;
@@ -127,6 +127,8 @@ public:
 
 private:
 
+  const uint_t    width_;
+  const uint_t    offsetToCenter_;
   const uint_t    totalNumberOfDoFs_;
         uint_t    step_;
         Index     coordinates_;
@@ -174,12 +176,11 @@ FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
 /// which can then be inserted into the respective indexing function.
 /// Since it implements all necessary methods, you can do:
 ///
-///   for ( const auto & it : FaceBorderIterator< 9 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+///   for ( const auto & it : FaceBorderIterator( 9, FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
 ///   {
 ///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
 ///   }
 ///
-template< uint_t width, uint_t offsetToCenter = 0 >
 class FaceBorderIterator
 {
 public:
@@ -190,8 +191,9 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  FaceBorderIterator( const FaceBorderDirection & direction, const bool & end = false ) :
-    direction_( direction ), step_( 0 )
+  FaceBorderIterator( const uint_t & width, const FaceBorderDirection & direction,
+                      const uint_t & offsetToCenter = 0, const bool & end = false ) :
+    width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ), step_( 0 )
   {
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
@@ -234,8 +236,8 @@ public:
     }
   }
 
-  FaceBorderIterator begin() { return FaceBorderIterator< width, offsetToCenter >( direction_ ); }
-  FaceBorderIterator end()   { return FaceBorderIterator< width, offsetToCenter >( direction_, true ); }
+  FaceBorderIterator begin() { return FaceBorderIterator( width_, direction_, offsetToCenter_ ); }
+  FaceBorderIterator end()   { return FaceBorderIterator( width_, direction_, offsetToCenter_, true ); }
 
   bool operator==( const FaceBorderIterator & other ) const
   {
@@ -254,7 +256,7 @@ public:
 
   FaceBorderIterator & operator++() // prefix
   {
-    WALBERLA_ASSERT_LESS_EQUAL( step_, width, "Incrementing iterator beyond end!" );
+    WALBERLA_ASSERT_LESS_EQUAL( step_, width_, "Incrementing iterator beyond end!" );
 
     step_++;
 
@@ -297,9 +299,11 @@ public:
 
 private:
 
+  const uint_t              width_;
   const FaceBorderDirection direction_;
-        uint_t    step_;
-        Index     coordinates_;
+  const uint_t              offsetToCenter_;
+        uint_t              step_;
+        Index               coordinates_;
 
 };
 

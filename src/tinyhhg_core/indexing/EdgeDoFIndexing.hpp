@@ -281,11 +281,22 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
 
 // Iterators
 
-template< uint_t level, uint_t offsetToCenter = 0 >
-using Iterator = FaceIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+class Iterator : public FaceIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    FaceIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  {}
+};
 
-template< uint_t level, uint_t offsetToCenter = 0 >
-using BorderIterator = FaceBorderIterator< levelToWidthAnyEdgeDoF< level >, offsetToCenter >;
+class BorderIterator : public FaceBorderIterator
+{
+public:
+  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
+    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter )
+  {}
+};
+
 
 } // namespace macroface
 

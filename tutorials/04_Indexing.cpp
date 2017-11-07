@@ -126,7 +126,7 @@ void IndexingTutorial()
   /// [Iterator]
   const uint_t offsetToCenter = 1; // 0 for the whole face, 1 for the inner face (distance to border == 1), ...
 
-  for ( const auto & it : indexing::vertexdof::macroface::Iterator< level, offsetToCenter >() )
+  for ( const auto & it : indexing::vertexdof::macroface::Iterator( level, offsetToCenter ) )
   /// [Iterator]
   {
     /// [Stencil]

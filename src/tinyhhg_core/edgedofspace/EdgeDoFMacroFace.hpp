@@ -30,7 +30,7 @@ inline void interpolateTmpl(Face & face,
   const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
   const Point3D diagonalMicroEdgeOffset   = horizontalMicroEdgeOffset + verticalMicroEdgeOffset;
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< Level, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
   {
     const Point3D horizontalMicroEdgePosition = ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset;
     const Point3D verticalMicroEdgePosition   = ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 )* verticalMicroEdgeOffset;
@@ -58,7 +58,7 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
     const real_t scalar  = scalars[i];
     auto         srcData = face.getData( srcIds[i] )->getPointer( Level );
 
-    for ( const auto & it : indexing::edgedof::macroface::Iterator< Level, 1 >() )
+    for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
     {
       dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ]  = scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
       dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
@@ -84,7 +84,7 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
     const real_t scalar  = scalars[i];
     auto         srcData = face.getData( srcIds[i] )->getPointer( Level );
 
-    for ( const auto & it : indexing::edgedof::macroface::Iterator< Level, 1 >() )
+    for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
     {
       dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
       dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
@@ -106,7 +106,7 @@ inline real_t dotTmpl( Face & face,
 
   real_t scalarProduct = real_c( 0 );
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< Level, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
   {
     const uint_t horizontalIdx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
     const uint_t diagonalIdx   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
@@ -136,7 +136,7 @@ inline void enumerateTmpl(Face &face,
                         (hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
-  for ( const auto & it : hhg::indexing::FaceIterator< hhg::indexing::edgedof::levelToWidthAnyEdgeDoF< Level >, 0 >() )
+  for ( const auto & it : hhg::indexing::edgedof::macroface::Iterator( Level, 0 ) )
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {

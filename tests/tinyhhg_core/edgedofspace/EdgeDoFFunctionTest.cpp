@@ -30,7 +30,7 @@ static void testEdgeDoFFunction()
 
   // Stupid method to count number of inner face dofs :)
   uint_t numInnerFaceDoFs = 0;
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
   {
     WALBERLA_UNUSED( it );
     numInnerFaceDoFs++;
@@ -47,7 +47,7 @@ static void testEdgeDoFFunction()
   x->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
@@ -60,7 +60,7 @@ static void testEdgeDoFFunction()
   y->assign( { 3.0 }, { x.get() }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
@@ -73,7 +73,7 @@ static void testEdgeDoFFunction()
   y->add( {{ 4.0, 3.0 }}, {{ x.get(), x.get() }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator< maxLevel, 1 >() )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
