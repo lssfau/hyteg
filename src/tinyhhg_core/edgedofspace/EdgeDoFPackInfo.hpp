@@ -153,18 +153,29 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const Pri
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   indexing::FaceBorderDirection faceBorderDir = indexing::getFaceBorderDirection(edgeIndexOnFace,sender->edge_orientation[edgeIndexOnFace]);
-  stencilDirection faceDir;
+  stencilDirection faceDirOne;
+  stencilDirection faceDirTwo;
+  stencilDirection faceDirThree;
   if(edgeIndexOnFace == 0) {
-    faceDir = stencilDirection::EDGE_HO_C;
+    faceDirOne = stencilDirection::EDGE_HO_C;
+    faceDirTwo = stencilDirection::EDGE_DI_N;
+    faceDirThree = stencilDirection::EDGE_VE_NW;
   } else if(edgeIndexOnFace == 1){
-    faceDir = stencilDirection::EDGE_DI_N;
+    faceDirOne = stencilDirection::EDGE_DI_N;
+    faceDirTwo = stencilDirection::EDGE_VE_NW;
+    faceDirThree = stencilDirection::EDGE_HO_C;
   } else if(edgeIndexOnFace == 2){
-    faceDir = stencilDirection::EDGE_VE_NW;
+    faceDirOne = stencilDirection::EDGE_VE_NW;
+    faceDirTwo = stencilDirection::EDGE_HO_C;
+    faceDirThree = stencilDirection::EDGE_DI_N;
   } else {
     WALBERLA_ABORT("Wrong edgeIndexOnFace")
   }
   for(const auto& it : BorderIterator(level_,faceBorderDir,1)){
-      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDir)];
+      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
+  }
+  for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
+    buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
   }
 }
 
@@ -172,10 +183,14 @@ template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender);
-  stencilDirection dir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
+  stencilDirection dirHorizontal = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
   /// first edge is south edge by convention
-  for (uint_t i = 1; i < levelinfo::num_microedges_per_edge(level_); ++i) {
-    buffer >> edgeData[edgeIndexFromVertex(level_, i, dir)];
+  for (uint_t i = 1; i < levelinfo::num_microvertices_per_edge(level_) -1; ++i) {
+    buffer >> edgeData[edgeIndexFromVertex(level_, i, dirHorizontal)];
+  }
+  stencilDirection dirDiagonal = faceIdOnEdge == 0 ? stencilDirection::EDGE_DI_SE : stencilDirection::EDGE_DI_NW;
+  for (uint_t i = 1; i < levelinfo::num_microvertices_per_edge(level_); ++i) {
+    buffer >> edgeData[edgeIndexFromVertex(level_, i, dirDiagonal)];
   }
 }
 

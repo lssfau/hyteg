@@ -60,9 +60,9 @@ void checkComm(std::string meshfile, bool bufferComm = false){
       , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
       idxCounter++;
     }
-    /// horizontal Dof on Face; offset 1 to border
+    /// horizontal Dof on Face for edge 0; offset 1 to border
     idxCounter = 1;
-    stencilDirection edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+    stencilDirection edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(idxCounter,edgeDir)],
@@ -71,10 +71,20 @@ void checkComm(std::string meshfile, bool bufferComm = false){
       idxCounter++;
 
     }
+    /// diagonal Dof on Face for edge 0; offset 0 to border
+    idxCounter = 1;
+    edgeDir = firstEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_DI_NW;
+    for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),0)){
+      WALBERLA_CHECK_EQUAL(
+        edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(idxCounter,edgeDir)],
+        faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_DI_N)]
+      ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
+      idxCounter++;
+    }
     localEdgeIdOnFace = 1;
     Edge *secondEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
     edgeData = secondEdge->getData(x.getEdgeDataID())->getPointer(level);
-    /// diagonal Dof on Edge
+    /// horizontal Dof on Edge
     idxCounter = 0;
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),0)){
       WALBERLA_CHECK_EQUAL(
@@ -85,7 +95,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     }
     /// diagonal Dof on Face; offset 1 to border
     idxCounter = 1;
-    edgeDir = secondEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+    edgeDir = secondEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(idxCounter,edgeDir)],
@@ -98,7 +108,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     localEdgeIdOnFace = 2;
     Edge *thirdEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
     edgeData = thirdEdge->getData(x.getEdgeDataID())->getPointer(level);
-    /// diagonal Dof on Edge
+    /// horizontal Dof on Edge
     idxCounter = 0;
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),0)){
       WALBERLA_CHECK_EQUAL(
@@ -107,9 +117,9 @@ void checkComm(std::string meshfile, bool bufferComm = false){
       , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
       idxCounter++;
     }
-    /// diagonal Dof on Face; offset 1 to border
+    /// vertical Dof on Face; offset 1 to border
     idxCounter = 1;
-    edgeDir = thirdEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+    edgeDir = thirdEdge->face_index(face.getID()) == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),1)){
       WALBERLA_CHECK_EQUAL(
         edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(idxCounter,edgeDir)],
