@@ -10,6 +10,7 @@ namespace hhg {
 
 namespace {
 SPECIALIZE(uint_t,indexing::edgedof::macroedge::indexFromHorizontalEdge,edgeIndexFromHorizontalEdge)
+SPECIALIZE(uint_t,indexing::edgedof::macroedge::indexFromVertex,edgeIndexFromVertex)
 SPECIALIZE(uint_t,indexing::edgedof::macroface::indexFromHorizontalEdge,faceIndexFromHorizontalEdge)
 }
 
@@ -144,17 +145,36 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender
     }
     ++indexOnEdge;
   }
-
 }
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
-
+  using hhg::indexing::edgedof::macroface::BorderIterator;
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
+  uint_t edgeIndexOnFace = sender->edge_index(receiver);
+  indexing::FaceBorderDirection faceDir = indexing::getFaceBorderDirection(edgeIndexOnFace,sender->edge_orientation[edgeIndexOnFace]);
+  for(const auto& it : BorderIterator(level_,faceDir,1)){
+    if(edgeIndexOnFace == 0) {
+      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)];
+    } else if(edgeIndexOnFace == 1){
+      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)];
+    } else if(edgeIndexOnFace == 2){
+      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)];
+    } else {
+      WALBERLA_ABORT("Wrong edgeIndexOnFace")
+    }
+  }
 }
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
-
+  ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t faceIdOnEdge = receiver->face_index(sender);
+  stencilDirection dir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+  /// first edge is south edge by convention
+  for (uint_t i = 1; i < levelinfo::num_microedges_per_edge(level_); ++i) {
+    buffer >> edgeData[edgeIndexFromVertex(level_, i, dir)];
+  }
 }
 
 template< typename ValueType>
