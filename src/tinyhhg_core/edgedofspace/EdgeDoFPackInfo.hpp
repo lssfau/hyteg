@@ -172,7 +172,7 @@ template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender);
-  stencilDirection dir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+  stencilDirection dir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
   /// first edge is south edge by convention
   for (uint_t i = 1; i < levelinfo::num_microedges_per_edge(level_); ++i) {
     buffer >> edgeData[edgeIndexFromVertex(level_, i, dir)];
@@ -198,7 +198,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender
 
   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
-  stencilDirection edgeDir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_DI_NW;
+  stencilDirection edgeDir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
 
   uint_t indexOnEdge = 1;
   for(const auto& it : BorderIterator(level_,faceBorderDir,1)){
