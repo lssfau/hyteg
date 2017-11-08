@@ -38,8 +38,9 @@ class VTKOutput
 {
 public:
 
-  VTKOutput( const std::string & dir, const std::string & filename ) :
-     dir_( dir ), filename_( filename )
+  /// \param writeFrequency outputs VTK in the specified frequency
+  VTKOutput( const std::string & dir, const std::string & filename, const uint_t & writeFrequency = 1 ) :
+     dir_( dir ), filename_( filename ), writeFrequency_( writeFrequency )
   {}
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
@@ -52,7 +53,9 @@ public:
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
-  void write( const uint_t & level ) const;
+  /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0
+  /// Appends the time step to the filename.
+  void write( const uint_t & level, const uint_t & timestep = 0 ) const;
 
 private:
 
@@ -67,11 +70,14 @@ private:
 
   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
-  void writeP1( const uint_t & level ) const;
-  void writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & dofType ) const;
-  void writeDGDoFs( const uint_t & level ) const;
+  void writeDoFByType( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+  uint_t getNumRegisteredFunctions( const VTKOutput::DoFType & dofType ) const;
 
-  std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level ) const { return "_" + DoFTypeToString_.at( dofType ) + "_level" + std::to_string( level ); }
+  void writeP1      ( std::ostream & output, const uint_t & level                                     ) const;
+  void writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+  void writeDGDoFs  ( std::ostream & output, const uint_t & level                                     ) const;
+
+  std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const;
 
   void writeHeader       ( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
   void writeFooterAndFile( std::ostringstream & output, const std::string & completeFilePath ) const;
@@ -83,6 +89,8 @@ private:
 
   std::string dir_;
   std::string filename_;
+
+  uint_t writeFrequency_;
 
   std::vector< const P1Function     < real_t > * > p1Functions_;
   std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;

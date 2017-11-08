@@ -9,6 +9,39 @@ namespace hhg
 
 using walberla::real_c;
 
+static void writeXMLHeader( std::ostream & output )
+{
+  WALBERLA_ROOT_SECTION()
+  {
+    output << "<?xml version=\"1.0\"?>\n";
+    output << "<VTKFile type=\"UnstructuredGrid\">\n";
+    output << " <UnstructuredGrid>\n";
+  }
+}
+
+static void writeXMLFooter( std::ostream & output )
+{
+  WALBERLA_ROOT_SECTION()
+  {
+    output << " </UnstructuredGrid>\n";
+    output << "</VTKFile>\n";
+  }
+}
+
+static void writePieceHeader( std::ostream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells )
+{
+  output << "<Piece "
+         << "NumberOfPoints=\"" << numberOfPoints << "\" "
+         << "NumberOfCells=\"" << numberOfCells << "\""
+         << ">\n";
+}
+
+static void writePieceFooter( std::ostream & output )
+{
+  output << "</Piece>\n";
+}
+
+
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 {
   { DoFType::VERTEX,          "VertexDoF" },
@@ -18,40 +51,12 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
   { DoFType::DG,              "DGDoF" },
 };
 
-void VTKOutput::writeHeader( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const
-{
-  WALBERLA_ROOT_SECTION()
-  {
-    output << "<?xml version=\"1.0\"?>\n";
-    output << "<VTKFile type=\"UnstructuredGrid\">\n";
-    output << "<UnstructuredGrid>\n";
-  }
 
-  output << "<Piece "
-         << "NumberOfPoints=\"" << numberOfPoints << "\" "
-         << "NumberOfCells=\"" << numberOfCells << "\""
-         << ">\n";
+std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const
+{
+  return fmt::format( "_{}_level{}_ts{}", DoFTypeToString_.at( dofType ), std::to_string( level ), std::to_string( timestep ) );
 }
 
-void VTKOutput::writeFooterAndFile( std::ostringstream & output, const std::string & completeFilePath ) const
-{
-  output << "</Piece>\n";
-
-  walberla::mpi::writeMPITextFile( completeFilePath, output.str() );
-
-  WALBERLA_ROOT_SECTION()
-  {
-    std::ofstream pvtu_file;
-
-    pvtu_file.open( completeFilePath.c_str(), std::ofstream::out | std::ofstream::app );
-
-    WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << completeFilePath );
-
-    pvtu_file << " </UnstructuredGrid>\n";
-    pvtu_file << "</VTKFile>\n";
-    pvtu_file.close();
-  }
-}
 
 void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
 {
@@ -216,26 +221,19 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
   output << "</Cells>\n";
 }
 
-void VTKOutput::writeP1( const uint_t & level ) const
+void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
 {
   if ( p1Functions_.size() == 0 )
   {
     return;
   }
 
-  const std::string filenameExtension( fileNameExtension( VTKOutput::DoFType::VERTEX, level ) );
-  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
-
-  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
-
-  std::ostringstream output;
-
   auto & storage = p1Functions_[0]->getStorage();
 
   const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
   const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
 
-  writeHeader( output, numberOfPoints, numberOfCells );
+  writePieceHeader( output, numberOfPoints, numberOfCells );
 
   writePointsForMicroVertices( output, storage, level );
 
@@ -264,11 +262,11 @@ void VTKOutput::writeP1( const uint_t & level ) const
 
   output << "</PointData>\n";
 
-  writeFooterAndFile( output, pvtu_filename );
+  writePieceFooter( output );
 }
 
 
-void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & dofType ) const
+void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
   WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
                    || dofType == VTKOutput::DoFType::EDGE_VERTICAL
@@ -279,20 +277,13 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & 
     return;
   }
 
-  const std::string filenameExtension( fileNameExtension( dofType, level ) );
-  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
-
-  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
-
-  std::ostringstream output;
-
   auto & storage = edgeDoFFunctions_[0]->getStorage();
 
   const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
   const uint_t faceWidth = levelinfo::num_microedges_per_edge( level );
   const uint_t numberOfCells = storage->getNumberOfLocalFaces() * ((((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2));
 
-  writeHeader( output, numberOfPoints, numberOfCells );
+  writePieceHeader( output, numberOfPoints, numberOfCells );
 
   writePointsForMicroEdges( output, storage, level, dofType );
 
@@ -347,30 +338,23 @@ void VTKOutput::writeEdgeDoFs( const uint_t & level, const VTKOutput::DoFType & 
 
   writeCells( output, storage, faceWidth );
 
-  writeFooterAndFile( output, pvtu_filename );
+  writePieceFooter( output );
 
 }
 
-void VTKOutput::writeDGDoFs( const uint_t & level ) const
+void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
 {
   if ( dgFunctions_.size() == 0 )
   {
     return;
   }
 
-  const std::string filenameExtension( fileNameExtension( VTKOutput::DoFType::DG, level ) );
-  const std::string pvtu_filename( fmt::format( "{}/{}{}.vtu", dir_, filename_, filenameExtension ) );
-
-  WALBERLA_LOG_INFO_ON_ROOT("[VTKWriter] Writing functions on level " << level << " to '" << pvtu_filename << "'");
-
-  std::ostringstream output;
-
   auto & storage = dgFunctions_[0]->getStorage();
 
   const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
   const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
 
-  writeHeader( output, numberOfPoints, numberOfCells );
+  writePieceHeader( output, numberOfPoints, numberOfCells );
 
   writePointsForMicroVertices( output, storage, level );
 
@@ -410,17 +394,85 @@ void VTKOutput::writeDGDoFs( const uint_t & level ) const
 
   output << "\n</CellData>\n";
 
-  writeFooterAndFile( output, pvtu_filename );
+  writePieceFooter( output );
 }
 
 
-void VTKOutput::write( const uint_t & level ) const
+void VTKOutput::writeDoFByType( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
-  writeP1( level );
-  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_HORIZONTAL );
-  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_VERTICAL );
-  writeEdgeDoFs( level, VTKOutput::DoFType::EDGE_DIAGONAL );
-  writeDGDoFs( level );
+  switch ( dofType )
+  {
+  case DoFType::VERTEX:
+    writeP1( output, level );
+    break;
+  case DoFType::EDGE_HORIZONTAL:
+  case DoFType::EDGE_VERTICAL:
+  case DoFType::EDGE_DIAGONAL:
+    writeEdgeDoFs( output, level, dofType );
+    break;
+  case DoFType::DG:
+    writeDGDoFs( output, level );
+    break;
+  default:
+    WALBERLA_ABORT( "[VTK] DoFType not supported!" );
+    break;
+  }
+}
+
+uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType & dofType ) const
+{
+  switch ( dofType )
+  {
+  case DoFType::VERTEX:
+    return p1Functions_.size();
+  case DoFType::EDGE_HORIZONTAL:
+  case DoFType::EDGE_VERTICAL:
+  case DoFType::EDGE_DIAGONAL:
+    return edgeDoFFunctions_.size();
+  case DoFType::DG:
+    return dgFunctions_.size();
+    break;
+  default:
+    WALBERLA_ABORT( "[VTK] DoFType not supported!" );
+    return 0;
+  }
+}
+
+
+void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
+{
+  if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
+  {
+    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_HORIZONTAL, DoFType::EDGE_VERTICAL, DoFType::EDGE_DIAGONAL, DoFType::DG };
+
+    for ( const auto & dofType : dofTypes )
+    {
+      if ( getNumRegisteredFunctions( dofType ) > 0 )
+      {
+        const std::string completeFilePath( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
+
+        WALBERLA_LOG_PROGRESS_ON_ROOT( "[VTK] Writing output to " << completeFilePath );
+
+        std::ostringstream output;
+
+        writeXMLHeader( output );
+
+        writeDoFByType( output, level, dofType );
+
+        walberla::mpi::writeMPITextFile( completeFilePath, output.str() );
+
+        WALBERLA_ROOT_SECTION()
+        {
+          std::ofstream pvtu_file;
+          pvtu_file.open( completeFilePath.c_str(), std::ofstream::out | std::ofstream::app );
+          WALBERLA_CHECK( !!pvtu_file, "[VTKWriter] Error opening file: " << completeFilePath );
+          writeXMLFooter( pvtu_file );
+          pvtu_file.close();
+        }
+      }
+    }
+  }
+
 }
 
 }
