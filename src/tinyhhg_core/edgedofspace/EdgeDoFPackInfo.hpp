@@ -177,6 +177,9 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const Pri
   for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
     buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
   }
+  for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
+    buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
+  }
 }
 
 template< typename ValueType>
@@ -188,9 +191,13 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Prim
   for (uint_t i = 1; i < levelinfo::num_microvertices_per_edge(level_) -1; ++i) {
     buffer >> edgeData[edgeIndexFromVertex(level_, i, dirHorizontal)];
   }
-  stencilDirection dirDiagonal = faceIdOnEdge == 0 ? stencilDirection::EDGE_DI_SE : stencilDirection::EDGE_DI_NW;
+  stencilDirection dirDiagonal = faceIdOnEdge == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_DI_NW;
   for (uint_t i = 1; i < levelinfo::num_microvertices_per_edge(level_); ++i) {
     buffer >> edgeData[edgeIndexFromVertex(level_, i, dirDiagonal)];
+  }
+  stencilDirection dirVertical = faceIdOnEdge == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_VE_NW;
+  for (uint_t i = 1; i < levelinfo::num_microvertices_per_edge(level_); ++i) {
+    buffer >> edgeData[edgeIndexFromVertex(level_, i, dirVertical)];
   }
 }
 
