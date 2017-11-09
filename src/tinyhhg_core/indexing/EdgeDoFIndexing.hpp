@@ -39,7 +39,7 @@ inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neig
 
   const uint_t offset = numHorizontalDoFsOnEdge + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
-  return offset + horizontalIndex< levelToWidthAnyEdgeDoF< level > >( col );
+  return offset + horizontalIndex<  level  >( col );
 };
 
 /// Index of a vertical edge DoF on a ghost layer of a macro edge.
