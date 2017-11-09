@@ -207,27 +207,50 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver->getID());
   indexing::FaceBorderDirection faceBorderDir = indexing::getFaceBorderDirection(edgeIndexOnFace,sender->edge_orientation[edgeIndexOnFace]);
-  stencilDirection faceDir;
+  stencilDirection faceDirOne;
+  stencilDirection faceDirTwo;
+  stencilDirection faceDirThree;
   if(edgeIndexOnFace == 0) {
-    faceDir = stencilDirection::EDGE_HO_C;
+    faceDirOne = stencilDirection::EDGE_HO_C;
+    faceDirTwo = stencilDirection::EDGE_DI_N;
+    faceDirThree = stencilDirection::EDGE_VE_NW;
   } else if(edgeIndexOnFace == 1){
-    faceDir = stencilDirection::EDGE_DI_N;
+    faceDirOne = stencilDirection::EDGE_DI_N;
+    faceDirTwo = stencilDirection::EDGE_VE_NW;
+    faceDirThree = stencilDirection::EDGE_HO_C;
   } else if(edgeIndexOnFace == 2){
-    faceDir = stencilDirection::EDGE_VE_NW;
+    faceDirOne = stencilDirection::EDGE_VE_NW;
+    faceDirTwo = stencilDirection::EDGE_HO_C;
+    faceDirThree = stencilDirection::EDGE_DI_N;
   } else {
     WALBERLA_ABORT("Wrong edgeIndexOnFace")
   }
 
   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
-  stencilDirection edgeDir = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
+  stencilDirection dirHorizontal = faceIdOnEdge == 0 ? stencilDirection::EDGE_HO_SE : stencilDirection::EDGE_HO_NW;
 
   uint_t indexOnEdge = 1;
   for(const auto& it : BorderIterator(level_,faceBorderDir,1)){
-    edgeData[edgeIndexFromVertex(level_, indexOnEdge, edgeDir)] =
-        faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDir)];
+    edgeData[edgeIndexFromVertex(level_, indexOnEdge, dirHorizontal)] =
+        faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
     ++indexOnEdge;
   }
+  stencilDirection dirDiagonal = faceIdOnEdge == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_DI_NW;
+  indexOnEdge = 1;
+  for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
+    edgeData[edgeIndexFromVertex(level_, indexOnEdge, dirDiagonal)] =
+      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
+    ++indexOnEdge;
+  }
+  stencilDirection dirVertical = faceIdOnEdge == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_VE_NW;
+  indexOnEdge = 1;
+  for(const auto& it : BorderIterator(level_,faceBorderDir,0)) {
+    edgeData[edgeIndexFromVertex(level_, indexOnEdge, dirVertical)] =
+      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
+    ++indexOnEdge;
+  }
+
 }
 
 

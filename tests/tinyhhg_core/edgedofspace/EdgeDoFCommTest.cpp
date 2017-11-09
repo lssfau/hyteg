@@ -199,19 +199,19 @@ int main (int argc, char ** argv ) {
 
   checkComm<4>("../../data/meshes/tri_1el.msh", true);
 
-  //checkComm<4>("../../data/meshes/tri_1el.msh", false);
+  checkComm<4>("../../data/meshes/tri_1el.msh", false);
 
   checkComm<4>("../../data/meshes/quad_4el.msh", true);
 
   checkComm<5>("../../data/meshes/quad_4el.msh", true);
 
-  //checkComm<4>("../../data/meshes/quad_4el.msh", false);
+  checkComm<4>("../../data/meshes/quad_4el.msh", false);
 
-  //checkComm<5>("../../data/meshes/quad_4el.msh", false);
+  checkComm<5>("../../data/meshes/quad_4el.msh", false);
 
   checkComm<3>("../../data/meshes/bfs_12el.msh", true);
 
-  //checkComm<3>("../../data/meshes/bfs_12el.msh", false);
+  checkComm<3>("../../data/meshes/bfs_12el.msh", false);
 
   return 0;
 
