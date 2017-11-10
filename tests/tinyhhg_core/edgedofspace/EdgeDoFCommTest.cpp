@@ -30,19 +30,24 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   size_t num = 1;
   x.enumerate(level,num);
 
-  //uint_t numberOfChecks = 0;
+  uint_t numberOfChecks = 0;
   uint_t totalExpectedChecks = 0;
 
   for(auto &edgeIt : storage->getEdges()){
     if(edgeIt.second.get()->getNumHigherDimNeighbors() == 1){
-
+      ///checks with face
+      totalExpectedChecks += 3 * levelinfo::num_microedges_per_edge( level ) + levelinfo::num_microedges_per_edge( level ) - 1;
+      ///checks with vertex
       totalExpectedChecks += 4;
     } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
-      totalExpectedChecks += 8;
+      totalExpectedChecks += 5 * levelinfo::num_microedges_per_edge( level ) + 2 * (levelinfo::num_microedges_per_edge( level ) - 1);
+      ///checks with vertex
+      totalExpectedChecks += 6;
     } else {
       WALBERLA_CHECK(false);
     }
   }
+
 
   using hhg::indexing::edgedof::macroface::BorderIterator;
   for (auto &faceIt : storage->getFaces()) {
@@ -64,6 +69,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_HO_C)]
       , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
       idxCounter++;
+      numberOfChecks++;
     }
     /// horizontal Dof on Face for edge 0; offset 1 to border
     idxCounter = 1;
@@ -74,6 +80,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
               faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_HO_C)]
             ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
 
     }
     /// diagonal Dof on Face for edge 0; offset 0 to border
@@ -85,6 +92,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_DI_N)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
     /// vertical Dof on Face for edge 0; offset 0 to border
     idxCounter = 1;
@@ -95,6 +103,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_VE_NW)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
 /////////// SECOND EDGE ////////////
     localEdgeIdOnFace = 1;
@@ -108,6 +117,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_DI_N)]
       , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
       idxCounter++;
+      numberOfChecks++;
     }
     /// diagonal Dof on Face = horizontal Dof on edge; offset 1 to border
     idxCounter = 1;
@@ -118,6 +128,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_DI_N)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
     /// vertical Dof on Face = diagonal Dof on edge; offset 1 to border
     idxCounter = 1;
@@ -128,6 +139,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge<level>(it.col(), it.row(), stencilDirection::EDGE_VE_NW)],
         "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
       /// horizontal Dof on Face = vertical Dof on edge; offset 1 to border
       idxCounter = 1;
@@ -138,6 +150,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_HO_C)]
         ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
         idxCounter++;
+        numberOfChecks++;
       }
 /////////// THIRD EDGE ////////////
     localEdgeIdOnFace = 2;
@@ -151,6 +164,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_VE_NW)]
       , "it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter)
       idxCounter++;
+      numberOfChecks++;
     }
     /// vertical Dof on face for edge 2 = horizontal on edge; offset 1 to border
     idxCounter = 1;
@@ -161,6 +175,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_VE_NW)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
     /// horizontal Dof on face for edge 2 = diagonal on edge; offset 1 to border
     idxCounter = 1;
@@ -171,6 +186,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_HO_C)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
     /// diagonal Dof on face for edge 2 = vertical on edge; offset 1 to border
     idxCounter = 1;
@@ -181,6 +197,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
         faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(it.col(),it.row(),stencilDirection::EDGE_DI_N)]
       ,"it.col(): " << it.col() << " it.row(): " << it.row() << " idxCounter: " << idxCounter);
       idxCounter++;
+      numberOfChecks++;
     }
   }
 
@@ -196,11 +213,13 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(1,stencilDirection::EDGE_HO_W)],
           vertexData[vertex.edge_index(edgeId)],
           "vertex: " << vertex.getID().getID() << " edgeIndex: " << vertex.edge_index(edgeId))
+        numberOfChecks++;
       } else if (edge->getVertexID1() == vertex.getID()) {
         WALBERLA_CHECK_EQUAL(
           edgeData[indexing::edgedof::macroedge::indexFromVertex< level >(levelinfo::num_microvertices_per_edge( level ) - 1,stencilDirection::EDGE_HO_W)],
           vertexData[vertex.edge_index(edgeId)],
           " edgeIndex: " << vertex.edge_index(edgeId))
+        numberOfChecks++;
       } else {
         WALBERLA_ABORT("edge is not on vertex")
       }
@@ -213,18 +232,21 @@ void checkComm(std::string meshfile, bool bufferComm = false){
           faceData[indexing::edgedof::macroface::indexFromDiagonalEdge< level >(0,0,stencilDirection::EDGE_DI_C)],
           vertexData[vertex.getNumNeighborEdges() + vertex.face_index(faceId)],
           " faceIndex: " << vertex.face_index(faceId))
+        numberOfChecks++;
       } else if (face->getVertexID1() == vertex.getID()){
         uint_t nbrEdgeDoFs = levelinfo::num_microedges_per_edge( level );
         WALBERLA_CHECK_EQUAL(
           faceData[indexing::edgedof::macroface::indexFromVerticalEdge< level >(nbrEdgeDoFs -1 ,0,stencilDirection::EDGE_VE_C)],
           vertexData[vertex.getNumNeighborEdges() + vertex.face_index(faceId)],
           " index: " << vertex.getNumNeighborEdges() + vertex.face_index(faceId))
+        numberOfChecks++;
       } else if (face->getVertexID2() == vertex.getID()){
         uint_t nbrEdgeDoFs = levelinfo::num_microedges_per_edge( level );
         WALBERLA_CHECK_EQUAL(
           faceData[indexing::edgedof::macroface::indexFromHorizontalEdge< level >(0, nbrEdgeDoFs -1,stencilDirection::EDGE_HO_C)],
           vertexData[vertex.getNumNeighborEdges() + vertex.face_index(faceId)],
-          " faceIndex: " << vertex.face_index(faceId))
+          " faceIndex: " << vertex.getNumNeighborEdges() + vertex.face_index(faceId))
+        numberOfChecks++;
       } else {
         WALBERLA_ABORT("face it not on vertex");
       }
@@ -232,7 +254,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   }
 
-  //WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks, "expected: " << totalExpectedChecks << " number: " << numberOfChecks);
 
 }
 
@@ -242,16 +264,16 @@ int main (int argc, char ** argv ) {
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-  //checkComm("../../data/meshes/tri_1el.msh", true);
-
-  //checkComm("../../data/meshes/tri_1el.msh", false);
+//  checkComm("../../data/meshes/tri_1el.msh", true);
+//
+//  checkComm("../../data/meshes/tri_1el.msh", false);
   checkComm<3>("../../data/meshes/tri_1el.msh", true);
 
-  //checkComm<3>("../../data/meshes/tri_1el.msh", false);
+  checkComm<3>("../../data/meshes/tri_1el.msh", false);
 
   checkComm<4>("../../data/meshes/tri_1el.msh", true);
 
-  //checkComm<4>("../../data/meshes/tri_1el.msh", false);
+  checkComm<4>("../../data/meshes/tri_1el.msh", false);
 
 
   checkComm<3>("../../data/meshes/quad_4el.msh", true);
@@ -260,13 +282,13 @@ int main (int argc, char ** argv ) {
 
   checkComm<5>("../../data/meshes/quad_4el.msh", true);
 
-  //checkComm<4>("../../data/meshes/quad_4el.msh", false);
+  checkComm<4>("../../data/meshes/quad_4el.msh", false);
 
-  //checkComm<5>("../../data/meshes/quad_4el.msh", false);
+  checkComm<5>("../../data/meshes/quad_4el.msh", false);
 
   checkComm<3>("../../data/meshes/bfs_12el.msh", true);
 
-  //checkComm<3>("../../data/meshes/bfs_12el.msh", false);
+  checkComm<3>("../../data/meshes/bfs_12el.msh", false);
 
   return 0;
 

@@ -84,8 +84,7 @@ void EdgeDoFPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const P
   uint_t vertexIdOnEdge = sender->vertex_index(receiver);
   if(vertexIdOnEdge == 0){
     buffer << edgeData[edgeIndexFromHorizontalEdge(level_,0,stencilDirection::EDGE_HO_C)];
-    uint_t idx = edgeIndexFromHorizontalEdge(level_,0,stencilDirection::EDGE_VE_SE);
-    buffer << edgeData[idx];
+    buffer << edgeData[edgeIndexFromHorizontalEdge(level_,0,stencilDirection::EDGE_VE_SE)];
     if(sender->getNumNeighborFaces() == 2) {
       buffer << edgeData[edgeIndexFromHorizontalEdge(level_, 0, stencilDirection::EDGE_DI_N)];
     }
@@ -112,7 +111,30 @@ void EdgeDoFPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const 
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) {
-
+  ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+  uint_t vertexIdOnEdge = sender->vertex_index(receiver->getID());
+  ValueType* vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+  uint_t edgeIdOnVertex = receiver->edge_index(sender->getID());
+  if(vertexIdOnEdge == 0){
+    vertexData[edgeIdOnVertex] = edgeData[edgeIndexFromHorizontalEdge(level_,0,stencilDirection::EDGE_HO_C)];
+    vertexData[ receiver->getNumNeighborEdges() + receiver->face_index(sender->neighborFaces()[0])] =
+      edgeData[edgeIndexFromHorizontalEdge(level_,0,stencilDirection::EDGE_VE_SE)];
+    if(sender->getNumNeighborFaces() == 2) {
+      vertexData[receiver->getNumNeighborEdges() + receiver->face_index(sender->neighborFaces()[1])] =
+        edgeData[edgeIndexFromHorizontalEdge(level_, 0, stencilDirection::EDGE_DI_N)];
+    }
+  } else if (vertexIdOnEdge == 1) {
+    uint_t nbrEdges = levelinfo::num_microedges_per_edge( level_ );
+    vertexData[edgeIdOnVertex] = edgeData[edgeIndexFromHorizontalEdge(level_, nbrEdges -1, stencilDirection::EDGE_HO_C)];
+    vertexData[ receiver->getNumNeighborEdges() + receiver->face_index(sender->neighborFaces()[0])] =
+      edgeData[edgeIndexFromHorizontalEdge(level_, nbrEdges -1, stencilDirection::EDGE_DI_S)];
+    if (sender->getNumNeighborFaces() == 2) {
+      vertexData[ receiver->getNumNeighborEdges() + receiver->face_index(sender->neighborFaces()[1])] =
+        edgeData[edgeIndexFromHorizontalEdge(level_, nbrEdges -1, stencilDirection::EDGE_VE_NW)];
+    }
+  } else {
+    WALBERLA_ABORT("vertex is not part of edge")
+  }
 }
 
 template< typename ValueType >
