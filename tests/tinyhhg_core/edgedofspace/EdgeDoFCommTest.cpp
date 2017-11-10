@@ -35,18 +35,18 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   for(auto &edgeIt : storage->getEdges()){
     if(edgeIt.second.get()->getNumHigherDimNeighbors() == 1){
-      ///checks with face
       totalExpectedChecks += 3 * levelinfo::num_microedges_per_edge( level ) + levelinfo::num_microedges_per_edge( level ) - 1;
-      ///checks with vertex
-      totalExpectedChecks += 4;
     } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
       totalExpectedChecks += 5 * levelinfo::num_microedges_per_edge( level ) + 2 * (levelinfo::num_microedges_per_edge( level ) - 1);
-      ///checks with vertex
-      totalExpectedChecks += 6;
     } else {
       WALBERLA_CHECK(false);
     }
   }
+  for(auto &vertexIt : storage->getVertices()){
+    totalExpectedChecks += vertexIt.second->getNumNeighborFaces();
+    totalExpectedChecks += vertexIt.second->getNumNeighborEdges();
+  }
+
 
 
   using hhg::indexing::edgedof::macroface::BorderIterator;
