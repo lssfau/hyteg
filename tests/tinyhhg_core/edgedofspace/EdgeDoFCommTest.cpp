@@ -37,7 +37,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     if(edgeIt.second.get()->getNumHigherDimNeighbors() == 1){
       totalExpectedChecks += 3 * levelinfo::num_microedges_per_edge( level ) + levelinfo::num_microedges_per_edge( level ) - 1;
     } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
-      totalExpectedChecks += 5 * levelinfo::num_microedges_per_edge( level ) + 2 * (levelinfo::num_microedges_per_edge( level ) - 1);
+      totalExpectedChecks += 6 * levelinfo::num_microedges_per_edge( level ) + 2 * (levelinfo::num_microedges_per_edge( level ) - 1);
     } else {
       WALBERLA_CHECK(false);
     }
