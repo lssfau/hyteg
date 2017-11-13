@@ -334,7 +334,7 @@ coverage:
       - mpirun --version
       - gcov --version
       - echo $CI_PROJECT_DIR
-      - git clone --depth 1 --branch cxx_14 https://i10git.cs.fau.de/thoennes/walberla.git
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       # - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir build
       - cd build
