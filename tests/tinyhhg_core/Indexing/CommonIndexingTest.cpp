@@ -5,8 +5,9 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/TimingPool.h"
+#include "core/logging/all.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
