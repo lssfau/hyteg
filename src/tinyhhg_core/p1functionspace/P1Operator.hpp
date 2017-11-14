@@ -8,6 +8,7 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 #include "P1DataHandling.hpp"
+#include "P1Elements.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -41,12 +42,16 @@ public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
+    using namespace P1Elements;
+
     auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
     auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
     auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
+
+    Matrix3r local_stiffness;
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
@@ -55,22 +60,11 @@ public:
         Face& face = *it.second;
 
         auto& face_stencil = face.getData(faceStencilID_)->data[level];
+        compute_local_stiffness(face, level, local_stiffness);
 
-        Matrix3r local_stiffness_up;
-        Matrix3r local_stiffness_down;
-        compute_local_stiffness(face, level, local_stiffness_up, fenics::GRAY);
-        compute_local_stiffness(face, level, local_stiffness_down, fenics::BLUE);
-
-        face_stencil[0] = local_stiffness_down(0,2) + local_stiffness_up(2,0);
-        face_stencil[1] = local_stiffness_down(1,2) + local_stiffness_up(2,1);
-        face_stencil[2] = local_stiffness_down(0,1) + local_stiffness_up(1,0);
-
-        face_stencil[4] = local_stiffness_down(1,0) + local_stiffness_up(0,1);
-        face_stencil[5] = local_stiffness_down(2,1) + local_stiffness_up(1,2);
-        face_stencil[6] = local_stiffness_down(2,0) + local_stiffness_up(0,2);
-
-        face_stencil[3] = local_stiffness_up(0,0) + local_stiffness_up(1,1) + local_stiffness_up(2,2)
-            + local_stiffness_down(0,0) + local_stiffness_down(1,1) + local_stiffness_down(2,2);
+        for (uint_t i = 0; i < FaceVertexDoF::P1Elements.size(); ++i) {
+          assembleP1LocalStencil(FaceVertexDoF::P1StencilMaps[i], FaceVertexDoF::P1DoFMaps[i], local_stiffness, face_stencil);
+        }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
@@ -80,43 +74,31 @@ public:
 
         auto& edge_stencil = edge.getData(edgeStencilID_)->data[level];
 
-        Matrix3r local_stiffness_up;
-        Matrix3r local_stiffness_down;
         // first face
         Face* face = storage_->getFace(edge.neighborFaces()[0]);
-        compute_local_stiffness(*face, level, local_stiffness_up, fenics::GRAY);
-        compute_local_stiffness(*face, level, local_stiffness_down, fenics::BLUE);
+        compute_local_stiffness(*face, level, local_stiffness);
 
         size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
         size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
         size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-        edge_stencil[0] = local_stiffness_up(end_id, opposite_id) + local_stiffness_down(opposite_id, end_id);
-        edge_stencil[1] = local_stiffness_up(start_id, opposite_id) + local_stiffness_down(opposite_id, start_id);
-
-        edge_stencil[2] = local_stiffness_up(end_id, start_id);
-        edge_stencil[4] = local_stiffness_up(start_id, end_id);
-
-        edge_stencil[3] = local_stiffness_up(start_id, start_id) + local_stiffness_up(end_id, end_id) + local_stiffness_down(opposite_id, opposite_id);
+        assembleP1LocalStencil({{3, 2, 0}}, {{end_id, start_id, opposite_id}}, local_stiffness, edge_stencil);
+        assembleP1LocalStencil({{3, 0, 1}}, {{opposite_id, end_id, start_id}}, local_stiffness, edge_stencil);
+        assembleP1LocalStencil({{3, 1, 4}}, {{start_id, opposite_id, end_id}}, local_stiffness, edge_stencil);
 
         if (edge.getNumNeighborFaces() == 2)
         {
           // second face
           Face* face = storage_->getFace(edge.neighborFaces()[1]);
-          compute_local_stiffness(*face, level, local_stiffness_up, fenics::GRAY);
-          compute_local_stiffness(*face, level, local_stiffness_down, fenics::BLUE);
+          compute_local_stiffness(*face, level, local_stiffness);
 
           size_t start_id = face->vertex_index(edge.neighborVertices()[0]);
           size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
           size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-          edge_stencil[5] = local_stiffness_up(end_id, opposite_id) + local_stiffness_down(opposite_id, end_id);
-          edge_stencil[6] = local_stiffness_up(start_id, opposite_id) + local_stiffness_down(opposite_id, start_id);
-
-          edge_stencil[2] += local_stiffness_up(end_id, start_id);
-          edge_stencil[4] += local_stiffness_up(start_id, end_id);
-
-          edge_stencil[3] += local_stiffness_up(start_id, start_id) + local_stiffness_up(end_id, end_id) + local_stiffness_down(opposite_id, opposite_id);
+          assembleP1LocalStencil({{3, 4, 6}}, {{start_id, end_id, opposite_id}}, local_stiffness, edge_stencil);
+          assembleP1LocalStencil({{3, 6, 5}}, {{opposite_id, start_id, end_id}}, local_stiffness, edge_stencil);
+          assembleP1LocalStencil({{3, 5, 2}}, {{end_id, opposite_id, start_id}}, local_stiffness, edge_stencil);
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
@@ -132,26 +114,31 @@ public:
         {
           Face* face = storage_->getFace(faceId);
 
-          Matrix3r local_stiffness;
-          compute_local_stiffness(*face, level, local_stiffness, fenics::GRAY);
+          compute_local_stiffness(*face, level, local_stiffness);
 
           uint_t v_i = face->vertex_index(vertex.getID());
 
           std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
 
+          std::array<uint_t, 3> stencilMap;
+          stencilMap[0] = 0;
+
+          std::array<uint_t, 3> dofMap;
+          dofMap[0] = v_i;
+
           // iterate over adjacent edges
-          for (auto& edgeId : adj_edges)
+          for (uint_t i = 0; i < adj_edges.size(); ++i)
           {
-            uint_t edge_idx = vertex.edge_index(edgeId) + 1;
-            Edge* edge = storage_->getEdge(edgeId);
+            uint_t edge_idx = vertex.edge_index(adj_edges[i]) + 1;
+            Edge* edge = storage_->getEdge(adj_edges[i]);
             PrimitiveID vertex_j = edge->get_opposite_vertex(vertex.getID());
 
-            uint_t v_j = face->vertex_index(vertex_j);
+            stencilMap[i+1] = edge_idx;
+            dofMap[i+1] = face->vertex_index(vertex_j);
 
-            vertex_stencil[edge_idx] += local_stiffness(v_i, v_j);
           }
 
-          vertex_stencil[0] += local_stiffness(v_i, v_i);
+          assembleP1LocalStencil(stencilMap, dofMap, local_stiffness, vertex_stencil);
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("VERTEX.id = {}:vertex_stencil = {}", vertex.getID().getID(), PointND<real_t, 3>(&vertex_stencil[0])));
         }
@@ -377,9 +364,9 @@ private:
   PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
   PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
 
-  void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
+  void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness) {
     real_t coords[6];
-    fenics::compute_micro_coords(face, level, coords, element_type);
+    fenics::compute_micro_coords(face, level, coords);
     UFCOperator gen;
     gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 
