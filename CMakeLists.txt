@@ -7,20 +7,9 @@ option ( HHG_BUILD_WITH_LIKWID            "Compile with LIKWID"                 
 option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                          OFF)
 option ( WALBERLA_BUILD_WITH_CXX14        "Build with c++14 support" ON)
 set(CMAKE_CXX_STANDARD 14)
-set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if ( HHG_BUILD_WITH_LIKWID )
-    find_library( LIKWID_LIB likwid HINTS $ENV{LIKWID_ROOT}/lib )
-    find_path( LIKWID_INCLUDE_DIR likwid.h HINTS $ENV{LIKWID_ROOT}/include )
-    message("HHG_HHG_BUILD_WITH_LIKWID set")
-    if ( LIKWID_LIB AND LIKWID_INCLUDE_DIR)
-        include_directories( ${LIKWID_INCLUDE_DIR})
-        add_definitions ( "-DLIKWID_PERFMON" )
-    else()
-        message(WARNING "likwid marker library not found. Set environment variable LIKWID_ROOT")
-    endif()
-endif()
 
 include_directories ( extern/fmt-3.0.1 )
 include_directories ( src )
@@ -40,6 +29,11 @@ if ( HHG_BUILD_WITH_PETSC )
 endif()
 
 find_package( waLBerla )
+
+# We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD
+if(WALBERLA_CXX_COMPILER_IS_INTEL)
+    add_flag ( CMAKE_CXX_FLAGS "-std=c++14" )
+endif()
 
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
                  src/tinyhhg_core/HHGDefinitions.hpp )

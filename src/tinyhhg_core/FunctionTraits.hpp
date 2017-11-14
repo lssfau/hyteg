@@ -20,6 +20,9 @@ template< typename VType >
 class P1Function;
 
 template< typename VType >
+class EdgeDoFFunction;
+
+template< typename VType >
 class BubbleFunction;
 
 template< typename VType >
@@ -45,6 +48,15 @@ struct FunctionTrait< P1Function< VType > >
   static std::string getTypeName() { return "P1Function"; }
 };
 
+// Edge Dof specialization
+template< typename VType >
+struct FunctionTrait< EdgeDoFFunction< VType > >
+{
+  typedef VType ValueType;
+
+  static std::string getTypeName() { return "EdgeDoFFunction"; }
+};
+
 // Bubble specialization (Cell DoFs)
 
 template< typename VType >
@@ -54,6 +66,8 @@ struct FunctionTrait< BubbleFunction< VType > >
 
   static std::string getTypeName() { return "BubbleFunction"; }
 };
+
+// DG specialization
 
 template< typename VType >
 struct FunctionTrait< DGFunction< VType > >

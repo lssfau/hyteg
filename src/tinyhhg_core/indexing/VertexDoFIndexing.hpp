@@ -106,13 +106,23 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
 
 /// Iterator over a vertex DoF macro face.
 /// See \ref FaceIterator for more information.
-template< uint_t level, uint_t offsetToCenter = 0 >
-using Iterator = FaceIterator< levelToWidth< level >, offsetToCenter >;
+class Iterator : public FaceIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    FaceIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
+  {}
+};
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-template< uint_t level, uint_t offsetToCenter = 0 >
-using BorderIterator = FaceBorderIterator< levelToWidth< level >, offsetToCenter >;
+class BorderIterator : public FaceBorderIterator
+{
+public:
+  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
+    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter )
+  {}
+};
 
 }
 }
