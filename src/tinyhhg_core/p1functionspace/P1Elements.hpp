@@ -23,13 +23,13 @@ typedef std::array<uint_t, ElementSize> StencilMap;
 namespace FaceVertexDoF {
 
 const P1Element elementSW = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S}};
-const P1Element elementS  = {{SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE}};
+const P1Element elementS = {{SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE}};
 const P1Element elementSE = {{SD::VERTEX_C, SD::VERTEX_SE, SD::VERTEX_E}};
 const P1Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
-const P1Element elementN  = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
+const P1Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
 const P1Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W}};
 
-constexpr inline uint_t stencilMap_(const stencilDirection dir){
+constexpr inline uint_t stencilMap_(const stencilDirection dir) {
   switch (dir) {
     case SD::VERTEX_S:
       return 0;
@@ -50,36 +50,48 @@ constexpr inline uint_t stencilMap_(const stencilDirection dir){
   }
 }
 
-static const std::array<P1Element, 6> P1Elements =
+static const std::array<P1Element, 3> P1GrayElements =
     {{
-         elementSW,
          elementS,
-         elementSE,
          elementNE,
-         elementN,
          elementNW
      }};
 
-static const std::array<StencilMap, 6> P1StencilMaps =
+static const std::array<P1Element, 3> P1BlueElements =
     {{
-         {{stencilMap_(elementSW[0]), stencilMap_(elementSW[1]), stencilMap_(elementSW[2]) }},
-         {{stencilMap_(elementS[0]), stencilMap_(elementS[1]), stencilMap_(elementS[2]) }},
-         {{stencilMap_(elementSE[0]), stencilMap_(elementSE[1]), stencilMap_(elementSE[2]) }},
-         {{stencilMap_(elementNE[0]), stencilMap_(elementNE[1]), stencilMap_(elementNE[2]) }},
-         {{stencilMap_(elementN[0]), stencilMap_(elementN[1]), stencilMap_(elementN[2]) }},
-         {{stencilMap_(elementNW[0]), stencilMap_(elementNW[1]), stencilMap_(elementNW[2]) }}
-    }};
-
-static const std::array<DoFMap, 6> P1DoFMaps =
-    {{
-         {{ 0, 1, 2 }},
-         {{ 2, 0, 1 }},
-         {{ 1, 2, 0 }},
-         {{ 0, 1, 2 }},
-         {{ 2, 0, 1 }},
-         {{ 1, 2, 0 }}
+         elementSW,
+         elementSE,
+         elementN
      }};
 
+static const std::array<StencilMap, 3> P1GrayStencilMaps =
+    {{
+         {{stencilMap_(elementS[0]), stencilMap_(elementS[1]), stencilMap_(elementS[2])}},
+         {{stencilMap_(elementNE[0]), stencilMap_(elementNE[1]), stencilMap_(elementNE[2])}},
+         {{stencilMap_(elementNW[0]), stencilMap_(elementNW[1]), stencilMap_(elementNW[2])}}
+     }};
+
+static const std::array<StencilMap, 3> P1BlueStencilMaps =
+    {{
+         {{stencilMap_(elementSW[0]), stencilMap_(elementSW[1]), stencilMap_(elementSW[2])}},
+         {{stencilMap_(elementSE[0]), stencilMap_(elementSE[1]), stencilMap_(elementSE[2])}},
+         {{stencilMap_(elementN[0]), stencilMap_(elementN[1]), stencilMap_(elementN[2])}}
+     }};
+
+static const std::array<DoFMap, 3> P1GrayDoFMaps =
+    {{
+         {{2, 0, 1}},
+         {{0, 1, 2}},
+         {{1, 2, 0}}
+     }};
+
+
+static const std::array<DoFMap, 3> P1BlueDoFMaps =
+    {{
+         {{0, 1, 2}},
+         {{1, 2, 0}},
+         {{2, 0, 1}}
+     }};
 }
 
 template<typename StencilMemory>

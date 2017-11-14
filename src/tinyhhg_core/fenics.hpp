@@ -9,7 +9,7 @@ enum ElementType {
   BLUE
 };
 
-inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type = GRAY) {
+inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6], ElementType element_type) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
   Point3D d0 = (face.coords[1] - face.coords[0])/walberla::real_c((rowsize - 1));
   Point3D d2 = (face.coords[2] - face.coords[0])/walberla::real_c((rowsize - 1));
