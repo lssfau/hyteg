@@ -58,12 +58,12 @@ inline real_t dot(Vertex &vertex,
 
 template< typename ValueType >
 inline void apply(Vertex &vertex,
-                  const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                  const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
                   const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &srcId,
                   const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                   size_t level,
                   UpdateType update) {
-  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto src = vertex.getData(srcId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
@@ -133,10 +133,10 @@ inline void applyCoefficient(Vertex &vertex,
 }
 
 template< typename ValueType >
-inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId, size_t level) {
-  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto opr_data = vertex.getData( operatorId )->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
   auto rhs = vertex.getData(rhsId)->getPointer( level );
 
@@ -150,11 +150,11 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 template< typename ValueType >
-inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId, size_t level,
                       ValueType relax) {
-  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
   auto rhs = vertex.getData(rhsId)->getPointer( level );
 
@@ -169,11 +169,11 @@ inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemo
 }
 
 template< typename ValueType >
-inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &tmpId, size_t level) {
-  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
   auto rhs = vertex.getData(rhsId)->getPointer( level );
   auto tmp = vertex.getData(tmpId)->getPointer( level );
@@ -253,16 +253,16 @@ inline void integrateDG(Vertex &vertex,
 
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
-                         const PrimitiveDataID<VertexP1StencilMemory, Vertex> &operatorId,
+                         const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &operatorId,
                          const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &srcId,
                          const PrimitiveDataID<VertexP1FunctionMemory< PetscInt >, Vertex> &dstId,
                          Mat& mat,
                          uint_t level) {
-  auto &opr_data = vertex.getData(operatorId)->data[level];
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto src = vertex.getData(srcId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
-  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data.get(), INSERT_VALUES);
+  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, INSERT_VALUES);
 }
 
 template< typename ValueType >
