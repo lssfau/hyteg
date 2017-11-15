@@ -18,6 +18,7 @@ int main(int argc, char* argv[])
 
   real_t viscosity = 1e-3;
 
+  bool neumann = true;
   uint_t minLevel = 2;
   uint_t maxLevel = 4;
 
@@ -33,7 +34,7 @@ int main(int argc, char* argv[])
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
-  real_t dt = 0.25 * minimalEdgeLength;
+  real_t dt = 0.1 * minimalEdgeLength;
 
   WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
@@ -100,7 +101,11 @@ int main(int argc, char* argv[])
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
 
   auto mass_solver = hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1MassOperator>(storage, minLevel, maxLevel);
-  auto laplace_solver = hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator>(storage, minLevel, maxLevel);
+
+  typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator> CoarseSolver;
+  auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
+  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator, CoarseSolver> LaplaceSover;
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
 
   u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
@@ -118,13 +123,14 @@ int main(int argc, char* argv[])
 
   while (time < 1000.0)
   {
+    WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
     u_dg_old->projectP1(u, maxLevel, hhg::All);
     v_dg_old->projectP1(v, maxLevel, hhg::All);
 
     N.apply(*u_dg_old, *u_dg, maxLevel, hhg::Inner, Replace);
     N.apply(*v_dg_old, *v_dg, maxLevel, hhg::Inner, Replace);
 
-//    fmt::print("predict u\n");
+    // Predict u
     A.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.integrateDG(*u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
@@ -133,7 +139,7 @@ int main(int argc, char* argv[])
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
     u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-//    fmt::print("predict v\n");
+    // Predict v
     A.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.integrateDG(*v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
@@ -142,7 +148,7 @@ int main(int argc, char* argv[])
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
     v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-//    fmt::print("solve p\n");
+    // Solve p
     p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
     div_x.apply(u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary);
     div_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::DirichletBoundary);
@@ -150,19 +156,25 @@ int main(int argc, char* argv[])
     p_rhs.assign({ real_t(1)/dt, real_t(1)/dt }, { &p_rhs, &tmp }, maxLevel, hhg::Inner | hhg::DirichletBoundary);
     p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
-//    hhg::projectMean(p_rhs, tmp, maxLevel-1);
-    laplace_solver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-3, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, false);
-//    hhg::projectMean(p, tmp, maxLevel-1);
+    if (!neumann) {
+      hhg::projectMean(p_rhs, tmp, maxLevel-1);
+    }
+
+    laplaceSolver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-3, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, LaplaceSover::CycleType::VCYCLE, false);
+
+    if (!neumann) {
+      hhg::projectMean(p, tmp, maxLevel - 1);
+    }
 
     p.prolongate(maxLevel-1, hhg::Inner | hhg::DirichletBoundary);
 
-//    fmt::print("correct u\n");
+    // Correct u
     divT_x.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
     u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-//    fmt::print("correct v\n");
+    // Correct v
     divT_y.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
     mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
