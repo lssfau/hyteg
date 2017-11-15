@@ -213,6 +213,39 @@ public:
   {
   }
 
+  void scale(real_t scalar) {
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
+      for (auto &it : storage_->getFaces()) {
+        Face &face = *it.second;
+        auto &face_stencil = face.getData(faceStencilID_)->data[level];
+        for (uint_t i = 0; i < 7; ++i) {
+          face_stencil[i] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getEdges()) {
+        Edge &edge = *it.second;
+        auto &edge_stencil = edge.getData(edgeStencilID_)->data[level];
+        for (uint_t i = 0; i < 5; ++i) {
+          edge_stencil[i] *= scalar;
+        }
+
+        if (edge.getNumNeighborFaces() == 2) {
+          edge_stencil[5] *= scalar;
+          edge_stencil[6] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex &vertex = *it.second;
+        auto &vertex_stencil = vertex.getData(vertexStencilID_)->data[level];
+        for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+          vertex_stencil[i] *= scalar;
+        }
+      }
+    }
+  }
+
   const PrimitiveDataID<VertexP1StencilMemory, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
 
   const PrimitiveDataID<EdgeP1StencilMemory, Edge> &getEdgeStencilID() const { return edgeStencilID_; }

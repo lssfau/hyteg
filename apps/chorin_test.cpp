@@ -17,11 +17,11 @@ int main(int argc, char* argv[])
   timingTree->start("Global");
   std::string meshFileName = "../data/meshes/flow_around_cylinder_fine.msh";
 
-  real_t viscosity = 1e-3;
+  real_t viscosity = 1e-4;
 
   bool neumann = true;
   uint_t minLevel = 2;
-  uint_t maxLevel = 5;
+  uint_t maxLevel = 6;
 
   real_t time = 0.0;
   real_t endTime = 100.0;
@@ -42,12 +42,16 @@ int main(int argc, char* argv[])
   storage->enableGlobalTiming(timingTree);
 
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
-  real_t dt = 0.25 * minimalEdgeLength;
+//  real_t dt = 0.025 * minimalEdgeLength;
+  real_t dt = 5e-6;
+  real_t dt_plot = 0.005;
+
+  uint_t plotModulo = uint_c(std::ceil(dt_plot/dt));
 
   WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-    real_t U_m = 1.5;
+    real_t U_m = 5.0;
 
     if (x[0] < 1e-8)
     {
@@ -83,6 +87,11 @@ int main(int argc, char* argv[])
   auto v_dg_old = std::make_shared<hhg::DGFunction<real_t>>("v_dg", storage, minLevel, maxLevel);
 
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
+  hhg::P1LaplaceOperator Ascaled(storage, minLevel, maxLevel);
+
+  // Scale Laplace operator with viscosity
+  Ascaled.scale(viscosity);
+
   hhg::P1DivxOperator div_x(storage, minLevel, maxLevel);
   hhg::P1DivyOperator div_y(storage, minLevel, maxLevel);
   hhg::P1DivTxOperator divT_x(storage, minLevel, maxLevel);
@@ -117,22 +126,18 @@ int main(int argc, char* argv[])
     u_dg_old->projectP1(u, maxLevel, hhg::All);
     v_dg_old->projectP1(v, maxLevel, hhg::All);
 
-    N.apply(*u_dg_old, *u_dg, maxLevel, hhg::Inner, Replace);
-    N.apply(*v_dg_old, *v_dg, maxLevel, hhg::Inner, Replace);
+    N.apply(*u_dg_old, *u_dg, maxLevel, hhg::All, Replace);
+    N.apply(*v_dg_old, *v_dg, maxLevel, hhg::All, Replace);
 
     // Predict u
-    A.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.integrateDG(*u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-
+    tmp.integrateDG(*u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    Ascaled.apply(u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     u.add({-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Predict v
-    A.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.integrateDG(*v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-
+    tmp.integrateDG(*v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    Ascaled.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     v.add({-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
@@ -147,7 +152,10 @@ int main(int argc, char* argv[])
       hhg::projectMean(p_rhs, tmp, maxLevel-1);
     }
 
-    laplaceSolver.solve(A, p, p_rhs, p_res, maxLevel-1, 1e-3, max_cg_iter, hhg::Inner | hhg::DirichletBoundary, LaplaceSover::CycleType::VCYCLE, false);
+    for (uint_t outer = 0; outer < 1; ++outer) {
+      laplaceSolver.solve(A, p, p_rhs, p_res, maxLevel - 1, 1e-3, max_cg_iter, hhg::Inner | hhg::DirichletBoundary,
+                          LaplaceSover::CycleType::VCYCLE, false);
+    }
 
     if (!neumann) {
       hhg::projectMean(p, tmp, maxLevel - 1);
@@ -165,7 +173,7 @@ int main(int argc, char* argv[])
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     v.add({-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    if (iter % 100 == 0) {
+    if (iter % plotModulo == 0) {
       hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p }, {},maxLevel,
                                                                                  "../output", fmt::format("test_{:0>7}",
                                                                                                           iter));
