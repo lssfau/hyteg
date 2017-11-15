@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
   hhg::P2Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P2Operator M(storage,minLevel,maxLevel);
 //  hhg::P1Function< real_t > f("f", storage, minLevel, maxLevel);
 //  hhg::P1Function< real_t > u("u", storage, minLevel, maxLevel);
 //  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);

@@ -3,6 +3,7 @@
 
 #include <fmt/format.h>
 #include <tinyhhg_core/p1functionspace/P1Operator.hpp>
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
@@ -57,7 +58,7 @@ public:
   }
 
   P1Operator vToVOperator;
-//  VertexDoFToEdgeDoFOperator vToEOperator;
+  VertexDoFToEdgeDoFOperator vToEOperator;
 //  EdgeDoFToVertexDoFOperator eToVOperator;
 //  EdgeDoFOperator eToEOperator;
 
