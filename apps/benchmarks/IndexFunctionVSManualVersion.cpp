@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D& x)  { return x.x[0] * 4; };
   src->interpolate(ones,level);
 
-  real_t* oprPtr = face->getData(M.getFaceStencilID())->data[level].get();
+  real_t* oprPtr = face->getData(M.getFaceStencilID())->getPointer( level );
   for(uint_t i = 0; i < 7; ++i){
     oprPtr[i] = real_c(i);
   }
