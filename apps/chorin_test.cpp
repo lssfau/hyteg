@@ -12,6 +12,10 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+  timingTree->start("Global");
+
 //  std::string meshFileName = "../data/meshes/quad_4el.msh";
 //  std::string meshFileName = "../data/meshes/bfs_12el_neumann.msh";
     std::string meshFileName = "../data/meshes/flow_around_cylinder.msh";
@@ -32,6 +36,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  storage->enableGlobalTiming(timingTree);
 
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
   real_t dt = 0.1 * minimalEdgeLength;
@@ -121,7 +126,7 @@ int main(int argc, char* argv[])
   u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
 
-  while (time < 1000.0)
+  while (time < 0.1)
   {
     WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
     u_dg_old->projectP1(u, maxLevel, hhg::All);
@@ -192,6 +197,10 @@ int main(int argc, char* argv[])
     u_dg_old.swap(u_dg);
     v_dg_old.swap(v_dg);
   }
+
+  timingTree->stop("Global");
+  auto reduced_tt = timingTree->getReduced();
+  WALBERLA_LOG_INFO_ON_ROOT(reduced_tt);
 
   return 0;
 }
