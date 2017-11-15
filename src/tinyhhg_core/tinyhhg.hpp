@@ -13,6 +13,7 @@
 #include "p1functionspace/P1DataHandling.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2Operator.hpp"
 
 #include "bubblefunctionspace/BubbleFunction.hpp"
 #include "bubblefunctionspace/BubbleOperator.hpp"
