@@ -21,12 +21,12 @@ int main(int argc, char* argv[])
 
   bool neumann = true;
   uint_t minLevel = 2;
-  uint_t maxLevel = 4;
+  uint_t maxLevel = 5;
 
   real_t time = 0.0;
-  real_t endTime = 0.01;
+  real_t endTime = 100.0;
   uint_t iter = 0;
-  uint_t max_cg_iter = 1000;
+  uint_t max_cg_iter = 50;
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   storage->enableGlobalTiming(timingTree);
 
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
-  real_t dt = 0.01 * minimalEdgeLength;
+  real_t dt = 0.25 * minimalEdgeLength;
 
   WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
@@ -125,25 +125,22 @@ int main(int argc, char* argv[])
     tmp2.integrateDG(*u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    tmp2.interpolate(zero, maxLevel);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    u.add({-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Predict v
     A.apply(v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.integrateDG(*v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    tmp2.interpolate(zero, maxLevel);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    v.add({-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Solve p
     p.interpolate(zero, maxLevel-1, hhg::NeumannBoundary);
-    div_x.apply(u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary);
-    div_y.apply(v, tmp, maxLevel, hhg::Inner | hhg::DirichletBoundary);
+    div_x.apply(u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Replace);
+    div_y.apply(v, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Add);
 
-    p_rhs.assign({ real_t(1)/dt, real_t(1)/dt }, { &p_rhs, &tmp }, maxLevel, hhg::Inner | hhg::DirichletBoundary);
     p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
     if (!neumann) {
@@ -160,15 +157,13 @@ int main(int argc, char* argv[])
 
     // Correct u
     divT_x.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    u.add({-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Correct v
     divT_y.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    tmp2.interpolate(zero, maxLevel);
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    v.add({-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     if (iter % 100 == 0) {
       hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p }, {},maxLevel,
