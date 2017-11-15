@@ -15,10 +15,7 @@ int main(int argc, char* argv[])
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
   timingTree->start("Global");
-
-//  std::string meshFileName = "../data/meshes/quad_4el.msh";
-//  std::string meshFileName = "../data/meshes/bfs_12el_neumann.msh";
-    std::string meshFileName = "../data/meshes/flow_around_cylinder.msh";
+  std::string meshFileName = "../data/meshes/flow_around_cylinder_fine.msh";
 
   real_t viscosity = 1e-3;
 
@@ -27,6 +24,7 @@ int main(int argc, char* argv[])
   uint_t maxLevel = 4;
 
   real_t time = 0.0;
+  real_t endTime = 0.01;
   uint_t iter = 0;
   uint_t max_cg_iter = 1000;
 
@@ -36,29 +34,19 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+
+#ifdef WALBERLA_BUILD_WITH_PARMETIS
+  loadbalancing::distributed::parmetis( *storage );
+#endif
+
   storage->enableGlobalTiming(timingTree);
 
   const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
-  real_t dt = 0.1 * minimalEdgeLength;
+  real_t dt = 0.01 * minimalEdgeLength;
 
   WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
   std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-//    if (x[0] < 1e-8)
-//    {
-//      return 16.0 * (x[1]-0.5) * (1.0 - x[1]);
-//    }
-//    else
-//    {
-//      return 0.0;
-//    }
-//    if (x[1] > 1.0 - 1e-3) {
-//      return 1.0;
-//    }
-//    else {
-//      return 0.0;
-//    }
-
     real_t U_m = 1.5;
 
     if (x[0] < 1e-8)
@@ -69,7 +57,6 @@ int main(int argc, char* argv[])
     {
       return 0.0;
     }
-
   };
 
   std::function<real_t(const hhg::Point3D&)> bc_y = [](const hhg::Point3D&) {
@@ -100,12 +87,10 @@ int main(int argc, char* argv[])
   hhg::P1DivyOperator div_y(storage, minLevel, maxLevel);
   hhg::P1DivTxOperator divT_x(storage, minLevel, maxLevel);
   hhg::P1DivTyOperator divT_y(storage, minLevel, maxLevel);
-  hhg::P1MassOperator mass(storage, minLevel, maxLevel);
+  hhg::P1LumpedInvMassOperator invDiagMass(storage, minLevel, maxLevel);
 
   std::array<std::shared_ptr<hhg::P1Function<real_t>>, 2> velocity{{std::shared_ptr<hhg::P1Function<real_t>>(&u, boost::null_deleter()), std::shared_ptr<hhg::P1Function<real_t>>(&v, boost::null_deleter())}};
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
-
-  auto mass_solver = hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1MassOperator>(storage, minLevel, maxLevel);
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
@@ -120,13 +105,13 @@ int main(int argc, char* argv[])
   u_dg->projectP1(u, maxLevel, hhg::All);
   v_dg->projectP1(v, maxLevel, hhg::All);
 
-  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({&u, &v, &p, &p_rhs}, { u_dg.get(), v_dg.get() }, maxLevel, "../output", fmt::format("test_{:0>7}", iter));
+  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({&u, &v, &p}, { }, maxLevel, "../output", fmt::format("test_{:0>7}", iter));
   ++iter;
 
   u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
   v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
 
-  while (time < 0.1)
+  while (time < endTime)
   {
     WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
     u_dg_old->projectP1(u, maxLevel, hhg::All);
@@ -141,7 +126,7 @@ int main(int argc, char* argv[])
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
+    invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Predict v
@@ -150,7 +135,7 @@ int main(int argc, char* argv[])
     tmp.assign({1.0, viscosity}, {&tmp2, &tmp}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
+    invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Solve p
@@ -176,20 +161,19 @@ int main(int argc, char* argv[])
     // Correct u
     divT_x.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
+    invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     u.assign({1.0, -dt}, {&u, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     // Correct v
     divT_y.apply(p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     tmp2.interpolate(zero, maxLevel);
-    mass_solver.solve(mass, tmp2, tmp, res, maxLevel, 1e-2, max_cg_iter, hhg::Inner | hhg::NeumannBoundary, false); // project
+    invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     v.assign({1.0, -dt}, {&v, &tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     if (iter % 100 == 0) {
-      hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p, &p_rhs }, {u_dg.get(),
-                                                                                                          v_dg.get()}, maxLevel, "../output", fmt::format(
-          "test_{:0>7}",
-          iter));
+      hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p }, {},maxLevel,
+                                                                                 "../output", fmt::format("test_{:0>7}",
+                                                                                                          iter));
     }
     time += dt;
     ++iter;
