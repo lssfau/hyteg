@@ -179,7 +179,7 @@ inline real_t dotTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot)
 
 template< typename ValueType, uint_t Level >
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
   using namespace FaceCoordsVertex;
@@ -187,7 +187,7 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Fa
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  ValueType* opr_data = face.getData(operatorId)->data[Level].get();
+  ValueType* opr_data = face.getData(operatorId)->getPointer( Level );
   ValueType* src = face.getData(srcId)->getPointer( Level );
   ValueType* dst = face.getData(dstId)->getPointer( Level );
 
@@ -338,7 +338,7 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
 SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
   using namespace FaceCoordsVertex;
@@ -346,7 +346,7 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto opr_data = face.getData(operatorId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
   auto rhs = face.getData(rhsId)->getPointer( Level );
 
@@ -371,7 +371,7 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
                             ValueType relax) {
@@ -380,7 +380,7 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto opr_data = face.getData(operatorId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
   auto rhs = face.getData(rhsId)->getPointer( Level );
 
@@ -405,7 +405,7 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 SPECIALIZE_WITH_VALUETYPE(void, smooth_sor_tmpl, smooth_sor)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &tmpId) {
@@ -414,7 +414,7 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto opr_data = face.getData(operatorId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
   auto rhs = face.getData(rhsId)->getPointer( Level );
   auto tmpVar = face.getData(tmpId)->getPointer( Level );
@@ -689,7 +689,7 @@ SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >
-inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory, Face>& operatorId,
+inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
   using namespace FaceCoordsVertex;
@@ -697,7 +697,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto &opr_data = face.getData(operatorId)->data[Level];
+  auto opr_data = face.getData(operatorId)->getPointer( Level );
   auto src = face.getData(srcId)->getPointer( Level );
   auto dst = face.getData(dstId)->getPointer( Level );
 

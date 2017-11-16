@@ -34,6 +34,8 @@
 namespace hhg
 {
 
+using walberla::real_t;
+
 template<class UFCOperator,  bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false>
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
@@ -41,9 +43,9 @@ public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
-    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
-    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
@@ -54,7 +56,7 @@ public:
       for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
-        auto& face_stencil = face.getData(faceStencilID_)->data[level];
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
 
         Matrix3r local_stiffness_up;
         Matrix3r local_stiffness_down;
@@ -94,7 +96,7 @@ public:
       for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        auto& edge_stencil = edge.getData(edgeStencilID_)->data[level];
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
 
         Matrix3r local_stiffness_up;
         Matrix3r local_stiffness_down;
@@ -161,7 +163,7 @@ public:
       for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        auto& vertex_stencil = vertex.getData(vertexStencilID_)->data[level];
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
 
         // iterate over adjacent faces
         for (auto& faceId : vertex.neighborFaces())
@@ -217,7 +219,7 @@ public:
     for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
       for (auto &it : storage_->getFaces()) {
         Face &face = *it.second;
-        auto &face_stencil = face.getData(faceStencilID_)->data[level];
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
         for (uint_t i = 0; i < 7; ++i) {
           face_stencil[i] *= scalar;
         }
@@ -225,7 +227,7 @@ public:
 
       for (auto& it : storage_->getEdges()) {
         Edge &edge = *it.second;
-        auto &edge_stencil = edge.getData(edgeStencilID_)->data[level];
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
         for (uint_t i = 0; i < 5; ++i) {
           edge_stencil[i] *= scalar;
         }
@@ -238,7 +240,7 @@ public:
 
       for (auto& it : storage_->getVertices()) {
         Vertex &vertex = *it.second;
-        auto &vertex_stencil = vertex.getData(vertexStencilID_)->data[level];
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
         for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
           vertex_stencil[i] *= scalar;
         }
@@ -246,11 +248,11 @@ public:
     }
   }
 
-  const PrimitiveDataID<VertexP1StencilMemory, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+  const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
 
-  const PrimitiveDataID<EdgeP1StencilMemory, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+  const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
 
-  const PrimitiveDataID<FaceP1StencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
+  const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
 private:
 
@@ -454,9 +456,9 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
-  PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
+  PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> vertexStencilID_;
+  PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> edgeStencilID_;
+  PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> faceStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
