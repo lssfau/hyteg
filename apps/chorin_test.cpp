@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
   storage->enableGlobalTiming(timingTree);
 
-  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
+//  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
 //  real_t dt = 0.025 * minimalEdgeLength;
   real_t dt = 5e-6;
   real_t dt_plot = 0.005;
