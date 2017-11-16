@@ -2,6 +2,7 @@
 #pragma once
 
 #include <fmt/format.h>
+#include "tinyhhg_core/Operator.hpp"
 #include <tinyhhg_core/p1functionspace/P1Operator.hpp>
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 
@@ -36,6 +37,7 @@ class P2Operator : public Operator< P2Function< real_t >, P2Function< real_t > >
 public:
   P2Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
+  ,vToEOperator(storage, minLevel, maxLevel)
   {
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
@@ -45,8 +47,7 @@ public:
         Matrix6r local_stiffness_gray;
         Matrix6r local_stiffness_blue;
 
-        compute_local_stiffness(face, level, local_stiffness_gray);
-        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_up = " << local_stiffness_up);
+        WALBERLA_ABORT("implement me");
       }
     }
 
@@ -57,7 +58,7 @@ public:
   {
   }
 
-  P1Operator vToVOperator;
+  //P1Operator vToVOperator;
   VertexDoFToEdgeDoFOperator vToEOperator;
 //  EdgeDoFToVertexDoFOperator eToVOperator;
 //  EdgeDoFOperator eToEOperator;

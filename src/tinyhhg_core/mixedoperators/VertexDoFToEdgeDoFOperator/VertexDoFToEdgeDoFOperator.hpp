@@ -23,13 +23,13 @@ public:
 VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
   : Operator(storage, minLevel, maxLevel)
 {
+  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
   auto faceVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< FaceVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
   auto edgeVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-  auto vertexeVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< VertexVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+
 
   storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
   storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addVertexData(vertexStencilID_, vertexeVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil");
 
   for (uint_t level = minLevel_; level <= maxLevel_; ++level)
   {
@@ -41,13 +41,12 @@ VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, 
 {
 }
 
-void apply_impl(P1Function< real_t > & src, BubbleFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
 {
   WALBERLA_ABORT("implement me");
 }
 
-  const PrimitiveDataID<VertexVertexDoFToEdgeDoFStencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
-
+  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
   const PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
 
   const PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
@@ -55,7 +54,6 @@ void apply_impl(P1Function< real_t > & src, BubbleFunction< real_t > & dst, size
 
 private:
 
-  PrimitiveDataID<VertexVertexDoFToEdgeDoFStencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> faceStencilID_;
 

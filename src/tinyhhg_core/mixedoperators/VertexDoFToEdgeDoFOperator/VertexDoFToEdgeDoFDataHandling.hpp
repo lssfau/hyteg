@@ -6,23 +6,6 @@
 namespace hhg {
 
 template<typename ValueType>
-class VertexVertexDoFToEdgeDoFStencilMemoryDataHandling
-  : public StencilMemoryDataHandling<VertexVertexDoFToEdgeDoFStencilMemory<ValueType>, Vertex> {
-public:
-
-  VertexVertexDoFToEdgeDoFStencilMemoryDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_(minLevel),
-                                                                                                      maxLevel_(maxLevel) {}
-
-  inline std::shared_ptr<VertexVertexDoFToEdgeDoFStencilMemory<ValueType> > initialize(const Vertex *const vertex) const;
-
-private:
-
-  uint_t minLevel_;
-  uint_t maxLevel_;
-
-};
-
-template<typename ValueType>
 class EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling
   : public StencilMemoryDataHandling<EdgeVertexDoFToEdgeDoFStencilMemory<ValueType>, Edge> {
 public:
