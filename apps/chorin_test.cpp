@@ -24,9 +24,11 @@ int main(int argc, char* argv[])
   uint_t maxLevel = 6;
 
   real_t time = 0.0;
-  real_t endTime = 100.0;
+  real_t inflowBuildupTime = 0.0;
+  real_t endTime = 5.0;
   uint_t iter = 0;
   uint_t max_cg_iter = 50;
+  uint_t outerIterations = 2;
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -50,12 +52,22 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("dt = " << dt);
 
-  std::function<real_t(const hhg::Point3D&)> bc_x = [](const hhg::Point3D& x) {
-    real_t U_m = 5.0;
+  std::function<real_t(const hhg::Point3D&)> bc_x = [&time, &inflowBuildupTime](const hhg::Point3D& x) {
+
+    const real_t U_m = 5.0;
 
     if (x[0] < 1e-8)
     {
-      return 4.0  * U_m * x[1]* (0.41 - x[1]) / (0.41 * 0.41);
+      real_t velocity = 4.0  * U_m * x[1]* (0.41 - x[1]) / (0.41 * 0.41);
+      real_t damping;
+
+      if (time < inflowBuildupTime) {
+        damping = 0.5*(1.0 + std::cos(walberla::math::PI*(time/inflowBuildupTime-1.0)));
+      } else {
+        damping = 1.0;
+      }
+
+      return damping * velocity;
     }
     else
     {
@@ -117,12 +129,12 @@ int main(int argc, char* argv[])
   hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({&u, &v, &p}, { }, maxLevel, "../output", fmt::format("test_{:0>7}", iter));
   ++iter;
 
-  u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
-  v.interpolate(bc_y, maxLevel, hhg::DirichletBoundary);
-
   while (time < endTime)
   {
     WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
+    time += dt;
+    u.interpolate(bc_x, maxLevel, hhg::DirichletBoundary);
+
     u_dg_old->projectP1(u, maxLevel, hhg::All);
     v_dg_old->projectP1(v, maxLevel, hhg::All);
 
@@ -152,8 +164,8 @@ int main(int argc, char* argv[])
       hhg::projectMean(p_rhs, tmp, maxLevel-1);
     }
 
-    for (uint_t outer = 0; outer < 1; ++outer) {
-      laplaceSolver.solve(A, p, p_rhs, p_res, maxLevel - 1, 1e-3, max_cg_iter, hhg::Inner | hhg::DirichletBoundary,
+    for (uint_t outer = 0; outer < outerIterations; ++outer) {
+      laplaceSolver.solve(A, p, p_rhs, p_res, maxLevel - 1, 1e-2, max_cg_iter, hhg::Inner | hhg::DirichletBoundary,
                           LaplaceSover::CycleType::VCYCLE, false);
     }
 
@@ -178,7 +190,6 @@ int main(int argc, char* argv[])
                                                                                  "../output", fmt::format("test_{:0>7}",
                                                                                                           iter));
     }
-    time += dt;
     ++iter;
 
     u_dg_old.swap(u_dg);
