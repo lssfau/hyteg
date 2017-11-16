@@ -410,6 +410,8 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 template< typename ValueType >
 inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag)
 {
+  this->startTiming( "integrateDG" );
+
   rhsP1.getCommunicator(level)->template startCommunication<Edge, Vertex>();
   rhsP1.getCommunicator(level)->template startCommunication<Face, Edge>();
 
@@ -452,6 +454,8 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+
+  this->stopTiming( "integrateDG" );
 }
 
 inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {

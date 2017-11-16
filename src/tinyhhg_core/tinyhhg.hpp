@@ -27,6 +27,7 @@
 
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
+#include "solvers/gmultigrid.hpp"
 #include "solvers/uzawasolver.hpp"
 
 #include "solvers/preconditioners/JacobiPreconditioner.hpp"
