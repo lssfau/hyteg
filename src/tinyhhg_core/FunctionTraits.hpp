@@ -28,6 +28,9 @@ class BubbleFunction;
 template< typename VType >
 class DGFunction;
 
+template< typename VType >
+class P2Function;
+
 
 ///////////////////////////////////////////////////////////////////
 // Function trait defining the value type of the derived classes //
@@ -77,5 +80,14 @@ struct FunctionTrait< DGFunction< VType > >
   static std::string getTypeName() { return "DGFunction"; }
 };
 
+// P1 specialization (Vertex DoFs)
+
+template< typename VType >
+struct FunctionTrait< P2Function< VType > >
+{
+  typedef VType ValueType;
+
+  static std::string getTypeName() { return "P2Function"; }
+};
 
 }
