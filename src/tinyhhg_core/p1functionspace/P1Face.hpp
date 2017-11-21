@@ -52,6 +52,18 @@ inline ValueType assembleLocalDG(uint_t i, uint_t j, const Matrix3r& localMatrix
   return tmp;
 }
 
+template<uint_t Level>
+inline void fillLocalCoords(uint_t i, uint_t j, const P1Elements::P1Element& element, const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
+  using namespace FaceCoordsVertex;
+
+  localCoords[0] = coords[0][index<Level>(i, j, element[0])];
+  localCoords[1] = coords[1][index<Level>(i, j, element[0])];
+  localCoords[2] = coords[0][index<Level>(i, j, element[1])];
+  localCoords[3] = coords[1][index<Level>(i, j, element[1])];
+  localCoords[4] = coords[0][index<Level>(i, j, element[2])];
+  localCoords[5] = coords[1][index<Level>(i, j, element[2])];
+}
+
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
@@ -338,6 +350,80 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
+
+template< typename ValueType, uint_t Level >
+inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                 std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
+                                 UpdateType update) {
+  using namespace FaceCoordsVertex;
+  using namespace P1Elements;
+  typedef stencilDirection SD;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = face.getData(srcId)->getPointer(Level);
+  auto dst = face.getData(dstId)->getPointer(Level);
+  std::array<ValueType*, 2> globalCoords{{face.getData(coordIds[0])->getPointer(Level), face.getData(coordIds[1])->getPointer(Level)}};
+
+  ValueType tmp;
+  real_t localCoords[6];
+  Matrix3r localStiffness;
+  std::vector<real_t> faceStencil(7);
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
+
+      for (uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k) {
+
+        // fill local coords
+        fillLocalCoords<Level>(i, j, FaceVertexDoF::P1GrayElements[k], globalCoords, localCoords);
+
+        // compute stencil
+        computeElementMatrix(localStiffness, localCoords);
+        assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil);
+      }
+
+      for (uint_t k = 0; k < FaceVertexDoF::P1BlueElements.size(); ++k) {
+
+        // fill local coords
+        fillLocalCoords<Level>(i, j, FaceVertexDoF::P1BlueElements[k], globalCoords, localCoords);
+
+        // fill coords
+        computeElementMatrix(localStiffness, localCoords);
+        assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil);
+      }
+
+//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:faceStencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
+
+      if (update == Replace) {
+        tmp = ValueType(0);
+      }
+      else {
+        tmp = dst[index<Level>(i, j, SD::VERTEX_C)];
+      }
+
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(SD::VERTEX_C)] * src[index<Level>(i, j, SD::VERTEX_C)];
+
+      //strangely the intel compiler cant handle this if it is a loop
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
+      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+
+      dst[index<Level>(i, j, SD::VERTEX_C)] = tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template< typename ValueType, uint_t Level >
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
