@@ -2,6 +2,9 @@
 
 #include "VertexDoFToEdgeDoFMemory.hpp"
 #include "VertexDoFToEdgeDoFDataHandling.hpp"
+#include "VertexDoFToEdgeDoFFace.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -20,26 +23,35 @@ namespace hhg
 class VertexDoFToEdgeDoFOperator : public Operator<P1Function< real_t >, EdgeDoFFunction< real_t > >
 {
 public:
-VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-  : Operator(storage, minLevel, maxLevel)
-{
-  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
-  auto faceVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< FaceVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-  auto edgeVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-
-
-  storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
-  storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-
-  for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+  VertexDoFToEdgeDoFOperator() = delete;
+  VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
+    : Operator(storage, minLevel, maxLevel)
   {
-    WALBERLA_ABORT("implement me");
-  }
+  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
+    auto faceVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< FaceVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto edgeVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+
+    storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+    storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+    {
+      for (auto& it : storage_->getFaces()) {
+        Face &face = *it.second;
+        auto face_stencil = face.getData(faceStencilID_)->getPointer(level);
+        for(uint_t i = 1; i <= face.getData(faceStencilID_)->getSize(level); ++i){
+          face_stencil[i] = i;
+        }
+
+
+
+
+      }
+      WALBERLA_LOG_DEVEL("implement me");
+    }
 }
 
-~VertexDoFToEdgeDoFOperator()
-{
-}
+~VertexDoFToEdgeDoFOperator() = default;
 
 void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
 {
