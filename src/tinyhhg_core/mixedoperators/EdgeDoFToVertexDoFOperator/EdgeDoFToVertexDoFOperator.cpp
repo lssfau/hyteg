@@ -19,5 +19,17 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
   WALBERLA_ABORT("implement me");
 }
 
+const PrimitiveDataID<VertexEdgeDoFToVertexDoFStencilMemory < real_t >, Vertex > &EdgeDoFToVertexDoFOperator::getVertexStencilID_() const {
+  return vertexStencilID_;
+}
+
+const PrimitiveDataID<real_t> &EdgeDoFToVertexDoFOperator::getEdgeStencilID_() const {
+  return edgeStencilID_;
+}
+
+const PrimitiveDataID<real_t> &EdgeDoFToVertexDoFOperator::getFaceStencilID_() const {
+  return faceStencilID_;
+}
+
 
 }
