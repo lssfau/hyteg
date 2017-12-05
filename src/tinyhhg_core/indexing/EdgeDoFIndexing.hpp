@@ -279,6 +279,94 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
   }
 }
 
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_DI_S:
+      return 0;
+    case sD::EDGE_VE_SE:
+      return 1;
+    case sD::EDGE_DI_N:
+      return 2;
+    case sD::EDGE_VE_NW:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_HO_S:
+      return 0;
+    case sD::EDGE_VE_E:
+      return 1;
+    case sD::EDGE_HO_N:
+      return 2;
+    case sD::EDGE_VE_W:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_HO_S:
+      return 0;
+    case sD::EDGE_VE_E:
+      return 1;
+    case sD::EDGE_HO_N:
+      return 2;
+    case sD::EDGE_VE_W:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromVertex(const stencilDirection dir){
+  typedef hhg::stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_VE_S:
+      return 0;
+    case sD::EDGE_HO_SE:
+      return 1;
+    case sD::EDGE_DI_SE:
+      return 2;
+    case sD::EDGE_VE_SE:
+      return 3;
+    case sD::EDGE_HO_E:
+      return 4;
+    case sD::EDGE_DI_NE:
+      return 5;
+    case sD::EDGE_VE_N:
+      return 6;
+    case sD::EDGE_HO_NW:
+      return 7;
+    case sD::EDGE_DI_NW:
+      return 8;
+    case sD::EDGE_VE_NW:
+      return 9;
+    case sD::EDGE_HO_W:
+      return 10;
+    case sD::EDGE_DI_SW:
+      return 11;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
 // Iterators
 
 class Iterator : public FaceIterator

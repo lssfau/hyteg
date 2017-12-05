@@ -23,7 +23,6 @@ namespace hhg
 class VertexDoFToEdgeDoFOperator : public Operator<P1Function< real_t >, EdgeDoFFunction< real_t > >
 {
 public:
-  VertexDoFToEdgeDoFOperator() = delete;
   VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
@@ -36,17 +35,24 @@ public:
 
     for (uint_t level = minLevel_; level <= maxLevel_; ++level)
     {
-      for (auto& it : storage_->getFaces()) {
+      for(auto& it : storage_->getFaces()) {
         Face &face = *it.second;
         auto face_stencil = face.getData(faceStencilID_)->getPointer(level);
         for(uint_t i = 1; i <= face.getData(faceStencilID_)->getSize(level); ++i){
+          WALBERLA_LOG_DEVEL("this is wrong!");
           face_stencil[i] = i;
         }
-
-
-
-
       }
+      for(auto& it : storage_->getEdges()) {
+        Edge &edge = *it.second;
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer(level);
+        for(uint_t i = 1; i <= edge.getData(edgeStencilID_)->getSize(level); ++i){
+          WALBERLA_LOG_DEVEL("this is wrong!");
+          edge_stencil[i] = i;
+        }
+      }
+
+
       WALBERLA_LOG_DEVEL("implement me");
     }
 }

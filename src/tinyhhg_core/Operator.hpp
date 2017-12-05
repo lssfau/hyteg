@@ -14,7 +14,6 @@ template< typename SourceFunction, typename DestinationFunction >
 class Operator
 {
 public:
-  Operator() = delete;
   Operator(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
     : storage_(storage), minLevel_(minLevel), maxLevel_(maxLevel)
   {
