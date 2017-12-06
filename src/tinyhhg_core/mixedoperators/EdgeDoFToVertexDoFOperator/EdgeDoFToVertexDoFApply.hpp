@@ -14,7 +14,21 @@ inline void apply(uint_t level,
                   const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &dstId,
                   UpdateType update)
 {
-  WALBERLA_LOG_DEVEL("TODO")
+
+  real_t * opr_data = vertex.getData(operatorId)->getPointer( level );
+  real_t * src      = vertex.getData(srcId)->getPointer( level );
+  real_t * dst      = vertex.getData(dstId)->getPointer( level );
+
+  real_t tmp = 0;
+  for(uint_t i = 0; i < vertex.getData(operatorId)->getSize( level ); ++i){
+    tmp += src[i] * opr_data[i];
+  }
+
+  if (update==Replace) {
+    dst[0] = tmp;
+  } else if (update==Add) {
+    dst[0] += tmp;
+  }
 }
 
 }
@@ -28,7 +42,22 @@ inline void apply_tmpl(Edge &edge,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                   UpdateType update)
 {
-  WALBERLA_LOG_DEVEL("TODO")
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
+  real_t * src      = edge.getData(srcId)->getPointer( Level );
+  real_t * dst      = edge.getData(dstId)->getPointer( Level );
+
+  real_t tmp;
+
+  for(uint_t i = 1; i < rowsize - 1; ++i){
+    tmp = 0.0;
+//    for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
+//      tmp += opr_data[stencilIndexFromVertex(neighborsFromVertex[k])] *
+//             src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
+//    }
+  }
+
 }
 
 SPECIALIZE(void, apply_tmpl, apply)
@@ -44,7 +73,34 @@ inline void apply_tmpl(Face &face,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
                        UpdateType update)
 {
-  WALBERLA_LOG_DEVEL("TODO")
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t inner_rowsize = rowsize;
+
+  real_t * opr_data = face.getData(operatorId)->getPointer( Level );
+  real_t * src      = face.getData(srcId)->getPointer( Level );
+  real_t * dst      = face.getData(dstId)->getPointer( Level );
+
+  real_t tmp;
+
+  using namespace indexing::edgedof::macroface;
+
+  for (size_t i = 1; i < rowsize - 2; ++i) {
+    for (size_t j = 1; j < inner_rowsize - 2; ++j) {
+      tmp = 0.0;
+
+      for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
+        tmp += opr_data[stencilIndexFromVertex(neighborsFromVertex[k])] *
+               src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
+      }
+
+      if (update==Replace) {
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] = tmp;
+      } else if (update==Add) {
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] += tmp;
+      }
+    }
+    --inner_rowsize;
+  }
 }
 
 SPECIALIZE(void, apply_tmpl, apply)

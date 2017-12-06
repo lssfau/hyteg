@@ -147,9 +147,9 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
 
 namespace macroface {
 
-
 /// Direct access functions
 
+typedef stencilDirection sD;
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
 {
@@ -173,8 +173,6 @@ inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
 template< uint_t level >
 inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_HO_C:
@@ -196,8 +194,6 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_
 template< uint_t level >
 inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_DI_C:
@@ -219,8 +215,6 @@ inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t 
 template< uint_t level >
 inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_VE_C:
@@ -242,8 +236,6 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t 
 template< uint_t level >
 inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   // first  neighbor == south
   // second neighbor == north
 
@@ -279,10 +271,15 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
   }
 }
 
+constexpr std::array<stencilDirection ,12> neighborsFromVertex =
+  {{ sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE,
+     sD::EDGE_HO_E, sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW,
+     sD::EDGE_DI_NW, sD::EDGE_VE_NW, sD::EDGE_HO_W, sD::EDGE_DI_SW
+   }};
+
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are randomly chosen but need to be kept this way
 constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
-  typedef hhg::stencilDirection sD;
   switch(dir) {
     case sD::EDGE_DI_S:
       return 0;
@@ -300,7 +297,6 @@ constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection di
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are randomly chosen but need to be kept this way
 constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir){
-  typedef hhg::stencilDirection sD;
   switch(dir) {
     case sD::EDGE_HO_S:
       return 0;
@@ -318,7 +314,6 @@ constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir)
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are randomly chosen but need to be kept this way
 constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir){
-  typedef hhg::stencilDirection sD;
   switch(dir) {
     case sD::EDGE_HO_S:
       return 0;
@@ -336,7 +331,6 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are randomly chosen but need to be kept this way
 constexpr inline uint_t stencilIndexFromVertex(const stencilDirection dir){
-  typedef hhg::stencilDirection sD;
   switch(dir) {
     case sD::EDGE_VE_S:
       return 0;
