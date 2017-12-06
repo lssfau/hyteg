@@ -50,7 +50,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      EdgeDoFToVertexDoFEdge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+      EdgeDoFToVertexDoFEdge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
     }
   }
 
@@ -63,7 +63,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
 
     if (testFlag(face.type, flag))
     {
-      //EdgeDoFToVertexDoFEdge::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      EdgeDoFToVertexDoFFace::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
     }
   }
 

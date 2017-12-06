@@ -35,4 +35,21 @@ SPECIALIZE(void, apply_tmpl, apply)
 
 }
 
+namespace EdgeDoFToVertexDoFFace{
+
+template<uint_t Level>
+inline void apply_tmpl(Face &face,
+                       const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
+                       UpdateType update)
+{
+  WALBERLA_LOG_DEVEL("TODO")
+}
+
+SPECIALIZE(void, apply_tmpl, apply)
+
+}
+
+
 }
