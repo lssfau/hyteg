@@ -7,9 +7,10 @@ namespace hhg {
 
 
 class MacroVertexEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Vertex>{
+
 public:
   MacroVertexEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  inline std::shared_ptr<StencilMemory< real_t > > initialize(const Vertex *const vertex) const final;
+  std::shared_ptr<StencilMemory< real_t > > initialize(const Vertex *const vertex) const final;
 
 private:
   uint_t minLevel_;
@@ -20,7 +21,7 @@ class MacroEdgeEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling
 
 public:
   MacroEdgeEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  inline std::shared_ptr<StencilMemory< real_t > > initialize(const Edge *const edge) const final;
+  std::shared_ptr<StencilMemory< real_t > > initialize(const Edge *const edge) const final;
 
 private:
   uint_t minLevel_;
@@ -31,7 +32,7 @@ class MacroFaceEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling
 
 public:
   MacroFaceEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  inline std::shared_ptr<StencilMemory< real_t > > initialize(const Face *const face) const final;
+  std::shared_ptr<StencilMemory< real_t > > initialize(const Face *const face) const final;
 
 private:
   uint_t minLevel_;
