@@ -67,13 +67,12 @@ inline void apply_tmpl(Edge &edge,
                src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnNorthFaceFromVertex[k])];
       }
     }
+    if (update==Replace) {
+      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] = tmp;
+    } else if (update==Add) {
+      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] += tmp;
+    }
   }
-  if (update==Replace) {
-    dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] = tmp;
-  } else if (update==Add) {
-    dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] += tmp;
-  }
-
 }
 
 SPECIALIZE(void, apply_tmpl, apply)
