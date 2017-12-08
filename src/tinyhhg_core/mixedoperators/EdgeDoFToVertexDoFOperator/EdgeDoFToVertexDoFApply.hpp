@@ -42,6 +42,7 @@ inline void apply_tmpl(Edge &edge,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                   UpdateType update)
 {
+  using namespace hhg::indexing::edgedof;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -52,10 +53,25 @@ inline void apply_tmpl(Edge &edge,
 
   for(uint_t i = 1; i < rowsize - 1; ++i){
     tmp = 0.0;
-//    for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
-//      tmp += opr_data[stencilIndexFromVertex(neighborsFromVertex[k])] *
-//             src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
-//    }
+    for(uint_t k = 0; k < macroedge::neighborsOnEdgeFromVertex.size(); ++k){
+      tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnEdgeFromVertex[k])] *
+             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnEdgeFromVertex[k])];
+    }
+    for(uint_t k = 0; k < macroedge::neighborsOnSouthFaceFromVertex.size(); ++k){
+      tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnSouthFaceFromVertex[k])] *
+             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnSouthFaceFromVertex[k])];
+    }
+    if(edge.getNumNeighborFaces() == 2){
+      for(uint_t k = 0; k < macroedge::neighborsOnNorthFaceFromVertex.size(); ++k){
+        tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnNorthFaceFromVertex[k])] *
+               src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnNorthFaceFromVertex[k])];
+      }
+    }
+  }
+  if (update==Replace) {
+    dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] = tmp;
+  } else if (update==Add) {
+    dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] += tmp;
   }
 
 }
