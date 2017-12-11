@@ -74,11 +74,11 @@ int main(int argc, char* argv[])
   };
 
   std::function<real_t(const hhg::Point3D&)> exact = [&map_x, &map_y](const hhg::Point3D& x) {
-    Point3D xt({map_x(x), map_y(x), 0.0});
+    Point3D xt{{map_x(x), map_y(x), 0.0}};
     return (1.0L/2.0L)*sin(2*xt[0])*sinh(xt[1]);
   };
   std::function<real_t(const hhg::Point3D&)> rhs = [&map_x, &map_y](const hhg::Point3D& x) {
-    Point3D xt({map_x(x), map_y(x), 0.0});
+    Point3D xt{{map_x(x), map_y(x), 0.0}};
     return (3.0L/2.0L)*sin(2*xt[0])*sinh(xt[1]);
   };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
   hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ &u, &u_exact, &f, &r, &err }, {}, maxLevel,
-                                                                    "../output", "stencilinterp", coords);
+                                                                    "../output", "varcoords", coords);
 
   walberla::WcTimingTree tt = timingTree->getReduced();
   WALBERLA_LOG_INFO_ON_ROOT( tt );

@@ -63,8 +63,8 @@ waLBerla_add_executable( NAME geophysics_plume
         FILES geophysics_plume.cpp
         DEPENDS tinyhhg_core fmt)
 
-waLBerla_add_executable( NAME StencilInterpolation
-        FILES StencilInterpolation.cpp
+waLBerla_add_executable( NAME cg_P1_varcoords
+        FILES cg_P1_varcoords.cpp
         DEPENDS tinyhhg_core fmt)
 
 if( HHG_BUILD_WITH_PETSC )
