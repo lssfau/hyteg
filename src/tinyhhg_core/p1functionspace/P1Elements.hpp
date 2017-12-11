@@ -30,7 +30,7 @@ const P1Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
 const P1Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
 const P1Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W}};
 
-constexpr inline uint_t stencilMap_(const stencilDirection dir) {
+inline uint_t stencilMap_(const stencilDirection dir) {
   switch (dir) {
     case SD::VERTEX_S:
       return 0;
