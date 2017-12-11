@@ -34,16 +34,18 @@
 namespace hhg
 {
 
-template<class UFCOperator,  bool Diagonal = false>
+using walberla::real_t;
+
+template<class UFCOperator,  bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false>
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
-    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
-    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling >(minLevel_, maxLevel_);
+    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
@@ -54,7 +56,7 @@ public:
       for (auto& it : storage_->getFaces()) {
         Face& face = *it.second;
 
-        auto& face_stencil = face.getData(faceStencilID_)->data[level];
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
 
         Matrix3r local_stiffness_up;
         Matrix3r local_stiffness_down;
@@ -72,13 +74,29 @@ public:
         face_stencil[3] = local_stiffness_up(0,0) + local_stiffness_up(1,1) + local_stiffness_up(2,2)
             + local_stiffness_down(0,0) + local_stiffness_down(1,1) + local_stiffness_down(2,2);
 
+        if (Lumped) {
+          face_stencil[3] += face_stencil[0] + face_stencil[1] + face_stencil[2] + face_stencil[4] + face_stencil[5]
+                             + face_stencil[6];
+
+          face_stencil[0] = 0;
+          face_stencil[1] = 0;
+          face_stencil[2] = 0;
+          face_stencil[4] = 0;
+          face_stencil[5] = 0;
+          face_stencil[6] = 0;
+        }
+
+        if (InvertDiagonal) {
+          face_stencil[3] = 1.0 / face_stencil[3];
+        }
+
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
 
       for (auto& it : storage_->getEdges()) {
         Edge& edge = *it.second;
 
-        auto& edge_stencil = edge.getData(edgeStencilID_)->data[level];
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
 
         Matrix3r local_stiffness_up;
         Matrix3r local_stiffness_down;
@@ -119,13 +137,33 @@ public:
           edge_stencil[3] += local_stiffness_up(start_id, start_id) + local_stiffness_up(end_id, end_id) + local_stiffness_down(opposite_id, opposite_id);
         }
 
+        if (Lumped) {
+          edge_stencil[3] += edge_stencil[0] + edge_stencil[1] + edge_stencil[2] + edge_stencil[4];
+
+          edge_stencil[0] = 0;
+          edge_stencil[1] = 0;
+          edge_stencil[2] = 0;
+          edge_stencil[4] = 0;
+
+          if (edge.getNumNeighborFaces() == 2)
+          {
+            edge_stencil[3] += edge_stencil[5] + edge_stencil[6];
+            edge_stencil[5] = 0;
+            edge_stencil[6] = 0;
+          }
+        }
+
+        if (InvertDiagonal) {
+          edge_stencil[3] = 1.0 / edge_stencil[3];
+        }
+
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
       }
 
       for (auto& it : storage_->getVertices()) {
         Vertex& vertex = *it.second;
 
-        auto& vertex_stencil = vertex.getData(vertexStencilID_)->data[level];
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
 
         // iterate over adjacent faces
         for (auto& faceId : vertex.neighborFaces())
@@ -155,6 +193,18 @@ public:
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("VERTEX.id = {}:vertex_stencil = {}", vertex.getID().getID(), PointND<real_t, 3>(&vertex_stencil[0])));
         }
+
+        if (Lumped) {
+          for (uint_t i = 1; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+            vertex_stencil[0] += vertex_stencil[i];
+            vertex_stencil[i] = 0;
+          }
+        }
+
+        if (InvertDiagonal) {
+          vertex_stencil[0] = 1.0 / vertex_stencil[0];
+        }
+
       }
 
     }
@@ -165,11 +215,44 @@ public:
   {
   }
 
-  const PrimitiveDataID<VertexP1StencilMemory, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+  void scale(real_t scalar) {
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
+      for (auto &it : storage_->getFaces()) {
+        Face &face = *it.second;
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < 7; ++i) {
+          face_stencil[i] *= scalar;
+        }
+      }
 
-  const PrimitiveDataID<EdgeP1StencilMemory, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+      for (auto& it : storage_->getEdges()) {
+        Edge &edge = *it.second;
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < 5; ++i) {
+          edge_stencil[i] *= scalar;
+        }
 
-  const PrimitiveDataID<FaceP1StencilMemory, Face> &getFaceStencilID() const { return faceStencilID_; }
+        if (edge.getNumNeighborFaces() == 2) {
+          edge_stencil[5] *= scalar;
+          edge_stencil[6] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex &vertex = *it.second;
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+          vertex_stencil[i] *= scalar;
+        }
+      }
+    }
+  }
+
+  const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+
+  const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+
+  const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
 private:
 
@@ -373,9 +456,9 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  PrimitiveDataID<VertexP1StencilMemory, Vertex> vertexStencilID_;
-  PrimitiveDataID<EdgeP1StencilMemory, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceP1StencilMemory, Face> faceStencilID_;
+  PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> vertexStencilID_;
+  PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> edgeStencilID_;
+  PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> faceStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
@@ -406,6 +489,7 @@ typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
 typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
 
 typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
+typedef P1Operator<p1_mass_cell_integral_0_otherwise, false, true, true> P1LumpedInvMassOperator;
 
 typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
 

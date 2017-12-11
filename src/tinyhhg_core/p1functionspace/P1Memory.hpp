@@ -5,6 +5,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/StencilMemory.hpp"
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
@@ -14,6 +15,10 @@
 
 namespace hhg
 {
+
+/////////////////////
+// Function memory //
+/////////////////////
 
 inline uint_t P1VertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
@@ -40,82 +45,39 @@ using EdgeP1FunctionMemory = FunctionMemory< ValueType >;
 template< typename ValueType >
 using FaceP1FunctionMemory = FunctionMemory< ValueType >;
 
-class VertexP1StencilMemory
+
+////////////////////
+// Stencil memory //
+////////////////////
+
+template< typename ValueType >
+using VertexP1StencilMemory = StencilMemory< ValueType >;
+
+template< typename ValueType >
+using EdgeP1StencilMemory = StencilMemory< ValueType >;
+
+template< typename ValueType >
+using FaceP1StencilMemory = StencilMemory< ValueType >;
+
+inline uint_t P1VertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
-public:
+  return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
+}
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-  size_t num_deps_;
-
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level, size_t num_deps)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      this->num_deps_ = num_deps;
-      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t level)
-  {
-    return levelinfo::num_microvertices_per_vertex(level) + num_deps_;
-  }
-
-};
-
-
-class EdgeP1StencilMemory
+inline uint_t P1EdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
-public:
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( numDependencies );
+  return 7;
+}
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
-  {
-    //WALBERLA_LOG_DEVEL("EdgeP1StencilMemory, kind = " + std::to_string(this->type));
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t)
-  {
-    return 7;
-  }
-
-};
-
-
-class FaceP1StencilMemory
+inline uint_t P1FaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
-public:
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( numDependencies );
+  return 7;
+}
 
-  std::map<size_t, std::unique_ptr<real_t[]>> data;
-
-  inline std::unique_ptr<real_t[]>& addlevel(size_t level)
-  {
-    if (data.count(level)>0)
-      WALBERLA_LOG_WARNING("Level already exists.")
-    else
-    {
-      data[level] = std::unique_ptr< real_t[] >( new real_t[ getSize(level) ] );
-    }
-    return data[level];
-  }
-
-  inline size_t getSize(size_t)
-  {
-    return 7;
-  }
-
-};
 
 class VertexP1LocalMatrixMemory
 {

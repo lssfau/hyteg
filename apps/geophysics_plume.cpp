@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
       f->v.integrateDG(*f_dg, *n_y, maxLevel, hhg::All);
 
       for (uint_t outer = 0; outer < 2; ++outer) {
-        solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
+        solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary);
         hhg::projectMean(u->p, *tmp, maxLevel);
 
         L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
