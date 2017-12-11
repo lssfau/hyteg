@@ -149,7 +149,7 @@ enum class FaceBorderDirection
 /// return
 /// \param localEdgeId local Id of the edge on the face
 /// \param orientation orientation of the edge; 1 for same as face; -1 for opposing
-inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
+FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
   if(localEdgeId == 0) {
     if (orientation == 1) {
       return FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT;
