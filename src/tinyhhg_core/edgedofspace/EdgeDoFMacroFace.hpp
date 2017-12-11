@@ -32,8 +32,8 @@ inline void interpolateTmpl(Face & face,
 
   for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
   {
-    const Point3D horizontalMicroEdgePosition = ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset;
-    const Point3D verticalMicroEdgePosition   = ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 )* verticalMicroEdgeOffset;
+    const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
+    const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
     const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
     faceData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition );

@@ -15,13 +15,13 @@ int main(int argc, char* argv[])
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
   timingTree->start("Global");
-  std::string meshFileName = "../data/meshes/flow_around_cylinder_fine.msh";
+  std::string meshFileName = "../data/meshes/flow_around_cylinder.msh";
 
   real_t viscosity = 1e-4;
 
   bool neumann = true;
   uint_t minLevel = 2;
-  uint_t maxLevel = 6;
+  uint_t maxLevel = 3;
 
   real_t time = 0.0;
   real_t inflowBuildupTime = 0.0;
@@ -126,7 +126,11 @@ int main(int argc, char* argv[])
   u_dg->projectP1(u, maxLevel, hhg::All);
   v_dg->projectP1(v, maxLevel, hhg::All);
 
-  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({&u, &v, &p}, { }, maxLevel, "../output", fmt::format("test_{:0>7}", iter));
+  hhg::VTKOutput vtkOutput( "../output", "test", plotModulo );
+  vtkOutput.add( &u );
+  vtkOutput.add( &v );
+  vtkOutput.add( &p );
+  vtkOutput.write( maxLevel, iter );
   ++iter;
 
   while (time < endTime)
@@ -185,11 +189,7 @@ int main(int argc, char* argv[])
     invDiagMass.apply(tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     v.add({-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    if (iter % plotModulo == 0) {
-      hhg::VTKWriter < hhg::P1Function < real_t > , hhg::DGFunction < real_t >> ({ &u, &v, &p }, {},maxLevel,
-                                                                                 "../output", fmt::format("test_{:0>7}",
-                                                                                                          iter));
-    }
+    vtkOutput.write( maxLevel, iter );
     ++iter;
 
     u_dg_old.swap(u_dg);
