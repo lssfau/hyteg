@@ -149,7 +149,7 @@ enum class FaceBorderDirection
 /// return
 /// \param localEdgeId local Id of the edge on the face
 /// \param orientation orientation of the edge; 1 for same as face; -1 for opposing
-FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
+inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
   if(localEdgeId == 0) {
     if (orientation == 1) {
       return FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT;
@@ -168,6 +168,7 @@ FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
   } else {
     WALBERLA_ABORT("wrong EdgeId or orientation");
   }
+  return FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT;
 }
 
 
