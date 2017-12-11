@@ -107,7 +107,7 @@ private:
 template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
 void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
                std::vector<const Function<DiscontinuousFunctionType> *> functionsD, const uint_t level, const std::string &dir,
-               const std::string &filename)
+               const std::string &filename, std::shared_ptr<std::array<const ContinuousFunctionType*, 2>> coords = nullptr)
 {
   uint_t rk = uint_c(walberla::mpi::MPIManager::instance()->rank());
 
@@ -134,28 +134,39 @@ void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-    size_t rowsize = levelinfo::num_microvertices_per_edge(level);
-    Point3D x, x0;
+    // compute coords on-the-fly if no coords are provided
+    if (coords == nullptr) {
+      size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+      Point3D x, x0;
 
-    x0 = face.coords[0];
+      x0 = face.coords[0];
 
-    Point3D d0 = (face.coords[1] - face.coords[0]) / (real_c(rowsize)-1);
-    Point3D d2 = (face.coords[2] - face.coords[0]) / (real_c(rowsize)-1);
+      Point3D d0 = (face.coords[1] - face.coords[0]) / (real_c(rowsize) - 1);
+      Point3D d2 = (face.coords[2] - face.coords[0]) / (real_c(rowsize) - 1);
 
-    size_t inner_rowsize = rowsize;
+      size_t inner_rowsize = rowsize;
 
-    for (size_t i = 0; i < rowsize; ++i)
-    {
-      x = x0;
-      x += real_c(i) * d2;
+      for (size_t i = 0; i < rowsize; ++i) {
+        x = x0;
+        x += real_c(i) * d2;
 
-      for (size_t j = 0; j < inner_rowsize; ++j)
-      {
-        output << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
-        x += d0;
+        for (size_t j = 0; j < inner_rowsize; ++j) {
+          output << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
+          x += d0;
+        }
+
+        --inner_rowsize;
       }
+    } else {
+      size_t len = levelinfo::num_microvertices_per_face(level);
 
-      --inner_rowsize;
+      auto xData = face.getData((*coords)[0]->getFaceDataID())->getPointer(level);
+      auto yData = face.getData((*coords)[1]->getFaceDataID())->getPointer(level);
+
+      for (size_t i = 0; i < len; ++i)
+      {
+        output << std::scientific << xData[i] << " " << yData[i] << " " << 0.0 << " ";
+      }
     }
   }
 

@@ -94,6 +94,28 @@ private:
   T x[Size];
 };
 
+template<typename T, uint_t M, uint_t N>
+inline std::ostream& operator<<(std::ostream &os, const Matrix<T, M, N> &matrix)
+{
+  os << "[\n";
+
+  for (uint_t i = 0; i < M; ++i) {
+    os << "[";
+    for (uint_t j = 0; j < N; ++j) {
+      os << std::scientific << std::setw(13) << matrix(i,j);
+      if (j != N - 1) {
+        os << ", ";
+      }
+    }
+    os << "],\n";
+  }
+
+  os << "]";
+
+  return os;
+}
+
 typedef Matrix<real_t, 3, 3> Matrix3r;
+typedef Matrix<real_t, 6, 6> Matrix6r;
 
 }
