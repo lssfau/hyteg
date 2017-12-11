@@ -28,6 +28,12 @@ static void testFunctionMemorySerialization()
   P1Function< real_t > x("x", storage, minLevel, maxLevel);
   P1LaplaceOperator A(storage, minLevel, maxLevel);
 
+  VTKOutput vtkOutputBefore( "../../output/", "function_memory_serialization_test_data_before_migration" );
+  vtkOutputBefore.add( &x );
+
+  VTKOutput vtkOutputAfter( "../../output/", "function_memory_serialization_test_data_after_migration" );
+  vtkOutputAfter.add( &x );
+
   std::function<real_t(const hhg::Point3D&)> gradient = [](const hhg::Point3D& xx) { return xx[0]; };
 
   for ( uint_t level = minLevel; level <= maxLevel; level++ )
@@ -36,8 +42,7 @@ static void testFunctionMemorySerialization()
   }
 
   writeDomainPartitioningVTK( storage, "../../output/", "function_memory_serialization_test_domain_before_migration" );
-  VTKWriter<P1Function<real_t>, DGFunction<real_t> >({&x},{}, maxLevel,
-                                 "../../output/", "function_memory_serialization_test_data_before_migration");
+  vtkOutputBefore.write( maxLevel );
 
   WALBERLA_LOG_INFO( "Number of local primitives (before migration): " << storage->getNumberOfLocalPrimitives() );
 
@@ -53,8 +58,7 @@ static void testFunctionMemorySerialization()
   WALBERLA_LOG_INFO( "Number of local primitives (after migration): " << storage->getNumberOfLocalPrimitives() );
 
   writeDomainPartitioningVTK( storage, "../../output/", "function_memory_serialization_test_domain_after_migration" );
-  VTKWriter<P1Function<real_t>, DGFunction<real_t> >({&x},{}, maxLevel,
-                                 "../../output/", "function_memory_serialization_test_data_after_migration");
+  vtkOutputAfter.write( maxLevel );
 
 }
 

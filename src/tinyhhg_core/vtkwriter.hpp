@@ -53,8 +53,10 @@ public:
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
-  /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0
+  /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
+  /// Therefore always writes output if timestep is 0.
   /// Appends the time step to the filename.
+  /// Note: files will be overwritten if called twice with the same time step!
   void write( const uint_t & level, const uint_t & timestep = 0 ) const;
 
 private:
@@ -100,7 +102,7 @@ private:
 };
 
 
-
+#if 0
 
 template< typename ContinuousFunctionType, typename DiscontinuousFunctionType>
 void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
@@ -297,6 +299,8 @@ void VTKWriter(std::vector<const Function<ContinuousFunctionType> *> functionsC,
   }
 
 }
+
+#endif
 
 }
 

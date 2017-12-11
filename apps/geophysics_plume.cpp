@@ -104,6 +104,13 @@ int main(int argc, char* argv[])
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
 
+  hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
+  vtkOutput.add( &u->u );
+  vtkOutput.add( &u->v );
+  vtkOutput.add( &u->p );
+  vtkOutput.add( &f->u );
+  vtkOutput.add( &f->v );
+
   uint_t plotIter = 0;
   for (uint_t t = 0; t <= timesteps; ++t) {
     WALBERLA_LOG_PROGRESS_ON_ROOT("Current timestep: " << time);
@@ -131,8 +138,7 @@ int main(int argc, char* argv[])
 
     if (t % plotModulo == 0) {
       timingTree->start("VTK");
-      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
-                                                                        "../output", fmt::format("plume-{:0>6}", plotIter));
+      vtkOutput.write( maxLevel, plotIter );
       ++plotIter;
       timingTree->stop("VTK");
     }
