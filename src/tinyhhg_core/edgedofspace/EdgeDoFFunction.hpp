@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/mpi/all.h"
+
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
@@ -111,6 +113,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueT
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+
 }
 
 template< typename ValueType >
@@ -129,6 +132,18 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
       srcFaceIDs.push_back( function->faceDataID_ );
   }
 
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
+
   for ( auto & it : storage_->getFaces() )
   {
     Face & face = *it.second;
@@ -138,6 +153,9 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
       edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
+
 }
 
 template< typename ValueType >
@@ -156,6 +174,18 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
       srcFaceIDs.push_back( function->faceDataID_ );
   }
 
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
+
   for ( auto & it : storage_->getFaces() )
   {
     Face & face = *it.second;
@@ -165,14 +195,26 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
       edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
 }
 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
+  WALBERLA_LOG_WARNING_ON_ROOT( "Dot not fully implemented!" );
 
   real_t scalarProduct =  0.0 ;
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      scalarProduct += edgedof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
+    }
+  }
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -184,6 +226,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
     }
   }
 
+  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
   return scalarProduct;
 }
 
