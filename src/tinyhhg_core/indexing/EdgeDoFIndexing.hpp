@@ -300,10 +300,19 @@ public:
 class BorderIterator : public FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
-    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter )
+  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
+
+template< uint_t level >
+inline constexpr Index getBottomLeftCorner() { return getFaceBottomLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline constexpr Index getBottomRightCorner() { return getFaceBottomRightCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline constexpr Index getTopLeftCorner() { return getFaceTopLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
 
 
 } // namespace macroface
