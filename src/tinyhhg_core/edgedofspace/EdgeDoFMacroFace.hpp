@@ -33,7 +33,8 @@ inline void interpolateTmpl(Face & face,
   // For each edge dof type, only one side of the face must not be updated.
   // Therefore we:
   //   1. iterate over the inner face
-  //   2. iterate over the two missing borders for each edge dof type
+  //   2. iterate over the two missing borders for each edge dof type (skipping the outer most dofs)
+  //   3. updating the missing dof on the opposite of the edge that must not be updated
 
   for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
   {
@@ -47,7 +48,7 @@ inline void interpolateTmpl(Face & face,
   }
 
   // At the bottom face border, only the horizontal edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT ) )
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0, 1 ) )
   {
     const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
     const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
@@ -58,7 +59,7 @@ inline void interpolateTmpl(Face & face,
   }
 
   // At the left face border, only the vertical edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP ) )
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0, 1 ) )
   {
     const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
     const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
@@ -69,7 +70,7 @@ inline void interpolateTmpl(Face & face,
   }
 
   // At the diagonal face border, only the diagonal edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0, 1 ) )
   {
     const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
     const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
@@ -78,83 +79,28 @@ inline void interpolateTmpl(Face & face,
     faceData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition );
     faceData[ indexing::edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition );
   }
+
+  // Missing DoF at the opposite of the edge that must not be updated
+  const auto topLeftCorner     = indexing::edgedof::macroface::getTopLeftCorner< Level >();
+  const auto bottomLeftCorner  = indexing::edgedof::macroface::getBottomLeftCorner< Level >();
+  const auto bottomRightCorner = indexing::edgedof::macroface::getBottomRightCorner< Level >();
+
+  const uint_t horizontalDoFTopLeftCornerIdx   = indexing::edgedof::macroface::horizontalIndex< Level >( topLeftCorner.col(), topLeftCorner.row() );
+  const uint_t diagonalDoFBottomLeftCornerIdx  = indexing::edgedof::macroface::diagonalIndex< Level >( bottomLeftCorner.col(), bottomLeftCorner.row() );
+  const uint_t verticalDoFBottomRightCornerIdx = indexing::edgedof::macroface::verticalIndex< Level >( bottomRightCorner.col(), bottomRightCorner.row() );
+
+  const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( topLeftCorner.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( topLeftCorner.row() * 2     ) * verticalMicroEdgeOffset );
+  const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( bottomRightCorner.col() * 2     ) * horizontalMicroEdgeOffset + ( bottomRightCorner.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+  const Point3D diagonalMicroEdgePosition   =   ( faceBottomLeftCoords + ( ( bottomLeftCorner.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( bottomLeftCorner.row() * 2     ) * verticalMicroEdgeOffset ) )
+                                              + verticalMicroEdgeOffset;
+
+  faceData[ horizontalDoFTopLeftCornerIdx ] = expr( horizontalMicroEdgePosition );
+  faceData[ verticalDoFBottomRightCornerIdx ] = expr( verticalMicroEdgePosition );
+  faceData[ diagonalDoFBottomLeftCornerIdx ] = expr( diagonalMicroEdgePosition );
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate );
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
-                        const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
-{
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-
-  auto dstData = face.getData( dstId )->getPointer( Level );
-
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
-  {
-    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
-    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-  }
-
-  // At the bottom face border, only the horizontal edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT ) )
-  {
-    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-  }
-
-  // At the left face border, only the vertical edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP ) )
-  {
-    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
-    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-  }
-
-  // At the diagonal face border, only the diagonal edge dofs must not be updated
-  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
-  {
-    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
-    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
-  }
-
-  for ( uint_t i = 0; i < scalars.size(); i++ )
-  {
-    const real_t scalar  = scalars[i];
-    auto         srcData = face.getData( srcIds[i] )->getPointer( Level );
-
-    for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
-    {
-      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
-      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
-      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
-    }
-
-    // At the bottom face border, only the horizontal edge dofs must not be updated
-    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT ) )
-    {
-      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
-      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
-    }
-
-    // At the left face border, only the vertical edge dofs must not be updated
-    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP ) )
-    {
-      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
-      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
-    }
-
-    // At the diagonal face border, only the diagonal edge dofs must not be updated
-    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
-    {
-      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
-      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
-    }
-  }
-}
-
-SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign );
 
 template< typename ValueType, uint_t Level >
 inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
@@ -176,11 +122,100 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
       dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
       dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
     }
-  }
 
+    // At the bottom face border, only the horizontal edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0, 1 ) )
+    {
+      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
+    }
+
+    // At the left face border, only the vertical edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0, 1 ) )
+    {
+      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
+    }
+
+    // At the diagonal face border, only the diagonal edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0, 1 ) )
+    {
+      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
+    }
+
+    // Missing DoF at the opposite of the edge that must not be updated
+    const auto topLeftCorner     = indexing::edgedof::macroface::getTopLeftCorner< Level >();
+    const auto bottomLeftCorner  = indexing::edgedof::macroface::getBottomLeftCorner< Level >();
+    const auto bottomRightCorner = indexing::edgedof::macroface::getBottomRightCorner< Level >();
+
+    const uint_t horizontalDoFTopLeftCornerIdx   = indexing::edgedof::macroface::horizontalIndex< Level >( topLeftCorner.col(), topLeftCorner.row() );
+    const uint_t diagonalDoFBottomLeftCornerIdx  = indexing::edgedof::macroface::diagonalIndex< Level >( bottomLeftCorner.col(), bottomLeftCorner.row() );
+    const uint_t verticalDoFBottomRightCornerIdx = indexing::edgedof::macroface::verticalIndex< Level >( bottomRightCorner.col(), bottomRightCorner.row() );
+
+    dstData[ horizontalDoFTopLeftCornerIdx ]   += scalar * srcData[ horizontalDoFTopLeftCornerIdx ];
+    dstData[ verticalDoFBottomRightCornerIdx ] += scalar * srcData[ verticalDoFBottomRightCornerIdx ];
+    dstData[ diagonalDoFBottomLeftCornerIdx ]  += scalar * srcData[ diagonalDoFBottomLeftCornerIdx ];
+
+  }
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add );
+
+template< typename ValueType, uint_t Level >
+inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
+                        const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+{
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+
+  auto dstData = face.getData( dstId )->getPointer( Level );
+
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the bottom face border, only the horizontal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0, 1 ) )
+  {
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the left face border, only the vertical edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0, 1 ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the diagonal face border, only the diagonal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0, 1 ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // Missing DoF at the opposite of the edge that must not be updated
+  const auto topLeftCorner     = indexing::edgedof::macroface::getTopLeftCorner< Level >();
+  const auto bottomLeftCorner  = indexing::edgedof::macroface::getBottomLeftCorner< Level >();
+  const auto bottomRightCorner = indexing::edgedof::macroface::getBottomRightCorner< Level >();
+
+  const uint_t horizontalDoFTopLeftCornerIdx   = indexing::edgedof::macroface::horizontalIndex< Level >( topLeftCorner.col(), topLeftCorner.row() );
+  const uint_t diagonalDoFBottomLeftCornerIdx  = indexing::edgedof::macroface::diagonalIndex< Level >( bottomLeftCorner.col(), bottomLeftCorner.row() );
+  const uint_t verticalDoFBottomRightCornerIdx = indexing::edgedof::macroface::verticalIndex< Level >( bottomRightCorner.col(), bottomRightCorner.row() );
+
+  dstData[ horizontalDoFTopLeftCornerIdx ]   = static_cast< ValueType >( 0 );
+  dstData[ verticalDoFBottomRightCornerIdx ] = static_cast< ValueType >( 0 );
+  dstData[ diagonalDoFBottomLeftCornerIdx ]  = static_cast< ValueType >( 0 );
+
+  addTmpl< ValueType, Level >( face, scalars, srcIds, dstId );
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign );
 
 template< typename ValueType, uint_t Level >
 inline real_t dotTmpl( Face & face,
@@ -202,6 +237,49 @@ inline real_t dotTmpl( Face & face,
     scalarProduct += lhsData[ diagonalIdx ]   * rhsData[ diagonalIdx ];
     scalarProduct += lhsData[ verticalIdx ]   * rhsData[ verticalIdx ];
   }
+
+  // At the bottom face border, only the horizontal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0, 1 ) )
+  {
+    const uint_t diagonalIdx   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t verticalIdx   = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+
+    scalarProduct += lhsData[ diagonalIdx ]   * rhsData[ diagonalIdx ];
+    scalarProduct += lhsData[ verticalIdx ]   * rhsData[ verticalIdx ];
+  }
+
+  // At the left face border, only the vertical edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0, 1 ) )
+  {
+    const uint_t horizontalIdx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+    const uint_t diagonalIdx   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+
+    scalarProduct += lhsData[ horizontalIdx ] * rhsData[ horizontalIdx ];
+    scalarProduct += lhsData[ diagonalIdx ]   * rhsData[ diagonalIdx ];
+  }
+
+  // At the diagonal face border, only the diagonal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0, 1 ) )
+  {
+    const uint_t horizontalIdx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+    const uint_t verticalIdx   = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+
+    scalarProduct += lhsData[ horizontalIdx ] * rhsData[ horizontalIdx ];
+    scalarProduct += lhsData[ verticalIdx ]   * rhsData[ verticalIdx ];
+  }
+
+  // Missing DoF at the opposite of the edge that must not be updated
+  const auto topLeftCorner     = indexing::edgedof::macroface::getTopLeftCorner< Level >();
+  const auto bottomLeftCorner  = indexing::edgedof::macroface::getBottomLeftCorner< Level >();
+  const auto bottomRightCorner = indexing::edgedof::macroface::getBottomRightCorner< Level >();
+
+  const uint_t horizontalDoFTopLeftCornerIdx   = indexing::edgedof::macroface::horizontalIndex< Level >( topLeftCorner.col(), topLeftCorner.row() );
+  const uint_t diagonalDoFBottomLeftCornerIdx  = indexing::edgedof::macroface::diagonalIndex< Level >( bottomLeftCorner.col(), bottomLeftCorner.row() );
+  const uint_t verticalDoFBottomRightCornerIdx = indexing::edgedof::macroface::verticalIndex< Level >( bottomRightCorner.col(), bottomRightCorner.row() );
+
+  scalarProduct += lhsData[ horizontalDoFTopLeftCornerIdx ] * rhsData[ horizontalDoFTopLeftCornerIdx ];
+  scalarProduct += lhsData[ diagonalDoFBottomLeftCornerIdx ] * rhsData[ diagonalDoFBottomLeftCornerIdx ];
+  scalarProduct += lhsData[ verticalDoFBottomRightCornerIdx ] * rhsData[ verticalDoFBottomRightCornerIdx ];
 
   return scalarProduct;
 }
