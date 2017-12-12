@@ -91,6 +91,34 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the bottom face border, only the horizontal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT ) )
+  {
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the left face border, only the vertical edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
+  // At the diagonal face border, only the diagonal edge dofs must not be updated
+  for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+  {
+    dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = static_cast< ValueType >( 0 );
+    dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   = static_cast< ValueType >( 0 );
+  }
+
   for ( uint_t i = 0; i < scalars.size(); i++ )
   {
     const real_t scalar  = scalars[i];
@@ -98,12 +126,32 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
 
     for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
     {
-      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ]  = scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
       dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
       dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
     }
-  }
 
+    // At the bottom face border, only the horizontal edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT ) )
+    {
+      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
+    }
+
+    // At the left face border, only the vertical edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP ) )
+    {
+      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() ) ];
+    }
+
+    // At the diagonal face border, only the diagonal edge dofs must not be updated
+    for ( const auto & it : indexing::edgedof::macroface::BorderIterator( Level, indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+    {
+      dstData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] += scalar * srcData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ];
+      dstData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ]   += scalar * srcData[ indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() ) ];
+    }
+  }
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign );
