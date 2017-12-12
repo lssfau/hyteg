@@ -97,6 +97,10 @@ private:
   {
     WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
     data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size ) );
+    WALBERLA_DEBUG_SECTION()
+    {
+      std::fill( data_[ level ]->begin(), data_[ level ]->end(), static_cast< ValueType >( 13 ) );
+    }
   }
 
   /// Maps a level to the respective allocated data
