@@ -139,6 +139,14 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
   }
 }
 
+class Iterator : public EdgeIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  {}
+};
+
 } // namespace macroedge
 
 // ##################
