@@ -87,6 +87,19 @@ template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueType(const hhg::Point3D&) > & expr, uint_t level, DoFType flag)
 {
   WALBERLA_LOG_WARNING_ON_ROOT( "Interpolate not fully implemented!" );
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, expr );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
+
   for ( auto & it : storage_->getFaces() )
   {
     Face & face = *it.second;
@@ -96,6 +109,8 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueT
       edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, expr );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
 }
 
 template< typename ValueType >
