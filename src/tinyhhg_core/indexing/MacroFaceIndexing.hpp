@@ -193,8 +193,10 @@ public:
   using difference_type   = ptrdiff_t;
 
   FaceBorderIterator( const uint_t & width, const FaceBorderDirection & direction,
-                      const uint_t & offsetToCenter = 0, const bool & end = false ) :
-    width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ), step_( 0 )
+                      const uint_t & offsetToCenter = 0,
+                      const uint_t & offsetFromVertices = 0, const bool & end = false ) :
+    width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ),
+    offsetFromVertices_( offsetFromVertices ), step_( 0 )
   {
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
@@ -203,28 +205,28 @@ public:
     switch( direction )
     {
     case FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT:
-      coordinates_.col() = 0;
+      coordinates_.col() = 0 + offsetFromVertices;
       coordinates_.row() = 0 + offsetToCenter;
       break;
     case FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT:
-      coordinates_.col() = width - 1;
+      coordinates_.col() = width - 1 - offsetFromVertices;
       coordinates_.row() = 0 + offsetToCenter;
       break;
     case FaceBorderDirection::LEFT_BOTTOM_TO_TOP:
       coordinates_.col() = 0 + offsetToCenter;
-      coordinates_.row() = 0;
+      coordinates_.row() = 0 + offsetFromVertices;
       break;
     case FaceBorderDirection::LEFT_TOP_TO_BOTTOM:
       coordinates_.col() = 0 + offsetToCenter;
-      coordinates_.row() = width - 1;
+      coordinates_.row() = width - 1 - offsetFromVertices;
       break;
     case FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP:
-      coordinates_.col() = width - 1 - offsetToCenter;
-      coordinates_.row() = 0;
+      coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
+      coordinates_.row() = 0 + offsetFromVertices;
       break;
     case FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM:
-      coordinates_.col() = 0;
-      coordinates_.row() = width - 1 - offsetToCenter;
+      coordinates_.col() = 0 + offsetFromVertices;
+      coordinates_.row() = width - 1 - offsetToCenter - offsetFromVertices;
       break;
     default:
       WALBERLA_ASSERT( false, "Invalid direction in face border iterator" );
@@ -233,12 +235,12 @@ public:
 
     if ( end )
     {
-      step_ = width - offsetToCenter;
+      step_ = width - offsetToCenter - 2 * offsetFromVertices;
     }
   }
 
-  FaceBorderIterator begin() { return FaceBorderIterator( width_, direction_, offsetToCenter_ ); }
-  FaceBorderIterator end()   { return FaceBorderIterator( width_, direction_, offsetToCenter_, true ); }
+  FaceBorderIterator begin() { return FaceBorderIterator( width_, direction_, offsetToCenter_, offsetFromVertices_ ); }
+  FaceBorderIterator end()   { return FaceBorderIterator( width_, direction_, offsetToCenter_, offsetFromVertices_, true ); }
 
   bool operator==( const FaceBorderIterator & other ) const
   {
@@ -303,10 +305,21 @@ private:
   const uint_t              width_;
   const FaceBorderDirection direction_;
   const uint_t              offsetToCenter_;
+  const uint_t              offsetFromVertices_;
         uint_t              step_;
         Index               coordinates_;
 
 };
+
+
+template< uint_t width >
+inline constexpr Index getFaceBottomLeftCorner() { Index idx; idx.col() = 0; idx.row() = 0; return idx; }
+
+template< uint_t width >
+inline constexpr Index getFaceBottomRightCorner() { Index idx; idx.col() = width - 1; idx.row() = 0; return idx; }
+
+template< uint_t width >
+inline constexpr Index getFaceTopLeftCorner() { Index idx; idx.col() = 0; idx.row() = width - 1; return idx; }
 
 }
 }
