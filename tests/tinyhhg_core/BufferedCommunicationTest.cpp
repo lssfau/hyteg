@@ -48,7 +48,7 @@ public:
 		  vertexDataID_( vertexDataID ), edgeDataID_( edgeDataID )
   {}
 
-  virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
+  virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
   {
     WALBERLA_UNUSED( receiver );
     VertexTestData * data = sender->getData( vertexDataID_ );
@@ -56,7 +56,7 @@ public:
     // WALBERLA_LOG_INFO( "Packing | Vertex: " << sender->getID().getID() << ", Receiver: " << receiver.getID() << ", Data: " << data->someInt );
   }
 
-  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer)
+  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
   {
     WALBERLA_UNUSED( sender );
 
@@ -67,7 +67,7 @@ public:
     data->vertexIDs.push_back( vertexData );
   }
 
-  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver)
+  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const
   {
     VertexTestData * vertexData = sender->getData( vertexDataID_ );
     EdgeTestData   * edgeData   = receiver->getData( edgeDataID_ );
@@ -76,14 +76,14 @@ public:
   }
 
 
-  virtual void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
+  virtual void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
   {
     WALBERLA_UNUSED( receiver );
     EdgeTestData * data = sender->getData( edgeDataID_ );
     buffer << data->ownID;
   }
 
-  virtual void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer)
+  virtual void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
   {
     WALBERLA_UNUSED( sender );
 
@@ -93,7 +93,7 @@ public:
     data->edgeIDs.push_back( edgeData );
   }
 
-  virtual void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver)
+  virtual void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const
   {
     EdgeTestData   * edgeData   = sender->getData( edgeDataID_ );
     VertexTestData * vertexData = receiver->getData( vertexDataID_ );
@@ -101,42 +101,42 @@ public:
   }
 
 
-  virtual void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
+  virtual void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
   {
     WALBERLA_UNUSED( sender   );
     WALBERLA_UNUSED( receiver );
     WALBERLA_UNUSED( buffer   );
   }
 
-  virtual void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer)
+  virtual void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
   {
     WALBERLA_UNUSED( sender   );
     WALBERLA_UNUSED( receiver );
     WALBERLA_UNUSED( buffer   );
   }
 
-  virtual void communicateLocalEdgeToFace(const Edge *sender, Face *receiver)
+  virtual void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const
   {
     WALBERLA_UNUSED( sender   );
     WALBERLA_UNUSED( receiver );
   }
 
 
-  virtual void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer)
-  {
-    WALBERLA_UNUSED( sender   );
-    WALBERLA_UNUSED( receiver );
-    WALBERLA_UNUSED( buffer   );
-  }
-
-  virtual void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer)
+  virtual void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
   {
     WALBERLA_UNUSED( sender   );
     WALBERLA_UNUSED( receiver );
     WALBERLA_UNUSED( buffer   );
   }
 
-  virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver)
+  virtual void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+  {
+    WALBERLA_UNUSED( sender   );
+    WALBERLA_UNUSED( receiver );
+    WALBERLA_UNUSED( buffer   );
+  }
+
+  virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
   {
     WALBERLA_UNUSED( sender   );
     WALBERLA_UNUSED( receiver );
