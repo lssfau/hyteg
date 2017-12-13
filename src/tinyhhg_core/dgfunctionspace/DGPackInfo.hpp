@@ -21,29 +21,29 @@ public:
       : communication::DoFSpacePackInfo< ValueType >(level, dataIDVertex, dataIDEdge, dataIDFace, storage){
 
   }
-  void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) override;
+  void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const override;
 
-  void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) override;
+  void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const override;
 
-  void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) override;
+  void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const override;
 
-  void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) override;
+  void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const override;
 
 private:
   using communication::DoFSpacePackInfo< ValueType >::level_;
@@ -55,7 +55,7 @@ private:
 };
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void DGPackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
 /// see DGMemory.hpp for a description of the Vertex Memory
   ValueType *vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
   for(const PrimitiveID& faceID: storage_.lock()->getEdge(receiver)->neighborFaces()) {
@@ -64,7 +64,7 @@ void DGPackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const Prim
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   typedef stencilDirection sD;
   ValueType *edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t pos = std::numeric_limits<uint_t>::max();
@@ -83,7 +83,7 @@ void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) {
+void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const {
   typedef stencilDirection sD;
   ValueType *vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
   ValueType *edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
@@ -102,7 +102,7 @@ void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   ///the blue face DoF which are owned by the face need to communicated to the vertex
   typedef stencilDirection sD;
   ValueType *edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
@@ -121,7 +121,7 @@ void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Primit
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void DGPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   ValueType *vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
   for(const PrimitiveID& faceID: storage_.lock()->getEdge(sender)->neighborFaces()) {
     buffer >> vertexData[ receiver->face_index(faceID) * 2 + 1];
@@ -129,7 +129,7 @@ void DGPackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const Primi
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) {
+void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const {
   ValueType *edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t pos = std::numeric_limits<uint_t>::max();
   if(sender->vertex_index(receiver->getID()) == 0) {
@@ -149,7 +149,7 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, V
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
   uint_t faceIdOnEdge = sender->face_index(receiver);
@@ -170,7 +170,7 @@ void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Primitiv
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   using namespace BubbleFace;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
@@ -184,7 +184,7 @@ void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Primitive
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
+void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
   using namespace BubbleFace;
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
@@ -210,7 +210,7 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void DGPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   using namespace BubbleFace;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
@@ -224,7 +224,7 @@ void DGPackInfo< ValueType >::packFaceForEdge(const Face *sender, const Primitiv
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
   uint_t faceIdOnEdge = receiver->face_index(sender);
@@ -246,7 +246,7 @@ void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
 }
 
 template< typename ValueType >
-void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
+void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const {
   using namespace hhg::BubbleFace;
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
