@@ -19,29 +19,29 @@ public:
     : communication::DoFSpacePackInfo< ValueType >(level, dataIDVertex, dataIDEdge, dataIDFace, storage){
 
   }
-  virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  virtual void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  virtual void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) override;
+  virtual void communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const override;
 
-  virtual void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  virtual void packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  virtual void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  virtual void unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  virtual void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) override;
+  virtual void communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const override;
 
-  virtual void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  virtual void packEdgeForFace(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  virtual void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  virtual void unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  virtual void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) override;
+  virtual void communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const override;
 
-  virtual void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) override;
+  virtual void packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
-  virtual void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) override;
+  virtual void unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
 
-  virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) override;
+  virtual void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const override;
 
 private:
   using communication::DoFSpacePackInfo< ValueType >::level_;
@@ -55,7 +55,7 @@ private:
 /// @name Vertex to Edge
 ///@{
 template< typename ValueType >
-void BubblePackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer){
+void BubblePackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(receiver);
@@ -63,7 +63,7 @@ void BubblePackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const 
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer){
+void BubblePackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(receiver);
@@ -71,7 +71,7 @@ void BubblePackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Pri
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver){
+void BubblePackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(receiver);
@@ -82,7 +82,7 @@ void BubblePackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sen
 ///@{
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   typedef stencilDirection sD;
   using namespace BubbleEdge;
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
@@ -108,7 +108,7 @@ void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Pr
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void BubblePackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   ValueType *vertexData = receiver->getData(dataIDVertex_)->getPointer( level_ );
   for(PrimitiveID faceId : storage_.lock()->getEdge(sender)->neighborFaces())
   {
@@ -118,7 +118,7 @@ void BubblePackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const P
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) {
+void BubblePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const {
   using namespace BubbleEdge;
   typedef stencilDirection sD;
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
@@ -156,14 +156,14 @@ void BubblePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sende
 ///@{
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) {
+void BubblePackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(buffer);
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void BubblePackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(receiver);
@@ -171,7 +171,7 @@ void BubblePackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Primi
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) {
+void BubblePackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
   //There is nothing to do here
   WALBERLA_UNUSED(sender);
   WALBERLA_UNUSED(receiver);
@@ -182,7 +182,7 @@ void BubblePackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender,
 ///@{
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) {
+void BubblePackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
   using namespace hhg::BubbleFace;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
@@ -195,7 +195,7 @@ void BubblePackInfo< ValueType >::packFaceForEdge(const Face *sender, const Prim
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) {
+void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   uint_t vPerEdge = levelinfo::num_microvertices_per_edge(level_);
   uint_t edgeIdOnFace = receiver->face_index(sender);
@@ -225,7 +225,7 @@ void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primi
 }
 
 template< typename ValueType >
-void BubblePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) {
+void BubblePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const {
   using namespace hhg::BubbleFace;
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
