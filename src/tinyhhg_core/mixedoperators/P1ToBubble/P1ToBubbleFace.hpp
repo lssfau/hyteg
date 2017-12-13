@@ -33,7 +33,7 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
 
       for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
       {
-        tmp += face_gray_stencil[neighbor] * src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)];
+        tmp += face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(neighbor)] * src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)];
       }
 
       if (update == Replace) {
@@ -55,7 +55,7 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
 
       for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
       {
-        tmp += face_blue_stencil[neighbor] * src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)];
+        tmp += face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(neighbor)] * src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)];
       }
 
       if (update == Replace) {
@@ -94,7 +94,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
 
       for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)], &face_gray_stencil[neighbor], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)], &face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -110,7 +110,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
 
       for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)], &face_blue_stencil[neighbor], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)], &face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;

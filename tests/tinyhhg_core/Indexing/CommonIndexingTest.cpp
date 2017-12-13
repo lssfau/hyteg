@@ -5,8 +5,9 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/TimingPool.h"
+#include "core/logging/all.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
@@ -23,24 +24,24 @@ static void testCommonIndexing()
   using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << indexing::edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
 
-  for ( const auto & it : vertexdof::macroface::BorderIterator< 3, 1 >( FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP ) )
+  for ( const auto & it : vertexdof::macroface::BorderIterator( 3, FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
   {
     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << vertexdof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
   }
 
   WALBERLA_LOG_INFO_ON_ROOT( "FaceIterator:" )
-  for ( const auto & it : FaceIterator< 9, 1 >() )
+  for ( const auto & it : FaceIterator( 9, 1 ) )
   {
     std::cout << "(" << it.col() << ", " << it.row() << ") -> " << macroFaceIndex< 9 >( it.col(), it.row() ) << "\n";
 
   }
 
   WALBERLA_LOG_INFO_ON_ROOT( "P1FaceIterator (inner face), accessing neighboring horizontal edges" );
-  for ( const auto & it : vertexdof::macroface::Iterator< 3, 1 >() )
+  for ( const auto & it : vertexdof::macroface::Iterator( 3, 1 ) )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
+    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << indexing::edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
   }
 
   const uint_t level = 3;
@@ -108,7 +109,7 @@ static void testCommonIndexing()
 
 #else
 
-  for ( const auto & it : vertexdof::macroface::Iterator< level, 1 >() )
+  for ( const auto & it : vertexdof::macroface::Iterator( level, 1 ) )
   {
     a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0001;
     b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0002;
@@ -118,7 +119,7 @@ static void testCommonIndexing()
 
   real_t sp = 0.0;
 
-  for ( const auto & it : vertexdof::macroface::Iterator< level, 1 >() )
+  for ( const auto & it : vertexdof::macroface::Iterator( level, 1 ) )
   {
     sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ];
   }

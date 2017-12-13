@@ -3,8 +3,14 @@
 
 #include <core/Environment.h>
 
+enum class CycleType
+{
+  VCYCLE,
+  WCYCLE
+};
+
 template<class O, class F, class CSolver>
-void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, F& b, F& r, F& tmp, real_t coarse_tolerance, size_t coarse_maxiter, size_t nu_pre, size_t nu_post)
+void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, F& b, F& r, F& tmp, real_t coarse_tolerance, size_t coarse_maxiter, size_t nu_pre, size_t nu_post, CycleType cycleType = CycleType::VCYCLE)
 {
   std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
 
@@ -32,7 +38,11 @@ void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, 
 
     x.interpolate(zero, level-1);
 
-    cscycle(level-1, minLevel, csolver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post);
+    cscycle(level-1, minLevel, csolver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType);
+
+    if (cycleType == CycleType::WCYCLE) {
+      cscycle(level-1, minLevel, csolver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType);
+    }
 
     // prolongate
     tmp.assign({1.0}, { &x }, level, hhg::Inner);
@@ -98,11 +108,13 @@ int main(int argc, char* argv[])
   hhg::P1LaplaceOperator A(storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return xx[0]*xx[0] - xx[1]*xx[1]; };
-  std::function<real_t(const hhg::Point3D&)> rhs   = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
 
-  x.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  x_exact.interpolate(exact, maxLevel);
+  x.interpolate(zeros, maxLevel, hhg::DirichletBoundary);
+  x.interpolate(rand, maxLevel, hhg::Inner);
+  x_exact.interpolate(zeros, maxLevel);
 
   tmp.interpolate(ones, maxLevel);
   real_t npoints = tmp.dot(tmp, maxLevel);
@@ -111,7 +123,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error");
+  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error      Time");
 
   real_t rel_res = 1.0;
 
@@ -124,13 +136,19 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&x, &x_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+
+  real_t totalTime = real_c(0.0);
+  real_t averageConvergenceRate = real_c(0.0);
+  const uint_t convergenceStartIter = 3;
 
   LIKWID_MARKER_START("Compute");
-  size_t i = 0;
+  uint_t i = 0;
   for (; i < outer; ++i)
   {
-    cscycle(maxLevel, minLevel, csolver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post);
+    auto start = walberla::timing::getWcTime();
+    cscycle(maxLevel, minLevel, csolver, A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, CycleType::VCYCLE);
+    auto end = walberla::timing::getWcTime();
     A.apply(x, ax, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &b, &ax }, maxLevel, hhg::Inner);
     real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
@@ -138,7 +156,12 @@ int main(int argc, char* argv[])
     err.assign({1.0, -1.0}, { &x, &x_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err));
+    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
+    totalTime += end-start;
+
+    if (i >= convergenceStartIter) {
+      averageConvergenceRate += abs_res/abs_res_old;
+    }
 
     abs_res_old = abs_res;
 
@@ -149,9 +172,12 @@ int main(int argc, char* argv[])
   }
   LIKWID_MARKER_STOP("Compute");
 
+  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
+  WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i+1-convergenceStartIter));
+
   WALBERLA_CHECK_LESS( i, outer );
 
-  hhg::VTKWriter< hhg::P1Function< real_t >, hhg::DGFunction<real_t> >({ &x, &b, &x_exact }, {}, maxLevel, "../../output", "test");
+//  hhg::VTKWriter< hhg::P1Function< real_t >, hhg::DGFunction<real_t> >({ &x, &b, &x_exact }, {}, maxLevel, "../../output", "test");
   LIKWID_MARKER_CLOSE;
   return EXIT_SUCCESS;
 }

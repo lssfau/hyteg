@@ -30,10 +30,10 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 2;
-  const uint_t solverMaxiter = 1000;
+  const uint_t maxLevel = 4;
+  const uint_t solverMaxiter = 100;
 
-  std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
+  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> initialConcentration = [](const hhg::Point3D& x,const std::vector<real_t>&) {
     if (sqrt(x[0] * x[0] + x[1] * x[1]) < 1.1){
       return 1.0;
     } else {
@@ -78,11 +78,8 @@ int main(int argc, char* argv[])
 
   // Setting up Operators
   std::array<std::shared_ptr<hhg::P1Function<real_t>>, 2> velocity{{std::shared_ptr<hhg::P1Function<real_t>>(&u->u, boost::null_deleter()), std::shared_ptr<hhg::P1Function<real_t>>(&u->v, boost::null_deleter())}};
-  std::shared_ptr<std::array<hhg::P1Function<real_t>*, 2>> normals = std::make_shared<std::array<hhg::P1Function<real_t>*, 2>>();
-  (*normals)[0] = n_x.get();
-  (*normals)[1] = n_y.get();
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
-  hhg::P1StokesOperator L(storage, minLevel, maxLevel, normals);
+  hhg::P1StokesOperator L(storage, minLevel, maxLevel);
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   real_t estimatedMaxVelocity = P1::getApproximateEuclideanNorm<2>({{&u->u, &u->v}}, maxLevel);
@@ -102,10 +99,17 @@ int main(int argc, char* argv[])
   n_y->interpolate(expr_n_y, maxLevel);
 
   // Interpolate initial functions
-  c_old->interpolate(initialConcentration, maxLevel);
+  c_old->interpolate(initialConcentration,{}, maxLevel);
   c->assign({1.0}, {c_old.get()}, maxLevel);
 
   auto solver = hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator>(storage, minLevel, maxLevel);
+
+  hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
+  vtkOutput.add( &u->u );
+  vtkOutput.add( &u->v );
+  vtkOutput.add( &u->p );
+  vtkOutput.add( &f->u );
+  vtkOutput.add( &f->v );
 
   uint_t plotIter = 0;
   for (uint_t t = 0; t <= timesteps; ++t) {
@@ -114,16 +118,13 @@ int main(int argc, char* argv[])
     if (t % 3 == 0) {
       WALBERLA_LOG_PROGRESS_ON_ROOT("Solving Stokes system...")
 
-      f_dg->interpolateExtended(expr_f, { c_old.get() }, maxLevel);
+      f_dg->interpolate(expr_f, { c_old.get() }, maxLevel);
 
       f->u.integrateDG(*f_dg, *n_x, maxLevel, hhg::All);
       f->v.integrateDG(*f_dg, *n_y, maxLevel, hhg::All);
 
-      for (uint_t outer = 0; outer < 5; ++outer) {
-        if (L.isFreeslip()) {
-          hhg::P1::projectNormal(storage, {{&f->u, &f->v}}, *normals, maxLevel, hhg::DirichletBoundary | hhg::NeumannBoundary);
-        }
-        solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary, true);
+      for (uint_t outer = 0; outer < 2; ++outer) {
+        solver.solve(L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary);
         hhg::projectMean(u->p, *tmp, maxLevel);
 
         L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
@@ -137,8 +138,7 @@ int main(int argc, char* argv[])
 
     if (t % plotModulo == 0) {
       timingTree->start("VTK");
-      hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v}, {c_old.get()}, maxLevel,
-                                                                        "../output", fmt::format("plume-{:0>6}", plotIter));
+      vtkOutput.write( maxLevel, plotIter );
       ++plotIter;
       timingTree->stop("VTK");
     }

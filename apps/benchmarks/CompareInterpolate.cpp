@@ -36,7 +36,7 @@ inline void interpolateStdFunction(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, VERTEX_C)] = expr(x);
+      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -63,7 +63,7 @@ inline void interpolateTemplate(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, VERTEX_C)] = expr(x);
+      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -91,7 +91,7 @@ inline void interpolateFunctor(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, VERTEX_C)] = exprFunctor(x);
+      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = exprFunctor(x);
       x += d0;
     }
 
@@ -118,7 +118,7 @@ inline void interpolateWithoutFunction(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, VERTEX_C)] = sqrt(x[0] * x[0] + x[1] * x[1]);
+      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = sqrt(x[0] * x[0] + x[1] * x[1]);
       x += d0;
     }
 

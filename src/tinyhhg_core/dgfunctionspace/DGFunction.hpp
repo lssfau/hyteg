@@ -262,6 +262,8 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 template< typename ValueType >
 void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType)
 {
+  this->startTiming( "projectP1" );
+
   src.getCommunicator(level)->template startCommunication<Edge, Vertex>();
   src.getCommunicator(level)->template startCommunication<Face, Edge>();
   src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
@@ -302,6 +304,8 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   }
 
   this->getCommunicator(level)->template endCommunication<Edge, Face>();
+
+  this->stopTiming( "projectP1" );
 }
 
 }

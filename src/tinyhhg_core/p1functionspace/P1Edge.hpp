@@ -4,6 +4,7 @@
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
+#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
@@ -31,6 +32,18 @@ inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
          + localMatrix(idx[0],idx[1]) * src[index<Level>(pos, vertices[1])]
          + localMatrix(idx[0],idx[2]) * src[index<Level>(pos, vertices[2])];
   return meanCoeff * tmp;
+}
+
+template<uint_t Level>
+inline void fillLocalCoords(uint_t i, const std::array<EdgeCoordsVertex::DirVertex, 3>& element, const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
+  using namespace EdgeCoordsVertex;
+
+  localCoords[0] = coords[0][index<Level>(i, element[0])];
+  localCoords[1] = coords[1][index<Level>(i, element[0])];
+  localCoords[2] = coords[0][index<Level>(i, element[1])];
+  localCoords[3] = coords[1][index<Level>(i, element[1])];
+  localCoords[4] = coords[0][index<Level>(i, element[2])];
+  localCoords[5] = coords[1][index<Level>(i, element[2])];
 }
 
 template< typename ValueType, uint_t Level >
@@ -131,14 +144,14 @@ inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<EdgeP1FunctionMemory< Va
 SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 template< typename ValueType, uint_t Level >
-inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
                   const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &srcId,
                   const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId, UpdateType update) {
   using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto opr_data = edge.getData(operatorId)->getPointer( Level );
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
 
@@ -239,14 +252,127 @@ inline void applyCoefficientTmpl(Edge &edge,
 SPECIALIZE_WITH_VALUETYPE( void, applyCoefficientTmpl, applyCoefficient )
 
 template< typename ValueType, uint_t Level >
-inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+inline void applyElementwiseTmpl(Edge &edge,
+                                 const std::shared_ptr< PrimitiveStorage >& storage,
+                                 std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Edge> &srcId,
+                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Edge> &dstId,
+                                 std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Edge>, 2> &coordIds,
+                                 UpdateType update) {
+  using namespace EdgeCoordsVertex;
+  using namespace P1Elements;
+  typedef std::array<DirVertex, 3> Element;
+  typedef std::array<uint_t, 3> DoFMap;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = edge.getData(srcId)->getPointer(Level);
+  auto dst = edge.getData(dstId)->getPointer(Level);
+  std::array<ValueType*, 2> globalCoords{{edge.getData(coordIds[0])->getPointer(Level), edge.getData(coordIds[1])->getPointer(Level)}};
+
+  Face* face = storage->getFace(edge.neighborFaces()[0]);
+  uint_t start = face->vertex_index(edge.neighborVertices()[0]);
+  uint_t end = face->vertex_index(edge.neighborVertices()[1]);
+  uint_t opposite = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+  Element elementSW = {{VERTEX_C, VERTEX_W, VERTEX_S}};
+  Element elementS = {{VERTEX_C, VERTEX_S, VERTEX_SE}};
+  Element elementSE = {{VERTEX_C, VERTEX_SE, VERTEX_E}};
+  Element elementNE = {{VERTEX_C, VERTEX_E, VERTEX_N}};
+  Element elementN = {{VERTEX_C, VERTEX_N, VERTEX_NW}};
+  Element elementNW = {{VERTEX_C, VERTEX_NW, VERTEX_W}};
+
+  DoFMap dofMapSW = {{end, start, opposite}};
+  DoFMap dofMapS = {{opposite, end, start}};
+  DoFMap dofMapSE = {{start, opposite, end}};
+
+  DoFMap dofMapNE, dofMapN, dofMapNW;
+
+  if (edge.getNumNeighborFaces() == 2) {
+    face = storage->getFace(edge.neighborFaces()[1]);
+    start = face->vertex_index(edge.neighborVertices()[0]);
+    end = face->vertex_index(edge.neighborVertices()[1]);
+    opposite = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+    dofMapNE = {{start, end, opposite}};
+    dofMapN = {{opposite, start, end}};
+    dofMapNW = {{end, opposite, start}};
+  }
+
+  ValueType tmp;
+  real_t localCoords[6];
+  Matrix3r localStiffness;
+  std::vector<real_t> edgeStencil(7);
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
+
+    fillLocalCoords<Level>(i, elementSW, globalCoords, localCoords);
+    computeElementMatrix(localStiffness, localCoords);
+    assembleP1LocalStencil({{3, 2, 0}}, {{0,1,2}}, localStiffness, edgeStencil);
+
+    fillLocalCoords<Level>(i, elementS, globalCoords, localCoords);
+    computeElementMatrix(localStiffness, localCoords);
+    assembleP1LocalStencil({{3, 0, 1}}, {{0,1,2}}, localStiffness, edgeStencil);
+
+    fillLocalCoords<Level>(i, elementSE, globalCoords, localCoords);
+    computeElementMatrix(localStiffness, localCoords);
+    assembleP1LocalStencil({{3, 1, 4}}, {{0,1,2}}, localStiffness, edgeStencil);
+
+    if (edge.getNumNeighborFaces() == 2)
+    {
+      fillLocalCoords<Level>(i, elementNE, globalCoords, localCoords);
+      computeElementMatrix(localStiffness, localCoords);
+      assembleP1LocalStencil({{3, 4, 6}}, {{0,1,2}}, localStiffness, edgeStencil);
+
+      fillLocalCoords<Level>(i, elementN, globalCoords, localCoords);
+      computeElementMatrix(localStiffness, localCoords);
+      assembleP1LocalStencil({{3, 6, 5}}, {{0,1,2}}, localStiffness, edgeStencil);
+
+      fillLocalCoords<Level>(i, elementNW, globalCoords, localCoords);
+      computeElementMatrix(localStiffness, localCoords);
+      assembleP1LocalStencil({{3, 5, 2}}, {{0,1,2}}, localStiffness, edgeStencil);
+    }
+
+//    WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:edgeStencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edgeStencil[0])));
+
+    tmp = edgeStencil[VERTEX_C] * src[index<Level>(i, VERTEX_C)];
+
+    for (auto& neighbor : neighbors_on_edge) {
+      tmp += edgeStencil[neighbor] * src[index<Level>(i, neighbor)];
+    }
+
+    for (auto& neighbor : neighbors_south) {
+      tmp += edgeStencil[neighbor] * src[index<Level>(i, neighbor)];
+    }
+
+    if (edge.getNumNeighborFaces() == 2) {
+      for (auto& neighbor : neighbors_north) {
+        tmp += edgeStencil[neighbor] * src[index<Level>(i, neighbor)];
+      }
+    }
+
+    if (update == Replace) {
+      dst[index<Level>(i, VERTEX_C)] = tmp;
+    } else if (update == Add) {
+      dst[index<Level>(i, VERTEX_C)] += tmp;
+    }
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
+
+template< typename ValueType, uint_t Level >
+inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
                       const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
                       const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId) {
   using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto opr_data = edge.getData(operatorId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
   auto rhs = edge.getData(rhsId)->getPointer( Level );
 
@@ -275,7 +401,7 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, 
 SPECIALIZE_WITH_VALUETYPE( void, smoothGSTmpl, smooth_gs )
 
 template< typename ValueType, uint_t Level >
-inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId,
                           ValueType relax) {
@@ -283,7 +409,7 @@ inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory,
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto opr_data = edge.getData(operatorId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
   auto rhs = edge.getData(rhsId)->getPointer( Level );
 
@@ -314,7 +440,7 @@ inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory,
 SPECIALIZE_WITH_VALUETYPE( void, smoothSORTmpl, smooth_sor )
 
 template< typename ValueType, uint_t Level >
-inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId,
                           const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &tmpId) {
@@ -322,7 +448,7 @@ inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory,
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto opr_data = edge.getData(operatorId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
   auto rhs = edge.getData(rhsId)->getPointer( Level );
   auto tmp = edge.getData(tmpId)->getPointer( Level );
@@ -537,14 +663,14 @@ SPECIALIZE_WITH_VALUETYPE( void, projectNormalTmpl, projectNormal )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
-inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory, Edge> &operatorId,
+inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &operatorId,
                          const PrimitiveDataID<EdgeP1FunctionMemory< PetscInt >, Edge> &srcId,
                          const PrimitiveDataID<EdgeP1FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
   using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
-  auto &opr_data = edge.getData(operatorId)->data[Level];
+  auto opr_data = edge.getData(operatorId)->getPointer( Level );
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
 

@@ -31,9 +31,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
       }
 
       if (update==Replace) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] = tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] += tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;
@@ -57,7 +57,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-      PetscInt dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)];
+      PetscInt dst_id = dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)];
 
       for (auto neighbor : BubbleFace::neighbors) {
         MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)],

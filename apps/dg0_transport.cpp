@@ -61,18 +61,20 @@ int main(int argc, char* argv[])
   v->interpolate(vel_y, maxLevel);
   c_old->interpolate(initialConcentration, maxLevel);
 
-  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({u.get(), v.get()}, {c_old.get(), c.get()}, maxLevel,
-                                                                    "../output", fmt::format("dg0_transport-{:0>6}", 0));
+  hhg::VTKOutput vtkOutput( "../output", "dg0_transport" );
+
+  vtkOutput.add( u );
+  vtkOutput.add( v );
+  vtkOutput.add( c_old );
+  vtkOutput.add( c );
+
+  vtkOutput.write( maxLevel );
 
   for(uint_t i = 1; i <= timesteps; i++) {
     N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
     c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
 
-//    if (i % 50 == 0) {
-    hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t>>({u.get(), v.get()}, {c_old.get(), c.get()}, maxLevel,
-                                                                     "../output", fmt::format("dg0_transport-{:0>6}",
-                                                                                              i));
-//    }
+    vtkOutput.write( maxLevel, i );
 
     c_old.swap(c);
   }
