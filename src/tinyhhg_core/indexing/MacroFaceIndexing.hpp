@@ -313,13 +313,13 @@ private:
 
 
 template< uint_t width >
-inline constexpr Index getFaceBottomLeftCorner() { Index idx; idx.col() = 0; idx.row() = 0; return idx; }
+inline Index getFaceBottomLeftCorner() { Index idx; idx.col() = 0; idx.row() = 0; return idx; }
 
 template< uint_t width >
-inline constexpr Index getFaceBottomRightCorner() { Index idx; idx.col() = width - 1; idx.row() = 0; return idx; }
+inline Index getFaceBottomRightCorner() { Index idx; idx.col() = width - 1; idx.row() = 0; return idx; }
 
 template< uint_t width >
-inline constexpr Index getFaceTopLeftCorner() { Index idx; idx.col() = 0; idx.row() = width - 1; return idx; }
+inline Index getFaceTopLeftCorner() { Index idx; idx.col() = 0; idx.row() = width - 1; return idx; }
 
 }
 }
