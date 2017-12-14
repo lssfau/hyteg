@@ -13,11 +13,7 @@ namespace hhg {
 MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
   MeshInfo meshInfo;
-  const std::array< DoFType, 4 > BOUNDARY_TYPE_TO_FLAG = {{ Inner,
-                                                            DirichletBoundary,
-                                                            NeumannBoundary,
-                                                            FreeslipBoundary
-                                                          }};
+  const std::array< DoFType, 3 > BOUNDARY_TYPE_TO_FLAG = {{ Inner, DirichletBoundary, NeumannBoundary }}; // double-braces to silence warning
 
   WALBERLA_LOG_INFO_ON_ROOT( "[Mesh] Opening mesh file: " << meshFileName );
 

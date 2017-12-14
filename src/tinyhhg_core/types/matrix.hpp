@@ -90,18 +90,6 @@ public:
     return &x[0];
   }
 
-  /// Multiply matrix from right
-  PointND<T, M> multiply(const PointND<T, N>& rhs) const
-  {
-    PointND<T, M> out;
-    for (uint_t i = 0; i < M; ++i) {
-      for (uint_t j = 0; j < N; ++j) {
-        out(i) += (*this)(i,j) * rhs(j);
-      }
-    }
-    return out;
-  };
-
 private:
   T x[Size];
 };
@@ -127,7 +115,6 @@ inline std::ostream& operator<<(std::ostream &os, const Matrix<T, M, N> &matrix)
   return os;
 }
 
-typedef Matrix<real_t, 2, 2> Matrix2r;
 typedef Matrix<real_t, 3, 3> Matrix3r;
 typedef Matrix<real_t, 6, 6> Matrix6r;
 

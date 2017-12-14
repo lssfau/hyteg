@@ -163,22 +163,6 @@ public:
     return x[index];
   }
 
-  /// Value of component of vector at position \p index
-  /// \param index The index of the component to access
-  /// \returns Reference to component at position \p index
-  T& operator() (const int index)
-  {
-    return x[index];
-  }
-
-  /// Value of component of vector at position \p index
-  /// \param index The index of the component to access
-  /// \returns Value of component at position \p index
-  T operator() (const int index) const
-  {
-    return x[index];
-  }
-
   void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
   {
     for ( size_t index = 0; index < N; index++ )

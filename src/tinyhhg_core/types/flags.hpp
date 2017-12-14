@@ -11,12 +11,10 @@ enum UpdateType
 
 enum DoFType:size_t
 {
-  All = 1+2+4+8,
-  Boundary = 2+4+8,
+  All = 1+2+4,
   Inner = 1,
   DirichletBoundary = 2,
   NeumannBoundary = 4,
-  FreeslipBoundary = 8
 };
 
 inline DoFType operator|(DoFType a, DoFType b){
@@ -29,8 +27,6 @@ inline DoFType operator&(DoFType a, DoFType b){
 
 inline std::ostream& operator<<(std::ostream &os, const DoFType type){
   switch(type) {
-    case FreeslipBoundary   :
-      return os << "FreeslipBoundary";
     case NeumannBoundary   :
       return os << "NeumannBoundary";
     case DirichletBoundary :
