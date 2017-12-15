@@ -41,8 +41,9 @@ public:
   using Function< BubbleFunction< ValueType > >::storage_;
   using Function< BubbleFunction< ValueType > >::communicators_;
 
-  /// Interpolates a given expression to a P1Function
-  void interpolate_impl(std::function<ValueType(const Point3D &)> &expr, uint_t level, DoFType flag = All);
+  inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                               const std::vector<BubbleFunction*> srcFunctions,
+                               uint_t level, DoFType flag = All);
 
   void assign_impl(const std::vector<ValueType> scalars,
               const std::vector<BubbleFunction<ValueType> *> functions,
@@ -82,9 +83,12 @@ public:
 };
 
 template< typename ValueType >
-void BubbleFunction< ValueType >::interpolate_impl(std::function<ValueType(const hhg::Point3D &)> &expr, uint_t level, DoFType flag) {
+void BubbleFunction< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                                                   const std::vector<BubbleFunction*> srcFunctions,
+                                                   uint_t level, DoFType flag) {
   // TODO: implement Bubble interpolation. It is not required for Dirichlet only interpolation in most of the apps
   WALBERLA_UNUSED( expr );
+  WALBERLA_UNUSED( srcFunctions );
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( flag );
   WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!");

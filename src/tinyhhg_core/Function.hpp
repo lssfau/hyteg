@@ -42,6 +42,11 @@ public:
                            uint_t                                          level,
                            DoFType                                         flag = All );
 
+  inline void interpolateExtended( std::function< ValueType( const Point3D &, const std::vector<ValueType>& ) > & expr,
+                                   const std::vector<FunctionType*>&               srcFunctions,
+                                   uint_t                                          level,
+                                   DoFType                                         flag = All );
+
   inline void assign( const std::vector< ValueType >      scalars,
                       const std::vector< FunctionType * > functions,
                       uint_t                              level,
@@ -94,8 +99,8 @@ public:
 protected:
 
     virtual void
-    interpolate_impl( std::function< ValueType
-    ( const Point3D& ) >& expr,
+    interpolate_impl( std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                      const std::vector<FunctionType*> srcFunctions,
                       uint_t level, DoFType flag = All ) = 0;
 
     virtual void
@@ -155,11 +160,28 @@ protected:
 template< typename FunctionType >
 void Function< FunctionType >::interpolate(std::function< ValueType(const Point3D&)>& expr, uint_t level, DoFType flag)
 {
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+    return expr(x);
+  };
+
   startTiming( "Interpolate" );
 
-  interpolate_impl( expr, level, flag );
+  interpolate_impl( exprExtended, {}, level, flag );
 
   stopTiming( "Interpolate" );
+}
+
+template< typename FunctionType >
+void Function< FunctionType >::interpolateExtended(std::function< ValueType(const Point3D&,const std::vector<ValueType>&)>& expr,
+                                                   const std::vector<FunctionType*>& srcFunctions,
+                                                   uint_t level,
+                                                   DoFType flag)
+{
+  startTiming( "InterpolateExt" );
+
+  interpolate_impl( expr, srcFunctions, level, flag );
+
+  stopTiming( "InterpolateExt" );
 }
 
 template< typename FunctionType >

@@ -67,10 +67,18 @@ inline void fillLocalCoords(uint_t i, uint_t j, const P1Elements::P1Element& ele
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
-                            std::function<ValueType(const hhg::Point3D &)> &expr) {
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr) {
   using namespace FaceCoordsVertex;
 
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcIds.size());
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
@@ -89,7 +97,12 @@ inline void interpolateTmpl(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
+
+      for (uint_t k = 0; k < srcPtr.size(); ++k) {
+        srcVector[k] = srcPtr[k][index<Level>(j, i, stencilDirection::VERTEX_C)];
+      }
+
+      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x, srcVector);
       x += d0;
     }
 

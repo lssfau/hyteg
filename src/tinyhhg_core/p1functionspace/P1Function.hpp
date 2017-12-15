@@ -58,7 +58,9 @@ private:
   using Function< P1Function< ValueType > >::communicators_;
 
   /// Interpolates a given expression to a P1Function
-  inline void interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag = All);
+  inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                               const std::vector<P1Function*> srcFunctions,
+                               uint_t level, DoFType flag = All);
 
   inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
 
@@ -80,38 +82,52 @@ private:
 };
 
 template< typename ValueType >
-inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType(const hhg::Point3D&) > & expr, uint_t level, DoFType flag)
+inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                                                      const std::vector<P1Function*> srcFunctions,
+                                                      uint_t level, DoFType flag)
 {
-    for (auto& it : storage_->getVertices()) {
-        Vertex& vertex = *it.second;
+  // Collect all source IDs in a vector
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
 
-        if (testFlag(vertex.getDoFType(), flag)) {
-            P1Vertex::interpolate(vertex, vertexDataID_, expr, level);
-        }
-    }
+  for (auto& function : srcFunctions)
+  {
+    srcVertexIDs.push_back(function->vertexDataID_);
+    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcFaceIDs.push_back(function->faceDataID_);
+  }
 
-    communicators_[level]->template startCommunication<Vertex, Edge>();
+  for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
 
-    for (auto& it : storage_->getEdges()) {
-        Edge& edge = *it.second;
+      if (testFlag(vertex.getDoFType(), flag)) {
+        P1Vertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
+      }
+  }
 
-        if (testFlag(edge.getDoFType(), flag)) {
-            P1Edge::interpolate< ValueType >(level, edge, edgeDataID_, expr);
-        }
-    }
+  communicators_[level]->template startCommunication<Vertex, Edge>();
 
-    communicators_[level]->template endCommunication<Vertex, Edge>();
-    communicators_[level]->template startCommunication<Edge, Face>();
+  for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
 
-    for (auto& it : storage_->getFaces()) {
-        Face& face = *it.second;
+      if (testFlag(edge.getDoFType(), flag)) {
+        P1Edge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
+      }
+  }
 
-        if (testFlag(face.type, flag)) {
-            P1Face::interpolate< ValueType >(level, face, faceDataID_, expr);
-        }
-    }
+  communicators_[level]->template endCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication<Edge, Face>();
 
-    communicators_[level]->template endCommunication<Edge, Face>();
+  for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag)) {
+        P1Face::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
+      }
+  }
+
+  communicators_[level]->template endCommunication<Edge, Face>();
 }
 
 template< typename ValueType >
