@@ -18,9 +18,19 @@ using walberla::real_c;
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face & face,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
-                            std::function< ValueType( const hhg::Point3D & ) > & expr)
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                            std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto faceData = face.getData( faceMemoryId )->getPointer( Level );
+
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(face.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVectorHorizontal(srcIds.size());
+  std::vector<ValueType> srcVectorVertical(srcIds.size());
+  std::vector<ValueType> srcVectorDiagonal(srcIds.size());
 
   const Point3D faceBottomLeftCoords  = face.coords[0];
   const Point3D faceBottomRightCoords = face.coords[1];
@@ -36,9 +46,15 @@ inline void interpolateTmpl(Face & face,
     const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
     const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
-    faceData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition );
-    faceData[ indexing::edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition );
-    faceData[ indexing::edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition );
+    for (uint_t k = 0; k < srcPtr.size(); ++k) {
+      srcVectorHorizontal[k] = srcPtr[k][indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() )];
+      srcVectorVertical[k] = srcPtr[k][indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() )];
+      srcVectorDiagonal[k] = srcPtr[k][indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() )];
+    }
+
+    faceData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
+    faceData[ indexing::edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition, srcVectorVertical );
+    faceData[ indexing::edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
   }
 }
 
