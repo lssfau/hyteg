@@ -64,6 +64,10 @@ waLBerla_add_executable( NAME cg_P1_varcoords
         FILES cg_P1_varcoords.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME polynomial_interpolation
+        FILES polynomial_interpolation.cpp
+        DEPENDS tinyhhg_core fmt)
+
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp
