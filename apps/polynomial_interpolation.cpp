@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const uint_t DEGREE = 4;
+  const uint_t DEGREE = 7;
   const uint_t level = 8;
 
   typedef Polynomial2DBasis<DEGREE> Basis;
@@ -41,14 +41,7 @@ int main(int argc, char* argv[])
   for (uint_t i = 0; i < Polynomial2D<DEGREE>::getNumCoefficients(); ++i) {
     for (uint_t j = 0; j < Polynomial2D<DEGREE>::getNumCoefficients(); ++j) {
       sp += PolyMath::scalarProduct2D(basis.polys_[i], basis.polys_[j], level);
-
-      if (std::abs(sp) < 1e-10) {
-        sp = 0.0;
-      }
-
-      std::cout << sp << " ";
     }
-    std::cout << std::endl;
   }
 
   end = walberla::timing::getWcTime();
@@ -56,19 +49,19 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO("sp = " << sp)
   WALBERLA_LOG_INFO("notgen = " << end-start << "s")
 
-//  sp = 0.0;
-//  start = walberla::timing::getWcTime();
-//
-//  for (uint_t i = 0; i < Polynomial2D<DEGREE>::getNumCoefficients(); ++i) {
-//    for (uint_t j = 0; j < Polynomial2D<DEGREE>::getNumCoefficients(); ++j) {
-//      sp += PolyMath::scalarProduct2DHierarchical(i, j, level);
-//    }
-//  }
-//
-//  end = walberla::timing::getWcTime();
-//
-//  WALBERLA_LOG_INFO("sp = " << sp)
-//  WALBERLA_LOG_INFO("gen = " << end-start << "s")
+  sp = 0.0;
+  start = walberla::timing::getWcTime();
+
+  for (uint_t i = 0; i < Polynomial2D<DEGREE>::getNumCoefficients(); ++i) {
+    for (uint_t j = 0; j < Polynomial2D<DEGREE>::getNumCoefficients(); ++j) {
+      sp += PolyMath::scalarProduct2DHierarchical(i, j, level);
+    }
+  }
+
+  end = walberla::timing::getWcTime();
+
+  WALBERLA_LOG_INFO("sp = " << sp)
+  WALBERLA_LOG_INFO("gen = " << end-start << "s")
 
   return 0;
 }
