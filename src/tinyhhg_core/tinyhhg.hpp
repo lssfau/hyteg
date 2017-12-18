@@ -26,8 +26,6 @@
 #include "types/matrix.hpp"
 #include "types/flags.hpp"
 #include "polynomial/polynomial.hpp"
-#include "tinyhhg_core/polynomial/polynomialbasis.hpp"
-#include "tinyhhg_core/polynomial/polynomialmath.hpp"
 
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
