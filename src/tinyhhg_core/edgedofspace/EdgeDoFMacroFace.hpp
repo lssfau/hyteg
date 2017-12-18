@@ -44,7 +44,7 @@ inline void interpolateTmpl(Face & face,
   // Therefore we:
   //   1. iterate over the inner face
   //   2. iterate over the two missing borders for each edge dof type (skipping the outer most dofs)
-  //   3. updating the missing dof on the opposite of the edge that must not be updated
+  //   3. update the missing dof on the opposite of the edge that must not be updated
 
   for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 1 ) )
   {
