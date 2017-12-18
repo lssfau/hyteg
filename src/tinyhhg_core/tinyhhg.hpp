@@ -26,6 +26,7 @@
 #include "types/matrix.hpp"
 #include "types/flags.hpp"
 #include "polynomial/polynomial.hpp"
+#include "polynomial/lsqinterpolation.hpp"
 
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
