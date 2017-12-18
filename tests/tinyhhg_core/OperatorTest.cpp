@@ -5,6 +5,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 
 using namespace hhg;
 
@@ -19,6 +20,7 @@ void checkOperator() {
   const uint_t level = 2;
 
   EdgeDoFToVertexDoFOperator testOperator(storage,level,level);
+  EdgeDoFOperator(storage, level, level);
 
 
 }
