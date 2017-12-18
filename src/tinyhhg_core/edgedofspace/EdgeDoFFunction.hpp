@@ -93,8 +93,6 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
                                                            uint_t level,
                                                            DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Interpolate not fully implemented!" );
-
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
@@ -133,15 +131,11 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Assign not fully implemented!" );
-
-  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
   for ( auto& function : functions )
   {
-      srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
   }
@@ -175,15 +169,11 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
-
-  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
   for ( auto& function : functions )
   {
-      srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
   }
@@ -216,8 +206,6 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Dot not fully implemented!" );
-
   real_t scalarProduct =  0.0 ;
 
   for ( auto & it : storage_->getEdges() )
