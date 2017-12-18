@@ -17,9 +17,17 @@ using walberla::real_c;
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Edge & edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
-                            std::function< ValueType( const hhg::Point3D & ) > & expr)
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                            std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
+
+  std::vector<ValueType*> srcPtr;
+  for(auto src : srcIds){
+    srcPtr.push_back(edge.getData(src)->getPointer( Level ));
+  }
+
+  std::vector<ValueType> srcVector(srcIds.size());
 
   const Point3D leftCoords  = edge.getCoordinates()[0];
   const Point3D rightCoords = edge.getCoordinates()[1];
@@ -29,7 +37,12 @@ inline void interpolateTmpl(Edge & edge,
   for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
   {
     const Point3D currentCoordinates = leftCoords + microEdgeOffset + 2 * it.col() * microEdgeOffset;
-    edgeData[ indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates );
+
+    for (uint_t k = 0; k < srcPtr.size(); ++k) {
+      srcVector[k] = srcPtr[k][indexing::edgedof::macroedge::horizontalIndex< Level >( it.col() )];
+    }
+
+    edgeData[ indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates, srcVector );
   }
 }
 

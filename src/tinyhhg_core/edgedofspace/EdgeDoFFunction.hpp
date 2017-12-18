@@ -52,10 +52,12 @@ private:
     using Function< EdgeDoFFunction< ValueType > >::storage_;
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
 
-    /// Interpolates a given expression to a P1Function
+    /// Interpolates a given expression to a EdgeDoFFunction
     inline void
-    interpolate_impl( std::function< ValueType( const Point3D& ) > & expr,
-                      uint_t level, DoFType flag = All );
+    interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                             const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                                             uint_t level,
+                                             DoFType flag = All);
 
     inline void
     assign_impl( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
@@ -86,9 +88,22 @@ private:
 };
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueType(const hhg::Point3D&) > & expr, uint_t level, DoFType flag)
+inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                                           const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                                                           uint_t level,
+                                                           DoFType flag)
 {
   WALBERLA_LOG_WARNING_ON_ROOT( "Interpolate not fully implemented!" );
+
+  // Collect all source IDs in a vector
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
+
+  for (auto& function : srcFunctions)
+  {
+    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcFaceIDs.push_back(function->faceDataID_);
+  }
 
   for ( auto & it : storage_->getEdges() )
   {
@@ -96,7 +111,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueT
 
     if ( testFlag( edge.getDoFType(), flag ) )
     {
-      edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, expr );
+      edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
     }
   }
 
@@ -108,12 +123,11 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function< ValueT
 
     if ( testFlag( face.type, flag ) )
     {
-      edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, expr );
+      edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
     }
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
-
 }
 
 template< typename ValueType >

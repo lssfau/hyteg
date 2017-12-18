@@ -129,7 +129,7 @@ public:
 
   TestPackInfo( PrimitiveDataID< TestData, Primitive > & dataID ) : dataID_( dataID ) {}
 
-  virtual void packVertexForEdge( const Vertex *sender, const PrimitiveID & /* receiver */, walberla::mpi::SendBuffer & buffer )
+  virtual void packVertexForEdge( const Vertex *sender, const PrimitiveID & /* receiver */, walberla::mpi::SendBuffer & buffer ) const
   {
     WALBERLA_LOG_INFO( "Packing data on vertex..." );
 
@@ -140,7 +140,7 @@ public:
     buffer << data->ownID;
   }
 
-  virtual void unpackEdgeFromVertex( Edge *receiver, const PrimitiveID & /* sender */, walberla::mpi::RecvBuffer & buffer )
+  virtual void unpackEdgeFromVertex( Edge *receiver, const PrimitiveID & /* sender */, walberla::mpi::RecvBuffer & buffer ) const
   {
     WALBERLA_LOG_INFO( "Unpacking data on edge..." );
 
@@ -152,7 +152,7 @@ public:
     data->neighborIDs.push_back( vertexData );
   }
 
-  virtual void communicateLocalVertexToEdge( const Vertex *sender, Edge *receiver )
+  virtual void communicateLocalVertexToEdge( const Vertex *sender, Edge *receiver ) const
   {
     WALBERLA_LOG_INFO( "Communicating data unbuffered from vertex to edge..." );
 
@@ -171,23 +171,23 @@ private:
 
 public:
 
-  virtual void packEdgeForVertex( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) {}
+  virtual void packEdgeForVertex( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
 
-  virtual void unpackVertexFromEdge( Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) {}
+  virtual void unpackVertexFromEdge( Vertex *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
 
-  virtual void communicateLocalEdgeToVertex( const Edge *, Vertex * ) {}
+  virtual void communicateLocalEdgeToVertex( const Edge *, Vertex * ) const {}
 
-  virtual void packEdgeForFace( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) {}
+  virtual void packEdgeForFace( const Edge *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
 
-  virtual void unpackFaceFromEdge( Face *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) {}
+  virtual void unpackFaceFromEdge( Face *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
 
-  virtual void communicateLocalEdgeToFace( const Edge *, Face * ) {}
+  virtual void communicateLocalEdgeToFace( const Edge *, Face * ) const {}
 
-  virtual void packFaceForEdge( const Face *, const PrimitiveID &, walberla::mpi::SendBuffer & ) {}
+  virtual void packFaceForEdge( const Face *, const PrimitiveID &, walberla::mpi::SendBuffer & ) const {}
 
-  virtual void unpackEdgeFromFace( Edge *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) {}
+  virtual void unpackEdgeFromFace( Edge *, const PrimitiveID &, walberla::mpi::RecvBuffer & ) const {}
 
-  virtual void communicateLocalFaceToEdge( const Face *, Edge * ) {}
+  virtual void communicateLocalFaceToEdge( const Face *, Edge * ) const {}
 
 };
 
