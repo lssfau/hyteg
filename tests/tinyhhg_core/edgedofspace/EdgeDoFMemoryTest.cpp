@@ -10,16 +10,16 @@ namespace hhg {
 
 static void testEdgeDoFFunctionMemorySize()
 {
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroVertexFunctionMemorySize( 2, 4 ), 8 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroVertexFunctionMemorySize( 3, 4 ), 8 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 2, 4 ), 8 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 3, 4 ), 8 );
 
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroEdgeFunctionMemorySize( 2, 1 ), 15 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroEdgeFunctionMemorySize( 2, 2 ), 26 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroEdgeFunctionMemorySize( 3, 1 ), 31 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroEdgeFunctionMemorySize( 3, 2 ), 54 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, 1 ), 15 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, 2 ), 26 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, 1 ), 31 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, 2 ), 54 );
 
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroFaceFunctionMemorySize( 2, 2 ),  30 );
-  WALBERLA_CHECK_EQUAL( EdgeDoFMacroFaceFunctionMemorySize( 3, 2 ), 108 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 2, 2 ),  30 );
+  WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 3, 2 ), 108 );
 }
 
 } // namespace hhg
