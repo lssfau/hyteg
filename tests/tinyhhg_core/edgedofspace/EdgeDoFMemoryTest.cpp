@@ -4,7 +4,7 @@
 #include "core/debug/TestSubsystem.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFDataHandling.hpp"
 
 namespace hhg {
 

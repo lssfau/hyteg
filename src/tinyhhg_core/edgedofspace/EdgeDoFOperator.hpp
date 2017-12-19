@@ -5,7 +5,6 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 #include "EdgeDoFFunction.hpp"
-#include "EdgeDoFDataHandling.hpp"
 
 namespace hhg{
 

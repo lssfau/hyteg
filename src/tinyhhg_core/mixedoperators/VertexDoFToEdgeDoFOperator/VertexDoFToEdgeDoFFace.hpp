@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
 #include "VertexDoFToEdgeDoFMemory.hpp"
 
 

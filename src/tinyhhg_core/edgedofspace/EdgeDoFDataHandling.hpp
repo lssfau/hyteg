@@ -1,8 +1,10 @@
 #pragma once
 
-#include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
-#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
+
+
 
 namespace hhg {
 
@@ -54,26 +56,4 @@ private:
 
 };
 
-////////////////////
-// Implementation //
-////////////////////
-
-template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > EdgeDoFMacroVertexFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
-{
-  return std::make_shared< FunctionMemory< ValueType > >( EdgeDoFMacroVertexFunctionMemorySize, vertex->getNumNeighborEdges(), minLevel_, maxLevel_ );
-}
-
-template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > EdgeDoFMacroEdgeFunctionMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
-{
-  return std::make_shared< FunctionMemory< ValueType > >( EdgeDoFMacroEdgeFunctionMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
-}
-
-template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > EdgeDoFMacroFaceFunctionMemoryDataHandling< ValueType >::initialize( const Face * const ) const
-{
-  return std::make_shared< FunctionMemory< ValueType > >( EdgeDoFMacroFaceFunctionMemorySize, 0, minLevel_, maxLevel_ );
-}
-
-}
+}/// namespace hhg

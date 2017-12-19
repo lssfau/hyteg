@@ -5,7 +5,6 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFMemory.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
 namespace hhg {
@@ -81,7 +80,7 @@ inline void interpolateTmpl(Face & face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate );
+SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
 template< typename ValueType, uint_t Level >
@@ -125,7 +124,7 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add );
+SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
 template< typename ValueType, uint_t Level >
 inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
@@ -163,7 +162,7 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
   addTmpl< ValueType, Level >( face, scalars, srcIds, dstId );
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign );
+SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
 template< typename ValueType, uint_t Level >
 inline real_t dotTmpl( Face & face,
@@ -202,7 +201,7 @@ inline real_t dotTmpl( Face & face,
   return scalarProduct;
 }
 
-SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot );
+SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 template< typename ValueType, uint_t Level >
 inline void enumerateTmpl(Face &face,
@@ -241,7 +240,7 @@ inline void enumerateTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate );
+SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 }
 }

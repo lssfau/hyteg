@@ -109,9 +109,9 @@ inline void apply_tmpl(Face &face,
       }
 
       if (update==Replace) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] = tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, P1Face::FaceCoordsVertex::VERTEX_C)] += tmp;
+        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;

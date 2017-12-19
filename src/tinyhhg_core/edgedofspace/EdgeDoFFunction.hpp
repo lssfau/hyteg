@@ -11,7 +11,6 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "EdgeDoFMemory.hpp"
 #include "EdgeDoFDataHandling.hpp"
 #include "EdgeDoFMacroFace.hpp"
 #include "EdgeDoFMacroEdge.hpp"
