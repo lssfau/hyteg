@@ -29,6 +29,8 @@ int main(int argc, char **argv)
   size_t v_perVertex = levelinfo::num_microvertices_per_vertex(maxLevel);
 
   P1Function< real_t > x("x", storage, minLevel, maxLevel);
+  std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> emptyEdgeIds;
+  std::vector<PrimitiveDataID<FunctionMemory< real_t >, Face>> emptyFaceIds;
 
   for (auto face : storage->getFaces())
   {
@@ -54,7 +56,7 @@ int main(int argc, char **argv)
 
 
 
-  std::function<real_t(const Point3D &)> exact = [](const Point3D & xx) { return 2*xx[0] + xx[1]; };
+  std::function<real_t(const Point3D &,const std::vector<real_t>&)> exact = [](const Point3D & xx, const std::vector<real_t>&) { return 2*xx[0] + xx[1]; };
   //std::function<real_t(const Point3D &)> exact = [](const Point3D & x) { return 13; };
 
   real_t value,xStepSize, yStepSize;
@@ -67,12 +69,12 @@ int main(int argc, char **argv)
     xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((v_perEdge-1));
     yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((v_perEdge-1));
 
-    P1Face::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), exact);
+    P1Face::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, P1Face::FaceCoordsVertex::VERTEX_C);
+        uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, stencilDirection::VERTEX_C);
         if (P1Face::is_boundary(idx, v_perEdge))
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], 0.0,
@@ -91,7 +93,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::P1Edge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),exact);
+    hhg::P1Edge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
     value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
     xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));

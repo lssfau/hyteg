@@ -8,12 +8,10 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
-
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/p2functionspace/P2Operator.hpp"
 
 #include "bubblefunctionspace/BubbleFunction.hpp"
 #include "bubblefunctionspace/BubbleOperator.hpp"
@@ -30,6 +28,7 @@
 
 #include "solvers/cgsolver.hpp"
 #include "solvers/minressolver.hpp"
+#include "solvers/gmultigrid.hpp"
 #include "solvers/uzawasolver.hpp"
 
 #include "solvers/preconditioners/JacobiPreconditioner.hpp"

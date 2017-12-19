@@ -137,9 +137,19 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
   }
 }
 
+
 constexpr std::array<stencilDirection ,2> neighborsOnEdgeFromVertex = {{ sD::EDGE_HO_E, sD::EDGE_HO_W}};
 constexpr std::array<stencilDirection ,5> neighborsOnSouthFaceFromVertex = {{ sD::EDGE_DI_SW, sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE}};
 constexpr std::array<stencilDirection ,5> neighborsOnNorthFaceFromVertex = {{ sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW, sD::EDGE_DI_NW, sD::EDGE_VE_NW}};
+
+class Iterator : public EdgeIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  {}
+};
+
 
 } // namespace macroedge
 
@@ -343,10 +353,19 @@ public:
 class BorderIterator : public FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
-    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter )
+  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
+
+template< uint_t level >
+inline Index getBottomLeftCorner() { return getFaceBottomLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline Index getBottomRightCorner() { return getFaceBottomRightCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline Index getTopLeftCorner() { return getFaceTopLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
 
 
 } // namespace macroface

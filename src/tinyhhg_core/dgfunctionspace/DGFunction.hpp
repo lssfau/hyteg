@@ -44,8 +44,6 @@ public:
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Face> &getFaceDataID() const { return faceDataID_; }
 
-  void interpolate(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr, const std::vector<DGFunction<ValueType>*> srcFunctions, uint_t level, DoFType flag = All);
-
   void projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType = Replace);
 
 private:
@@ -57,7 +55,10 @@ private:
   PrimitiveDataID<FunctionMemory<ValueType>, Edge> edgeDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
 
-  inline void interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag = All) override;
+  inline void interpolate_impl(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr,
+                               const std::vector<DGFunction<ValueType>*> srcFunctions,
+                               uint_t level,
+                               DoFType flag = All) override;
 
   inline void assign_impl(const std::vector<ValueType> scalars,
                           const std::vector<DGFunction< ValueType >*> functions,
@@ -108,12 +109,10 @@ void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, con
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::interpolate(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                          const std::vector<DGFunction<ValueType>*> srcFunctions,
-                                          uint_t level,
-                                          DoFType flag) {
-
-  this->startTiming( "Interpolate");
+void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                               const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                               uint_t level,
+                                               DoFType flag) {
 
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
@@ -157,18 +156,6 @@ void DGFunction< ValueType >::interpolate(std::function<ValueType(const Point3D 
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
-
-  this->stopTiming( "Interpolate");
-
-}
-
-template< typename ValueType >
-inline void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D&)>& expr, uint_t level, DoFType flag) {
-  std::function<ValueType(const Point3D&, const std::vector<ValueType>&)> tmpExpr = [&] (const Point3D& x, const std::vector<ValueType>&) {
-    return expr(x);
-  };
-  WALBERLA_ABORT("this does not work currently use other interpolate")
-  //interpolate(tmpExpr, {}, level, flag);
 }
 
 template< typename ValueType >
@@ -275,6 +262,8 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 template< typename ValueType >
 void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType)
 {
+  this->startTiming( "projectP1" );
+
   src.getCommunicator(level)->template startCommunication<Edge, Vertex>();
   src.getCommunicator(level)->template startCommunication<Face, Edge>();
   src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
@@ -315,6 +304,8 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   }
 
   this->getCommunicator(level)->template endCommunication<Edge, Face>();
+
+  this->stopTiming( "projectP1" );
 }
 
 }

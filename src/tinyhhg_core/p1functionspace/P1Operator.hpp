@@ -37,7 +37,7 @@ namespace hhg
 
 using walberla::real_t;
 
-template<class UFCOperator,  bool Diagonal = false>
+template<class UFCOperator,  bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false>
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
@@ -75,6 +75,22 @@ public:
           assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[i], FaceVertexDoF::P1BlueDoFMaps[i], local_stiffness_blue, face_stencil);
         }
 
+        if (Lumped) {
+          face_stencil[3] += face_stencil[0] + face_stencil[1] + face_stencil[2] + face_stencil[4] + face_stencil[5]
+                             + face_stencil[6];
+
+          face_stencil[0] = 0;
+          face_stencil[1] = 0;
+          face_stencil[2] = 0;
+          face_stencil[4] = 0;
+          face_stencil[5] = 0;
+          face_stencil[6] = 0;
+        }
+
+        if (InvertDiagonal) {
+          face_stencil[3] = 1.0 / face_stencil[3];
+        }
+
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
 
@@ -110,6 +126,26 @@ public:
           assembleP1LocalStencil({{3, 4, 6}}, {{start_id, end_id, opposite_id}}, local_stiffness_gray, edge_stencil);
           assembleP1LocalStencil({{3, 6, 5}}, {{opposite_id, start_id, end_id}}, local_stiffness_blue, edge_stencil);
           assembleP1LocalStencil({{3, 5, 2}}, {{end_id, opposite_id, start_id}}, local_stiffness_gray, edge_stencil);
+        }
+
+        if (Lumped) {
+          edge_stencil[3] += edge_stencil[0] + edge_stencil[1] + edge_stencil[2] + edge_stencil[4];
+
+          edge_stencil[0] = 0;
+          edge_stencil[1] = 0;
+          edge_stencil[2] = 0;
+          edge_stencil[4] = 0;
+
+          if (edge.getNumNeighborFaces() == 2)
+          {
+            edge_stencil[3] += edge_stencil[5] + edge_stencil[6];
+            edge_stencil[5] = 0;
+            edge_stencil[6] = 0;
+          }
+        }
+
+        if (InvertDiagonal) {
+          edge_stencil[3] = 1.0 / edge_stencil[3];
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
@@ -153,6 +189,18 @@ public:
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("VERTEX.id = {}:vertex_stencil = {}", vertex.getID().getID(), PointND<real_t, 3>(&vertex_stencil[0])));
         }
+
+        if (Lumped) {
+          for (uint_t i = 1; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+            vertex_stencil[0] += vertex_stencil[i];
+            vertex_stencil[i] = 0;
+          }
+        }
+
+        if (InvertDiagonal) {
+          vertex_stencil[0] = 1.0 / vertex_stencil[0];
+        }
+
       }
 
     }
@@ -161,6 +209,39 @@ public:
 
   ~P1Operator()
   {
+  }
+
+  void scale(real_t scalar) {
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
+      for (auto &it : storage_->getFaces()) {
+        Face &face = *it.second;
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < 7; ++i) {
+          face_stencil[i] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getEdges()) {
+        Edge &edge = *it.second;
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < 5; ++i) {
+          edge_stencil[i] *= scalar;
+        }
+
+        if (edge.getNumNeighborFaces() == 2) {
+          edge_stencil[5] *= scalar;
+          edge_stencil[6] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex &vertex = *it.second;
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+          vertex_stencil[i] *= scalar;
+        }
+      }
+    }
   }
 
   const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
@@ -404,6 +485,7 @@ typedef P1Operator<p1_divt_cell_integral_0_otherwise> P1DivTxOperator;
 typedef P1Operator<p1_divt_cell_integral_1_otherwise> P1DivTyOperator;
 
 typedef P1Operator<p1_mass_cell_integral_0_otherwise> P1MassOperator;
+typedef P1Operator<p1_mass_cell_integral_0_otherwise, false, true, true> P1LumpedInvMassOperator;
 
 typedef P1Operator<p1_pspg_cell_integral_0_otherwise> P1PSPGOperator;
 

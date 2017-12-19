@@ -26,9 +26,6 @@ waLBerla_add_executable( NAME cg_P1_varcoeff
         FILES cg_P1_varcoeff.cpp
         DEPENDS tinyhhg_core fmt)
 
-waLBerla_add_executable( NAME cg_P2
-        FILES cg_P2.cpp
-        DEPENDS tinyhhg_core fmt)
 
 
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_bubble       CONFIGURATIONS Release RelWithDbgInfo)
@@ -39,9 +36,9 @@ waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Releas
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1           CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1_varcoeff  CONFIGURATIONS Release RelWithDbgInfo)
 
-#waLBerla_add_executable( NAME chorin
-#        FILES chorin_test.cpp
-#        DEPENDS tinyhhg_core fmt)
+waLBerla_add_executable( NAME chorin
+        FILES chorin_test.cpp
+        DEPENDS tinyhhg_core fmt)
 
 waLBerla_add_executable( NAME stokes_mini
         FILES stokes_mini.cpp
@@ -61,6 +58,10 @@ waLBerla_add_executable( NAME stokes_stab_uzawa
 
 waLBerla_add_executable( NAME geophysics_plume
         FILES geophysics_plume.cpp
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME cg_P1_varcoords
+        FILES cg_P1_varcoords.cpp
         DEPENDS tinyhhg_core fmt)
 
 if( HHG_BUILD_WITH_PETSC )

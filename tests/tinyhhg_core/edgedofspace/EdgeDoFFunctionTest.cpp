@@ -14,9 +14,14 @@ static void testEdgeDoFFunction()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+  MeshInfo mesh  = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+  MeshInfo mesh2 = MeshInfo::fromGmshFile( "../../data/meshes/annulus_coarse.msh" );
+
   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  SetupPrimitiveStorage setupStorage2( mesh2, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+  std::shared_ptr< PrimitiveStorage > storage2 = std::make_shared< PrimitiveStorage >( setupStorage2 );
 
   auto x = std::make_shared< EdgeDoFFunction< real_t > >( "x", storage, minLevel, maxLevel );
   auto y = std::make_shared< EdgeDoFFunction< real_t > >( "y", storage, minLevel, maxLevel );
@@ -28,15 +33,6 @@ static void testEdgeDoFFunction()
   real_t * faceDataX = face->getData( x->getFaceDataID() )->getPointer( maxLevel );
   real_t * faceDataY = face->getData( y->getFaceDataID() )->getPointer( maxLevel );
 
-  // Stupid method to count number of inner face dofs :)
-  uint_t numInnerFaceDoFs = 0;
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
-  {
-    WALBERLA_UNUSED( it );
-    numInnerFaceDoFs++;
-  }
-  numInnerFaceDoFs *= 3;
-
   // Interpolate
 
   std::function<real_t(const hhg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
@@ -47,7 +43,7 @@ static void testEdgeDoFFunction()
   x->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
@@ -60,7 +56,7 @@ static void testEdgeDoFFunction()
   y->assign( { 3.0 }, { x.get() }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
@@ -73,7 +69,7 @@ static void testEdgeDoFFunction()
   y->add( {{ 4.0, 3.0 }}, {{ x.get(), x.get() }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
@@ -86,10 +82,26 @@ static void testEdgeDoFFunction()
   const real_t scalarProduct = y->dot( *x, maxLevel, DoFType::All );
   timer["Dot"].end();
 
-  WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( numInnerFaceDoFs * 20 * 2 ) );
+  WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microedges_per_face( maxLevel ) * 20 * 2 ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( timer );
 
+  // Output interpolate VTK
+
+  auto p1 = std::make_shared< P1Function< real_t > >( "p1", storage2, minLevel, maxLevel );
+  std::function<real_t(const hhg::Point3D&)> linearX = []( const Point3D & xx ) -> real_t { return xx[0] + xx[1]; };
+  p1->interpolate( linearX, maxLevel, DoFType::All );
+
+  auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
+  z->interpolate( linearX, maxLevel, DoFType::All );
+
+  auto dg = std::make_shared< DGFunction< real_t > >( "dg", storage2, minLevel, maxLevel );
+
+  VTKOutput vtkOutput( "../../output", "interpolate_test" );
+  vtkOutput.add( p1 );
+  vtkOutput.add( z );
+  vtkOutput.add( dg );
+  vtkOutput.write( maxLevel );
 }
 
 } // namespace hhg
