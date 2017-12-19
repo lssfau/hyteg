@@ -33,15 +33,6 @@ static void testEdgeDoFFunction()
   real_t * faceDataX = face->getData( x->getFaceDataID() )->getPointer( maxLevel );
   real_t * faceDataY = face->getData( y->getFaceDataID() )->getPointer( maxLevel );
 
-  // Stupid method to count number of inner face dofs :)
-  uint_t numInnerFaceDoFs = 0;
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
-  {
-    WALBERLA_UNUSED( it );
-    numInnerFaceDoFs++;
-  }
-  numInnerFaceDoFs *= 3;
-
   // Interpolate
 
   std::function<real_t(const hhg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
@@ -52,7 +43,7 @@ static void testEdgeDoFFunction()
   x->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
@@ -65,7 +56,7 @@ static void testEdgeDoFFunction()
   y->assign( { 3.0 }, { x.get() }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 6 ) );
@@ -78,7 +69,7 @@ static void testEdgeDoFFunction()
   y->add( {{ 4.0, 3.0 }}, {{ x.get(), x.get() }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel, 1 ) )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ indexing::edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 20 ) );
@@ -91,7 +82,7 @@ static void testEdgeDoFFunction()
   const real_t scalarProduct = y->dot( *x, maxLevel, DoFType::All );
   timer["Dot"].end();
 
-  WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( numInnerFaceDoFs * 20 * 2 ) );
+  WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microedges_per_face( maxLevel ) * 20 * 2 ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( timer );
 
@@ -111,7 +102,6 @@ static void testEdgeDoFFunction()
   vtkOutput.add( z );
   vtkOutput.add( dg );
   vtkOutput.write( maxLevel );
-
 }
 
 } // namespace hhg

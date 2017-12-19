@@ -30,12 +30,14 @@ public:
   FunctionMemory( const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction,
                   const uint_t & numDependencies,
                   const uint_t & minLevel,
-                  const uint_t & maxLevel )
+                  const uint_t & maxLevel,
+                  const ValueType fillValue = ValueType() ) :
+    fillValue_( fillValue )
   {
     WALBERLA_ASSERT_LESS_EQUAL( minLevel, maxLevel, "minLevel should be equal or less than maxLevel during FunctionMemory allocation." );
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      addLevel( level, sizeFunction( level, numDependencies ) );
+      addLevel( level, sizeFunction( level, numDependencies ), fillValue );
     }
   }
 
@@ -80,7 +82,7 @@ public:
       recvBuffer >> level;
       recvBuffer >> levelSize;
 
-      addLevel( level, levelSize );
+      addLevel( level, levelSize, fillValue_ );
 
       std::vector< ValueType > & dataVector = getVector( level );
       recvBuffer >> dataVector;
@@ -93,15 +95,16 @@ private:
   inline       std::vector< ValueType > & getVector( const uint_t & level )       { return *( data_[ level ] ); }
 
   /// Allocates an array of size size for a certain level
-  inline void addLevel( const uint_t & level, const uint_t & size )
+  inline void addLevel( const uint_t & level, const uint_t & size, const ValueType & fillValue )
   {
     WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
-    data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size ) );
+    data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size, fillValue ) );
   }
 
   /// Maps a level to the respective allocated data
   std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
 
+  const ValueType fillValue_;
 };
 
 }
