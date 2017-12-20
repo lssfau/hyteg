@@ -42,6 +42,16 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
          + macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
+/// Iterator over a vertex DoF macro edge.
+/// See \ref EdgeIterator for more information.
+class Iterator : public EdgeIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
+  {}
+};
+
 }
 
 // ##################

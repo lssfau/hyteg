@@ -16,9 +16,9 @@ public:
 
   void apply_impl(EdgeDoFFunction< real_t >& src,  P1Function< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
 
-  const PrimitiveDataID<StencilMemory< real_t >, Vertex> &getVertexStencilID_() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID_() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID_() const;
+  const PrimitiveDataID<StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
+  const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
+  const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
 
 private:
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;

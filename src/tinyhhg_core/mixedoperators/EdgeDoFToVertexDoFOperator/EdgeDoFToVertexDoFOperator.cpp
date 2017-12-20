@@ -68,18 +68,17 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
   }
 
   dst.getCommunicator(level)->endCommunication<Edge, Face>();
-  WALBERLA_ABORT("implement me");
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator::getVertexStencilID_() const {
+const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator::getVertexStencilID() const {
   return vertexStencilID_;
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator::getEdgeStencilID_() const {
+const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator::getEdgeStencilID() const {
   return edgeStencilID_;
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator::getFaceStencilID_() const {
+const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator::getFaceStencilID() const {
   return faceStencilID_;
 }
 
