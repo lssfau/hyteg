@@ -47,6 +47,7 @@ std::shared_ptr<StencilMemory< real_t >> MacroEdgeEdgeDoFToEdgeDoFDataHandling::
 
 
 std::shared_ptr<StencilMemory< real_t >> MacroFaceEdgeDoFToEdgeDoFDataHandling::initialize(const Face *const face) const {
+  WALBERLA_UNUSED(face);
   return std::make_shared<StencilMemory<real_t> >(macroFaceEdgeDoFToEdgeDoFStencilSize,
                                                   0,
                                                   minLevel_,
