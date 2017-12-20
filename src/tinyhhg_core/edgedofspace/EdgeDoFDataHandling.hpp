@@ -9,6 +9,9 @@
 
 namespace hhg {
 
+///@name Function Memory Data Handling
+///@{
+
 template< typename ValueType >
 class EdgeDoFMacroVertexFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory< ValueType >, Vertex >
 {
@@ -48,16 +51,10 @@ private:
 
 };
 
-class MacroVertexEdgeDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Vertex>{
+///@}
 
-public:
-  MacroVertexEdgeDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_( minLevel ), maxLevel_( maxLevel ) {};
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Vertex *const vertex) const final;
-
-private:
-  uint_t minLevel_;
-  uint_t maxLevel_;
-};
+///@name Stencil Memory Data Handling
+///@{
 
 class MacroEdgeEdgeDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Edge> {
 
@@ -81,17 +78,21 @@ private:
   uint_t maxLevel_;
 };
 
-//////////////////////
-/// Size Functions ///
-//////////////////////
+///@}
+
+
+///@name Size Functions
+///@{
 
 uint_t edgeDoFMacroVertexFunctionMemorySize(const uint_t &level, const uint_t &numDependencies);
 uint_t edgeDoFMacroEdgeFunctionMemorySize(const uint_t &level, const uint_t &numDependencies);
 uint_t edgeDoFMacroFaceFunctionMemorySize(const uint_t &level, const uint_t &numDependencies);
 
-////////////////////
-// Implementation //
-////////////////////
+///@}
+
+
+///@name Implementation
+///@{
 
   template<typename ValueType>
 std::shared_ptr<FunctionMemory<ValueType> >
@@ -112,5 +113,7 @@ std::shared_ptr<FunctionMemory<ValueType> >
 EdgeDoFMacroFaceFunctionMemoryDataHandling<ValueType>::initialize(const Face *const) const {
   return std::make_shared<FunctionMemory<ValueType> >(edgeDoFMacroFaceFunctionMemorySize, 0, minLevel_, maxLevel_);
 }
+
+///@}
 
 }/// namespace hhg

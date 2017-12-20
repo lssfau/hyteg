@@ -15,9 +15,6 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
   WALBERLA_ABORT("implement me");
 }
 
-const PrimitiveDataID<StencilMemory<real_t>, Vertex> &EdgeDoFOperator::getVertexStencilID_() const {
-  return vertexStencilID_;
-}
 
 const PrimitiveDataID<StencilMemory<real_t>, Edge> &EdgeDoFOperator::getEdgeStencilID_() const {
   return edgeStencilID_;

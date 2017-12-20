@@ -20,34 +20,25 @@ uint_t edgeDoFMacroFaceFunctionMemorySize(const uint_t &level, const uint_t &num
   return 3 * (((levelinfo::num_microedges_per_edge(level) + 1) * levelinfo::num_microedges_per_edge(level)) / 2);
 }
 
-uint_t macroVertexEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
-  WALBERLA_UNUSED(level);
-  return 2 * numDependencies;
-}
 
+/// on edges only one stencil is required since only the horizontal edge DoFs belong to the edge
 uint_t macroEdgeEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
   WALBERLA_UNUSED(level);
-  return 2 + 5 * numDependencies;
+  return 1 + 2 * numDependencies;
 }
-
+/// on face three stencils are needed for horizontal, vertical and diagonal DoFs
 uint_t macroFaceEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
   WALBERLA_UNUSED(level);
   WALBERLA_UNUSED(numDependencies);
-  return 12;
+  return 5 + 5 + 5;
 }
 
 ////////////////////
 // Implementation //
 ////////////////////
 
-std::shared_ptr<StencilMemory<double>> MacroVertexEdgeDoFToEdgeDoFDataHandling::initialize(const Vertex *const vertex) const {
-  return std::make_shared<StencilMemory< real_t > >( macroVertexEdgeDoFToEdgeDoFStencilSize,
-                                                     vertex->getNumNeighborEdges(),
-                                                     minLevel_,
-                                                     maxLevel_);
-}
 
-std::shared_ptr<StencilMemory<double>> MacroEdgeEdgeDoFToEdgeDoFDataHandling::initialize(const Edge *const edge) const {
+std::shared_ptr<StencilMemory< real_t >> MacroEdgeEdgeDoFToEdgeDoFDataHandling::initialize(const Edge *const edge) const {
   return std::make_shared<StencilMemory<real_t> >(macroEdgeEdgeDoFToEdgeDoFStencilSize,
                                                   edge->getNumNeighborFaces(),
                                                   minLevel_,
@@ -55,7 +46,7 @@ std::shared_ptr<StencilMemory<double>> MacroEdgeEdgeDoFToEdgeDoFDataHandling::in
 }
 
 
-std::shared_ptr<StencilMemory<double>> MacroFaceEdgeDoFToEdgeDoFDataHandling::initialize(const Face *const face) const {
+std::shared_ptr<StencilMemory< real_t >> MacroFaceEdgeDoFToEdgeDoFDataHandling::initialize(const Face *const face) const {
   return std::make_shared<StencilMemory<real_t> >(macroFaceEdgeDoFToEdgeDoFStencilSize,
                                                   0,
                                                   minLevel_,
