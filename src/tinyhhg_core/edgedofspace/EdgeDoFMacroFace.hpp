@@ -242,6 +242,65 @@ inline void enumerateTmpl(Face &face,
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
+template<uint_t Level>
+inline void applyTmpl(Face &face,
+                       const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
+                       UpdateType update)
+{
+  real_t * opr_data = face.getData(operatorId)->getPointer( Level );
+  real_t * src      = face.getData(srcId)->getPointer( Level );
+  real_t * dst      = face.getData(dstId)->getPointer( Level );
+
+  real_t tmp;
+
+  using namespace indexing::edgedof::macroface;
+
+  for ( const auto & it : hhg::indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    if( it.row() != 0) {
+      tmp = 0.0;
+      for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
+        tmp += opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromVertex[k])] *
+               src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+      }
+      if (update==Replace) {
+        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+      } else if ( update==Add ) {
+        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+      }
+    }
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
+      tmp = 0.0;
+      for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
+        tmp += opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromVertex[k])] *
+               src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+      }
+      if (update==Replace) {
+        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+      } else if ( update==Add ) {
+        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+      }
+    }
+    if( it.col() != 0) {
+      tmp = 0.0;
+      for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
+        tmp += opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVertex[k])] *
+               src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+      }
+
+      if (update==Replace) {
+        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+      } else if ( update==Add ) {
+        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+      }
+    }
+  }
+}
+
+SPECIALIZE(void, applyTmpl, apply)
+
 }
 }
 }

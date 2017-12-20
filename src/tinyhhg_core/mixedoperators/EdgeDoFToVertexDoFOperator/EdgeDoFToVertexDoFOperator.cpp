@@ -17,7 +17,7 @@ EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<Pri
   storage->addVertexData(vertexStencilID_, vertexVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
   storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  WALBERLA_LOG_DEVEL("TODO here is stuff missing");
+  /// the stencil assembly will be done in the P2-Operator
 }
 
 void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,

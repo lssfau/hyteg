@@ -131,6 +131,51 @@ inline void enumerateTmpl(Edge &edge,
 
 SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
+template<uint_t Level>
+inline void applyTmpl(Edge &edge,
+                       const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
+                       UpdateType update)
+{
+  using namespace hhg::indexing::edgedof::macroedge;
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
+  real_t * src      = edge.getData(srcId)->getPointer( Level );
+  real_t * dst      = edge.getData(dstId)->getPointer( Level );
+
+  real_t tmp;
+
+  for(uint_t i = 1; i < rowsize - 1; ++i){
+    tmp = 0.0;
+    for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
+      tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
+             src[indexFromHorizontalEdge< Level >(i, neighborsOnEdgeFromHorizontalEdge[k])];
+    }
+    for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
+      tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
+             src[indexFromHorizontalEdge< Level >(i, neighborsOnSouthFaceFromHorizontalEdge[k])];
+    }
+    if(edge.getNumNeighborFaces() == 2){
+      for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
+        tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
+               src[indexFromHorizontalEdge< Level >(i, neighborsOnNorthFaceFromHorizontalEdge[k])];
+      }
+    }
+
+    if (update==Replace) {
+      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] = tmp;
+    } else if (update==Add) {
+      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] += tmp;
+    }
+  }
+}
+
+SPECIALIZE(void, applyTmpl, apply)
+
+
+
 } ///namespace macroedge
 } ///namespace edgedof
 } ///namespace hhg
