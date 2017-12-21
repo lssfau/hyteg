@@ -53,6 +53,9 @@ waLBerla_execute_test(NAME EdgeDoFCommTest)
 waLBerla_compile_test(FILES operators/EdgeDoFToVertexDoFOperatorTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME EdgeDoFToVertexDoFOperatorTest)
 
+waLBerla_compile_test(FILES operators/EdgeDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
+
 ## Other ##
 
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
