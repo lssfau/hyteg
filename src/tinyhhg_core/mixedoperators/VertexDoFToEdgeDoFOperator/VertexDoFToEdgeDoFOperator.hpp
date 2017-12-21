@@ -1,8 +1,7 @@
 #pragma once
 
-#include "VertexDoFToEdgeDoFMemory.hpp"
 #include "VertexDoFToEdgeDoFDataHandling.hpp"
-#include "VertexDoFToEdgeDoFFace.hpp"
+#include "VertexDoFToEdgeDoFApply.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
@@ -23,31 +22,18 @@ namespace hhg
 class VertexDoFToEdgeDoFOperator : public Operator<P1Function< real_t >, EdgeDoFFunction< real_t > >
 {
 public:
-  VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-    : Operator(storage, minLevel, maxLevel)
-  {
-  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
-    auto faceVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroFaceVertexDoFToEdgeDoFDataHandling >(minLevel_, maxLevel_);
-    auto edgeVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroEdgeVertexDoFToEdgeDoFDataHandling >(minLevel_, maxLevel_);
+  VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel);
+  ~VertexDoFToEdgeDoFOperator() final = default;
 
-    storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-    storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
-  }
-
-  ~VertexDoFToEdgeDoFOperator() = default;
-
-  void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
-  {
-    WALBERLA_ABORT("implement me");
-  }
+  void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace);
 
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
-  const PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
-  const PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
 private:
-  PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> faceStencilID_;
+  PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
+  PrimitiveDataID< StencilMemory< real_t >, Face> faceStencilID_;
 
 };
 
