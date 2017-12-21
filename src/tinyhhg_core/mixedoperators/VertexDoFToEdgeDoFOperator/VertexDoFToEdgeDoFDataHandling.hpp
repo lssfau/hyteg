@@ -10,7 +10,7 @@ class MacroEdgeVertexDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling
 public:
 
   MacroEdgeVertexDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  inline std::shared_ptr< StencilMemory< real_t > > initialize(const Edge *const edge) const override;
+  std::shared_ptr< StencilMemory< real_t > > initialize(const Edge *const edge) const override;
 
 private:
 
@@ -24,7 +24,7 @@ class MacroFaceVertexDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling
 public:
 
   MacroFaceVertexDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  inline std::shared_ptr< StencilMemory < real_t > > initialize(const Face *const face) const override;
+  std::shared_ptr< StencilMemory < real_t > > initialize(const Face *const face) const override;
 
 private:
 
