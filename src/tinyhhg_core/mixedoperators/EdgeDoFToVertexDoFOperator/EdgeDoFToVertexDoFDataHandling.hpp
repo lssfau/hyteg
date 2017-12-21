@@ -4,35 +4,38 @@
 #include "tinyhhg_core/primitives/all.hpp"
 
 namespace hhg {
+namespace EdgeDoFToVertexDoF {
 
-
-class MacroVertexEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Vertex>{
+class MacroVertexEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory<real_t>, Vertex> {
 
 public:
   MacroVertexEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Vertex *const vertex) const final;
+
+  std::shared_ptr<StencilMemory<real_t> > initialize(const Vertex *const vertex) const final;
 
 private:
   uint_t minLevel_;
   uint_t maxLevel_;
 };
 
-class MacroEdgeEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Edge> {
+class MacroEdgeEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory<real_t>, Edge> {
 
 public:
   MacroEdgeEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Edge *const edge) const final;
+
+  std::shared_ptr<StencilMemory<real_t> > initialize(const Edge *const edge) const final;
 
 private:
   uint_t minLevel_;
   uint_t maxLevel_;
 };
 
-class MacroFaceEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Face> {
+class MacroFaceEdgeDoFToVertexDoFDataHandling : public StencilMemoryDataHandling<StencilMemory<real_t>, Face> {
 
 public:
   MacroFaceEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Face *const face) const final;
+
+  std::shared_ptr<StencilMemory<real_t> > initialize(const Face *const face) const final;
 
 private:
   uint_t minLevel_;
@@ -54,4 +57,5 @@ inline uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const 
 /// \return number of entries in the stencil on a macro face
 inline uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 
-}//namespace hhg
+}/// namespace EdgeDoFToVertexDoF
+}/// namespace hhg

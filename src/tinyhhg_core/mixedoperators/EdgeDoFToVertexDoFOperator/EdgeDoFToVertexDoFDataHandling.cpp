@@ -1,13 +1,12 @@
 #include "EdgeDoFToVertexDoFDataHandling.hpp"
 
 namespace hhg {
-
+namespace EdgeDoFToVertexDoF {
 
 ////////// Macro Vertex DataHandling ///////////
 MacroVertexEdgeDoFToVertexDoFDataHandling::MacroVertexEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel)
-  :minLevel_(minLevel),
-   maxLevel_(maxLevel)
-{}
+  : minLevel_(minLevel),
+    maxLevel_(maxLevel) {}
 
 inline std::shared_ptr<StencilMemory<real_t> > MacroVertexEdgeDoFToVertexDoFDataHandling::initialize(const Vertex *const vertex) const {
   return std::make_shared<StencilMemory<real_t> >(macroVertexEdgeDoFToVertexDoFStencilSize,
@@ -18,9 +17,8 @@ inline std::shared_ptr<StencilMemory<real_t> > MacroVertexEdgeDoFToVertexDoFData
 
 ////////// Macro Edge DataHandling //////////
 MacroEdgeEdgeDoFToVertexDoFDataHandling::MacroEdgeEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel)
-  :minLevel_(minLevel),
-   maxLevel_(maxLevel)
-{}
+  : minLevel_(minLevel),
+    maxLevel_(maxLevel) {}
 
 inline std::shared_ptr<StencilMemory<real_t> > MacroEdgeEdgeDoFToVertexDoFDataHandling::initialize(const Edge *const edge) const {
   return std::make_shared<StencilMemory<real_t> >(macroEdgeEdgeDoFToVertexDoFStencilSize,
@@ -31,9 +29,8 @@ inline std::shared_ptr<StencilMemory<real_t> > MacroEdgeEdgeDoFToVertexDoFDataHa
 
 ////////// Macro Face DataHandling //////////
 MacroFaceEdgeDoFToVertexDoFDataHandling::MacroFaceEdgeDoFToVertexDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel)
-  :minLevel_(minLevel),
-   maxLevel_(maxLevel)
-{}
+  : minLevel_(minLevel),
+    maxLevel_(maxLevel) {}
 
 inline std::shared_ptr<StencilMemory<real_t> > MacroFaceEdgeDoFToVertexDoFDataHandling::initialize(const Face *const face) const {
   WALBERLA_UNUSED(face);
@@ -61,5 +58,6 @@ uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t 
   return 12;
 }
 
-} //namespace hhg
+} /// namespace EdgeDoFToVertexDoF
+} /// namespace hhg
 

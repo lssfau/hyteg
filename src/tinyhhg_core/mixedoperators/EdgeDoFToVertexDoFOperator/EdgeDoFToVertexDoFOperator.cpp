@@ -10,6 +10,7 @@ EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<Pri
   :Operator(storage,minLevel,maxLevel)
 {
 
+  using namespace EdgeDoFToVertexDoF;
   auto vertexVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroVertexEdgeDoFToVertexDoFDataHandling >(minLevel_, maxLevel_);
   auto edgeVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroEdgeEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
   auto faceVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroFaceEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
@@ -26,7 +27,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
                                             DoFType flag,
                                             UpdateType updateType)
 {
-
+  using namespace EdgeDoFToVertexDoF;
   src.getCommunicator(level)->startCommunication<Edge, Vertex>();
   src.getCommunicator(level)->startCommunication<Face, Edge>();
   src.getCommunicator(level)->endCommunication<Edge, Vertex>();
@@ -36,7 +37,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      EdgeDoFToVertexDoFVertex::apply(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+      applyVertex(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
     }
   }
 
@@ -50,7 +51,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      EdgeDoFToVertexDoFEdge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+      applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
     }
   }
 
@@ -63,7 +64,7 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
 
     if (testFlag(face.type, flag))
     {
-      EdgeDoFToVertexDoFFace::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      applyFace(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
     }
   }
 

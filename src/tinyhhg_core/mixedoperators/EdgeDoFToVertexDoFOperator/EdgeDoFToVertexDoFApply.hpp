@@ -5,9 +5,9 @@
 #include "tinyhhg_core/primitives/all.hpp"
 
 namespace hhg{
-namespace EdgeDoFToVertexDoFVertex{
+namespace EdgeDoFToVertexDoF {
 
-inline void apply(uint_t level,
+inline void applyVertex(uint_t level,
                   Vertex &vertex,
                   const PrimitiveDataID<StencilMemory < real_t >, Vertex> &operatorId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &srcId,
@@ -31,12 +31,9 @@ inline void apply(uint_t level,
   }
 }
 
-}
-
-namespace EdgeDoFToVertexDoFEdge{
 
 template<uint_t Level>
-inline void apply_tmpl(Edge &edge,
+inline void applyEdgeTmpl(Edge &edge,
                   const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
@@ -75,14 +72,11 @@ inline void apply_tmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
+SPECIALIZE(void, applyEdgeTmpl, applyEdge)
 
-}
-
-namespace EdgeDoFToVertexDoFFace{
 
 template<uint_t Level>
-inline void apply_tmpl(Face &face,
+inline void applyFaceTmpl(Face &face,
                        const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
@@ -118,9 +112,7 @@ inline void apply_tmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
+SPECIALIZE(void, applyFaceTmpl, applyFace)
 
-}
-
-
-}
+} /// EdgeDoFToVertexDoF
+} /// namespace hhg
