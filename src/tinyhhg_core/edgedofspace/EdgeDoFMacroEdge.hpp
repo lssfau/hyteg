@@ -139,7 +139,7 @@ inline void applyTmpl(Edge &edge,
                        UpdateType update)
 {
   using namespace hhg::indexing::edgedof::macroedge;
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  size_t rowsize = levelinfo::num_microedges_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
   real_t * src      = edge.getData(srcId)->getPointer( Level );
@@ -147,7 +147,7 @@ inline void applyTmpl(Edge &edge,
 
   real_t tmp;
 
-  for(uint_t i = 1; i < rowsize - 1; ++i){
+  for(uint_t i = 0; i < rowsize; ++i){
     tmp = 0.0;
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
       tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
