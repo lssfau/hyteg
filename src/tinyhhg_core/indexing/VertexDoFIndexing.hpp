@@ -68,7 +68,28 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
       return index< level >( col + 1, 0);
     default:
       return std::numeric_limits< uint_t >::max();
-      break;
+  }
+}
+
+/// Have a look into the documentation to understand the calculations here
+/// The west vertices have the same col index as the horizonal edge
+template< uint_t level >
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_W:
+      return index< level >( col    );
+    case sD::VERTEX_E:
+      return index< level >( col + 1);
+    case sD::VERTEX_SE:
+      return index< level >( col + 1, 0);
+    case sD::VERTEX_NW:
+      return index< level >( col    , 1);
+    default:
+      return std::numeric_limits< uint_t >::max();
   }
 }
 
@@ -144,9 +165,90 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
     return index< level >( col + 1, row - 1 );
   default:
     return std::numeric_limits< uint_t >::max();
-    break;
   }
 }
+
+/// Have a look into the documentation to understand the calculations here
+/// The west vertex has the same col and row index as the horizonal edge
+template< uint_t level >
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_W:
+      return index< level >( col    , row);
+    case sD::VERTEX_E:
+      return index< level >( col + 1, row);
+    case sD::VERTEX_SE:
+      return index< level >( col + 1, row - 1);
+    case sD::VERTEX_NW:
+      return index< level >( col    , row + 1);
+    default:
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
+constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdge =
+  {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E,
+     stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W
+   }};
+
+/// Have a look into the documentation to understand the calculations here
+/// The south west vertex has the same col and row index as the horizonal edge
+template< uint_t level >
+inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_SE:
+      return index< level >( col + 1, row);
+    case sD::VERTEX_NE:
+      return index< level >( col + 1, row + 1);
+    case sD::VERTEX_NW:
+      return index< level >( col    , row + 1);
+    case sD::VERTEX_SW:
+      return index< level >( col    , row    );
+    default:
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
+constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdge =
+  {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NE,
+     stencilDirection::VERTEX_NW, stencilDirection::VERTEX_SW
+   }};
+
+/// Have a look into the documentation to understand the calculations here
+/// The south vertex has the same col and row index as the horizonal edge
+template< uint_t level >
+inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_S:
+      return index< level >( col    , row    );
+    case sD::VERTEX_SE:
+      return index< level >( col + 1, row    );
+    case sD::VERTEX_N:
+      return index< level >( col    , row + 1);
+    case sD::VERTEX_NW:
+      return index< level >( col - 1, row + 1);
+    default:
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
+
+constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
+  {{ stencilDirection::VERTEX_S, stencilDirection::VERTEX_SE,
+     stencilDirection::VERTEX_N, stencilDirection::VERTEX_NW
+   }};
 
 // Iterators
 
@@ -170,7 +272,56 @@ public:
   {}
 };
 
+} /// namespace macroface
+
+constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::VERTEX_E:
+      return 0;
+    case sD::VERTEX_W:
+      return 1;
+    case sD::VERTEX_SE:
+      return 2;
+    case sD::VERTEX_NW:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
 }
+
+constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::VERTEX_SE:
+      return 4;
+    case sD::VERTEX_NE:
+      return 5;
+    case sD::VERTEX_NW:
+      return 6;
+    case sD::VERTEX_SW:
+      return 7;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
 }
+
+constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::VERTEX_S:
+      return 8;
+    case sD::VERTEX_SE:
+      return 9;
+    case sD::VERTEX_N:
+      return 10;
+    case sD::VERTEX_NW:
+      return 11;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
 }
-}
+
+} /// namespace vertexdof
+} /// namespace indexing
+} /// namespace hhg

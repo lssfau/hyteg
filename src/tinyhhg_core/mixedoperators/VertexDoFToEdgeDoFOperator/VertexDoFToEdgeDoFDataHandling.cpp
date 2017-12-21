@@ -16,7 +16,7 @@ inline uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const 
 {
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( numDependencies );
-  return 4;
+  return 4 + 4 + 4;
 }
 
 MacroEdgeVertexDoFToEdgeDoFDataHandling::MacroEdgeVertexDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel)
