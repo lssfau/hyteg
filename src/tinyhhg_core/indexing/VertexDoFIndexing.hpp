@@ -42,6 +42,42 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
          + macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
+// Stencil access functions
+
+/// Index of neighboring vertices of a vertex DoF specified by the coordinates.
+template< uint_t level >
+inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_C:
+      return index< level >( col    );
+    case sD::VERTEX_E:
+      return index< level >( col + 1);
+    case sD::VERTEX_W:
+      return index< level >( col - 1);
+    case sD::VERTEX_N:
+      return index< level >( col    , 1);
+    case sD::VERTEX_S:
+      return index< level >( col    , 0);
+    case sD::VERTEX_NW:
+      return index< level >( col - 1, 1);
+    case sD::VERTEX_SE:
+      return index< level >( col + 1, 0);
+    default:
+      return std::numeric_limits< uint_t >::max();
+      break;
+  }
+}
+
+/// neighbor arrays need to connect vertex dof and edge dof
+constexpr std::array<stencilDirection ,2> neighborsOnEdgeFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
+constexpr std::array<stencilDirection ,1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
+constexpr std::array<stencilDirection ,1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
+
+
 /// Iterator over a vertex DoF macro edge.
 /// See \ref EdgeIterator for more information.
 class Iterator : public EdgeIterator
