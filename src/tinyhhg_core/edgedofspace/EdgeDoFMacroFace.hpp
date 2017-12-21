@@ -277,9 +277,9 @@ inline void applyTmpl(Face &face,
                src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
       }
       if (update==Replace) {
-        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
       }
     }
     if( it.col() != 0) {
@@ -290,9 +290,9 @@ inline void applyTmpl(Face &face,
       }
 
       if (update==Replace) {
-        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
       }
     }
   }
