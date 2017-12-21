@@ -40,9 +40,6 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
       edgedof::macroface::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
     }
   }
-
-
-  WALBERLA_ABORT("implement me");
 }
 
 
