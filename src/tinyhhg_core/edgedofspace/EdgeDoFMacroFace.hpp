@@ -261,7 +261,7 @@ inline void applyTmpl(Face &face,
     if( it.row() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromVertex[k])] *
+        tmp += opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
       }
       if (update==Replace) {
@@ -273,7 +273,7 @@ inline void applyTmpl(Face &face,
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromVertex[k])] *
+        tmp += opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
                src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
       }
       if (update==Replace) {
@@ -285,7 +285,7 @@ inline void applyTmpl(Face &face,
     if( it.col() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVertex[k])] *
+        tmp += opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
                src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
       }
 
