@@ -1,23 +1,16 @@
 #pragma once
 
-#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
-#include "VertexDoFToEdgeDoFMemory.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 
 namespace hhg {
 
-template<typename ValueType>
-class EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling
-  : public StencilMemoryDataHandling<EdgeVertexDoFToEdgeDoFStencilMemory<ValueType>, Edge> {
+class MacroEdgeVertexDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling< StencilMemory < real_t >, Edge> {
 
 public:
 
-  EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_(minLevel),
-                                                                                                    maxLevel_(maxLevel) {}
-
-  inline std::shared_ptr<EdgeVertexDoFToEdgeDoFStencilMemory<ValueType> > initialize(const Edge *const edge) const{
-    return std::make_shared< EdgeVertexDoFToEdgeDoFStencilMemory< ValueType > >( EdgeVertexDoFToEdgeDoFStencilSize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
-  }
+  MacroEdgeVertexDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
+  inline std::shared_ptr< StencilMemory< real_t > > initialize(const Edge *const edge) const;
 
 private:
 
@@ -26,18 +19,12 @@ private:
 
 };
 
-template<typename ValueType>
-class FaceVertexDoFToEdgeDoFStencilMemoryDataHandling
-  : public StencilMemoryDataHandling<FaceVertexDoFToEdgeDoFStencilMemory<ValueType>, Face> {
+class MacroFaceVertexDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling< StencilMemory < real_t >, Face> {
 
 public:
 
-  FaceVertexDoFToEdgeDoFStencilMemoryDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_(minLevel),
-                                                                                                    maxLevel_(maxLevel) {}
-
-  inline std::shared_ptr<FaceVertexDoFToEdgeDoFStencilMemory<ValueType> > initialize(const Face *const face) const{
-    return std::make_shared< FaceVertexDoFToEdgeDoFStencilMemory< ValueType > >( FaceVertexDoFToEdgeDoFStencilSize, 0, minLevel_, maxLevel_ );
-  }
+  MacroFaceVertexDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel);
+  inline std::shared_ptr< StencilMemory < real_t > > initialize(const Face *const face) const;
 
 private:
 

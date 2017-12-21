@@ -27,57 +27,28 @@ public:
     : Operator(storage, minLevel, maxLevel)
   {
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
-    auto faceVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< FaceVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-    auto edgeVertexDoFToEdgeDoFStencilMemoryDataHandling = std::make_shared< EdgeVertexDoFToEdgeDoFStencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto faceVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroFaceVertexDoFToEdgeDoFDataHandling >(minLevel_, maxLevel_);
+    auto edgeVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroEdgeVertexDoFToEdgeDoFDataHandling >(minLevel_, maxLevel_);
 
-    storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-    storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFStencilMemoryDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+    storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+    storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  }
 
-    for (uint_t level = minLevel_; level <= maxLevel_; ++level)
-    {
-      for(auto& it : storage_->getFaces()) {
-        Face &face = *it.second;
-        auto face_stencil = face.getData(faceStencilID_)->getPointer(level);
-        for(uint_t i = 1; i <= face.getData(faceStencilID_)->getSize(level); ++i){
-          WALBERLA_LOG_DEVEL("this is wrong!");
-          face_stencil[i] = i;
-        }
-      }
-      for(auto& it : storage_->getEdges()) {
-        Edge &edge = *it.second;
-        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer(level);
-        for(uint_t i = 1; i <= edge.getData(edgeStencilID_)->getSize(level); ++i){
-          WALBERLA_LOG_DEVEL("this is wrong!");
-          edge_stencil[i] = i;
-        }
-      }
+  ~VertexDoFToEdgeDoFOperator() = default;
 
-
-      WALBERLA_LOG_DEVEL("implement me");
-    }
-}
-
-~VertexDoFToEdgeDoFOperator() = default;
-
-void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
-{
-  WALBERLA_ABORT("implement me");
-}
+  void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  {
+    WALBERLA_ABORT("implement me");
+  }
 
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
   const PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
-
   const PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
-
 private:
-
   PrimitiveDataID<EdgeVertexDoFToEdgeDoFStencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID<FaceVertexDoFToEdgeDoFStencilMemory< real_t >, Face> faceStencilID_;
 
-void compute_local_stiffness(const Face &face, size_t level, real_t local_stiffness[1][3], fenics::ElementType element_type) {
-
-}
 };
 
 }
