@@ -11,9 +11,11 @@ EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<Pri
 {
 
   using namespace EdgeDoFToVertexDoF;
-  auto vertexVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroVertexEdgeDoFToVertexDoFDataHandling >(minLevel_, maxLevel_);
+  //auto vertexVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroVertexEdgeDoFToVertexDoFDataHandling >(minLevel_, maxLevel_);
   auto edgeVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroEdgeEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
   auto faceVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroFaceEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
+
+  auto vertexVertexDoFToEdgeDoFDataHandling = std::make_shared< PrimitiveFunctionMemoryDataHandling<FunctionMemory<real_t>, Vertex >>(minLevel_, maxLevel_, macroVertexEdgeDoFToVertexDoFStencilSize);
 
   storage->addVertexData(vertexStencilID_, vertexVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");

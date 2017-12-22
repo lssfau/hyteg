@@ -160,5 +160,46 @@ public:
 
 };
 
+template< typename DataType, typename PrimitiveType >
+class PrimitiveFunctionMemoryDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
+{
+public:
+
+  PrimitiveFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel, const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction )
+    : minLevel_( minLevel ),
+      maxLevel_( maxLevel ),
+      sizeFunction_( sizeFunction )
+  {}
+
+  virtual ~PrimitiveFunctionMemoryDataHandling() {}
+
+    std::shared_ptr<FunctionMemory<real_t> > initialize(const PrimitiveType *const primitive) const {
+      return std::make_shared< DataType >(sizeFunction_,
+      primitive->getNumHigherDimNeighbors(),
+      minLevel_,
+      maxLevel_);
+  }
+
+  virtual void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const
+  {
+    DataType * data = primitive->getData( id );
+    buffer << *data;
+  }
+
+  virtual void deserialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, RecvBuffer & buffer ) const
+  {
+    DataType * data = primitive->getData( id );
+    buffer >> *data;
+  }
+
+
+private:
+
+  const uint_t minLevel_;
+  const uint_t maxLevel_;
+  const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction_;
+
+
+};
 
 }

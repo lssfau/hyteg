@@ -45,17 +45,17 @@ private:
 /// \param level the stencil size is independent of the level
 /// \param numDependencies number of adjacent edges of the vertex
 /// \return number of entries in the stencil on a macro vertex, be aware that this one entry to large on the boundaries
-inline uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 
 /// \param level the stencil size is independent of the level
 /// \param numDependencies number of adjacent faces of the edge
 /// \return number of entries in the stencil on a macro edge
-inline uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 
 /// \param level the stencil size is independent of the level
 /// \param numDependencies on a macro face this is always constant
 /// \return number of entries in the stencil on a macro face
-inline uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 
 }/// namespace EdgeDoFToVertexDoF
 }/// namespace hhg
