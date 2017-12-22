@@ -161,17 +161,17 @@ public:
 };
 
 template< typename DataType, typename PrimitiveType >
-class PrimitiveFunctionMemoryDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
+class MemoryDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType >
 {
 public:
 
-  PrimitiveFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel, const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction )
+  MemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel, const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction )
     : minLevel_( minLevel ),
       maxLevel_( maxLevel ),
       sizeFunction_( sizeFunction )
   {}
 
-  virtual ~PrimitiveFunctionMemoryDataHandling() {}
+  virtual ~MemoryDataHandling() {}
 
     std::shared_ptr<FunctionMemory<real_t> > initialize(const PrimitiveType *const primitive) const {
       return std::make_shared< DataType >(sizeFunction_,
