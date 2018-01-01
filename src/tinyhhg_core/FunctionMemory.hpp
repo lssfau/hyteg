@@ -173,7 +173,7 @@ public:
 
   virtual ~MemoryDataHandling() {}
 
-    std::shared_ptr<FunctionMemory<real_t> > initialize(const PrimitiveType *const primitive) const {
+    std::shared_ptr< DataType > initialize(const PrimitiveType *const primitive) const {
       return std::make_shared< DataType >(sizeFunction_,
       primitive->getNumHigherDimNeighbors(),
       minLevel_,

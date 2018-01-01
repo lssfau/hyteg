@@ -4,8 +4,8 @@
 namespace hhg{
 
 EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
-                                                       size_t minLevel,
-                                                       size_t maxLevel)
+                                                       const size_t & minLevel,
+                                                       const size_t & maxLevel)
   :Operator(storage,minLevel,maxLevel)
 {
 

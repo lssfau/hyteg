@@ -11,7 +11,7 @@ class EdgeDoFToVertexDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t 
 {
 public:
 
-  EdgeDoFToVertexDoFOperator(const std::shared_ptr <PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel);
+  EdgeDoFToVertexDoFOperator(const std::shared_ptr <PrimitiveStorage> &storage, const size_t & minLevel, const size_t & maxLevel);
   ~EdgeDoFToVertexDoFOperator() final = default;
 
   void apply_impl(EdgeDoFFunction< real_t >& src,  P1Function< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;

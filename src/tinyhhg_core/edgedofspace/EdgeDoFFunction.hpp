@@ -11,13 +11,34 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "EdgeDoFDataHandling.hpp"
 #include "EdgeDoFMacroFace.hpp"
 #include "EdgeDoFMacroEdge.hpp"
 #include "EdgeDoFPackInfo.hpp"
 
 
 namespace hhg {
+
+namespace edgedof {
+///@name Size Functions
+///@{
+
+inline uint_t edgeDoFMacroVertexFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  return 2 * numDependencies;
+}
+
+inline uint_t edgeDoFMacroEdgeFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  return levelinfo::num_microedges_per_edge(level) + numDependencies * (3 * (levelinfo::num_microedges_per_edge(level)) - 1);
+}
+
+inline uint_t edgeDoFMacroFaceFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(numDependencies);
+  return 3 * (((levelinfo::num_microedges_per_edge(level) + 1) * levelinfo::num_microedges_per_edge(level)) / 2);
+}
+
+///@}
+
+}// namespace edgedof
 
 template< typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
@@ -27,13 +48,19 @@ public:
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel ) :
       Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto edgeDoFMacroVertexFunctionMemoryDataHandling = std::make_shared< EdgeDoFMacroVertexFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto edgeDoFMacroEdgeFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroEdgeFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto edgeDoFMacroFaceFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroFaceFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto vertexDataHandling =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Vertex >>(minLevel, maxLevel, edgedof::edgeDoFMacroVertexFunctionMemorySize);
 
-    storage->addVertexData( vertexDataID_, edgeDoFMacroVertexFunctionMemoryDataHandling, name );
-    storage->addEdgeData(   edgeDataID_,   edgeDoFMacroEdgeFunctionMemoryDataHandling,   name );
-    storage->addFaceData(   faceDataID_,   edgeDoFMacroFaceFunctionMemoryDataHandling,   name );
+    auto edgeDataHandling   =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Edge   >>(minLevel, maxLevel, edgedof::edgeDoFMacroEdgeFunctionMemorySize);
+
+    auto faceDataHandling   =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Face   >>(minLevel, maxLevel, edgedof::edgeDoFMacroFaceFunctionMemorySize);
+
+
+    storage->addVertexData( vertexDataID_, vertexDataHandling, name );
+    storage->addEdgeData(   edgeDataID_,   edgeDataHandling,   name );
+    storage->addFaceData(   faceDataID_,   faceDataHandling,   name );
 
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
@@ -275,4 +302,5 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
 }
 
-}
+
+}// namespace hhg
