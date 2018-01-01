@@ -7,11 +7,15 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
                                  size_t maxLevel)
   : Operator(storage, minLevel, maxLevel)
 {
-  auto edgeVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroEdgeEdgeDoFToEdgeDoFDataHandling   >(minLevel_, maxLevel_);
-  auto faceVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroFaceEdgeDoFToEdgeDoFDataHandling   >(minLevel_, maxLevel_);
+  auto edgeDataHandling   =
+      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge   >>(minLevel_, maxLevel_, macroEdgeEdgeDoFToEdgeDoFStencilSize);
 
-  storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  auto faceDataHandling   =
+      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize);
+
+
+  storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
 }
 
 void
@@ -50,6 +54,19 @@ const PrimitiveDataID<StencilMemory<real_t>, Edge> &EdgeDoFOperator::getEdgeSten
 const PrimitiveDataID<StencilMemory<real_t>, Face> &EdgeDoFOperator::getFaceStencilID_() const {
   return faceStencilID_;
 }
+
+/// on edges only one stencil is required since only the horizontal edge DoFs belong to the edge
+uint_t macroEdgeEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  return 1 + 2 * numDependencies;
+}
+/// on face three stencils are needed for horizontal, vertical and diagonal DoFs
+uint_t macroFaceEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  WALBERLA_UNUSED(numDependencies);
+  return 5 + 5 + 5;
+}
+
 
 }
 

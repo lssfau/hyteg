@@ -53,33 +53,6 @@ private:
 
 ///@}
 
-///@name Stencil Memory Data Handling
-///@{
-
-class MacroEdgeEdgeDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Edge> {
-
-public:
-  MacroEdgeEdgeDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_( minLevel ), maxLevel_( maxLevel ) {};
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Edge *const edge) const final;
-
-private:
-  uint_t minLevel_;
-  uint_t maxLevel_;
-};
-
-class MacroFaceEdgeDoFToEdgeDoFDataHandling : public StencilMemoryDataHandling<StencilMemory < real_t>, Face> {
-
-public:
-  MacroFaceEdgeDoFToEdgeDoFDataHandling(const uint_t &minLevel, const uint_t &maxLevel) : minLevel_( minLevel ), maxLevel_( maxLevel ) {};
-  std::shared_ptr<StencilMemory< real_t > > initialize(const Face *const face) const final;
-
-private:
-  uint_t minLevel_;
-  uint_t maxLevel_;
-};
-
-///@}
-
 
 ///@name Size Functions
 ///@{
