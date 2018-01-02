@@ -197,7 +197,7 @@ private:
 
   const uint_t minLevel_;
   const uint_t maxLevel_;
-  const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction_;
+  const std::function< uint_t ( uint_t level, uint_t numDependencies ) > sizeFunction_;
 
 
 };
