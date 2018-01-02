@@ -1,3 +1,4 @@
+#include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include <tinyhhg_core/tinyhhg.hpp>
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
@@ -5,8 +6,6 @@
 
 #include "tinyhhg_core/likwidwrapper.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
-
 #include "core/Environment.h"
 
 using walberla::real_t;

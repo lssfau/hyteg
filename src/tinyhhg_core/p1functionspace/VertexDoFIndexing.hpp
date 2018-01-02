@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include "core/Abort.h"
+
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg {
-namespace indexing {
 namespace vertexdof {
 
 // ##############
@@ -29,7 +31,7 @@ namespace macroedge {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col )
 {
-  return ::hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
+  return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
@@ -37,9 +39,9 @@ inline constexpr uint_t index( const uint_t & col )
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
-  return                      macroEdgeSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
-         + macroEdgeIndex< levelToWidth< level > - 1 >( col );
+  return                      hhg::indexing::macroEdgeSize< levelToWidth< level >     >()
+         + ( neighbor - 1 ) * hhg::indexing::macroEdgeSize< levelToWidth< level > - 1 >()
+         + hhg::indexing::macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
 // Stencil access functions
@@ -101,7 +103,7 @@ constexpr std::array<stencilDirection ,1> neighborsOnNorthFaceFromHorizontalEdge
 
 /// Iterator over a vertex DoF macro edge.
 /// See \ref EdgeIterator for more information.
-class Iterator : public EdgeIterator
+class Iterator : public hhg::indexing::EdgeIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -123,7 +125,7 @@ namespace macroface {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & row )
 {
-  return macroFaceIndex< levelToWidth< level > >( col, row );
+  return hhg::indexing::macroFaceIndex< levelToWidth< level > >( col, row );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
@@ -133,9 +135,9 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & row, const uin
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
-  return                      macroFaceSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * macroFaceSize< levelToWidth< level > - 1 >()
-         + macroFaceIndex< levelToWidth< level > - 1 >( col, row );
+  return                      hhg::indexing::macroFaceSize< levelToWidth< level >     >()
+         + ( neighbor - 1 ) * hhg::indexing::macroFaceSize< levelToWidth< level > - 1 >()
+         + hhg::indexing::macroFaceIndex< levelToWidth< level > - 1 >( col, row );
 
 };
 
@@ -254,7 +256,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
 
 /// Iterator over a vertex DoF macro face.
 /// See \ref FaceIterator for more information.
-class Iterator : public FaceIterator
+class Iterator : public hhg::indexing::FaceIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -264,10 +266,10 @@ public:
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-class BorderIterator : public FaceBorderIterator
+class BorderIterator : public hhg::indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
+  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
     FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter )
   {}
 };
@@ -323,5 +325,4 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
 }
 
 } /// namespace vertexdof
-} /// namespace indexing
 } /// namespace hhg
