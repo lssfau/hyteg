@@ -102,7 +102,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-        P1Vertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
+        vertexdof::macrovertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
       }
   }
 
@@ -149,7 +149,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.getDoFType(), flag)) {
-            P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+          vertexdof::macrovertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
         }
     }
 
@@ -196,7 +196,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-          P1Vertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+        vertexdof::macrovertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
       }
   }
 
@@ -233,7 +233,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-        scalarProduct += P1Vertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
+        scalarProduct += vertexdof::macrovertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
       }
   }
 
@@ -268,7 +268,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::prolongate(vertex, vertexDataID_, sourceLevel);
+        vertexdof::macrovertex::prolongate(vertex, vertexDataID_, sourceLevel);
       }
   }
 
@@ -308,7 +308,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      P1Vertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
+      vertexdof::macrovertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
     }
   }
 
@@ -357,7 +357,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::restrict(vertex, vertexDataID_, sourceLevel);
+        vertexdof::macrovertex::restrict(vertex, vertexDataID_, sourceLevel);
       }
   }
 
@@ -397,7 +397,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
-    P1Vertex::enumerate(level, vertex, vertexDataID_, num);
+    vertexdof::macrovertex::enumerate(level, vertex, vertexDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
@@ -443,7 +443,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
+      vertexdof::macrovertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
     }
   }
 

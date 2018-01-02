@@ -66,7 +66,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyElementwise< real_t >(level, vertex, storage_, computeElementMatrix_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoordIds, updateType);
+        vertexdof::macrovertex::applyElementwise< real_t >(level, vertex, storage_, computeElementMatrix_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoordIds, updateType);
       }
     }
 

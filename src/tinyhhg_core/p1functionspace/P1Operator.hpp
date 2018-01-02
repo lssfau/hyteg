@@ -268,7 +268,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::apply< real_t >(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
+        vertexdof::macrovertex::apply< real_t >(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
     }
 
@@ -318,7 +318,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
+        vertexdof::macrovertex::smooth_gs(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
       }
     }
 
@@ -368,7 +368,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::smooth_sor(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level, relax);
+        vertexdof::macrovertex::smooth_sor(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level, relax);
       }
     }
 
@@ -418,7 +418,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::smooth_jac(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
+        vertexdof::macrovertex::smooth_jac(vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
       }
     }
 

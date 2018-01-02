@@ -148,7 +148,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
+        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
       }
     }
 
