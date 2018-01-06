@@ -4,12 +4,13 @@
 #include "core/debug/TestSubsystem.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFDataHandling.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 namespace hhg {
 
 static void testEdgeDoFFunctionMemorySize()
 {
+  using namespace edgedof;
   WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 2, 4 ), 8 );
   WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 3, 4 ), 8 );
 

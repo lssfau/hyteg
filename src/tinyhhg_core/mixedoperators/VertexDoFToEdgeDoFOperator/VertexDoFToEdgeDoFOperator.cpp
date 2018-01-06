@@ -5,11 +5,19 @@ namespace hhg {
 VertexDoFToEdgeDoFOperator::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
   : Operator(storage, minLevel, maxLevel) {
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
-  auto faceVertexDoFToEdgeDoFDataHandling = std::make_shared<MacroFaceVertexDoFToEdgeDoFDataHandling>(minLevel_, maxLevel_);
-  auto edgeVertexDoFToEdgeDoFDataHandling = std::make_shared<MacroEdgeVertexDoFToEdgeDoFDataHandling>(minLevel_, maxLevel_);
 
-  storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  auto edgeDataHandling =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge >>(minLevel_,
+                                                                        maxLevel_,
+                                                                        VertexDoFToEdgeDoF::macroEdgeVertexDoFToEdgeDoFStencilSize);
+
+  auto faceDataHandling =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face >>(minLevel_,
+                                                                        maxLevel_,
+                                                                        VertexDoFToEdgeDoF::macroFaceVertexDoFToEdgeDoFStencilSize);
+
+  storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+  storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
 }
 
 void VertexDoFToEdgeDoFOperator::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
@@ -40,5 +48,26 @@ void VertexDoFToEdgeDoFOperator::apply_impl(P1Function<real_t> &src, EdgeDoFFunc
   }
 
 }
+
+namespace VertexDoFToEdgeDoF {
+
+///
+/// \param level stencil size is independent of level
+/// \param numDependencies number of adjacent faces of the edge
+/// \return number of the stencil entries
+uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies)
+{
+  WALBERLA_UNUSED( level );
+  return 2 + numDependencies;
+}
+
+uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies)
+{
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( numDependencies );
+  return 4 + 4 + 4;
+}
+}
+
 
 }/// namespace hhg

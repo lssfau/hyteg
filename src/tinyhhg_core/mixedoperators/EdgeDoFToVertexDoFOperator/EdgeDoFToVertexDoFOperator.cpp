@@ -1,23 +1,28 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
-#include "EdgeDoFToVertexDoFDataHandling.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
 
 namespace hhg{
 
 EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
-                                                       size_t minLevel,
-                                                       size_t maxLevel)
+                                                       const size_t & minLevel,
+                                                       const size_t & maxLevel)
   :Operator(storage,minLevel,maxLevel)
 {
 
   using namespace EdgeDoFToVertexDoF;
-  auto vertexVertexDoFToEdgeDoFDataHandling = std::make_shared< MacroVertexEdgeDoFToVertexDoFDataHandling >(minLevel_, maxLevel_);
-  auto edgeVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroEdgeEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
-  auto faceVertexDoFToEdgeDoFDataHandling   = std::make_shared< MacroFaceEdgeDoFToVertexDoFDataHandling   >(minLevel_, maxLevel_);
 
-  storage->addVertexData(vertexStencilID_, vertexVertexDoFToEdgeDoFDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addEdgeData(edgeStencilID_, edgeVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  storage->addFaceData(faceStencilID_, faceVertexDoFToEdgeDoFDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  auto vertexDataHandling =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Vertex >>(minLevel_, maxLevel_, macroVertexEdgeDoFToVertexDoFStencilSize);
+
+  auto edgeDataHandling   =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge   >>(minLevel_, maxLevel_, macroEdgeEdgeDoFToVertexDoFStencilSize);
+
+  auto faceDataHandling   =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToVertexDoFStencilSize);
+
+  storage->addVertexData(vertexStencilID_, vertexDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+  storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
   /// the stencil assembly will be done in the P2-Operator
 }
 
@@ -84,4 +89,23 @@ const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperato
 }
 
 
+namespace EdgeDoFToVertexDoF {
+////////// Stencil sizes //////////
+uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  return 2 * numDependencies;
 }
+
+uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  return 2 + 5 * numDependencies;
+}
+
+uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  WALBERLA_UNUSED(numDependencies);
+  return 12;
+}
+
+}/// namespace EdgeDoFToVertexDoF
+}/// namespace hhg

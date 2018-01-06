@@ -1,6 +1,5 @@
 #pragma once
 
-#include "VertexDoFToEdgeDoFDataHandling.hpp"
 #include "VertexDoFToEdgeDoFApply.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
@@ -16,8 +15,7 @@
 #endif
 
 
-namespace hhg
-{
+namespace hhg {
 
 class VertexDoFToEdgeDoFOperator : public Operator<P1Function< real_t >, EdgeDoFFunction< real_t > >
 {
@@ -37,4 +35,17 @@ private:
 
 };
 
+namespace VertexDoFToEdgeDoF {
+
+/// \param level stencil size is independent of level
+/// \param numDependencies number of adjacent faces of the edge
+/// \return number of the stencil entries
+uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+
+/// \param level stencil size is independent of level
+/// \param numDependencies not needed for faces
+/// \return number of the stencil entries
+uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 }
+
+}/// namespace hhg
