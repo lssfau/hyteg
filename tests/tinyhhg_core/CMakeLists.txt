@@ -34,7 +34,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
-###############
+## EdgeDoFSpace ##
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME EdgeDoFMemoryTest)
@@ -47,6 +47,16 @@ waLBerla_execute_test(NAME EdgeDoFEnumerateTest)
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFCommTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME EdgeDoFCommTest)
+
+## Operators ##
+
+waLBerla_compile_test(FILES operators/EdgeDoFToVertexDoFOperatorTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME EdgeDoFToVertexDoFOperatorTest)
+
+waLBerla_compile_test(FILES operators/EdgeDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
+
+## Other ##
 
 waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P1InterpolateTest)
@@ -121,3 +131,5 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FIL
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
 
+waLBerla_compile_test(FILES OperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME OperatorTest)
