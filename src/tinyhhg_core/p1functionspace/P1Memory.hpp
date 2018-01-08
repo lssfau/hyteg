@@ -9,6 +9,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
+#include "tinyhhg_core/polynomial/polynomial.hpp"
 
 #include <string>
 
@@ -154,6 +155,28 @@ public:
 
   Matrix3r& getBlueMatrix(uint_t level) {
     return data[level][1];
+  }
+
+};
+
+template<uint_t MaxPolyDegree, uint_t InterpolationLevel>
+class FaceP1PolynomialMemory
+{
+public:
+  typedef Polynomial2D<MaxPolyDegree, InterpolationLevel> Polynomial;
+
+  std::array<Polynomial, 3> polynomials;
+
+  Polynomial& getHoriPolynomial() {
+    return polynomials[0];
+  }
+
+  Polynomial& getVertPolynomial() {
+    return polynomials[1];
+  }
+
+  Polynomial& getDiagPolynomial() {
+    return polynomials[2];
   }
 
 };
