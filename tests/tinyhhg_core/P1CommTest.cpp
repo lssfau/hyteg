@@ -37,7 +37,7 @@ int main (int argc, char ** argv )
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
     //BubbleFace::printFunctionMemory<maxLevel>(face,x.getFaceDataID());
-    using namespace P1Edge::EdgeCoordsVertex;
+
     real_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
@@ -54,10 +54,10 @@ int main (int argc, char ** argv )
                                       maxLevel);
       for(; it != P1Face::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, VERTEX_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_SE ) ], faceData[*it]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, VERTEX_N)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_N ) ], faceData[*it]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -71,7 +71,7 @@ int main (int argc, char ** argv )
                                  P1Face::VERTEX,
                                  maxLevel);
       for(; it != P1Face::indexIterator(); ++it){
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, idxCounter, VERTEX_C)], faceData[*it]);
+        WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_C) ], faceData[*it]);
         numberOfChecks++;
         idxCounter++;
       }
@@ -90,7 +90,7 @@ int main (int argc, char ** argv )
   }
 
   for (auto &edgeIt : storage->getEdges()) {
-    using namespace P1Edge::EdgeCoordsVertex;
+
     Edge &edge = *edgeIt.second;
     //BubbleEdge::printFunctionMemory(edge,x.getEdgeDataID(),maxLevel);
     real_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
@@ -103,20 +103,20 @@ int main (int argc, char ** argv )
       uint_t vertexIdOnEdge = edge.vertex_index(vertex->getID());
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
       if(vertexIdOnEdge == 0){
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 0, VERTEX_C )],
+        WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex< maxLevel >( 0, stencilDirection::VERTEX_C )],
                              vertexData[0]);
         numberOfChecks++;
 
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, 1, VERTEX_C)],
+        WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex< maxLevel >( 1, stencilDirection::VERTEX_C)],
                              vertexData[1 + vertex->edge_index(edge.getID())]);
         numberOfChecks++;
 
       } else if( vertexIdOnEdge == 1){
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 1, VERTEX_C )],
+        WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex< maxLevel >( vPerEdge - 1, stencilDirection::VERTEX_C )],
                              vertexData[0]);
         numberOfChecks++;
 
-        WALBERLA_CHECK_EQUAL(edgeData[edge_index(maxLevel, vPerEdge - 2, VERTEX_C)],
+        WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex< maxLevel >( vPerEdge - 2, stencilDirection::VERTEX_C)],
                              vertexData[1 + vertex->edge_index(edge.getID())]);
         numberOfChecks++;
 
