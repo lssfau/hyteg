@@ -39,8 +39,8 @@ inline constexpr uint_t index( const uint_t & col )
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
-  return                      hhg::indexing::macroEdgeSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * hhg::indexing::macroEdgeSize< levelToWidth< level > - 1 >()
+  return              hhg::indexing::macroEdgeSize< levelToWidth< level >     >()
+         + neighbor * hhg::indexing::macroEdgeSize< levelToWidth< level > - 1 >()
          + hhg::indexing::macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
@@ -63,11 +63,11 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
     case sD::VERTEX_N:
       return index< level >( col    , 1);
     case sD::VERTEX_S:
-      return index< level >( col    , 0);
+      return index< level >( col - 1, 0);
     case sD::VERTEX_NW:
       return index< level >( col - 1, 1);
     case sD::VERTEX_SE:
-      return index< level >( col + 1, 0);
+      return index< level >( col    , 0);
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -95,10 +95,20 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
   }
 }
 
+/// neighbor arrays from vertex dof
+constexpr std::array<stencilDirection, 7> neighborsWithCenter               = {{ hhg::stencilDirection::VERTEX_C,
+                                                                                 hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                                 hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                                 hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                              }};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromVertexDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W }};
+constexpr std::array<stencilDirection, 2> neighborsOnSouthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE }};
+constexpr std::array<stencilDirection, 2> neighborsOnNorthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_N, hhg::stencilDirection::VERTEX_NW }};
+
 /// neighbor arrays need to connect vertex dof and edge dof
-constexpr std::array<stencilDirection ,2> neighborsOnEdgeFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
-constexpr std::array<stencilDirection ,1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
-constexpr std::array<stencilDirection ,1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromHorizontalEdgeDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
+constexpr std::array<stencilDirection, 1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
+constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
 
 
 /// Iterator over a vertex DoF macro edge.
@@ -135,8 +145,8 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & row, const uin
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
-  return                      hhg::indexing::macroFaceSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * hhg::indexing::macroFaceSize< levelToWidth< level > - 1 >()
+  return              hhg::indexing::macroFaceSize< levelToWidth< level >     >()
+         + neighbor * hhg::indexing::macroFaceSize< levelToWidth< level > - 1 >()
          + hhg::indexing::macroFaceIndex< levelToWidth< level > - 1 >( col, row );
 
 };
@@ -275,6 +285,29 @@ public:
 };
 
 } /// namespace macroface
+
+constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::VERTEX_S:
+      return 0;
+    case sD::VERTEX_SE:
+      return 1;
+    case sD::VERTEX_W:
+      return 2;
+    case sD::VERTEX_C:
+      return 3;
+    case sD::VERTEX_E:
+      return 4;
+    case sD::VERTEX_NW:
+      return 5;
+    case sD::VERTEX_N:
+        return 6;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
 
 constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
   typedef stencilDirection sD;
