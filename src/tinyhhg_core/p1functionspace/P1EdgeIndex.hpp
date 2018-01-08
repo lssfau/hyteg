@@ -11,7 +11,7 @@ using walberla::uint_t;
 
 namespace hhg{
 namespace P1Edge{
-
+#if 0
 namespace EdgeCoordsVertex {
 enum DirVertex {
   VERTEX_S  = 0,
@@ -156,6 +156,6 @@ bool edgeIndexIterator::operator!=(const edgeIndexIterator &other) const {
 edgeIndexIterator::edgeIndexIterator()
   :ended_(true)
 {}
-
+#endif
 }//namespace P1Edge
 }//namespace hhg

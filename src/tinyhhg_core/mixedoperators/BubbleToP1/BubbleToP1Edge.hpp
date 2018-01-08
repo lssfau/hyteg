@@ -3,7 +3,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "BubbleToP1Memory.hpp"
-#include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {
 namespace BubbleToP1Edge {
@@ -33,9 +33,9 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
     }
 
     if (update == Replace) {
-      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = tmp;
     } else if (update == Add) {
-      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] += tmp;
     }
   }
 }

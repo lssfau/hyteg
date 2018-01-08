@@ -222,15 +222,15 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< Va
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        tmp = opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
 
         //strangely the intel compiler cant handle this if it is a loop
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
 
         dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       }
@@ -239,15 +239,15 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< Va
   } else {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        tmp = opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
 
         //strangely the intel compiler cant handle this if it is a loop
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
 
         dst[index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
@@ -420,15 +420,15 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
         tmp = dst[index<Level>(i, j, SD::VERTEX_C)];
       }
 
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(SD::VERTEX_C)] * src[index<Level>(i, j, SD::VERTEX_C)];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[index<Level>(i, j, SD::VERTEX_C)];
 
       //strangely the intel compiler cant handle this if it is a loop
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
 
       dst[index<Level>(i, j, SD::VERTEX_C)] = tmp;
     }
@@ -460,10 +460,10 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 
       //for (auto neighbor : neighbors) {
       for(uint_t k = 0; k < neighbors.size(); ++k){
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -494,10 +494,10 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 
       //for (auto neighbor : neighbors) {
       for(uint_t k = 0; k < neighbors.size(); ++k){
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = (1.0-relax) * dst[index<Level>(i, j, stencilDirection::VERTEX_C)] + relax * tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = (1.0-relax) * dst[index<Level>(i, j, stencilDirection::VERTEX_C)] + relax * tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -528,10 +528,10 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
       tmp = rhs[index<Level>(i, j, stencilDirection::VERTEX_C)];
 
       for (auto neighbor : neighbors) {
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbor)]*tmpVar[index<Level>(i, j, neighbor)];
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(neighbor)]*tmpVar[index<Level>(i, j, neighbor)];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -810,12 +810,12 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
       PetscInt srcInt = src[index<Level>(i, j, stencilDirection::VERTEX_C)];
       PetscInt dstInt = dst[index<Level>(i, j, stencilDirection::VERTEX_C)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
-      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
 
       for (auto neighbor : neighbors) {
         srcInt = src[index<Level>(i, j, neighbor)];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbor)] ,INSERT_VALUES);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,INSERT_VALUES);
       }
     }
     --inner_rowsize;
