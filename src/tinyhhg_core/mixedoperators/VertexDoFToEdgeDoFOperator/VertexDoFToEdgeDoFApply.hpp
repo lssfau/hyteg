@@ -1,6 +1,5 @@
 #pragma once
 
-#include <tinyhhg_core/p1functionspace/P1EdgeIndex.hpp>
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
