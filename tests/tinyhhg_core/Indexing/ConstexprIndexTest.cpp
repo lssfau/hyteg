@@ -7,11 +7,10 @@
 typedef size_t uint_t;
 
 constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
-  using namespace hhg::P1Face::FaceCoordsVertex;
   uint_t sum = 0;
-  for(uint_t i = 0; i < neighbors_with_center.size(); ++i)
+  for(uint_t i = 0; i < hhg::vertexdof::macroface::neighborsWithCenter.size(); ++i)
   {
-    sum += index<3>(x, y, neighbors_with_center[i]);
+    sum += hhg::vertexdof::macroface::indexFromVertex<3>(x, y, hhg::vertexdof::macroface::neighborsWithCenter[i]);
   }
   return sum;
 }
@@ -77,7 +76,7 @@ int main() {
   static_assert(hhg::vertexdof::macroedge::indexFromVertex<3>(4, hhg::stencilDirection::VERTEX_SE)==13,"P1Edge Index failed");
   static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
-  static_assert(hhg::P1Face::FaceCoordsVertex::index<3>(1,1,hhg::stencilDirection::VERTEX_C)==10,"P1Face Index failed");
+  static_assert(hhg::vertexdof::macroface::indexFromVertex<3>(1,1,hhg::stencilDirection::VERTEX_C)==10,"P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"P1Face Index sum failed");
 
   static_assert(hhg::DGFace::indexDGFaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_S)==51, "DGFace Index failed");
