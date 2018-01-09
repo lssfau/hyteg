@@ -256,6 +256,42 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t 
   }
 }
 
+template< uint_t level >
+inline constexpr uint_t indexFromGrayFace( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+  case sD::VERTEX_SW:
+    return index< level >( col    , row     );
+  case sD::VERTEX_SE:
+    return index< level >( col + 1, row     );
+  case sD::VERTEX_NW:
+    return index< level >( col    , row + 1 );
+  default:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
+
+template< uint_t level >
+inline constexpr uint_t indexFromBlueFace( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+  case sD::VERTEX_SE:
+    return index< level >( col + 1, row     );
+  case sD::VERTEX_NW:
+    return index< level >( col    , row + 1 );
+  case sD::VERTEX_NE:
+    return index< level >( col + 1, row + 1 );
+  default:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
+
 constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
                                                                        hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
                                                                        hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
@@ -270,6 +306,9 @@ constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
   {{ stencilDirection::VERTEX_S, stencilDirection::VERTEX_SE,
      stencilDirection::VERTEX_N, stencilDirection::VERTEX_NW
    }};
+
+constexpr std::array< stencilDirection, 3 > neighborsFromGrayFace = {{ stencilDirection::VERTEX_SW, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NW }};
+constexpr std::array< stencilDirection, 3 > neighborsFromBlueFace = {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_NE }};
 
 // Iterators
 
