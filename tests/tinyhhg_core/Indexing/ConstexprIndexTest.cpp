@@ -1,5 +1,5 @@
 #include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
@@ -17,11 +17,10 @@ constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
 }
 
 constexpr size_t sumIndicesEdge(const uint_t x){
-  using namespace hhg::P1Edge::EdgeCoordsVertex;
   uint_t sum = 0;
-  for(uint_t i = 0; i < neighbors_with_center.size(); ++i)
+  for(uint_t i = 0; i < hhg::vertexdof::macroedge::neighborsWithCenter.size(); ++i)
   {
-    sum += index<3>(x, neighbors_with_center[i]);
+    sum += hhg::vertexdof::macroedge::indexFromVertex<3>(x, hhg::vertexdof::macroedge::neighborsWithCenter[i]);
   }
   return sum;
 }
@@ -75,7 +74,7 @@ int main() {
   static_assert(hhg::BubbleEdge::indexFaceFromVertex<3>(4, hhg::stencilDirection::CELL_GRAY_SE)==8,"BubbleEdge Index failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
 
-  static_assert(hhg::P1Edge::EdgeCoordsVertex::index<3>(4,hhg::P1Edge::EdgeCoordsVertex::VERTEX_SE)==13,"P1Edge Index failed");
+  static_assert(hhg::vertexdof::macroedge::indexFromVertex<3>(4, hhg::stencilDirection::VERTEX_SE)==13,"P1Edge Index failed");
   static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
   static_assert(hhg::P1Face::FaceCoordsVertex::index<3>(1,1,hhg::stencilDirection::VERTEX_C)==10,"P1Face Index failed");

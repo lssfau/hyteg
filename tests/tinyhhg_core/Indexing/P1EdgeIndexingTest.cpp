@@ -1,6 +1,7 @@
 
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "core/mpi/all.h"
+#include "core/debug/CheckFunctions.h"
 
 using walberla::uint_t;
 
@@ -37,7 +38,7 @@ int main(int argc, char* argv[])
     result.push_back(idx);
   }
   for(size_t i = 0; i < refOne.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refOne[i],result[i],"i: " << i);
+    WALBERLA_CHECK_EQUAL(refOne[i],result[i],"i: " << i);
   }
   result.clear();
   for( const auto & n : hhg::vertexdof::macroedge::neighborsWithCenter )
@@ -47,7 +48,7 @@ int main(int argc, char* argv[])
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
   for(size_t i = 0; i < refFive.size(); ++i){
-    WALBERLA_CHECK_EQUAL_3(refFive[i],result[i],"i: " << i);
+    WALBERLA_CHECK_EQUAL(refFive[i],result[i],"i: " << i);
   }
   result.clear();
 #if 0
