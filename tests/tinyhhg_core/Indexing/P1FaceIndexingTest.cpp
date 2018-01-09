@@ -1,4 +1,6 @@
+
 #include "tinyhhg_core/p1functionspace/P1Face.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 #include "core/mpi/all.h"
 
@@ -9,21 +11,21 @@ void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
   switch(type){
     //vertex
     case 0:
-      for(auto n : FaceCoordsVertex::neighbors_with_center)
+      for( const auto & n : hhg::vertexdof::macroface::neighborsWithCenter )
       {
-        result.push_back(FaceCoordsVertex::index<3>(col, row, n));
+        result.push_back( hhg::vertexdof::macroface::indexFromVertex<3>(col, row, n) );
       }
       break;
     case 1:
-      for(auto n : FaceCoordsCellGray::neighbors)
+      for( const auto & n : hhg::vertexdof::macroface::neighborsFromGrayFace )
       {
-        result.push_back(FaceCoordsCellGray::index<3>(col, row, n));
+        result.push_back( hhg::vertexdof::macroface::indexFromGrayFace<3>(col, row, n) );
       }
       break;
     case 2:
-      for(auto n : FaceCoordsCellBlue::neighbors)
+      for( const auto & n : hhg::vertexdof::macroface::neighborsFromBlueFace )
       {
-        result.push_back(FaceCoordsCellBlue::index<3>(col, row, n));
+        result.push_back( hhg::vertexdof::macroface::indexFromBlueFace<3>(col, row, n) );
       }
       break;
     default:
