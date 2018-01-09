@@ -348,7 +348,7 @@ inline void applyElementwiseTmpl(Edge &edge,
 
     if (edge.getNumNeighborFaces() == 2)
     {
-      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
         tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>(i, neighbor) ];
       }
