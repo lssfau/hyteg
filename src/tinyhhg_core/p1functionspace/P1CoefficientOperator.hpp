@@ -181,9 +181,9 @@ private:
       if (testFlag(face.type, flag))
       {
         if (coefficientP1_ != nullptr) {
-          P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
+          vertexdof::macroface::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
         } else {
-          P1Face::applyCoefficientDG< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientDG_->getFaceDataID(), updateType);
+          vertexdof::macroface::applyCoefficientDG< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientDG_->getFaceDataID(), updateType);
         }
       }
     }

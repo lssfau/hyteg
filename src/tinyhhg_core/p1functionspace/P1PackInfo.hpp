@@ -158,7 +158,6 @@ void P1PackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Primitiv
 
 template< typename ValueType >
 void P1PackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
-  using namespace hhg::P1Face;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
@@ -190,7 +189,6 @@ void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
 template< typename ValueType >
 void P1PackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
 {
-  using namespace hhg::P1Face;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
@@ -225,7 +223,6 @@ void P1PackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
 template< typename ValueType >
 void P1PackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
 {
-  using namespace hhg::P1Face;
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());

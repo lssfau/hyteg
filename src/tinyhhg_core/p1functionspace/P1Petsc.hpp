@@ -32,7 +32,7 @@ inline void createVectorFromFunction(P1Function<PetscScalar> &function,
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
-      P1Face::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+      vertexdof::macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
 }
@@ -68,7 +68,7 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
-      P1Face::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+      vertexdof::macroface::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
 }
@@ -118,7 +118,7 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Func
 
     if (testFlag(face.type, flag))
     {
-      P1Face::saveOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+      vertexdof::macroface::saveOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
     }
   }
 }

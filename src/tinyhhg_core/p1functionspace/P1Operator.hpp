@@ -319,7 +319,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::macroface::apply< real_t >(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -369,7 +369,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_gs< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::macroface::smooth_gs< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -419,7 +419,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_sor< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax);
+        vertexdof::macroface::smooth_sor< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax);
       }
     }
 
@@ -469,7 +469,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::smooth_jac< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
+        vertexdof::macroface::smooth_jac< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());
       }
     }
 

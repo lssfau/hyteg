@@ -92,7 +92,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::applyElementwise< real_t >(level, face, computeElementMatrix_, src.getFaceDataID(), dst.getFaceDataID(), faceCoordIds, updateType);
+        vertexdof::macroface::applyElementwise< real_t >(level, face, computeElementMatrix_, src.getFaceDataID(), dst.getFaceDataID(), faceCoordIds, updateType);
       }
     }
 

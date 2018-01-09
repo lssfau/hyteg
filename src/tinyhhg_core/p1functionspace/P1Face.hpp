@@ -11,7 +11,8 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
-namespace P1Face {
+namespace vertexdof {
+namespace macroface {
 
 using walberla::uint_t;
 using walberla::real_c;
@@ -861,6 +862,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
-}// namespace P1Face
+}// namespace macroface
+}// namespace vertexdof
 }// namespace hhg
 
