@@ -1,6 +1,7 @@
+
 #pragma once
+
 #include "DGFaceIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {

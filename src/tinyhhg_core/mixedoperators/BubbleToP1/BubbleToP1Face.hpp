@@ -5,8 +5,6 @@
 #include "BubbleToP1Memory.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
-
 namespace hhg {
 namespace BubbleToP1Face {
 template<size_t Level>

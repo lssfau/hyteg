@@ -5,7 +5,6 @@
 #include "P1ToBubbleMemory.hpp"
 
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 namespace hhg {
 namespace P1ToBubbleFace {

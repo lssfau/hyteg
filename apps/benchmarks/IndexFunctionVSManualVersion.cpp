@@ -2,7 +2,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 #include "tinyhhg_core/likwidwrapper.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"

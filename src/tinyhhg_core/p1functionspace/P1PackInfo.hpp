@@ -2,7 +2,6 @@
 
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 namespace hhg {
 
