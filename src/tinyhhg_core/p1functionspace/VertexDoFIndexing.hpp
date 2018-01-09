@@ -256,6 +256,15 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t 
   }
 }
 
+constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
+                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                     }};
+constexpr std::array< stencilDirection, 6 > neighborsWithoutCenter = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                        hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                        hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                      }};
 
 constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
   {{ stencilDirection::VERTEX_S, stencilDirection::VERTEX_SE,
