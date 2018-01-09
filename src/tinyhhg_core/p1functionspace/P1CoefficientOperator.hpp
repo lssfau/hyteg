@@ -167,7 +167,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
+        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
       }
     }
 

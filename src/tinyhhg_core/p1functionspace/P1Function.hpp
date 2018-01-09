@@ -112,7 +112,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-        P1Edge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
+        vertexdof::macroedge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
       }
   }
 
@@ -159,7 +159,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
         Edge& edge = *it.second;
 
         if (testFlag(edge.getDoFType(), flag)) {
-            P1Edge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+          vertexdof::macroedge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
         }
     }
 
@@ -206,7 +206,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-          P1Edge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+        vertexdof::macroedge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
       }
   }
 
@@ -241,7 +241,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-        scalarProduct += P1Edge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
+        scalarProduct += vertexdof::macroedge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
       }
   }
 
@@ -279,7 +279,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
+        vertexdof::macroedge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -319,7 +319,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
+      vertexdof::macroedge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
     }
   }
 
@@ -371,7 +371,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
+        vertexdof::macroedge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -405,7 +405,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
-    P1Edge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+    vertexdof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -454,7 +454,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
+      vertexdof::macroedge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
     }
   }
 

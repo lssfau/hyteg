@@ -11,8 +11,8 @@
 #include "core/DataTypes.h"
 
 namespace hhg {
-
-namespace P1Edge {
+namespace vertexdof {
+namespace macroedge {
 
 template<typename ValueType, uint_t Level>
 inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
@@ -720,5 +720,6 @@ inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
 SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif
 
-}
-}
+} // namespace macroedge
+} // namespace vertexdof
+} // namespace hhg

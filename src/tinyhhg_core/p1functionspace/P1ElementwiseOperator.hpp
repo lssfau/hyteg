@@ -79,7 +79,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyElementwise< real_t >(level, edge, storage_, computeElementMatrix_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoordIds, updateType);
+        vertexdof::macroedge::applyElementwise< real_t >(level, edge, storage_, computeElementMatrix_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoordIds, updateType);
       }
     }
 

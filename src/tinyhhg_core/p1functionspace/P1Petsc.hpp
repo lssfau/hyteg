@@ -24,7 +24,7 @@ inline void createVectorFromFunction(P1Function<PetscScalar> &function,
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      P1Edge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
+      vertexdof::macroedge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
     }
   }
 
@@ -57,7 +57,7 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      P1Edge::createFunctionFromVector<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
+      vertexdof::macroedge::createFunctionFromVector<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
     }
   }
 
@@ -86,7 +86,7 @@ inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscI
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), DirichletBoundary)) {
-      P1Edge::applyDirichletBC(level, edge, mat, numerator.getEdgeDataID());
+      vertexdof::macroedge::applyDirichletBC(level, edge, mat, numerator.getEdgeDataID());
     }
   }
 
@@ -109,7 +109,7 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Func
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::saveOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+      vertexdof::macroedge::saveOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
     }
   }
 

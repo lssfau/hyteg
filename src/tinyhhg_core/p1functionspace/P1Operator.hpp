@@ -306,7 +306,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::macroedge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -356,7 +356,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_gs< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::macroedge::smooth_gs< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -406,7 +406,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_sor< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax);
+        vertexdof::macroedge::smooth_sor< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax);
       }
     }
 
@@ -456,7 +456,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::smooth_jac< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
+        vertexdof::macroedge::smooth_jac< real_t >(level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
       }
     }
 
