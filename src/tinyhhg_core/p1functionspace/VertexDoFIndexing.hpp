@@ -405,5 +405,35 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
   }
 }
 
+constexpr inline uint_t stencilIndexFromGrayFace( const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+  switch (dir) {
+    case sD::VERTEX_SW:
+      return 0;
+    case sD::VERTEX_SE:
+      return 1;
+    case sD::VERTEX_NW:
+      return 2;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+constexpr inline uint_t stencilIndexFromBlueFace( const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+  switch (dir) {
+    case sD::VERTEX_SE:
+      return 0;
+    case sD::VERTEX_NW:
+      return 1;
+    case sD::VERTEX_NE:
+      return 2;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
 } /// namespace vertexdof
 } /// namespace hhg
