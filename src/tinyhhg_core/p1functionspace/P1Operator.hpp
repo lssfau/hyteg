@@ -27,6 +27,7 @@
 #endif
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 #include "P1Vertex.hpp"
 #include "P1Edge.hpp"
@@ -45,6 +46,7 @@ public:
     : Operator(storage, minLevel, maxLevel)
   {
     using namespace P1Elements;
+    typedef stencilDirection sD;
 
     auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
     auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
@@ -75,20 +77,18 @@ public:
           assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[i], FaceVertexDoF::P1BlueDoFMaps[i], local_stiffness_blue, face_stencil);
         }
 
-        if (Lumped) {
-          face_stencil[3] += face_stencil[0] + face_stencil[1] + face_stencil[2] + face_stencil[4] + face_stencil[5]
-                             + face_stencil[6];
-
-          face_stencil[0] = 0;
-          face_stencil[1] = 0;
-          face_stencil[2] = 0;
-          face_stencil[4] = 0;
-          face_stencil[5] = 0;
-          face_stencil[6] = 0;
+        if (Lumped)
+        {
+          for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter )
+          {
+            face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] += face_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ];
+            face_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] = 0;
+          }
         }
 
-        if (InvertDiagonal) {
-          face_stencil[3] = 1.0 / face_stencil[3];
+        if (InvertDiagonal)
+        {
+          face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] = 1.0 / face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ];
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
@@ -108,9 +108,9 @@ public:
         size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
         size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-        assembleP1LocalStencil({{3, 2, 0}}, {{end_id, start_id, opposite_id}}, local_stiffness_gray, edge_stencil);
-        assembleP1LocalStencil({{3, 0, 1}}, {{opposite_id, end_id, start_id}}, local_stiffness_blue, edge_stencil);
-        assembleP1LocalStencil({{3, 1, 4}}, {{start_id, opposite_id, end_id}}, local_stiffness_gray, edge_stencil);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSW ), {{end_id, start_id, opposite_id}}, local_stiffness_gray, edge_stencil);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementS ),  {{opposite_id, end_id, start_id}}, local_stiffness_blue, edge_stencil);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSE ), {{start_id, opposite_id, end_id}}, local_stiffness_gray, edge_stencil);
 
         if (edge.getNumNeighborFaces() == 2)
         {
@@ -123,29 +123,37 @@ public:
           size_t end_id = face->vertex_index(edge.neighborVertices()[1]);
           size_t opposite_id = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-          assembleP1LocalStencil({{3, 4, 6}}, {{start_id, end_id, opposite_id}}, local_stiffness_gray, edge_stencil);
-          assembleP1LocalStencil({{3, 6, 5}}, {{opposite_id, start_id, end_id}}, local_stiffness_blue, edge_stencil);
-          assembleP1LocalStencil({{3, 5, 2}}, {{end_id, opposite_id, start_id}}, local_stiffness_gray, edge_stencil);
+          assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNE ), {{start_id, end_id, opposite_id}}, local_stiffness_gray, edge_stencil);
+          assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementN ), {{opposite_id, start_id, end_id}}, local_stiffness_blue, edge_stencil);
+          assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNW ), {{end_id, opposite_id, start_id}}, local_stiffness_gray, edge_stencil);
         }
 
-        if (Lumped) {
-          edge_stencil[3] += edge_stencil[0] + edge_stencil[1] + edge_stencil[2] + edge_stencil[4];
+        if (Lumped)
+        {
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+          {
+            edge_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] += edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ];
+            edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] = 0;
+          }
 
-          edge_stencil[0] = 0;
-          edge_stencil[1] = 0;
-          edge_stencil[2] = 0;
-          edge_stencil[4] = 0;
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+          {
+            edge_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] += edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ];
+            edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] = 0;
+          }
 
           if (edge.getNumNeighborFaces() == 2)
           {
-            edge_stencil[3] += edge_stencil[5] + edge_stencil[6];
-            edge_stencil[5] = 0;
-            edge_stencil[6] = 0;
+            for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+            {
+              edge_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] += edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ];
+              edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] = 0;
+            }
           }
         }
 
         if (InvertDiagonal) {
-          edge_stencil[3] = 1.0 / edge_stencil[3];
+          edge_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] = 1.0 / edge_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ];
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("EDGE.id = {}:edge_stencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edge_stencil[0])));
@@ -213,24 +221,40 @@ public:
 
   void scale(real_t scalar) {
     for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
-      for (auto &it : storage_->getFaces()) {
+      for (auto &it : storage_->getFaces())
+      {
         Face &face = *it.second;
         auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
-        for (uint_t i = 0; i < 7; ++i) {
-          face_stencil[i] *= scalar;
+
+        for ( const auto & neighbor : vertexdof::macroface::neighborsWithCenter )
+        {
+          face_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
         }
       }
 
-      for (auto& it : storage_->getEdges()) {
+      for (auto& it : storage_->getEdges())
+      {
         Edge &edge = *it.second;
         auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
-        for (uint_t i = 0; i < 5; ++i) {
-          edge_stencil[i] *= scalar;
+
+        edge_stencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] *= scalar;
+
+        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+        {
+          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
         }
 
-        if (edge.getNumNeighborFaces() == 2) {
-          edge_stencil[5] *= scalar;
-          edge_stencil[6] *= scalar;
+        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+        {
+          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+        }
+
+        if (edge.getNumNeighborFaces() == 2)
+        {
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+          {
+            edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+          }
         }
       }
 
