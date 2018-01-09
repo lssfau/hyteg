@@ -31,9 +31,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
     {
       tmp = 0.0;
 
-      for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromGrayFace )
       {
-        tmp += face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(neighbor)] * src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)];
+        tmp += face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(neighbor)] * src[ vertexdof::macroface::indexFromGrayFace<Level>(i, j, neighbor) ];
       }
 
       if (update == Replace) {
@@ -53,9 +53,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
     {
       tmp = 0.0;
 
-      for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
+      for ( const auto neighbor : vertexdof::macroface::neighborsFromBlueFace )
       {
-        tmp += face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(neighbor)] * src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)];
+        tmp += face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(neighbor)] * src[ vertexdof::macroface::indexFromBlueFace<Level>(i, j, neighbor) ];
       }
 
       if (update == Replace) {

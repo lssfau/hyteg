@@ -8,6 +8,7 @@ namespace hhg {
 
 namespace {
 SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
+SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
 }
 
 template< typename ValueType >
@@ -161,23 +162,24 @@ void P1PackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Primitive
   using namespace hhg::P1Face;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
-  for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
-      it != indexIterator(); ++it){
-    buffer >> faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
+  {
+    buffer >> faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
-  using namespace hhg::P1Face;
+void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const
+{
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
   uint_t idx = 0;
-  for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
-      it != indexIterator(); ++it)
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
   {
-    faceData[*it] = edgeData[idx];
+    faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
   }
 }
@@ -192,9 +194,10 @@ void P1PackInfo< ValueType >::packFaceForEdge(const Face *sender, const Primitiv
   using namespace hhg::P1Face;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
-  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], VERTEX_INNER, level_);
-      it != indexIterator(); ++it){
-    buffer << faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  {
+    buffer << faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -239,9 +242,10 @@ void P1PackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edg
     dir = stencilDirection::VERTEX_N;
   }
   uint_t idx = 0;
-  for(auto it = indexIterator(edgeIdOnFace, sender->edge_orientation[edgeIdOnFace], VERTEX_INNER, level_);
-      it != indexIterator(); ++it) {
-    edgeData[ indexFromVertexOnMacroEdge( level_, idx, dir ) ] = faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  {
+    edgeData[ indexFromVertexOnMacroEdge( level_, idx, dir ) ] = faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
     idx++;
   }
 }

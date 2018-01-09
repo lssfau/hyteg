@@ -17,6 +17,7 @@ namespace P1Face
 
 using walberla::uint_t;
 /// contains stencil directions and index functions for vertices in a P1-Function
+#if 0
 namespace FaceCoordsVertex {
 
 /// all stencil directions including the center
@@ -62,6 +63,8 @@ constexpr inline size_t index(const size_t col,const size_t row,const stencilDir
   return std::numeric_limits<size_t>::max();
 }
 }//namespace FaceCoordsVertex
+
+
 /// contains stencil directions and index functions for gray cells in a P1-Function
 /// see documentation for description of gray and blue cells
 namespace FaceCoordsCellGray {
@@ -317,6 +320,6 @@ bool indexIterator::operator!=(const indexIterator &other) const {
 indexIterator::indexIterator()
     :ended_(true)
 {}
-
+#endif
 } //namespace P1Face
 } //namespace hhg

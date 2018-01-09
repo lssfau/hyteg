@@ -31,9 +31,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
       }
 
       if (update==Replace) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C) ] = tmp;
       } else if (update==Add) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C) ] += tmp;
       }
     }
     --inner_rowsize;
