@@ -55,7 +55,7 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    PetscInt dst_id = dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)];
+    PetscInt dst_id = dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
 
     for (auto neighbor : BubbleEdge::neighbors_south) {
       MatSetValues(mat, 1, &dst_id, 1,

@@ -638,7 +638,6 @@ template<uint_t Level>
 inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &operatorId,
                          const PrimitiveDataID<EdgeP1FunctionMemory< PetscInt >, Edge> &srcId,
                          const PrimitiveDataID<EdgeP1FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
-  using namespace EdgeCoordsVertex;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -648,28 +647,28 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemo
 
 
   for (uint_t i = 1; i < rowsize - 1; ++i) {
-    PetscInt dstint = dst[index<Level>(i, VERTEX_C)];
-    PetscInt srcint = src[index<Level>(i, VERTEX_C)];
+    PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    PetscInt srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
     //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
-    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[VERTEX_C] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
+    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
 
-    for (auto& neighbor : neighbors_on_edge) {
-      srcint = src[index<Level>(i, neighbor)];
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
+      srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
     }
 
-    for (auto& neighbor : neighbors_south) {
-      srcint = src[index<Level>(i, neighbor)];
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF ) {
+      srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
-      for (auto& neighbor : neighbors_north) {
-        srcint = src[index<Level>(i, neighbor)];
+      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF ) {
+        srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[neighbor] ,INSERT_VALUES);
+        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
       }
     }
   }

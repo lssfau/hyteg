@@ -1,5 +1,9 @@
 #pragma once
 
+#include "tinyhhg_core/p1functionspace/P1Vertex.hpp"
+#include "tinyhhg_core/p1functionspace/P1Edge.hpp"
+#include "tinyhhg_core/p1functionspace/P1Face.hpp"
+
 namespace hhg {
 namespace petsc {
 
@@ -12,7 +16,7 @@ inline void createVectorFromFunction(P1Function<PetscScalar> &function,
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      P1Vertex::createVectorFromFunction<PetscScalar>(vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level);
+      vertexdof::macrovertex::createVectorFromFunction<PetscScalar>(vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level);
     }
   }
 
@@ -42,7 +46,7 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      P1Vertex::createFunctionFromVector<PetscScalar>(vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level);
+      vertexdof::macrovertex::createFunctionFromVector<PetscScalar>(vertex, function.getVertexDataID(), numerator.getVertexDataID(), vec, level);
     }
   }
 
@@ -74,7 +78,7 @@ inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscI
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), DirichletBoundary)) {
-      P1Vertex::applyDirichletBC(vertex, mat, level, numerator.getVertexDataID());
+      vertexdof::macrovertex::applyDirichletBC(vertex, mat, level, numerator.getVertexDataID());
     }
   }
 
@@ -96,7 +100,7 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Func
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      P1Vertex::saveOperator(vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level);
+      vertexdof::macrovertex::saveOperator(vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level);
     }
   }
 
