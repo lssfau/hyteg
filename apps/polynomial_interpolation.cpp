@@ -14,13 +14,15 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   const uint_t PolyDegree = 7;
-  const uint_t PolyInterpolationLevel = 3;
+  const uint_t PolyInterpolationLevel = 4;
 
   typedef Polynomial2D<PolyDegree, PolyInterpolationLevel> Polynomial;
   typedef LSQInterpolator<PolyDegree, PolyInterpolationLevel> Interpolator;
 
   Polynomial poly;
   Point2D xtest{{1.0/3.0, 1.0/3.0}};
+
+  WALBERLA_LOG_DEVEL("NumVertices = " << Interpolator::NumVertices);
 
   WALBERLA_LOG_INFO("eval = " << poly.eval(xtest));
 
@@ -29,21 +31,18 @@ int main(int argc, char* argv[])
 
   Point2D x;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(PolyInterpolationLevel);
-  uint_t inner_rowsize = rowsize;
-  real_t h = 1.0 / (rowsize-1);
+  real_t h = real_c(1.0) / real_c(rowsize-1);
 
   uint_t offset = 0;
-  for (uint_t i = 0; i < rowsize; ++i) {
-    x[0] = i * h;
+  for (uint_t i = 0; i < rowsize-3; ++i) {
+    x[1] = i * h + h;
 
-    for (uint_t j = 0; j < inner_rowsize; ++j) {
-      x[1] = j * h;
+    for (uint_t j = 0; j < rowsize-2-i; ++j) {
+      x[0] = j * h + 0.5 * h;
 
-      values[offset] = 7.0; // + std::pow(3.0 * x[0], 4) + std::pow(3.0 * x[1], 4);
+      values[offset] = 7.0 + std::pow(3.0 * x[0], 4) + std::pow(3.0 * x[1], 4);
       ++offset;
     }
-
-    --inner_rowsize;
   }
 
   interpolator.interpolate(values, poly);

@@ -13,24 +13,23 @@ template<uint_t Degree, uint_t InterpolationLevel>
 class LSQInterpolator {
 public:
 
-  static const uint_t NumVertices = levelinfo::num_microvertices_per_face(InterpolationLevel);
+  static const uint_t NumVertices = (levelinfo::num_microedges_per_face(InterpolationLevel) - 3 * levelinfo::num_microedges_per_edge(InterpolationLevel) - 3) / 3;
   static const uint_t NumCoefficients = Polynomial2D<Degree, InterpolationLevel>::NumCoefficients_;
 
   LSQInterpolator() {
     uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
 
-    uint_t inner_rowsize = rowsize;
     real_t h = 1.0 / (rowsize-1);
 
     Point2D x;
 
     uint_t offset = 0;
 
-    for (uint_t i = 0; i < rowsize; ++i) {
-      x[0] = i * h;
+    for (uint_t i = 0; i < rowsize-3; ++i) {
+      x[1] = i * h + h;
 
-      for (uint_t j = 0; j < inner_rowsize; ++j) {
-        x[1] = j * h;
+      for (uint_t j = 0; j < rowsize-2-i; ++j) {
+        x[0] = j * h + 0.5 * h;
 
         for (uint_t k = 0; k < NumCoefficients; ++k) {
           A(offset, k) = HierarchicalBasis::eval(InterpolationLevel, k, x);
@@ -38,8 +37,6 @@ public:
 
         ++offset;
       }
-
-      --inner_rowsize;
     }
   }
 
