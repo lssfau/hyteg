@@ -91,9 +91,9 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
     {
       PetscInt dst_id = dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection ::CELL_GRAY_C)];
 
-      for (auto neighbor : P1Face::FaceCoordsCellGray::neighbors)
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromGrayFace )
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellGray::index<Level>(i, j, neighbor)], &face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(neighbor)], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromGrayFace<Level>(i, j, neighbor)], &face_gray_stencil[vertexdof::stencilIndexFromGrayFace(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -107,9 +107,9 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
     {
       PetscInt dst_id = dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
 
-      for (auto neighbor : P1Face::FaceCoordsCellBlue::neighbors)
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromBlueFace )
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[P1Face::FaceCoordsCellBlue::index<Level>(i, j, neighbor)], &face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(neighbor)], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromBlueFace<Level>(i, j, neighbor)], &face_blue_stencil[vertexdof::stencilIndexFromBlueFace(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;

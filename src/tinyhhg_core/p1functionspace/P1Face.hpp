@@ -781,7 +781,6 @@ template< uint_t Level >
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -793,13 +792,13 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt srcInt = src[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      PetscInt dstInt = dst[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      PetscInt srcInt = src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
       MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
 
-      for (auto neighbor : neighbors) {
-        srcInt = src[index<Level>(i, j, neighbor)];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter ) {
+        srcInt = src[vertexdof::macroface::indexFromVertex<Level>(i, j, neighbor)];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
         MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,INSERT_VALUES);
       }
@@ -816,7 +815,6 @@ inline void createVectorFromFunctionTmpl(Face &face,
                               const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                               Vec& vec) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -827,8 +825,8 @@ inline void createVectorFromFunctionTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt numeratorInt = numerator[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      VecSetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, stencilDirection::VERTEX_C)],INSERT_VALUES);
+      PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      VecSetValues(vec,1,&numeratorInt,&src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)],INSERT_VALUES);
     }
     --inner_rowsize;
   }
@@ -843,7 +841,6 @@ inline void createFunctionFromVectorTmpl(Face &face,
                                          const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                          const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                                          Vec& vec) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -854,8 +851,8 @@ inline void createFunctionFromVectorTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt numeratorInt = numerator[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      VecGetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, stencilDirection::VERTEX_C)]);
+      PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      VecGetValues(vec,1,&numeratorInt,&src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)]);
     }
     --inner_rowsize;
   }
