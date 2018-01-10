@@ -8,6 +8,7 @@
 #include <fmt/ostream.h>
 #include <cmath>
 #include <array>
+#include <iomanip>
 
 namespace hhg {
 
