@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
@@ -11,7 +12,6 @@
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-#include "tinyhhg_core/p1functionspace/P1Edge.hpp"
 #include "tinyhhg_core/p1functionspace/P1Face.hpp"
 #include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
 #include "tinyhhg_core/p1functionspace/P1PackInfo.hpp"

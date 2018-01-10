@@ -30,7 +30,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
-#include "P1Edge.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include "P1Face.hpp"
 
 namespace hhg
