@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
     p_rhs.restrict(maxLevel, hhg::Inner | hhg::DirichletBoundary);
 
     if (!neumann) {
-      hhg::projectMean(p_rhs, tmp, maxLevel-1);
+      hhg::vertexdof::projectMean(p_rhs, tmp, maxLevel-1);
     }
 
     for (uint_t outer = 0; outer < outerIterations; ++outer) {
@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     }
 
     if (!neumann) {
-      hhg::projectMean(p, tmp, maxLevel - 1);
+      hhg::vertexdof::projectMean(p, tmp, maxLevel - 1);
     }
 
     p.prolongate(maxLevel-1, hhg::Inner | hhg::DirichletBoundary);

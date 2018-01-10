@@ -16,8 +16,12 @@ namespace hhg {
 // Forward declarations //
 //////////////////////////
 
+namespace vertexdof {
+
 template< typename VType >
 class VertexDoFFunction;
+
+} // namespace vertexdof
 
 template< typename VType >
 class EdgeDoFFunction;
@@ -41,7 +45,7 @@ struct FunctionTrait;
 // vertex DoF specialization
 
 template< typename VType >
-struct FunctionTrait< VertexDoFFunction< VType > >
+struct FunctionTrait< vertexdof::VertexDoFFunction< VType > >
 {
   typedef VType ValueType;
 
