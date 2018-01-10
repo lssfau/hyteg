@@ -27,7 +27,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 
-#include "P1Vertex.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include "P1Edge.hpp"
 #include "P1Face.hpp"
 
