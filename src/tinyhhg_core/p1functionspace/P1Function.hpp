@@ -28,12 +28,14 @@ public:
   P1Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< P1Function< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto faceP1FunctionMemoryDataHandling = std::make_shared< FaceP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto edgeP1FunctionMemoryDataHandling = std::make_shared< EdgeP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto vertexP1FunctionMemoryDataHandling = std::make_shared< VertexP1FunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    auto faceP1FunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, P1FaceFunctionMemorySize );
+    auto edgeP1FunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, P1EdgeFunctionMemorySize   );
+    auto vertexP1FunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, P1VertexFunctionMemorySize );
+
     storage->addFaceData( faceDataID_, faceP1FunctionMemoryDataHandling, name );
     storage->addEdgeData( edgeDataID_, edgeP1FunctionMemoryDataHandling, name );
     storage->addVertexData( vertexDataID_, vertexP1FunctionMemoryDataHandling, name );
+
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
       communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
