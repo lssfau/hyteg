@@ -17,7 +17,7 @@ namespace hhg {
 //////////////////////////
 
 template< typename VType >
-class P1Function;
+class VertexDoFFunction;
 
 template< typename VType >
 class EdgeDoFFunction;
@@ -38,17 +38,17 @@ class DGFunction;
 template< typename FunctionType >
 struct FunctionTrait;
 
-// P1 specialization (Vertex DoFs)
+// vertex DoF specialization
 
 template< typename VType >
-struct FunctionTrait< P1Function< VType > >
+struct FunctionTrait< VertexDoFFunction< VType > >
 {
   typedef VType ValueType;
 
   static std::string getTypeName() { return "P1Function"; }
 };
 
-// Edge Dof specialization
+// Edge DoF specialization
 template< typename VType >
 struct FunctionTrait< EdgeDoFFunction< VType > >
 {

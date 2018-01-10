@@ -20,20 +20,20 @@ namespace hhg {
 
 
 template< typename ValueType >
-class P1Function : public Function< P1Function< ValueType > >
+class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 {
 public:
 
-  P1Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
-      Function< P1Function< ValueType > >( name, storage, minLevel, maxLevel )
+  VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
+      Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto faceP1FunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, P1FaceFunctionMemorySize );
-    auto edgeP1FunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, P1EdgeFunctionMemorySize   );
-    auto vertexP1FunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, P1VertexFunctionMemorySize );
+    auto faceVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, P1FaceFunctionMemorySize );
+    auto edgeVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, P1EdgeFunctionMemorySize   );
+    auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, P1VertexFunctionMemorySize );
 
-    storage->addFaceData( faceDataID_, faceP1FunctionMemoryDataHandling, name );
-    storage->addEdgeData( edgeDataID_, edgeP1FunctionMemoryDataHandling, name );
-    storage->addVertexData( vertexDataID_, vertexP1FunctionMemoryDataHandling, name );
+    storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
+    storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
+    storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
 
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
@@ -48,26 +48,26 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
   // TODO: split this function into impl
-  inline void integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag);
+  inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   // TODO: write more general version
   inline real_t getMaxValue(uint_t level);
 
 private:
 
-  using Function< P1Function< ValueType > >::storage_;
-  using Function< P1Function< ValueType > >::communicators_;
+  using Function< VertexDoFFunction< ValueType > >::storage_;
+  using Function< VertexDoFFunction< ValueType > >::communicators_;
 
-  /// Interpolates a given expression to a P1Function
+  /// Interpolates a given expression to a VertexDoFFunction
   inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                               const std::vector<P1Function*> srcFunctions,
+                               const std::vector<VertexDoFFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
 
-  inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
+  inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  inline void add_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, uint_t level, DoFType flag = All);
+  inline void add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  inline real_t dot_impl(P1Function< ValueType >& rhs, uint_t level, DoFType flag = All);
+  inline real_t dot_impl(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
   inline void prolongate_impl(uint_t sourceLevel, DoFType flag = All);
 
@@ -83,8 +83,8 @@ private:
 };
 
 template< typename ValueType >
-inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                                                      const std::vector<P1Function*> srcFunctions,
+inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                                                      const std::vector<VertexDoFFunction*> srcFunctions,
                                                       uint_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
@@ -132,7 +132,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -179,7 +179,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -226,7 +226,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
 }
 
 template< typename ValueType >
-inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   real_t scalarProduct = 0.0;
 
@@ -260,7 +260,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -300,7 +300,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -340,7 +340,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel - 1;
 
@@ -394,7 +394,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
+inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
@@ -425,7 +425,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 }
 
 template< typename ValueType >
-inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag)
 {
   this->startTiming( "integrateDG" );
 
@@ -475,7 +475,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
   this->stopTiming( "integrateDG" );
 }
 
-inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& tmp, uint_t level) {
+inline void projectMean(VertexDoFFunction<real_t>& pressure, hhg::VertexDoFFunction<real_t>& tmp, uint_t level) {
 
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) {
     return 1.0;
@@ -490,7 +490,7 @@ inline void projectMean(P1Function<real_t>& pressure, hhg::P1Function<real_t>& t
 }
 
 template< typename ValueType >
-inline real_t P1Function< ValueType >::getMaxValue(uint_t level)
+inline real_t VertexDoFFunction< ValueType >::getMaxValue(uint_t level)
 {
   communicators_[level]->template startCommunication<Vertex, Edge>();
   communicators_[level]->template endCommunication<Vertex, Edge>();
@@ -508,5 +508,8 @@ inline real_t P1Function< ValueType >::getMaxValue(uint_t level)
 
   return globalMax;
 }
+
+template< typename ValueType >
+using P1Function = VertexDoFFunction< ValueType >;
 
 }
