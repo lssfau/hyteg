@@ -3,6 +3,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp>
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
@@ -14,7 +15,6 @@
 
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
-#include "tinyhhg_core/p1functionspace/P1PackInfo.hpp"
 
 namespace hhg {
 
@@ -36,7 +36,7 @@ public:
     storage->addVertexData( vertexDataID_, vertexP1FunctionMemoryDataHandling, name );
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->addPackInfo( std::make_shared< P1PackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
     }
   }
 
