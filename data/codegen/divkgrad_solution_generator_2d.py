@@ -10,7 +10,7 @@ from sympy import *
 x, y = symbols('x y')
 
 def basic_example():
-    k = 1+x
+    k = 1 + 3*x + 4*y + 7*x**2
     u = sin(x)*sinh(y)
 
     return (k,u)

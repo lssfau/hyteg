@@ -40,7 +40,8 @@ template<class UFCOperator, uint_t MaxPolyDegree, uint_t InterpolationLevel>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  typedef LSQInterpolator<MaxPolyDegree, InterpolationLevel> Interpolator;
+  typedef LSQInterpolator<MaxPolyDegree, InterpolationLevel, HorizontalEdgeBasis> HorizontalEdgeInterpolator;
+  typedef LSQInterpolator<MaxPolyDegree, InterpolationLevel, VerticalEdgeBasis> VerticalEdgeInterpolator;
 
   P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient)
@@ -130,9 +131,9 @@ private:
     std::array<SD,3> triangleBlueN  = { SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_N  };
     std::array<SD,3> triangleGrayNE = { SD::VERTEX_C, SD::VERTEX_N,  SD::VERTEX_E  };
 
-    std::vector<real_t> horiValues(Interpolator::NumVertices);
-    std::vector<real_t> vertValues(Interpolator::NumVertices);
-    std::vector<real_t> diagValues(Interpolator::NumVertices);
+    std::vector<real_t> horiValues(HorizontalEdgeInterpolator::NumVertices);
+    std::vector<real_t> vertValues(VerticalEdgeInterpolator::NumVertices);
+//    std::vector<real_t> diagValues(Interpolator::NumVertices);
 
     std::vector<real_t> faceStencil(7);
 
@@ -149,10 +150,7 @@ private:
       uint_t vertOffset = 0;
       real_t coeffWeight;
 
-      WALBERLA_LOG_DEVEL("Interpolator::NumVertices = " << Interpolator::NumVertices);
-
       for (uint_t j = 1; j < rowsize - 2; ++j) {
-        vertOffset = j-1;
 
         uint_t i;
         for (i = 1; i < inner_rowsize - 2; ++i) {
@@ -173,15 +171,13 @@ private:
             assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], FaceVertexDoF::P1BlueDoFMaps[k], faceLocalMatrices->getBlueMatrix(InterpolationLevel), faceStencil, coeffWeight);
           }
 
-          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
-
-          vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_S)];
-          if (i != inner_rowsize - 2 - 1) {
-            vertOffset += rowsize - 1 - i;
-          }
+//          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
 
           horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_W)];
           ++horiOffset;
+
+          vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_S)];
+          ++vertOffset;
 
           if (i == inner_rowsize - 2 - 1) {
             horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_E)];
@@ -189,20 +185,23 @@ private:
           }
         }
 
-        vertOffset++;
         vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_N)];
+        ++vertOffset;
 
         --inner_rowsize;
       }
 
-      Interpolator interpolator;
-      interpolator.interpolate(horiValues, facePolynomials->getHoriPolynomial());
-      interpolator.interpolate(vertValues, facePolynomials->getVertPolynomial());
+      HorizontalEdgeInterpolator horiInterpolator;
+      horiInterpolator.interpolate(horiValues, facePolynomials->getHoriPolynomial());
+
+      VerticalEdgeInterpolator vertInterpolator;
+      vertInterpolator.interpolate(vertValues, facePolynomials->getVertPolynomial());
 //      interpolator.interpolate(diagValues, facePolynomials->getDiagPolynomial());
 
       WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
       WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());
-      WALBERLA_LOG_DEVEL("polynomials[2] = " << facePolynomials->getDiagPolynomial());
+//      WALBERLA_LOG_DEVEL("polynomials[2] = " << facePolynomials->getDiagPolynomial());
+      WALBERLA_LOG_INFO("Warning: Diagonal polynomials not yet implemented!")
     }
   }
 

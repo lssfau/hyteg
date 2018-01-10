@@ -163,21 +163,21 @@ template<uint_t MaxPolyDegree, uint_t InterpolationLevel>
 class FaceP1PolynomialMemory
 {
 public:
-  typedef Polynomial2D<MaxPolyDegree, InterpolationLevel> Polynomial;
 
-  std::array<Polynomial, 3> polynomials;
+  HorizontalPolynomial2D<MaxPolyDegree, InterpolationLevel> horizontalPolynomial;
+  VerticalPolynomial2D<MaxPolyDegree, InterpolationLevel> verticalPolynomial;
 
-  Polynomial& getHoriPolynomial() {
-    return polynomials[0];
+  HorizontalPolynomial2D<MaxPolyDegree, InterpolationLevel>& getHoriPolynomial() {
+    return horizontalPolynomial;
   }
 
-  Polynomial& getVertPolynomial() {
-    return polynomials[1];
+  VerticalPolynomial2D<MaxPolyDegree, InterpolationLevel>& getVertPolynomial() {
+    return verticalPolynomial;
   }
 
-  Polynomial& getDiagPolynomial() {
-    return polynomials[2];
-  }
+//  Polynomial& getDiagPolynomial() {
+//    return polynomials[2];
+//  }
 
 };
 

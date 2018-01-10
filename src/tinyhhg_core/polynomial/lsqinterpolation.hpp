@@ -9,12 +9,12 @@
 
 namespace hhg {
 
-template<uint_t Degree, uint_t InterpolationLevel>
+template<uint_t Degree, uint_t InterpolationLevel, typename HierarchicalBasis>
 class LSQInterpolator {
 public:
 
   static const uint_t NumVertices = (levelinfo::num_microedges_per_face(InterpolationLevel) - 3 * levelinfo::num_microedges_per_edge(InterpolationLevel) - 3) / 3;
-  static const uint_t NumCoefficients = Polynomial2D<Degree, InterpolationLevel>::NumCoefficients_;
+  static const uint_t NumCoefficients = Polynomial2D<Degree, InterpolationLevel, HierarchicalBasis>::NumCoefficients_;
 
   LSQInterpolator() {
     uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
@@ -25,23 +25,47 @@ public:
 
     uint_t offset = 0;
 
-    for (uint_t i = 0; i < rowsize-3; ++i) {
-      x[1] = i * h + h;
+    if (std::is_same<HierarchicalBasis, HorizontalEdgeBasis>::value) {
 
-      for (uint_t j = 0; j < rowsize-2-i; ++j) {
-        x[0] = j * h + 0.5 * h;
+      for (uint_t i = 0; i < rowsize - 3; ++i) {
+        x[1] = i * h + h;
 
-        for (uint_t k = 0; k < NumCoefficients; ++k) {
-          A(offset, k) = HierarchicalBasis::eval(InterpolationLevel, k, x);
+        for (uint_t j = 0; j < rowsize - 2 - i; ++j) {
+          x[0] = j * h + 0.5 * h;
+
+          for (uint_t k = 0; k < NumCoefficients; ++k) {
+            A(offset, k) = HierarchicalBasis::eval(InterpolationLevel, k, x);
+          }
+
+          ++offset;
         }
+      }
+    }
 
-        ++offset;
+    if (std::is_same<HierarchicalBasis, VerticalEdgeBasis>::value) {
+      for (uint_t i = 0; i < rowsize - 3; ++i) {
+        for (uint_t j = 0; j < rowsize - 2 - i; ++j) {
+
+          if (j != rowsize-2-i-1) {
+            x[0] = j * h + h;
+            x[1] = i * h + 0.5 * h;
+          } else {
+            x[0] = j * h;
+            x[1] = i * h + 0.5 * h + h;
+          }
+
+          for (uint_t k = 0; k < NumCoefficients; ++k) {
+            A(offset, k) = HierarchicalBasis::eval(InterpolationLevel, k, x);
+          }
+
+          ++offset;
+        }
       }
     }
   }
 
-  void interpolate(std::vector<real_t> values, Polynomial2D<Degree, InterpolationLevel>& poly) {
-    WALBERLA_ASSERT(values.size() == NumVertices, "values vector must have the same size as the number of vertices on the interpolation level")
+  void interpolate(std::vector<real_t> values, Polynomial2D<Degree, InterpolationLevel, HierarchicalBasis>& poly) {
+    WALBERLA_ASSERT(values.size() == NumVertices, "values vector must have the same size as the number of vertices on the interpolation level");
 
     Eigen::Map<Eigen::Matrix<real_t, NumVertices, 1>> rhsVector(values.data());
 

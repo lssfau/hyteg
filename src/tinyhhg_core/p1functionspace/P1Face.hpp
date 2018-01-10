@@ -466,11 +466,11 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
         faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_W)] = polynomials->getHoriPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
         faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_E)] = polynomials->getHoriPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
 
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] - 0.5 * h }});
+        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] + 0.5 * h }});
 
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+//        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
+//        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
 
         faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] = - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]
                         - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]
@@ -480,7 +480,7 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
                         - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])];
 
 
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("face_stencil = {}", PointND<real_t, 7>(&faceStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("face_stencil = {}", PointND<real_t, 7>(&faceStencil[0])));
 
         tmp = faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
 

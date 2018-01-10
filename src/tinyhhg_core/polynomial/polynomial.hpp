@@ -12,14 +12,13 @@ constexpr uint_t getNumCoefficients(uint_t degree) {
   return math::binomialCoefficient(2 + degree, degree);
 }
 
-template<uint_t Degree, uint_t InterpolationLevel>
+template<uint_t Degree, uint_t InterpolationLevel, typename HierarchicalBasis>
 class Polynomial2D {
  public:
 
   static const uint_t NumCoefficients_ = getNumCoefficients(Degree);
 
   Polynomial2D() {
-    WALBERLA_LOG_DEVEL("NumCoefficients_ = " << NumCoefficients_);
     coeffs_.resize(NumCoefficients_);
   }
 
@@ -50,7 +49,7 @@ class Polynomial2D {
     }
   }
 
-  void scaleAdd(real_t scalar, const Polynomial2D<Degree, InterpolationLevel>& rhs) {
+  void scaleAdd(real_t scalar, const Polynomial2D<Degree, InterpolationLevel, HierarchicalBasis>& rhs) {
     for (uint_t i = 0; i < NumCoefficients_; ++i) {
       coeffs_[i] += scalar * rhs.coeffs_[i];
     }
@@ -61,8 +60,8 @@ private:
 
 };
 
-template<uint_t Degree, uint_t InterpolationLevel>
-inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, InterpolationLevel> &poly)
+template<uint_t Degree, uint_t InterpolationLevel, typename HierarchicalBasis>
+inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, InterpolationLevel, HierarchicalBasis> &poly)
 {
   os << "[";
 
@@ -79,5 +78,11 @@ inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, Int
 
   return os;
 }
+
+template<uint_t Degree, uint_t InterpolationLevel>
+using HorizontalPolynomial2D = Polynomial2D<Degree, InterpolationLevel, HorizontalEdgeBasis>;
+
+template<uint_t Degree, uint_t InterpolationLevel>
+using VerticalPolynomial2D = Polynomial2D<Degree, InterpolationLevel, VerticalEdgeBasis>;
 
 }

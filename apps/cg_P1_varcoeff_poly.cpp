@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 4;
-  const uint_t maxPolyDegree = 7;
-  const uint_t interpolationLevel = 4;
-  const uint_t maxiter = 0;
+  const uint_t maxLevel = 8;
+  const uint_t maxPolyDegree = 2;
+  const uint_t interpolationLevel = 6;
+  const uint_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
+//  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -51,12 +52,9 @@ int main(int argc, char* argv[])
   err.enableTiming( timingTree );
   npoints_helper.enableTiming( timingTree );
 
-  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return x[0] + 1.0; };
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return (1.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return (3.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
-//  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return ((0.000112225535684453*exp(17*x[1]) + 1)*(0.89*exp(-10*pow(x[0] - 0.5, 2) - 30*pow(x[1] - (-sqrt(pow(x[0] - 0.5, 2)) + 0.5)*(1.5*sqrt(pow(x[0] - 0.5, 2)) + 0.75) - 0.3, 2)) + 1)*exp(100*pow(-x[0] + 0.5, 2)) + 0.98)*exp(-100*pow(-x[0] + 0.5, 2))/(0.000112225535684453*exp(17*x[1]) + 1); };
-//  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-//  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return ((pow(0.000112225535684453*exp(17*x[1]) + 1, 2)*(53.4*x[1] + 53.4*(sqrt(pow(-x[0] + 0.5, 2)) - 0.5)*(1.5*sqrt(pow(-x[0] + 0.5, 2)) + 0.75) - 16.02)*exp(90*pow(-x[0] + 0.5, 2) - 30*pow(x[1] + (sqrt(pow(-x[0] + 0.5, 2)) - 0.5)*(1.5*sqrt(pow(-x[0] + 0.5, 2)) + 0.75) - 0.3, 2)) + 0.00186967742450299*exp(17*x[1]))*sin(x[0])*cosh(x[1]) - (0.000112225535684453*exp(17*x[1]) + 1)*(-196.0*x[0] - 0.89*(0.000112225535684453*exp(17*x[1]) + 1)*(20*x[0] + 180.0*(-x[0] + 0.5)*(-x[1] - (sqrt(pow(x[0] - 0.5, 2)) - 0.5)*(1.5*sqrt(pow(-x[0] + 0.5, 2)) + 0.75) + 0.3) - 10.0)*exp(-10*pow(x[0] - 0.5, 2) + 100*pow(-x[0] + 0.5, 2) - 30*pow(x[1] - (-sqrt(pow(x[0] - 0.5, 2)) + 0.5)*(1.5*sqrt(pow(x[0] - 0.5, 2)) + 0.75) - 0.3, 2)) + 98.0)*cos(x[0])*sinh(x[1]))*exp(-100*pow(-x[0] + 0.5, 2))/pow(0.000112225535684453*exp(17*x[1]) + 1, 2); };
+  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 7*pow(x[0], 2) + 3*x[0] + 4*x[1] + 1; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(14*x[0] + 3)*cos(x[0])*sinh(x[1]) - 4*sin(x[0])*cosh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
@@ -77,7 +75,7 @@ int main(int argc, char* argv[])
 
   auto solver = hhg::CGSolver<hhg::P1Function< real_t >, SolveOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, false);
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
