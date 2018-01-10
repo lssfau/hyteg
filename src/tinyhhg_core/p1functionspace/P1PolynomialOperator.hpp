@@ -158,34 +158,34 @@ private:
           std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
           for (uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k) {
-            coeffWeight = 1.0/3.0 * (coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][0])]
-                            + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][1])]
-                            + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][2])]);
+            coeffWeight = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][0])]
+                            + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][1])]
+                            + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][2])]);
             assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[k], FaceVertexDoF::P1GrayDoFMaps[k], faceLocalMatrices->getGrayMatrix(InterpolationLevel), faceStencil, coeffWeight);
           }
 
           for (uint_t k = 0; k < FaceVertexDoF::P1BlueElements.size(); ++k) {
-            coeffWeight = 1.0/3.0 * (coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][0])]
-                                     + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][1])]
-                                     + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][2])]);
+            coeffWeight = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][0])]
+                                     + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][1])]
+                                     + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][2])]);
             assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], FaceVertexDoF::P1BlueDoFMaps[k], faceLocalMatrices->getBlueMatrix(InterpolationLevel), faceStencil, coeffWeight);
           }
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
 
-          horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_W)];
+          horiValues[horiOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)];
           ++horiOffset;
 
-          vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_S)];
+          vertValues[vertOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_S)];
           ++vertOffset;
 
           if (i == inner_rowsize - 2 - 1) {
-            horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_E)];
+            horiValues[horiOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_E)];
             ++horiOffset;
           }
         }
 
-        vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_N)];
+        vertValues[vertOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_N)];
         ++vertOffset;
 
         --inner_rowsize;
@@ -224,7 +224,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
+        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
       }
     }
 
@@ -239,7 +239,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
+        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
       }
     }
 
@@ -252,7 +252,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::applyPolynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::macroface::applyPolynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 

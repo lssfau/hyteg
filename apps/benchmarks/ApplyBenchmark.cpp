@@ -1,7 +1,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 #include "tinyhhg_core/likwidwrapper.hpp"
 
@@ -47,7 +46,7 @@ int main(int argc, char **argv) {
 
   LIKWID_MARKER_START("apply");
   timer.reset();
-  P1Face::apply_tmpl<real_t, level >(*face,M.getFaceStencilID(),src->getFaceDataID(),dst->getFaceDataID(),Replace);
+  vertexdof::macroface::apply_tmpl<real_t, level >(*face,M.getFaceStencilID(),src->getFaceDataID(),dst->getFaceDataID(),Replace);
   timer.end();
   LIKWID_MARKER_STOP("apply");
   WALBERLA_LOG_INFO_ON_ROOT("time with walberla timer: " << timer.last() );

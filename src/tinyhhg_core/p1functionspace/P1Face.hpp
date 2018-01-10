@@ -6,13 +6,13 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
-namespace P1Face {
+namespace vertexdof {
+namespace macroface {
 
 using walberla::uint_t;
 using walberla::real_c;
@@ -24,16 +24,14 @@ inline ValueType assembleLocal(uint_t i, uint_t j, const Matrix3r& localMatrix,
                                const std::array<stencilDirection,3>& vertices,
                                const std::array<uint_t,3>& idx)
 {
-  using namespace FaceCoordsVertex;
-
-  ValueType meanCoeff = 1.0/3.0 * (coeff[index<Level>(i, j, vertices[0])]
-                                 + coeff[index<Level>(i, j, vertices[1])]
-                                 + coeff[index<Level>(i, j, vertices[2])]);
+  ValueType meanCoeff = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[0])]
+                                 + coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[1])]
+                                 + coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[2])]);
 
   ValueType tmp;
-  tmp  = localMatrix(idx[0],idx[0]) * src[index<Level>(i, j, vertices[0])]
-         + localMatrix(idx[0],idx[1]) * src[index<Level>(i, j, vertices[1])]
-         + localMatrix(idx[0],idx[2]) * src[index<Level>(i, j, vertices[2])];
+  tmp  = localMatrix(idx[0],idx[0]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[0])]
+         + localMatrix(idx[0],idx[1]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[1])]
+         + localMatrix(idx[0],idx[2]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[2])];
   return meanCoeff * tmp;
 }
 
@@ -43,25 +41,22 @@ inline ValueType assembleLocalDG(uint_t i, uint_t j, const Matrix3r& localMatrix
                                const std::array<stencilDirection,3>& vertices,
                                const std::array<uint_t,3>& idx)
 {
-  using namespace FaceCoordsVertex;
-
   ValueType tmp;
-  tmp  = localMatrix(idx[0],idx[0]) * src[index<Level>(i, j, vertices[0])]
-      + localMatrix(idx[0],idx[1]) * src[index<Level>(i, j, vertices[1])]
-      + localMatrix(idx[0],idx[2]) * src[index<Level>(i, j, vertices[2])];
+  tmp  = localMatrix(idx[0],idx[0]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[0])]
+      + localMatrix(idx[0],idx[1]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[1])]
+      + localMatrix(idx[0],idx[2]) * src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[2])];
   return tmp;
 }
 
 template<uint_t Level>
 inline void fillLocalCoords(uint_t i, uint_t j, const P1Elements::P1Element& element, const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
-  using namespace FaceCoordsVertex;
 
-  localCoords[0] = coords[0][index<Level>(i, j, element[0])];
-  localCoords[1] = coords[1][index<Level>(i, j, element[0])];
-  localCoords[2] = coords[0][index<Level>(i, j, element[1])];
-  localCoords[3] = coords[1][index<Level>(i, j, element[1])];
-  localCoords[4] = coords[0][index<Level>(i, j, element[2])];
-  localCoords[5] = coords[1][index<Level>(i, j, element[2])];
+  localCoords[0] = coords[0][vertexdof::macroface::indexFromVertex<Level>(i, j, element[0])];
+  localCoords[1] = coords[1][vertexdof::macroface::indexFromVertex<Level>(i, j, element[0])];
+  localCoords[2] = coords[0][vertexdof::macroface::indexFromVertex<Level>(i, j, element[1])];
+  localCoords[3] = coords[1][vertexdof::macroface::indexFromVertex<Level>(i, j, element[1])];
+  localCoords[4] = coords[0][vertexdof::macroface::indexFromVertex<Level>(i, j, element[2])];
+  localCoords[5] = coords[1][vertexdof::macroface::indexFromVertex<Level>(i, j, element[2])];
 }
 
 template< typename ValueType, uint_t Level >
@@ -69,7 +64,6 @@ inline void interpolateTmpl(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
                             std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr) {
-  using namespace FaceCoordsVertex;
 
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
 
@@ -99,10 +93,10 @@ inline void interpolateTmpl(Face &face,
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
 
       for (uint_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][index<Level>(j, i, stencilDirection::VERTEX_C)];
+        srcVector[k] = srcPtr[k][vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)];
       }
 
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x, srcVector);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x, srcVector);
       x += d0;
     }
 
@@ -117,7 +111,6 @@ inline void assignTmpl(Face &face,
                    const std::vector<ValueType>& scalars,
                    const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
                    const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -130,12 +123,12 @@ inline void assignTmpl(Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      ValueType tmp = scalars[0]*srcPtr[0][index<Level>(i, j, stencilDirection::VERTEX_C)];
+      ValueType tmp = scalars[0]*srcPtr[0][vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
       for (uint_t k = 1; k < srcIds.size(); ++k) {
-        tmp += scalars[k]*srcPtr[k][index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp += scalars[k]*srcPtr[k][vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
       }
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -148,7 +141,6 @@ inline void addTmpl(Face &face,
                 const std::vector<ValueType>& scalars,
                 const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -165,10 +157,10 @@ inline void addTmpl(Face &face,
       ValueType tmp = 0.0;
 
       for (uint_t k = 0; k < srcIds.size(); ++k) {
-        tmp += scalars[k] * srcPtr[k][index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp += scalars[k] * srcPtr[k][vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
       }
 
-      dstPtr[index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
     }
 
     --inner_rowsize;
@@ -181,7 +173,6 @@ template< typename ValueType, uint_t Level >
 inline real_t dotTmpl(Face &face,
                   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& lhsId,
                   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& rhsId) {
-  using namespace FaceCoordsVertex;
 
   real_t sp = 0.0;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -193,8 +184,8 @@ inline real_t dotTmpl(Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      sp += lhsPtr[index<Level>(i, j, stencilDirection::VERTEX_C)]
-          * rhsPtr[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      sp += lhsPtr[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)]
+          * rhsPtr[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -208,7 +199,6 @@ template< typename ValueType, uint_t Level >
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -222,34 +212,36 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< Va
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        tmp = opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
         //strangely the intel compiler cant handle this if it is a loop
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+        static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-        dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+        dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       }
       --inner_rowsize;
     }
   } else {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        tmp = opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
         //strangely the intel compiler cant handle this if it is a loop
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-        tmp += opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+        static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+        tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-        dst[index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+        dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
       --inner_rowsize;
     }
@@ -264,7 +256,6 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId,
                                  UpdateType update) {
-  using namespace FaceCoordsVertex;
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -292,7 +283,7 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
         tmp = ValueType(0);
       }
       else {
-        tmp = dst[index<Level>(i, j, SD::VERTEX_C)];
+        tmp = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
       }
 
       tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayS, {2,0,1});
@@ -302,7 +293,7 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
       tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueN, {2,1,0});
       tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayNE, {0,2,1});
 
-      dst[index<Level>(i, j, SD::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -316,7 +307,6 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                  const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId,
                                  UpdateType update) {
-  using namespace FaceCoordsVertex;
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -346,7 +336,7 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
         tmp = ValueType(0);
       }
       else {
-        tmp = dst[index<Level>(i, j, SD::VERTEX_C)];
+        tmp = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
       }
 
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_SE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGraySE, {2,0,1});
@@ -356,7 +346,7 @@ inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1Local
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_NW)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueNW, {2,1,0});
       tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NE)] * assembleLocalDG<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNE, {0,2,1});
 
-      dst[index<Level>(i, j, SD::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -370,7 +360,6 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
                                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                  std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
                                  UpdateType update) {
-  using namespace FaceCoordsVertex;
   using namespace P1Elements;
   typedef stencilDirection SD;
 
@@ -417,20 +406,21 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
         tmp = ValueType(0);
       }
       else {
-        tmp = dst[index<Level>(i, j, SD::VERTEX_C)];
+        tmp = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
       }
 
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(SD::VERTEX_C)] * src[index<Level>(i, j, SD::VERTEX_C)];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
 
       //strangely the intel compiler cant handle this if it is a loop
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-      tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+      static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+      tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-      dst[index<Level>(i, j, SD::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)] = tmp;
     }
     --inner_rowsize;
   }
@@ -442,7 +432,6 @@ template<typename ValueType, uint_t MaxPolyDegree, uint_t InterpolationLevel, ui
 inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel>, Face>& polynomialId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -463,36 +452,36 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
         x[0] = i * h;
 
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_W)] = polynomials->getHoriPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_E)] = polynomials->getHoriPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = polynomials->getHoriPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = polynomials->getHoriPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
 
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] - 0.5 * h }});
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] + 0.5 * h }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] - 0.5 * h }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] + 0.5 * h }});
 
-//        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-//        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+//        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
+//        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
 
-        faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] = - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]
-                        - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]
-                        - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]
-                        - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]
-                        - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]
-                        - faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])];
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
+                        - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
+                        - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]
+                        - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]
+                        - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]
+                        - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])];
 
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("face_stencil = {}", PointND<real_t, 7>(&faceStencil[0])));
 
-        tmp = faceStencil[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] * src[index<Level>(i, j, stencilDirection::VERTEX_C)];
+        tmp = faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
         //strangely the intel compiler cant handle this if it is a loop
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[0])]*src[index<Level>(i, j, neighbors[0])];
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[1])]*src[index<Level>(i, j, neighbors[1])];
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[2])]*src[index<Level>(i, j, neighbors[2])];
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[3])]*src[index<Level>(i, j, neighbors[3])];
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[4])]*src[index<Level>(i, j, neighbors[4])];
-        tmp += faceStencil[P1Elements::FaceVertexDoF::stencilMap_(neighbors[5])]*src[index<Level>(i, j, neighbors[5])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+        tmp += faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-        dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+        dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       }
       --inner_rowsize;
     }
@@ -527,7 +516,6 @@ template< typename ValueType, uint_t Level >
 inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -541,14 +529,14 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      tmp = rhs[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
       //for (auto neighbor : neighbors) {
-      for(uint_t k = 0; k < neighbors.size(); ++k){
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
+      for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -561,7 +549,6 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
                             ValueType relax) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -575,14 +562,14 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      tmp = rhs[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
       //for (auto neighbor : neighbors) {
-      for(uint_t k = 0; k < neighbors.size(); ++k){
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbors[k])]*dst[index<Level>(i, j, neighbors[k])];
+      for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = (1.0-relax) * dst[index<Level>(i, j, stencilDirection::VERTEX_C)] + relax * tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = (1.0-relax) * dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + relax * tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -595,7 +582,6 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &tmpId) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -610,13 +596,13 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      tmp = rhs[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
-      for (auto neighbor : neighbors) {
-        tmp -= opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbor)]*tmpVar[index<Level>(i, j, neighbor)];
+      for (auto neighbor : vertexdof::macroface::neighborsWithoutCenter ) {
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(neighbor)]*tmpVar[vertexdof::macroface::indexFromVertex<Level>(i, j, neighbor)];
       }
 
-      dst[index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)];
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
     }
     --inner_rowsize;
   }
@@ -626,8 +612,9 @@ SPECIALIZE_WITH_VALUETYPE(void, smooth_jac_tmpl, smooth_jac)
 
 template< typename ValueType, uint_t Level >
 inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
-  using namespace FaceCoordsVertex;
+
   typedef stencilDirection SD;
+  using namespace vertexdof::macroface;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
@@ -639,16 +626,16 @@ inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemo
 
   for (uint_t i = 1; i < N_c - 1; ++i) {
     for (j = 1; j < N_c_i - 2; ++j) {
-      v_f[index<Level + 1>(2*i, 2*j, SD::VERTEX_C)] = v_c[index<Level>(i, j, SD::VERTEX_C)];
-      v_f[index<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] =
-          0.5*(v_c[index<Level>(i - 1, j, SD::VERTEX_C)] + v_c[index<Level>(i, j - 1, SD::VERTEX_C)]);
-      v_f[index<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, SD::VERTEX_C)] + v_c[index<Level>(i - 1, j, SD::VERTEX_C)]);
-      v_f[index<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, SD::VERTEX_C)] + v_c[index<Level>(i, j - 1, SD::VERTEX_C)]);
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j, SD::VERTEX_C)] = v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)];
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] =
+          0.5*(v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)]);
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)]);
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)]);
     }
 
-    v_f[index<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i - 1, j, SD::VERTEX_C)] + v_c[index<Level>(i, j - 1, SD::VERTEX_C)]);
-    v_f[index<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, SD::VERTEX_C)] + v_c[index<Level>(i - 1, j, SD::VERTEX_C)]);
-    v_f[index<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, SD::VERTEX_C)] + v_c[index<Level>(i, j - 1, SD::VERTEX_C)]);
+    v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)]);
+    v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)]);
+    v_f[indexFromVertex<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)]);
 
     --N_c_i;
   }
@@ -658,8 +645,9 @@ SPECIALIZE_WITH_VALUETYPE(void, prolongate_tmpl, prolongate)
 
 template< typename ValueType, uint_t Level >
 inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
-  using namespace FaceCoordsVertex;
+
   typedef stencilDirection SD;
+  using namespace vertexdof::macroface;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level);
   uint_t N_c_i = N_c;
@@ -672,20 +660,20 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
   for (j = 2; j <= N_c - 1; j += 2) {
 // upper triangle inner points
 //calculate offsets
-    linearx = 0.5*(v_c[index<Level>(i, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j, SD::VERTEX_C)]);
-    lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j - 2, SD::VERTEX_C)]);
-    linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j, SD::VERTEX_C)]);
+    linearx = 0.5*(v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]);
+    lineary = 0.5*(v_c[indexFromVertex<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)]);
+    linearxy = 0.5*(v_c[indexFromVertex<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]);
 
-    offx = v_c[index<Level>(i, j - 1, SD::VERTEX_C)] - linearx;
-    offy = v_c[index<Level>(i + 1, j - 2, SD::VERTEX_C)] - lineary;
-    offxy = v_c[index<Level>(i + 1, j - 1, SD::VERTEX_C)] - linearxy;
+    offx = v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)] - linearx;
+    offy = v_c[indexFromVertex<Level>(i + 1, j - 2, SD::VERTEX_C)] - lineary;
+    offxy = v_c[indexFromVertex<Level>(i + 1, j - 1, SD::VERTEX_C)] - linearxy;
 
 // left bottom corner
-    v_f[index<Level + 1>(2*i + 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+    v_f[indexFromVertex<Level + 1>(2*i + 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-    v_f[index<Level + 1>(2*i + 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+    v_f[indexFromVertex<Level + 1>(2*i + 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-    v_f[index<Level + 1>(2*i + 2, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+    v_f[indexFromVertex<Level + 1>(2*i + 2, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
   }
 
   N_c_i -= 1;
@@ -695,50 +683,50 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 
 // upper triangle inner points
 //calculate offsets
-      linearx = 0.5*(v_c[index<Level>(i, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j, SD::VERTEX_C)]);
-      lineary = 0.5*(v_c[index<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j - 2, SD::VERTEX_C)]);
-      linearxy = 0.5*(v_c[index<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[index<Level>(i, j, SD::VERTEX_C)]);
+      linearx = 0.5*(v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]);
+      lineary = 0.5*(v_c[indexFromVertex<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)]);
+      linearxy = 0.5*(v_c[indexFromVertex<Level>(i + 2, j - 2, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]);
 
-      offx = v_c[index<Level>(i, j - 1, SD::VERTEX_C)] - linearx;
-      offy = v_c[index<Level>(i + 1, j - 2, SD::VERTEX_C)] - lineary;
-      offxy = v_c[index<Level>(i + 1, j - 1, SD::VERTEX_C)] - linearxy;
+      offx = v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)] - linearx;
+      offy = v_c[indexFromVertex<Level>(i + 1, j - 2, SD::VERTEX_C)] - lineary;
+      offxy = v_c[indexFromVertex<Level>(i + 1, j - 1, SD::VERTEX_C)] - linearxy;
 // left bottom corner
-      v_f[index<Level + 1>(2*i + 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i + 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-      v_f[index<Level + 1>(2*i + 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i + 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-      v_f[index<Level + 1>(2*i + 2, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i + 2, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
 
 // lower triangle all points
 //calculate offsets
-      lineary = 0.5*(v_c[index<Level>(i - 2, j, SD::VERTEX_C)] + v_c[index<Level>(i, j, SD::VERTEX_C)]);
-      linearxy = 0.5*(v_c[index<Level>(i - 2, j, SD::VERTEX_C)] + v_c[index<Level>(i, j - 2, SD::VERTEX_C)]);
+      lineary = 0.5*(v_c[indexFromVertex<Level>(i - 2, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]);
+      linearxy = 0.5*(v_c[indexFromVertex<Level>(i - 2, j, SD::VERTEX_C)] + v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)]);
 
-      offy = v_c[index<Level>(i - 1, j, SD::VERTEX_C)] - lineary;
-      offxy = v_c[index<Level>(i - 1, j - 1, SD::VERTEX_C)] - linearxy;
+      offy = v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)] - lineary;
+      offxy = v_c[indexFromVertex<Level>(i - 1, j - 1, SD::VERTEX_C)] - linearxy;
 // first inner points
 // left bottom corner
-      v_f[index<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearx + lineary) + 0.5*offx + 0.5*offy + 0.25*offxy;
 // right bottom corner
-      v_f[index<Level + 1>(2*i - 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j - 2, SD::VERTEX_C)] = 0.5*(linearx + linearxy) + 0.5*offx + 0.25*offy + 0.5*offxy;
 // top corner
-      v_f[index<Level + 1>(2*i - 2, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i - 2, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearxy + lineary) + 0.25*offx + 0.5*offy + 0.5*offxy;
 
 // boundary points
 // x-direction
-      v_f[index<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearx + v_c[index<Level>(i, j, SD::VERTEX_C)]) + 0.75*offx;
-      v_f[index<Level + 1>(2*i, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + v_c[index<Level>(i, j - 2, SD::VERTEX_C)]) + 0.75*offx;
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j - 1, SD::VERTEX_C)] = 0.5*(linearx + v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)]) + 0.75*offx;
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j - 3, SD::VERTEX_C)] = 0.5*(linearx + v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)]) + 0.75*offx;
 //y-direction
-      v_f[index<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j, SD::VERTEX_C)] + lineary) + 0.75*offy;
-      v_f[index<Level + 1>(2*i - 3, 2*j, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i - 2, j, SD::VERTEX_C)] + lineary) + 0.75*offy;
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + lineary) + 0.75*offy;
+      v_f[indexFromVertex<Level + 1>(2*i - 3, 2*j, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i - 2, j, SD::VERTEX_C)] + lineary) + 0.75*offy;
 //xy-direction
-      v_f[index<Level + 1>(2*i - 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i, j - 2, SD::VERTEX_C)] + linearxy) + 0.75*offxy;
-      v_f[index<Level + 1>(2*i - 3, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[index<Level>(i - 2, j, SD::VERTEX_C)] + linearxy) + 0.75*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i - 1, 2*j - 3, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i, j - 2, SD::VERTEX_C)] + linearxy) + 0.75*offxy;
+      v_f[indexFromVertex<Level + 1>(2*i - 3, 2*j - 1, SD::VERTEX_C)] = 0.5*(v_c[indexFromVertex<Level>(i - 2, j, SD::VERTEX_C)] + linearxy) + 0.75*offxy;
 // coarse points
-      v_f[index<Level + 1>(2*i, 2*j, SD::VERTEX_C)] = v_c[index<Level>(i, j, SD::VERTEX_C)];
-      v_f[index<Level + 1>(2*i, 2*j - 2, SD::VERTEX_C)] = v_c[index<Level>(i, j - 1, SD::VERTEX_C)];
-      v_f[index<Level + 1>(2*i - 2, 2*j, SD::VERTEX_C)] = v_c[index<Level>(i - 1, j, SD::VERTEX_C)];
-      v_f[index<Level + 1>(2*i - 2, 2*j - 2, SD::VERTEX_C)] = v_c[index<Level>(i - 1, j - 1, SD::VERTEX_C)];
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j, SD::VERTEX_C)] = v_c[indexFromVertex<Level>(i, j, SD::VERTEX_C)];
+      v_f[indexFromVertex<Level + 1>(2*i, 2*j - 2, SD::VERTEX_C)] = v_c[indexFromVertex<Level>(i, j - 1, SD::VERTEX_C)];
+      v_f[indexFromVertex<Level + 1>(2*i - 2, 2*j, SD::VERTEX_C)] = v_c[indexFromVertex<Level>(i - 1, j, SD::VERTEX_C)];
+      v_f[indexFromVertex<Level + 1>(2*i - 2, 2*j - 2, SD::VERTEX_C)] = v_c[indexFromVertex<Level>(i - 1, j - 1, SD::VERTEX_C)];
     }
     N_c_i -= 2;
 
@@ -749,7 +737,6 @@ SPECIALIZE_WITH_VALUETYPE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template< typename ValueType, uint_t Level >
 inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &memoryId) {
-  using namespace FaceCoordsVertex;
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   uint_t N_c_i = N_c;
@@ -762,13 +749,13 @@ inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory
   for (uint_t j = 1; j < N_c - 2; ++j) {
     for (uint_t i = 1; i < N_c_i - 2; ++i) {
 
-      tmp = v_f[index<Level>(2*i, 2*j, stencilDirection::VERTEX_C)];
+      tmp = v_f[vertexdof::macroface::indexFromVertex<Level>(2*i, 2*j, stencilDirection::VERTEX_C)];
 
-      for (auto neighbor : neighbors) {
-        tmp += 0.5*v_f[index<Level>(2*i, 2*j, neighbor)];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter ) {
+        tmp += 0.5*v_f[vertexdof::macroface::indexFromVertex<Level>(2*i, 2*j, neighbor)];
       }
 
-      v_c[index<Level - 1>(i, j, stencilDirection::VERTEX_C)] = tmp;
+      v_c[vertexdof::macroface::indexFromVertex<Level - 1>(i, j, stencilDirection::VERTEX_C)] = tmp;
     }
 
     --N_c_i;
@@ -819,7 +806,7 @@ inline void integrateDGTmpl(Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsP1Id,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
-  using namespace FaceCoordsVertex;
+  using namespace vertexdof::macroface;
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -837,15 +824,15 @@ inline void integrateDGTmpl(Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      tmp  = rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_S)]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_SE)]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_E)]));
+      tmp  = rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_S)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_SE)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_E)]));
 
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_NW)]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_N)]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[index<Level>(i, j, SD::VERTEX_C)] + rhsP1[index<Level>(i, j, SD::VERTEX_E)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_NW)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_N)]));
+      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_C)] + rhsP1[indexFromVertex<Level>(i, j, SD::VERTEX_E)]));
 
-      dst[index<Level>(i, j, SD::VERTEX_C)] = weightedFaceArea * tmp;
+      dst[indexFromVertex<Level>(i, j, SD::VERTEX_C)] = weightedFaceArea * tmp;
     }
     --inner_rowsize;
   }
@@ -855,7 +842,6 @@ SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 template< typename ValueType, uint_t Level >
 inline real_t getMaxValueTmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -865,7 +851,7 @@ inline real_t getMaxValueTmpl(Face &face, const PrimitiveDataID<FunctionMemory< 
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-      localMax = std::max(localMax, src[index<Level>(i, j, stencilDirection::VERTEX_C)]);
+      localMax = std::max(localMax, src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)]);
     }
     --inner_rowsize;
   }
@@ -880,7 +866,6 @@ template< uint_t Level >
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face>& operatorId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -892,15 +877,15 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMem
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt srcInt = src[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      PetscInt dstInt = dst[index<Level>(i, j, stencilDirection::VERTEX_C)];
+      PetscInt srcInt = src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
-      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[P1Elements::FaceVertexDoF::stencilMap_(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
 
-      for (auto neighbor : neighbors) {
-        srcInt = src[index<Level>(i, j, neighbor)];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter ) {
+        srcInt = src[vertexdof::macroface::indexFromVertex<Level>(i, j, neighbor)];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[P1Elements::FaceVertexDoF::stencilMap_(neighbor)] ,INSERT_VALUES);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -915,7 +900,6 @@ inline void createVectorFromFunctionTmpl(Face &face,
                               const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                               const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                               Vec& vec) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -926,8 +910,8 @@ inline void createVectorFromFunctionTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt numeratorInt = numerator[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      VecSetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, stencilDirection::VERTEX_C)],INSERT_VALUES);
+      PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      VecSetValues(vec,1,&numeratorInt,&src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)],INSERT_VALUES);
     }
     --inner_rowsize;
   }
@@ -942,7 +926,6 @@ inline void createFunctionFromVectorTmpl(Face &face,
                                          const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                          const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
                                          Vec& vec) {
-  using namespace FaceCoordsVertex;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -953,8 +936,8 @@ inline void createFunctionFromVectorTmpl(Face &face,
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      PetscInt numeratorInt = numerator[index<Level>(i, j, stencilDirection::VERTEX_C)];
-      VecGetValues(vec,1,&numeratorInt,&src[index<Level>(i, j, stencilDirection::VERTEX_C)]);
+      PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      VecGetValues(vec,1,&numeratorInt,&src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)]);
     }
     --inner_rowsize;
   }
@@ -963,6 +946,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
-}// namespace P1Face
+}// namespace macroface
+}// namespace vertexdof
 }// namespace hhg
 

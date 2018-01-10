@@ -65,4 +65,63 @@ enum class stencilDirection : uint_t {
 
 };
 
+inline bool isHorizontalEdge( const stencilDirection & dir )
+{
+  switch ( dir )
+  {
+  case stencilDirection::EDGE_HO_C:
+  case stencilDirection::EDGE_HO_N:
+  case stencilDirection::EDGE_HO_S:
+  case stencilDirection::EDGE_HO_W:
+  case stencilDirection::EDGE_HO_E:
+  case stencilDirection::EDGE_HO_NW:
+  case stencilDirection::EDGE_HO_SE:
+    return true;
+    break;
+  default:
+    return false;
+    break;
+  }
+}
+
+inline bool isDiagonalEdge( const stencilDirection & dir )
+{
+  switch ( dir )
+  {
+  case stencilDirection::EDGE_DI_C:
+  case stencilDirection::EDGE_DI_N:
+  case stencilDirection::EDGE_DI_S:
+  case stencilDirection::EDGE_DI_W:
+  case stencilDirection::EDGE_DI_E:
+  case stencilDirection::EDGE_DI_NW:
+  case stencilDirection::EDGE_DI_NE:
+  case stencilDirection::EDGE_DI_SW:
+  case stencilDirection::EDGE_DI_SE:
+    return true;
+    break;
+  default:
+    return false;
+    break;
+  }
+}
+
+inline bool isVerticalEdge( const stencilDirection & dir )
+{
+  switch ( dir )
+  {
+  case stencilDirection::EDGE_VE_C:
+  case stencilDirection::EDGE_VE_N:
+  case stencilDirection::EDGE_VE_S:
+  case stencilDirection::EDGE_VE_W:
+  case stencilDirection::EDGE_VE_E:
+  case stencilDirection::EDGE_VE_NW:
+  case stencilDirection::EDGE_VE_SE:
+    return true;
+    break;
+  default:
+    return false;
+    break;
+  }
+}
+
 }//namespace hhg

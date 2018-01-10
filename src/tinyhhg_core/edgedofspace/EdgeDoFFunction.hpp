@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/mpi/all.h"
+
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
@@ -9,14 +11,34 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "EdgeDoFMemory.hpp"
-#include "EdgeDoFDataHandling.hpp"
 #include "EdgeDoFMacroFace.hpp"
 #include "EdgeDoFMacroEdge.hpp"
 #include "EdgeDoFPackInfo.hpp"
 
 
 namespace hhg {
+
+namespace edgedof {
+///@name Size Functions
+///@{
+
+inline uint_t edgeDoFMacroVertexFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(level);
+  return 2 * numDependencies;
+}
+
+inline uint_t edgeDoFMacroEdgeFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  return levelinfo::num_microedges_per_edge(level) + numDependencies * (3 * (levelinfo::num_microedges_per_edge(level)) - 1);
+}
+
+inline uint_t edgeDoFMacroFaceFunctionMemorySize(const uint_t &level, const uint_t &numDependencies) {
+  WALBERLA_UNUSED(numDependencies);
+  return 3 * (((levelinfo::num_microedges_per_edge(level) + 1) * levelinfo::num_microedges_per_edge(level)) / 2);
+}
+
+///@}
+
+}// namespace edgedof
 
 template< typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
@@ -26,13 +48,19 @@ public:
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel ) :
       Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto edgeDoFMacroVertexFunctionMemoryDataHandling = std::make_shared< EdgeDoFMacroVertexFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto edgeDoFMacroEdgeFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroEdgeFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
-    auto edgeDoFMacroFaceFunctionMemoryDataHandling   = std::make_shared< EdgeDoFMacroFaceFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+    std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Vertex >> vertexDataHandling =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Vertex >>(minLevel, maxLevel, edgedof::edgeDoFMacroVertexFunctionMemorySize);
 
-    storage->addVertexData( vertexDataID_, edgeDoFMacroVertexFunctionMemoryDataHandling, name );
-    storage->addEdgeData(   edgeDataID_,   edgeDoFMacroEdgeFunctionMemoryDataHandling,   name );
-    storage->addFaceData(   faceDataID_,   edgeDoFMacroFaceFunctionMemoryDataHandling,   name );
+    std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Edge >> edgeDataHandling   =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Edge   >>(minLevel, maxLevel, edgedof::edgeDoFMacroEdgeFunctionMemorySize);
+
+    std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Face >> faceDataHandling   =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Face   >>(minLevel, maxLevel, edgedof::edgeDoFMacroFaceFunctionMemorySize);
+
+
+    storage->addVertexData( vertexDataID_, vertexDataHandling, name );
+    storage->addEdgeData(   edgeDataID_,   edgeDataHandling,   name );
+    storage->addFaceData(   faceDataID_,   faceDataHandling,   name );
 
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
@@ -91,19 +119,27 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
                                                            uint_t level,
                                                            DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Interpolate not fully implemented!" );
-
   // Collect all source IDs in a vector
-//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-//  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
 
   for (auto& function : srcFunctions)
   {
-//    srcVertexIDs.push_back(function->vertexDataID_);
-//    srcEdgeIDs.push_back(function->edgeDataID_);
+    srcEdgeIDs.push_back(function->edgeDataID_);
     srcFaceIDs.push_back(function->faceDataID_);
   }
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -114,23 +150,33 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
       edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Assign not fully implemented!" );
-
-  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
   for ( auto& function : functions )
   {
-      srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
   }
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -141,23 +187,34 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
       edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
+
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
-
-  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex >> srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
   for ( auto& function : functions )
   {
-      srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
   }
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      edgedof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+    }
+  }
+
+  communicators_[ level ]->template startCommunication< Edge, Face >();
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -168,14 +225,24 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
       edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
   }
+
+  communicators_[ level ]->template endCommunication< Edge, Face >();
 }
 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
-  WALBERLA_LOG_WARNING_ON_ROOT( "Add not fully implemented!" );
-
   real_t scalarProduct =  0.0 ;
+
+  for ( auto & it : storage_->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      scalarProduct += edgedof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
+    }
+  }
 
   for ( auto & it : storage_->getFaces() )
   {
@@ -187,6 +254,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
     }
   }
 
+  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
   return scalarProduct;
 }
 
@@ -234,4 +302,5 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
 }
 
-}
+
+}// namespace hhg

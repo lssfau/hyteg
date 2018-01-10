@@ -148,7 +148,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
+        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
       }
     }
 
@@ -167,7 +167,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
+        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
       }
     }
 
@@ -181,9 +181,9 @@ private:
       if (testFlag(face.type, flag))
       {
         if (coefficientP1_ != nullptr) {
-          P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
+          vertexdof::macroface::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
         } else {
-          P1Face::applyCoefficientDG< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientDG_->getFaceDataID(), updateType);
+          vertexdof::macroface::applyCoefficientDG< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientDG_->getFaceDataID(), updateType);
         }
       }
     }

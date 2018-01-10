@@ -69,13 +69,13 @@ int main(int argc, char **argv)
     xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((v_perEdge-1));
     yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((v_perEdge-1));
 
-    P1Face::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
+    vertexdof::macroface::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = P1Face::FaceCoordsVertex::index<maxLevel>(j, i, stencilDirection::VERTEX_C);
-        if (P1Face::is_boundary(idx, v_perEdge))
+        uint_t idx = vertexdof::macroface::indexFromVertex<maxLevel>(j, i, stencilDirection::VERTEX_C);
+        if (vertexdof::macroface::is_boundary(idx, v_perEdge))
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], 0.0,
                                      "i: " << i << " j: " << j << " idx: " << idx << " value was " << value);
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::P1Edge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
+    hhg::vertexdof::macroedge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
     value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
     xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));

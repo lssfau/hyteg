@@ -66,7 +66,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::applyElementwise< real_t >(level, vertex, storage_, computeElementMatrix_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoordIds, updateType);
+        vertexdof::macrovertex::applyElementwise< real_t >(level, vertex, storage_, computeElementMatrix_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoordIds, updateType);
       }
     }
 
@@ -79,7 +79,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::applyElementwise< real_t >(level, edge, storage_, computeElementMatrix_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoordIds, updateType);
+        vertexdof::macroedge::applyElementwise< real_t >(level, edge, storage_, computeElementMatrix_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoordIds, updateType);
       }
     }
 
@@ -92,7 +92,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::applyElementwise< real_t >(level, face, computeElementMatrix_, src.getFaceDataID(), dst.getFaceDataID(), faceCoordIds, updateType);
+        vertexdof::macroface::applyElementwise< real_t >(level, face, computeElementMatrix_, src.getFaceDataID(), dst.getFaceDataID(), faceCoordIds, updateType);
       }
     }
 

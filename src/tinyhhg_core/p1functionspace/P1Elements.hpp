@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {
 namespace P1Elements {
@@ -30,27 +31,6 @@ const P1Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
 const P1Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
 const P1Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W}};
 
-inline uint_t stencilMap_(const stencilDirection dir) {
-  switch (dir) {
-    case SD::VERTEX_S:
-      return 0;
-    case SD::VERTEX_SE:
-      return 1;
-    case SD::VERTEX_W:
-      return 2;
-    case SD::VERTEX_C:
-      return 3;
-    case SD::VERTEX_E:
-      return 4;
-    case SD::VERTEX_NW:
-      return 5;
-    case SD::VERTEX_N:
-      return 6;
-    default:
-      return std::numeric_limits<size_t>::max();
-  }
-}
-
 static const std::array<P1Element, 3> P1GrayElements =
     {{
          elementS,
@@ -67,16 +47,16 @@ static const std::array<P1Element, 3> P1BlueElements =
 
 static const std::array<StencilMap, 3> P1GrayStencilMaps =
     {{
-         {{stencilMap_(elementS[0]), stencilMap_(elementS[1]), stencilMap_(elementS[2])}},
-         {{stencilMap_(elementNE[0]), stencilMap_(elementNE[1]), stencilMap_(elementNE[2])}},
-         {{stencilMap_(elementNW[0]), stencilMap_(elementNW[1]), stencilMap_(elementNW[2])}}
+         {{vertexdof::stencilIndexFromVertex(elementS[0]), vertexdof::stencilIndexFromVertex(elementS[1]), vertexdof::stencilIndexFromVertex(elementS[2])}},
+         {{vertexdof::stencilIndexFromVertex(elementNE[0]), vertexdof::stencilIndexFromVertex(elementNE[1]), vertexdof::stencilIndexFromVertex(elementNE[2])}},
+         {{vertexdof::stencilIndexFromVertex(elementNW[0]), vertexdof::stencilIndexFromVertex(elementNW[1]), vertexdof::stencilIndexFromVertex(elementNW[2])}}
      }};
 
 static const std::array<StencilMap, 3> P1BlueStencilMaps =
     {{
-         {{stencilMap_(elementSW[0]), stencilMap_(elementSW[1]), stencilMap_(elementSW[2])}},
-         {{stencilMap_(elementSE[0]), stencilMap_(elementSE[1]), stencilMap_(elementSE[2])}},
-         {{stencilMap_(elementN[0]), stencilMap_(elementN[1]), stencilMap_(elementN[2])}}
+         {{vertexdof::stencilIndexFromVertex(elementSW[0]), vertexdof::stencilIndexFromVertex(elementSW[1]), vertexdof::stencilIndexFromVertex(elementSW[2])}},
+         {{vertexdof::stencilIndexFromVertex(elementSE[0]), vertexdof::stencilIndexFromVertex(elementSE[1]), vertexdof::stencilIndexFromVertex(elementSE[2])}},
+         {{vertexdof::stencilIndexFromVertex(elementN[0]), vertexdof::stencilIndexFromVertex(elementN[1]), vertexdof::stencilIndexFromVertex(elementN[2])}}
      }};
 
 static const std::array<DoFMap, 3> P1GrayDoFMaps =
@@ -93,6 +73,11 @@ static const std::array<DoFMap, 3> P1BlueDoFMaps =
          {{1, 2, 0}},
          {{2, 0, 1}}
      }};
+}
+
+inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
+{
+  return {{ vertexdof::stencilIndexFromVertex( element[0] ), vertexdof::stencilIndexFromVertex( element[1] ), vertexdof::stencilIndexFromVertex( element[2] ) }};
 }
 
 template<typename StencilMemory>

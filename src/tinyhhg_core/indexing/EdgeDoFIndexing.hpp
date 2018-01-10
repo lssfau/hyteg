@@ -4,6 +4,7 @@
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg {
 namespace indexing {
@@ -20,6 +21,8 @@ constexpr uint_t levelToFaceSizeAnyEdgeDoF = levelinfo::num_microedges_per_face(
 // ##################
 
 namespace macroedge {
+
+typedef stencilDirection sD;
 
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
 template< uint_t level >
@@ -75,8 +78,6 @@ inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighb
 template< uint_t level >
 inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   // first  neighbor == south
   // second neighbor == north
 
@@ -102,8 +103,6 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
 template< uint_t level >
 inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   // first  neighbor == south
   // second neighbor == north
 
@@ -139,6 +138,24 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
   }
 }
 
+
+constexpr std::array<stencilDirection ,2> neighborsOnEdgeFromVertex = {{ sD::EDGE_HO_E, sD::EDGE_HO_W}};
+constexpr std::array<stencilDirection ,5> neighborsOnSouthFaceFromVertex = {{ sD::EDGE_DI_SW, sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE}};
+constexpr std::array<stencilDirection ,5> neighborsOnNorthFaceFromVertex = {{ sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW, sD::EDGE_DI_NW, sD::EDGE_VE_NW}};
+
+constexpr std::array<stencilDirection ,1> neighborsOnEdgeFromHorizontalEdge = {{ sD::EDGE_HO_C }};
+constexpr std::array<stencilDirection ,2> neighborsOnSouthFaceFromHorizontalEdge = {{ sD::EDGE_DI_S, sD::EDGE_VE_SE }};
+constexpr std::array<stencilDirection ,2> neighborsOnNorthFaceFromHorizontalEdge = {{ sD::EDGE_DI_N, sD::EDGE_VE_NW }};
+
+class Iterator : public EdgeIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  {}
+};
+
+
 } // namespace macroedge
 
 // ##################
@@ -147,9 +164,9 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
 
 namespace macroface {
 
-
 /// Direct access functions
 
+typedef stencilDirection sD;
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
 {
@@ -173,8 +190,6 @@ inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
 template< uint_t level >
 inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_HO_C:
@@ -193,11 +208,16 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_
   }
 }
 
+constexpr std::array<stencilDirection ,5> neighborsFromHorizontalEdge =
+  {{ sD::EDGE_HO_C,
+     sD::EDGE_DI_S, sD::EDGE_VE_SE,
+     sD::EDGE_DI_N, sD::EDGE_VE_NW
+   }};
+
+
 template< uint_t level >
 inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_DI_C:
@@ -216,11 +236,15 @@ inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t 
   }
 }
 
+constexpr std::array<stencilDirection ,5> neighborsFromDiagonalEdge =
+  {{ sD::EDGE_DI_C,
+     sD::EDGE_HO_S, sD::EDGE_VE_E,
+     sD::EDGE_HO_N, sD::EDGE_VE_W
+   }};
+
 template< uint_t level >
 inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   switch( dir )
   {
   case sD::EDGE_VE_C:
@@ -239,11 +263,15 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t 
   }
 }
 
+constexpr std::array<stencilDirection ,5> neighborsFromVerticalEdge =
+  {{ sD::EDGE_VE_C,
+     sD::EDGE_HO_SE, sD::EDGE_DI_E,
+     sD::EDGE_HO_NW, sD::EDGE_DI_W
+   }};
+
 template< uint_t level >
 inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
-  typedef stencilDirection sD;
-
   // first  neighbor == south
   // second neighbor == north
 
@@ -279,6 +307,63 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
   }
 }
 
+constexpr std::array<stencilDirection ,12> neighborsFromVertex =
+  {{ sD::EDGE_VE_S, sD::EDGE_HO_SE, sD::EDGE_DI_SE, sD::EDGE_VE_SE,
+     sD::EDGE_HO_E, sD::EDGE_DI_NE, sD::EDGE_VE_N, sD::EDGE_HO_NW,
+     sD::EDGE_DI_NW, sD::EDGE_VE_NW, sD::EDGE_HO_W, sD::EDGE_DI_SW
+   }};
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
+  switch(dir) {
+    case sD::EDGE_DI_S:
+      return 0;
+    case sD::EDGE_VE_SE:
+      return 1;
+    case sD::EDGE_DI_N:
+      return 2;
+    case sD::EDGE_VE_NW:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir){
+  switch(dir) {
+    case sD::EDGE_HO_S:
+      return 0;
+    case sD::EDGE_VE_E:
+      return 1;
+    case sD::EDGE_HO_N:
+      return 2;
+    case sD::EDGE_VE_W:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are randomly chosen but need to be kept this way
+constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir){
+  switch(dir) {
+    case sD::EDGE_HO_S:
+      return 0;
+    case sD::EDGE_VE_E:
+      return 1;
+    case sD::EDGE_HO_N:
+      return 2;
+    case sD::EDGE_VE_W:
+      return 3;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
 // Iterators
 
 class Iterator : public FaceIterator
@@ -292,13 +377,113 @@ public:
 class BorderIterator : public FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
-    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter )
+  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+    FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
 
+template< uint_t level >
+inline Index getBottomLeftCorner() { return getFaceBottomLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline Index getBottomRightCorner() { return getFaceBottomRightCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
+template< uint_t level >
+inline Index getTopLeftCorner() { return getFaceTopLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
+
 
 } // namespace macroface
+
+
+/// these numbers specify the postion of each stencil entry in the stencil memory array
+/// they are chosen such that the edge dofs on the south face from a macro edge are the first seven entries
+/// otherwise the returned index would be out of bounds in the stencil memory array
+constexpr inline uint_t stencilIndexFromVertex(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_HO_W:
+      return 0;
+    case sD::EDGE_DI_SW:
+      return 1;
+    case sD::EDGE_VE_S:
+      return 2;
+    case sD::EDGE_HO_SE:
+      return 3;
+    case sD::EDGE_DI_SE:
+      return 4;
+    case sD::EDGE_VE_SE:
+      return 5;
+    case sD::EDGE_HO_E:
+      return 6;
+    case sD::EDGE_DI_NE:
+      return 7;
+    case sD::EDGE_VE_N:
+      return 8;
+    case sD::EDGE_HO_NW:
+      return 9;
+    case sD::EDGE_DI_NW:
+      return 10;
+    case sD::EDGE_VE_NW:
+      return 11;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+
+constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_HO_C:
+      return 0;
+    case sD::EDGE_DI_S:
+      return 1;
+    case sD::EDGE_VE_SE:
+      return 2;
+    case sD::EDGE_DI_N:
+      return 3;
+    case sD::EDGE_VE_NW:
+      return 4;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+constexpr inline uint_t stencilIndexFromDiagonalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_DI_C:
+      return 5;
+    case sD::EDGE_HO_S:
+      return 6;
+    case sD::EDGE_VE_E:
+      return 7;
+    case sD::EDGE_HO_N:
+      return 8;
+    case sD::EDGE_VE_W:
+      return 9;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir){
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::EDGE_VE_C:
+      return 10;
+    case sD::EDGE_HO_SE:
+      return 11;
+    case sD::EDGE_DI_E:
+      return 12;
+    case sD::EDGE_HO_NW:
+      return 13;
+    case sD::EDGE_DI_W:
+      return 14;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
 
 } // namespace edgedof
 } // namespace indexing
