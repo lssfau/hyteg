@@ -27,9 +27,9 @@ public:
   VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
-    auto faceVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, P1FaceFunctionMemorySize );
-    auto edgeVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, P1EdgeFunctionMemorySize   );
-    auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, P1VertexFunctionMemorySize );
+    auto faceVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, vertexDoFMacroFaceFunctionMemorySize );
+    auto edgeVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, vertexDoFMacroEdgeFunctionMemorySize   );
+    auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, vertexDoFMacroVertexFunctionMemorySize );
 
     storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
     storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
