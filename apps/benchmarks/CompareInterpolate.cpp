@@ -18,10 +18,10 @@ public:
 
 template< typename ValueType, uint_t Level >
 inline void interpolateStdFunction(Face &face,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             std::function<ValueType(const hhg::Point3D &)> &expr) {
 
-  FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+  FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
   auto dstPtr = faceMemory->getPointer( Level );
@@ -45,9 +45,9 @@ inline void interpolateStdFunction(Face &face,
 
 template< typename ValueType, uint_t Level, typename Expr >
 inline void interpolateTemplate(Face &face,
-                         const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
+                         const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                          const Expr& expr) {
-  FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+  FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
   auto dstPtr = faceMemory->getPointer( Level );
@@ -71,10 +71,10 @@ inline void interpolateTemplate(Face &face,
 
 template< typename ValueType, uint_t Level >
 inline void interpolateFunctor(Face &face,
-                                const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
+                                const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                                 const exactFunctor& exprFunctor) {
 
-  FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+  FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
   auto dstPtr = faceMemory->getPointer( Level );
@@ -98,8 +98,8 @@ inline void interpolateFunctor(Face &face,
 
 template< typename ValueType, uint_t Level >
 inline void interpolateWithoutFunction(Face &face,
-                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId) {
-  FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+                                       const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId) {
+  FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
   auto dstPtr = faceMemory->getPointer( Level );

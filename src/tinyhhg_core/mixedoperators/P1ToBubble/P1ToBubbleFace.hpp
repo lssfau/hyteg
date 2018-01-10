@@ -10,7 +10,7 @@ namespace hhg {
 namespace P1ToBubbleFace {
 template<size_t Level>
 inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
-                       const PrimitiveDataID<FaceP1FunctionMemory< real_t >, Face> &srcId,
+                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
                        const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -73,7 +73,7 @@ SPECIALIZE(void, apply_tmpl, apply)
 #ifdef HHG_BUILD_WITH_PETSC
 template<size_t Level>
 inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;

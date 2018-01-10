@@ -29,9 +29,9 @@
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
-#include "P1Vertex.hpp"
-#include "P1Edge.hpp"
-#include "P1Face.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 
 namespace hhg
 {
@@ -48,9 +48,9 @@ public:
     using namespace P1Elements;
     typedef stencilDirection sD;
 
-    auto faceP1StencilMemoryDataHandling = std::make_shared< FaceP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-    auto edgeP1StencilMemoryDataHandling = std::make_shared< EdgeP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
-    auto vertexP1StencilMemoryDataHandling = std::make_shared< VertexP1StencilMemoryDataHandling< real_t > >(minLevel_, maxLevel_);
+    auto faceP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face   > >( minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
+    auto edgeP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge   > >( minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize );
+    auto vertexP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex > >( minLevel_, maxLevel_, vertexDoFMacroVertexStencilMemorySize );
 
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
@@ -268,11 +268,11 @@ public:
     }
   }
 
-  const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
 
-  const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
 
-  const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
 private:
 
@@ -476,9 +476,9 @@ private:
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
   }
 
-  PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> vertexStencilID_;
-  PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> edgeStencilID_;
-  PrimitiveDataID<FaceP1StencilMemory< real_t >, Face> faceStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Edge> edgeStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Face> faceStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
