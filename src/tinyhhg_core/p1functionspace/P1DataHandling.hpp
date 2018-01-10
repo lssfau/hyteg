@@ -8,13 +8,13 @@
 namespace hhg {
 
 template< typename ValueType >
-class VertexP1StencilMemoryDataHandling : public StencilMemoryDataHandling< VertexP1StencilMemory< ValueType >, Vertex >
+class VertexP1StencilMemoryDataHandling : public StencilMemoryDataHandling< StencilMemory< ValueType >, Vertex >
 {
  public:
 
   VertexP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  inline std::shared_ptr< VertexP1StencilMemory< ValueType > > initialize( const Vertex * const vertex ) const;
+  inline std::shared_ptr< StencilMemory< ValueType > > initialize( const Vertex * const vertex ) const;
 
  private:
 
@@ -24,13 +24,13 @@ class VertexP1StencilMemoryDataHandling : public StencilMemoryDataHandling< Vert
 };
 
 template< typename ValueType >
-class EdgeP1StencilMemoryDataHandling : public StencilMemoryDataHandling< EdgeP1StencilMemory< ValueType >, Edge >
+class EdgeP1StencilMemoryDataHandling : public StencilMemoryDataHandling< StencilMemory< ValueType >, Edge >
 {
  public:
 
   EdgeP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  inline std::shared_ptr< EdgeP1StencilMemory< ValueType > > initialize( const Edge * const edge ) const;
+  inline std::shared_ptr< StencilMemory< ValueType > > initialize( const Edge * const edge ) const;
 
  private:
 
@@ -40,13 +40,13 @@ class EdgeP1StencilMemoryDataHandling : public StencilMemoryDataHandling< EdgeP1
 };
 
 template< typename ValueType >
-class FaceP1StencilMemoryDataHandling : public StencilMemoryDataHandling< FaceP1StencilMemory< ValueType >, Face >
+class FaceP1StencilMemoryDataHandling : public StencilMemoryDataHandling< StencilMemory< ValueType >, Face >
 {
  public:
 
   FaceP1StencilMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel ) : minLevel_( minLevel ), maxLevel_( maxLevel ) {}
 
-  inline std::shared_ptr< FaceP1StencilMemory< ValueType > > initialize( const Face * const face ) const;
+  inline std::shared_ptr< StencilMemory< ValueType > > initialize( const Face * const face ) const;
 
  private:
 
@@ -109,21 +109,21 @@ private:
 
 
 template< typename ValueType >
-std::shared_ptr< VertexP1StencilMemory< ValueType > > VertexP1StencilMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
+std::shared_ptr< StencilMemory< ValueType > > VertexP1StencilMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< VertexP1StencilMemory< ValueType > >( P1VertexStencilMemorySize, vertex->getNumNeighborEdges(), minLevel_, maxLevel_ );
+  return std::make_shared< StencilMemory< ValueType > >( P1VertexStencilMemorySize, vertex->getNumNeighborEdges(), minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
-std::shared_ptr< EdgeP1StencilMemory< ValueType > > EdgeP1StencilMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
+std::shared_ptr< StencilMemory< ValueType > > EdgeP1StencilMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
 {
-  return std::make_shared< EdgeP1StencilMemory< ValueType > >( P1EdgeStencilMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< StencilMemory< ValueType > >( P1EdgeStencilMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
-std::shared_ptr< FaceP1StencilMemory< ValueType > > FaceP1StencilMemoryDataHandling< ValueType >::initialize( const Face * const ) const
+std::shared_ptr< StencilMemory< ValueType > > FaceP1StencilMemoryDataHandling< ValueType >::initialize( const Face * const ) const
 {
-  return std::make_shared< FaceP1StencilMemory< ValueType > >( P1FaceStencilMemorySize, 0, minLevel_, maxLevel_ );
+  return std::make_shared< StencilMemory< ValueType > >( P1FaceStencilMemorySize, 0, minLevel_, maxLevel_ );
 }
 
 

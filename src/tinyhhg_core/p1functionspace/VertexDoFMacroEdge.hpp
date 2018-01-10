@@ -138,7 +138,7 @@ inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<FunctionMemory< ValueTyp
 SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 template< typename ValueType, uint_t Level >
-inline void applyTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
+inline void applyTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, UpdateType update) {
 
@@ -365,7 +365,7 @@ inline void applyElementwiseTmpl(Edge &edge,
 SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template< typename ValueType, uint_t Level >
-inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
+inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId) {
 
@@ -404,7 +404,7 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< 
 SPECIALIZE_WITH_VALUETYPE( void, smoothGSTmpl, smooth_gs )
 
 template< typename ValueType, uint_t Level >
-inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
+inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
                           ValueType relax) {
@@ -447,7 +447,7 @@ inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory<
 SPECIALIZE_WITH_VALUETYPE( void, smoothSORTmpl, smooth_sor )
 
 template< typename ValueType, uint_t Level >
-inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,
+inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &tmpId) {
@@ -635,7 +635,7 @@ SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template<uint_t Level>
-inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< real_t >, Edge> &operatorId,
+inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &srcId,
                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
 

@@ -196,7 +196,7 @@ inline real_t dotTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot)
 
 template< typename ValueType, uint_t Level >
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
+inline void apply_tmpl(Face &face, const PrimitiveDataID< StencilMemory< ValueType >, Face>& operatorId,
                        const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
                        const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
@@ -429,7 +429,7 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
 SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
+inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
 
@@ -461,7 +461,7 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
+inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
                             ValueType relax) {
@@ -494,7 +494,7 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 SPECIALIZE_WITH_VALUETYPE(void, smooth_sor_tmpl, smooth_sor)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
+inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face> &tmpId) {
@@ -779,7 +779,7 @@ SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >
-inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face>& operatorId,
+inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<StencilMemory< real_t >, Face>& operatorId,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &srcId,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
 

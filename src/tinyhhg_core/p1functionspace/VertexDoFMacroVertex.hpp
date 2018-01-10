@@ -75,7 +75,7 @@ inline real_t dot(Vertex &vertex,
 
 template< typename ValueType >
 inline void apply(Vertex &vertex,
-                  const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
+                  const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                   size_t level,
@@ -211,7 +211,7 @@ inline void applyElementwise(uint_t level, Vertex &vertex,
 }
 
 template< typename ValueType >
-inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
+inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId, size_t level) {
   auto opr_data = vertex.getData( operatorId )->getPointer( level );
@@ -228,7 +228,7 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 template< typename ValueType >
-inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
+inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId, size_t level,
                       ValueType relax) {
@@ -247,7 +247,7 @@ inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemo
 }
 
 template< typename ValueType >
-inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
+inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsId,
                       const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &tmpId, size_t level) {
@@ -331,7 +331,7 @@ inline void integrateDG(Vertex &vertex,
 
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
-                         const PrimitiveDataID<VertexP1StencilMemory< real_t >, Vertex> &operatorId,
+                         const PrimitiveDataID<StencilMemory< real_t >, Vertex> &operatorId,
                          const PrimitiveDataID<FunctionMemory< PetscInt >, Vertex> &srcId,
                          const PrimitiveDataID<FunctionMemory< PetscInt >, Vertex> &dstId,
                          Mat& mat,

@@ -40,15 +40,6 @@ inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const 
 // Stencil memory //
 ////////////////////
 
-template< typename ValueType >
-using VertexP1StencilMemory = StencilMemory< ValueType >;
-
-template< typename ValueType >
-using EdgeP1StencilMemory = StencilMemory< ValueType >;
-
-template< typename ValueType >
-using FaceP1StencilMemory = StencilMemory< ValueType >;
-
 inline uint_t P1VertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
