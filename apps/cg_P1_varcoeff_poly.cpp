@@ -25,7 +25,9 @@ int main(int argc, char* argv[])
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
-  const uint_t maxiter = 10000;
+  const uint_t maxPolyDegree = 7;
+  const uint_t interpolationLevel = 4;
+  const uint_t maxiter = 0;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -39,8 +41,7 @@ int main(int argc, char* argv[])
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-  typedef hhg::P1PolynomialLaplaceOperator<4, maxLevel> SolveOperator;
-  SolveOperator L(storage, coefficient, minLevel, maxLevel);
+  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -50,9 +51,7 @@ int main(int argc, char* argv[])
   err.enableTiming( timingTree );
   npoints_helper.enableTiming( timingTree );
 
-  L.enableTiming( timingTree );
-
-  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return x[0] + 1.0; };
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return (1.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return (3.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
 //  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return ((0.000112225535684453*exp(17*x[1]) + 1)*(0.89*exp(-10*pow(x[0] - 0.5, 2) - 30*pow(x[1] - (-sqrt(pow(x[0] - 0.5, 2)) + 0.5)*(1.5*sqrt(pow(x[0] - 0.5, 2)) + 0.75) - 0.3, 2)) + 1)*exp(100*pow(-x[0] + 0.5, 2)) + 0.98)*exp(-100*pow(-x[0] + 0.5, 2))/(0.000112225535684453*exp(17*x[1]) + 1); };
@@ -61,10 +60,17 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  coefficient->interpolate(coeff, maxLevel);
+
+  for (uint_t level = minLevel; level <= maxLevel; ++level) {
+    coefficient->interpolate(coeff, level);
+  }
+
   u_exact.interpolate(exact, maxLevel);
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
+
+  SolveOperator L(storage, coefficient, minLevel, maxLevel);
+  L.enableTiming( timingTree );
 
 //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
 //  auto prec = std::make_shared<PreconditionerType>(L, 30);

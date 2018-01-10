@@ -40,13 +40,14 @@ int main(int argc, char* argv[])
     for (uint_t j = 0; j < rowsize-2-i; ++j) {
       x[0] = j * h + 0.5 * h;
 
-      values[offset] = 7.0 + std::pow(3.0 * x[0], 4) + std::pow(3.0 * x[1], 4);
+      values[offset] = 7.0; // + std::pow(3.0 * x[0], 4) + std::pow(3.0 * x[1], 4);
       ++offset;
     }
   }
 
   interpolator.interpolate(values, poly);
 
+  WALBERLA_LOG_INFO("poly = " << poly);
   WALBERLA_LOG_INFO("eval = " << poly.eval(xtest));
 
   return 0;

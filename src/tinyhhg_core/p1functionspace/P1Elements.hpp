@@ -97,9 +97,9 @@ static const std::array<DoFMap, 3> P1BlueDoFMaps =
 
 template<typename StencilMemory>
 inline void assembleP1LocalStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix3r &localMatrix,
-                            StencilMemory &stencil) {
+                            StencilMemory &stencil, double coeffWeight = 1.0) {
   for (uint_t j = 0; j < 3; ++j) {
-    stencil[stencilMap[j]] += localMatrix(dofMap[0], dofMap[j]);
+    stencil[stencilMap[j]] += coeffWeight * localMatrix(dofMap[0], dofMap[j]);
   }
 }
 

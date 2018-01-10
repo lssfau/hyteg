@@ -121,8 +121,7 @@ private:
 
   void interpolateStencils() {
     typedef stencilDirection SD;
-
-    Interpolator interpolator;
+    using namespace P1Elements;
 
     std::array<SD,3> triangleBlueSW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_S  };
     std::array<SD,3> triangleGrayS  = { SD::VERTEX_C, SD::VERTEX_S,  SD::VERTEX_SE };
@@ -135,30 +134,71 @@ private:
     std::vector<real_t> vertValues(Interpolator::NumVertices);
     std::vector<real_t> diagValues(Interpolator::NumVertices);
 
+    std::vector<real_t> faceStencil(7);
+
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
       auto facePolynomials = face.getData(facePolynomialID_);
+      auto faceLocalMatrices = face.getData(faceLocalMatrixID_);
+      auto coeff = face.getData(coefficientP1_->getFaceDataID())->getPointer(InterpolationLevel);
 
       uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
       uint_t inner_rowsize = rowsize;
-      uint_t offset = 0;
+      uint_t horiOffset = 0;
+      uint_t vertOffset = 0;
+      real_t coeffWeight;
 
-      for (uint_t i = 0; i < rowsize; ++i) {
-        for (uint_t j = 0; j < inner_rowsize; ++j) {
+      WALBERLA_LOG_DEVEL("Interpolator::NumVertices = " << Interpolator::NumVertices);
 
+      for (uint_t j = 1; j < rowsize - 2; ++j) {
+        vertOffset = j-1;
 
+        uint_t i;
+        for (i = 1; i < inner_rowsize - 2; ++i) {
 
+          std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
-          ++offset;
+          for (uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k) {
+            coeffWeight = 1.0/3.0 * (coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][0])]
+                            + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][1])]
+                            + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][2])]);
+            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[k], FaceVertexDoF::P1GrayDoFMaps[k], faceLocalMatrices->getGrayMatrix(InterpolationLevel), faceStencil, coeffWeight);
+          }
+
+          for (uint_t k = 0; k < FaceVertexDoF::P1BlueElements.size(); ++k) {
+            coeffWeight = 1.0/3.0 * (coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][0])]
+                                     + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][1])]
+                                     + coeff[P1Face::FaceCoordsVertex::index<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][2])]);
+            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], FaceVertexDoF::P1BlueDoFMaps[k], faceLocalMatrices->getBlueMatrix(InterpolationLevel), faceStencil, coeffWeight);
+          }
+
+          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
+
+          vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_S)];
+          if (i != inner_rowsize - 2 - 1) {
+            vertOffset += rowsize - 1 - i;
+          }
+
+          horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_W)];
+          ++horiOffset;
+
+          if (i == inner_rowsize - 2 - 1) {
+            horiValues[horiOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_E)];
+            ++horiOffset;
+          }
         }
+
+        vertOffset++;
+        vertValues[vertOffset] = faceStencil[FaceVertexDoF::stencilMap_(SD::VERTEX_N)];
 
         --inner_rowsize;
       }
 
-//      interpolator.interpolate(horiValues, polynomials[0]);
-//      interpolator.interpolate(vertValues, polynomials[1]);
-//      interpolator.interpolate(diagValues, polynomials[2]);
+      Interpolator interpolator;
+      interpolator.interpolate(horiValues, facePolynomials->getHoriPolynomial());
+      interpolator.interpolate(vertValues, facePolynomials->getVertPolynomial());
+//      interpolator.interpolate(diagValues, facePolynomials->getDiagPolynomial());
 
       WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
       WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());
@@ -213,7 +253,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P1Face::applyCoefficient< real_t >(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), coefficientP1_->getFaceDataID(), updateType);
+        P1Face::applyPolynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
