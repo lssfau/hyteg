@@ -19,7 +19,6 @@
 namespace hhg {
 
 
-
 template< typename ValueType >
 class P1Function : public Function< P1Function< ValueType > >
 {
@@ -42,11 +41,11 @@ public:
     }
   }
 
-  const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
-  const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
 
-  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
 
   // TODO: split this function into impl
   inline void integrateDG(DGFunction< ValueType >& rhs, P1Function< ValueType >& rhsP1, uint_t level, DoFType flag);
@@ -78,9 +77,9 @@ private:
 
   inline void enumerate_impl(uint_t level, uint_t& num);
 
-  PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> vertexDataID_;
-  PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> edgeDataID_;
-  PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> faceDataID_;
+  PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
+  PrimitiveDataID< FunctionMemory< ValueType >, Edge >   edgeDataID_;
+  PrimitiveDataID< FunctionMemory< ValueType >, Face >   faceDataID_;
 };
 
 template< typename ValueType >
@@ -136,9 +135,9 @@ template< typename ValueType >
 inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
-    std::vector<PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-    std::vector<PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge>>     srcEdgeIDs;
-    std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>>     srcFaceIDs;
+    std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+    std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
+    std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face > >     srcFaceIDs;
 
     for (auto& function : functions)
     {
@@ -183,9 +182,9 @@ template< typename ValueType >
 inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<P1Function< ValueType >*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
-  std::vector<PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-  std::vector<PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge>>     srcEdgeIDs;
-  std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>>     srcFaceIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face > >     srcFaceIDs;
 
   for (auto& function : functions)
   {

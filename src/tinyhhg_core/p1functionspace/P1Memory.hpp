@@ -13,8 +13,7 @@
 #include <string>
 
 
-namespace hhg
-{
+namespace hhg {
 
 /////////////////////
 // Function memory //
@@ -35,15 +34,6 @@ inline uint_t P1FaceFunctionMemorySize( const uint_t & level, const uint_t & num
 {
   return levelinfo::num_microvertices_per_face(level);
 }
-
-template< typename ValueType >
-using VertexP1FunctionMemory = FunctionMemory< ValueType >;
-
-template< typename ValueType >
-using EdgeP1FunctionMemory = FunctionMemory< ValueType >;
-
-template< typename ValueType >
-using FaceP1FunctionMemory = FunctionMemory< ValueType >;
 
 
 ////////////////////
@@ -158,5 +148,4 @@ public:
 
 };
 
-
-}
+} // namespace hhg
