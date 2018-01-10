@@ -29,7 +29,7 @@
 
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
-#include "P1Face.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 
 namespace hhg
 {

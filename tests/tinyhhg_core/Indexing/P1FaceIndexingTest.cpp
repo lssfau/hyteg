@@ -1,5 +1,5 @@
 
-#include "tinyhhg_core/p1functionspace/P1Face.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 #include "core/mpi/all.h"
