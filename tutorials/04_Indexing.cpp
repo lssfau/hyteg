@@ -1,11 +1,11 @@
 
+#include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
 
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
 
 namespace hhg {
 
@@ -112,7 +112,7 @@ void IndexingTutorial()
       // Calculate the array index using the apropriate index function.
       // For vertex DoFs (P1) on a macro face:
       /// [IndexFunction]
-      const uint_t arrayIndex = indexing::vertexdof::macroface::index< level >( col, row );
+      const uint_t arrayIndex = vertexdof::macroface::index< level >( col, row );
       /// [IndexFunction]
 
       WALBERLA_LOG_INFO_ON_ROOT( "Array index for col = " << col << ", row = " << row << ": " << arrayIndex );
@@ -126,14 +126,14 @@ void IndexingTutorial()
   /// [Iterator]
   const uint_t offsetToCenter = 1; // 0 for the whole face, 1 for the inner face (distance to border == 1), ...
 
-  for ( const auto & it : indexing::vertexdof::macroface::Iterator( level, offsetToCenter ) )
+  for ( const auto & it : vertexdof::macroface::Iterator( level, offsetToCenter ) )
   /// [Iterator]
   {
     /// [Stencil]
     // Get neighbors using the stencil versions of the indexing functions
-    const uint_t vertexDoF      = indexing::vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_C );
-    const uint_t leftNeighbor   = indexing::vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_W );
-    const uint_t rightNeighbor  = indexing::vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_E );
+    const uint_t vertexDoF      = vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_C );
+    const uint_t leftNeighbor   = vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_W );
+    const uint_t rightNeighbor  = vertexdof::macroface::indexFromVertex< level >( it.col(), it.row(), stencilDirection::VERTEX_E );
     /// [Stencil]
 
     WALBERLA_LOG_INFO_ON_ROOT( "Stencil array idx access: row = " << it.row() << ", col =  " << it.col() << ": " <<

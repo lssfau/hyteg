@@ -102,7 +102,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-        P1Vertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
+        vertexdof::macrovertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
       }
   }
 
@@ -112,7 +112,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-        P1Edge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
+        vertexdof::macroedge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
       }
   }
 
@@ -123,7 +123,7 @@ inline void P1Function< ValueType >::interpolate_impl(std::function< ValueType( 
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-        P1Face::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
+        vertexdof::macroface::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
       }
   }
 
@@ -149,7 +149,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.getDoFType(), flag)) {
-            P1Vertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+          vertexdof::macrovertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
         }
     }
 
@@ -159,7 +159,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
         Edge& edge = *it.second;
 
         if (testFlag(edge.getDoFType(), flag)) {
-            P1Edge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+          vertexdof::macroedge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
         }
     }
 
@@ -170,7 +170,7 @@ inline void P1Function< ValueType >::assign_impl(const std::vector<ValueType> sc
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
-            P1Face::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
+          vertexdof::macroface::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
         }
     }
 
@@ -196,7 +196,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-          P1Vertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
+        vertexdof::macrovertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
       }
   }
 
@@ -206,7 +206,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-          P1Edge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
+        vertexdof::macroedge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
       }
   }
 
@@ -217,7 +217,7 @@ inline void P1Function< ValueType >::add_impl(const std::vector<ValueType> scala
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-          P1Face::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
+        vertexdof::macroface::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
   }
 
@@ -233,7 +233,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
-        scalarProduct += P1Vertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
+        scalarProduct += vertexdof::macrovertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
       }
   }
 
@@ -241,7 +241,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
-        scalarProduct += P1Edge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
+        scalarProduct += vertexdof::macroedge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
       }
   }
 
@@ -249,7 +249,7 @@ inline real_t P1Function< ValueType >::dot_impl(P1Function< ValueType >& rhs, si
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
-        scalarProduct += P1Face::dot< ValueType >(level, face, faceDataID_, rhs.faceDataID_);
+        scalarProduct += vertexdof::macroface::dot< ValueType >(level, face, faceDataID_, rhs.faceDataID_);
       }
   }
 
@@ -268,7 +268,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::prolongate(vertex, vertexDataID_, sourceLevel);
+        vertexdof::macrovertex::prolongate(vertex, vertexDataID_, sourceLevel);
       }
   }
 
@@ -279,7 +279,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
+        vertexdof::macroedge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -291,7 +291,7 @@ inline void P1Function< ValueType >::prolongate_impl(size_t sourceLevel, DoFType
 
       if (testFlag(face.type, flag))
       {
-        P1Face::prolongate< ValueType >(sourceLevel, face, faceDataID_);
+        vertexdof::macroface::prolongate< ValueType >(sourceLevel, face, faceDataID_);
       }
   }
 
@@ -308,7 +308,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      P1Vertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
+      vertexdof::macrovertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
     }
   }
 
@@ -319,7 +319,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      P1Edge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
+      vertexdof::macroedge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
     }
   }
 
@@ -331,7 +331,7 @@ inline void P1Function< ValueType >::prolongateQuadratic_impl(size_t sourceLevel
 
     if (testFlag(face.type, flag))
     {
-      P1Face::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
+      vertexdof::macroface::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
     }
   }
 
@@ -357,7 +357,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P1Vertex::restrict(vertex, vertexDataID_, sourceLevel);
+        vertexdof::macrovertex::restrict(vertex, vertexDataID_, sourceLevel);
       }
   }
 
@@ -371,7 +371,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P1Edge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
+        vertexdof::macroedge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
       }
   }
 
@@ -384,7 +384,7 @@ inline void P1Function< ValueType >::restrict_impl(size_t sourceLevel, DoFType f
 
       if (testFlag(face.type, flag))
       {
-        P1Face::restrict< ValueType >(sourceLevel, face, faceDataID_);
+        vertexdof::macroface::restrict< ValueType >(sourceLevel, face, faceDataID_);
       }
   }
 
@@ -397,7 +397,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
-    P1Vertex::enumerate(level, vertex, vertexDataID_, num);
+    vertexdof::macrovertex::enumerate(level, vertex, vertexDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
@@ -405,7 +405,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
-    P1Edge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+    vertexdof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -413,7 +413,7 @@ inline void P1Function< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
-    P1Face::enumerate< ValueType >(level, face, faceDataID_, num);
+    vertexdof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
   }
 
   communicators_[level]->template startCommunication<Face, Edge>();
@@ -443,7 +443,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      P1Vertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
+      vertexdof::macrovertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
     }
   }
 
@@ -454,7 +454,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      P1Edge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
+      vertexdof::macroedge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
     }
   }
 
@@ -465,7 +465,7 @@ inline void P1Function< ValueType >::integrateDG(DGFunction< ValueType >& rhs, P
     Face& face = *it.second;
 
     if (testFlag(face.type, flag)) {
-      P1Face::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_);
+      vertexdof::macroface::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_);
     }
   }
 
@@ -500,7 +500,7 @@ inline real_t P1Function< ValueType >::getMaxValue(uint_t level)
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
-    localMax = std::max(localMax, P1Face::getMaxValue< ValueType >(level, face, faceDataID_));
+    localMax = std::max(localMax, vertexdof::macroface::getMaxValue< ValueType >(level, face, faceDataID_));
   }
 
   real_t globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);

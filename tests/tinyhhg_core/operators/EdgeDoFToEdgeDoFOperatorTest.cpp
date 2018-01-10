@@ -5,7 +5,7 @@
 #include "core/timing/all.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 

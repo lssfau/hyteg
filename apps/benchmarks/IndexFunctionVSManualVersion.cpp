@@ -1,12 +1,10 @@
+#include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include <tinyhhg_core/tinyhhg.hpp>
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 #include "tinyhhg_core/likwidwrapper.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
-
 #include "core/Environment.h"
 
 using walberla::real_t;
@@ -84,7 +82,7 @@ int main(int argc, char **argv) {
   walberla::WcTimer timer;
   timer.reset();
   LIKWID_MARKER_START("Index Apply");
-  hhg::P1Face::apply_tmpl<real_t, level> (*face,
+  hhg::vertexdof::macroface::apply_tmpl<real_t, level> (*face,
                                           M.getFaceStencilID(),
                                           src->getFaceDataID(),
                                           dst1->getFaceDataID(),

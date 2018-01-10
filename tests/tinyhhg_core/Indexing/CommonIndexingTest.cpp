@@ -1,4 +1,5 @@
 
+#include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include <iostream>
 
 #include "core/Environment.h"
@@ -11,7 +12,6 @@
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
 

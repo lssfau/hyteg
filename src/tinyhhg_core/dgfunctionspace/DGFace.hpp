@@ -1,6 +1,7 @@
+
 #pragma once
+
 #include "DGFaceIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {
@@ -215,7 +216,7 @@ inline void upwindTmpl(Face &face,
                        const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Face>, 2> &velocityIds,
                        UpdateType updateType) {
 
-  using namespace P1Face::FaceCoordsVertex;
+  using namespace vertexdof::macroface;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -262,14 +263,14 @@ inline void upwindTmpl(Face &face,
     for (size_t i = 1; i  < inner_rowsize - 3; ++i)
     {
       // evalate velocities
-      u_0[0] = 0.5 * (u[index<Level>(i, j, stencilDirection::VERTEX_C)] + u[index<Level>(i+1, j, stencilDirection::VERTEX_C)]);
-      u_0[1] = 0.5 * (v[index<Level>(i, j, stencilDirection::VERTEX_C)] + v[index<Level>(i+1, j, stencilDirection::VERTEX_C)]);
+      u_0[0] = 0.5 * (u[indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)]);
+      u_0[1] = 0.5 * (v[indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)]);
 
-      u_1[0] = 0.5 * (u[index<Level>(i+1, j, stencilDirection::VERTEX_C)] + u[index<Level>(i, j+1, stencilDirection::VERTEX_C)]);
-      u_1[1] = 0.5 * (v[index<Level>(i+1, j, stencilDirection::VERTEX_C)] + v[index<Level>(i, j+1, stencilDirection::VERTEX_C)]);
+      u_1[0] = 0.5 * (u[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)]);
+      u_1[1] = 0.5 * (v[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)]);
 
-      u_2[0] = 0.5 * (u[index<Level>(i, j, stencilDirection::VERTEX_C)] + u[index<Level>(i, j+1, stencilDirection::VERTEX_C)]);
-      u_2[1] = 0.5 * (v[index<Level>(i, j, stencilDirection::VERTEX_C)] + v[index<Level>(i, j+1, stencilDirection::VERTEX_C)]);
+      u_2[0] = 0.5 * (u[indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)]);
+      u_2[1] = 0.5 * (v[indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)]);
 
       un_0 = d0Length * u_0.dot(n_0);
       un_1 = d1Length * u_1.dot(n_1);
@@ -320,14 +321,14 @@ inline void upwindTmpl(Face &face,
     for (size_t i = 0; i  < inner_rowsize - 2; ++i)
     {
       // evalate velocities
-      u_0[0] = 0.5 * (u[index<Level>(i, j+1, stencilDirection::VERTEX_C)] + u[index<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
-      u_0[1] = 0.5 * (v[index<Level>(i, j+1, stencilDirection::VERTEX_C)] + v[index<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
+      u_0[0] = 0.5 * (u[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
+      u_0[1] = 0.5 * (v[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
 
-      u_1[0] = 0.5 * (u[index<Level>(i, j+1, stencilDirection::VERTEX_C)] + u[index<Level>(i+1, j, stencilDirection::VERTEX_C)]);
-      u_1[1] = 0.5 * (v[index<Level>(i, j+1, stencilDirection::VERTEX_C)] + v[index<Level>(i+1, j, stencilDirection::VERTEX_C)]);
+      u_1[0] = 0.5 * (u[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)]);
+      u_1[1] = 0.5 * (v[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)]);
 
-      u_2[0] = 0.5 * (u[index<Level>(i+1, j, stencilDirection::VERTEX_C)] + u[index<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
-      u_2[1] = 0.5 * (v[index<Level>(i+1, j, stencilDirection::VERTEX_C)] + v[index<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
+      u_2[0] = 0.5 * (u[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)] + u[indexFromVertex<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
+      u_2[1] = 0.5 * (v[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)] + v[indexFromVertex<Level>(i+1, j+1, stencilDirection::VERTEX_C)]);
 
       un_0 = d0Length * u_0.dot(n_0);
       un_1 = d1Length * u_1.dot(n_1);
@@ -377,7 +378,7 @@ inline void projectP1Tmpl(Face &face,
                        const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
                        UpdateType updateType) {
 
-  using namespace P1Face::FaceCoordsVertex;
+  using namespace vertexdof::macroface;
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -393,7 +394,7 @@ inline void projectP1Tmpl(Face &face,
     for (size_t i = 1; i  < inner_rowsize - 3; ++i)
     {
       // evalate velocities
-      tmp = 1.0/3.0 * (src[index<Level>(i, j, stencilDirection::VERTEX_C)] + src[index<Level>(i+1, j, stencilDirection::VERTEX_C)] + src[index<Level>(i, j+1, stencilDirection::VERTEX_C)]);
+      tmp = 1.0/3.0 * (src[indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] + src[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)] + src[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)]);
 
       if (updateType == Replace) {
         dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
@@ -411,7 +412,7 @@ inline void projectP1Tmpl(Face &face,
     for (size_t i = 0; i  < inner_rowsize - 2; ++i)
     {
       // evalate velocities
-      tmp = 1.0/3.0 * (src[index<Level>(i, j+1, stencilDirection::VERTEX_C)] + src[index<Level>(i+1, j+1, stencilDirection::VERTEX_C)] + src[index<Level>(i+1, j, stencilDirection::VERTEX_C)]);
+      tmp = 1.0/3.0 * (src[indexFromVertex<Level>(i, j+1, stencilDirection::VERTEX_C)] + src[indexFromVertex<Level>(i+1, j+1, stencilDirection::VERTEX_C)] + src[indexFromVertex<Level>(i+1, j, stencilDirection::VERTEX_C)]);
 
       if (updateType == Replace) {
         dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;

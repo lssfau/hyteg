@@ -1,12 +1,14 @@
 
 #pragma once
 
+#include "core/Abort.h"
+
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg {
-namespace indexing {
 namespace vertexdof {
 
 // ##############
@@ -29,7 +31,7 @@ namespace macroedge {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col )
 {
-  return ::hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
+  return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
@@ -37,9 +39,9 @@ inline constexpr uint_t index( const uint_t & col )
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
-  return                      macroEdgeSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * macroEdgeSize< levelToWidth< level > - 1 >()
-         + macroEdgeIndex< levelToWidth< level > - 1 >( col );
+  return              hhg::indexing::macroEdgeSize< levelToWidth< level >     >()
+         + neighbor * hhg::indexing::macroEdgeSize< levelToWidth< level > - 1 >()
+         + hhg::indexing::macroEdgeIndex< levelToWidth< level > - 1 >( col );
 };
 
 // Stencil access functions
@@ -61,11 +63,11 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
     case sD::VERTEX_N:
       return index< level >( col    , 1);
     case sD::VERTEX_S:
-      return index< level >( col    , 0);
+      return index< level >( col - 1, 0);
     case sD::VERTEX_NW:
       return index< level >( col - 1, 1);
     case sD::VERTEX_SE:
-      return index< level >( col + 1, 0);
+      return index< level >( col    , 0);
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -93,15 +95,25 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
   }
 }
 
+/// neighbor arrays from vertex dof
+constexpr std::array<stencilDirection, 7> neighborsWithCenter               = {{ hhg::stencilDirection::VERTEX_C,
+                                                                                 hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                                 hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                                 hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                              }};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromVertexDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W }};
+constexpr std::array<stencilDirection, 2> neighborsOnSouthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE }};
+constexpr std::array<stencilDirection, 2> neighborsOnNorthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_N, hhg::stencilDirection::VERTEX_NW }};
+
 /// neighbor arrays need to connect vertex dof and edge dof
-constexpr std::array<stencilDirection ,2> neighborsOnEdgeFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
-constexpr std::array<stencilDirection ,1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
-constexpr std::array<stencilDirection ,1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromHorizontalEdgeDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
+constexpr std::array<stencilDirection, 1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
+constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
 
 
 /// Iterator over a vertex DoF macro edge.
 /// See \ref EdgeIterator for more information.
-class Iterator : public EdgeIterator
+class Iterator : public hhg::indexing::EdgeIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -123,7 +135,7 @@ namespace macroface {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & row )
 {
-  return macroFaceIndex< levelToWidth< level > >( col, row );
+  return hhg::indexing::macroFaceIndex< levelToWidth< level > >( col, row );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
@@ -133,9 +145,9 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & row, const uin
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
-  return                      macroFaceSize< levelToWidth< level >     >()
-         + ( neighbor - 1 ) * macroFaceSize< levelToWidth< level > - 1 >()
-         + macroFaceIndex< levelToWidth< level > - 1 >( col, row );
+  return              hhg::indexing::macroFaceSize< levelToWidth< level >     >()
+         + neighbor * hhg::indexing::macroFaceSize< levelToWidth< level > - 1 >()
+         + hhg::indexing::macroFaceIndex< levelToWidth< level > - 1 >( col, row );
 
 };
 
@@ -244,17 +256,65 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t 
   }
 }
 
+template< uint_t level >
+inline constexpr uint_t indexFromGrayFace( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+  case sD::VERTEX_SW:
+    return index< level >( col    , row     );
+  case sD::VERTEX_SE:
+    return index< level >( col + 1, row     );
+  case sD::VERTEX_NW:
+    return index< level >( col    , row + 1 );
+  default:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
+
+template< uint_t level >
+inline constexpr uint_t indexFromBlueFace( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+  case sD::VERTEX_SE:
+    return index< level >( col + 1, row     );
+  case sD::VERTEX_NW:
+    return index< level >( col    , row + 1 );
+  case sD::VERTEX_NE:
+    return index< level >( col + 1, row + 1 );
+  default:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
+
+constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
+                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                     }};
+constexpr std::array< stencilDirection, 6 > neighborsWithoutCenter = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                        hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                        hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+                                                                      }};
 
 constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
   {{ stencilDirection::VERTEX_S, stencilDirection::VERTEX_SE,
      stencilDirection::VERTEX_N, stencilDirection::VERTEX_NW
    }};
 
+constexpr std::array< stencilDirection, 3 > neighborsFromGrayFace = {{ stencilDirection::VERTEX_SW, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NW }};
+constexpr std::array< stencilDirection, 3 > neighborsFromBlueFace = {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_NE }};
+
 // Iterators
 
 /// Iterator over a vertex DoF macro face.
 /// See \ref FaceIterator for more information.
-class Iterator : public FaceIterator
+class Iterator : public hhg::indexing::FaceIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -264,15 +324,38 @@ public:
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-class BorderIterator : public FaceBorderIterator
+class BorderIterator : public hhg::indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
+  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
     FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter )
   {}
 };
 
 } /// namespace macroface
+
+constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
+{
+  typedef stencilDirection sD;
+  switch(dir) {
+    case sD::VERTEX_S:
+      return 0;
+    case sD::VERTEX_SE:
+      return 1;
+    case sD::VERTEX_W:
+      return 2;
+    case sD::VERTEX_C:
+      return 3;
+    case sD::VERTEX_E:
+      return 4;
+    case sD::VERTEX_NW:
+      return 5;
+    case sD::VERTEX_N:
+        return 6;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
 
 constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
   typedef stencilDirection sD;
@@ -322,6 +405,35 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
   }
 }
 
+constexpr inline uint_t stencilIndexFromGrayFace( const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+  switch (dir) {
+    case sD::VERTEX_SW:
+      return 0;
+    case sD::VERTEX_SE:
+      return 1;
+    case sD::VERTEX_NW:
+      return 2;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
+constexpr inline uint_t stencilIndexFromBlueFace( const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+  switch (dir) {
+    case sD::VERTEX_SE:
+      return 0;
+    case sD::VERTEX_NW:
+      return 1;
+    case sD::VERTEX_NE:
+      return 2;
+    default:
+      return std::numeric_limits<size_t>::max();
+  }
+}
+
 } /// namespace vertexdof
-} /// namespace indexing
 } /// namespace hhg

@@ -1,6 +1,5 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 #include "tinyhhg_core/likwidwrapper.hpp"
 
@@ -21,7 +20,7 @@ template< typename ValueType, uint_t Level >
 inline void interpolateStdFunction(Face &face,
                             const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
                             std::function<ValueType(const hhg::Point3D &)> &expr) {
-  using namespace hhg::P1Face::FaceCoordsVertex;
+
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
@@ -36,7 +35,7 @@ inline void interpolateStdFunction(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -48,7 +47,6 @@ template< typename ValueType, uint_t Level, typename Expr >
 inline void interpolateTemplate(Face &face,
                          const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
                          const Expr& expr) {
-  using namespace hhg::P1Face::FaceCoordsVertex;
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
@@ -63,7 +61,7 @@ inline void interpolateTemplate(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x);
       x += d0;
     }
 
@@ -75,7 +73,6 @@ template< typename ValueType, uint_t Level >
 inline void interpolateFunctor(Face &face,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
                                 const exactFunctor& exprFunctor) {
-  using namespace hhg::P1Face::FaceCoordsVertex;
 
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -91,7 +88,7 @@ inline void interpolateFunctor(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = exprFunctor(x);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = exprFunctor(x);
       x += d0;
     }
 
@@ -102,7 +99,6 @@ inline void interpolateFunctor(Face &face,
 template< typename ValueType, uint_t Level >
 inline void interpolateWithoutFunction(Face &face,
                                        const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId) {
-  using namespace hhg::P1Face::FaceCoordsVertex;
   FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x, x0;
@@ -118,7 +114,7 @@ inline void interpolateWithoutFunction(Face &face,
     x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      dstPtr[index<Level>(j, i, stencilDirection::VERTEX_C)] = sqrt(x[0] * x[0] + x[1] * x[1]);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = sqrt(x[0] * x[0] + x[1] * x[1]);
       x += d0;
     }
 

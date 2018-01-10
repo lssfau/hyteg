@@ -57,13 +57,13 @@ class P1ToBubbleOperator : public Operator<P1Function< real_t >, BubbleFunction<
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-        face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(SD::VERTEX_SW)] = local_stiffness_gray[0][0];
-        face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(SD::VERTEX_SE)] = local_stiffness_gray[0][1];
-        face_gray_stencil[P1Face::FaceCoordsCellGray::stencilMap(SD::VERTEX_NW)] = local_stiffness_gray[0][2];
+        face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(SD::VERTEX_SW) ] = local_stiffness_gray[0][0];
+        face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(SD::VERTEX_SE) ] = local_stiffness_gray[0][1];
+        face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(SD::VERTEX_NW) ] = local_stiffness_gray[0][2];
 
-        face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(SD::VERTEX_SE)] = local_stiffness_blue[0][2];
-        face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(SD::VERTEX_NW)] = local_stiffness_blue[0][1];
-        face_blue_stencil[P1Face::FaceCoordsCellBlue::stencilMap(SD::VERTEX_NE)] = local_stiffness_blue[0][0];
+        face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(SD::VERTEX_SE) ] = local_stiffness_blue[0][2];
+        face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(SD::VERTEX_NW) ] = local_stiffness_blue[0][1];
+        face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(SD::VERTEX_NE) ] = local_stiffness_blue[0][0];
       }
     }
   }

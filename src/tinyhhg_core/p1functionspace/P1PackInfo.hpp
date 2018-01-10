@@ -2,10 +2,13 @@
 
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
-#include "tinyhhg_core/p1functionspace/P1EdgeIndex.hpp"
-#include "tinyhhg_core/p1functionspace/P1FaceIndex.hpp"
 
 namespace hhg {
+
+namespace {
+SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
+SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
+}
 
 template< typename ValueType >
 class P1PackInfo : public communication::DoFSpacePackInfo<ValueType> {
@@ -61,8 +64,8 @@ void P1PackInfo< ValueType >::packVertexForEdge(const Vertex *sender, const Prim
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
-  using namespace P1Edge::EdgeCoordsVertex;
+void P1PackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
   ValueType* edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   //position in edge memory
   uint_t pos;
@@ -73,12 +76,12 @@ void P1PackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver)
   }
-  buffer >> edgeData[edge_index(level_,pos,VERTEX_C)];
+  buffer >> edgeData[indexFromVertexOnMacroEdge( level_, pos, stencilDirection::VERTEX_C ) ];
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const {
-  using namespace P1Edge::EdgeCoordsVertex;
+void P1PackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender, Edge *receiver) const
+{
   ValueType *vertexData = sender->getData(dataIDVertex_)->getPointer( level_ );
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   uint_t pos;
@@ -89,7 +92,7 @@ void P1PackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
   } else {
     WALBERLA_LOG_WARNING("Vertex: " << sender << " is not in Edge: " << receiver)
   }
-  edgeData[edge_index(level_,pos,VERTEX_C)] = vertexData[0];
+  edgeData[indexFromVertexOnMacroEdge( level_, pos, stencilDirection::VERTEX_C ) ] = vertexData[0];
 }
 
 ///@}
@@ -97,40 +100,41 @@ void P1PackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
 ///@{
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
-  using namespace P1Edge::EdgeCoordsVertex;
+void P1PackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+{
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
-  uint_t vertexIdOnEdge = sender->vertex_index(receiver);
+  const uint_t vertexIdOnEdge = sender->vertex_index(receiver);
   //the last element would be the vertex itself so we have to send the next one
   if(vertexIdOnEdge == 0){
-    buffer << edgeData[edge_index(level_,1u,VERTEX_C)];
+    buffer << edgeData[indexFromVertexOnMacroEdge( level_, 1u, stencilDirection::VERTEX_C ) ];
   } else if(vertexIdOnEdge == 1){
-    buffer << edgeData[edge_index(level_,levelinfo::num_microvertices_per_edge(level_)-2,VERTEX_C)];
+    buffer << edgeData[indexFromVertexOnMacroEdge( level_, levelinfo::num_microvertices_per_edge(level_)-2 ,stencilDirection::VERTEX_C ) ];
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender);
   }
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
+void P1PackInfo< ValueType >::unpackVertexFromEdge(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
   ValueType *vertexData = receiver->getData(dataIDVertex_)->getPointer( level_ );
   uint_t edgeIdOnVertex = receiver->edge_index(sender);
   buffer >> vertexData[edgeIdOnVertex + 1];
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const {
-  using namespace P1Edge::EdgeCoordsVertex;
+void P1PackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, Vertex *receiver) const
+{
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *vertexData = receiver->getData(dataIDVertex_)->getPointer( level_ );
   uint_t vertexIdOnEdge = sender->vertex_index(receiver->getID());
   uint_t edgeIdOnVertex = receiver->edge_index(sender->getID());
   //the last element would be the vertex itself so we have to send the next one
   if(vertexIdOnEdge == 0){
-    uint_t idx = edge_index(level_,1u,VERTEX_C);
+    const uint_t idx = indexFromVertexOnMacroEdge( level_, 1u, stencilDirection::VERTEX_C );
     vertexData[edgeIdOnVertex+1] = edgeData[idx];
   } else if(vertexIdOnEdge == 1){
-    uint_t idx = edge_index(level_,levelinfo::num_microvertices_per_edge(level_)-2,VERTEX_C);
+    const uint_t idx = indexFromVertexOnMacroEdge( level_, levelinfo::num_microvertices_per_edge(level_)-2, stencilDirection::VERTEX_C );
     vertexData[edgeIdOnVertex+1] = edgeData[idx];
   } else {
     WALBERLA_LOG_WARNING("Vertex: " << receiver << " is not contained in Edge: " << sender);
@@ -142,38 +146,38 @@ void P1PackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, V
 ///@{
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) const {
-  using namespace P1Edge::EdgeCoordsVertex;
+void P1PackInfo< ValueType >::packEdgeForFace(const Edge *sender, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &buffer) const
+{
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   uint_t v_perEdge = levelinfo::num_microvertices_per_edge(level_);
 
   for (uint_t i = 0; i < v_perEdge; ++i) {
-    buffer << edgeData[edge_index(level_,i,VERTEX_C)];
+    buffer << edgeData[ indexFromVertexOnMacroEdge( level_, i, stencilDirection::VERTEX_C ) ];
   }
 }
 
 template< typename ValueType >
 void P1PackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
-  using namespace hhg::P1Face;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
-  for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
-      it != indexIterator(); ++it){
-    buffer >> faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
+  {
+    buffer >> faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
-  using namespace hhg::P1Face;
+void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const
+{
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
   uint_t idx = 0;
-  for(auto it = indexIterator(edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace], VERTEX, level_);
-      it != indexIterator(); ++it)
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
   {
-    faceData[*it] = edgeData[idx];
+    faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
   }
 }
@@ -183,58 +187,61 @@ void P1PackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
 ///@{
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
-  using namespace hhg::P1Face;
+void P1PackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+{
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
-  for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], VERTEX_INNER, level_);
-      it != indexIterator(); ++it){
-    buffer << faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  {
+    buffer << faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
+void P1PackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   uint_t v_perEdge = levelinfo::num_microvertices_per_edge(level_);
   uint_t edgeIdOnFace = receiver->face_index(sender);
-  P1Edge::EdgeCoordsVertex::DirVertex dir;
+  stencilDirection dir;
   //the first face is the south face and the second the north face
   if(edgeIdOnFace == 0)
   {
-    dir = P1Edge::EdgeCoordsVertex::VERTEX_SE;
+    dir = stencilDirection::VERTEX_SE;
   }
   else if(edgeIdOnFace == 1)
   {
-    dir = P1Edge::EdgeCoordsVertex::VERTEX_N;
+    dir = stencilDirection::VERTEX_N;
   }
   for (uint_t i = 0; i < v_perEdge -1; ++i)
   {
-    buffer >> edgeData[P1Edge::EdgeCoordsVertex::edge_index(level_,i,dir)];
+    buffer >> edgeData[ indexFromVertexOnMacroEdge( level_, i, dir ) ];
   }
 }
 
 template< typename ValueType >
-void P1PackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const {
-  using namespace hhg::P1Face;
+void P1PackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
+{
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
-  P1Edge::EdgeCoordsVertex::DirVertex dir;
+  stencilDirection dir;
   uint_t edgeIdOnFace = sender->edge_index(receiver->getID());
   //the first face is the south face and the second the north face
   if(faceIdOnEdge == 0)
   {
-    dir = P1Edge::EdgeCoordsVertex::VERTEX_SE;
+    dir = stencilDirection::VERTEX_SE;
   }
   else if(faceIdOnEdge == 1)
   {
-    dir = P1Edge::EdgeCoordsVertex::VERTEX_N;
+    dir = stencilDirection::VERTEX_N;
   }
   uint_t idx = 0;
-  for(auto it = indexIterator(edgeIdOnFace, sender->edge_orientation[edgeIdOnFace], VERTEX_INNER, level_);
-      it != indexIterator(); ++it) {
-    edgeData[hhg::P1Edge::EdgeCoordsVertex::edge_index(level_,idx,dir)] = faceData[*it];
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  {
+    edgeData[ indexFromVertexOnMacroEdge( level_, idx, dir ) ] = faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
     idx++;
   }
 }

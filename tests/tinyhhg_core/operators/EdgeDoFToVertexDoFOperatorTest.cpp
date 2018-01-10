@@ -5,7 +5,7 @@
 #include "core/timing/all.h"
 
 #include "tinyhhg_core/tinyhhg.hpp"
-#include "tinyhhg_core/indexing/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
@@ -163,10 +163,10 @@ static void testEdgeDoFToVertexDoFOperator()
   {
     auto edge = it.second;
     auto edgeFunction = edge->getData( vertex_dst->getEdgeDataID() );
-    for ( const auto & idxIt : indexing::vertexdof::macroedge::Iterator( maxLevel, 1 ) )
+    for ( const auto & idxIt : vertexdof::macroedge::Iterator( maxLevel, 1 ) )
     {
       auto ptr = edgeFunction->getPointer( maxLevel );
-      auto idx = indexing::vertexdof::macroedge::index< maxLevel >( idxIt.col() );
+      auto idx = vertexdof::macroedge::index< maxLevel >( idxIt.col() );
 
       const real_t expectedValue = edgeSrcValue * 
         ( 2.0 * real_c( edge->getNumNeighborFaces() ) * macroEdgeDiagonalStencilValue 
@@ -183,10 +183,10 @@ static void testEdgeDoFToVertexDoFOperator()
   {
     auto face = it.second;
     auto faceFunction = face->getData( vertex_dst->getFaceDataID() );
-    for ( const auto & idxIt : indexing::vertexdof::macroface::Iterator( maxLevel, 1 ) )
+    for ( const auto & idxIt : vertexdof::macroface::Iterator( maxLevel, 1 ) )
     {
       auto ptr = faceFunction->getPointer( maxLevel );
-      auto idx = indexing::vertexdof::macroface::index< maxLevel >( idxIt.col(), idxIt.row() );
+      auto idx = vertexdof::macroface::index< maxLevel >( idxIt.col(), idxIt.row() );
 
       const real_t expectedValue = edgeSrcValue * 4.0 * ( macroFaceHorizontalStencilValue + macroFaceDiagonalStencilValue + macroFaceVerticalStencilValue );
 

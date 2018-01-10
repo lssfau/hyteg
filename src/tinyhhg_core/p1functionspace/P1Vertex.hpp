@@ -7,8 +7,8 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
-
-namespace P1Vertex {
+namespace vertexdof {
+namespace macrovertex {
 
 inline void fillLocalCoords(const std::array<uint_t, 3>& element, const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
   localCoords[0] = coords[0][element[0]];
@@ -380,6 +380,6 @@ inline void applyDirichletBC(Vertex &vertex,std::vector<PetscInt> &mat, uint_t l
 
 #endif
 
-
+}
 }
 }

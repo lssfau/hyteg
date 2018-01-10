@@ -65,9 +65,9 @@ inline void applyEdgeTmpl(Edge &edge,
       }
     }
     if (update==Replace) {
-      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = tmp;
     } else if (update==Add) {
-      dst[P1Edge::EdgeCoordsVertex::index<Level>(i, P1Edge::EdgeCoordsVertex::VERTEX_C)] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] += tmp;
     }
   }
 }
@@ -103,9 +103,9 @@ inline void applyFaceTmpl(Face &face,
       }
 
       if (update==Replace) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[P1Face::FaceCoordsVertex::index<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;
