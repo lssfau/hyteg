@@ -48,9 +48,9 @@ public:
     using namespace P1Elements;
     typedef stencilDirection sD;
 
-    auto faceP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face   > >( minLevel_, maxLevel_, P1FaceStencilMemorySize );
-    auto edgeP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge   > >( minLevel_, maxLevel_, P1EdgeStencilMemorySize );
-    auto vertexP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex > >( minLevel_, maxLevel_, P1VertexStencilMemorySize );
+    auto faceP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face   > >( minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
+    auto edgeP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge   > >( minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize );
+    auto vertexP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex > >( minLevel_, maxLevel_, vertexDoFMacroVertexStencilMemorySize );
 
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");

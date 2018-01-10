@@ -40,19 +40,19 @@ inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const 
 // Stencil memory //
 ////////////////////
 
-inline uint_t P1VertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
 }
 
-inline uint_t P1EdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroEdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( numDependencies );
   return 7;
 }
 
-inline uint_t P1FaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( numDependencies );
