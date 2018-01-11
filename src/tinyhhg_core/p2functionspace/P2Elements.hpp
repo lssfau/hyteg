@@ -82,10 +82,17 @@ static const std::array<DoFMap, 3> P2BlueDoFMaps =
      }};
 
 template<typename StencilMemory>
-inline void assembleStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix6r &localMatrix,
-                              StencilMemory &stencil) {
-  for (uint_t j = 0; j < 3; ++j) {
-    stencil[stencilMap[j]] += localMatrix(dofMap[0], dofMap[j]);
+inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+  for (uint_t i = 0; i < P2Face::P2GrayElements.size(); ++i) {
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[P2GrayStencilMaps[i][j]] += grayMatrix(P2GrayDoFMaps[i][0], P2GrayDoFMaps[i][j]);
+    }
+  }
+
+  for (uint_t i = 0; i < P2Face::P2BlueElements.size(); ++i) {
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[P2BlueStencilMaps[i][j]] += blueMatrix(P2BlueDoFMaps[i][0], P2BlueDoFMaps[i][j]);
+    }
   }
 }
 
@@ -127,14 +134,49 @@ static const std::array<DoFMap, 3> P2BlueDoFMaps =
      }};
 
 template<typename StencilMemory>
-inline void assembleStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix6r &localMatrix,
-                            StencilMemory &stencil) {
-  for (uint_t j = 0; j < 3; ++j) {
-    stencil[stencilMap[j]] += localMatrix(dofMap[0], dofMap[j+1]);
+inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+
+  for (uint_t i = 0; i < P2Face::P2GrayElements.size(); ++i) {
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[P2GrayStencilMaps[i][j]] += grayMatrix(P2GrayDoFMaps[i][0], P2GrayDoFMaps[i][j+1]);
+    }
+  }
+
+  for (uint_t i = 0; i < P2Face::P2BlueElements.size(); ++i) {
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[P2BlueStencilMaps[i][j]] += blueMatrix(P2BlueDoFMaps[i][0], P2BlueDoFMaps[i][j+1]);
+    }
   }
 }
 
 } // EdgeToVertex
+
+namespace VertexToEdge {
+
+template<typename StencilMemory>
+inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+
+  // Horizontal
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_W)] = grayMatrix(5, 0) + blueMatrix(5, 1);
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_E)] = grayMatrix(5, 1) + blueMatrix(5, 0);
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_SE)] = blueMatrix(5, 2);
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_NW)] = grayMatrix(5, 2);
+
+  // Diagonal
+  stencil[vertexdof::stencilIndexFromDiagonalEdge(SD::VERTEX_SE)] = grayMatrix(3, 1) + blueMatrix(3, 2);
+  stencil[vertexdof::stencilIndexFromDiagonalEdge(SD::VERTEX_NE)] = blueMatrix(3, 0);
+  stencil[vertexdof::stencilIndexFromDiagonalEdge(SD::VERTEX_NW)] = grayMatrix(3, 2) + blueMatrix(3, 1);
+  stencil[vertexdof::stencilIndexFromDiagonalEdge(SD::VERTEX_SW)] = grayMatrix(3, 0);
+
+  // Vertical
+  stencil[vertexdof::stencilIndexFromVerticalEdge(SD::VERTEX_S)] = grayMatrix(4, 0) + blueMatrix(4, 2);
+  stencil[vertexdof::stencilIndexFromVerticalEdge(SD::VERTEX_SE)] = grayMatrix(4, 1);
+  stencil[vertexdof::stencilIndexFromVerticalEdge(SD::VERTEX_N)] = grayMatrix(4, 2) + blueMatrix(4, 0);
+  stencil[vertexdof::stencilIndexFromVerticalEdge(SD::VERTEX_NW)] = blueMatrix(4, 1);
+
+}
+
+} // VertexToEdge
 
 } // P2Face
 
