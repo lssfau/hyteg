@@ -5,6 +5,7 @@
 
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 
 #include "generated/p2_diffusion.h"
 
@@ -19,7 +20,8 @@ public:
   P2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
       : Operator(storage, minLevel, maxLevel), vertexToVertex(storage, minLevel, maxLevel),
         edgeToVertex(storage, minLevel, maxLevel),
-        vertexToEdge(storage, minLevel, maxLevel)
+        vertexToEdge(storage, minLevel, maxLevel),
+        edgeToEdge(storage, minLevel, maxLevel)
   {
     using namespace P2Elements;
 
@@ -56,6 +58,11 @@ public:
         vStencil = vertexToEdge.getFaceStencil(face.getID(), level);
         P2Face::VertexToEdge::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
         WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+
+        // Assemble edgeToEdge stencil
+        vStencil = edgeToEdge.getFaceStencil(face.getID(), level);
+        P2Face::EdgeToEdge::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToEdge/Face = {}", PointND<real_t, 15>(&vStencil[0])));
       }
 
     }
@@ -72,7 +79,7 @@ private:
   P1Operator<NoAssemble> vertexToVertex;
   EdgeDoFToVertexDoFOperator edgeToVertex;
   VertexDoFToEdgeDoFOperator vertexToEdge;
-//  EdgeDoFOperator edgeToEdge;
+  EdgeDoFOperator edgeToEdge;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];

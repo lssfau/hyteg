@@ -15,6 +15,8 @@ public:
   EdgeDoFOperator(const std::shared_ptr <PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel);
   ~EdgeDoFOperator() final = default;
 
+  real_t* getFaceStencil(const PrimitiveID& faceId, uint_t level);
+
   void apply_impl(EdgeDoFFunction< real_t >& src,  EdgeDoFFunction< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID_() const;

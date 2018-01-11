@@ -178,6 +178,36 @@ inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatr
 
 } // VertexToEdge
 
+namespace EdgeToEdge {
+
+template<typename StencilMemory>
+inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+
+  // Horizontal
+  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)] = grayMatrix(5, 5) + blueMatrix(5, 5);
+  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_S)] = blueMatrix(5, 3);
+  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_SE)] = blueMatrix(5, 4);
+  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_N)] = grayMatrix(5, 3);
+  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_NW)] = grayMatrix(5, 4);
+
+  // Diagonal
+  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)] = grayMatrix(3, 3) + blueMatrix(3, 3);
+  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_S)] = grayMatrix(3, 5);
+  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_E)] = blueMatrix(3, 4);
+  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_N)] = blueMatrix(3, 5);
+  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_W)] = grayMatrix(3, 4);
+
+  // Vertical
+  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)] = grayMatrix(4, 4) + blueMatrix(4, 4);
+  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_SE)] = grayMatrix(4, 5);
+  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_E)] = grayMatrix(4, 3);
+  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_NW)] = blueMatrix(4, 5);
+  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_W)] = blueMatrix(4, 3);
+
+}
+
+} // EdgeToEdge
+
 } // P2Face
 
 } // P2Elements

@@ -18,6 +18,10 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
 }
 
+real_t* EdgeDoFOperator::getFaceStencil(const PrimitiveID& faceId, uint_t level) {
+  return storage_->getFace(faceId)->getData(faceStencilID_)->getPointer( level );
+}
+
 void
 EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
 
