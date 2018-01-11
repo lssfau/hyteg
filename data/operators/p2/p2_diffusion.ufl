@@ -1,0 +1,5 @@
+# generate code with ffc p2_diffusion.ufl
+element = FiniteElement("Lagrange", triangle, 2)
+u = TrialFunction(element)
+v = TestFunction(element)
+a = dot(grad(u), grad(v))*dx

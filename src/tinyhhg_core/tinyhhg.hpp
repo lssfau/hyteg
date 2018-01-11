@@ -22,6 +22,9 @@
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+
 #include "types/pointnd.hpp"
 #include "types/matrix.hpp"
 #include "types/flags.hpp"
