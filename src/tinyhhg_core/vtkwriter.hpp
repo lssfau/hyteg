@@ -13,6 +13,8 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+
 #include <string>
 
 namespace hhg
@@ -48,10 +50,14 @@ public:
   void add( const BubbleFunction < real_t > * function ) { bubbleFunctions_.push_back( function ); };
   void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
 
+  void add( const P2Function     < real_t > * function ) { p1Functions_.push_back( function->getVertexDoFFunction().get() ); edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+
   void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
   void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
+
+  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p1Functions_.push_back( function->getVertexDoFFunction().get() ); edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
 
   /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
   /// Therefore always writes output if timestep is 0.
