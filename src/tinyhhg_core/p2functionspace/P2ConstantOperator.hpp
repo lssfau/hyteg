@@ -3,6 +3,8 @@
 #include "P2Function.hpp"
 #include "P2Elements.hpp"
 
+#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
+
 #include "generated/p2_diffusion.h"
 
 namespace hhg {
@@ -14,7 +16,8 @@ class P2ConstantOperator : public Operator<P2Function < real_t>, P2Function<real
 public:
 
   P2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-      : Operator(storage, minLevel, maxLevel), vertexToVertex(storage, minLevel, maxLevel)
+      : Operator(storage, minLevel, maxLevel), vertexToVertex(storage, minLevel, maxLevel),
+        edgeToVertex(storage, minLevel, maxLevel)
   {
     using namespace P2Elements;
 
@@ -34,6 +37,9 @@ public:
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
+//        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_gray =\n" << local_stiffness_gray);
+//        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_blue =\n" << local_stiffness_blue);
+
         // Assemble vertexToVertex stencil
         real_t* vStencil = vertexToVertex.getFaceStencil(face.getID(), level);
 
@@ -45,7 +51,20 @@ public:
           P2Face::VertexToVertex::assembleStencil(P2Face::VertexToVertex::P2BlueStencilMaps[i], P2Face::VertexToVertex::P2BlueDoFMaps[i], local_stiffness_blue, vStencil);
         }
 
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vStencil = {}", PointND<real_t, 7>(&vStencil[0])));
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToVertex/Face = {}", PointND<real_t, 7>(&vStencil[0])));
+
+        // Assemble edgeToVertex stencil
+        vStencil = edgeToVertex.getFaceStencil(face.getID(), level);
+
+        for (uint_t i = 0; i < P2Face::P2GrayElements.size(); ++i) {
+          P2Face::EdgeToVertex::assembleStencil(P2Face::EdgeToVertex::P2GrayStencilMaps[i], P2Face::EdgeToVertex::P2GrayDoFMaps[i], local_stiffness_gray, vStencil);
+        }
+
+        for (uint_t i = 0; i < P2Face::P2BlueElements.size(); ++i) {
+          P2Face::EdgeToVertex::assembleStencil(P2Face::EdgeToVertex::P2BlueStencilMaps[i], P2Face::EdgeToVertex::P2BlueDoFMaps[i], local_stiffness_blue, vStencil);
+        }
+
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
       }
 
     }
@@ -60,7 +79,7 @@ private:
   }
 
   P1Operator<NoAssemble> vertexToVertex;
-//  EdgeDoFToVertexDoFOperator edgeToVertex;
+  EdgeDoFToVertexDoFOperator edgeToVertex;
 //  VertexDoFToEdgeDoFOperator vertexToEdge;
 //  EdgeDoFOperator edgeToEdge;
 

@@ -91,6 +91,51 @@ inline void assembleStencil(const StencilMap &stencilMap, const DoFMap &dofMap, 
 
 } // VertexToVertex
 
+namespace EdgeToVertex {
+
+typedef std::array<uint_t, 4> DoFMap;
+typedef std::array<uint_t, 3> StencilMap;
+
+static const std::array<StencilMap, 3> P2GrayStencilMaps =
+    {{
+         {{indexing::edgedof::stencilIndexFromVertex(elementS[3]), indexing::edgedof::stencilIndexFromVertex(elementS[4]), indexing::edgedof::stencilIndexFromVertex(elementS[5])}},
+         {{indexing::edgedof::stencilIndexFromVertex(elementNE[3]), indexing::edgedof::stencilIndexFromVertex(elementNE[4]), indexing::edgedof::stencilIndexFromVertex(elementNE[5])}},
+         {{indexing::edgedof::stencilIndexFromVertex(elementNW[3]), indexing::edgedof::stencilIndexFromVertex(elementNW[4]), indexing::edgedof::stencilIndexFromVertex(elementNW[5])}}
+     }};
+
+static const std::array<StencilMap, 3> P2BlueStencilMaps =
+    {{
+         {{indexing::edgedof::stencilIndexFromVertex(elementSW[3]), indexing::edgedof::stencilIndexFromVertex(elementSW[4]), indexing::edgedof::stencilIndexFromVertex(elementSW[5])}},
+         {{indexing::edgedof::stencilIndexFromVertex(elementSE[3]), indexing::edgedof::stencilIndexFromVertex(elementSE[4]), indexing::edgedof::stencilIndexFromVertex(elementSE[5])}},
+         {{indexing::edgedof::stencilIndexFromVertex(elementN[3]), indexing::edgedof::stencilIndexFromVertex(elementN[4]), indexing::edgedof::stencilIndexFromVertex(elementN[5])}}
+     }};
+
+// First DoF is center vertex DoF
+static const std::array<DoFMap, 3> P2GrayDoFMaps =
+    {{
+         {{2, 4, 5, 3}},
+         {{0, 5, 3, 4}},
+         {{1, 3, 4, 5}}
+     }};
+
+
+static const std::array<DoFMap, 3> P2BlueDoFMaps =
+    {{
+         {{0, 5, 3, 4}},
+         {{1, 3, 4, 5}},
+         {{2, 4, 5, 3}}
+     }};
+
+template<typename StencilMemory>
+inline void assembleStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix6r &localMatrix,
+                            StencilMemory &stencil) {
+  for (uint_t j = 0; j < 3; ++j) {
+    stencil[stencilMap[j]] += localMatrix(dofMap[0], dofMap[j+1]);
+  }
+}
+
+} // EdgeToVertex
+
 } // P2Face
 
 } // P2Elements
