@@ -32,7 +32,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
 
-//    if (testFlag(edge.getDoFType(), flag))
+    if (testFlag(edge.getDoFType(), flag))
     {
       edgedof::macroedge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
     }

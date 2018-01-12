@@ -10,8 +10,6 @@
 
 #include "core/DataTypes.h"
 
-#include "tinyhhg_core/debug.hpp"
-
 namespace hhg {
 namespace vertexdof {
 namespace macroedge {
@@ -176,13 +174,9 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueTyp
     }
 
     if (update == Replace) {
-//      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
+      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
     } else if (update == Add) {
-//      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] += tmp;
-    }
-
-    if (testFlag(edge.getDoFType(), DirichletBoundary)) {
-      debug::sparsePrint(dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ], dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ], 1.0);
+      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] += tmp;
     }
   }
 }

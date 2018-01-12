@@ -8,8 +8,6 @@
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
-#include "tinyhhg_core/debug.hpp"
-
 namespace hhg{
 namespace VertexDoFToEdgeDoF{
 
@@ -80,12 +78,11 @@ inline void applyFaceTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
-        debug::sparsePrint(dst[indexing::edgedof::macroface::indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)], src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])], opr_data[vertexdof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])]);
       }
       if (update==Replace) {
-//        dst[indexing::edgedof::macroface::indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+        dst[indexing::edgedof::macroface::indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
       } else if ( update==Add ) {
-//        dst[indexing::edgedof::macroface::indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+        dst[indexing::edgedof::macroface::indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
       }
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
@@ -93,12 +90,11 @@ inline void applyFaceTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
                src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
-        debug::sparsePrint(dst[indexing::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)], src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])], opr_data[vertexdof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])]);
       }
       if (update==Replace) {
-//        dst[indexing::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
+        dst[indexing::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
       } else if ( update==Add ) {
-//        dst[indexing::edgedof::macroface::indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
+        dst[indexing::edgedof::macroface::indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
       }
     }
     if( it.col() != 0) {
@@ -106,13 +102,12 @@ inline void applyFaceTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
                src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
-        debug::sparsePrint(dst[indexing::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)], src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])], opr_data[vertexdof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])]);
       }
 
       if (update==Replace) {
-//        dst[indexing::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
+        dst[indexing::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
       } else if ( update==Add ) {
-//        dst[indexing::edgedof::macroface::indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
+        dst[indexing::edgedof::macroface::indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
       }
     }
   }

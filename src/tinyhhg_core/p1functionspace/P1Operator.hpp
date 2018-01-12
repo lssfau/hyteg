@@ -312,7 +312,7 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-//      if (testFlag(vertex.getDoFType(), flag))
+      if (testFlag(vertex.getDoFType(), flag))
       {
         vertexdof::macrovertex::apply< real_t >(vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType);
       }
@@ -326,7 +326,7 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-//      if (testFlag(edge.getDoFType(), flag))
+      if (testFlag(edge.getDoFType(), flag))
       {
         vertexdof::macroedge::apply< real_t >(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }

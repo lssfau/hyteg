@@ -6,8 +6,6 @@
 #include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
-#include "tinyhhg_core/debug.hpp"
-
 namespace hhg {
 namespace vertexdof {
 namespace macrovertex {
@@ -86,18 +84,14 @@ inline void apply(Vertex &vertex,
   auto src = vertex.getData(srcId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
-//  if (update==Replace) {
-//    dst[0] = opr_data[0]*src[0];
-//  } else if (update==Add) {
-//    dst[0] += opr_data[0]*src[0];
-//  }
-//
-//  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
-//    dst[0] += opr_data[i + 1]*src[i + 1];
-//  }
+  if (update==Replace) {
+    dst[0] = opr_data[0]*src[0];
+  } else if (update==Add) {
+    dst[0] += opr_data[0]*src[0];
+  }
 
-  if (testFlag(vertex.getDoFType(), DirichletBoundary)) {
-    debug::sparsePrint(dst[0], dst[0], 1.0);
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    dst[0] += opr_data[i + 1]*src[i + 1];
   }
 }
 
