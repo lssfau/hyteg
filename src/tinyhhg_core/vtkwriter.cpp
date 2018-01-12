@@ -41,6 +41,17 @@ static void writePieceFooter( std::ostream & output )
   output << "</Piece>\n";
 }
 
+static void writePointsHeader( std::ostream & output )
+{
+  output << "<Points>\n";
+  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
+}
+
+static void writePointsFooter( std::ostream & output )
+{
+  output << "\n</DataArray>\n";
+  output << "</Points>\n";
+}
 
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 {
@@ -49,6 +60,7 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
   { DoFType::EDGE_VERTICAL,   "VerticalEdgeDoF" },
   { DoFType::EDGE_DIAGONAL,   "DiagonalEdgeDoF" },
   { DoFType::DG,              "DGDoF" },
+  { DoFType::P2,              "P2" },
 };
 
 
@@ -60,9 +72,6 @@ std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType & dofType, co
 
 void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
 {
-  output << "<Points>\n";
-  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
-
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
@@ -90,9 +99,6 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
       --inner_rowsize;
     }
   }
-
-  output << "\n</DataArray>\n";
-  output << "</Points>\n";
 }
 
 void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage,
@@ -101,9 +107,6 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
   WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
                    || dofType == VTKOutput::DoFType::EDGE_VERTICAL
                    || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
-
-  output << "<Points>\n";
-  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
 
   for ( const auto & it : storage->getFaces() )
   {
@@ -151,9 +154,6 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
       break;
     }
   }
-
-  output << "\n</DataArray>\n";
-  output << "</Points>\n";
 }
 
 void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const
@@ -235,7 +235,9 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
 
   writePieceHeader( output, numberOfPoints, numberOfCells );
 
+  writePointsHeader( output );
   writePointsForMicroVertices( output, storage, level );
+  writePointsFooter( output );
 
   writeCells( output, storage, levelinfo::num_microvertices_per_edge( level ) );
 
@@ -285,7 +287,9 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
 
   writePieceHeader( output, numberOfPoints, numberOfCells );
 
+  writePointsHeader( output );
   writePointsForMicroEdges( output, storage, level, dofType );
+  writePointsFooter( output );
 
   output << "<PointData>\n";
 
@@ -356,7 +360,9 @@ void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
 
   writePieceHeader( output, numberOfPoints, numberOfCells );
 
+  writePointsHeader( output );
   writePointsForMicroVertices( output, storage, level );
+  writePointsFooter( output );
 
   writeCells( output, storage, levelinfo::num_microvertices_per_edge( level ) );
 
@@ -431,6 +437,9 @@ uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType & dofType 
     return edgeDoFFunctions_.size();
   case DoFType::DG:
     return dgFunctions_.size();
+    break;
+  case DoFType::P2:
+    return p2Functions_.size();
     break;
   default:
     WALBERLA_ABORT( "[VTK] DoFType not supported!" );
