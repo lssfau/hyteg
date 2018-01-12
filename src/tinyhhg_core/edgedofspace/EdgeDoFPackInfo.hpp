@@ -1,7 +1,7 @@
 #pragma once
 
+#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "tinyhhg_core/StencilDirections.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/levelinfo.hpp"

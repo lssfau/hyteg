@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "core/mpi/MPITextFile.h"
 
 #include "levelinfo.hpp"
@@ -10,8 +11,6 @@
 #include "dgfunctionspace/DGFunction.hpp"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
-
 #include <string>
 
 namespace hhg

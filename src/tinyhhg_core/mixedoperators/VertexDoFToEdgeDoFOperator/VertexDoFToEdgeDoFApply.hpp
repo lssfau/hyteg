@@ -1,9 +1,9 @@
 #pragma once
 
+#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/levelinfo.hpp"

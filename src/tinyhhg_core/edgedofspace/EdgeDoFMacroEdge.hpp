@@ -4,7 +4,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 
 namespace hhg {
 namespace edgedof {

@@ -1,7 +1,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
 
 #include "core/mpi/all.h"
