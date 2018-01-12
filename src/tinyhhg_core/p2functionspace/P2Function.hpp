@@ -14,7 +14,7 @@ public:
   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel ),
       vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel ) ),
-      edgeDoFFunction_(   std::make_shared<              EdgeDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel ) )
+      edgeDoFFunction_(   std::make_shared<              EdgeDoFFunction< ValueType > >( name + "_EdgeDoF",   storage, minLevel, maxLevel ) )
   {}
 
   std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
