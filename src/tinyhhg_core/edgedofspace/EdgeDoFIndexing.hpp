@@ -382,16 +382,6 @@ public:
   {}
 };
 
-template< uint_t level >
-inline Index getBottomLeftCorner() { return getFaceBottomLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
-template< uint_t level >
-inline Index getBottomRightCorner() { return getFaceBottomRightCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
-template< uint_t level >
-inline Index getTopLeftCorner() { return getFaceTopLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
-
 } // namespace macroface
 
 
