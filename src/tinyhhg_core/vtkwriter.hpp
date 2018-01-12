@@ -21,6 +21,8 @@ namespace hhg
 {
 
 namespace vtkDetail{
+SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
+
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
 
@@ -89,6 +91,7 @@ private:
   void writeP1      ( std::ostream & output, const uint_t & level                                     ) const;
   void writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
   void writeDGDoFs  ( std::ostream & output, const uint_t & level                                     ) const;
+  void writeP2      ( std::ostream & output, const uint_t & level                                     ) const;
 
   std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const;
 
@@ -97,6 +100,11 @@ private:
 
   void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
   void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+
+  void writeVertexDoFData( std::ostream & output, const vertexdof::VertexDoFFunction< real_t > * function,
+                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
+  void writeEdgeDoFData  ( std::ostream & output, const EdgeDoFFunction< real_t > * function,
+                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const;
 
   void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
 

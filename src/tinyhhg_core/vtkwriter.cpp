@@ -53,6 +53,71 @@ static void writePointsFooter( std::ostream & output )
   output << "</Points>\n";
 }
 
+void VTKOutput::writeVertexDoFData( std::ostream & output, const vertexdof::VertexDoFFunction< real_t > * function,
+                                const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level  ) const
+{
+  for ( const auto & it : storage->getFaces() )
+  {
+    const Face &face = *it.second;
+
+    size_t len = levelinfo::num_microvertices_per_face( level );
+    output << std::scientific;
+
+    for ( size_t i = 0; i < len; ++i )
+    {
+      output << face.getData( function->getFaceDataID() )->getPointer( level )[i] << " ";
+    }
+  }
+}
+
+void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< real_t > * function,
+                              const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const
+{
+  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
+                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
+                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
+
+  for ( const auto & it : storage->getFaces() )
+  {
+    const Face & face = *it.second;
+
+    output << std::scientific;
+
+    switch ( dofType )
+    {
+    case VTKOutput::DoFType::EDGE_HORIZONTAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+      {
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+      }
+      break;
+    }
+    case VTKOutput::DoFType::EDGE_VERTICAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+      {
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+      }
+      break;
+    }
+    case VTKOutput::DoFType::EDGE_DIAGONAL:
+    {
+      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+      {
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+      }
+      break;
+    }
+    default:
+      WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
+      break;
+    }
+
+  }
+}
+
+
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 {
   { DoFType::VERTEX,          "VertexDoF" },
@@ -247,18 +312,8 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
   {
     output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
 
-    for ( const auto & it : storage->getFaces() )
-    {
-      const Face &face = *it.second;
+    writeVertexDoFData( output, function, storage, level );
 
-      size_t len = levelinfo::num_microvertices_per_face( level );
-      output << std::scientific;
-
-      for ( size_t i = 0; i < len; ++i )
-      {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[i] << " ";
-      }
-    }
     output << "\n</DataArray>\n";
   }
 
@@ -297,44 +352,8 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
   {
     output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
 
-    for ( const auto & it : storage->getFaces() )
-    {
-      const Face & face = *it.second;
+    writeEdgeDoFData( output, function, storage, level, dofType );
 
-      output << std::scientific;
-
-      switch ( dofType )
-      {
-      case VTKOutput::DoFType::EDGE_HORIZONTAL:
-      {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
-        {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
-        }
-        break;
-      }
-      case VTKOutput::DoFType::EDGE_VERTICAL:
-      {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
-        {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
-        }
-        break;
-      }
-      case VTKOutput::DoFType::EDGE_DIAGONAL:
-      {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
-        {
-          output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
-        }
-        break;
-      }
-      default:
-        WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
-        break;
-      }
-
-    }
     output << "\n</DataArray>\n";
   }
 
@@ -404,6 +423,74 @@ void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
 }
 
 
+void VTKOutput::writeP2( std::ostream & output, const uint_t & level ) const
+{
+  if ( p2Functions_.size() == 0 )
+  {
+    return;
+  }
+
+  auto & storage = p2Functions_[0]->getStorage();
+
+  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 );
+  const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level + 1 );
+
+  writePieceHeader( output, numberOfPoints, numberOfCells );
+
+  writePointsHeader( output );
+  writePointsForMicroVertices( output, storage, level + 1 );
+  writePointsFooter( output );
+
+  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+
+  output << "<PointData>\n";
+
+  for ( const auto & function : p2Functions_ )
+  {
+    output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() <<  "\" NumberOfComponents=\"1\">\n";
+
+    for ( const auto & itFaces : storage->getFaces() )
+    {
+      const Face &face = *itFaces.second;
+
+      output << std::scientific;
+
+      for ( const auto & it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+      {
+        if ( it.row() % 2 == 0 )
+        {
+          if ( it.col() % 2 == 0 )
+          {
+            output << face.getData( function->getVertexDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::vertexDoFOnMacroFaceIndex( level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C ) ] << " ";
+          }
+          else
+          {
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, ( it.col() - 1 ) / 2, it.row() / 2  ) ] << " ";
+          }
+        }
+        else
+        {
+          if ( it.col() % 2 == 0 )
+          {
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 ) ] << " ";
+          }
+          else
+          {
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 ) ] << " ";
+          }
+        }
+      }
+    }
+
+    output << "\n</DataArray>\n";
+  }
+
+  output << "</PointData>\n";
+
+  writePieceFooter( output );
+}
+
+
 void VTKOutput::writeDoFByType( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
   switch ( dofType )
@@ -418,6 +505,9 @@ void VTKOutput::writeDoFByType( std::ostream & output, const uint_t & level, con
     break;
   case DoFType::DG:
     writeDGDoFs( output, level );
+    break;
+  case DoFType::P2:
+    writeP2( output, level );
     break;
   default:
     WALBERLA_ABORT( "[VTK] DoFType not supported!" );
@@ -452,7 +542,7 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
 {
   if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
   {
-    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_HORIZONTAL, DoFType::EDGE_VERTICAL, DoFType::EDGE_DIAGONAL, DoFType::DG };
+    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_HORIZONTAL, DoFType::EDGE_VERTICAL, DoFType::EDGE_DIAGONAL, DoFType::DG, DoFType::P2 };
 
     for ( const auto & dofType : dofTypes )
     {
