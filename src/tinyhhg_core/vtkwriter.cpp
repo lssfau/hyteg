@@ -1,7 +1,6 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
 namespace hhg

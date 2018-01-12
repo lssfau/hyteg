@@ -6,7 +6,6 @@
 #include "levelinfo.hpp"
 #include "Function.hpp"
 #include "p1functionspace/P1Function.hpp"
-#include "p1functionspace/P1Memory.hpp"
 
 #include "dgfunctionspace/DGFunction.hpp"
 
