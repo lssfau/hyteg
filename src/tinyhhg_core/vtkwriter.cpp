@@ -119,7 +119,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     {
     case DoFType::EDGE_HORIZONTAL:
     {
-      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
       {
         const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
         output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
@@ -128,7 +128,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     }
     case DoFType::EDGE_VERTICAL:
     {
-      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
       {
         const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( real_c( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
         output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
@@ -137,7 +137,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     }
     case DoFType::EDGE_DIAGONAL:
     {
-      for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level, 0 ) )
+      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
       {
         const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
         const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
@@ -302,7 +302,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
       {
       case VTKOutput::DoFType::EDGE_HORIZONTAL:
       {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
         {
           output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }
@@ -310,7 +310,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
       }
       case VTKOutput::DoFType::EDGE_VERTICAL:
       {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
         {
           output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }
@@ -318,7 +318,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
       }
       case VTKOutput::DoFType::EDGE_DIAGONAL:
       {
-        for ( const auto & itIdx : indexing::edgedof::macroface::Iterator( level ) )
+        for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
         {
           output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
         }

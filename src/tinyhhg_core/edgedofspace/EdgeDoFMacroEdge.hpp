@@ -33,15 +33,15 @@ inline void interpolateTmpl(Edge & edge,
 
   const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( Level ) );
 
-  for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
     const Point3D currentCoordinates = leftCoords + microEdgeOffset + 2 * it.col() * microEdgeOffset;
 
     for (uint_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][indexing::edgedof::macroedge::horizontalIndex< Level >( it.col() )];
+      srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex< Level >( it.col() )];
     }
 
-    edgeData[ indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates, srcVector );
+    edgeData[ edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates, srcVector );
   }
 }
 
@@ -62,9 +62,9 @@ inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
     const real_t scalar  = scalars[i];
     auto         srcData = edge.getData( srcIds[i] )->getPointer( Level );
 
-    for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
+    for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
     {
-      const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
       dstData[ idx ] += scalar * srcData[ idx ];
     }
   }
@@ -82,9 +82,9 @@ inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
-  for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
     dstData[ idx ] = static_cast< ValueType >( 0 );
   }
 
@@ -104,9 +104,9 @@ inline real_t dotTmpl( Edge & edge,
 
   real_t scalarProduct = real_c( 0 );
 
-  for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
     scalarProduct += lhsData[ idx ] * rhsData[ idx ];
   }
 
@@ -124,7 +124,7 @@ inline void enumerateTmpl(Edge &edge,
   ValueType *dst = edge.getData(dstId)->getPointer(Level);
 
   for(uint_t i = 0 ; i < levelinfo::num_microedges_per_edge( Level ) ; ++i){
-    dst[hhg::indexing::edgedof::macroedge::horizontalIndex< Level >(i)] = num;
+    dst[hhg::edgedof::macroedge::horizontalIndex< Level >(i)] = num;
     ++num;
   }
 }
@@ -138,7 +138,7 @@ inline void applyTmpl(Edge &edge,
                        const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                        UpdateType update)
 {
-  using namespace hhg::indexing::edgedof::macroedge;
+  using namespace hhg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -150,16 +150,16 @@ inline void applyTmpl(Edge &edge,
   for(uint_t i = 0; i < rowsize; ++i){
     tmp = 0.0;
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
-      tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
+      tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
              src[indexFromHorizontalEdge< Level >(i, neighborsOnEdgeFromHorizontalEdge[k])];
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
-      tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
+      tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
              src[indexFromHorizontalEdge< Level >(i, neighborsOnSouthFaceFromHorizontalEdge[k])];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
-        tmp += opr_data[hhg::indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
+        tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge< Level >(i, neighborsOnNorthFaceFromHorizontalEdge[k])];
       }
     }

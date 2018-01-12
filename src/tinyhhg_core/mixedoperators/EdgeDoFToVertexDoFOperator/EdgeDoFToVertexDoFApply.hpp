@@ -39,7 +39,7 @@ inline void applyEdgeTmpl(Edge &edge,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                   UpdateType update)
 {
-  using namespace hhg::indexing::edgedof;
+  using namespace hhg::edgedof;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -91,14 +91,14 @@ inline void applyFaceTmpl(Face &face,
 
   real_t tmp;
 
-  using namespace indexing::edgedof::macroface;
+  using namespace edgedof::macroface;
 
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
       tmp = 0.0;
 
       for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromVertex(neighborsFromVertex[k])] *
+        tmp += opr_data[edgedof::stencilIndexFromVertex(neighborsFromVertex[k])] *
                src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
       }
 

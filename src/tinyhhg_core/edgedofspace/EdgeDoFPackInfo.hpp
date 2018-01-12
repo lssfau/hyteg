@@ -9,9 +9,9 @@
 namespace hhg {
 
 namespace {
-SPECIALIZE(uint_t,indexing::edgedof::macroedge::indexFromHorizontalEdge,edgeIndexFromHorizontalEdge)
-SPECIALIZE(uint_t,indexing::edgedof::macroedge::indexFromVertex,edgeIndexFromVertex)
-SPECIALIZE(uint_t,indexing::edgedof::macroface::indexFromHorizontalEdge,faceIndexFromHorizontalEdge)
+SPECIALIZE(uint_t,edgedof::macroedge::indexFromHorizontalEdge,edgeIndexFromHorizontalEdge)
+SPECIALIZE(uint_t,edgedof::macroedge::indexFromVertex,edgeIndexFromVertex)
+SPECIALIZE(uint_t,edgedof::macroface::indexFromHorizontalEdge,faceIndexFromHorizontalEdge)
 }
 
 using walberla::uint_t;
@@ -147,8 +147,8 @@ void EdgeDoFPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Pri
 
 template< typename ValueType >
 void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
-  using hhg::indexing::edgedof::macroface::BorderIterator;
-  using indexing::edgedof::macroface::indexFromHorizontalEdge;
+  using hhg::edgedof::macroface::BorderIterator;
+  using edgedof::macroface::indexFromHorizontalEdge;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
   indexing::FaceBorderDirection faceDir = indexing::getFaceBorderDirection(edgeIndexOnFace,receiver->edge_orientation[edgeIndexOnFace]);
@@ -167,8 +167,8 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Prim
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
-  using hhg::indexing::edgedof::macroface::BorderIterator;
-  using indexing::edgedof::macroface::indexFromHorizontalEdge;
+  using hhg::edgedof::macroface::BorderIterator;
+  using edgedof::macroface::indexFromHorizontalEdge;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
@@ -193,7 +193,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
-  using hhg::indexing::edgedof::macroface::BorderIterator;
+  using hhg::edgedof::macroface::BorderIterator;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   indexing::FaceBorderDirection faceBorderDir = indexing::getFaceBorderDirection(edgeIndexOnFace,sender->edge_orientation[edgeIndexOnFace]);
@@ -262,7 +262,7 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Prim
 
 template< typename ValueType>
 void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const {
-  using hhg::indexing::edgedof::macroface::BorderIterator;
+  using hhg::edgedof::macroface::BorderIterator;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver->getID());
   indexing::FaceBorderDirection faceBorderDir = indexing::getFaceBorderDirection(edgeIndexOnFace,sender->edge_orientation[edgeIndexOnFace]);

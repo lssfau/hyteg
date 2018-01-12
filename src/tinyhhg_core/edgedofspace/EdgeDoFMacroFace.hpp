@@ -40,7 +40,7 @@ inline void interpolateTmpl(Face & face,
   const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
   const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
     const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
@@ -51,10 +51,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorHorizontal[k] = srcPtr[k][indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() )];
+        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() )];
       }
 
-      faceData[ indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
+      faceData[ edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
     }
 
     // Do not update vertical DoFs at left border
@@ -62,10 +62,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorVertical[k] = srcPtr[k][indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() )];
+        srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex< Level >( it.col(), it.row() )];
       }
 
-      faceData[ indexing::edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition, srcVectorVertical );
+      faceData[ edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition, srcVectorVertical );
     }
 
     // Do not update diagonal DoFs at diagonal border
@@ -73,10 +73,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorDiagonal[k] = srcPtr[k][indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() )];
+        srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() )];
       }
 
-      faceData[ indexing::edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
+      faceData[ edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
     }
   }
 }
@@ -98,26 +98,26 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
     const real_t scalar  = scalars[i];
     auto         srcData = face.getData( srcIds[i] )->getPointer( Level );
 
-    for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
+    for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
     {
       // Do not update horizontal DoFs at bottom
       if ( it.row() != 0 )
       {
-        const uint_t idx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+        const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
         dstData[ idx ] += scalar * srcData[ idx ];
       }
 
       // Do not update vertical DoFs at left border
       if ( it.col() != 0 )
       {
-        const uint_t idx = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+        const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
         dstData[ idx ] += scalar * srcData[ idx ];
       }
 
       // Do not update diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
-        const uint_t idx = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+        const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
         dstData[ idx ] += scalar * srcData[ idx ];
       }
     }
@@ -136,26 +136,26 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     // Do not update horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
       dstData[ idx ] = static_cast< ValueType >( 0 );
     }
 
     // Do not update vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
       dstData[ idx ] = static_cast< ValueType >( 0 );
     }
 
     // Do not update diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
       dstData[ idx ] = static_cast< ValueType >( 0 );
     }
   }
@@ -175,26 +175,26 @@ inline real_t dotTmpl( Face & face,
 
   real_t scalarProduct = real_c( 0 );
 
-  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
   }
@@ -212,27 +212,27 @@ inline void enumerateTmpl(Face &face,
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;
   size_t diagonal_num = num +
-                        hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
   size_t vertical_num = num +
-                        (hhg::indexing::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
-  for ( const auto & it : hhg::indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {
-      dst[hhg::indexing::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
+      dst[hhg::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
       ++horizontal_num;
       ++num;
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dst[hhg::indexing::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
+      dst[hhg::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
       ++diagonal_num;
       ++num;
     }
     if( it.col() != 0) {
-      dst[hhg::indexing::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
+      dst[hhg::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
       ++vertical_num;
       ++num;
     }
@@ -256,14 +256,14 @@ inline void applyTmpl(Face &face,
 
   real_t tmp;
 
-  using namespace indexing::edgedof::macroface;
+  using namespace edgedof::macroface;
 
-  for ( const auto & it : hhg::indexing::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     if( it.row() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
+        tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
       }
       if (update==Replace) {
@@ -275,7 +275,7 @@ inline void applyTmpl(Face &face,
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
+        tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
                src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
       }
       if (update==Replace) {
@@ -287,7 +287,7 @@ inline void applyTmpl(Face &face,
     if( it.col() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
-        tmp += opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
+        tmp += opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
                src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
       }
 
