@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
+  size_t maxLevel = 3;
   size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -50,39 +50,39 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
-//  uint_t num = 1;
-//  u.enumerate(maxLevel, num);
-//  L.apply(u, u, maxLevel, hhg::Inner, Replace);
+  uint_t num = 1;
+  u.enumerate(maxLevel, num);
+  L.apply(u, u, maxLevel, hhg::Inner, Replace);
 
-  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  u_exact.interpolate(exact, maxLevel);
-
-  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel);
-  walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-14, maxiter, hhg::Inner, true);
-  timer.end();
-
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
-  err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
-
-  npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
-
-  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
-
-  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
-
-  VTKOutput vtkOutput( "../output", "cg_P2" );
-  vtkOutput.add( &u );
-  vtkOutput.add( &u_exact );
-  vtkOutput.add( &f );
-  vtkOutput.add( &r );
-  vtkOutput.add( &err );
-  vtkOutput.add( &npoints_helper );
-  vtkOutput.write( maxLevel );
-
-  walberla::WcTimingTree tt = timingTree->getReduced();
-  WALBERLA_LOG_INFO_ON_ROOT( tt );
+//  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
+//  u_exact.interpolate(exact, maxLevel);
+//
+//  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel);
+//  walberla::WcTimer timer;
+//  solver.solve(L, u, f, r, maxLevel, 1e-10, maxiter, hhg::Inner, true);
+//  timer.end();
+//
+//  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
+//  err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
+//
+//  npoints_helper.interpolate(ones, maxLevel);
+//  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
+//
+//  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+//
+//  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
+//
+//  VTKOutput vtkOutput( "../output", "cg_P2" );
+//  vtkOutput.add( &u );
+//  vtkOutput.add( &u_exact );
+//  vtkOutput.add( &f );
+//  vtkOutput.add( &r );
+//  vtkOutput.add( &err );
+//  vtkOutput.add( &npoints_helper );
+//  vtkOutput.write( maxLevel );
+//
+//  walberla::WcTimingTree tt = timingTree->getReduced();
+//  WALBERLA_LOG_INFO_ON_ROOT( tt );
 
   return 0;
 }

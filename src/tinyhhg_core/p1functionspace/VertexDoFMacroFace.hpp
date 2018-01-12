@@ -10,6 +10,8 @@
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
+#include "tinyhhg_core/debug.hpp"
+
 namespace hhg {
 namespace vertexdof {
 namespace macroface {
@@ -213,17 +215,24 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID< StencilMemory< ValueTy
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
         tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)]);
 
         //strangely the intel compiler cant handle this if it is a loop
         static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]);
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]);
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]);
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]);
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]);
         tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
+        debug::sparsePrint(dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])], opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]);
 
-        dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+//        dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       }
       --inner_rowsize;
     }

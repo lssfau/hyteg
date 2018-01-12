@@ -4,6 +4,8 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 
+#include "tinyhhg_core/debug.hpp"
+
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
 
@@ -100,12 +102,13 @@ inline void applyFaceTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
         tmp += opr_data[indexing::edgedof::stencilIndexFromVertex(neighborsFromVertex[k])] *
                src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
+        debug::sparsePrint(dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)], src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])], opr_data[indexing::edgedof::stencilIndexFromVertex(neighborsFromVertex[k])]);
       }
 
       if (update==Replace) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+//        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
       } else if (update==Add) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+//        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
       }
     }
     --inner_rowsize;

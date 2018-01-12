@@ -9,6 +9,8 @@
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
+#include "tinyhhg_core/debug.hpp"
+
 namespace hhg {
 namespace edgedof {
 namespace macroface {
@@ -265,11 +267,12 @@ inline void applyTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         tmp += opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+        debug::sparsePrint(dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)], src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])], opr_data[indexing::edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])]);
       }
       if (update==Replace) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+//        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+//        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
       }
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
@@ -277,11 +280,12 @@ inline void applyTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
                src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+        debug::sparsePrint(dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)], src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])], opr_data[indexing::edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])]);
       }
       if (update==Replace) {
-        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
+//        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
+//        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
       }
     }
     if( it.col() != 0) {
@@ -289,12 +293,13 @@ inline void applyTmpl(Face &face,
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         tmp += opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
                src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+        debug::sparsePrint(dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)], src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])], opr_data[indexing::edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])]);
       }
 
       if (update==Replace) {
-        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
+//        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
+//        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
       }
     }
   }

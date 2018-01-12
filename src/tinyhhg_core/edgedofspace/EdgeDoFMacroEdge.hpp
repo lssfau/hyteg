@@ -6,6 +6,8 @@
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 
+#include "tinyhhg_core/debug.hpp"
+
 namespace hhg {
 namespace edgedof {
 namespace macroedge {
@@ -165,9 +167,13 @@ inline void applyTmpl(Edge &edge,
     }
 
     if (update==Replace) {
-      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] = tmp;
+//      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] = tmp;
     } else if (update==Add) {
-      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] += tmp;
+//      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] += tmp;
+    }
+
+    if (testFlag(edge.getDoFType(), DirichletBoundary)) {
+      debug::sparsePrint(dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)], dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)], 1.0);
     }
   }
 }
