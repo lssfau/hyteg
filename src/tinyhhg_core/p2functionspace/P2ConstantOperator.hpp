@@ -42,16 +42,6 @@ public:
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
 
-        real_t matrixComponents[] = {1.0, 1.0/6.0, 1.0/6.0, 0.0, -2.0/3.0, -2.0/3.0,
-                                     1.0/6.0, 0.5, 0.0, 0.0, 0.0, -2.0/3.0,
-                                     1.0/6.0, 0.0, 0.5, 0.0, -2.0/3.0, 0.0,
-                                     0.0, 0.0, 0.0, 8.0/3.0, -4.0/3.0, -4.0/3.0,
-                                     -2.0/3.0, 0.0, -2.0/3.0, -4.0/3.0, 8.0/3.0, 0.0,
-                                     -2.0/3.0, -2.0/3.0, 0.0, -4.0/3.0, 0.0, 8.0/3.0};
-
-        local_stiffness_gray = Matrix6r(matrixComponents);
-        local_stiffness_blue = Matrix6r(matrixComponents);
-
         WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_gray =\n" << local_stiffness_gray);
         WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_blue =\n" << local_stiffness_blue);
 

@@ -12,29 +12,28 @@ class CGSolver
 {
 public:
 
-  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
+  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel,
+           uint_t restartFrequency = std::numeric_limits<uint_t>::max(),
+           std::shared_ptr<Preconditioner> prec_ = std::make_shared<Preconditioner>())
     : p("p", storage, minLevel, maxLevel), z("z", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel),
-      prec(std::make_shared<Preconditioner>())
+      restartFrequency_(restartFrequency), prec(prec_)
   {
   }
 
-  CGSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, std::shared_ptr<Preconditioner> prec_)
-      : p("p", storage, minLevel, maxLevel), z("z", storage, minLevel, maxLevel), ap("ap", storage, minLevel, maxLevel),
-        prec(prec_)
-  {
+  void init(O& A, F& x, F& b, F& r, size_t level, DoFType flag) {
+    A.apply(x, p, level, flag, Replace);
+    r.assign({1.0, -1.0}, {&b, &p}, level, flag);
+    prec->apply(r, z, level, flag);
+    p.assign({1.0}, {&z}, level, flag);
+    prsold = r.dot(z, level, flag);
   }
 
   void solve(O& A, F& x, F& b, F& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false)
   {
-    A.apply(x, p, level, flag, Replace);
-    r.assign({1.0, -1.0}, {&b, &p}, level, flag);
-    real_t res_start = std::sqrt(r.dot(r, level, flag));
-    prec->apply(r, z, level, flag);
-    p.assign({1.0}, {&z}, level, flag);
-    real_t rsold = r.dot(r, level, flag);
-    real_t prsold = r.dot(z, level, flag);
+    init(A, x, b, r, level, flag);
+    res_start = std::sqrt(r.dot(r, level, flag));
 
-    if (std::sqrt(rsold) < tolerance)
+    if (res_start < tolerance)
     {
       if (printInfo) {
         WALBERLA_LOG_INFO_ON_ROOT("[CG] converged");
@@ -74,6 +73,14 @@ public:
 
       p.assign({1.0, beta}, {&z, &p}, level, flag);
       prsold = prsnew;
+
+      if (i % restartFrequency_ == 0) {
+        init(A, x, b, r, level, flag);
+        if (printInfo)
+        {
+          WALBERLA_LOG_INFO_ON_ROOT("[CG] restarted");
+        }
+      }
     }
   }
 
@@ -82,6 +89,10 @@ private:
   F z;
   F ap;
   std::shared_ptr<Preconditioner> prec;
+
+  real_t prsold;
+  real_t res_start;
+  uint_t restartFrequency_;
 };
 
 }

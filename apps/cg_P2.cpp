@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 3;
-  size_t maxiter = 1000;
+  size_t maxLevel = 5;
+  size_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -59,9 +59,9 @@ int main(int argc, char* argv[])
 
 //  L.apply(u_exact, r, maxLevel, hhg::Inner, Replace);
 
-  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel, 30);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-10, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-14, maxiter, hhg::Inner, true);
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
