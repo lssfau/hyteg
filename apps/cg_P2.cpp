@@ -24,8 +24,8 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 2;
-  size_t maxiter = 10000;
+  size_t maxLevel = 3;
+  size_t maxiter = 1000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
   npoints_helper.enableTiming( timingTree );
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0; };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
 //  uint_t num = 1;
@@ -57,9 +57,11 @@ int main(int argc, char* argv[])
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
+//  L.apply(u_exact, r, maxLevel, hhg::Inner, Replace);
+
   auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-14, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-10, maxiter, hhg::Inner, true);
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
