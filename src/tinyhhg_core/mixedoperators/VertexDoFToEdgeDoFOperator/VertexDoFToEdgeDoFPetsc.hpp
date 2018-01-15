@@ -1,0 +1,111 @@
+
+#pragma once
+
+#include "core/DataTypes.h"
+
+namespace hhg {
+namespace VertexDoFToEdgeDoF {
+
+using walberla::real_t;
+using walberla::uint_t;
+
+#ifdef HHG_BUILD_WITH_PETSC
+
+template<size_t Level>
+inline void saveOperatorTmpl( const Edge & edge,
+                              const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
+                              Mat & mat )
+{
+  const real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
+  const real_t * src      = edge.getData(srcId)->getPointer( Level );
+  const real_t * dst      = edge.getData(dstId)->getPointer( Level );
+
+  PetscInt srcInt;
+  PetcsInt dstInt;
+
+  for( const auto it : edgedof::macroedge::Iterator( Level, 0 ) )
+  {
+    dstInt = dst[ edgedof::macroedge::indexFromHorizontalEdge<Level>( it.col(), stencilDirection::EDGE_HO_C ) ];
+
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
+    {
+      srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
+    }
+
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
+    {
+      srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
+    }
+
+    if( edge.getNumNeighborFaces() == 2 )
+    {
+      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
+      {
+        srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
+      }
+    }
+  }
+}
+
+SPECIALIZE(void, saveOperatorTmpl, saveOperator);
+
+template<size_t Level>
+inline void saveOperatorTmpl( const Face & face,
+                              const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
+                              Mat & mat )
+{
+  const real_t * opr_data = face.getData(operatorId)->getPointer( Level );
+  const real_t * src      = face.getData(srcId)->getPointer( Level );
+  const real_t * dst      = face.getData(dstId)->getPointer( Level );
+
+  PetscInt srcInt;
+  PetcsInt dstInt;
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    if( it.row() != 0 )
+    {
+      dstInt = dst[ edgedof::macroface::indexFromHorizontalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_HO_C ) ];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromHorizontalEdge )
+      {
+        srcInt = src[ vertexdof::macroface::indexFromHorizontalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
+      }
+    }
+
+    if( it.row() != 0 )
+    {
+      dstInt = dst[ edgedof::macroface::indexFromVerticalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_VE_C ) ];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromVerticalEdge )
+      {
+        srcInt = src[ vertexdof::macroface::indexFromVerticalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromVerticalEdge( neighbor ) ], INSERT_VALUES );
+      }
+    }
+
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1) )
+    {
+      dstInt = dst[ edgedof::macroface::indexFromDiagonalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_DI_C ) ];
+      for ( const auto & neighbor : vertexdof::macroface::neighborsFromDiagonalEdge )
+      {
+        srcInt = src[ vertexdof::macroface::indexFromDiagonalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromDiagonalEdge( neighbor ) ], INSERT_VALUES );
+      }
+    }
+
+  }
+}
+
+SPECIALIZE(void, saveOperatorTmpl, saveOperator);
+
+#endif
+
+}
+}
