@@ -90,36 +90,60 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
-  for ( uint_t i = 0; i < scalars.size(); i++ )
+  for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
   {
-    const real_t scalar  = scalars[i];
-    auto         srcData = face.getData( srcIds[i] )->getPointer( Level );
+    ValueType tmpHorizontal = static_cast< ValueType >( 0.0 );
+    ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
+    ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
-    for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
+    const uint_t idxHorizontal = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+    const uint_t idxVertical   = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+    const uint_t idxDiagonal   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
     {
+      const real_t scalar  = scalars[i];
+      const auto   srcData = face.getData( srcIds[i] )->getPointer( Level );
+
       // Do not update horizontal DoFs at bottom
       if ( it.row() != 0 )
       {
-        const uint_t idx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-        dstData[ idx ] += scalar * srcData[ idx ];
+        tmpHorizontal += scalar * srcData[ idxHorizontal ];
       }
 
       // Do not update vertical DoFs at left border
       if ( it.col() != 0 )
       {
-        const uint_t idx = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-        dstData[ idx ] += scalar * srcData[ idx ];
+        tmpVertical += scalar * srcData[ idxVertical ];
       }
 
       // Do not update diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
-        const uint_t idx = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
-        dstData[ idx ] += scalar * srcData[ idx ];
+        tmpDiagonal += scalar * srcData[ idxDiagonal ];
       }
+    }
+
+    // Do not update horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      dstData[ idxHorizontal ] += tmpHorizontal;
+    }
+
+    // Do not update vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      dstData[ idxVertical ] += tmpVertical;
+    }
+
+    // Do not update diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      dstData[ idxDiagonal ] += tmpDiagonal;
     }
   }
 
@@ -133,34 +157,62 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : indexing::edgedof::macroface::Iterator( Level, 0 ) )
   {
+    ValueType tmpHorizontal = static_cast< ValueType >( 0.0 );
+    ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
+    ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
+
+    const uint_t idxHorizontal = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+    const uint_t idxVertical   = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+    const uint_t idxDiagonal   = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
+    {
+      const real_t scalar  = scalars[i];
+      const auto   srcData = face.getData( srcIds[i] )->getPointer( Level );
+
+      // Do not update horizontal DoFs at bottom
+      if ( it.row() != 0 )
+      {
+        tmpHorizontal += scalar * srcData[ idxHorizontal ];
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.col() != 0 )
+      {
+        tmpVertical += scalar * srcData[ idxVertical ];
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      {
+        tmpDiagonal += scalar * srcData[ idxDiagonal ];
+      }
+    }
+
     // Do not update horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-      dstData[ idx ] = static_cast< ValueType >( 0 );
+      dstData[ idxHorizontal ] = tmpHorizontal;
     }
 
     // Do not update vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = indexing::edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-      dstData[ idx ] = static_cast< ValueType >( 0 );
+      dstData[ idxVertical ] = tmpVertical;
     }
 
     // Do not update diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = indexing::edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
-      dstData[ idx ] = static_cast< ValueType >( 0 );
+      dstData[ idxDiagonal ] = tmpDiagonal;
     }
   }
-
-  addTmpl< ValueType, Level >( face, scalars, srcIds, dstId );
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )

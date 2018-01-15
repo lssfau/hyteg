@@ -54,19 +54,25 @@ inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
-  for ( uint_t i = 0; i < scalars.size(); i++ )
+  for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
   {
-    const real_t scalar  = scalars[i];
-    auto         srcData = edge.getData( srcIds[i] )->getPointer( Level );
+    ValueType tmp = static_cast< ValueType >( 0.0 );
 
-    for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
+    const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
-      dstData[ idx ] += scalar * srcData[ idx ];
+      const real_t scalar  = scalars[i];
+      const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
+
+      tmp += scalar * srcData[ idx ];
     }
+
+    dstData[ idx ] += tmp;
   }
 }
 
@@ -79,16 +85,26 @@ inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : indexing::edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
-    dstData[ idx ] = static_cast< ValueType >( 0 );
-  }
+    ValueType tmp = static_cast< ValueType >( 0.0 );
 
-  addTmpl< ValueType, Level >( edge, scalars, srcIds, dstId );
+    const uint_t idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
+    {
+      const real_t scalar  = scalars[i];
+      const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
+
+      tmp += scalar * srcData[ idx ];
+    }
+
+    dstData[ idx ] = tmp;
+  }
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
