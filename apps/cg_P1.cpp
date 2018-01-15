@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
   typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
   auto prec = std::make_shared<PreconditionerType>(L, 30);
 #endif
-  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
+  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, std::numeric_limits<uint_t>::max(), prec);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();
