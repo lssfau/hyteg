@@ -49,13 +49,13 @@ inline void saveOperatorTmpl( const Edge & edge,
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
     {
       srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
-      MatSetValues( mat, 1, &dstint, 1, &srcint, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnSouthFaceFromVertex )
     {
       srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
-      MatSetValues( mat, 1, &dstint, 1, &srcint, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
 
     if( edge.getNumNeighborFaces() == 2 )
@@ -63,7 +63,7 @@ inline void saveOperatorTmpl( const Edge & edge,
       for ( const auto & neighbor : edgedof::macroedge::neighborsOnNorthFaceFromVertex )
       {
         srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
-        MatSetValues( mat, 1, &dstint, 1, &srcint, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
       }
     }
   }
@@ -92,7 +92,7 @@ inline void saveOperatorTmpl( const Face & face,
     for ( const auto & neighbor : edgedof::macroface::neighborsFromVertex )
     {
       srcInt = src[ edgedof::macroface::indexFromVertex< Level >( it.col(), it.row(), neighbor ) ];
-      MatSetValues( mat, 1, &dstint, 1, &srcint, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
   }
 }
