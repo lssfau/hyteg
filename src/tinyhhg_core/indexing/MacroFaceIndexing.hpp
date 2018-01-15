@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/debug/Debug.h"
+#include "core/Abort.h"
 #include "tinyhhg_core/indexing/Common.hpp"
 
 namespace hhg {

@@ -26,7 +26,7 @@
 #  pragma warning(pop)
 #endif
 
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>

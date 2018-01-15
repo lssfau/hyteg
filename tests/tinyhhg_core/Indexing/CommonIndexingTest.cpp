@@ -1,4 +1,5 @@
 
+#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
 #include <iostream>
 
@@ -12,7 +13,6 @@
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
 
 namespace hhg {
@@ -24,7 +24,7 @@ static void testCommonIndexing()
   using walberla::real_t;
 
   WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << indexing::edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
+  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
 
   for ( const auto & it : vertexdof::macroface::BorderIterator( 3, FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
   {
@@ -41,7 +41,7 @@ static void testCommonIndexing()
   WALBERLA_LOG_INFO_ON_ROOT( "P1FaceIterator (inner face), accessing neighboring horizontal edges" );
   for ( const auto & it : vertexdof::macroface::Iterator( 3, 1 ) )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << indexing::edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
+    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
   }
 
   const uint_t level = 3;

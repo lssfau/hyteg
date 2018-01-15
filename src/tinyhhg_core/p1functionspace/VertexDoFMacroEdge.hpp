@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
