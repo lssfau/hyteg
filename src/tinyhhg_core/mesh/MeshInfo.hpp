@@ -35,7 +35,7 @@ public:
   public:
     Vertex() : id_( 0 ), coordinates_( Point3D() ), dofType_( Inner ) {};
     Vertex( const IDType & id, const Point3D & coordinates, const DoFType & dofType ) :
-      id_( id ), coordinates_( coordinates ), dofType_( dofType_ )
+      id_( id ), coordinates_( coordinates ), dofType_( dofType )
     {}
 
     const IDType  getID()          const { return id_; }

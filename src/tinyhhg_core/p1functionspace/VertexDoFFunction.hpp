@@ -13,7 +13,7 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
 
 namespace hhg {

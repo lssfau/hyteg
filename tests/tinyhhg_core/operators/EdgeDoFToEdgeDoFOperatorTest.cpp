@@ -45,24 +45,24 @@ static void testEdgeDoFToEdgeDoFOperator()
     auto edge = it.second;
     auto stencil = edge->getData( edgeToEdgeOperator.getEdgeStencilID_() )->getPointer( maxLevel );
 
-    for ( const auto & stencilDir : indexing::edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge )
+    for ( const auto & stencilDir : edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge )
     {
-      stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+      stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
     }
 
-    for ( const auto & stencilDir : indexing::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
+    for ( const auto & stencilDir : edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeVerticalStencilValue;
       }
       else
       {
@@ -72,19 +72,19 @@ static void testEdgeDoFToEdgeDoFOperator()
 
     if ( edge->getNumNeighborFaces() == 2 )
     {
-      for ( const auto & stencilDir : indexing::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
+      for ( const auto & stencilDir : edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
       {
         if ( isDiagonalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeDiagonalStencilValue;
+          stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeDiagonalStencilValue;
         }
         else if ( isHorizontalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+          stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeHorizontalStencilValue;
         }
         else if ( isVerticalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeVerticalStencilValue;
+          stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroEdgeVerticalStencilValue;
         }
         else
         {
@@ -99,19 +99,19 @@ static void testEdgeDoFToEdgeDoFOperator()
     auto face = it.second;
     auto stencil = face->getData( edgeToEdgeOperator.getFaceStencilID_() )->getPointer( maxLevel );
 
-    for ( const auto & stencilDir : indexing::edgedof::macroface::neighborsFromHorizontalEdge )
+    for ( const auto & stencilDir : edgedof::macroface::neighborsFromHorizontalEdge )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromHorizontalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
       }
       else
       {
@@ -119,19 +119,19 @@ static void testEdgeDoFToEdgeDoFOperator()
       }
     }
 
-    for ( const auto & stencilDir : indexing::edgedof::macroface::neighborsFromDiagonalEdge )
+    for ( const auto & stencilDir : edgedof::macroface::neighborsFromDiagonalEdge )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromDiagonalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
       }
       else
       {
@@ -139,19 +139,19 @@ static void testEdgeDoFToEdgeDoFOperator()
       }
     }
 
-    for ( const auto & stencilDir : indexing::edgedof::macroface::neighborsFromVerticalEdge )
+    for ( const auto & stencilDir : edgedof::macroface::neighborsFromVerticalEdge )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromVerticalEdge( stencilDir ) ] = macroFaceVerticalStencilValue;
       }
       else
       {
@@ -181,10 +181,10 @@ static void testEdgeDoFToEdgeDoFOperator()
     auto edge = it.second;
     auto edgeFunction = edge->getData( edge_dst->getEdgeDataID() );
 
-    for ( const auto & idxIt : indexing::edgedof::macroedge::Iterator( maxLevel ) )
+    for ( const auto & idxIt : edgedof::macroedge::Iterator( maxLevel ) )
     {
       auto ptr = edgeFunction->getPointer( maxLevel );
-      auto idx = indexing::edgedof::macroedge::indexFromHorizontalEdge< maxLevel >( idxIt.col(), stencilDirection::EDGE_HO_C );
+      auto idx = edgedof::macroedge::indexFromHorizontalEdge< maxLevel >( idxIt.col(), stencilDirection::EDGE_HO_C );
 
       const real_t expectedValue = edgeSrcValue * ( macroEdgeHorizontalStencilValue + real_c( edge->getNumNeighborFaces() ) * ( macroEdgeDiagonalStencilValue + macroEdgeVerticalStencilValue ) );
       WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
@@ -200,11 +200,11 @@ static void testEdgeDoFToEdgeDoFOperator()
 
     auto ptr = faceFunction->getPointer( maxLevel );
 
-    for ( const auto & idxIt : indexing::edgedof::macroface::Iterator( maxLevel ) )
+    for ( const auto & idxIt : edgedof::macroface::Iterator( maxLevel ) )
     {
       if ( idxIt.col() != 0 )
       {
-        const auto idx = indexing::edgedof::macroface::indexFromVerticalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_VE_C );
+        const auto idx = edgedof::macroface::indexFromVerticalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_VE_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceVerticalStencilValue + 2.0 * ( macroFaceDiagonalStencilValue + macroFaceHorizontalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
@@ -212,7 +212,7 @@ static void testEdgeDoFToEdgeDoFOperator()
 
       if ( idxIt.row() != 0 )
       {
-        const auto idx = indexing::edgedof::macroface::indexFromHorizontalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_HO_C );
+        const auto idx = edgedof::macroface::indexFromHorizontalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_HO_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceHorizontalStencilValue + 2.0 * ( macroFaceDiagonalStencilValue + macroFaceVerticalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );
@@ -220,7 +220,7 @@ static void testEdgeDoFToEdgeDoFOperator()
 
       if ( idxIt.row() + idxIt.col() < levelinfo::num_microedges_per_edge( maxLevel ) - 1 )
       {
-        const auto idx = indexing::edgedof::macroface::indexFromDiagonalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_DI_C );
+        const auto idx = edgedof::macroface::indexFromDiagonalEdge< maxLevel >( idxIt.col(), idxIt.row(), stencilDirection::EDGE_DI_C );
 
         const real_t expectedValue = edgeSrcValue * ( macroFaceDiagonalStencilValue + 2.0 * ( macroFaceHorizontalStencilValue + macroFaceVerticalStencilValue ) );
         WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );

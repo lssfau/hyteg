@@ -105,16 +105,16 @@ typedef std::array<uint_t, 3> StencilMap;
 
 static const std::array<StencilMap, 3> P2GrayStencilMaps =
     {{
-         {{indexing::edgedof::stencilIndexFromVertex(elementS[3]), indexing::edgedof::stencilIndexFromVertex(elementS[4]), indexing::edgedof::stencilIndexFromVertex(elementS[5])}},
-         {{indexing::edgedof::stencilIndexFromVertex(elementNE[3]), indexing::edgedof::stencilIndexFromVertex(elementNE[4]), indexing::edgedof::stencilIndexFromVertex(elementNE[5])}},
-         {{indexing::edgedof::stencilIndexFromVertex(elementNW[3]), indexing::edgedof::stencilIndexFromVertex(elementNW[4]), indexing::edgedof::stencilIndexFromVertex(elementNW[5])}}
+         {{edgedof::stencilIndexFromVertex(elementS[3]), edgedof::stencilIndexFromVertex(elementS[4]), edgedof::stencilIndexFromVertex(elementS[5])}},
+         {{edgedof::stencilIndexFromVertex(elementNE[3]), edgedof::stencilIndexFromVertex(elementNE[4]), edgedof::stencilIndexFromVertex(elementNE[5])}},
+         {{edgedof::stencilIndexFromVertex(elementNW[3]), edgedof::stencilIndexFromVertex(elementNW[4]), edgedof::stencilIndexFromVertex(elementNW[5])}}
      }};
 
 static const std::array<StencilMap, 3> P2BlueStencilMaps =
     {{
-         {{indexing::edgedof::stencilIndexFromVertex(elementSW[3]), indexing::edgedof::stencilIndexFromVertex(elementSW[4]), indexing::edgedof::stencilIndexFromVertex(elementSW[5])}},
-         {{indexing::edgedof::stencilIndexFromVertex(elementSE[3]), indexing::edgedof::stencilIndexFromVertex(elementSE[4]), indexing::edgedof::stencilIndexFromVertex(elementSE[5])}},
-         {{indexing::edgedof::stencilIndexFromVertex(elementN[3]), indexing::edgedof::stencilIndexFromVertex(elementN[4]), indexing::edgedof::stencilIndexFromVertex(elementN[5])}}
+         {{edgedof::stencilIndexFromVertex(elementSW[3]), edgedof::stencilIndexFromVertex(elementSW[4]), edgedof::stencilIndexFromVertex(elementSW[5])}},
+         {{edgedof::stencilIndexFromVertex(elementSE[3]), edgedof::stencilIndexFromVertex(elementSE[4]), edgedof::stencilIndexFromVertex(elementSE[5])}},
+         {{edgedof::stencilIndexFromVertex(elementN[3]), edgedof::stencilIndexFromVertex(elementN[4]), edgedof::stencilIndexFromVertex(elementN[5])}}
      }};
 
 // First DoF is center vertex DoF
@@ -184,25 +184,25 @@ template<typename StencilMemory>
 inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
 
   // Horizontal
-  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)] = grayMatrix(5, 5) + blueMatrix(5, 5);
-  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_S)] = blueMatrix(5, 3);
-  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_SE)] = blueMatrix(5, 4);
-  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_N)] = grayMatrix(5, 3);
-  stencil[indexing::edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_NW)] = grayMatrix(5, 4);
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)] = grayMatrix(5, 5) + blueMatrix(5, 5);
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_S)] = blueMatrix(5, 3);
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_SE)] = blueMatrix(5, 4);
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_N)] = grayMatrix(5, 3);
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_NW)] = grayMatrix(5, 4);
 
   // Diagonal
-  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)] = grayMatrix(3, 3) + blueMatrix(3, 3);
-  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_S)] = grayMatrix(3, 5);
-  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_E)] = blueMatrix(3, 4);
-  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_N)] = blueMatrix(3, 5);
-  stencil[indexing::edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_W)] = grayMatrix(3, 4);
+  stencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)] = grayMatrix(3, 3) + blueMatrix(3, 3);
+  stencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_S)] = grayMatrix(3, 5);
+  stencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_E)] = blueMatrix(3, 4);
+  stencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_HO_N)] = blueMatrix(3, 5);
+  stencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_VE_W)] = grayMatrix(3, 4);
 
   // Vertical
-  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)] = grayMatrix(4, 4) + blueMatrix(4, 4);
-  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_SE)] = grayMatrix(4, 5);
-  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_E)] = grayMatrix(4, 3);
-  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_NW)] = blueMatrix(4, 5);
-  stencil[indexing::edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_W)] = blueMatrix(4, 3);
+  stencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)] = grayMatrix(4, 4) + blueMatrix(4, 4);
+  stencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_SE)] = grayMatrix(4, 5);
+  stencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_E)] = grayMatrix(4, 3);
+  stencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_HO_NW)] = blueMatrix(4, 5);
+  stencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_DI_W)] = blueMatrix(4, 3);
 
 }
 

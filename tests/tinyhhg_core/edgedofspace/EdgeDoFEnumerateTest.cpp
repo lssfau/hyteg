@@ -36,16 +36,16 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
     for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( Level ); ++i){
       WALBERLA_CHECK_EQUAL(edgeData[i],check);
-      WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_DI_S)],0);
-      WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_VE_SE)],0);
+      WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_DI_S)],0);
+      WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_VE_SE)],0);
       if( i != 0){
-        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromVertex< Level >(i,stencilDirection::EDGE_HO_SE)],0);
+        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromVertex< Level >(i,stencilDirection::EDGE_HO_SE)],0);
       }
       if(edgeIt.second->getNumNeighborFaces() == 2) {
-        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_DI_N)], 0);
-        WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_VE_NW)], 0);
+        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_DI_N)], 0);
+        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_VE_NW)], 0);
         if (i != 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[indexing::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)], 0);
+          WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)], 0);
         }
       }
       check++;

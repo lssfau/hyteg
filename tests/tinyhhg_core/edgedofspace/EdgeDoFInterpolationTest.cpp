@@ -56,9 +56,9 @@ int main(int argc, char **argv)
     {
       for (uint_t j = 0; j < mEperEdge - i; ++j)
       {
-        uint_t idx_ho = indexing::edgedof::macroface::indexFromHorizontalEdge<level>(j, i, stencilDirection::EDGE_HO_C);
-        uint_t idx_di = indexing::edgedof::macroface::indexFromDiagonalEdge<level>(j, i, stencilDirection::EDGE_DI_C);
-        uint_t idx_ve = indexing::edgedof::macroface::indexFromVerticalEdge<level>(j, i, stencilDirection::EDGE_VE_C);
+        uint_t idx_ho = edgedof::macroface::indexFromHorizontalEdge<level>(j, i, stencilDirection::EDGE_HO_C);
+        uint_t idx_di = edgedof::macroface::indexFromDiagonalEdge<level>(j, i, stencilDirection::EDGE_DI_C);
+        uint_t idx_ve = edgedof::macroface::indexFromVerticalEdge<level>(j, i, stencilDirection::EDGE_VE_C);
         if (i == 0)
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ho], 0.0,

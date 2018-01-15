@@ -2,7 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 
 namespace hhg {
