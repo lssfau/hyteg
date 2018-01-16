@@ -83,8 +83,6 @@ public:
     coordinates_.row() = offsetToCenter;
     coordinates_.dep() = offsetToCenter;
 
-    WALBERLA_LOG_DEVEL( "Total number of dofs: " << totalNumberOfDoFs_ );
-
     if ( end )
     {
       step_ = totalNumberOfDoFs_;
