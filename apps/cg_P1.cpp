@@ -20,14 +20,9 @@ int main(int argc, char* argv[])
   PETScManager petscManager;
 #endif
 
-  walberla::Config::BlockHandle parameters;
-  if(walberlaEnv.config()) {
-    parameters = walberlaEnv.config()->getOneBlock("Parameters");
-  } else {
-    walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
-    cfg->readParameterFile("../data/param/cg_P1.prm");
-    parameters = cfg->getOneBlock("Parameters");
-  }
+  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
+  cfg->readParameterFile("../data/param/cg_P1.prm");
+  walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
   size_t minLevel = parameters.getParameter<size_t>("minlevel");
   size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
