@@ -2,6 +2,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
 #include <core/Environment.h>
+#include <core/config/Config.h>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -16,10 +17,14 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
-  cfg->readParameterFile("../data/param/cg_P2.prm");
-
-  auto parameters = cfg->getOneBlock("Parameters");
+  walberla::Config::BlockHandle parameters;
+  if(walberlaEnv.config()) {
+    parameters = walberlaEnv.config()->getOneBlock("Parameters");
+  } else {
+    walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
+    cfg->readParameterFile("../data/param/cg_P2.prm");
+    parameters = walberlaEnv.config()->getOneBlock("Parameters");
+  }
 
   size_t minLevel = parameters.getParameter<size_t>("minlevel");
   size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
