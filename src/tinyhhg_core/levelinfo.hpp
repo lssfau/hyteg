@@ -43,6 +43,12 @@ constexpr inline uint_t num_microfaces_per_face(uint_t level)
   return (1u << (2u*level));
 }
 
+constexpr inline uint_t num_microvertices_per_cell( const uint_t & level )
+{
+  const uint_t width = ( 1u << level ) + 1;
+  return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
+}
+
 }
 }
 
