@@ -183,6 +183,10 @@ inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orient
 ///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
 ///   }
 ///
+/// \param width width of one edge of the face
+/// \param direction FaceBorderDirection indicating the face border of interest
+/// \param offsetToCenter if > 0, the iterator iterates parallel to the specified border, shifted to the center of the face by offsetToCenter
+/// \param offsetFromVertices the iterator skips the first and last offsetFromVertices points of the border
 class FaceBorderIterator
 {
 public:
