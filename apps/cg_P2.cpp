@@ -23,11 +23,10 @@ int main(int argc, char* argv[])
   } else {
     walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
     cfg->readParameterFile("../data/param/cg_P2.prm");
-    parameters = walberlaEnv.config()->getOneBlock("Parameters");
+    parameters = cfg->getOneBlock("Parameters");
   }
 
-  size_t minLevel = parameters.getParameter<size_t>("minlevel");
-  size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
+  size_t level = parameters.getParameter<size_t>("level");
   size_t maxiter = parameters.getParameter<size_t>("maxiter");
   real_t tolerance = parameters.getParameter<real_t>("tolerance");
 
@@ -39,14 +38,14 @@ int main(int argc, char* argv[])
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
-  hhg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel);
+  hhg::P2ConstantLaplaceOperator L(storage, level, level);
 
-  hhg::P2Function< real_t > r("r", storage, minLevel, maxLevel);
-  hhg::P2Function< real_t > f("f", storage, minLevel, maxLevel);
-  hhg::P2Function< real_t > u("u", storage, minLevel, maxLevel);
-  hhg::P2Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P2Function< real_t > err("err", storage, minLevel, maxLevel);
-  hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > r("r", storage, level, level);
+  hhg::P2Function< real_t > f("f", storage, level, level);
+  hhg::P2Function< real_t > u("u", storage, level, level);
+  hhg::P2Function< real_t > u_exact("u_exact", storage, level, level);
+  hhg::P2Function< real_t > err("err", storage, level, level);
+  hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, level, level);
 
 
 
@@ -54,21 +53,21 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
-  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  u_exact.interpolate(exact, maxLevel);
+  u.interpolate(exact, level, hhg::DirichletBoundary);
+  u_exact.interpolate(exact, level);
 
-  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel, 30);
+  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, level, level, 30);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, tolerance, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, level, tolerance, maxiter, hhg::Inner, true);
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
-  err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
+  err.assign({1.0, -1.0}, {&u, &u_exact}, level);
 
-  npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
+  npoints_helper.interpolate(ones, level);
+  real_t npoints = npoints_helper.dot(npoints_helper, level);
 
-  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err.dot(err, level) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
@@ -79,7 +78,7 @@ int main(int argc, char* argv[])
   vtkOutput.add( &r );
   vtkOutput.add( &err );
   vtkOutput.add( &npoints_helper );
-  vtkOutput.write( maxLevel );
+  vtkOutput.write( level );
 
   walberla::WcTimingTree tt = timingTree->getReduced();
   WALBERLA_LOG_INFO_ON_ROOT( tt );

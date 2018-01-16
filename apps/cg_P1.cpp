@@ -1,8 +1,7 @@
 #include <core/timing/Timer.h>
-#include <tinyhhg_core/p1functionspace/P1Function.hpp>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
+
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -21,16 +20,25 @@ int main(int argc, char* argv[])
   PETScManager petscManager;
 #endif
 
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
+  walberla::Config::BlockHandle parameters;
+  if(walberlaEnv.config()) {
+    parameters = walberlaEnv.config()->getOneBlock("Parameters");
+  } else {
+    walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
+    cfg->readParameterFile("../data/param/cg_P1.prm");
+    parameters = cfg->getOneBlock("Parameters");
+  }
+
+  size_t minLevel = parameters.getParameter<size_t>("minlevel");
+  size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
+  size_t maxiter = parameters.getParameter<size_t>("maxiter");
+  real_t tolerance = parameters.getParameter<real_t>("tolerance");
+  std::string meshFileName = parameters.getParameter<std::string>("mesh");
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );
-
-  size_t minLevel = 2;
-  size_t maxLevel = 4;
-  size_t maxiter = 10000;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
@@ -66,7 +74,7 @@ int main(int argc, char* argv[])
 #endif
   auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, std::numeric_limits<uint_t>::max(), prec);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-10, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, tolerance, maxiter, hhg::Inner, true);
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
