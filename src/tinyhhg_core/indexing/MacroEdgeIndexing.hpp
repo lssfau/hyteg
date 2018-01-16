@@ -20,9 +20,9 @@ constexpr uint_t linearMacroEdgeSize()
 
 /// General linear memory layout indexing function for macro edges
 template< uint_t width >
-constexpr uint_t linearMacroEdgeIndex( const uint_t & col )
+constexpr uint_t linearMacroEdgeIndex( const uint_t & x )
 {
-  return col;
+  return x;
 }
 
 }
@@ -34,9 +34,9 @@ constexpr uint_t macroEdgeSize()
 }
 
 template< uint_t width >
-constexpr uint_t macroEdgeIndex( const uint_t & col )
+constexpr uint_t macroEdgeIndex( const uint_t & x )
 {
-  return layout::linearMacroEdgeIndex< width >( col );
+  return layout::linearMacroEdgeIndex< width >( x );
 }
 
 /// Iterator over an edge.
@@ -58,6 +58,7 @@ public:
     width_( width ), offsetToCenter_( offsetToCenter ),
     totalNumberOfDoFs_( width - 2 * offsetToCenter ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of edge must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond edge width!" );
 
     coordinates_.dep() = 0;
