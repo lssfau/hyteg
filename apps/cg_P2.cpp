@@ -16,18 +16,25 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/tri_1el.msh";
+  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
+  cfg->readParameterFile("../data/param/cg_P2.prm");
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+  auto parameters = cfg->getOneBlock("Parameters");
+
+  size_t minLevel = parameters.getParameter<size_t>("minlevel");
+  size_t maxLevel = parameters.getParameter<size_t>("maxlevel");
+  size_t maxiter = parameters.getParameter<size_t>("maxiter");
+  real_t tolerance = parameters.getParameter<real_t>("tolerance");
+
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( parameters.getParameter<std::string>("mesh") );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  size_t minLevel = 2;
-  size_t maxLevel = 5;
-  size_t maxiter = 10000;
-
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+  /// this has to be done before the functions are created
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+  storage->enableGlobalTiming(timingTree);
 
   hhg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel);
 
@@ -38,33 +45,21 @@ int main(int argc, char* argv[])
   hhg::P2Function< real_t > err("err", storage, minLevel, maxLevel);
   hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
-  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-  r.enableTiming( timingTree );
-  f.enableTiming( timingTree );
-  u.enableTiming( timingTree );
-  u_exact.enableTiming( timingTree );
-  err.enableTiming( timingTree );
-  npoints_helper.enableTiming( timingTree );
+
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
-//  uint_t num = 1;
-//  u.enumerate(maxLevel, num);
-//  L.apply(u, u, maxLevel, hhg::Inner, Replace);
-
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-//  L.apply(u_exact, r, maxLevel, hhg::Inner, Replace);
-
   auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel, 30);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-14, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, tolerance, maxiter, hhg::Inner, true);
   timer.end();
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
+  WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);
