@@ -34,6 +34,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
+## VertexDoFSpace ##
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME VertexDoFFunctionTest)
+
 ## EdgeDoFSpace ##
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core fmt)
