@@ -20,9 +20,9 @@ constexpr uint_t linearMacroEdgeSize()
 
 /// General linear memory layout indexing function for macro edges
 template< uint_t width >
-constexpr uint_t linearMacroEdgeIndex( const uint_t & col )
+constexpr uint_t linearMacroEdgeIndex( const uint_t & x )
 {
-  return col;
+  return x;
 }
 
 }
@@ -34,9 +34,9 @@ constexpr uint_t macroEdgeSize()
 }
 
 template< uint_t width >
-constexpr uint_t macroEdgeIndex( const uint_t & col )
+constexpr uint_t macroEdgeIndex( const uint_t & x )
 {
-  return layout::linearMacroEdgeIndex< width >( col );
+  return layout::linearMacroEdgeIndex< width >( x );
 }
 
 /// Iterator over an edge.
