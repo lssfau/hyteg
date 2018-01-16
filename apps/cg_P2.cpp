@@ -31,10 +31,8 @@ int main(int argc, char* argv[])
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  /// this has to be done before the functions are created
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-  storage->enableGlobalTiming(timingTree);
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
   hhg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel);
 

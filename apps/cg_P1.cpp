@@ -1,4 +1,5 @@
 #include <core/timing/Timer.h>
+#include <tinyhhg_core/p1functionspace/P1Function.hpp>
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
 #include <core/Environment.h>
@@ -31,7 +32,8 @@ int main(int argc, char* argv[])
   size_t maxLevel = 4;
   size_t maxiter = 10000;
 
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
   hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
   hhg::P1Function< real_t > f("f", storage, minLevel, maxLevel);
@@ -42,16 +44,6 @@ int main(int argc, char* argv[])
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
   hhg::P1LaplaceOperator L(storage, minLevel, maxLevel);
-
-  std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-  r.enableTiming( timingTree );
-  f.enableTiming( timingTree );
-  u.enableTiming( timingTree );
-  u_exact.enableTiming( timingTree );
-  err.enableTiming( timingTree );
-  npoints_helper.enableTiming( timingTree );
-
-  L.enableTiming( timingTree );
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return (1.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return (3.0L/2.0L)*sin(2*x[0])*sinh(x[1]); };
@@ -74,7 +66,7 @@ int main(int argc, char* argv[])
 #endif
   auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, std::numeric_limits<uint_t>::max(), prec);
   walberla::WcTimer timer;
-  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  solver.solve(L, u, f, r, maxLevel, 1e-10, maxiter, hhg::Inner, true);
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
