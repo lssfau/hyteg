@@ -11,16 +11,6 @@
 namespace hhg {
 namespace vertexdof {
 
-// ##############
-// ### Common ###
-// ##############
-
-// Conversion functions: level to width (i.e. number of DoFs in the longest 'line')
-
-template< uint_t level >
-constexpr uint_t levelToWidth = levelinfo::num_microvertices_per_edge( level );
-
-
 // ##################
 // ### Macro Edge ###
 // ##################
@@ -31,7 +21,7 @@ namespace macroedge {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col )
 {
-  return hhg::indexing::macroEdgeIndex< levelToWidth< level > >( col );
+  return hhg::indexing::macroEdgeIndex< levelinfo::num_microvertices_per_edge( level ) >( col );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
@@ -39,9 +29,9 @@ inline constexpr uint_t index( const uint_t & col )
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & neighbor )
 {
-  return              hhg::indexing::macroEdgeSize< levelToWidth< level >     >()
-         + neighbor * hhg::indexing::macroEdgeSize< levelToWidth< level > - 1 >()
-         + hhg::indexing::macroEdgeIndex< levelToWidth< level > - 1 >( col );
+  return              hhg::indexing::macroEdgeSize< levelinfo::num_microvertices_per_edge( level )     >()
+         + neighbor * hhg::indexing::macroEdgeSize< levelinfo::num_microvertices_per_edge( level ) - 1 >()
+         + hhg::indexing::macroEdgeIndex< levelinfo::num_microvertices_per_edge( level ) - 1 >( col );
 };
 
 // Stencil access functions
@@ -135,7 +125,7 @@ namespace macroface {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & col, const uint_t & row )
 {
-  return hhg::indexing::macroFaceIndex< levelToWidth< level > >( col, row );
+  return hhg::indexing::macroFaceIndex< levelinfo::num_microvertices_per_edge( level ) >( col, row );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
@@ -145,9 +135,9 @@ inline constexpr uint_t index( const uint_t & col, const uint_t & row, const uin
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
-  return              hhg::indexing::macroFaceSize< levelToWidth< level >     >()
-         + neighbor * hhg::indexing::macroFaceSize< levelToWidth< level > - 1 >()
-         + hhg::indexing::macroFaceIndex< levelToWidth< level > - 1 >( col, row );
+  return              hhg::indexing::macroFaceSize< levelinfo::num_microvertices_per_edge( level )     >()
+         + neighbor * hhg::indexing::macroFaceSize< levelinfo::num_microvertices_per_edge( level ) - 1 >()
+         + hhg::indexing::macroFaceIndex< levelinfo::num_microvertices_per_edge( level ) - 1 >( col, row );
 
 };
 
