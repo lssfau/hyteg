@@ -353,6 +353,18 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
   }
 }
 
+// Iterators
+
+/// Iterator over a vertex DoF macro cell.
+/// See \ref CellIterator for more information.
+class Iterator : public hhg::indexing::CellIterator
+{
+public:
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+    CellIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
+  {}
+};
+
 } // namespace macrocell
 
 constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
