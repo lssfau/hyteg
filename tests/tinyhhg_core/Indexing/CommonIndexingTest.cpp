@@ -13,132 +13,112 @@
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
+#include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
 
 namespace hhg {
 
+static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > > & expectedValues, const indexing::FaceBorderDirection & faceBorderDirection,
+                                    const uint_t & width, const uint_t & offsetToCenter, const uint_t & offsetFromVertices )
+{
+  std::vector< std::array< uint_t, 2 > > iteratorResult;
+
+  for ( const auto & it : indexing::FaceBorderIterator( width, faceBorderDirection, offsetToCenter, offsetFromVertices ) )
+  {
+    iteratorResult.push_back( {{ it.col(), it.row() }} );
+  }
+
+  WALBERLA_CHECK_EQUAL( iteratorResult.size(), expectedValues.size() );
+
+  for ( uint_t i = 0; i < iteratorResult.size(); i++ )
+  {
+    WALBERLA_CHECK_EQUAL( iteratorResult[i][0], expectedValues[i][0] );
+    WALBERLA_CHECK_EQUAL( iteratorResult[i][1], expectedValues[i][1] );
+  }
+}
+
 static void testCommonIndexing()
 {
-  using namespace indexing;
   using walberla::uint_t;
-  using walberla::real_t;
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Index P1      - face, level 3, (3, 3, center): " << vertexdof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::VERTEX_C ) );
-  WALBERLA_LOG_INFO_ON_ROOT( "Index EdgeDoF - face, level 3, (3, 3, center): " << edgedof::macroface::indexFromVertex< 3 >( 3, 3, stencilDirection::EDGE_HO_E ) );
+  uint_t testCol = 0;
+  uint_t testRow = 0;
 
-  for ( const auto & it : vertexdof::macroface::BorderIterator( 3, FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 1 ) )
+  // macro edge
+
+  for ( const auto & it : indexing::EdgeIterator( 8, 0 ) )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() << " ( idx = " << vertexdof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::VERTEX_C ) << " ) " );
+    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
+    WALBERLA_CHECK_EQUAL( 0,         it.row() );
   }
+  WALBERLA_CHECK_EQUAL( testCol, 8 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "FaceIterator:" )
-  for ( const auto & it : FaceIterator( 9, 1 ) )
+  testCol = 1;
+  for ( const auto & it : indexing::EdgeIterator( 8, 1 ) )
   {
-    std::cout << "(" << it.col() << ", " << it.row() << ") -> " << macroFaceIndex< 9 >( it.col(), it.row() ) << "\n";
-
+    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
+    WALBERLA_CHECK_EQUAL( 0,         it.row() );
   }
+  WALBERLA_CHECK_EQUAL( testCol, 7 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "P1FaceIterator (inner face), accessing neighboring horizontal edges" );
-  for ( const auto & it : vertexdof::macroface::Iterator( 3, 1 ) )
+  // macro face
+
+  testCol = 0;
+  testRow = 0;
+  for ( const auto & it : indexing::FaceIterator( 4, 0 ) )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "Inner face, indexFromVertex (horizontal edge west) = " << edgedof::macroface::indexFromVertex< 3 >( it.col(), it.row(), stencilDirection::EDGE_HO_W ) );
-  }
+    WALBERLA_CHECK_EQUAL( testCol++, it.col() );
+    WALBERLA_CHECK_EQUAL( testRow  , it.row() );
 
-  const uint_t level = 3;
-  const uint_t size = macroFaceSize< vertexdof::levelToWidth< level > >();
-
-  real_t * a = new real_t[ size ];
-  real_t * b = new real_t[ size ];
-
-  walberla::WcTimingPool timer;
-
-
-#if 0
-  const uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
-  uint_t inner_rowsize = rowsize;
-
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0001;
-      b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] = 0.0002;
-    }
-    --inner_rowsize;
-  }
-
-  timer[ "loop" ].start();
-
-  real_t sp = 0.0;
-  inner_rowsize = rowsize;
-
-  for (uint_t i = 1; i < rowsize - 2; ++i) {
-    for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
-      sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(j, i) ];
-    }
-    --inner_rowsize;
-  }
-
-#else
-
-#if 0
-
-  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
-    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
-
-      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< level > >(j, i);
-      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< level > >(j, i);
-
-      a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0001;
-      b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] = 0.0002;
-
+    if ( testCol + testRow == 4 )
+    {
+      testRow++;
+      testCol = 0;
     }
   }
+  WALBERLA_CHECK_EQUAL( testRow, 4 );
+  WALBERLA_CHECK_EQUAL( testCol, 0 );
 
-  timer[ "loop" ].start();
-
-  real_t sp = 0.0;
-
-  for (uint_t i = 0; i < optimization::unwrapNumRows< vertexdof::levelToWidth< level > >(); ++i) {
-    for (uint_t j = 0; j < optimization::unwrapNumCols< vertexdof::levelToWidth< level > >(); ++j) {
-
-      const uint_t actualRow = optimization::unwrapRow< vertexdof::levelToWidth< level > >(j, i);
-      const uint_t actualCol = optimization::unwrapCol< vertexdof::levelToWidth< level > >(j, i);
-
-      sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(actualCol, actualRow) ];
-    }
-  }
-
-#else
-
-  for ( const auto & it : vertexdof::macroface::Iterator( level, 1 ) )
+  testCol = 1;
+  testRow = 1;
+  for ( const auto & it : indexing::FaceIterator( 4, 1 ) )
   {
-    a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0001;
-    b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] = 0.0002;
+    testCol++;
+    testRow++;
+    WALBERLA_CHECK_EQUAL( it.col(), 1 );
+    WALBERLA_CHECK_EQUAL( it.row(), 1 );
   }
+  WALBERLA_CHECK_EQUAL( testRow, 2 );
+  WALBERLA_CHECK_EQUAL( testCol, 2 );
 
-  timer[ "loop" ].start();
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {0, 0}, {1, 0}, {2, 0}, {3, 0} } ),         indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 4, 0, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {2, 0}, {1, 0} } ),                         indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 0, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {3, 1}, {2, 1}, {1, 1} } ),                 indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {2, 1} } ),                                 indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {4, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 4} } ), indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {3, 1}, {2, 2}, {1, 3} } ),                 indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {3, 0}, {2, 1}, {1, 2}, {0, 3} } ),         indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 1, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( { {1, 2}, {2, 1} } ),                         indexing::FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM, 5, 1, 1 );
 
-  real_t sp = 0.0;
+  // macro cell
 
-  for ( const auto & it : vertexdof::macroface::Iterator( level, 1 ) )
-  {
-    sp += a[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ] * b[ macroFaceIndex< vertexdof::levelToWidth< level > >(it.col(), it.row()) ];
-  }
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  1 >(),   1 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  2 >(),   4 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  3 >(),  10 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  4 >(),  20 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  5 >(),  35 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  6 >(),  56 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  7 >(),  84 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  8 >(), 120 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  9 >(), 165 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize< 10 >(), 220 );
 
-#endif
-
-#endif
-
-  timer[ "loop" ].end();
-
-  std::cout << sp << std::endl;
-  WALBERLA_LOG_INFO_ON_ROOT( "result = " << sp );
-  WALBERLA_LOG_INFO_ON_ROOT( timer );
-
-  delete[] a;
-  delete[] b;
-
-
-
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 0, 0, 0 ),  0 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 2, 0, 0 ),  2 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 3, 0 ), 13 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 1 ), 20 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 2 ), 29 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 0, 0, 4 ), 34 );
 }
 
 } // namespace hhg
