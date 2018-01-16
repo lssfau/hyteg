@@ -15,6 +15,8 @@
 #include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
 #include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
+
 namespace hhg {
 
 template <class OperatorType, template <class> class FunctionType>

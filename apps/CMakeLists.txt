@@ -72,6 +72,10 @@ if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp
         DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME P2_petsc
+        FILES P2_petsc.cpp
+        DEPENDS tinyhhg_core fmt)
 endif()
 
 waLBerla_add_executable( NAME CompareInterpolate

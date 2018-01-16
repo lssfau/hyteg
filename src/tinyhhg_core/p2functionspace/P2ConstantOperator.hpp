@@ -70,6 +70,22 @@ public:
 
   }
 
+  const P1Operator<NoAssemble>& getVertexToVertexOpr() const {
+    return vertexToVertex;
+  }
+
+  const EdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() const {
+    return edgeToVertex;
+  }
+
+  const VertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() const {
+    return vertexToEdge;
+  }
+
+  const EdgeDoFOperator& getEdgeToEdgeOpr() const {
+    return edgeToEdge;
+  }
+
 private:
 
   void apply_impl(P2Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)

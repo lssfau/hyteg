@@ -11,12 +11,12 @@ using walberla::uint_t;
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-inline void saveOperator( const uint_t & level,
-                          const Vertex & vertex,
-                          const PrimitiveDataID< StencilMemory< real_t >, Vertex> & operatorId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & srcId,
-                          const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & dstId,
-                          Mat & mat )
+inline void saveVertexOperator( const uint_t & level,
+                                const Vertex & vertex,
+                                const PrimitiveDataID< StencilMemory< real_t >, Vertex> & operatorId,
+                                const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & srcId,
+                                const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & dstId,
+                                Mat & mat )
 {
   auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto src = vertex.getData(srcId)->getPointer( level );
@@ -29,18 +29,18 @@ inline void saveOperator( const uint_t & level,
 }
 
 template<size_t Level>
-inline void saveOperatorTmpl( const Edge & edge,
-                              const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                              Mat & mat )
+inline void saveEdgeOperatorTmpl( const Edge & edge,
+                                  const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
+                                  Mat & mat )
 {
   const real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
-  const real_t * src      = edge.getData(srcId)->getPointer( Level );
-  const real_t * dst      = edge.getData(dstId)->getPointer( Level );
+  const PetscInt * src      = edge.getData(srcId)->getPointer( Level );
+  const PetscInt * dst      = edge.getData(dstId)->getPointer( Level );
 
   PetscInt srcInt;
-  PetcsInt dstInt;
+  PetscInt dstInt;
 
   for( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
   {
@@ -69,21 +69,21 @@ inline void saveOperatorTmpl( const Edge & edge,
   }
 }
 
-SPECIALIZE(void, saveOperatorTmpl, saveOperator);
+SPECIALIZE(void, saveEdgeOperatorTmpl, saveEdgeOperator);
 
 template<size_t Level>
-inline void saveOperatorTmpl( const Face & face,
-                              const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                              Mat & mat )
+inline void saveFaceOperatorTmpl( const Face & face,
+                                  const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
+                                  Mat & mat )
 {
   const real_t * opr_data = face.getData(operatorId)->getPointer( Level );
-  const real_t * src      = face.getData(srcId)->getPointer( Level );
-  const real_t * dst      = face.getData(dstId)->getPointer( Level );
+  const PetscInt * src      = face.getData(srcId)->getPointer( Level );
+  const PetscInt * dst      = face.getData(dstId)->getPointer( Level );
 
   PetscInt srcInt;
-  PetcsInt dstInt;
+  PetscInt dstInt;
 
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
   {
@@ -97,7 +97,38 @@ inline void saveOperatorTmpl( const Face & face,
   }
 }
 
-SPECIALIZE(void, saveOperatorTmpl, saveOperator);
+SPECIALIZE(void, saveFaceOperatorTmpl, saveFaceOperator);
+
+template<class OperatorType>
+inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P1Function< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+{
+  for (auto& it : opr.getStorage()->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      saveVertexOperator(level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat);
+    }
+  }
+
+  for (auto& it : opr.getStorage()->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      saveEdgeOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+    }
+  }
+
+  for (auto& it : opr.getStorage()->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+    }
+  }
+}
 
 #endif
 
