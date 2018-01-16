@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/tri_1el.msh";
+  std::string meshFileName = "../data/meshes/quad_4el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -24,9 +24,9 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 8;
+  const uint_t maxLevel = 7;
   const uint_t maxPolyDegree = 2;
-  const uint_t interpolationLevel = 6;
+  const uint_t interpolationLevel = 4;
   const uint_t maxiter = 10000;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
-//  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
+//  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
+  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -68,6 +68,8 @@ int main(int argc, char* argv[])
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
   SolveOperator L(storage, coefficient, minLevel, maxLevel);
+
+//  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
   L.enableTiming( timingTree );
 
 //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;

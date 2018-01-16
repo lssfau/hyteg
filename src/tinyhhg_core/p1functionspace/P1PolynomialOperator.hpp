@@ -31,7 +31,7 @@
 #include "P1Edge.hpp"
 #include "P1Face.hpp"
 
-#include "tinyhhg_core/polynomial/lsqinterpolation.hpp"
+#include "tinyhhg_core/polynomial/LSQPInterpolator.hpp"
 
 namespace hhg
 {
@@ -40,11 +40,10 @@ template<class UFCOperator, uint_t MaxPolyDegree, uint_t InterpolationLevel>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  typedef LSQInterpolator<MaxPolyDegree, InterpolationLevel, HorizontalEdgeBasis> HorizontalEdgeInterpolator;
-  typedef LSQInterpolator<MaxPolyDegree, InterpolationLevel, VerticalEdgeBasis> VerticalEdgeInterpolator;
+  typedef LSQPInterpolator<MaxPolyDegree, InterpolationLevel, MonomialBasis> Interpolator;
 
-  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
-    : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient)
+  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
+    : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient), analyticCoefficient_(analyticCoefficient)
   {
     initLocalStiffnessMatrices();
     interpolateStencils();
@@ -124,16 +123,9 @@ private:
     typedef stencilDirection SD;
     using namespace P1Elements;
 
-    std::array<SD,3> triangleBlueSW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_S  };
-    std::array<SD,3> triangleGrayS  = { SD::VERTEX_C, SD::VERTEX_S,  SD::VERTEX_SE };
-    std::array<SD,3> triangleBlueSE = { SD::VERTEX_C, SD::VERTEX_SE, SD::VERTEX_E  };
-    std::array<SD,3> triangleGrayNW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_NW };
-    std::array<SD,3> triangleBlueN  = { SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_N  };
-    std::array<SD,3> triangleGrayNE = { SD::VERTEX_C, SD::VERTEX_N,  SD::VERTEX_E  };
-
-    std::vector<real_t> horiValues(HorizontalEdgeInterpolator::NumVertices);
-    std::vector<real_t> vertValues(VerticalEdgeInterpolator::NumVertices);
-//    std::vector<real_t> diagValues(Interpolator::NumVertices);
+    std::vector<real_t> horiValues(Interpolator::NumVertices);
+    std::vector<real_t> vertValues(Interpolator::NumVertices);
+    std::vector<real_t> diagValues(Interpolator::NumVertices);
 
     std::vector<real_t> faceStencil(7);
 
@@ -141,67 +133,117 @@ private:
       Face& face = *it.second;
 
       auto facePolynomials = face.getData(facePolynomialID_);
-      auto faceLocalMatrices = face.getData(faceLocalMatrixID_);
-      auto coeff = face.getData(coefficientP1_->getFaceDataID())->getPointer(InterpolationLevel);
+
+      // compute stiffness matrices on maxLevel
+      Matrix3r local_stiffness_gray;
+      Matrix3r local_stiffness_blue;
+
+      compute_local_stiffness(face, maxLevel_, local_stiffness_gray, fenics::GRAY);
+      compute_local_stiffness(face, maxLevel_, local_stiffness_blue, fenics::BLUE);
 
       uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
+      uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
       uint_t inner_rowsize = rowsize;
       uint_t horiOffset = 0;
       uint_t vertOffset = 0;
+      uint_t diagOffset = 0;
       real_t coeffWeight;
 
+      Interpolator horiInterpolator;
+      Interpolator vertInterpolator;
+      Interpolator diagInterpolator;
+
+      Point3D x, x0;
+      x0 = face.coords[0];
+
+      Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
+      Point3D d2 = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsize - 1));
+
+      // fine directions
+      Point3D d0f = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsizeFine - 1));
+      Point3D d2f = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsizeFine - 1));
+
+      real_t ref_H = walberla::real_c(1)/(walberla::real_c(rowsize - 1));
+      real_t ref_h = walberla::real_c(1)/(walberla::real_c(rowsizeFine - 1));
+      Point2D ref_x;
+
       for (uint_t j = 1; j < rowsize - 2; ++j) {
+
+        ref_x[1] = j * ref_H;
+
+        x = x0;
+        x += real_c(j)*d2 + d0;
 
         uint_t i;
         for (i = 1; i < inner_rowsize - 2; ++i) {
 
+          ref_x[0] = i * ref_H;
+
           std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
-          for (uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k) {
-            coeffWeight = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][0])]
-                            + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][1])]
-                            + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1GrayElements[k][2])]);
-            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[k], FaceVertexDoF::P1GrayDoFMaps[k], faceLocalMatrices->getGrayMatrix(InterpolationLevel), faceStencil, coeffWeight);
-          }
+          // elementS
+          coeffWeight = analyticCoefficient_(x + 1./3. * d0f - 2./3. * d2f );
+          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[0], FaceVertexDoF::P1GrayDoFMaps[0], local_stiffness_gray, faceStencil, coeffWeight);
 
-          for (uint_t k = 0; k < FaceVertexDoF::P1BlueElements.size(); ++k) {
-            coeffWeight = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][0])]
-                                     + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][1])]
-                                     + coeff[vertexdof::macroface::indexFromVertex<InterpolationLevel>(i, j, FaceVertexDoF::P1BlueElements[k][2])]);
-            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], FaceVertexDoF::P1BlueDoFMaps[k], faceLocalMatrices->getBlueMatrix(InterpolationLevel), faceStencil, coeffWeight);
-          }
+          // elementNE
+          coeffWeight = analyticCoefficient_(x + 1./3. * d0f + 1./3. * d2f);
+          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[1], FaceVertexDoF::P1GrayDoFMaps[1], local_stiffness_gray, faceStencil, coeffWeight);
+
+          // elementNW
+          coeffWeight = analyticCoefficient_(x - 2./3. * d0f + 1./3. * d2f);
+          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[2], FaceVertexDoF::P1GrayDoFMaps[2], local_stiffness_gray, faceStencil, coeffWeight);
+
+          // elementSW
+          coeffWeight = analyticCoefficient_(x - 1./3. * d0f - 1./3. * d2f);
+          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[0], FaceVertexDoF::P1BlueDoFMaps[0], local_stiffness_blue, faceStencil, coeffWeight);
+
+          // elementSE
+          coeffWeight = analyticCoefficient_(x + 2./3. * d0f - 1./3. * d2f);
+          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[1], FaceVertexDoF::P1BlueDoFMaps[1], local_stiffness_blue, faceStencil, coeffWeight);
+
+          // elementN
+          coeffWeight = analyticCoefficient_(x - 1./3. * d0f + 2./3. * d2f);
+          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[2], FaceVertexDoF::P1BlueDoFMaps[2], local_stiffness_blue, faceStencil, coeffWeight);
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
 
-          horiValues[horiOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)];
-          ++horiOffset;
+          horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }});
+          horiValues[horiOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)];
 
-          vertValues[vertOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_S)];
-          ++vertOffset;
+          vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, -0.5 * ref_h }});
+          vertValues[vertOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_S)];
+
+          diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, -0.5 * ref_h }});
+          diagValues[diagOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_SE)];
+
+          if (i == 1) {
+            diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.5 * ref_h }});
+            diagValues[diagOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_NW)];
+          }
 
           if (i == inner_rowsize - 2 - 1) {
-            horiValues[horiOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_E)];
-            ++horiOffset;
+            horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, 0.0 }});
+            horiValues[horiOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_E)];
           }
+
+          x += d0;
         }
 
-        vertValues[vertOffset] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_N)];
-        ++vertOffset;
+        vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, 0.5 * ref_h }});
+        vertValues[vertOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_N)];
 
         --inner_rowsize;
       }
 
-      HorizontalEdgeInterpolator horiInterpolator;
+
       horiInterpolator.interpolate(horiValues, facePolynomials->getHoriPolynomial());
-
-      VerticalEdgeInterpolator vertInterpolator;
       vertInterpolator.interpolate(vertValues, facePolynomials->getVertPolynomial());
-//      interpolator.interpolate(diagValues, facePolynomials->getDiagPolynomial());
+      diagInterpolator.interpolate(diagValues, facePolynomials->getDiagPolynomial());
 
-      WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
-      WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());
+
+//      WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
+//      WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());
 //      WALBERLA_LOG_DEVEL("polynomials[2] = " << facePolynomials->getDiagPolynomial());
-      WALBERLA_LOG_INFO("Warning: Diagonal polynomials not yet implemented!")
     }
   }
 
@@ -414,6 +456,7 @@ private:
 
 private:
   std::shared_ptr<P1Function< real_t >> coefficientP1_;
+  const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient_;
 };
 
 template<uint_t MaxPolyDegree, uint_t InterpolationLevel>

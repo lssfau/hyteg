@@ -458,8 +458,8 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] - 0.5 * h }});
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] + 0.5 * h }});
 
-//        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-//        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] - 0.5 * h }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] + 0.5 * h }});
 
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
                         - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
