@@ -65,6 +65,7 @@ public:
     width_( width ), offsetToCenter_( offsetToCenter ),
     totalNumberOfDoFs_( ( ( width - 3 * offsetToCenter + 1 ) * ( width - 3 * offsetToCenter ) ) / 2 ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of face must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
     coordinates_.dep() = 0;
@@ -203,6 +204,7 @@ public:
     width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ),
     offsetFromVertices_( offsetFromVertices ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of face must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
     coordinates_.dep() = 0;

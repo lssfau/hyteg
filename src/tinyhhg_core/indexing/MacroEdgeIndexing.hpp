@@ -58,6 +58,7 @@ public:
     width_( width ), offsetToCenter_( offsetToCenter ),
     totalNumberOfDoFs_( width - 2 * offsetToCenter ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of edge must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond edge width!" );
 
     coordinates_.dep() = 0;
