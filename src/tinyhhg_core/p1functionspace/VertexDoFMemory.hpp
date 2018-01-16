@@ -35,6 +35,12 @@ inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const 
   return levelinfo::num_microvertices_per_face(level);
 }
 
+inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  WALBERLA_UNUSED( numDependencies );
+  return levelinfo::num_microvertices_per_cell( level );
+}
+
 
 ////////////////////
 // Stencil memory //
