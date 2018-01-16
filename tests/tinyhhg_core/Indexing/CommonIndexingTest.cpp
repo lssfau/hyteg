@@ -37,6 +37,25 @@ static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > >
   }
 }
 
+static void testCellIterator( const std::vector< std::array< uint_t, 3 > > & expectedValues, const uint_t & width, const uint_t & offsetToCenter )
+{
+  std::vector< std::array< uint_t, 3 > > iteratorResult;
+
+  for ( const auto & it : indexing::CellIterator( width, offsetToCenter ) )
+  {
+    iteratorResult.push_back( {{ it.col(), it.row(), it.dep() }} );
+  }
+
+  WALBERLA_CHECK_EQUAL( iteratorResult.size(), expectedValues.size() );
+
+  for ( uint_t i = 0; i < iteratorResult.size(); i++ )
+  {
+    WALBERLA_CHECK_EQUAL( iteratorResult[i][0], expectedValues[i][0] );
+    WALBERLA_CHECK_EQUAL( iteratorResult[i][1], expectedValues[i][1] );
+    WALBERLA_CHECK_EQUAL( iteratorResult[i][2], expectedValues[i][2] );
+  }
+}
+
 static void testCommonIndexing()
 {
   using walberla::uint_t;
@@ -119,6 +138,15 @@ static void testCommonIndexing()
   WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 1 ), 20 );
   WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 2 ), 29 );
   WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 0, 0, 4 ), 34 );
+
+  testCellIterator( std::vector< std::array< uint_t, 3 > >( { { 0, 0, 0 }, { 1, 0, 0 }, { 2, 0, 0 }, { 3, 0, 0 }, { 0, 1, 0 }, { 1, 1, 0 },
+                                                              { 2, 1, 0 }, { 0, 2, 0 }, { 1, 2, 0 }, { 0, 3, 0 }, { 0, 0, 1 }, { 1, 0, 1 },
+                                                              { 2, 0, 1 }, { 0, 1, 1 }, { 1, 1, 1 }, { 0, 2, 1 }, { 0, 0, 2 }, { 1, 0, 2 },
+                                                              { 0, 1, 2 }, { 0, 0, 3 } } ),
+                                                              4, 0 );
+
+  testCellIterator( std::vector< std::array< uint_t, 3 > >( { { 1, 1, 1 } } ), 5, 1 );
+  testCellIterator( std::vector< std::array< uint_t, 3 > >( { { 2, 2, 2 } } ), 9, 2 );
 }
 
 } // namespace hhg
