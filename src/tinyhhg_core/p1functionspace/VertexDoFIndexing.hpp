@@ -324,6 +324,37 @@ public:
 
 } /// namespace macroface
 
+
+// ##################
+// ### Macro Cell ###
+// ##################
+
+namespace macrocell {
+
+/// Index of a vertex DoF on a macro cell.
+template< uint_t level >
+inline constexpr uint_t index( const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return hhg::indexing::macroCellIndex< levelinfo::num_microvertices_per_edge( level ) >( x, y, z );
+}
+
+/// Index of neighboring vertices of a vertex DoF specified by the coordinates.
+template< uint_t level >
+inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, const uint_t & z, const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_C:
+      return index< level >( x, y, z );
+    default:
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
+} // namespace macrocell
+
 constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
 {
   typedef stencilDirection sD;
