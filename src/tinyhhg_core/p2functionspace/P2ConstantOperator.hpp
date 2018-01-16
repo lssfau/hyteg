@@ -41,29 +41,49 @@ public:
         compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
         compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
 
-
-        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_gray =\n" << local_stiffness_gray);
-        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_blue =\n" << local_stiffness_blue);
+//        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_gray =\n" << local_stiffness_gray);
+//        WALBERLA_LOG_DEVEL_ON_ROOT("local_stiffness_blue =\n" << local_stiffness_blue);
 
         // Assemble vertexToVertex stencil
         real_t* vStencil = vertexToVertex.getFaceStencil(face.getID(), level);
         P2Face::VertexToVertex::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToVertex/Face = {}", PointND<real_t, 7>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToVertex/Face = {}", PointND<real_t, 7>(&vStencil[0])));
 
         // Assemble edgeToVertex stencil
         vStencil = edgeToVertex.getFaceStencil(face.getID(), level);
         P2Face::EdgeToVertex::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
 
         // Assemble vertexToEdge stencil
         vStencil = vertexToEdge.getFaceStencil(face.getID(), level);
         P2Face::VertexToEdge::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Face = {}", PointND<real_t, 12>(&vStencil[0])));
 
         // Assemble edgeToEdge stencil
         vStencil = edgeToEdge.getFaceStencil(face.getID(), level);
         P2Face::EdgeToEdge::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToEdge/Face = {}", PointND<real_t, 15>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToEdge/Face = {}", PointND<real_t, 15>(&vStencil[0])));
+      }
+
+      // Assemble edge stencils
+      for (auto& it : storage_->getEdges()) {
+        Edge &edge = *it.second;
+
+        // Assemble vertexToVertex stencil
+        Face *face = storage_->getFace(edge.neighborFaces()[0]);
+        real_t* vStencil = vertexToVertex.getEdgeStencil(edge.getID(), level);
+        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+        P2Edge::VertexToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
+
+        if (edge.getNumNeighborFaces() == 2) {
+          Face* face = storage_->getFace(edge.neighborFaces()[1]);
+          compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+          compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+          P2Edge::VertexToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
+        }
+
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToVertex/Edge = {}", PointND<real_t, 7>(&vStencil[0])));
       }
 
     }

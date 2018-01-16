@@ -210,6 +210,77 @@ inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatr
 
 } // P2Face
 
+namespace P2Edge {
+
+namespace VertexToVertex {
+
+typedef std::array<uint_t, 3> DoFMap;
+typedef std::array<uint_t, 3> StencilMap;
+
+inline StencilMap convertStencilDirectionsToIndices(const P2Element& element)
+{
+  return {{ vertexdof::stencilIndexFromVertex( element[0] ), vertexdof::stencilIndexFromVertex( element[1] ), vertexdof::stencilIndexFromVertex( element[2] ) }};
+}
+
+template<typename StencilMemory>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+                            StencilMemory &stencil, bool south) {
+
+  uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
+  uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
+  uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
+
+  DoFMap dofMap;
+  StencilMap stencilMap;
+
+  if (south) {
+
+    dofMap = DoFMap({{end_id, start_id, opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementSW );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j]);
+    }
+
+    dofMap = DoFMap({{opposite_id, end_id, start_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementS );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += blueMatrix(dofMap[0], dofMap[j]);
+    }
+
+    dofMap = DoFMap({{start_id, opposite_id, end_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementSE );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j]);
+    }
+
+  } else {
+
+    dofMap = DoFMap({{start_id, end_id, opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementNE );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j]);
+    }
+
+    dofMap = DoFMap({{opposite_id, start_id, end_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementN );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += blueMatrix(dofMap[0], dofMap[j]);
+    }
+
+    dofMap = DoFMap({{end_id, opposite_id, start_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementNW );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j]);
+    }
+
+  }
+
+}
+
+}
+
+} // P2Face
+
 } // P2Elements
 
 } // hhg

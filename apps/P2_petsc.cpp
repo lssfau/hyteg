@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
   fmt::print("num = {}\n", num);
   hhg::PETScSparseMatrix<hhg::P2ConstantLaplaceOperator, hhg::P2Function> Lpetsc(localSize, num);
-  Lpetsc.createMatrixFromFunction(L, level, numerator);
+  Lpetsc.createMatrixFromFunction(L, level, numerator, hhg::All);
   Lpetsc.print("../output/matrix.m");
 
   return 0;
