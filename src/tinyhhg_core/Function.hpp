@@ -82,9 +82,10 @@ public:
 
   uint_t getMaxLevel() const { return maxLevel_; }
 
-  std::shared_ptr<communication::BufferedCommunicator>& getCommunicator(uint_t level) {
+  const std::shared_ptr<communication::BufferedCommunicator> & getCommunicator(uint_t level) const
+  {
     WALBERLA_ASSERT(level >= minLevel_ && level <= maxLevel_);
-    return communicators_[level];
+    return communicators_.at( level );
   };
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree )
