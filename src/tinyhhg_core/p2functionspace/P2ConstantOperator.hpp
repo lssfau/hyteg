@@ -117,6 +117,58 @@ private:
     vertexToEdge.apply(*src.getVertexDoFFunction(), *dst.getEdgeDoFFunction(), level, flag, Add);
   }
 
+  void smooth_gs_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)
+  {
+    dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    dst.getCommunicator(level)->startCommunication<Face, Edge>();
+    dst.getCommunicator(level)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.getDoFType(), flag))
+      {
+        P2::Face::smoothGSvertexDof(vertex,
+                                  vertexToVertex.getVertexStencilID(), dst.getVertexDoFFunction()->getVertexDataID(),
+                                  edgeToVertex.getVertexStencilID(), dst.getEdgeDoFFunction()->getVertexDataID(),
+                                  rhs.getVertexDoFFunction()->getVertexDataID(),
+                                  level);
+      }
+    }
+
+    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.getDoFType(), flag))
+      {
+        P2::Edge::smoothGSvertexDof(edge,
+                                    vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
+                                    edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
+                                    rhs.getVertexDoFFunction()->getEdgeDataID(),
+                                    level);
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        vertexdof::macroface::smooth_gs< real_t >(level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID());
+      }
+    }
+
+    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+  }
+
   P1Operator<NoAssemble> vertexToVertex;
   EdgeDoFToVertexDoFOperator edgeToVertex;
   VertexDoFToEdgeDoFOperator vertexToEdge;
