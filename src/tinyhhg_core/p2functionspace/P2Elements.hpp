@@ -212,6 +212,44 @@ inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatr
 
 namespace P2Edge {
 
+void fillEdgeDoFMap(uint_t start_id, uint_t end_id, uint_t opposite_id, uint_t& edge_start_end_id, uint_t& edge_start_opposite_id, uint_t& edge_end_opposite_id) {
+  if (start_id == 0 && end_id == 1 && opposite_id == 2) {
+    edge_start_end_id = 5;
+    edge_start_opposite_id = 4;
+    edge_end_opposite_id = 3;
+  }
+
+  if (start_id == 0 && end_id == 2 && opposite_id == 1) {
+    edge_start_end_id = 4;
+    edge_start_opposite_id = 5;
+    edge_end_opposite_id = 3;
+  }
+
+  if (start_id == 1 && end_id == 2 && opposite_id == 0) {
+    edge_start_end_id = 3;
+    edge_start_opposite_id = 5;
+    edge_end_opposite_id = 4;
+  }
+
+  if (start_id == 1 && end_id == 0 && opposite_id == 2) {
+    edge_start_end_id = 5;
+    edge_start_opposite_id = 3;
+    edge_end_opposite_id = 4;
+  }
+
+  if (start_id == 2 && end_id == 0 && opposite_id == 1) {
+    edge_start_end_id = 4;
+    edge_start_opposite_id = 3;
+    edge_end_opposite_id = 5;
+  }
+
+  if (start_id == 2 && end_id == 1 && opposite_id == 0) {
+    edge_start_end_id = 3;
+    edge_start_opposite_id = 4;
+    edge_end_opposite_id = 5;
+  }
+}
+
 namespace VertexToVertex {
 
 typedef std::array<uint_t, 3> DoFMap;
@@ -297,9 +335,11 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
   uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
   uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
 
-  uint_t edge_start_end_id = 3 + face.edge_index(edge.getID());
-  uint_t edge_start_opposite_id = 3 + face.edge_index(face.get_edge_between_vertices(edge.neighborVertices()[0], face.get_vertex_opposite_to_edge(edge.getID())));
-  uint_t edge_end_opposite_id = 3 + face.edge_index(face.get_edge_between_vertices(edge.neighborVertices()[1], face.get_vertex_opposite_to_edge(edge.getID())));
+  uint_t edge_start_end_id;
+  uint_t edge_start_opposite_id;
+  uint_t edge_end_opposite_id;
+
+  fillEdgeDoFMap(start_id, end_id, opposite_id, edge_start_end_id, edge_start_opposite_id, edge_end_opposite_id);
 
   DoFMap dofMap;
   StencilMap stencilMap;
@@ -360,7 +400,11 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
   uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
   uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
 
-  uint_t edge_start_end_id = 3 + face.edge_index(edge.getID());
+  uint_t edge_start_end_id;
+  uint_t edge_start_opposite_id;
+  uint_t edge_end_opposite_id;
+
+  fillEdgeDoFMap(start_id, end_id, opposite_id, edge_start_end_id, edge_start_opposite_id, edge_end_opposite_id);
 
   stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_W)] += grayMatrix(edge_start_end_id, start_id);
   stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_E)] += grayMatrix(edge_start_end_id, end_id);
@@ -375,6 +419,36 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
 }
 
 } // VertexToEdge
+
+namespace EdgeToEdge {
+
+template<typename StencilMemory>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+                            StencilMemory &stencil, bool south) {
+
+  uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
+  uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
+  uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
+
+  uint_t edge_start_end_id;
+  uint_t edge_start_opposite_id;
+  uint_t edge_end_opposite_id;
+
+  fillEdgeDoFMap(start_id, end_id, opposite_id, edge_start_end_id, edge_start_opposite_id, edge_end_opposite_id);
+
+  stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)] += grayMatrix(edge_start_end_id, edge_start_end_id);
+
+  if (south) {
+    stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_S)] = grayMatrix(edge_start_end_id, edge_start_opposite_id);
+    stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_SE)] = grayMatrix(edge_start_end_id, edge_end_opposite_id);
+  } else {
+    stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_DI_N)] = grayMatrix(edge_start_end_id, edge_end_opposite_id);
+    stencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_VE_NW)] = grayMatrix(edge_start_end_id, edge_start_opposite_id);
+  }
+
+}
+
+} // EdgeToEdge
 
 } // P2Face
 
