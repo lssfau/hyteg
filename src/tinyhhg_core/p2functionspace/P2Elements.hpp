@@ -277,7 +277,78 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
 
 }
 
+} // VertexToVertex
+
+namespace EdgeToVertex {
+
+typedef std::array<uint_t, 4> DoFMap;
+typedef std::array<uint_t, 3> StencilMap;
+
+inline StencilMap convertStencilDirectionsToIndices(const P2Element& element)
+{
+  return {{ edgedof::stencilIndexFromVertex( element[3] ), edgedof::stencilIndexFromVertex( element[4] ), edgedof::stencilIndexFromVertex( element[5] ) }};
 }
+
+template<typename StencilMemory>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+                            StencilMemory &stencil, bool south) {
+
+  uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
+  uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
+  uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
+
+  uint_t edge_start_end_id = 3 + face.edge_index(edge.getID());
+  uint_t edge_start_opposite_id = 3 + face.edge_index(face.get_edge_between_vertices(edge.neighborVertices()[0], face.get_vertex_opposite_to_edge(edge.getID())));
+  uint_t edge_end_opposite_id = 3 + face.edge_index(face.get_edge_between_vertices(edge.neighborVertices()[1], face.get_vertex_opposite_to_edge(edge.getID())));
+
+  DoFMap dofMap;
+  StencilMap stencilMap;
+
+  if (south) {
+
+    dofMap = DoFMap({{end_id, edge_start_end_id, edge_start_opposite_id, edge_end_opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementSW );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+    dofMap = DoFMap({{opposite_id, edge_end_opposite_id, edge_start_end_id, edge_start_opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementS );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += blueMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+    dofMap = DoFMap({{start_id, edge_start_opposite_id, edge_end_opposite_id, edge_start_end_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementSE );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+  } else {
+
+    dofMap = DoFMap({{start_id, edge_start_end_id, edge_end_opposite_id, edge_start_opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementNE );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+    dofMap = DoFMap({{opposite_id, edge_start_opposite_id, edge_start_end_id, edge_end_opposite_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementN );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += blueMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+    dofMap = DoFMap({{end_id, edge_end_opposite_id, edge_start_opposite_id, edge_start_end_id}});
+    stencilMap = convertStencilDirectionsToIndices( P2Face::elementNW );
+    for (uint_t j = 0; j < 3; ++j) {
+      stencil[stencilMap[j]] += grayMatrix(dofMap[0], dofMap[j+1]);
+    }
+
+  }
+
+}
+
+} // EdgeToVertex
 
 } // P2Face
 
