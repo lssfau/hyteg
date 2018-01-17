@@ -350,6 +350,32 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
 
 } // EdgeToVertex
 
+namespace VertexToEdge {
+
+template<typename StencilMemory>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+                            StencilMemory &stencil, bool south) {
+
+  uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
+  uint_t end_id = face.vertex_index(edge.neighborVertices()[1]);
+  uint_t opposite_id = face.vertex_index(face.get_vertex_opposite_to_edge(edge.getID()));
+
+  uint_t edge_start_end_id = 3 + face.edge_index(edge.getID());
+
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_W)] += grayMatrix(edge_start_end_id, start_id);
+  stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_E)] += grayMatrix(edge_start_end_id, end_id);
+
+  if (south) {
+    stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_SE)] += grayMatrix(edge_start_end_id, opposite_id);
+
+  } else {
+    stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_NW)] += grayMatrix(edge_start_end_id, opposite_id);
+  }
+
+}
+
+} // VertexToEdge
+
 } // P2Face
 
 } // P2Elements

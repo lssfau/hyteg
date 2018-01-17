@@ -23,6 +23,7 @@ public:
   VertexDoFToEdgeDoFOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel);
   ~VertexDoFToEdgeDoFOperator() final = default;
 
+  real_t* getEdgeStencil(const PrimitiveID& edgeId, uint_t level);
   real_t* getFaceStencil(const PrimitiveID& faceId, uint_t level);
 
   void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace);

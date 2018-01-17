@@ -100,6 +100,22 @@ public:
         }
 
 //        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Edge = {}", PointND<real_t, 7>(&vStencil[0])));
+
+        // Assemble vertexToEdge stencil
+        face = storage_->getFace(edge.neighborFaces()[0]);
+        vStencil = vertexToEdge.getEdgeStencil(edge.getID(), level);
+        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+        P2Edge::VertexToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
+
+        if (edge.getNumNeighborFaces() == 2) {
+          face = storage_->getFace(edge.neighborFaces()[1]);
+          compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+          compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+          P2Edge::VertexToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
+        }
+
+        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Edge = {}", PointND<real_t, 12>(&vStencil[0])));
       }
 
     }
