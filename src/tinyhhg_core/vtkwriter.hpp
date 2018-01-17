@@ -107,6 +107,8 @@ private:
 
   void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
 
+  void syncAllFunctions( const uint_t & level ) const;
+
   std::string dir_;
   std::string filename_;
 
