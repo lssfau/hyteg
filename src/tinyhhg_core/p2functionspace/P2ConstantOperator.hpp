@@ -115,7 +115,7 @@ public:
           P2Edge::VertexToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
         }
 
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Edge = {}", PointND<real_t, 4>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Edge = {}", PointND<real_t, 4>(&vStencil[0])));
 
         // Assemble edgeToEdge stencil
         face = storage_->getFace(edge.neighborFaces()[0]);
@@ -131,7 +131,33 @@ public:
           P2Edge::EdgeToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
         }
 
-        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToEdge/Edge = {}", PointND<real_t, 5>(&vStencil[0])));
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToEdge/Edge = {}", PointND<real_t, 5>(&vStencil[0])));
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex &vertex = *it.second;
+
+        // Assemble VertexToVertex
+        real_t* vStencil = vertexToVertex.getVertexStencil(vertex.getID(), level);
+        for (auto& faceId : vertex.neighborFaces())
+        {
+          Face* face = storage_->getFace(faceId);
+          compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+          P2Vertex::VertexToVertex::assembleStencil(vertex, *face, local_stiffness_gray, vStencil, storage_);
+        }
+
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToVertex/Vertex = {}", PointND<real_t, 5>(&vStencil[0])));
+
+        // Assemble EdgeToVertex
+        vStencil = edgeToVertex.getVertexStencil(vertex.getID(), level);
+        for (auto& faceId : vertex.neighborFaces())
+        {
+          Face* face = storage_->getFace(faceId);
+          compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+          P2Vertex::EdgeToVertex::assembleStencil(vertex, *face, local_stiffness_gray, vStencil, storage_);
+        }
+
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Vertex = {}", PointND<real_t, 5>(&vStencil[0])));
       }
 
     }

@@ -21,8 +21,21 @@ int main(int argc, char* argv[])
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
   hhg::P2Function<PetscInt> numerator("numerator", storage, level, level);
+  hhg::P2Function<real_t> ones("ones", storage, level, level);
+  hhg::P2Function<real_t> dst("dst", storage, level, level);
+
+  std::function<real_t(const hhg::Point3D&)> one  = [](const hhg::Point3D&) { return 1.0; };
+
+  ones.interpolate(one, level);
+  dst.interpolate(one, level);
 
   hhg::P2ConstantLaplaceOperator L(storage, level, level);
+  L.apply(ones, dst, level, hhg::All, hhg::Replace);
+
+  VTKOutput vtkOutput( "../output", "P2_petsc" );
+  vtkOutput.add( &ones );
+  vtkOutput.add( &dst );
+  vtkOutput.write( level );
 
   uint_t num = 0;
   uint_t localSize = numerator.enumerate(level, num);
