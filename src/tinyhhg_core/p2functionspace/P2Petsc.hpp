@@ -5,6 +5,7 @@
 #include <tinyhhg_core/p1functionspace/P1Petsc.hpp>
 #include <tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFPetsc.hpp>
 #include <tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp>
+#include <tinyhhg_core/edgedofspace/EdgeDoFPetsc.hpp>
 
 namespace hhg {
 namespace petsc {
@@ -21,7 +22,7 @@ inline void createMatrix(OperatorType &opr,
   createMatrix(opr.getVertexToVertexOpr(), *src.getVertexDoFFunction(), *dst.getVertexDoFFunction(), mat, level, flag);
   EdgeDoFToVertexDoF::createMatrix(opr.getEdgeToVertexOpr(), *src.getEdgeDoFFunction(), *dst.getVertexDoFFunction(), mat, level, flag);
   VertexDoFToEdgeDoF::createMatrix(opr.getVertexToEdgeOpr(), *src.getVertexDoFFunction(), *dst.getEdgeDoFFunction(), mat, level, flag);
-//  createMatrix(opr.getEdgeToEdgeOpr(), *src.getEdgeDoFFunction(), *dst.getEdgeDoFFunction(), mat, level, flag);
+  EdgeDoF::createMatrix(opr.getEdgeToEdgeOpr(), *src.getEdgeDoFFunction(), *dst.getEdgeDoFFunction(), mat, level, flag);
 
 }
 
