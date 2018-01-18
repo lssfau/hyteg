@@ -88,14 +88,18 @@ waLBerla_add_executable( NAME ApplyBenchmark
 
 waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES benchmarks/IndexFunctionVSManualVersion.cpp
-        DEPENDS tinyhhg_core)
+        DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME show_mesh
+        FILES show_mesh.cpp
+        DEPENDS tinyhhg_core fmt)
 
 waLBerla_add_executable( NAME StokesP2P1
         FILES StokesP2P1.cpp
         DEPENDS tinyhhg_core)
 
 
-    #add_executable (tinytest_fmg fmg_test.cpp)
+#add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
 #
 #add_executable (tinytest_chorin chorin_test.cpp)
