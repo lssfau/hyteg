@@ -506,7 +506,7 @@ inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix
   // iterate over adjacent edges
   for (uint_t i = 0; i < adj_edges.size(); ++i)
   {
-    uint_t edge_stencil_idx = vertex.edge_index(adj_edges[i]) + 1;
+    uint_t edge_stencil_idx = vertex.edge_index(adj_edges[i]);
     Edge* edge = storage->getEdge(adj_edges[i]);
     PrimitiveID vertex_j = edge->get_opposite_vertex(vertex.getID());
 
@@ -514,7 +514,7 @@ inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix
     vertexDofs[i+1] = face.vertex_index(vertex_j);
   }
 
-  uint_t face_stencil_idx = 1 + vertex.getNumNeighborEdges() + vertex.face_index(face.getID());
+  uint_t face_stencil_idx = vertex.getNumNeighborEdges() + vertex.face_index(face.getID());
   stencilMap[2] = face_stencil_idx;
 
   std::array<uint_t, 3> dofMap;
