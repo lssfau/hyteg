@@ -139,3 +139,12 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 
 waLBerla_compile_test(FILES OperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME OperatorTest)
+
+## P2 ##
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES p2/P2PetscTest.cpp DEPENDS tinyhhg_core core fmt)
+  waLBerla_execute_test(NAME P2PetscTest1 COMMAND $<TARGET_FILE:P2PetscTest> )
+  waLBerla_execute_test(NAME P2PetscTest2 COMMAND $<TARGET_FILE:P2PetscTest> PROCESSES 2)
+  waLBerla_execute_test(NAME P2PetscTest8 COMMAND $<TARGET_FILE:P2PetscTest> PROCESSES 8)
+endif()
