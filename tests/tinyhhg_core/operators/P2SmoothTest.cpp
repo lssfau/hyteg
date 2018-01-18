@@ -26,17 +26,7 @@ static void testP2Smooth() {
 
 
 
-  for(auto faceIt : storage->getFaces()){
-    auto face = faceIt.second;
-    hhg::P2::face::smoothGSvertexDoFTmpl< 5 >(*face,
-                                         p2operator.getVertexToVertexOpr().getFaceStencilID(),
-                                         x->getVertexDoFFunction()->getFaceDataID(),
-        p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-        x->getEdgeDoFFunction()->getFaceDataID(),
-    rhs->getVertexDoFFunction()->getFaceDataID());
-
-
-  }
+  p2operator.smooth_gs(*x,*rhs,level,hhg::Inner);
 }
 
 }/// namespace hhg
