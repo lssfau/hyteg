@@ -4,7 +4,7 @@
 
 #ifdef HHG_BUILD_WITH_EIGEN
 
-#include "polynomial.hpp"
+#include "Polynomial2D.hpp"
 
 namespace hhg {
 

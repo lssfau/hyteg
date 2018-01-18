@@ -1,26 +1,24 @@
 #pragma once
 
-#include "hierarchicalbasis.hpp"
-#include "MonomialBasis.hpp"
+#include "MonomialBasis2D.hpp"
 
 namespace hhg {
-
-constexpr uint_t getNumCoefficientsForDegree(uint_t degree) {
-  return math::binomialCoefficient(2 + degree - 1, degree);
-}
-
-constexpr uint_t getNumCoefficients(uint_t degree) {
-  return math::binomialCoefficient(2 + degree, degree);
-}
 
 template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
 class Polynomial2D {
  public:
 
+  static constexpr uint_t getNumCoefficientsForDegree(uint_t degree) {
+    return math::binomialCoefficient(2 + degree - 1, degree);
+  }
+
+  static constexpr uint_t getNumCoefficients(uint_t degree) {
+    return math::binomialCoefficient(2 + degree, degree);
+  }
+
   static const uint_t NumCoefficients_ = getNumCoefficients(Degree);
 
   Polynomial2D() {
-    coeffs_.resize(NumCoefficients_);
   }
 
   real_t eval(const Point2D &x) const {
@@ -57,7 +55,7 @@ class Polynomial2D {
   }
 
 private:
-  std::vector<real_t> coeffs_;
+  std::array<real_t, NumCoefficients_> coeffs_;
 
 };
 
@@ -81,12 +79,6 @@ inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, Int
 }
 
 template<uint_t Degree, uint_t InterpolationLevel>
-using HorizontalPolynomial2D = Polynomial2D<Degree, InterpolationLevel, HorizontalEdgeBasis>;
-
-template<uint_t Degree, uint_t InterpolationLevel>
-using VerticalPolynomial2D = Polynomial2D<Degree, InterpolationLevel, VerticalEdgeBasis>;
-
-template<uint_t Degree, uint_t InterpolationLevel>
-using GeneralPolynomial2D = Polynomial2D<Degree, InterpolationLevel, MonomialBasis>;
+using GeneralPolynomial2D = Polynomial2D<Degree, InterpolationLevel, MonomialBasis2D>;
 
 }

@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 7;
+  const uint_t maxLevel = 8;
   const uint_t maxPolyDegree = 2;
   const uint_t interpolationLevel = 4;
   const uint_t maxiter = 10000;
@@ -41,8 +41,8 @@ int main(int argc, char* argv[])
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-//  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
-  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
+  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
+//  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -52,9 +52,9 @@ int main(int argc, char* argv[])
   err.enableTiming( timingTree );
   npoints_helper.enableTiming( timingTree );
 
-  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 7*pow(x[0], 2) + 3*x[0] + 4*x[1] + 1; };
+  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 3*x[0] + 4*x[1] + 1; };
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(14*x[0] + 3)*cos(x[0])*sinh(x[1]) - 4*sin(x[0])*cosh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -4*sin(x[0])*cosh(x[1]) - 3*cos(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
@@ -67,9 +67,9 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
-  SolveOperator L(storage, coefficient, minLevel, maxLevel);
+//  SolveOperator L(storage, coefficient, minLevel, maxLevel);
 
-//  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
+  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
   L.enableTiming( timingTree );
 
 //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;

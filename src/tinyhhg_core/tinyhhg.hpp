@@ -26,7 +26,7 @@
 #include "types/pointnd.hpp"
 #include "types/matrix.hpp"
 #include "types/flags.hpp"
-#include "polynomial/polynomial.hpp"
+#include "tinyhhg_core/polynomial/Polynomial2D.hpp"
 #include "tinyhhg_core/polynomial/LSQPInterpolator.hpp"
 
 #include "solvers/cgsolver.hpp"

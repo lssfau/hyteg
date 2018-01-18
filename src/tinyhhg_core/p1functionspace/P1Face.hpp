@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/polynomial/PolynomialEvaluator.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -445,21 +446,45 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
+  auto horiPoly = polynomials->getHoriPolynomial();
+  auto vertPoly = polynomials->getVertPolynomial();
+  auto diagPoly = polynomials->getDiagPolynomial();
+
+  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalHoriPoly(horiPoly);
+  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyS(vertPoly);
+  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyN(vertPoly);
+  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolySE(diagPoly);
+  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolyNW(diagPoly);
+
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       x[1] = j * h;
 
+      // Set new Y values
+      evalHoriPoly.setY(x[1]);
+      evalVertPolyS.setY(x[1] - 0.5 * h);
+      evalVertPolyN.setY(x[1] + 0.5 * h);
+      evalDiagPolySE.setY(x[1] - 0.5 * h);
+      evalDiagPolyNW.setY(x[1] + 0.5 * h);
+
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX(-0.5 * h, h);
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+
+      evalVertPolyS.setStartX(0.0, h);
+      evalVertPolyN.setStartX(0.0, h);
+
+      evalDiagPolySE.setStartX(0.5 * h, h);
+      evalDiagPolyNW.setStartX(-0.5 * h, h);
+
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        x[0] = i * h;
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)];
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = polynomials->getHoriPolynomial().eval({{ x[0] - 0.5 * h, x[1] }});
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = polynomials->getHoriPolynomial().eval({{ x[0] + 0.5 * h, x[1] }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] - 0.5 * h }});
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = polynomials->getVertPolynomial().eval({{ x[0], x[1] + 0.5 * h }});
-
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = polynomials->getDiagPolynomial().eval({{ x[0] + 0.5 * h, x[1] - 0.5 * h }});
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = polynomials->getDiagPolynomial().eval({{ x[0] - 0.5 * h, x[1] + 0.5 * h }});
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval();
 
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
                         - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]

@@ -9,7 +9,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
-#include "tinyhhg_core/polynomial/polynomial.hpp"
+#include "tinyhhg_core/polynomial/Polynomial2D.hpp"
 
 #include <string>
 

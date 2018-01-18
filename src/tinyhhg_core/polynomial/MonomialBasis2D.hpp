@@ -5,7 +5,7 @@
 
 namespace hhg {
 
-class MonomialBasis {
+class MonomialBasis2D {
 public:
   static real_t eval(uint_t, uint_t basis, const Point2D &x) {
     switch(basis) {

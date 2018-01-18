@@ -40,7 +40,7 @@ template<class UFCOperator, uint_t MaxPolyDegree, uint_t InterpolationLevel>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  typedef LSQPInterpolator<MaxPolyDegree, InterpolationLevel, MonomialBasis> Interpolator;
+  typedef LSQPInterpolator<MaxPolyDegree, InterpolationLevel, MonomialBasis2D> Interpolator;
 
   P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient), analyticCoefficient_(analyticCoefficient)
