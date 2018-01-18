@@ -46,7 +46,7 @@ void smoothGSedgeDoF(Edge edge,
 namespace face {
 
 
-template<typename ValueType, uint_t Level>
+template< uint_t Level>
 void smoothGSvertexDoFTmpl(Face face, const PrimitiveDataID<StencilMemory<double>, Face> &vertexDoFStencilID,
                             const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
                             const PrimitiveDataID<StencilMemory<double>, Face> &edgeDoFStencilID,
@@ -87,7 +87,7 @@ void smoothGSvertexDoFTmpl(Face face, const PrimitiveDataID<StencilMemory<double
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, smoothGSvertexDoFTmpl, smoothGSvertexDoF)
+SPECIALIZE(void, smoothGSvertexDoFTmpl, smoothGSvertexDoF)
 
 void smoothGSedgeDoF(Face face,
                      const PrimitiveDataID<StencilMemory< real_t >, Face> &vertexDoFStencil,

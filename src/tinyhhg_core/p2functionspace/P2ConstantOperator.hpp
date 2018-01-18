@@ -180,7 +180,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P2::face::smoothGSvertexDoF< real_t >(level, face,
+        P2::face::smoothGSvertexDoF(level, face,
         vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
                                               edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
                                     rhs.getVertexDoFFunction()->getFaceDataID());

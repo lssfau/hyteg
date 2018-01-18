@@ -20,8 +20,23 @@ static void testP2Smooth() {
   std::shared_ptr <PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
   auto x = std::make_shared < P2Function < real_t > > ("x", storage, level, level);
+  auto rhs = std::make_shared < P2Function < real_t > > ("rhs", storage, level, level);
 
-  std::shared_ptr< P2ConstantLaplaceOperator > p2operator = std::make_shared< P2ConstantLaplaceOperator >( storage, level, level );
+  P2ConstantLaplaceOperator p2operator( storage, level, level );
+
+
+
+  for(auto faceIt : storage->getFaces()){
+    auto face = faceIt.second;
+    hhg::P2::face::smoothGSvertexDoFTmpl< 5 >(*face,
+                                         p2operator.getVertexToVertexOpr().getFaceStencilID(),
+                                         x->getVertexDoFFunction()->getFaceDataID(),
+        p2operator.getEdgeToVertexOpr().getFaceStencilID(),
+        x->getEdgeDoFFunction()->getFaceDataID(),
+    rhs->getVertexDoFFunction()->getFaceDataID());
+
+
+  }
 }
 
 }/// namespace hhg
