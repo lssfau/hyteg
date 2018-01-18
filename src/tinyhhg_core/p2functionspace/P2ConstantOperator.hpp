@@ -2,7 +2,7 @@
 
 #include "P2Function.hpp"
 #include "P2Elements.hpp"
-#include "P2Smooth.hpp"
+#include "P2SmoothTest.hpp"
 
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
