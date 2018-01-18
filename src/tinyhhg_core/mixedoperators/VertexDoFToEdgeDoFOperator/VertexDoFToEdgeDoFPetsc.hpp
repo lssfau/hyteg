@@ -80,7 +80,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
       }
     }
 
-    if( it.row() != 0 )
+    if( it.col() != 0 )
     {
       dstInt = dst[ edgedof::macroface::indexFromVerticalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_VE_C ) ];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromVerticalEdge )
