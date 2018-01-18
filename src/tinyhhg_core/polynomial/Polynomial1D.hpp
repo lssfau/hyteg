@@ -37,6 +37,11 @@ class Polynomial1D {
     coeffs_[idx] = value;
   }
 
+  void addToCoefficient(uint_t idx, real_t value) {
+    WALBERLA_ASSERT(idx < NumCoefficients_);
+    coeffs_[idx] += value;
+  }
+
   real_t getCoefficient(uint_t idx) const {
     WALBERLA_ASSERT(idx < NumCoefficients_);
     return coeffs_[idx];
