@@ -2,11 +2,12 @@
 
 #include "P2Function.hpp"
 #include "P2Elements.hpp"
-#include "P2SmoothTest.hpp"
+#include "P2Smooth.hpp"
 
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
 #include "generated/p2_diffusion.h"
 
@@ -145,7 +146,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P2::vertex::smoothGSvertexDof(vertex,
+        P2::vertex::smoothGSvertexDoF(vertex,
                                   vertexToVertex.getVertexStencilID(), dst.getVertexDoFFunction()->getVertexDataID(),
                                   edgeToVertex.getVertexStencilID(), dst.getEdgeDoFFunction()->getVertexDataID(),
                                   rhs.getVertexDoFFunction()->getVertexDataID(),
@@ -162,7 +163,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSvertexDof(edge,
+        P2::edge::smoothGSvertexDoF(edge,
                                     vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
                                     edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
                                     rhs.getVertexDoFFunction()->getEdgeDataID(),
@@ -179,11 +180,10 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P2::face::smoothGSvertexDof(face,
-                                    vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
-                                    edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
-                                    rhs.getVertexDoFFunction()->getFaceDataID(),
-                                    level);
+        P2::face::smoothGSvertexDoF< real_t >(level, face,
+        vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
+                                              edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
+                                    rhs.getVertexDoFFunction()->getFaceDataID());
       }
     }
 
@@ -201,7 +201,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSedgeDof(edge,
+        P2::edge::smoothGSedgeDoF(edge,
                                   vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
                                   edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
                                   rhs.getEdgeDoFFunction()->getEdgeDataID(),
@@ -218,7 +218,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P2::face::smoothGSedgeDof(face,
+        P2::face::smoothGSedgeDoF(face,
                                   vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
                                   edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
                                   rhs.getEdgeDoFFunction()->getFaceDataID(),

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 namespace hhg {
 
