@@ -16,9 +16,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
-
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
+  MeshInfo meshInfo = MeshInfo::unitSquareMesh(0);
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );

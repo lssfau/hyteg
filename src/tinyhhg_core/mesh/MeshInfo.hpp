@@ -107,6 +107,9 @@ public:
   /// Construct a MeshInfo from a file in Gmsh format
   static MeshInfo fromGmshFile( const std::string & meshFileName );
 
+  /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
+  static MeshInfo unitSquareMesh( uint_t level );
+
   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
 
