@@ -317,8 +317,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Vertex::smooth_gs(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), level);
+        vertexdof::macrovertex::smooth_gs_coefficient(vertex, storage_, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), coefficientP1_->getVertexDataID(), level);
       }
     }
 
@@ -332,8 +331,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Edge::smooth_gs(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::macroedge::smooth_gs_coefficient<real_t>(level, edge, storage_, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), coefficientP1_->getEdgeDataID());
       }
     }
 
@@ -346,8 +344,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        P1Face::smooth_gs(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::macroface::smooth_gs_polynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 

@@ -11,11 +11,11 @@ class P1CoefficientStokesOperator
 {
 public:
 
-  P1CoefficientStokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
-    : A_uu(storage, coefficient, minLevel, maxLevel),
-      A_uv(storage, coefficient, minLevel, maxLevel),
-      A_vu(storage, coefficient, minLevel, maxLevel),
-      A_vv(storage, coefficient, minLevel, maxLevel),
+  P1CoefficientStokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
+    : A_uu(storage, coefficient, analyticCoefficient, minLevel, maxLevel),
+      A_uv(storage, coefficient, analyticCoefficient, minLevel, maxLevel),
+      A_vu(storage, coefficient, analyticCoefficient, minLevel, maxLevel),
+      A_vv(storage, coefficient, analyticCoefficient, minLevel, maxLevel),
       div_x(storage, minLevel, maxLevel),
       div_y(storage, minLevel, maxLevel),
       divT_x(storage, minLevel, maxLevel),

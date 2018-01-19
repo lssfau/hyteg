@@ -24,13 +24,14 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 9;
+  const uint_t maxLevel = 10;
   const uint_t maxPolyDegree = 2;
   const uint_t interpolationLevel = 4;
   const uint_t max_outer_iter = 50;
   const uint_t max_cg_iter = 50;
   const real_t mg_tolerance = 1e-14;
   const real_t coarse_tolerance = 1e-3;
+  const bool polynomialOperator = true;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -46,7 +47,8 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperatorNodal;
-//  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperatorPoly;
+  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperatorPoly;
+  typedef std::conditional<polynomialOperator, SolveOperatorPoly, SolveOperatorNodal>::type SolveOperator;
 
   std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 3*x[0] + 4*x[1] + 1; };
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
@@ -63,15 +65,14 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
-  SolveOperatorNodal L(storage, coefficient, minLevel, maxLevel);
-//  SolveOperatorPoly L(storage, coefficient, coeff, minLevel, maxLevel);
+  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
 
-  typedef hhg::CGSolver<hhg::P1Function<real_t>, SolveOperatorNodal> CoarseSolver;
+  typedef hhg::CGSolver<hhg::P1Function<real_t>, SolveOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
-  typedef GMultigridSolver<hhg::P1Function<real_t>, SolveOperatorNodal, CoarseSolver> LaplaceSover;
+  typedef GMultigridSolver<hhg::P1Function<real_t>, SolveOperator, CoarseSolver> LaplaceSover;
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
@@ -122,7 +123,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
+  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 

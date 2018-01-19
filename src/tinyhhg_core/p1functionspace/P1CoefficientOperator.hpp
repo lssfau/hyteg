@@ -38,7 +38,7 @@ template<class UFCOperator,  bool Diagonal = false>
 class P1CoefficientOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, size_t minLevel, size_t maxLevel)
+  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient)
   {
     init(minLevel, maxLevel);
