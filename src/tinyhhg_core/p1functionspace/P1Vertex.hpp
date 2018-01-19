@@ -228,6 +228,67 @@ inline void smooth_gs(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemor
 }
 
 template< typename ValueType >
+inline void smooth_gs_coefficient(Vertex &vertex,
+                                  const std::shared_ptr< PrimitiveStorage >& storage,
+                                  const PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> &operatorId,
+                                  const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
+                                  const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId,
+                                  const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &coeffId,
+                                  uint_t level) {
+
+  auto localMatrices = vertex.getData(operatorId);
+  auto coeff = vertex.getData(coeffId)->getPointer( level );
+
+  std::vector<real_t> opr_data(1 + vertex.getNumNeighborEdges());
+  std::fill(opr_data.begin(), opr_data.end(), 0.0);
+
+  uint_t neighborId = 0;
+  for (auto& faceId : vertex.neighborFaces()) {
+    real_t meanCoefficient = coeff[0];
+    Matrix3r& local_stiffness = localMatrices->getGrayMatrix(level, neighborId);
+
+    Face* face = storage->getFace(faceId);
+
+    uint_t v_i = face->vertex_index(vertex.getID());
+
+    std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
+
+    for (auto &edgeId : adj_edges) {
+      uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+      meanCoefficient += coeff[edge_idx];
+    }
+
+    meanCoefficient *= 1.0/3.0;
+
+    // iterate over adjacent edges
+    for (auto &edgeId : adj_edges) {
+      uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+      Edge *edge = storage->getEdge(edgeId);
+      PrimitiveID vertex_j = edge->get_opposite_vertex(vertex.getID());
+
+      uint_t v_j = face->vertex_index(vertex_j);
+
+      opr_data[edge_idx] += meanCoefficient * local_stiffness(v_i, v_j);
+    }
+
+    // add contribution of center vertex
+    opr_data[0] += meanCoefficient * local_stiffness(v_i, v_i);
+    ++neighborId;
+  }
+
+  auto dst = vertex.getData(dstId)->getPointer( level );
+  auto rhs = vertex.getData(rhsId)->getPointer( level );
+
+  dst[0] = rhs[0];
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    dst[0] -= opr_data[i + 1]*dst[i + 1];
+  }
+
+  dst[0] /= opr_data[0];
+}
+
+template< typename ValueType >
 inline void smooth_sor(Vertex &vertex, const PrimitiveDataID<VertexP1StencilMemory< ValueType >, Vertex> &operatorId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &dstId,
                       const PrimitiveDataID<VertexP1FunctionMemory< ValueType >, Vertex> &rhsId, size_t level,

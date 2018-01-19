@@ -72,6 +72,10 @@ waLBerla_add_executable( NAME polynomial_interpolation
 waLBerla_add_executable( NAME cg_P1_varcoeff_poly
         FILES cg_P1_varcoeff_poly.cpp
         DEPENDS tinyhhg_core fmt)
+
+waLBerla_add_executable( NAME gmg_varcoeff_vs_poly
+        FILES gmg_varcoeff_vs_poly.cpp
+        DEPENDS tinyhhg_core fmt)
 endif()
 
 if( HHG_BUILD_WITH_PETSC )

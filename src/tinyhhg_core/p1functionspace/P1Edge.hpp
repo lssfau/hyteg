@@ -33,6 +33,23 @@ inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
   return meanCoeff * tmp;
 }
 
+template<typename ValueType, uint_t Level>
+inline void assembleLocalStencil(uint_t pos, const Matrix3r& localMatrix,
+                                      real_t* opr_data,
+                                      real_t* coeff,
+                                      const std::array< stencilDirection, 3 >& vertices,
+                                      const std::array<uint_t,3>& idx)
+{
+
+  ValueType meanCoeff = 1.0/3.0 * (coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 0 ] ) ]
+                                   + coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 1 ] ) ]
+                                   + coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 2 ] ) ]);
+
+  opr_data[vertexdof::stencilIndexFromVertex( vertices[0] )] += meanCoeff * localMatrix(idx[0],idx[0]);
+  opr_data[vertexdof::stencilIndexFromVertex( vertices[1] )] += meanCoeff * localMatrix(idx[0],idx[1]);
+  opr_data[vertexdof::stencilIndexFromVertex( vertices[2] )] += meanCoeff * localMatrix(idx[0],idx[2]);
+}
+
 template<uint_t Level>
 inline void fillLocalCoords(uint_t i, const std::array< stencilDirection, 3>& element, const std::array<real_t*, 2>& coords, real_t localCoords[6] )
 {
@@ -402,6 +419,85 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< 
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, smoothGSTmpl, smooth_gs )
+
+template< typename ValueType, uint_t Level >
+inline void smoothGSCoefficientTmpl(Edge &edge,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> &operatorId,
+                                    const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &dstId,
+                                    const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &rhsId,
+                                    const PrimitiveDataID<EdgeP1FunctionMemory< ValueType >, Edge> &coeffId) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+
+  auto localMatrices = edge.getData(operatorId);
+  auto coeff = edge.getData(coeffId)->getPointer( Level );
+  auto dst = edge.getData(dstId)->getPointer( Level );
+  auto rhs = edge.getData(rhsId)->getPointer( Level );
+
+  std::array< stencilDirection, 3 > triangleGraySW = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  };
+  std::array< stencilDirection, 3 > triangleBlueS  = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE };
+  std::array< stencilDirection, 3 > triangleGraySE = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  };
+  std::array< stencilDirection, 3 > triangleGrayNW = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_NW };
+  std::array< stencilDirection, 3 > triangleBlueN  = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_N  };
+  std::array< stencilDirection, 3 > triangleGrayNE = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_E  };
+
+  Face* face = storage->getFace(edge.neighborFaces()[0]);
+  uint_t s_south = face->vertex_index(edge.neighborVertices()[0]);
+  uint_t e_south = face->vertex_index(edge.neighborVertices()[1]);
+  uint_t o_south = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+
+  uint_t s_north, e_north, o_north;
+
+  if (edge.getNumNeighborFaces() == 2) {
+    face = storage->getFace(edge.neighborFaces()[1]);
+    s_north = face->vertex_index(edge.neighborVertices()[0]);
+    e_north = face->vertex_index(edge.neighborVertices()[1]);
+    o_north = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
+  }
+
+  std::vector<real_t> opr_data(7);
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+
+    std::fill(opr_data.begin(), opr_data.end(), 0.0);
+
+    assembleLocalStencil<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 0), opr_data.data(), coeff, triangleGraySW, {e_south, s_south, o_south});
+    assembleLocalStencil<ValueType, Level>(i, localMatrices->getBlueMatrix(Level, 0), opr_data.data(), coeff, triangleBlueS, {o_south, e_south, s_south});
+    assembleLocalStencil<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 0), opr_data.data(), coeff, triangleGraySE, {s_south, o_south, e_south});
+
+    if (edge.getNumNeighborFaces() == 2)
+    {
+      assembleLocalStencil<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 1), opr_data.data(), coeff, triangleGrayNW, {e_north, s_north, o_north});
+      assembleLocalStencil<ValueType, Level>(i, localMatrices->getBlueMatrix(Level, 1), opr_data.data(), coeff, triangleBlueN, {o_north, e_north, s_north});
+      assembleLocalStencil<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 1), opr_data.data(), coeff, triangleGrayNE, {s_north, o_north, e_north});
+    }
+
+    dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] = rhs[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+    {
+      dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+    }
+
+    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+    {
+      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+    }
+
+    if (edge.getNumNeighborFaces() == 2)
+    {
+      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+      {
+        dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      }
+    }
+
+    dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] /= opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE( void, smoothGSCoefficientTmpl, smooth_gs_coefficient )
 
 template< typename ValueType, uint_t Level >
 inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID<EdgeP1StencilMemory< ValueType >, Edge> &operatorId,

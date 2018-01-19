@@ -37,6 +37,22 @@ inline ValueType assembleLocal(uint_t i, uint_t j, const Matrix3r& localMatrix,
 }
 
 template<typename ValueType, uint_t Level>
+inline void assembleLocalStencil(uint_t i, uint_t j, const Matrix3r& localMatrix,
+                                double* opr_data,
+                                double* coeff,
+                                const std::array<stencilDirection,3>& vertices,
+                                const std::array<uint_t,3>& idx)
+{
+  ValueType meanCoeff = 1.0/3.0 * (coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[0])]
+                                   + coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[1])]
+                                   + coeff[vertexdof::macroface::indexFromVertex<Level>(i, j, vertices[2])]);
+
+  opr_data[vertexdof::stencilIndexFromVertex(vertices[0])] += meanCoeff * localMatrix(idx[0],idx[0]);
+  opr_data[vertexdof::stencilIndexFromVertex(vertices[1])] += meanCoeff * localMatrix(idx[0],idx[1]);
+  opr_data[vertexdof::stencilIndexFromVertex(vertices[2])] += meanCoeff * localMatrix(idx[0],idx[2]);
+}
+
+template<typename ValueType, uint_t Level>
 inline ValueType assembleLocalDG(uint_t i, uint_t j, const Matrix3r& localMatrix,
                                double* src,
                                const std::array<stencilDirection,3>& vertices,
@@ -568,6 +584,60 @@ inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
+
+template< typename ValueType, uint_t Level >
+inline void smooth_gs_coefficient_tmpl(Face &face,
+                                       const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
+                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
+                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId) {
+
+  typedef stencilDirection SD;
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t inner_rowsize = rowsize;
+
+  auto localMatrices = face.getData(operatorId);
+  auto dst = face.getData(dstId)->getPointer(Level);
+  auto rhs = face.getData(rhsId)->getPointer( Level );
+  auto coeff = face.getData(coeffId)->getPointer(Level);
+
+  std::array<SD,3> triangleBlueSW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_S  };
+  std::array<SD,3> triangleGrayS  = { SD::VERTEX_C, SD::VERTEX_S,  SD::VERTEX_SE };
+  std::array<SD,3> triangleBlueSE = { SD::VERTEX_C, SD::VERTEX_SE, SD::VERTEX_E  };
+  std::array<SD,3> triangleGrayNW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_NW };
+  std::array<SD,3> triangleBlueN  = { SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_N  };
+  std::array<SD,3> triangleGrayNE = { SD::VERTEX_C, SD::VERTEX_N,  SD::VERTEX_E  };
+
+  ValueType tmp;
+  std::vector<real_t> opr_data(7);
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      std::fill(opr_data.begin(), opr_data.end(), 0.0);
+
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayS, {2,0,1});
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueSE, {1,2,0});
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueSW, {0,1,2});
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayNW, {1,0,2});
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueN, {2,1,0});
+      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayNE, {0,2,1});
+
+      tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+
+      //for (auto neighbor : neighbors) {
+      for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
+      }
+
+      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
+    }
+    --inner_rowsize;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_coefficient_tmpl, smooth_gs_coefficient)
 
 template< typename ValueType, uint_t Level >
 inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
