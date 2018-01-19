@@ -158,6 +158,9 @@ private:
     dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Vertex, Edge>();
     dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Vertex, Edge>();
 
+    /// wait for communication from face to edge of vertex DoFFunction
+    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face  ,Edge>();
+
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
@@ -188,13 +191,10 @@ private:
     }
 
     /// communicate updated vertex DoFFunction from face to edge
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Edge, Face>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Edge, Face>();
+    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Face,Edge>();
+    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
 
     /// Smooth edge DoFFunction
-
-    /// wait for communication from face to edge of vertex DoFFunction
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face  ,Edge>();
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
