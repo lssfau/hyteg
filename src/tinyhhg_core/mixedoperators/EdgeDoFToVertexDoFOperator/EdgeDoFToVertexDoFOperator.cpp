@@ -26,18 +26,6 @@ EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<Pri
   /// the stencil assembly will be done in the P2-Operator
 }
 
-real_t* EdgeDoFToVertexDoFOperator::getVertexStencil(const PrimitiveID& vertexId, uint_t level) {
-  return storage_->getVertex(vertexId)->getData(vertexStencilID_)->getPointer( level );
-}
-
-real_t* EdgeDoFToVertexDoFOperator::getEdgeStencil(const PrimitiveID& edgeId, uint_t level) {
-  return storage_->getEdge(edgeId)->getData(edgeStencilID_)->getPointer( level );
-}
-
-real_t* EdgeDoFToVertexDoFOperator::getFaceStencil(const PrimitiveID& faceId, uint_t level) {
-  return storage_->getFace(faceId)->getData(faceStencilID_)->getPointer( level );
-}
-
 void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
                                             P1Function<real_t> &dst,
                                             uint_t level,

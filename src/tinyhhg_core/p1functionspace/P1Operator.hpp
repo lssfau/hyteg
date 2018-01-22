@@ -127,18 +127,6 @@ public:
 
   const PrimitiveDataID<StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
-  real_t* getVertexStencil(const PrimitiveID& vertexId, uint_t level) {
-    return storage_->getVertex(vertexId)->getData(vertexStencilID_)->getPointer( level );
-  }
-
-  real_t* getEdgeStencil(const PrimitiveID& edgeId, uint_t level) {
-    return storage_->getEdge(edgeId)->getData(edgeStencilID_)->getPointer( level );
-  }
-
-  real_t* getFaceStencil(const PrimitiveID& faceId, uint_t level) {
-    return storage_->getFace(faceId)->getData(faceStencilID_)->getPointer( level );
-  }
-
 private:
 
   void assembleStencils() {
