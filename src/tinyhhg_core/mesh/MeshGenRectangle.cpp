@@ -176,7 +176,7 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
                 // add new central vertex
                 midx = llx + ( (real_t)i + 0.5 ) * hx;
                 midy = lly + ( (real_t)j + 0.5 ) * hy;
-                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy } ), Inner );
+                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, 0.0 } ), Inner );
 
                 meshInfo.addFace( Face( { rectMap(  i ,  j  ), idx, rectMap( i+1,  j  ) }, Inner ) );
                 meshInfo.addFace( Face( { rectMap( i+1,  j  ), idx, rectMap( i+1, j+1 ) }, Inner ) );

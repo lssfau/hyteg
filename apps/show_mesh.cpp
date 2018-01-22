@@ -5,6 +5,7 @@
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
+using walberla::math::PI;
 
 using namespace hhg;
 
@@ -31,7 +32,7 @@ int main( int argc, char* argv[] )
   std::string vtkFileName;
   typedef enum { FROM_FILE, RECTANGLE, ANNULUS, PARTIAL_ANNULUS } meshDomainType;
   meshDomainType meshDomain;
-  MeshInfo::meshFlavour rectMeshType;
+  MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
   MeshInfo *meshInfo = nullptr;
   bool beVerbose = false;
 
@@ -124,7 +125,7 @@ int main( int argc, char* argv[] )
       break;
 
     case PARTIAL_ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*M_PI, 0.75*M_PI,
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*PI, 0.75*PI,
                                                       MeshInfo::CRISSCROSS, 4, 2 ) );
       break;
 
