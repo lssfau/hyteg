@@ -445,8 +445,8 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
 
 SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
-template<typename ValueType, uint_t MaxPolyDegree, uint_t InterpolationLevel, uint_t Level>
-inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel>, Face>& polynomialId,
+template<typename ValueType, uint_t PolyDegree, uint_t Level>
+inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<PolyDegree>, Face>& polynomialId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
@@ -466,11 +466,11 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
   auto vertPoly = polynomials->getVertPolynomial();
   auto diagPoly = polynomials->getDiagPolynomial();
 
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalHoriPoly(horiPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyS(vertPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyN(vertPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolySE(diagPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolyNW(diagPoly);
+  Polynomial2DEvaluator<PolyDegree> evalHoriPoly(horiPoly);
+  Polynomial2DEvaluator<PolyDegree> evalVertPolyS(vertPoly);
+  Polynomial2DEvaluator<PolyDegree> evalVertPolyN(vertPoly);
+  Polynomial2DEvaluator<PolyDegree> evalDiagPolySE(diagPoly);
+  Polynomial2DEvaluator<PolyDegree> evalDiagPolyNW(diagPoly);
 
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
@@ -665,8 +665,8 @@ inline void smooth_gs_coefficient_tmpl(Face &face,
 
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_coefficient_tmpl, smooth_gs_coefficient)
 
-template<typename ValueType, uint_t MaxPolyDegree, uint_t InterpolationLevel, uint_t Level>
-inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel>, Face>& polynomialId,
+template<typename ValueType, uint_t PolyDegree, uint_t Level>
+inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<PolyDegree>, Face>& polynomialId,
                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
 
@@ -685,11 +685,11 @@ inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1Po
   auto vertPoly = polynomials->getVertPolynomial();
   auto diagPoly = polynomials->getDiagPolynomial();
 
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalHoriPoly(horiPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyS(vertPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalVertPolyN(vertPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolySE(diagPoly);
-  Polynomial2DEvaluator<MaxPolyDegree, InterpolationLevel> evalDiagPolyNW(diagPoly);
+  Polynomial2DEvaluator<PolyDegree> evalHoriPoly(horiPoly);
+  Polynomial2DEvaluator<PolyDegree> evalVertPolyS(vertPoly);
+  Polynomial2DEvaluator<PolyDegree> evalVertPolyN(vertPoly);
+  Polynomial2DEvaluator<PolyDegree> evalDiagPolySE(diagPoly);
+  Polynomial2DEvaluator<PolyDegree> evalDiagPolyNW(diagPoly);
 
   ValueType tmp;
 

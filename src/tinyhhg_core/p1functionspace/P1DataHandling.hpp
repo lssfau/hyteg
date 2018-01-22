@@ -151,12 +151,12 @@ private:
 
 };
 
-template<uint_t MaxPolyDegree, uint_t InterpolationLevel>
-class FaceP1PolynomialMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel>, Face >
+template<uint_t PolyDegree>
+class FaceP1PolynomialMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1PolynomialMemory<PolyDegree>, Face >
 {
 public:
 
-  std::shared_ptr< FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel> > initialize( const Face * const face ) const;
+  std::shared_ptr< FaceP1PolynomialMemory<PolyDegree> > initialize( const Face * const face ) const;
 
 };
 
@@ -201,10 +201,10 @@ std::shared_ptr< FaceP1StencilMemory< ValueType > > FaceP1StencilMemoryDataHandl
   return std::make_shared< FaceP1StencilMemory< ValueType > >( P1FaceStencilMemorySize, 0, minLevel_, maxLevel_ );
 }
 
-template< uint_t MaxPolyDegree, uint_t InterpolationLevel >
-std::shared_ptr< FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel> > FaceP1PolynomialMemoryDataHandling<MaxPolyDegree, InterpolationLevel>::initialize( const Face * const ) const
+template< uint_t PolyDegree >
+std::shared_ptr< FaceP1PolynomialMemory<PolyDegree> > FaceP1PolynomialMemoryDataHandling<PolyDegree>::initialize( const Face * const ) const
 {
-  return std::make_shared< FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel> >();
+  return std::make_shared< FaceP1PolynomialMemory<PolyDegree> >();
 }
 
 }

@@ -45,7 +45,7 @@ def generate(name):
   print('class {} {{'.format(name))
   print('public:')
 
-  print('  static real_t eval(uint_t, uint_t basis, const Point2D &x) {')
+  print('  static real_t eval(uint_t basis, const Point2D &x) {')
 
   print('    switch(basis) {')
 

@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("L(H): " << level_H);
   WALBERLA_LOG_INFO_ON_ROOT("L(h): " << level_h);
+  WALBERLA_LOG_INFO_ON_ROOT("interpolationLevel: " << interpolationLevel);
   WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));

@@ -4,7 +4,7 @@
 
 namespace hhg {
 
-template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
+template<uint_t Degree, typename Basis>
 class Polynomial2D {
  public:
 
@@ -23,10 +23,10 @@ class Polynomial2D {
 
   real_t eval(const Point2D &x) const {
 
-    real_t eval = coeffs_[0] * Basis::eval(InterpolationLevel, 0, x);
+    real_t eval = coeffs_[0] * Basis::eval(0, x);
 
     for (uint_t c = 1; c < NumCoefficients_; ++c) {
-      eval += coeffs_[c] * Basis::eval(InterpolationLevel, c, x);
+      eval += coeffs_[c] * Basis::eval(c, x);
     }
 
     return eval;
@@ -48,7 +48,7 @@ class Polynomial2D {
     }
   }
 
-  void scaleAdd(real_t scalar, const Polynomial2D<Degree, InterpolationLevel, Basis>& rhs) {
+  void scaleAdd(real_t scalar, const Polynomial2D<Degree, Basis>& rhs) {
     for (uint_t i = 0; i < NumCoefficients_; ++i) {
       coeffs_[i] += scalar * rhs.coeffs_[i];
     }
@@ -60,7 +60,7 @@ private:
 };
 
 template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
-inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, InterpolationLevel, Basis> &poly)
+inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, Basis> &poly)
 {
   os << "[";
 
@@ -78,7 +78,7 @@ inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, Int
   return os;
 }
 
-template<uint_t Degree, uint_t InterpolationLevel>
-using GeneralPolynomial2D = Polynomial2D<Degree, InterpolationLevel, MonomialBasis2D>;
+template<uint_t Degree>
+using GeneralPolynomial2D = Polynomial2D<Degree, MonomialBasis2D>;
 
 }

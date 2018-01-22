@@ -36,11 +36,11 @@
 namespace hhg
 {
 
-template<class UFCOperator, uint_t MaxPolyDegree, uint_t InterpolationLevel>
+template<class UFCOperator, uint_t PolyDegree, uint_t InterpolationLevel>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  typedef LSQPInterpolator<MaxPolyDegree, InterpolationLevel, MonomialBasis2D> Interpolator;
+  typedef LSQPInterpolator<PolyDegree, InterpolationLevel, MonomialBasis2D> Interpolator;
 
   P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient), analyticCoefficient_(analyticCoefficient)
@@ -57,7 +57,7 @@ private:
 
   void initLocalStiffnessMatrices()
   {
-    auto faceP1PolynomialMemoryDataHandling = std::make_shared< FaceP1PolynomialMemoryDataHandling<MaxPolyDegree, InterpolationLevel> >();
+    auto faceP1PolynomialMemoryDataHandling = std::make_shared< FaceP1PolynomialMemoryDataHandling<PolyDegree> >();
     auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
@@ -122,6 +122,10 @@ private:
   void interpolateStencils() {
     typedef stencilDirection SD;
     using namespace P1Elements;
+
+    std::vector<real_t> horiValues(Interpolator::NumVertices);
+    std::vector<real_t> vertValues(Interpolator::NumVertices);
+    std::vector<real_t> diagValues(Interpolator::NumVertices);
 
     std::vector<real_t> faceStencil(7);
 
@@ -281,7 +285,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::macroface::applyPolynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::macroface::applyPolynomial< real_t, PolyDegree >(level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -331,7 +335,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::macroface::smooth_gs_polynomial< real_t, MaxPolyDegree, InterpolationLevel >(level, face, facePolynomialID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::macroface::smooth_gs_polynomial< real_t, PolyDegree >(level, face, facePolynomialID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -429,7 +433,7 @@ private:
   PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> vertexLocalMatrixID_;
   PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> edgeLocalMatrixID_;
   PrimitiveDataID<FaceP1LocalMatrixMemory, Face> faceLocalMatrixID_;
-  PrimitiveDataID<FaceP1PolynomialMemory<MaxPolyDegree, InterpolationLevel>, Face> facePolynomialID_;
+  PrimitiveDataID<FaceP1PolynomialMemory<PolyDegree>, Face> facePolynomialID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
@@ -443,8 +447,8 @@ private:
   const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient_;
 };
 
-template<uint_t MaxPolyDegree, uint_t InterpolationLevel>
-using P1PolynomialLaplaceOperator = P1PolynomialOperator<p1_diffusion_cell_integral_0_otherwise, MaxPolyDegree, InterpolationLevel>;
+template<uint_t PolyDegree, uint_t InterpolationLevel>
+using P1PolynomialLaplaceOperator = P1PolynomialOperator<p1_diffusion_cell_integral_0_otherwise, PolyDegree, InterpolationLevel>;
 
 }
 

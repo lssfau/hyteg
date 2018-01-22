@@ -76,37 +76,37 @@ inline type func(uint_t level, Args&&... args)                  \
 }
 
 #define SPECIALIZE_POLYNOMIAL(type, func_tmpl, func)                     \
-template< typename ValueType, uint_t MaxPolyDegree, uint_t InterpolationLevel, typename... Args>                                    \
+template< typename ValueType, uint_t MaxPolyDegree, typename... Args>                                    \
 inline type func(uint_t level, Args&&... args)                  \
 {                                                             \
   switch(level)                                               \
   {                                                           \
     case 2:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  2 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  2 >(args...);                           \
     case 3:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  3 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  3 >(args...);                           \
     case 4:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  4 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  4 >(args...);                           \
     case 5:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  5 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  5 >(args...);                           \
     case 6:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  6 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  6 >(args...);                           \
     case 7:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  7 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  7 >(args...);                           \
     case 8:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  8 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  8 >(args...);                           \
     case 9:                                                   \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel,  9 >(args...);                           \
+      return func_tmpl< ValueType, MaxPolyDegree,  9 >(args...);                           \
     case 10:                                                  \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel, 10 >(args...);                          \
+      return func_tmpl< ValueType, MaxPolyDegree, 10 >(args...);                          \
     case 11:                                                  \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel, 11 >(args...);                          \
+      return func_tmpl< ValueType, MaxPolyDegree, 11 >(args...);                          \
     case 12:                                                  \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel, 12 >(args...);                          \
+      return func_tmpl< ValueType, MaxPolyDegree, 12 >(args...);                          \
     case 13:                                                  \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel, 13 >(args...);                          \
+      return func_tmpl< ValueType, MaxPolyDegree, 13 >(args...);                          \
     case 14:                                                  \
-      return func_tmpl< ValueType, MaxPolyDegree, InterpolationLevel, 14 >(args...);                          \
+      return func_tmpl< ValueType, MaxPolyDegree, 14 >(args...);                          \
     default:                                                  \
       WALBERLA_ABORT("Level " << level << " not supported")   \
   }                                                           \

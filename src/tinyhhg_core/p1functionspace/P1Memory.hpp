@@ -159,24 +159,24 @@ public:
 
 };
 
-template<uint_t MaxPolyDegree, uint_t InterpolationLevel>
+template<uint_t PolyDegree>
 class FaceP1PolynomialMemory
 {
 public:
 
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel> horizontalPolynomial;
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel> verticalPolynomial;
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel> diagonalPolynomial;
+  GeneralPolynomial2D<PolyDegree> horizontalPolynomial;
+  GeneralPolynomial2D<PolyDegree> verticalPolynomial;
+  GeneralPolynomial2D<PolyDegree> diagonalPolynomial;
 
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel>& getHoriPolynomial() {
+  GeneralPolynomial2D<PolyDegree>& getHoriPolynomial() {
     return horizontalPolynomial;
   }
 
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel>& getVertPolynomial() {
+  GeneralPolynomial2D<PolyDegree>& getVertPolynomial() {
     return verticalPolynomial;
   }
 
-  GeneralPolynomial2D<MaxPolyDegree, InterpolationLevel>& getDiagPolynomial() {
+  GeneralPolynomial2D<PolyDegree>& getDiagPolynomial() {
     return diagonalPolynomial;
   }
 

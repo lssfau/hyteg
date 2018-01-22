@@ -5,12 +5,12 @@
 
 namespace hhg {
 
-template<uint_t Degree, uint_t InterpolationLevel>
+template<uint_t Degree>
 class Polynomial2DEvaluator {
 public:
 
   typedef Polynomial1D<Degree, MonomialBasis1D> Polynomial1;
-  typedef Polynomial2D<Degree, InterpolationLevel, MonomialBasis2D> Polynomial2;
+  typedef Polynomial2D<Degree, MonomialBasis2D> Polynomial2;
 
   Polynomial2DEvaluator(const Polynomial2& poly)
     : poly2_(poly) {
