@@ -26,30 +26,48 @@ static void testP2Smooth() {
 
   auto face = storage->getFaces().begin()->second.get();
 
-  real_t * vertexStencil = face->getData(p2operator.getVertexToVertexOpr().getFaceStencilID())->getPointer( level );
-  real_t vertexStencilSize = face->getData(p2operator.getVertexToVertexOpr().getFaceStencilID())->getSize( level );
+  real_t * vertexToVertexStencil = face->getData(p2operator.getVertexToVertexOpr().getFaceStencilID())->getPointer( level );
+  real_t * edgeToVertexStencil = face->getData(p2operator.getEdgeToVertexOpr().getFaceStencilID())->getPointer( level );
 
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = 1.   ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N )] =-1.   ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W )] = 1./2.;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = 1.   ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E )] =-1./2.;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S )] =-1.   ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = 1.   ;
+  real_t * edgeToEdgeStencil = face->getData(p2operator.getEdgeToEdgeOpr().getFaceStencilID())->getPointer( level );
+  real_t * vertexToEdgeStencil = face->getData(p2operator.getVertexToEdgeOpr().getFaceStencilID())->getPointer( level );
+  //real_t edgeTovertexStencilSize = face->getData(p2operator.getEdgeToVertexOpr().getFaceStencilID())->getSize( level );
 
+  /// vertex dofs
+  for(uint_t k = 0; k < vertexdof::macroface::neighborsWithCenter.size(); ++k){
+    vertexToVertexStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithCenter[k])] = 1;
+  }
+  vertexToVertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = 19.   ;
 
-  std::function<real_t(const hhg::Point3D&)> rhsfunc = [](const hhg::Point3D&) { return 2; };
-
-
-  real_t* faceMemory = face->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer( level );
-  for ( const auto & it : vertexdof::macroface::Iterator( level, 0 ) ){
-    faceMemory[hhg::vertexdof::macroface::indexFromVertex< level >(it.col(),it.row(), stencilDirection::VERTEX_C)] = ( it.col() + 1 ) + 10 * it.row();
+  for(uint_t k = 0; k < edgedof::macroface::neighborsFromVertex.size(); ++k){
+    edgeToVertexStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] = 1;
   }
 
-  real_t* rhsMemory = face->getData(rhs->getVertexDoFFunction()->getFaceDataID())->getPointer( level );
-  for ( const auto & it : vertexdof::macroface::Iterator( level, 0 ) ){
-    rhsMemory[hhg::vertexdof::macroface::indexFromVertex< level >(it.col(),it.row(), stencilDirection::VERTEX_C)] = ( it.col() + 1 ) + 10 * it.row() + 1;
+  /// horizontal edges
+  for(uint_t k = 0; k < edgedof::macroface::neighborsFromHorizontalEdge.size(); ++k){
+    edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(edgedof::macroface::neighborsFromHorizontalEdge[k])] = 1;
   }
+  edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = 9;
+
+  for(uint_t k = 0; k < vertexdof::macroface::neighborsFromHorizontalEdge.size(); ++k){
+    vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(vertexdof::macroface::neighborsFromHorizontalEdge[k])] = 1;
+  }
+
+  /// diagonal edges
+  for(uint_t k = 0; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k){
+    edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(edgedof::macroface::neighborsFromDiagonalEdge[k])] = 1;
+  }
+  edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)] = 9;
+
+  for(uint_t k = 0; k < vertexdof::macroface::neighborsFromDiagonalEdge.size(); ++k){
+    vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge(vertexdof::macroface::neighborsFromDiagonalEdge[k])] = 1;
+  }
+
+
+  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1; };
+
+  x->interpolate(ones,level);
+  rhs->interpolate(ones,level);
 
   vertexdof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getVertexDoFFunction()->getFaceDataID());
 
@@ -60,6 +78,17 @@ static void testP2Smooth() {
                             rhs->getVertexDoFFunction()->getFaceDataID());
 
   vertexdof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getVertexDoFFunction()->getFaceDataID());
+
+  edgedof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getEdgeDoFFunction()->getFaceDataID());
+
+  P2::face::smoothGSedgeDoFTmpl< level >(*face, p2operator.getVertexToEdgeOpr().getFaceStencilID(),
+                                           x->getVertexDoFFunction()->getFaceDataID(),
+                                           p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
+                                           x->getEdgeDoFFunction()->getFaceDataID(),
+                                           rhs->getVertexDoFFunction()->getFaceDataID());
+
+  edgedof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getEdgeDoFFunction()->getFaceDataID());
+
 }
 
 }/// namespace hhg
