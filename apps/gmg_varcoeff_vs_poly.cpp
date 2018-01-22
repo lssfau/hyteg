@@ -16,20 +16,28 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  MeshInfo meshInfo = MeshInfo::unitSquareMesh(0);
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-  hhg::loadbalancing::roundRobin( setupStorage );
-
+  const uint_t level_H = 0;
+  const uint_t level_h = 11;
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 10;
+  const uint_t maxLevel = level_h - level_H;
   const uint_t maxPolyDegree = 2;
-  const uint_t interpolationLevel = 4;
+  const uint_t interpolationLevel = maxLevel-1;
   const uint_t max_outer_iter = 50;
   const uint_t max_cg_iter = 50;
   const real_t mg_tolerance = 1e-14;
   const real_t coarse_tolerance = 1e-3;
   const bool polynomialOperator = true;
+
+  MeshInfo meshInfo = MeshInfo::unitSquareMesh(0);
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  hhg::loadbalancing::roundRobin( setupStorage );
+
+  if (polynomialOperator) {
+    WALBERLA_LOG_INFO_ON_ROOT("Polynomial Operator enabled");
+  } else {
+    WALBERLA_LOG_INFO_ON_ROOT("Polynomial Operator disabled");
+  }
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -63,7 +71,10 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
+  auto start = walberla::timing::getWcTime();
   SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
+  auto end = walberla::timing::getWcTime();
+  real_t setupTime = end - start;
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
@@ -96,9 +107,9 @@ int main(int argc, char* argv[])
   uint_t i = 0;
   for (; i < max_outer_iter; ++i)
   {
-    auto start = walberla::timing::getWcTime();
+    start = walberla::timing::getWcTime();
     laplaceSolver.solve(L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
-    auto end = walberla::timing::getWcTime();
+    end = walberla::timing::getWcTime();
     L.apply(u, Lu, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Lu }, maxLevel, hhg::Inner);
     real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
@@ -121,8 +132,12 @@ int main(int argc, char* argv[])
     }
   }
 
+  WALBERLA_LOG_INFO_ON_ROOT("L(H): " << level_H);
+  WALBERLA_LOG_INFO_ON_ROOT("L(h): " << level_h);
+  WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
+  WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 
   return 0;
