@@ -53,8 +53,9 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperatorNodal;
-  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperatorPoly;
-  typedef std::conditional<polynomialOperator, SolveOperatorPoly, SolveOperatorNodal>::type SolveOperator;
+  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree> SolveOperatorPoly;
+  typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
+  typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
   std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 3*x[0] + 4*x[1] + 1; };
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
@@ -71,17 +72,23 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
+  SolveOperator L;
+
   auto start = walberla::timing::getWcTime();
-  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
+  if (polynomialOperator) {
+    L = std::make_shared<SolveOperatorPoly>(storage, coefficient, coeff, minLevel, maxLevel, interpolationLevel);
+  } else {
+    L = std::make_shared<SolveOperatorNodal>(storage, coefficient, coeff, minLevel, maxLevel);
+  }
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
 
-  typedef hhg::CGSolver<hhg::P1Function<real_t>, SolveOperator> CoarseSolver;
+  typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
-  typedef GMultigridSolver<hhg::P1Function<real_t>, SolveOperator, CoarseSolver> LaplaceSover;
+  typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver> LaplaceSover;
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
@@ -89,7 +96,7 @@ int main(int argc, char* argv[])
 
   real_t rel_res = 1.0;
 
-  L.apply(u, Lu, maxLevel, hhg::Inner);
+  L->apply(u, Lu, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner);
 
   real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
@@ -108,9 +115,9 @@ int main(int argc, char* argv[])
   for (; i < max_outer_iter; ++i)
   {
     start = walberla::timing::getWcTime();
-    laplaceSolver.solve(L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
+    laplaceSolver.solve(*L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
     end = walberla::timing::getWcTime();
-    L.apply(u, Lu, maxLevel, hhg::Inner);
+    L->apply(u, Lu, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Lu }, maxLevel, hhg::Inner);
     real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;

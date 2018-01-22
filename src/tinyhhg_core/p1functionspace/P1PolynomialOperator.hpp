@@ -36,14 +36,22 @@
 namespace hhg
 {
 
-template<class UFCOperator, uint_t PolyDegree, uint_t InterpolationLevel>
+template<class UFCOperator, uint_t PolyDegree>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  typedef LSQPInterpolator<PolyDegree, InterpolationLevel, MonomialBasis2D> Interpolator;
+  typedef LSQPInterpolator<PolyDegree, MonomialBasis2D> Interpolator;
 
-  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage, const std::shared_ptr<P1Function< real_t >>& coefficient, const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient, size_t minLevel, size_t maxLevel)
-    : Operator(storage, minLevel, maxLevel), coefficientP1_(coefficient), analyticCoefficient_(analyticCoefficient)
+  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+                       const std::shared_ptr<P1Function< real_t >>& coefficient,
+                       const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient,
+                       uint_t minLevel,
+                       uint_t maxLevel,
+                       uint_t interpolationLevel)
+      : Operator(storage, minLevel, maxLevel),
+        interpolationLevel_(interpolationLevel),
+        coefficientP1_(coefficient),
+        analyticCoefficient_(analyticCoefficient)
   {
     initLocalStiffnessMatrices();
     interpolateStencils();
@@ -72,8 +80,8 @@ private:
 
       auto faceLocalMatrices = face.getData(faceLocalMatrixID_);
 
-      compute_local_stiffness(face, InterpolationLevel, faceLocalMatrices->getGrayMatrix(InterpolationLevel), fenics::GRAY);
-      compute_local_stiffness(face, InterpolationLevel, faceLocalMatrices->getBlueMatrix(InterpolationLevel), fenics::BLUE);
+      compute_local_stiffness(face, interpolationLevel_, faceLocalMatrices->getGrayMatrix(interpolationLevel_), fenics::GRAY);
+      compute_local_stiffness(face, interpolationLevel_, faceLocalMatrices->getBlueMatrix(interpolationLevel_), fenics::BLUE);
     }
 
     // Initialize other local stiffness matrices on lower dimensional primitives as usual
@@ -123,10 +131,6 @@ private:
     typedef stencilDirection SD;
     using namespace P1Elements;
 
-    std::vector<real_t> horiValues(Interpolator::NumVertices);
-    std::vector<real_t> vertValues(Interpolator::NumVertices);
-    std::vector<real_t> diagValues(Interpolator::NumVertices);
-
     std::vector<real_t> faceStencil(7);
 
     for (auto& it : storage_->getFaces()) {
@@ -141,14 +145,14 @@ private:
       compute_local_stiffness(face, maxLevel_, local_stiffness_gray, fenics::GRAY);
       compute_local_stiffness(face, maxLevel_, local_stiffness_blue, fenics::BLUE);
 
-      uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
+      uint_t rowsize = levelinfo::num_microvertices_per_edge(interpolationLevel_);
       uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
       uint_t inner_rowsize = rowsize;
       real_t coeffWeight;
 
-      Interpolator horiInterpolator;
-      Interpolator vertInterpolator;
-      Interpolator diagInterpolator;
+      Interpolator horiInterpolator(interpolationLevel_);
+      Interpolator vertInterpolator(interpolationLevel_);
+      Interpolator diagInterpolator(interpolationLevel_);
 
       Point3D x, x0;
       x0 = face.coords[0];
@@ -443,12 +447,13 @@ private:
   }
 
 private:
+  uint_t interpolationLevel_;
   std::shared_ptr<P1Function< real_t >> coefficientP1_;
   const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient_;
 };
 
-template<uint_t PolyDegree, uint_t InterpolationLevel>
-using P1PolynomialLaplaceOperator = P1PolynomialOperator<p1_diffusion_cell_integral_0_otherwise, PolyDegree, InterpolationLevel>;
+template<uint_t PolyDegree>
+using P1PolynomialLaplaceOperator = P1PolynomialOperator<p1_diffusion_cell_integral_0_otherwise, PolyDegree>;
 
 }
 

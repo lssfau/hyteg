@@ -8,19 +8,22 @@
 
 namespace hhg {
 
-template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
+template<uint_t Degree, typename Basis>
 class LSQPInterpolator {
 public:
 
-  static const uint_t NumVertices = (levelinfo::num_microedges_per_face(InterpolationLevel) - 3 * levelinfo::num_microedges_per_edge(InterpolationLevel) - 3) / 3;
   static const uint_t NumCoefficients = Polynomial2D<Degree, Basis>::NumCoefficients_;
 
-  LSQPInterpolator()
-      : offset_(0), A(NumVertices, NumCoefficients), rhs(NumVertices, 1) {
+  LSQPInterpolator(uint_t interpolationLevel)
+      : interpolationLevel_(interpolationLevel),
+        numInterpolationPoints_((levelinfo::num_microedges_per_face(interpolationLevel) - 3 * levelinfo::num_microedges_per_edge(interpolationLevel) - 3) / 3),
+        offset_(0),
+        A(numInterpolationPoints_, NumCoefficients),
+        rhs(numInterpolationPoints_, 1) {
   }
 
   void addInterpolationPoint(const Point2D& x, real_t value) {
-    WALBERLA_ASSERT(offset_ < NumVertices, "Added too many interpolation points");
+    WALBERLA_ASSERT(offset_ < numInterpolationPoints_, "Added too many interpolation points");
 
     for (uint_t k = 0; k < NumCoefficients; ++k) {
       A(offset_, k) = Basis::eval(k, x);
@@ -32,8 +35,8 @@ public:
   }
 
   void interpolate(Polynomial2D<Degree, Basis>& poly) {
-    WALBERLA_ASSERT(values.size() == NumVertices, "values vector must have the same size as the number of vertices on the interpolation level");
-    WALBERLA_ASSERT(offset_ == NumVertices, "Not enough interpolation points were added");
+    WALBERLA_ASSERT(values.size() == numInterpolationPoints_, "values vector must have the same size as the number of vertices on the interpolation level");
+    WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
 
     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
     coeffs = A.colPivHouseholderQr().solve(rhs);
@@ -44,6 +47,8 @@ public:
   }
 
 private:
+  uint_t interpolationLevel_;
+  uint_t numInterpolationPoints_;
   uint_t offset_;
   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> A;
   Eigen::Matrix<real_t, Eigen::Dynamic, 1> rhs;
