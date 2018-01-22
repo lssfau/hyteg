@@ -47,9 +47,9 @@ namespace face {
 
 
 template< uint_t Level>
-void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<double>, Face> &vertexDoFStencilID,
+void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
                             const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
-                            const PrimitiveDataID<StencilMemory<double>, Face> &edgeDoFStencilID,
+                            const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
                             const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
                             const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID) {
 
@@ -71,8 +71,6 @@ void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<doubl
 
       /// update from vertex dofs
       for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-        size_t tmp2 = vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k]);
-        uint_t tmp3 = vertexdof::macroface::indexFromVertex< Level >(col, row, vertexdof::macroface::neighborsWithoutCenter[k]);
         tmp += vertexDoFStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])] *
                dstVertexDoF[vertexdof::macroface::indexFromVertex< Level >(col, row, vertexdof::macroface::neighborsWithoutCenter[k])];
       }
@@ -81,7 +79,6 @@ void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<doubl
         tmp += edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] *
                dstEdgeDoF[edgedof::macroface::indexFromVertex< Level >(col, row, edgedof::macroface::neighborsFromVertex[k])];
       }
-      uint_t tmp5 = vertexdof::macroface::indexFromVertex<Level>(col, row, stencilDirection::VERTEX_C);
       dstVertexDoF[vertexdof::macroface::indexFromVertex<Level>(col, row, stencilDirection::VERTEX_C)] = tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
 
     }

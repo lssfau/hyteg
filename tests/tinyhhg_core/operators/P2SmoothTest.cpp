@@ -29,31 +29,33 @@ static void testP2Smooth() {
   real_t * vertexStencil = face->getData(p2operator.getVertexToVertexOpr().getFaceStencilID())->getPointer( level );
   real_t vertexStencilSize = face->getData(p2operator.getVertexToVertexOpr().getFaceStencilID())->getSize( level );
 
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] =  1 ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N )] = -1 ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W )] = -2;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = 1  ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E )] = 2;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S )] = -1 ;
-  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] =  1 ;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = 1.   ;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N )] =-1.   ;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W )] = 1./2.;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = 1.   ;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E )] =-1./2.;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S )] =-1.   ;
+  vertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = 1.   ;
 
 
-  std::function<real_t(const hhg::Point3D&)> rhsfunc = [](const hhg::Point3D&) { return 1; };
+  std::function<real_t(const hhg::Point3D&)> rhsfunc = [](const hhg::Point3D&) { return 2; };
 
 
   real_t* faceMemory = face->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer( level );
   for ( const auto & it : vertexdof::macroface::Iterator( level, 0 ) ){
-    faceMemory[hhg::vertexdof::macroface::indexFromVertex< level >(it.col(),it.row(), stencilDirection::VERTEX_C)] = 1;
-
+    faceMemory[hhg::vertexdof::macroface::indexFromVertex< level >(it.col(),it.row(), stencilDirection::VERTEX_C)] = ( it.col() + 1 ) + 10 * it.row();
   }
 
-  rhs->interpolate(rhsfunc,level);
+  real_t* rhsMemory = face->getData(rhs->getVertexDoFFunction()->getFaceDataID())->getPointer( level );
+  for ( const auto & it : vertexdof::macroface::Iterator( level, 0 ) ){
+    rhsMemory[hhg::vertexdof::macroface::indexFromVertex< level >(it.col(),it.row(), stencilDirection::VERTEX_C)] = ( it.col() + 1 ) + 10 * it.row() + 1;
+  }
 
   vertexdof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getVertexDoFFunction()->getFaceDataID());
 
   P2::face::smoothGSvertexDoFTmpl< level >(*face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
                                            x->getVertexDoFFunction()->getFaceDataID(),
-                            p2operator.getEdgeToVertexOpr().getFaceStencilID(),
+                                           p2operator.getEdgeToVertexOpr().getFaceStencilID(),
                             x->getEdgeDoFFunction()->getFaceDataID(),
                             rhs->getVertexDoFFunction()->getFaceDataID());
 
