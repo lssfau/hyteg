@@ -370,6 +370,11 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
     if(it.col() == 0) std::cout << std::endl;
     cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_DI_C)] << "|";
   }
+  cout << endl << "Vertical Edge";
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
+    if(it.col() == 0) std::cout << std::endl;
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_VE_C)] << "|";
+  }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
 }
