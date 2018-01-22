@@ -71,12 +71,12 @@ void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<real_
 
       /// update from vertex dofs
       for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-        tmp += vertexDoFStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])] *
+        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])] *
                dstVertexDoF[vertexdof::macroface::indexFromVertex< Level >(col, row, vertexdof::macroface::neighborsWithoutCenter[k])];
       }
       /// update from edge dofs
       for(uint_t k = 0; k < edgedof::macroface::neighborsFromVertex.size(); ++k){
-        tmp += edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] *
+        tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] *
                dstEdgeDoF[edgedof::macroface::indexFromVertex< Level >(col, row, edgedof::macroface::neighborsFromVertex[k])];
       }
       dstVertexDoF[vertexdof::macroface::indexFromVertex<Level>(col, row, stencilDirection::VERTEX_C)] = tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
@@ -114,12 +114,12 @@ void smoothGSedgeDoFTmpl(Face &face,
     if( it.row() != 0) {
       tmp = rhs[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)];
       for(uint_t k = 1; k < edgedof::macroface::neighborsFromHorizontalEdge.size(); ++k){
-        tmp += edgeDoFStencil[edgedof::stencilIndexFromHorizontalEdge(edgedof::macroface::neighborsFromHorizontalEdge[k])] *
+        tmp -= edgeDoFStencil[edgedof::stencilIndexFromHorizontalEdge(edgedof::macroface::neighborsFromHorizontalEdge[k])] *
                dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge< Level >(it.col(), it.row(), edgedof::macroface::neighborsFromHorizontalEdge[k])];
       }
 
       for(uint_t k = 0; k < vertexdof::macroface::neighborsFromHorizontalEdge.size(); ++k){
-        tmp += vertexDoFStencil[vertexdof::stencilIndexFromHorizontalEdge(vertexdof::macroface::neighborsFromHorizontalEdge[k])] *
+        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromHorizontalEdge(vertexdof::macroface::neighborsFromHorizontalEdge[k])] *
                dstVertexDoF[vertexdof::macroface::indexFromHorizontalEdge< Level >(it.col(), it.row(), vertexdof::macroface::neighborsFromHorizontalEdge[k])];
       }
 
@@ -130,12 +130,12 @@ void smoothGSedgeDoFTmpl(Face &face,
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = rhs[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)];
       for(uint_t k = 1; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k){
-        tmp += edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge(edgedof::macroface::neighborsFromDiagonalEdge[k])] *
+        tmp -= edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge(edgedof::macroface::neighborsFromDiagonalEdge[k])] *
                dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(), it.row(), edgedof::macroface::neighborsFromDiagonalEdge[k])];
       }
 
       for(uint_t k = 0; k < vertexdof::macroface::neighborsFromDiagonalEdge.size(); ++k){
-        tmp += vertexDoFStencil[vertexdof::stencilIndexFromDiagonalEdge(vertexdof::macroface::neighborsFromDiagonalEdge[k])] *
+        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromDiagonalEdge(vertexdof::macroface::neighborsFromDiagonalEdge[k])] *
           dstVertexDoF[vertexdof::macroface::indexFromDiagonalEdge< Level >(it.col(), it.row(), vertexdof::macroface::neighborsFromDiagonalEdge[k])];
       }
 
@@ -145,12 +145,12 @@ void smoothGSedgeDoFTmpl(Face &face,
     if( it.col() != 0) {
       tmp = rhs[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
       for(uint_t k = 1; k < edgedof::macroface::neighborsFromVerticalEdge.size(); ++k){
-        tmp += edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(edgedof::macroface::neighborsFromVerticalEdge[k])] *
+        tmp -= edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(edgedof::macroface::neighborsFromVerticalEdge[k])] *
                dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), edgedof::macroface::neighborsFromVerticalEdge[k])];
       }
 
       for(uint_t k = 0; k < vertexdof::macroface::neighborsFromVerticalEdge.size(); ++k){
-        tmp += vertexDoFStencil[vertexdof::stencilIndexFromVerticalEdge(vertexdof::macroface::neighborsFromVerticalEdge[k])] *
+        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromVerticalEdge(vertexdof::macroface::neighborsFromVerticalEdge[k])] *
                dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), vertexdof::macroface::neighborsFromVerticalEdge[k])];
       }
 
