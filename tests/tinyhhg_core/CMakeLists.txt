@@ -62,6 +62,12 @@ waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES operators/P2SmoothTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME P2SmoothTest)
 
+## P2 ##
+
+waLBerla_compile_test(FILES P2/P2GSTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME P2GSTest)
+
+
 
 ## Other ##
 

@@ -184,8 +184,8 @@ private:
       if (testFlag(face.type, flag))
       {
         P2::face::smoothGSvertexDoF(level, face,
-        vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
-                                              edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
+                                    vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
+                                    edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
                                     rhs.getVertexDoFFunction()->getFaceDataID());
       }
     }
@@ -218,11 +218,10 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        P2::face::smoothGSedgeDoF(face,
-                                  vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
-                                  edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
-                                  rhs.getEdgeDoFFunction()->getFaceDataID(),
-                                  level);
+        P2::face::smoothGSedgeDoF(level,face,
+                                  vertexToEdge.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
+                                  edgeToEdge.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
+                                  rhs.getEdgeDoFFunction()->getFaceDataID());
       }
     }
   }
