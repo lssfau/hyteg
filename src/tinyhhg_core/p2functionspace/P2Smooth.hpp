@@ -142,21 +142,21 @@ void smoothGSedgeDoFTmpl(Face &face,
       dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] =
         tmp / edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)];
     }
-//    if( it.col() != 0) {
-//      tmp = rhs[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
-//      for(uint_t k = 1; k < edgedof::macroface::neighborsFromVerticalEdge.size(); ++k){
-//        tmp += edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(edgedof::macroface::neighborsFromVerticalEdge[k])] *
-//               dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), edgedof::macroface::neighborsFromVerticalEdge[k])];
-//      }
-//
-//      for(uint_t k = 0; k < vertexdof::macroface::neighborsFromVerticalEdge.size(); ++k){
-//        tmp += vertexDoFStencil[vertexdof::stencilIndexFromVerticalEdge(vertexdof::macroface::neighborsFromVerticalEdge[k])] *
-//               dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), vertexdof::macroface::neighborsFromVerticalEdge[k])];
-//      }
-//
-//      dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] =
-//        tmp / edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
-//    }
+    if( it.col() != 0) {
+      tmp = rhs[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
+      for(uint_t k = 1; k < edgedof::macroface::neighborsFromVerticalEdge.size(); ++k){
+        tmp += edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(edgedof::macroface::neighborsFromVerticalEdge[k])] *
+               dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), edgedof::macroface::neighborsFromVerticalEdge[k])];
+      }
+
+      for(uint_t k = 0; k < vertexdof::macroface::neighborsFromVerticalEdge.size(); ++k){
+        tmp += vertexDoFStencil[vertexdof::stencilIndexFromVerticalEdge(vertexdof::macroface::neighborsFromVerticalEdge[k])] *
+               dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge< Level >(it.col(), it.row(), vertexdof::macroface::neighborsFromVerticalEdge[k])];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] =
+        tmp / edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
+    }
   }
 }
 

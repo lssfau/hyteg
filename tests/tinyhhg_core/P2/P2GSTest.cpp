@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 
     L.smooth_gs(u, r, level, hhg::Inner);
     L.apply(u,res,level,hhg::Inner);
-    res.add({-1},{&r},level);
+    res.add({-1},{&r},level,hhg::Inner);
     WALBERLA_LOG_INFO_ON_ROOT("residual: = " << std::sqrt(res.dot(res, level, hhg::Inner)));
 
 
