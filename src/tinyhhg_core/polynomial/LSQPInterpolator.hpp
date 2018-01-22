@@ -35,7 +35,6 @@ public:
   }
 
   void interpolate(Polynomial2D<Degree, Basis>& poly) {
-    WALBERLA_ASSERT(values.size() == numInterpolationPoints_, "values vector must have the same size as the number of vertices on the interpolation level");
     WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
 
     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
