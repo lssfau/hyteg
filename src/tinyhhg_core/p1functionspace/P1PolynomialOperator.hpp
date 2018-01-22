@@ -123,10 +123,6 @@ private:
     typedef stencilDirection SD;
     using namespace P1Elements;
 
-    std::vector<real_t> horiValues(Interpolator::NumVertices);
-    std::vector<real_t> vertValues(Interpolator::NumVertices);
-    std::vector<real_t> diagValues(Interpolator::NumVertices);
-
     std::vector<real_t> faceStencil(7);
 
     for (auto& it : storage_->getFaces()) {
@@ -144,9 +140,6 @@ private:
       uint_t rowsize = levelinfo::num_microvertices_per_edge(InterpolationLevel);
       uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
       uint_t inner_rowsize = rowsize;
-      uint_t horiOffset = 0;
-      uint_t vertOffset = 0;
-      uint_t diagOffset = 0;
       real_t coeffWeight;
 
       Interpolator horiInterpolator;
@@ -207,38 +200,32 @@ private:
 
 //          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
 
-          horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }});
-          horiValues[horiOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)];
+          horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)]);
 
-          vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, -0.5 * ref_h }});
-          vertValues[vertOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_S)];
+          vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, -0.5 * ref_h }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_S)]);
 
-          diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, -0.5 * ref_h }});
-          diagValues[diagOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_SE)];
+          diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, -0.5 * ref_h }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_SE)]);
 
           if (i == 1) {
-            diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.5 * ref_h }});
-            diagValues[diagOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_NW)];
+            diagInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.5 * ref_h }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_NW)]);
           }
 
           if (i == inner_rowsize - 2 - 1) {
-            horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, 0.0 }});
-            horiValues[horiOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_E)];
+            horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_E)]);
           }
 
           x += d0;
         }
 
-        vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, 0.5 * ref_h }});
-        vertValues[vertOffset++] = faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_N)];
+        vertInterpolator.addInterpolationPoint(ref_x + Point2D{{ 0.0, 0.5 * ref_h }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_N)]);
 
         --inner_rowsize;
       }
 
 
-      horiInterpolator.interpolate(horiValues, facePolynomials->getHoriPolynomial());
-      vertInterpolator.interpolate(vertValues, facePolynomials->getVertPolynomial());
-      diagInterpolator.interpolate(diagValues, facePolynomials->getDiagPolynomial());
+      horiInterpolator.interpolate(facePolynomials->getHoriPolynomial());
+      vertInterpolator.interpolate(facePolynomials->getVertPolynomial());
+      diagInterpolator.interpolate(facePolynomials->getDiagPolynomial());
 
 
 //      WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
