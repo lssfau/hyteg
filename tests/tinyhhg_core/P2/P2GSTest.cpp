@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
 
   hhg::P2ConstantLaplaceOperator L(storage, level, level);
 
+  hhg::P2Function< real_t > res("r", storage, level, level);
   hhg::P2Function< real_t > r("r", storage, level, level);
-  hhg::P2Function< real_t > f("f", storage, level, level);
   hhg::P2Function< real_t > u("u", storage, level, level);
   hhg::P2Function< real_t > u_exact("u_exact", storage, level, level);
   hhg::P2Function< real_t > err("err", storage, level, level);
@@ -49,17 +49,21 @@ int main(int argc, char* argv[])
   for(uint i = 0; i < 1000; ++i) {
 
     L.smooth_gs(u, r, level, hhg::Inner);
+    L.apply(u,res,level,hhg::Inner);
+    WALBERLA_LOG_INFO_ON_ROOT("residual: = " << std::sqrt(res.dot(res, level, hhg::Inner)));
 
-    err.assign({1.0, -1.0}, {&u, &u_exact}, level);
-
-    npoints_helper.interpolate(ones, level);
-    real_t npoints = npoints_helper.dot(npoints_helper, level);
-
-    real_t discr_l2_err = std::sqrt(err.dot(err, level) / npoints);
-
-    WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
   }
+  err.assign({1.0, -1.0}, {&u, &u_exact}, level);
+
+  npoints_helper.interpolate(ones, level);
+  real_t npoints = npoints_helper.dot(npoints_helper, level);
+
+  real_t discr_l2_err = std::sqrt(err.dot(err, level) / npoints);
+
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
+
+
 
   //walberla::WcTimingTree tt = timingTree->getReduced();
   //WALBERLA_LOG_INFO_ON_ROOT( tt );
