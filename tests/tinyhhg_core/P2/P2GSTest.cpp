@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
   size_t level = 5;
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_2el.msh" );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );

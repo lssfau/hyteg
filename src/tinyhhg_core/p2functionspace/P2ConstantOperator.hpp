@@ -220,11 +220,10 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        P2::vertex::smoothGSvertexDoF(vertex,
+        P2::vertex::smoothGSvertexDoF(level, vertex,
                                   vertexToVertex.getVertexStencilID(), dst.getVertexDoFFunction()->getVertexDataID(),
                                   edgeToVertex.getVertexStencilID(), dst.getEdgeDoFFunction()->getVertexDataID(),
-                                  rhs.getVertexDoFFunction()->getVertexDataID(),
-                                  level);
+                                  rhs.getVertexDoFFunction()->getVertexDataID());
       }
     }
 

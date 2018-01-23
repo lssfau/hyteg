@@ -13,13 +13,30 @@ namespace P2{
 
 namespace vertex {
 
-void smoothGSvertexDoF(Vertex vertex,
-                       const PrimitiveDataID<StencilMemory< real_t >, Vertex> &vertexDoFStencil,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &dstVertexDoFID,
-                       const PrimitiveDataID<StencilMemory< real_t >, Vertex> &edgeDoFStencil,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &dstEdgeDoFID,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &getVertexDoFID,
-                       uint_t level){}
+void smoothGSvertexDoF(uint_t level, Vertex &vertex,
+                           const PrimitiveDataID<StencilMemory< real_t >, Vertex> &vertexDoFStencilID,
+                           const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &dstVertexDoFID,
+                           const PrimitiveDataID<StencilMemory< real_t >, Vertex> &edgeDoFStencilID,
+                           const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &dstEdgeDoFID,
+                           const PrimitiveDataID<FunctionMemory< real_t >, Vertex> &rhsVertexDoFID){
+  real_t * vertexDoFStencil = vertex.getData(vertexDoFStencilID)->getPointer( level );
+  real_t * dstVertexDoF = vertex.getData(dstVertexDoFID)->getPointer( level );
+  real_t * edgeDoFStencil = vertex.getData(edgeDoFStencilID)->getPointer( level );
+  real_t * dstEdgeDoF = vertex.getData(dstEdgeDoFID)->getPointer( level );
+  real_t * rhs = vertex.getData(rhsVertexDoFID)->getPointer( level );
+
+  real_t tmp = 0;
+  tmp = dstVertexDoF[0];
+  for(uint_t i = 0; i < vertex.getData(edgeDoFStencilID)->getSize( level ); ++i){
+    tmp -= dstEdgeDoF[i] * edgeDoFStencil[i];
+  }
+  for(uint_t i = 1; i < vertex.getData(vertexDoFStencilID)->getSize( level); ++i){
+    tmp -= dstVertexDoF[i] * vertexDoFStencil[i];
+  }
+
+  dstVertexDoF[0] = tmp / vertexDoFStencil[0];
+
+}
 
 } /// namespace vertex
 
@@ -101,7 +118,7 @@ void smoothGSedgeDoFTmpl(Edge &edge,
 
   real_t tmp;
 
-  for(uint_t i = 1; i < rowsize - 1; ++i){
+  for(uint_t i = 0; i < rowsize ; ++i){
     tmp = rhs[edgedof::macroedge::indexFromHorizontalEdge< Level >(i, stencilDirection::EDGE_HO_C)];
 
 
