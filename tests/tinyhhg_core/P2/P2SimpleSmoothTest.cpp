@@ -129,8 +129,19 @@ static void testP2Smooth() {
     edgeToVertexStencil[k] = 1;
   }
 
+  /// edge dofs
+  for(uint_t k = 0; k < 4; ++k){
+    vertexToEdgeStencil[k] = 1;
+  }
+
+
+  for(uint_t k = 0; k < 5; ++k){
+    edgeToEdgeStencil[k] = 1;
+  }
+  edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = -7.;
 
   vertexdof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
+
 
   P2::edge::smoothGSvertexDoFTmpl< level >(*doubleEdge,
                                            p2operator.getVertexToVertexOpr().getEdgeStencilID(),
@@ -140,6 +151,17 @@ static void testP2Smooth() {
                                            rhs->getVertexDoFFunction()->getEdgeDataID());
 
   vertexdof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
+
+  edgedof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
+
+  P2::edge::smoothGSedgeDoFTmpl< level >(*doubleEdge,
+                                           p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
+                                           x->getVertexDoFFunction()->getEdgeDataID(),
+                                           p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
+                                           x->getEdgeDoFFunction()->getEdgeDataID(),
+                                           rhs->getEdgeDoFFunction()->getEdgeDataID());
+
+  edgedof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
 
 }
 

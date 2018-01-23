@@ -56,6 +56,11 @@ int main(int argc, char* argv[])
 
 
   }
+
+  VTKOutput vtkOutput( "../../output", "cg_P2" );
+  vtkOutput.add( &u );
+  vtkOutput.write( level );
+
   err.assign({1.0, -1.0}, {&u, &u_exact}, level);
 
   npoints_helper.interpolate(ones, level);
