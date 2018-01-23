@@ -60,7 +60,7 @@ public:
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
-  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { function.get();
+  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
                                                                               p1Functions_.push_back( function->getVertexDoFFunction().get() );
                                                                               edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
 
