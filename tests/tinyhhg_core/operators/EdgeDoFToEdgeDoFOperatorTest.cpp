@@ -98,11 +98,7 @@ static void testEdgeDoFToEdgeDoFOperator()
   for ( const auto & it : storage->getFaces() )
   {
     auto face = it.second;
-<<<<<<< HEAD
-    auto stencil = face->getData(edgeToEdgeOperator.getFaceStencilID() )->getPointer( maxLevel );
-=======
     auto stencil = face->getData( edgeToEdgeOperator.getFaceStencilID() )->getPointer( maxLevel );
->>>>>>> p2_stencils
 
     for ( const auto & stencilDir : edgedof::macroface::neighborsFromHorizontalEdge )
     {
