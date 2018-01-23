@@ -13,67 +13,67 @@ using namespace hhg;
 int main(int argc, char* argv[])
 {
 
+  /// create enviroment
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  size_t level = 5;
+  const size_t level = 4;
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" );
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-  hhg::loadbalancing::roundRobin( setupStorage );
-
+  /// create timingTree
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+  /// read mesh file and create storage
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  hhg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
+  /// create operator and functions
   hhg::P2ConstantLaplaceOperator L(storage, level, level);
 
-  hhg::P2Function< real_t > res("r", storage, level, level);
-  hhg::P2Function< real_t > r("r", storage, level, level);
+  hhg::P2Function< real_t > residuumFunction("residuumFunction", storage, level, level);
+  hhg::P2Function< real_t > rightHandSide("rightHandSide", storage, level, level);
   hhg::P2Function< real_t > u("u", storage, level, level);
   hhg::P2Function< real_t > u_exact("u_exact", storage, level, level);
-  hhg::P2Function< real_t > err("err", storage, level, level);
+  hhg::P2Function< real_t > error("error", storage, level, level);
   hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, level, level);
 
-
-
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   u.interpolate(exact, level, hhg::DirichletBoundary);
   u_exact.interpolate(exact, level);
 
+  /// set residuum to a high which is higher than the residuum after the first few iterations
+  real_t oldResiduum, newResiduum = 100;
 
-  WALBERLA_LOG_INFO_ON_ROOT("residual: = " << std::sqrt(res.dot(res, level, hhg::Inner)));
+  /// apply Gauss Seidl smoother i times
   for(uint i = 0; i < 100; ++i) {
+    L.smooth_gs(u, rightHandSide, level, hhg::Inner);
 
-    L.smooth_gs(u, r, level, hhg::Inner);
-    L.apply(u,res,level,hhg::Inner);
-    res.add({-1},{&r},level,hhg::Inner);
-    WALBERLA_LOG_INFO_ON_ROOT("residual: = " << std::sqrt(res.dot(res, level, hhg::Inner)));
+    /// calculate residuum and check for convergence
+    if(i % 5 == 0) {
+      L.apply(u,residuumFunction,level,hhg::Inner);
+      residuumFunction.add({-1},{&rightHandSide},level,hhg::Inner);
+      oldResiduum = newResiduum;
+      newResiduum = std::sqrt(residuumFunction.dot(residuumFunction, level, hhg::Inner));
+      WALBERLA_LOG_INFO_ON_ROOT("residual: = " << newResiduum);
+      WALBERLA_CHECK_GREATER(oldResiduum,newResiduum);
+    }
 
 
   }
 
-  VTKOutput vtkOutput( "../../output", "cg_P2" );
-  vtkOutput.add( &u );
-  vtkOutput.write( level );
-
-  err.assign({1.0, -1.0}, {&u, &u_exact}, level);
-
+  /// calculate and print error
+  error.assign({1.0, -1.0}, {&u, &u_exact}, level);
   npoints_helper.interpolate(ones, level);
   real_t npoints = npoints_helper.dot(npoints_helper, level);
-
-  real_t discr_l2_err = std::sqrt(err.dot(err, level) / npoints);
-
+  real_t discr_l2_err = std::sqrt(error.dot(error, level) / npoints);
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-
-
-  //walberla::WcTimingTree tt = timingTree->getReduced();
-  //WALBERLA_LOG_INFO_ON_ROOT( tt );
+//walberla::WcTimingTree tt = timingTree->getReduced();
+//WALBERLA_LOG_INFO_ON_ROOT( tt );
 
   return 0;
 }
