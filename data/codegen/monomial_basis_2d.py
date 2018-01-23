@@ -12,6 +12,17 @@ DEGREE = 7
 
 monomials = []
 
+def pow_to_mul(expr):
+  """
+  Convert integer powers in an expression to Muls, like a**2 => a*a.
+  """
+  pows = list(expr.atoms(Pow))
+  if any(not e.is_Integer for b, e in (i.as_base_exp() for i in pows)):
+
+      raise ValueError("A power contains a non-integer exponent")
+  repl = zip(pows, (Mul(*[b]*e,evaluate=False) for b,e in (i.as_base_exp() for i in pows)))
+  return expr.subs(repl)
+
 def getNumCoefficientsForDegree(degree):
   return int(scipy.special.binom(2 + degree - 1, degree))
 
@@ -20,7 +31,7 @@ for d in range(DEGREE+1):
   j = 0
 
   for k in range(getNumCoefficientsForDegree(d)):
-    monomials.append(x**i * y**j)
+    monomials.append(Mul(pow_to_mul(x**i), pow_to_mul(y**j), evaluate=False))
     i -= 1
     j += 1
 

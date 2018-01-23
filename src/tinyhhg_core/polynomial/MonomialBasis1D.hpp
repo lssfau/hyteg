@@ -14,17 +14,17 @@ public:
       case 1:
         return x;
       case 2:
-        return pow(x, 2);
+        return x*x;
       case 3:
-        return pow(x, 3);
+        return x*x*x;
       case 4:
-        return pow(x, 4);
+        return x*x*x*x;
       case 5:
-        return pow(x, 5);
+        return x*x*x*x*x;
       case 6:
-        return pow(x, 6);
+        return x*x*x*x*x*x;
       case 7:
-        return pow(x, 7);
+        return x*x*x*x*x*x*x;
       default:
         WALBERLA_ABORT("Polynomial basis " << basis << " was not generated");
     }

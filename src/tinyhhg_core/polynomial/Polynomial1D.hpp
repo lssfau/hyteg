@@ -26,7 +26,7 @@ class Polynomial1D {
     real_t eval = coeffs_[0] * Basis::eval(0, x);
 
     for (uint_t c = 1; c < NumCoefficients_; ++c) {
-      eval += coeffs_[c] * Basis::eval(c, x);
+      eval = std::fma(coeffs_[c], Basis::eval(c, x), eval);
     }
 
     return eval;

@@ -38,7 +38,7 @@ public:
     WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
 
     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
-    coeffs = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(rhs);
+    coeffs = A.colPivHouseholderQr().solve(rhs);
 
     for (uint_t i = 0; i < NumCoefficients; ++i) {
       poly.setCoefficient(i, coeffs(i));
