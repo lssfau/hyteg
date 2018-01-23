@@ -2,6 +2,7 @@
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/bubblefunctionspace/BubbleFunction.hpp"
 
 namespace hhg
 {
@@ -541,6 +542,8 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
 {
   if ( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
   {
+    syncAllFunctions( level );
+
     const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_HORIZONTAL, DoFType::EDGE_VERTICAL, DoFType::EDGE_DIAGONAL, DoFType::DG, DoFType::P2 };
 
     for ( const auto & dofType : dofTypes )
@@ -570,7 +573,40 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
       }
     }
   }
+}
 
+void VTKOutput::syncAllFunctions( const uint_t & level ) const
+{
+  for ( const auto & function : p1Functions_ )
+  {
+    function->getCommunicator( level )->template communicate< Vertex, Edge >();
+    function->getCommunicator( level )->template communicate< Edge,   Face >();
+  }
+
+  for ( const auto & function : edgeDoFFunctions_ )
+  {
+    function->getCommunicator( level )->template communicate< Vertex, Edge >();
+    function->getCommunicator( level )->template communicate< Edge,   Face >();
+  }
+
+  for ( const auto & function : bubbleFunctions_ )
+  {
+    function->getCommunicator( level )->template communicate< Vertex, Edge >();
+    function->getCommunicator( level )->template communicate< Edge,   Face >();
+  }
+
+  for ( const auto & function : dgFunctions_ )
+  {
+    function->getCommunicator( level )->template communicate< Vertex, Edge >();
+    function->getCommunicator( level )->template communicate< Edge,   Face >();
+  }
+
+  // P2 sync should not be necessary since the respective functions should have been updated above already. But to be safe..
+  for ( const auto & function : p2Functions_ )
+  {
+    function->getCommunicator( level )->template communicate< Vertex, Edge >();
+    function->getCommunicator( level )->template communicate< Edge,   Face >();
+  }
 }
 
 }

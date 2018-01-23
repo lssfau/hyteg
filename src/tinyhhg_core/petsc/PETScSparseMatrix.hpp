@@ -90,9 +90,14 @@ public:
 
   inline Mat& get() { return mat; }
 
-
-
-
+  bool isSymmetric(real_t tol = real_c(1e-14)) {
+    Mat B;
+    MatTranspose(mat, MAT_INITIAL_MATRIX, &B);
+    PetscBool flg;
+    MatIsTranspose(mat, B, (PetscReal) tol, &flg);
+    MatDestroy(&B);
+    return flg;
+  }
 
 };
 

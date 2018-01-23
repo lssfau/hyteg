@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
   u.interpolate(exact, level, hhg::DirichletBoundary);
   u_exact.interpolate(exact, level);
 
-  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, level, level, 30);
+  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, level, level);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, level, tolerance, maxiter, hhg::Inner, true);
   timer.end();
