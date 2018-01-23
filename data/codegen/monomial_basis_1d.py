@@ -12,19 +12,8 @@ DEGREE = 7
 
 monomials = []
 
-def pow_to_mul(expr):
-  """
-  Convert integer powers in an expression to Muls, like a**2 => a*a.
-  """
-  pows = list(expr.atoms(Pow))
-  if any(not e.is_Integer for b, e in (i.as_base_exp() for i in pows)):
-
-      raise ValueError("A power contains a non-integer exponent")
-  repl = zip(pows, (Mul(*[b]*e,evaluate=False) for b,e in (i.as_base_exp() for i in pows)))
-  return expr.subs(repl)
-
 for d in range(DEGREE+1):
-  monomials.append(pow_to_mul(x**d))
+  monomials.append(x**d)
 
 num_coefficients = len(monomials)
 

@@ -26,7 +26,7 @@ class Polynomial2D {
     real_t eval = coeffs_[0] * Basis::eval(0, x);
 
     for (uint_t c = 1; c < NumCoefficients_; ++c) {
-      eval += coeffs_[c] * Basis::eval(c, x);
+      eval = std::fma(coeffs_[c], Basis::eval(c, x), eval);
     }
 
     return eval;
@@ -59,7 +59,7 @@ private:
 
 };
 
-template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
+template<uint_t Degree, typename Basis>
 inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Degree, Basis> &poly)
 {
   os << "[";

@@ -24,7 +24,7 @@ def generateStartX(degree):
   for k in range(degree+1):
     f += coeffs[k] * monomials[k]
 
-  delta = f.subs(x, x + h) - f
+  delta = horner(f.subs(x, x + h) - f)
 
   print('    deltas[{}] = {};'.format(0, ccode(f)))
 
@@ -32,7 +32,7 @@ def generateStartX(degree):
     print('    deltas[{}] = {};'.format(1, ccode(delta)))
 
   for k in range(2, degree+1):  
-    delta = delta.subs(x, x+h) - delta
+    delta = horner(delta.subs(x, x+h) - delta)
     print('     deltas[{}] = {};'.format(k, ccode(delta)))
 
 print('real_t setStartX(real_t x, real_t h) {')
@@ -45,21 +45,6 @@ for degree in range(MAX_DEGREE+1):
 
 print('  return deltas[0];')
 print('}\n')
-
-# print('  deltas[{}] = {};'.format(0, ccode(f)))
-# print('  if (Degree >= 1) {')
-# print('    deltas[{}] = {};'.format(1, ccode(delta)))
-# print('  }')
-
-# for k in range(2, num_coefficients):  
-#   delta = delta.subs(x, x+h) - delta
-#   print('  if (Degree >= {}) {{'.format(k))
-#   print('     deltas[{}] = {};'.format(k, ccode(delta)))
-#   print('  }')
-
-
-# print('  return deltas[0];')
-# print('}\n')
 
 print('real_t incrementEval() {')
 

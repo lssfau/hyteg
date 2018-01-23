@@ -24,8 +24,6 @@ def poly_5():
     k = k + random.random()*x**5 + random.random() * x**4 * y + random.random() * x**3 * y**2 + random.random() * x**2 * y**3 + random.random() * x * y**4 + random.random() * y**5
     u = x**3 * y**2 / (x*y + 1)
 
-    print(k)
-
     return (k,u)
 
 def plume_example():

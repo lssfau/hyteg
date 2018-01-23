@@ -16,71 +16,71 @@ public:
       case 2:
         return x[1];
       case 3:
-        return x[0]*x[0];
+        return pow(x[0], 2);
       case 4:
         return x[0]*x[1];
       case 5:
-        return x[1]*x[1];
+        return pow(x[1], 2);
       case 6:
-        return x[0]*x[0]*x[0];
+        return pow(x[0], 3);
       case 7:
-        return x[1]*(x[0]*x[0]);
+        return pow(x[0], 2)*x[1];
       case 8:
-        return x[0]*(x[1]*x[1]);
+        return x[0]*pow(x[1], 2);
       case 9:
-        return x[1]*x[1]*x[1];
+        return pow(x[1], 3);
       case 10:
-        return x[0]*x[0]*x[0]*x[0];
+        return pow(x[0], 4);
       case 11:
-        return x[1]*(x[0]*x[0]*x[0]);
+        return pow(x[0], 3)*x[1];
       case 12:
-        return (x[0]*x[0])*(x[1]*x[1]);
+        return pow(x[0], 2)*pow(x[1], 2);
       case 13:
-        return x[0]*(x[1]*x[1]*x[1]);
+        return x[0]*pow(x[1], 3);
       case 14:
-        return x[1]*x[1]*x[1]*x[1];
+        return pow(x[1], 4);
       case 15:
-        return x[0]*x[0]*x[0]*x[0]*x[0];
+        return pow(x[0], 5);
       case 16:
-        return x[1]*(x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 4)*x[1];
       case 17:
-        return (x[1]*x[1])*(x[0]*x[0]*x[0]);
+        return pow(x[0], 3)*pow(x[1], 2);
       case 18:
-        return (x[0]*x[0])*(x[1]*x[1]*x[1]);
+        return pow(x[0], 2)*pow(x[1], 3);
       case 19:
-        return x[0]*(x[1]*x[1]*x[1]*x[1]);
+        return x[0]*pow(x[1], 4);
       case 20:
-        return x[1]*x[1]*x[1]*x[1]*x[1];
+        return pow(x[1], 5);
       case 21:
-        return x[0]*x[0]*x[0]*x[0]*x[0]*x[0];
+        return pow(x[0], 6);
       case 22:
-        return x[1]*(x[0]*x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 5)*x[1];
       case 23:
-        return (x[1]*x[1])*(x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 4)*pow(x[1], 2);
       case 24:
-        return (x[0]*x[0]*x[0])*(x[1]*x[1]*x[1]);
+        return pow(x[0], 3)*pow(x[1], 3);
       case 25:
-        return (x[0]*x[0])*(x[1]*x[1]*x[1]*x[1]);
+        return pow(x[0], 2)*pow(x[1], 4);
       case 26:
-        return x[0]*(x[1]*x[1]*x[1]*x[1]*x[1]);
+        return x[0]*pow(x[1], 5);
       case 27:
-        return x[1]*x[1]*x[1]*x[1]*x[1]*x[1];
+        return pow(x[1], 6);
       case 28:
-        return x[0]*x[0]*x[0]*x[0]*x[0]*x[0]*x[0];
+        return pow(x[0], 7);
       case 29:
-        return x[1]*(x[0]*x[0]*x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 6)*x[1];
       case 30:
-        return (x[1]*x[1])*(x[0]*x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 5)*pow(x[1], 2);
       case 31:
-        return (x[1]*x[1]*x[1])*(x[0]*x[0]*x[0]*x[0]);
+        return pow(x[0], 4)*pow(x[1], 3);
       case 32:
-        return (x[0]*x[0]*x[0])*(x[1]*x[1]*x[1]*x[1]);
+        return pow(x[0], 3)*pow(x[1], 4);
       case 33:
-        return (x[0]*x[0])*(x[1]*x[1]*x[1]*x[1]*x[1]);
+        return pow(x[0], 2)*pow(x[1], 5);
       case 34:
-        return x[0]*(x[1]*x[1]*x[1]*x[1]*x[1]*x[1]);
+        return x[0]*pow(x[1], 6);
       case 35:
-        return x[1]*x[1]*x[1]*x[1]*x[1]*x[1]*x[1];
+        return pow(x[1], 7);
       default:
       WALBERLA_ABORT("Polynomial basis " << basis << " was not generated");
     }

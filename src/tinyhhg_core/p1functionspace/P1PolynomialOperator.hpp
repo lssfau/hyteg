@@ -183,30 +183,32 @@ private:
           std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
           // elementS
-          coeffWeight = analyticCoefficient_(x + 1./3. * d0f - 2./3. * d2f );
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d2f) + analyticCoefficient_(x + d0f - d2f));
           assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[0], FaceVertexDoF::P1GrayDoFMaps[0], local_stiffness_gray, faceStencil, coeffWeight);
 
           // elementNE
-          coeffWeight = analyticCoefficient_(x + 1./3. * d0f + 1./3. * d2f);
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d0f) +analyticCoefficient_(x + d2f));
           assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[1], FaceVertexDoF::P1GrayDoFMaps[1], local_stiffness_gray, faceStencil, coeffWeight);
 
           // elementNW
-          coeffWeight = analyticCoefficient_(x - 2./3. * d0f + 1./3. * d2f);
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d0f + d2f) +analyticCoefficient_(x - d0f));
           assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[2], FaceVertexDoF::P1GrayDoFMaps[2], local_stiffness_gray, faceStencil, coeffWeight);
 
           // elementSW
-          coeffWeight = analyticCoefficient_(x - 1./3. * d0f - 1./3. * d2f);
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d0f) +analyticCoefficient_(x - d2f));
           assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[0], FaceVertexDoF::P1BlueDoFMaps[0], local_stiffness_blue, faceStencil, coeffWeight);
 
           // elementSE
-          coeffWeight = analyticCoefficient_(x + 2./3. * d0f - 1./3. * d2f);
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d0f - d2f) +analyticCoefficient_(x + d0f));
           assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[1], FaceVertexDoF::P1BlueDoFMaps[1], local_stiffness_blue, faceStencil, coeffWeight);
 
           // elementN
-          coeffWeight = analyticCoefficient_(x - 1./3. * d0f + 2./3. * d2f);
+          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d2f) +analyticCoefficient_(x - d0f + d2f));
           assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[2], FaceVertexDoF::P1BlueDoFMaps[2], local_stiffness_blue, faceStencil, coeffWeight);
 
-//          WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
+//          if (i == 1 && j == 1) {
+//            WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("nodal = {}", PointND<real_t, 7>(&faceStencil[0])));
+//          }
 
           horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)]);
 
@@ -230,11 +232,24 @@ private:
         --inner_rowsize;
       }
 
-
       horiInterpolator.interpolate(facePolynomials->getHoriPolynomial());
       vertInterpolator.interpolate(facePolynomials->getVertPolynomial());
       diagInterpolator.interpolate(facePolynomials->getDiagPolynomial());
 
+//      std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = facePolynomials->getHoriPolynomial().eval(Point2D({ 1 * ref_H - 0.5 * ref_h, 1*ref_H  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = facePolynomials->getHoriPolynomial().eval(Point2D({ 1 * ref_H + 0.5 * ref_h, 1*ref_H  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = facePolynomials->getVertPolynomial().eval(Point2D({ 1 * ref_H, 1*ref_H - 0.5 * ref_h  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = facePolynomials->getVertPolynomial().eval(Point2D({ 1 * ref_H, 1*ref_H + 0.5 * ref_h  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = facePolynomials->getDiagPolynomial().eval(Point2D({ 1 * ref_H + 0.5 * ref_h, 1*ref_H - 0.5 * ref_h  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = facePolynomials->getDiagPolynomial().eval(Point2D({ 1 * ref_H - 0.5 * ref_h, 1*ref_H + 0.5 * ref_h  }));
+//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
+//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
+//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]
+//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]
+//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]
+//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])];
+//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("poly  = {}", PointND<real_t, 7>(&faceStencil[0])));
 
 //      WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
 //      WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());

@@ -1,3 +1,7 @@
+#define FP_FAST_FMA
+#define FP_FAST_FMAF
+#define FP_FAST_FMAL
+
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
@@ -24,7 +28,7 @@ int main(int argc, char* argv[])
   uint_t level_h = parameters.getParameter<uint_t>("level_h_fine");
   const uint_t minLevel = 2;
   const uint_t maxLevel = level_h - level_H;
-  const uint_t maxPolyDegree = 1;
+  const uint_t maxPolyDegree = 5;
   const uint_t interpolationLevel = maxLevel-1;
   const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
   const uint_t max_cg_iter =  parameters.getParameter<uint_t>("max_cg_iter");
@@ -111,7 +115,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
 
-  real_t totalTime = real_c(0.0);
+  real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
   const uint_t convergenceStartIter = 3;
 
@@ -129,7 +133,7 @@ int main(int argc, char* argv[])
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
     WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
-    totalTime += end-start;
+    solveTime += end-start;
 
     if (i >= convergenceStartIter) {
       averageConvergenceRate += abs_res/abs_res_old;
@@ -150,10 +154,25 @@ int main(int argc, char* argv[])
     WALBERLA_LOG_INFO_ON_ROOT("LSQP level: " << interpolationLevel);
   }
   WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << totalTime);
+  WALBERLA_LOG_INFO_ON_ROOT("Solve time " << std::defaultfloat << solveTime);
+  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << setupTime + solveTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
   WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
+
+  std::string filename;
+
+  if (polynomialOperator) {
+    filename = "gmg_varcoeff_vs_poly_POLY";
+  } else {
+    filename = "gmg_varcoeff_vs_poly_NODAL";
+  }
+
+  hhg::VTKOutput vtkOutput( "../output", filename);
+  vtkOutput.add( &u );
+  vtkOutput.add( &u_exact );
+  vtkOutput.add( &err );
+  vtkOutput.write( maxLevel, 0);
 
   return 0;
 }
