@@ -142,6 +142,9 @@ waLBerla_execute_test(NAME OperatorTest)
 
 ## P2 ##
 
+waLBerla_compile_test(FILES p2/P2P1TransferTest.cpp DEPENDS tinyhhg_core core fmt )
+waLBerla_execute_test(NAME P2P1TransferTest)
+
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES p2/P2PetscTest.cpp DEPENDS tinyhhg_core core fmt)
   waLBerla_execute_test(NAME P2PetscTest1 COMMAND $<TARGET_FILE:P2PetscTest> )
