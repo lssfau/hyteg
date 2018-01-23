@@ -201,8 +201,8 @@ private:
       if (testFlag(edge.getDoFType(), flag))
       {
         P2::edge::smoothGSedgeDoF(level, edge,
-                                  vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
-                                  edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
+                                  vertexToEdge.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
+                                  edgeToEdge.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
                                   rhs.getEdgeDoFFunction()->getEdgeDataID());
       }
     }

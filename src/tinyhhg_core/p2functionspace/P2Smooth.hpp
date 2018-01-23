@@ -106,8 +106,8 @@ void smoothGSedgeDoFTmpl(Edge &edge,
 
     // neighbors on edge
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF) {
-      tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *
-             dstVertexDoF[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+      tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] *
+             dstVertexDoF[ vertexdof::macroedge::indexFromHorizontalEdge<Level>( i, neighbor ) ];
     }
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge) {
