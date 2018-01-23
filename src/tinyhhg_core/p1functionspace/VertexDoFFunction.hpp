@@ -37,7 +37,7 @@ public:
 
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage() ) );
     }
   }
 
@@ -55,7 +55,6 @@ public:
 
 private:
 
-  using Function< VertexDoFFunction< ValueType > >::storage_;
   using Function< VertexDoFFunction< ValueType > >::communicators_;
 
   /// Interpolates a given expression to a VertexDoFFunction
@@ -99,7 +98,7 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
     srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
@@ -109,7 +108,7 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
@@ -120,7 +119,7 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
@@ -146,7 +145,7 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
         srcFaceIDs.push_back(function->faceDataID_);
     }
 
-    for (auto& it : storage_->getVertices()) {
+    for (auto& it : this->getStorage()->getVertices()) {
         Vertex& vertex = *it.second;
 
         if (testFlag(vertex.getDoFType(), flag)) {
@@ -156,7 +155,7 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
 
     communicators_[level]->template startCommunication<Vertex, Edge>();
 
-    for (auto& it : storage_->getEdges()) {
+    for (auto& it : this->getStorage()->getEdges()) {
         Edge& edge = *it.second;
 
         if (testFlag(edge.getDoFType(), flag)) {
@@ -167,7 +166,7 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
     communicators_[level]->template endCommunication<Vertex, Edge>();
     communicators_[level]->template startCommunication<Edge, Face>();
 
-    for (auto& it : storage_->getFaces()) {
+    for (auto& it : this->getStorage()->getFaces()) {
         Face& face = *it.second;
 
         if (testFlag(face.type, flag)) {
@@ -193,7 +192,7 @@ inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType
       srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
@@ -203,7 +202,7 @@ inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
@@ -214,7 +213,7 @@ inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
@@ -230,7 +229,7 @@ inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueT
 {
   real_t scalarProduct = 0.0;
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag)) {
@@ -238,7 +237,7 @@ inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueT
       }
   }
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag)) {
@@ -246,7 +245,7 @@ inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueT
       }
   }
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag)) {
@@ -264,7 +263,7 @@ inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, 
 {
   const size_t destinationLevel = sourceLevel + 1;
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag))
@@ -275,7 +274,7 @@ inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, 
 
   communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag))
@@ -287,7 +286,7 @@ inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, 
   communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
   communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag))
@@ -304,7 +303,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sour
 {
   const size_t destinationLevel = sourceLevel + 1;
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag))
@@ -315,7 +314,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sour
 
   communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag))
@@ -327,7 +326,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sour
   communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
   communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
     if (testFlag(face.type, flag))
@@ -353,7 +352,7 @@ inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, Do
   // end pulling vertex halos
   communicators_[sourceLevel]->template endCommunication<Edge, Vertex>();
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag))
@@ -367,7 +366,7 @@ inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, Do
   // end pulling edge halos
   communicators_[sourceLevel]->template endCommunication<Face, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag))
@@ -380,7 +379,7 @@ inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, Do
 
   communicators_[destinationLevel]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag))
@@ -396,7 +395,7 @@ inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, Do
 template< typename ValueType >
 inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
     vertexdof::macrovertex::enumerate(level, vertex, vertexDataID_, num);
   }
@@ -404,7 +403,7 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t&
   communicators_[level]->template startCommunication<Vertex, Edge>();
   communicators_[level]->template endCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     vertexdof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
@@ -412,7 +411,7 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t&
   communicators_[level]->template startCommunication<Edge, Face>();
   communicators_[level]->template endCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
     vertexdof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
   }
@@ -440,29 +439,29 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
 
   rhsP1.getCommunicator(level)->template endCommunication<Edge, Vertex>();
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      vertexdof::macrovertex::integrateDG< ValueType >(vertex, storage_, rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
+      vertexdof::macrovertex::integrateDG< ValueType >(vertex, this->getStorage(), rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
     }
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
   rhsP1.getCommunicator(level)->template endCommunication<Face, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      vertexdof::macroedge::integrateDG< ValueType >(level, edge, storage_, rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
+      vertexdof::macroedge::integrateDG< ValueType >(level, edge, this->getStorage(), rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
     }
   }
 
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
     if (testFlag(face.type, flag)) {
@@ -499,7 +498,7 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue(uint_t level)
 
   real_t localMax = std::numeric_limits<real_t>::min();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
     localMax = std::max(localMax, vertexdof::macroface::getMaxValue< ValueType >(level, face, faceDataID_));
   }
