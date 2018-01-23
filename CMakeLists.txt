@@ -26,6 +26,7 @@ if ( HHG_BUILD_WITH_PETSC )
     link_directories    ( ${PETSC_LIBRARY_DIR} )
     list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
 
 find_package( waLBerla )
