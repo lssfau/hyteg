@@ -37,7 +37,7 @@ static void testP2Smooth() {
   for(uint_t k = 0; k < vertexdof::macroface::neighborsWithCenter.size(); ++k){
     vertexToVertexStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithCenter[k])] = 1;
   }
-  vertexToVertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = 19.   ;
+  vertexToVertexStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C )] = -17.   ;
 
   for(uint_t k = 0; k < edgedof::macroface::neighborsFromVertex.size(); ++k){
     edgeToVertexStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] = 1;
@@ -47,7 +47,7 @@ static void testP2Smooth() {
   for(uint_t k = 0; k < edgedof::macroface::neighborsFromHorizontalEdge.size(); ++k){
     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(edgedof::macroface::neighborsFromHorizontalEdge[k])] = 1;
   }
-  edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = 9;
+  edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = -7;
 
   for(uint_t k = 0; k < vertexdof::macroface::neighborsFromHorizontalEdge.size(); ++k){
     vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(vertexdof::macroface::neighborsFromHorizontalEdge[k])] = 1;
@@ -57,14 +57,25 @@ static void testP2Smooth() {
   for(uint_t k = 0; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k){
     edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(edgedof::macroface::neighborsFromDiagonalEdge[k])] = 1;
   }
-  edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)] = 9;
+  edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)] = -7;
 
   for(uint_t k = 0; k < vertexdof::macroface::neighborsFromDiagonalEdge.size(); ++k){
     vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge(vertexdof::macroface::neighborsFromDiagonalEdge[k])] = 1;
   }
 
+  /// vertical edges
+  for(uint_t k = 0; k < edgedof::macroface::neighborsFromVerticalEdge.size(); ++k){
+    edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(edgedof::macroface::neighborsFromVerticalEdge[k])] = 1;
+  }
+  edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)] = -7;
+
+  for(uint_t k = 0; k < vertexdof::macroface::neighborsFromVerticalEdge.size(); ++k){
+    vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge(vertexdof::macroface::neighborsFromVerticalEdge[k])] = 1;
+  }
+
 
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1; };
+  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 1; };
 
   x->interpolate(ones,level);
   rhs->interpolate(ones,level);
