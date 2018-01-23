@@ -19,7 +19,7 @@ int main(int argc, char* argv[])
 
   size_t level = 5;
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_2el.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );
@@ -46,7 +46,8 @@ int main(int argc, char* argv[])
   u_exact.interpolate(exact, level);
 
 
-  for(uint i = 0; i < 1000; ++i) {
+  WALBERLA_LOG_INFO_ON_ROOT("residual: = " << std::sqrt(res.dot(res, level, hhg::Inner)));
+  for(uint i = 0; i < 100; ++i) {
 
     L.smooth_gs(u, r, level, hhg::Inner);
     L.apply(u,res,level,hhg::Inner);

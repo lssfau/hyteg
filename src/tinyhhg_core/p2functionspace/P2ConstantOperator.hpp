@@ -166,11 +166,10 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSvertexDoF(edge,
+        P2::edge::smoothGSvertexDoF(level,edge,
                                     vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
                                     edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                    rhs.getVertexDoFFunction()->getEdgeDataID(),
-                                    level);
+                                    rhs.getVertexDoFFunction()->getEdgeDataID());
       }
     }
 
@@ -201,11 +200,10 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSedgeDoF(edge,
+        P2::edge::smoothGSedgeDoF(level, edge,
                                   vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
                                   edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                  rhs.getEdgeDoFFunction()->getEdgeDataID(),
-                                  level);
+                                  rhs.getEdgeDoFFunction()->getEdgeDataID());
       }
     }
 
