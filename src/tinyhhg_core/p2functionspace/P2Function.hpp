@@ -81,11 +81,20 @@ public:
   restrictP2ToP1( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
 
+    vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Vertex >();
+    edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Edge, Vertex >();
+
     vertexDoFFunction_->getCommunicator( level )->template startCommunication< Vertex, Edge >();
     edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Vertex, Edge >();
 
+    vertexDoFFunction_->getCommunicator( level )->template startCommunication< Face,   Edge >();
+    edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Face,   Edge >();
+
     vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge,   Face >();
     edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Edge,   Face >();
+
+    vertexDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Vertex >();
+    edgeDoFFunction_->getCommunicator( level )->template endCommunication  < Edge, Vertex >();
 
     for ( const auto & it : this->getStorage()->getVertices() )
     {
@@ -102,6 +111,9 @@ public:
 
     vertexDoFFunction_->getCommunicator( level )->template endCommunication< Vertex, Edge >();
     edgeDoFFunction_->getCommunicator( level )->template endCommunication  < Vertex, Edge >();
+
+    vertexDoFFunction_->getCommunicator( level )->template endCommunication< Face,   Edge >();
+    edgeDoFFunction_->getCommunicator( level )->template endCommunication  < Face,   Edge >();
 
     for ( const auto & it : this->getStorage()->getEdges() )
     {
