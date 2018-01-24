@@ -12,7 +12,7 @@ template<uint_t Degree, typename Basis>
 class LSQPInterpolator {
 public:
 
-  static const uint_t NumCoefficients = Polynomial2D<Degree, Basis>::NumCoefficients_;
+  static const uint_t NumCoefficients;
 
   LSQPInterpolator(uint_t interpolationLevel)
       : interpolationLevel_(interpolationLevel),
@@ -52,6 +52,9 @@ private:
   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> A;
   Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> rhs;
 };
+
+template<uint_t Degree, typename Basis>
+const uint_t LSQPInterpolator<Degree, Basis>::NumCoefficients = Polynomial2D<Degree, Basis>::NumCoefficients_;
 
 }
 
