@@ -127,8 +127,8 @@ stages:
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
       - apt-get -q -y install pkg-config gfortran petsc-dev
-      - export PATH=${PATH#/opt/openmpi/bin:}
-      - export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH%/opt/openmpi:}
+      - export PATH=${PATH/\/opt\/openmpi\/bin:}
+      - export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH/\/opt\/openmpi:}
       - cd $CI_PROJECT_DIR
    variables:
       WALBERLA_BUILD_WITH_MPI: "ON"
