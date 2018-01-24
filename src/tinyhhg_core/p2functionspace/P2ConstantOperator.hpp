@@ -166,7 +166,7 @@ public:
 
   }
 
-  const P1Operator<NoAssemble>& getVertexToVertexOpr() const {
+  const P1Operator<fenics::NoAssemble>& getVertexToVertexOpr() const {
     return vertexToVertex;
   }
 
@@ -174,7 +174,7 @@ public:
     return edgeToVertex;
   }
 
-  const VertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() const {
+  const GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() const {
     return vertexToEdge;
   }
 
@@ -298,9 +298,9 @@ private:
   }
 
 
-  P1Operator<NoAssemble> vertexToVertex;
+  P1Operator<fenics::NoAssemble> vertexToVertex;
   EdgeDoFToVertexDoFOperator edgeToVertex;
-  VertexDoFToEdgeDoFOperator vertexToEdge;
+  GenericVertexDoFToEdgeDoFOperator vertexToEdge;
   EdgeDoFOperator edgeToEdge;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {

@@ -212,7 +212,7 @@ inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatr
 
 namespace P2Edge {
 
-void fillEdgeDoFMap(uint_t start_id, uint_t end_id, uint_t opposite_id, uint_t& edge_start_end_id, uint_t& edge_start_opposite_id, uint_t& edge_end_opposite_id) {
+inline void fillEdgeDoFMap(uint_t start_id, uint_t end_id, uint_t opposite_id, uint_t& edge_start_end_id, uint_t& edge_start_opposite_id, uint_t& edge_end_opposite_id) {
   if (start_id == 0 && end_id == 1 && opposite_id == 2) {
     edge_start_end_id = 5;
     edge_start_opposite_id = 4;

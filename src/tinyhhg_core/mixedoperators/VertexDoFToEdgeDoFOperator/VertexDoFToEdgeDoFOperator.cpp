@@ -1,8 +1,15 @@
 #include "VertexDoFToEdgeDoFOperator.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Elements.hpp"
+
 namespace hhg {
 
-VertexDoFToEdgeDoFOperator::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
+template class VertexDoFToEdgeDoFOperator<hhg::fenics::NoAssemble>;
+template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_0_otherwise>;
+template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_1_otherwise>;
+
+template<class UFCOperator>
+VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
   : Operator(storage, minLevel, maxLevel) {
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
 
@@ -18,9 +25,73 @@ VertexDoFToEdgeDoFOperator::VertexDoFToEdgeDoFOperator(const std::shared_ptr<Pri
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+
+  // Only assemble stencils if UFCOperator is specified
+  if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
+    assembleStencils();
+  }
 }
 
-void VertexDoFToEdgeDoFOperator::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
+template<class UFCOperator>
+void VertexDoFToEdgeDoFOperator<UFCOperator>::assembleStencils() {
+  using namespace P2Elements;
+
+  // Initialize memory for local 6x6 matrices
+  Matrix6r local_stiffness_gray;
+  Matrix6r local_stiffness_blue;
+
+  // Assemble stencils on all levels
+  for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+  {
+
+    // Assemble face stencils
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      // Compute both local stiffness matrices
+      compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
+      compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
+
+      // Assemble vertexToEdge stencil
+      real_t * vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
+      P2Face::VertexToEdge::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
+//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+    }
+
+    // Assemble edge stencils
+    for (auto& it : storage_->getEdges()) {
+      Edge &edge = *it.second;
+
+      // Assemble vertexToEdge stencil
+      Face* face = storage_->getFace(edge.neighborFaces()[0]);
+      real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
+      compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+      compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+      P2Edge::VertexToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
+
+      if (edge.getNumNeighborFaces() == 2) {
+        face = storage_->getFace(edge.neighborFaces()[1]);
+        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+        P2Edge::VertexToEdge::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
+      }
+
+//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("vertexToEdge/Edge = {}", PointND<real_t, 4>(&vStencil[0])));
+    }
+
+  }
+}
+
+template<class UFCOperator>
+void VertexDoFToEdgeDoFOperator<UFCOperator>::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
+  real_t coords[6];
+  fenics::compute_micro_coords(face, level, coords, element_type);
+  UFCOperator gen;
+  gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
+}
+
+template<class UFCOperator>
+void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
                                             UpdateType updateType) {
 
   src.getCommunicator(level)->startCommunication<Face, Edge>();

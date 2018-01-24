@@ -38,14 +38,6 @@ namespace hhg
 
 using walberla::real_t;
 
-class NoAssemble {
-public:
-  void tabulate_tensor(real_t * A,
-                       const real_t * const * w,
-                       const real_t * coordinate_dofs,
-                       int cell_orientation) const { }
-};
-
 template<class UFCOperator,  bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false>
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
@@ -63,7 +55,7 @@ public:
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
 
     // Only assemble stencils if UFCOperator is specified
-    if (!std::is_same<UFCOperator, NoAssemble>::value) {
+    if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
       assembleStencils();
     }
   }
