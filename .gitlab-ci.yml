@@ -218,6 +218,12 @@ gcc_6_petsc:
    tags:
       - docker
 
+gcc_7_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   tags:
+      - docker
+
 clang_3.5_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
@@ -252,6 +258,12 @@ clang_4.0_hybrid_dbg_sp:
 clang_4.0_petsc:
    <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   tags:
+      - docker
+
+clang_5.0_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
    tags:
       - docker
 
