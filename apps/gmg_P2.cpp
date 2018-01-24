@@ -167,14 +167,16 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 
-  VTKOutput vtkOutput( "../output", "gmg_P2" );
-  vtkOutput.add( &u_p2 );
-  vtkOutput.add( &u_exact_p2 );
-  vtkOutput.add( &f_p2 );
-  vtkOutput.add( &r_p2 );
-  vtkOutput.add( &err_p2 );
-  vtkOutput.add( &npoints_helper_p2 );
-  vtkOutput.write( maxLevel );
+  if (parameters.getParameter<bool>("vtkOutput")) {
+    VTKOutput vtkOutput("../output", "gmg_P2");
+    vtkOutput.add(&u_p2);
+    vtkOutput.add(&u_exact_p2);
+    vtkOutput.add(&f_p2);
+    vtkOutput.add(&r_p2);
+    vtkOutput.add(&err_p2);
+    vtkOutput.add(&npoints_helper_p2);
+    vtkOutput.write(maxLevel);
+  }
 
   walberla::WcTimingTree tt = timingTree->getReduced();
   WALBERLA_LOG_INFO_ON_ROOT( tt );

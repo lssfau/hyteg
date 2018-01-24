@@ -7,4 +7,5 @@ Parameters
   max_cg_iter 10000;
   mg_tolerance 1e-10;
   coarse_tolerance 1e-10;
+  vtkOutput false;
 }
