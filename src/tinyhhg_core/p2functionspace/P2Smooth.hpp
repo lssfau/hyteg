@@ -26,7 +26,7 @@ void smoothGSvertexDoF(uint_t level, Vertex &vertex,
   real_t * rhs = vertex.getData(rhsVertexDoFID)->getPointer( level );
 
   real_t tmp = 0;
-  tmp = dstVertexDoF[0];
+  tmp = rhs[0];
   for(uint_t i = 0; i < vertex.getData(edgeDoFStencilID)->getSize( level ); ++i){
     tmp -= dstEdgeDoF[i] * edgeDoFStencil[i];
   }
