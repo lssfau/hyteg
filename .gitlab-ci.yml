@@ -127,13 +127,12 @@ stages:
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
       - apt-get -q -y install pkg-config gfortran petsc-dev
+      - export PATH=${PATH#*:}
+      - export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH%/opt/openmpi:}
       - cd $CI_PROJECT_DIR
-
-.build_petsc_hybrid_template: &build_petsc_hybrid_definition
-   <<: *build_petsc_definition
    variables:
       WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BUILD_WITH_OPENMP: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
       OMP_NUM_THREADS: "4"
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "Release"
@@ -147,8 +146,8 @@ stages:
 
 
 
-intel_17_hybrid:
-   <<: *build_hybrid_definition
+intel_17_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
    tags:
       - docker
@@ -168,13 +167,6 @@ intel_17_mpionly_dbg:
       - docker
       - intel
 
-intel_17_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   tags:
-      - docker
-      - intel
-
 intel_17_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
@@ -182,22 +174,22 @@ intel_17_hybrid_dbg_sp:
       - docker
       - intel
 
-intel_17_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+intel_17_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
    tags:
       - docker
       - intel
 
-gcc_5_hybrid:
-   <<: *build_hybrid_definition
+gcc_5_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
    tags:
       - cuda
       - docker
 
-gcc_6_hybrid:
-   <<: *build_hybrid_definition
+gcc_6_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
@@ -214,20 +206,14 @@ gcc_6_mpionly_dbg:
    tags:
       - docker
 
-gcc_6_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   tags:
-      - docker
-
 gcc_6_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
 
-gcc_6_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+gcc_6_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
@@ -239,8 +225,8 @@ clang_3.5_mpionly:
       - cuda
       - docker
 
-clang_4.0_hybrid:
-   <<: *build_hybrid_definition
+clang_4.0_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
@@ -257,20 +243,14 @@ clang_4.0_mpionly_dbg:
    tags:
       - docker
 
-clang_4.0_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   tags:
-      - docker
-
 clang_4.0_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
 
-clang_4.0_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+clang_4.0_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
