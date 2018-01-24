@@ -205,8 +205,6 @@ inline void restrictP2ToP1Tmpl( const Vertex & vertex,
   {
     p1Vertices[ 0 ] += 0.5 * p2Edges[ i ];
   }
-
-  WALBERLA_LOG_DEVEL( p1Vertices[0] );
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, restrictP2ToP1Tmpl, restrictP2ToP1)
