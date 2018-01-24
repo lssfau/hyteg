@@ -2,8 +2,15 @@
 #pragma once
 
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/primitives/Vertex.hpp"
+#include "tinyhhg_core/primitives/Edge.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/macros.hpp"
 #include "core/DataTypes.h"
+
 
 namespace hhg {
 namespace P2 {
