@@ -29,6 +29,7 @@ public:
   inline void
   prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
+    this->startTiming( "Prolongate P1 -> P2" );
 
     p1Function->getCommunicator( level )->template startCommunication< Vertex, Edge >();
     p1Function->getCommunicator( level )->template startCommunication< Edge,   Face >();
@@ -75,11 +76,14 @@ public:
                                                       p1Function->getFaceDataID() );
       }
     }
+
+    this->stopTiming( "Prolongate P1 -> P2" );
   }
 
   inline void
   restrictP2ToP1( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
+    this->startTiming( "Restrict P2 -> P1" );
 
     vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Vertex >();
     edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Edge, Vertex >();
@@ -143,6 +147,8 @@ public:
                                                     p1Function->getFaceDataID() );
       }
     }
+
+    this->stopTiming( "Restrict P2 -> P1" );
   }
 
 private:
