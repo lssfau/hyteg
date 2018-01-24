@@ -1,9 +1,12 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+
 
 namespace hhg {
 
@@ -17,13 +20,122 @@ public:
   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel ),
       vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel ) ),
-      edgeDoFFunction_(   std::make_shared<              EdgeDoFFunction< ValueType > >( name + "_EdgeDoF",   storage, minLevel, maxLevel ) )
+      edgeDoFFunction_(   std::make_shared<              EdgeDoFFunction< ValueType > >( name + "_EdgeDoF",   storage, minLevel, maxLevel )  )
   {}
 
   std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
   std::shared_ptr<              EdgeDoFFunction< ValueType > > getEdgeDoFFunction()   const { return edgeDoFFunction_;   }
 
+  inline void
+  prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
+  {
+
+    p1Function->getCommunicator( level )->template startCommunication< Vertex, Edge >();
+    p1Function->getCommunicator( level )->template startCommunication< Edge,   Face >();
+
+    for ( const auto & it : this->getStorage()->getVertices() )
+    {
+      const Vertex & vertex = *it.second;
+
+      if ( testFlag( vertex.getDoFType(), flag ) )
+      {
+        P2::macrovertex::prolongateP1ToP2< ValueType >( level, vertex,
+                                                        vertexDoFFunction_->getVertexDataID(),
+                                                        edgeDoFFunction_->getVertexDataID(),
+                                                        p1Function->getVertexDataID() );
+      }
+    }
+
+    p1Function->getCommunicator( level )->template endCommunication< Vertex, Edge >();
+
+    for ( const auto & it : this->getStorage()->getEdges() )
+    {
+      const Edge & edge = *it.second;
+
+      if ( testFlag( edge.getDoFType(), flag ) )
+      {
+        P2::macroedge::prolongateP1ToP2< ValueType >( level, edge,
+                                                      vertexDoFFunction_->getEdgeDataID(),
+                                                      edgeDoFFunction_->getEdgeDataID(),
+                                                      p1Function->getEdgeDataID() );
+      }
+    }
+
+    p1Function->getCommunicator( level )->template endCommunication< Edge,   Face >();
+
+    for ( const auto & it : this->getStorage()->getFaces() )
+    {
+      const Face & face = *it.second;
+
+      if ( testFlag(face.type, flag) )
+      {
+        P2::macroface::prolongateP1ToP2< ValueType >( level, face,
+                                                      vertexDoFFunction_->getFaceDataID(),
+                                                      edgeDoFFunction_->getFaceDataID(),
+                                                      p1Function->getFaceDataID() );
+      }
+    }
+  }
+
+  inline void
+  restrictP2ToP1( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
+  {
+
+    vertexDoFFunction_->getCommunicator( level )->template startCommunication< Vertex, Edge >();
+    edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Vertex, Edge >();
+
+    vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge,   Face >();
+    edgeDoFFunction_->getCommunicator( level )->template startCommunication  < Edge,   Face >();
+
+    for ( const auto & it : this->getStorage()->getVertices() )
+    {
+      const Vertex & vertex = *it.second;
+
+      if ( testFlag( vertex.getDoFType(), flag ) )
+      {
+        P2::macrovertex::restrictP2ToP1< ValueType >( level, vertex,
+                                                      vertexDoFFunction_->getVertexDataID(),
+                                                      edgeDoFFunction_->getVertexDataID(),
+                                                      p1Function->getVertexDataID() );
+      }
+    }
+
+    vertexDoFFunction_->getCommunicator( level )->template endCommunication< Vertex, Edge >();
+    edgeDoFFunction_->getCommunicator( level )->template endCommunication  < Vertex, Edge >();
+
+    for ( const auto & it : this->getStorage()->getEdges() )
+    {
+      const Edge & edge = *it.second;
+
+      if ( testFlag( edge.getDoFType(), flag ) )
+      {
+        P2::macroedge::restrictP2ToP1< ValueType >( level, edge,
+                                                    vertexDoFFunction_->getEdgeDataID(),
+                                                    edgeDoFFunction_->getEdgeDataID(),
+                                                    p1Function->getEdgeDataID() );
+      }
+    }
+
+    vertexDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Face >();
+    edgeDoFFunction_->getCommunicator( level )->template endCommunication  < Edge, Face >();
+
+    for ( const auto & it : this->getStorage()->getFaces() )
+    {
+      const Face & face = *it.second;
+
+      if ( testFlag(face.type, flag) )
+      {
+        P2::macroface::restrictP2ToP1< ValueType >( level, face,
+                                                    vertexDoFFunction_->getFaceDataID(),
+                                                    edgeDoFFunction_->getFaceDataID(),
+                                                    p1Function->getFaceDataID() );
+      }
+    }
+  }
+
 private:
+
+  using Function< P2Function< ValueType > >::communicators_;
 
     inline void
     interpolate_impl( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,

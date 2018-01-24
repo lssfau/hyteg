@@ -76,7 +76,7 @@ public:
 
   const std::string &getFunctionName() const { return functionName_; }
 
-  const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
+  const std::shared_ptr< PrimitiveStorage > getStorage() const { WALBERLA_ASSERT( !!(storage_.lock()) ); return storage_.lock(); }
 
   uint_t getMinLevel() const { return minLevel_; }
 
@@ -127,7 +127,7 @@ protected:
     enumerate_impl( uint_t level, uint_t& num ) = 0;
 
   const std::string functionName_;
-  const std::shared_ptr< PrimitiveStorage > storage_;
+  const std::weak_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
   const uint_t maxLevel_;
 

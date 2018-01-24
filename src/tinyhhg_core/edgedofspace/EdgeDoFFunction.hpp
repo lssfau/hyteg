@@ -65,7 +65,7 @@ public:
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo(
-        std::make_shared<EdgeDoFPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, storage_));
+        std::make_shared<EdgeDoFPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage()));
     }
   }
 
@@ -75,7 +75,6 @@ public:
 
 private:
 
-    using Function< EdgeDoFFunction< ValueType > >::storage_;
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
 
     /// Interpolates a given expression to a EdgeDoFFunction
@@ -129,7 +128,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
     srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for ( auto & it : storage_->getEdges() )
+  for ( auto & it : this->getStorage()->getEdges() )
   {
     Edge & edge = *it.second;
 
@@ -141,7 +140,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
 
   communicators_[ level ]->template startCommunication< Edge, Face >();
 
-  for ( auto & it : storage_->getFaces() )
+  for ( auto & it : this->getStorage()->getFaces() )
   {
     Face & face = *it.second;
 
@@ -166,7 +165,7 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
       srcFaceIDs.push_back( function->faceDataID_ );
   }
 
-  for ( auto & it : storage_->getEdges() )
+  for ( auto & it : this->getStorage()->getEdges() )
   {
     Edge & edge = *it.second;
 
@@ -178,7 +177,7 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
 
   communicators_[ level ]->template startCommunication< Edge, Face >();
 
-  for ( auto & it : storage_->getFaces() )
+  for ( auto & it : this->getStorage()->getFaces() )
   {
     Face & face = *it.second;
 
@@ -204,7 +203,7 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
       srcFaceIDs.push_back( function->faceDataID_ );
   }
 
-  for ( auto & it : storage_->getEdges() )
+  for ( auto & it : this->getStorage()->getEdges() )
   {
     Edge & edge = *it.second;
 
@@ -216,7 +215,7 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
 
   communicators_[ level ]->template startCommunication< Edge, Face >();
 
-  for ( auto & it : storage_->getFaces() )
+  for ( auto & it : this->getStorage()->getFaces() )
   {
     Face & face = *it.second;
 
@@ -234,7 +233,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
 {
   real_t scalarProduct =  0.0 ;
 
-  for ( auto & it : storage_->getEdges() )
+  for ( auto & it : this->getStorage()->getEdges() )
   {
     Edge & edge = *it.second;
 
@@ -244,7 +243,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
     }
   }
 
-  for ( auto & it : storage_->getFaces() )
+  for ( auto & it : this->getStorage()->getFaces() )
   {
     Face & face = *it.second;
 
@@ -279,7 +278,7 @@ inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFT
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
@@ -287,7 +286,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
   communicators_[level]->template startCommunication<Edge, Face>();
 
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
     edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
   }
