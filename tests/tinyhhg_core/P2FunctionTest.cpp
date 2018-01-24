@@ -3,9 +3,13 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
+#include "core/DataTypes.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/vtkwriter.hpp"
+
+
 
 namespace hhg {
 

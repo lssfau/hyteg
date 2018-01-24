@@ -190,6 +190,30 @@ inline void applyTmpl(Edge &edge,
 
 SPECIALIZE(void, applyTmpl, apply)
 
+template< typename ValueType, size_t Level >
+inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+  ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
+  using namespace std;
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << edge << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+  cout << "Horizontal Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 1; i < rowsize; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
+  }
+  cout << endl << "     |";
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_SE)] << "|";
+  }
+  cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
+
+}
 
 
 } ///namespace macroedge

@@ -43,6 +43,7 @@ static void testEdgeDoFToEdgeDoFOperator()
   for ( const auto & it : storage->getEdges() )
   {
     auto edge = it.second;
+
     auto stencil = edge->getData( edgeToEdgeOperator.getEdgeStencilID() )->getPointer( maxLevel );
 
     for ( const auto & stencilDir : edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge )

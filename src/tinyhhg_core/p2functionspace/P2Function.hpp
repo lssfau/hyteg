@@ -3,6 +3,10 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
+#include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+
 
 namespace hhg {
 

@@ -68,6 +68,10 @@ waLBerla_add_executable( NAME cg_P2
         FILES cg_P2.cpp
         DEPENDS tinyhhg_core fmt)
 
+waLBerla_add_executable( NAME gmg_P2
+        FILES gmg_P2.cpp
+        DEPENDS tinyhhg_core fmt)
+
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc
         FILES stokes_mini_petsc.cpp
