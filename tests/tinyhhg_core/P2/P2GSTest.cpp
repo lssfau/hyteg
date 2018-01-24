@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const size_t level = 4;
+  const size_t level = 3;
 
   /// create timingTree
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -45,24 +45,32 @@ int main(int argc, char* argv[])
   u.interpolate(exact, level, hhg::DirichletBoundary);
   u_exact.interpolate(exact, level);
 
-  /// set residuum to a high which is higher than the residuum after the first few iterations
-  real_t oldResiduum, newResiduum = 100;
+
+  real_t residuum = 100;
+
+  uint_t iterations;
+  /// use different checks for debug and release since the runtime in debug would be to high otherwise
+  WALBERLA_DEBUG_SECTION(){
+    iterations = 100;
+  } else {
+    iterations = 5000;
+  }
 
   /// apply Gauss Seidl smoother i times
-  for(uint i = 0; i < 100; ++i) {
+  for(uint i = 0; i < iterations; ++i) {
     L.smooth_gs(u, rightHandSide, level, hhg::Inner);
+  }
 
-    /// calculate residuum and check for convergence
-    if(i % 5 == 0) {
-      L.apply(u,residuumFunction,level,hhg::Inner);
-      residuumFunction.add({-1},{&rightHandSide},level,hhg::Inner);
-      oldResiduum = newResiduum;
-      newResiduum = std::sqrt(residuumFunction.dot(residuumFunction, level, hhg::Inner));
-      WALBERLA_LOG_INFO_ON_ROOT("residual: = " << newResiduum);
-      WALBERLA_CHECK_GREATER(oldResiduum,newResiduum);
-    }
-
-
+  /// calculate residuum and check
+  L.apply(u,residuumFunction,level,hhg::Inner);
+  residuumFunction.add({-1},{&rightHandSide},level,hhg::Inner);
+  residuum = std::sqrt(residuumFunction.dot(residuumFunction, level, hhg::Inner));
+  WALBERLA_LOG_INFO_ON_ROOT("residual: = " << residuum);
+  WALBERLA_DEBUG_SECTION()
+  {
+    WALBERLA_CHECK_GREATER(0.2, residuum);
+  } else {
+    WALBERLA_CHECK_GREATER(1e-14, residuum);
   }
 
   /// calculate and print error
@@ -72,8 +80,8 @@ int main(int argc, char* argv[])
   real_t discr_l2_err = std::sqrt(error.dot(error, level) / npoints);
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-//walberla::WcTimingTree tt = timingTree->getReduced();
-//WALBERLA_LOG_INFO_ON_ROOT( tt );
+//  walberla::WcTimingTree tt = timingTree->getReduced();
+//  WALBERLA_LOG_INFO_ON_ROOT( tt );
 
   return 0;
 }
