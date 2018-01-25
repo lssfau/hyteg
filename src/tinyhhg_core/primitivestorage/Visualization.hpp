@@ -57,13 +57,13 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
 
   auto getFilenameOfRank = []( const std::string & filename, const uint_t & rank ) -> std::string
   {
-    return hhg::format("%s-rank-%04d.vtu", filename,rank);
+    return hhg::format("%s-rank-%04d.vtu", filename.c_str(),rank);
     //return fmt::format("{}-rank-{:0>4}.vtu", filename, rank);
   };
 
   WALBERLA_ROOT_SECTION()
   {
-    std::string pvtu_filename(hhg::format("%s/%s.pvtu",dir,filename));
+    std::string pvtu_filename(hhg::format("%s/%s.pvtu",dir.c_str(),filename.c_str()));
     //std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
     std::ofstream pvtu_file;
     pvtu_file.open(pvtu_filename.c_str());
@@ -103,7 +103,7 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     pvtu_file.close();
   }
 
-  std::string vtu_filename(hhg::format("%s/%s", dir, getFilenameOfRank( filename, rank )));
+  std::string vtu_filename(hhg::format("%s/%s", dir, getFilenameOfRank( filename, rank ).c_str()));
   //std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
   std::ofstream vtu_file;
   vtu_file.open(vtu_filename.c_str());
