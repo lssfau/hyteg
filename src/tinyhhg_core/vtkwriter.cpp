@@ -132,9 +132,7 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 
 std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const
 {
-  return hhg::format("_%s_level%u_ts%u", DoFTypeToString_.at( dofType ), level, timestep);
-  //return fmt::format( "_{}_level{}_ts{}", DoFTypeToString_.at( dofType ), std::to_string( level ), std::to_string( timestep ) );
-
+  return hhg::format("_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep);
 }
 
 

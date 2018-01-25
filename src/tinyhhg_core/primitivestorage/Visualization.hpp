@@ -103,7 +103,7 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     pvtu_file.close();
   }
 
-  std::string vtu_filename(hhg::format("%s/%s", dir, getFilenameOfRank( filename, rank ).c_str()));
+  std::string vtu_filename(hhg::format("%s/%s", dir.c_str(), getFilenameOfRank( filename, rank ).c_str()));
   //std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
   std::ofstream vtu_file;
   vtu_file.open(vtu_filename.c_str());
