@@ -5,6 +5,7 @@
 #include "core/mpi/MPITextFile.h"
 
 #include <memory>
+#include <tinyhhg_core/format.hpp>
 
 namespace hhg {
 
@@ -56,12 +57,14 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
 
   auto getFilenameOfRank = []( const std::string & filename, const uint_t & rank ) -> std::string
   {
-    return fmt::format("{}-rank-{:0>4}.vtu", filename, rank);
+    return hhg::format("%s-rank-%04d.vtu", filename,rank);
+    //return fmt::format("{}-rank-{:0>4}.vtu", filename, rank);
   };
 
   WALBERLA_ROOT_SECTION()
   {
-    std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
+    std::string pvtu_filename(hhg::format("%s/%s.pvtu",dir,filename));
+    //std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
     std::ofstream pvtu_file;
     pvtu_file.open(pvtu_filename.c_str());
 
@@ -100,7 +103,8 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     pvtu_file.close();
   }
 
-  std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
+  std::string vtu_filename(hhg::format("%s/%s", dir, getFilenameOfRank( filename, rank )));
+  //std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
   std::ofstream vtu_file;
   vtu_file.open(vtu_filename.c_str());
 

@@ -1,4 +1,5 @@
 #include <tinyhhg_core/tinyhhg.hpp>
+#include "tinyhhg_core/format.hpp"
 
 #include <core/Environment.h>
 
@@ -64,15 +65,15 @@ int main(int argc, char* argv[])
   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator> Solver;
   auto solver = Solver(storage, minLevel, maxLevel);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", npoints));
+  WALBERLA_LOG_INFO_ON_ROOT("Num dofs = "<< npoints);
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
-  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          Time");
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
 
   real_t begin_res = std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
   real_t abs_res_old = begin_res;
   real_t rel_res = 1.0;
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",0,begin_res, rel_res, begin_res/abs_res_old, 0));
 
   real_t totalTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
     r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
     real_t abs_res = std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
     rel_res = abs_res / begin_res;
-    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}", outer+1, abs_res, rel_res, abs_res/abs_res_old, end-start));
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
     totalTime += end-start;
 
     if (outer >= convergenceStartIter) {

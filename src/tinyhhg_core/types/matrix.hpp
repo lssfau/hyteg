@@ -5,7 +5,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/debug/Debug.h"
 
-#include <fmt/ostream.h>
 #include <cmath>
 #include <array>
 #include <iomanip>

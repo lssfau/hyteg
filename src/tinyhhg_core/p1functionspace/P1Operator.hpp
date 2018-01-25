@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <fmt/format.h>
 #include <tinyhhg_core/Operator.hpp>
 
 #include <array>
@@ -168,7 +167,6 @@ private:
           face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] = 1.0 / face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ];
         }
 
-//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
 
       for (auto& it : storage_->getEdges()) {

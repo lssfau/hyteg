@@ -1,6 +1,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <tinyhhg_core/likwidwrapper.hpp>
 #include <core/Environment.h>
+#include "tinyhhg_core/format.hpp"
 
 #define PI 3.14159265359
 
@@ -130,10 +131,10 @@ int main(int argc, char* argv[])
   {
       tmp.interpolate(ones, ll);
       real_t npoints = tmp.dot(tmp, ll);
-      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Level = {}", (size_t)ll));
-      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
+      WALBERLA_LOG_INFO_ON_ROOT("Level = " << ll);
+      WALBERLA_LOG_INFO_ON_ROOT("Num dofs = " << npoints);
       WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-      WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error           H1-semi");
+      WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","H1-semi"));
       real_t rel_res = 1.0;
 
       A.apply(x, ax, ll, hhg::Inner);
@@ -145,7 +146,7 @@ int main(int argc, char* argv[])
       A.apply(err, tmp, ll, hhg::Inner);
       real_t discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
-      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err));
+      WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err))
 
       for (size_t i = 0; i < outer; ++i)
       {
@@ -159,7 +160,7 @@ int main(int argc, char* argv[])
           A.apply(err, tmp, ll, hhg::Inner);
           discr_h1_err = std::sqrt(err.dot(tmp, ll));
 
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, discr_h1_err));
+          WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err, discr_h1_err))
           abs_res_old = abs_res;
       }
       if(ll < maxLevel)
