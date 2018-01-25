@@ -1,7 +1,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 
 #include <boost/core/null_deleter.hpp>
-#include <fmt/format.h>
 
 using walberla::real_t;
 using walberla::uint_t;

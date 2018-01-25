@@ -16,13 +16,10 @@ void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, 
 
   if (level == minLevel)
   {
-    // fmt::printf("Coarse solve...\n");
     csolver.solve(A, x, b, r, minLevel, coarse_tolerance, coarse_maxiter, hhg::Inner, false);
   }
   else
   {
-    // fmt::printf("Level %d...\n", level);
-
     // pre-smooth
     for (size_t i = 0; i < nu_pre; ++i)
     {

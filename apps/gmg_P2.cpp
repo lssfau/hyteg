@@ -1,6 +1,5 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
 #include <core/config/Config.h>
 
@@ -82,7 +81,7 @@ int main(int argc, char* argv[])
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error      Time");
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));
 
   real_t rel_res = 1.0;
 
@@ -95,7 +94,8 @@ int main(int argc, char* argv[])
   err_p2.assign({1.0, -1.0}, {&u_p2, &u_exact_p2}, maxLevel);
   real_t discr_l2_err = std::sqrt(err_p2.dot(err_p2, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+  //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0))
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -145,7 +145,8 @@ int main(int argc, char* argv[])
     err_p2.assign({1.0, -1.0}, { &u_p2, &u_exact_p2 }, maxLevel);
     discr_l2_err = std::sqrt(err_p2.dot(err_p2, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
+    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,end - start))
     solveTime += end-start;
 
     if (i >= convergenceStartIter) {

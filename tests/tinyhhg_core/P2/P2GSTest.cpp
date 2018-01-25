@@ -1,6 +1,5 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
 #include <core/config/Config.h>
 
