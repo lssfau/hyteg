@@ -445,8 +445,8 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
 
 SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
-template<typename ValueType, uint_t PolyDegree, uint_t Level>
-inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<PolyDegree>, Face>& polynomialId,
+template<typename ValueType, uint_t Level, uint_t PolyDegree>
+inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
@@ -462,15 +462,15 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
-  auto horiPoly = polynomials->getHoriPolynomial();
-  auto vertPoly = polynomials->getVertPolynomial();
-  auto diagPoly = polynomials->getDiagPolynomial();
+  auto horiPoly = polynomials->getHoriPolynomial(PolyDegree);
+  auto vertPoly = polynomials->getVertPolynomial(PolyDegree);
+  auto diagPoly = polynomials->getDiagPolynomial(PolyDegree);
 
-  Polynomial2DEvaluator<PolyDegree> evalHoriPoly(horiPoly);
-  Polynomial2DEvaluator<PolyDegree> evalVertPolyS(vertPoly);
-  Polynomial2DEvaluator<PolyDegree> evalVertPolyN(vertPoly);
-  Polynomial2DEvaluator<PolyDegree> evalDiagPolySE(diagPoly);
-  Polynomial2DEvaluator<PolyDegree> evalDiagPolyNW(diagPoly);
+  Polynomial2DEvaluator evalHoriPoly(horiPoly);
+  Polynomial2DEvaluator evalVertPolyS(vertPoly);
+  Polynomial2DEvaluator evalVertPolyN(vertPoly);
+  Polynomial2DEvaluator evalDiagPolySE(diagPoly);
+  Polynomial2DEvaluator evalDiagPolyNW(diagPoly);
 
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
@@ -483,24 +483,24 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
       evalDiagPolySE.setY(x[1] - 0.5 * h);
       evalDiagPolyNW.setY(x[1] + 0.5 * h);
 
-      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX(-0.5 * h, h);
-      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX<PolyDegree>(-0.5 * h, h);
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-      evalVertPolyS.setStartX(0.0, h);
-      evalVertPolyN.setStartX(0.0, h);
+      evalVertPolyS.setStartX<PolyDegree>(0.0, h);
+      evalVertPolyN.setStartX<PolyDegree>(0.0, h);
 
-      evalDiagPolySE.setStartX(0.5 * h, h);
-      evalDiagPolyNW.setStartX(-0.5 * h, h);
+      evalDiagPolySE.setStartX<PolyDegree>(0.5 * h, h);
+      evalDiagPolyNW.setStartX<PolyDegree>(-0.5 * h, h);
 
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)];
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval();
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval<PolyDegree>();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval<PolyDegree>();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval();
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval<PolyDegree>();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval<PolyDegree>();
 
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
                         - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
@@ -534,24 +534,24 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
       evalDiagPolySE.setY(x[1] - 0.5 * h);
       evalDiagPolyNW.setY(x[1] + 0.5 * h);
 
-      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX(-0.5 * h, h);
-      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX<PolyDegree>(-0.5 * h, h);
+      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-      evalVertPolyS.setStartX(0.0, h);
-      evalVertPolyN.setStartX(0.0, h);
+      evalVertPolyS.setStartX<PolyDegree>(0.0, h);
+      evalVertPolyN.setStartX<PolyDegree>(0.0, h);
 
-      evalDiagPolySE.setStartX(0.5 * h, h);
-      evalDiagPolyNW.setStartX(-0.5 * h, h);
+      evalDiagPolySE.setStartX<PolyDegree>(0.5 * h, h);
+      evalDiagPolyNW.setStartX<PolyDegree>(-0.5 * h, h);
 
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)];
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval();
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval<PolyDegree>();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval<PolyDegree>();
 
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval();
-        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval<PolyDegree>();
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval<PolyDegree>();
 
         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
                                                                                      - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
@@ -665,8 +665,8 @@ inline void smooth_gs_coefficient_tmpl(Face &face,
 
 SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_coefficient_tmpl, smooth_gs_coefficient)
 
-template<typename ValueType, uint_t PolyDegree, uint_t Level>
-inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory<PolyDegree>, Face>& polynomialId,
+template<typename ValueType, uint_t Level, uint_t PolyDegree>
+inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
 
@@ -681,15 +681,15 @@ inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1Po
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
-  auto horiPoly = polynomials->getHoriPolynomial();
-  auto vertPoly = polynomials->getVertPolynomial();
-  auto diagPoly = polynomials->getDiagPolynomial();
+  auto horiPoly = polynomials->getHoriPolynomial(PolyDegree);
+  auto vertPoly = polynomials->getVertPolynomial(PolyDegree);
+  auto diagPoly = polynomials->getDiagPolynomial(PolyDegree);
 
-  Polynomial2DEvaluator<PolyDegree> evalHoriPoly(horiPoly);
-  Polynomial2DEvaluator<PolyDegree> evalVertPolyS(vertPoly);
-  Polynomial2DEvaluator<PolyDegree> evalVertPolyN(vertPoly);
-  Polynomial2DEvaluator<PolyDegree> evalDiagPolySE(diagPoly);
-  Polynomial2DEvaluator<PolyDegree> evalDiagPolyNW(diagPoly);
+  Polynomial2DEvaluator evalHoriPoly(horiPoly);
+  Polynomial2DEvaluator evalVertPolyS(vertPoly);
+  Polynomial2DEvaluator evalVertPolyN(vertPoly);
+  Polynomial2DEvaluator evalDiagPolySE(diagPoly);
+  Polynomial2DEvaluator evalDiagPolyNW(diagPoly);
 
   ValueType tmp;
 
@@ -703,25 +703,25 @@ inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1Po
     evalDiagPolySE.setY(x[1] - 0.5 * h);
     evalDiagPolyNW.setY(x[1] + 0.5 * h);
 
-    opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX(-0.5 * h, h);
-    opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+    opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX<PolyDegree>(-0.5 * h, h);
+    opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-    evalVertPolyS.setStartX(0.0, h);
-    evalVertPolyN.setStartX(0.0, h);
+    evalVertPolyS.setStartX<PolyDegree>(0.0, h);
+    evalVertPolyN.setStartX<PolyDegree>(0.0, h);
 
-    evalDiagPolySE.setStartX(0.5 * h, h);
-    evalDiagPolyNW.setStartX(-0.5 * h, h);
+    evalDiagPolySE.setStartX<PolyDegree>(0.5 * h, h);
+    evalDiagPolyNW.setStartX<PolyDegree>(-0.5 * h, h);
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
       opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)];
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval();
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalVertPolyS.incrementEval<PolyDegree>();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalVertPolyN.incrementEval<PolyDegree>();
 
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval();
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval<PolyDegree>();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval<PolyDegree>();
 
       opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
                                                                                    - opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]

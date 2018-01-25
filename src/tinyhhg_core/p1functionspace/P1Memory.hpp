@@ -159,25 +159,45 @@ public:
 
 };
 
-template<uint_t PolyDegree>
 class FaceP1PolynomialMemory
 {
 public:
 
-  GeneralPolynomial2D<PolyDegree> horizontalPolynomial;
-  GeneralPolynomial2D<PolyDegree> verticalPolynomial;
-  GeneralPolynomial2D<PolyDegree> diagonalPolynomial;
+  struct FacePolynomials {
+    std::shared_ptr<GeneralPolynomial2D> horiPoly;
+    std::shared_ptr<GeneralPolynomial2D> vertPoly;
+    std::shared_ptr<GeneralPolynomial2D> diagPoly;
+  };
 
-  GeneralPolynomial2D<PolyDegree>& getHoriPolynomial() {
-    return horizontalPolynomial;
+  std::map<uint_t, FacePolynomials> polynomials_;
+
+  FaceP1PolynomialMemory(uint_t maxDegree) {
+    addDegree(maxDegree);
   }
 
-  GeneralPolynomial2D<PolyDegree>& getVertPolynomial() {
-    return verticalPolynomial;
+  inline FacePolynomials& addDegree(uint_t degree)
+  {
+    if (polynomials_.count(degree)>0) {
+      WALBERLA_LOG_WARNING("Degree already exists.")
+    }
+
+    FacePolynomials& tmp = polynomials_[degree];
+    tmp.horiPoly = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.vertPoly = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.diagPoly = std::make_shared<GeneralPolynomial2D>(degree);
+    return tmp;
   }
 
-  GeneralPolynomial2D<PolyDegree>& getDiagPolynomial() {
-    return diagonalPolynomial;
+  GeneralPolynomial2D& getHoriPolynomial(uint_t maxDegree) {
+    return *polynomials_[maxDegree].horiPoly;
+  }
+
+  GeneralPolynomial2D& getVertPolynomial(uint_t maxDegree) {
+    return *polynomials_[maxDegree].vertPoly;
+  }
+
+  GeneralPolynomial2D& getDiagPolynomial(uint_t maxDegree) {
+    return *polynomials_[maxDegree].diagPoly;
   }
 
 };

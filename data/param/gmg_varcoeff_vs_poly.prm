@@ -7,4 +7,6 @@ Parameters
   mg_tolerance 1e-14;
   coarse_tolerance 1e-14;
   polynomialOperator true;
+  interpolationLevel 7;
+  maxPolyDegree 5;
 }

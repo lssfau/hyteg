@@ -5,15 +5,18 @@
 
 namespace hhg {
 
-template<uint_t Degree>
 class Polynomial2DEvaluator {
 public:
 
-  typedef Polynomial1D<Degree, MonomialBasis1D> Polynomial1;
-  typedef Polynomial2D<Degree, MonomialBasis2D> Polynomial2;
+  typedef Polynomial1D<MonomialBasis1D> Polynomial1;
+  typedef Polynomial2D<MonomialBasis2D> Polynomial2;
 
   Polynomial2DEvaluator(const Polynomial2& poly)
-    : poly2_(poly) {
+    : degree_(poly.getDegree()),
+      poly2_(poly),
+      poly1_(poly.getDegree()),
+      deltas(poly.getDegree() + 1)
+  {
   }
 
   real_t eval(const Point2D &x) const {
@@ -22,19 +25,19 @@ public:
 
   void setY(real_t y) {
 
-    for (uint_t degree = 0; degree <= Degree; ++degree) {
+    for (uint_t degree = 0; degree <= degree_; ++degree) {
       poly1_.setCoefficient(degree, 0.0);
     }
 
     int start = 0;
     real_t y_;
 
-    for (uint_t coeff = 0; coeff <= Degree; ++coeff) {
+    for (uint_t coeff = 0; coeff <= degree_; ++coeff) {
 
       int idx = start;
       y_ = walberla::real_c(1.0);
 
-      for(uint_t degree = 0; degree <= Degree-coeff; ++degree) {
+      for(uint_t degree = 0; degree <= degree_-coeff; ++degree) {
 
         poly1_.addToCoefficient(coeff, poly2_.getCoefficient(idx) * y_);
 
@@ -50,6 +53,7 @@ public:
     return poly1_.eval(x);
   }
 
+  template<uint_t Degree>
   real_t setStartX(real_t x, real_t h) {
     static_assert(Degree <= 7, "Polynomial2DEvaluator not implemented for degree larger than 7");
     if (Degree == 0) {
@@ -107,6 +111,7 @@ public:
     return deltas[0];
   }
 
+  template<uint_t Degree>
   real_t incrementEval() {
     if (Degree >= 1) {
       deltas[0] += deltas[1];
@@ -133,10 +138,11 @@ public:
   }
 
 private:
+  uint_t degree_;
   const Polynomial2& poly2_;
   Polynomial1 poly1_;
 
-  std::array<real_t, Degree+1> deltas;
+  std::vector<real_t> deltas;
 
 };
 

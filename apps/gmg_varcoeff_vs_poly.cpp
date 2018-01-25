@@ -6,6 +6,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <fmt/format.h>
 #include <core/Environment.h>
+#include <core/config/Create.h>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -22,14 +23,16 @@ int main(int argc, char* argv[])
 
   walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
   cfg->readParameterFile("../data/param/gmg_varcoeff_vs_poly.prm");
+  walberla::config::substituteCommandLineArgs(*cfg, argc, argv);
+  WALBERLA_LOG_INFO("config = " << *cfg);
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
   uint_t level_H = parameters.getParameter<uint_t>("level_h_coarse");
   uint_t level_h = parameters.getParameter<uint_t>("level_h_fine");
   const uint_t minLevel = 2;
   const uint_t maxLevel = level_h - level_H;
-  const uint_t maxPolyDegree = 5;
-  const uint_t interpolationLevel = 7;
+  const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
+  const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
   const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
   const uint_t max_cg_iter =  parameters.getParameter<uint_t>("max_cg_iter");
   const real_t mg_tolerance = parameters.getParameter<real_t>("mg_tolerance");
@@ -61,7 +64,7 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperatorNodal;
-  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree> SolveOperatorPoly;
+  typedef hhg::P1PolynomialLaplaceOperator SolveOperatorPoly;
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
@@ -88,7 +91,7 @@ int main(int argc, char* argv[])
 
   auto start = walberla::timing::getWcTime();
   if (polynomialOperator) {
-    L = std::make_shared<SolveOperatorPoly>(storage, coefficient, coeff, minLevel, maxLevel, interpolationLevel);
+    L = std::make_shared<SolveOperatorPoly>(storage, coefficient, coeff, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
   } else {
     L = std::make_shared<SolveOperatorNodal>(storage, coefficient, coeff, minLevel, maxLevel);
   }

@@ -4,7 +4,7 @@
 
 namespace hhg {
 
-template<uint_t Degree, typename Basis>
+template<typename Basis>
 class Polynomial1D {
  public:
 
@@ -16,16 +16,18 @@ class Polynomial1D {
     return degree + 1;
   }
 
-  static const uint_t NumCoefficients_ = getNumCoefficients(Degree);
-
-  Polynomial1D() {
+  Polynomial1D(uint_t degree)
+    : degree_(degree),
+      numCoefficients_(getNumCoefficients(degree)),
+      coeffs_(getNumCoefficients(degree))
+  {
   }
 
   real_t eval(real_t x) const {
 
     real_t eval = coeffs_[0] * Basis::eval(0, x);
 
-    for (uint_t c = 1; c < NumCoefficients_; ++c) {
+    for (uint_t c = 1; c < numCoefficients_; ++c) {
       eval = std::fma(coeffs_[c], Basis::eval(c, x), eval);
     }
 
@@ -33,46 +35,48 @@ class Polynomial1D {
   }
 
   void setCoefficient(uint_t idx, real_t value) {
-    WALBERLA_ASSERT(idx < NumCoefficients_);
+    WALBERLA_ASSERT(idx < numCoefficients_);
     coeffs_[idx] = value;
   }
 
   void addToCoefficient(uint_t idx, real_t value) {
-    WALBERLA_ASSERT(idx < NumCoefficients_);
+    WALBERLA_ASSERT(idx < numCoefficients_);
     coeffs_[idx] += value;
   }
 
   real_t getCoefficient(uint_t idx) const {
-    WALBERLA_ASSERT(idx < NumCoefficients_);
+    WALBERLA_ASSERT(idx < numCoefficients_);
     return coeffs_[idx];
   }
 
   void scale(real_t scalar) {
-    for (uint_t i = 0; i < NumCoefficients_; ++i) {
+    for (uint_t i = 0; i < numCoefficients_; ++i) {
       coeffs_[i] *= scalar;
     }
   }
 
-  void scaleAdd(real_t scalar, const Polynomial1D<Degree, Basis>& rhs) {
-    for (uint_t i = 0; i < NumCoefficients_; ++i) {
+  void scaleAdd(real_t scalar, const Polynomial1D<Basis>& rhs) {
+    for (uint_t i = 0; i < numCoefficients_; ++i) {
       coeffs_[i] += scalar * rhs.coeffs_[i];
     }
   }
 
 private:
-  std::array<real_t, NumCoefficients_> coeffs_;
+  uint_t degree_;
+  uint_t numCoefficients_;
+  std::vector<real_t> coeffs_;
 
 };
 
 template<uint_t Degree, uint_t InterpolationLevel, typename Basis>
-inline std::ostream& operator<<(std::ostream &os, const Polynomial1D<Degree, Basis> &poly)
+inline std::ostream& operator<<(std::ostream &os, const Polynomial1D<Basis> &poly)
 {
   os << "[";
 
-  for (size_t i = 0; i < poly.NumCoefficients_; ++i)
+  for (size_t i = 0; i < poly.numCoefficients_; ++i)
   {
     os << poly.getCoefficient(i);
-    if (i != poly.NumCoefficients_-1)
+    if (i != poly.numCoefficients_-1)
     {
       os << ", ";
     }
@@ -83,7 +87,7 @@ inline std::ostream& operator<<(std::ostream &os, const Polynomial1D<Degree, Bas
   return os;
 }
 
-template<uint_t Degree, uint_t InterpolationLevel>
-using GeneralPolynomial1D = Polynomial1D<Degree, MonomialBasis1D>;
+template<uint_t InterpolationLevel>
+using GeneralPolynomial1D = Polynomial1D<MonomialBasis1D>;
 
 }

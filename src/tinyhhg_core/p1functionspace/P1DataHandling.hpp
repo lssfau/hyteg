@@ -151,12 +151,16 @@ private:
 
 };
 
-template<uint_t PolyDegree>
-class FaceP1PolynomialMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1PolynomialMemory<PolyDegree>, Face >
+class FaceP1PolynomialMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1PolynomialMemory, Face >
 {
 public:
 
-  std::shared_ptr< FaceP1PolynomialMemory<PolyDegree> > initialize( const Face * const face ) const;
+  FaceP1PolynomialMemoryDataHandling( const uint_t & maxDegree ) : maxDegree_( maxDegree ) {}
+
+  std::shared_ptr< FaceP1PolynomialMemory > initialize( const Face * const face ) const;
+
+private:
+  uint_t maxDegree_;
 
 };
 
@@ -199,12 +203,6 @@ template< typename ValueType >
 std::shared_ptr< FaceP1StencilMemory< ValueType > > FaceP1StencilMemoryDataHandling< ValueType >::initialize( const Face * const ) const
 {
   return std::make_shared< FaceP1StencilMemory< ValueType > >( P1FaceStencilMemorySize, 0, minLevel_, maxLevel_ );
-}
-
-template< uint_t PolyDegree >
-std::shared_ptr< FaceP1PolynomialMemory<PolyDegree> > FaceP1PolynomialMemoryDataHandling<PolyDegree>::initialize( const Face * const ) const
-{
-  return std::make_shared< FaceP1PolynomialMemory<PolyDegree> >();
 }
 
 }
