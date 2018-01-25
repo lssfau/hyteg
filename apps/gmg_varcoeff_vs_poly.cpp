@@ -21,9 +21,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
-  cfg->readParameterFile("../data/param/gmg_varcoeff_vs_poly.prm");
-  walberla::config::substituteCommandLineArgs(*cfg, argc, argv);
+  walberla::shared_ptr<walberla::config::Config> cfg = walberla::config::create(argc, argv);
   WALBERLA_LOG_INFO("config = " << *cfg);
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
