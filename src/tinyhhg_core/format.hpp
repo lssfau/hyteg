@@ -13,7 +13,7 @@ namespace hhg {
 template<typename... Args>
 std::string format(const char *formatString, Args &&... args) {
   ///this size is arbitrary
-  size_t maxBufferSize = 4096;
+  const size_t maxBufferSize = 4096;
   char buffer[maxBufferSize];
   int check = snprintf(buffer, maxBufferSize, formatString, args...);
   if (check <= 0 || check > maxBufferSize) {
