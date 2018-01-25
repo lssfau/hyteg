@@ -553,9 +553,7 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
     {
       if ( getNumRegisteredFunctions( dofType ) > 0 )
       {
-        std::stringstream ss;
-        ss << dir_ << "/" << filename_ << fileNameExtension( dofType, level, timestep ) << ".vtu";
-        const std::string completeFilePath = ss.str();
+        const std::string completeFilePath = hhg::format("%s/%s%s.vtu", dir_, filename_,fileNameExtension( dofType, level, timestep ));
         //( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
 
         WALBERLA_LOG_PROGRESS_ON_ROOT( "[VTK] Writing output to " << completeFilePath );
