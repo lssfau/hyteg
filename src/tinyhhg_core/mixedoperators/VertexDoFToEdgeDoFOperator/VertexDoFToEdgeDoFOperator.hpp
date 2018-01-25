@@ -9,7 +9,6 @@
 #endif
 
 #include "tinyhhg_core/fenics.hpp"
-#include "tinyhhg_core/p2functionspace/generated/p2_div.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
 
 #ifdef _MSC_VER

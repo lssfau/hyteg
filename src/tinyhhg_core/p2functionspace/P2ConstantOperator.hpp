@@ -170,7 +170,7 @@ public:
     return vertexToVertex;
   }
 
-  const EdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() const {
+  const GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() const {
     return edgeToVertex;
   }
 
@@ -299,7 +299,7 @@ private:
 
 
   P1Operator<fenics::NoAssemble> vertexToVertex;
-  EdgeDoFToVertexDoFOperator edgeToVertex;
+  GenericEdgeDoFToVertexDoFOperator edgeToVertex;
   GenericVertexDoFToEdgeDoFOperator vertexToEdge;
   EdgeDoFOperator edgeToEdge;
 

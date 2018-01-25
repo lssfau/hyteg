@@ -1,9 +1,16 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Elements.hpp"
+
 namespace hhg{
 
-EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
+template class EdgeDoFToVertexDoFOperator<hhg::fenics::NoAssemble>;
+template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
+template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
+
+template<class UFCOperator>
+EdgeDoFToVertexDoFOperator<UFCOperator>::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
                                                        const size_t & minLevel,
                                                        const size_t & maxLevel)
   :Operator(storage,minLevel,maxLevel)
@@ -23,10 +30,88 @@ EdgeDoFToVertexDoFOperator::EdgeDoFToVertexDoFOperator(const std::shared_ptr<Pri
   storage->addVertexData(vertexStencilID_, vertexDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  /// the stencil assembly will be done in the P2-Operator
+
+  // Only assemble stencils if UFCOperator is specified
+  if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
+    assembleStencils();
+  }
 }
 
-void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
+template<class UFCOperator>
+void EdgeDoFToVertexDoFOperator<UFCOperator>::assembleStencils() {
+  using namespace P2Elements;
+
+  // Initialize memory for local 6x6 matrices
+  Matrix6r local_stiffness_gray;
+  Matrix6r local_stiffness_blue;
+
+  // Assemble stencils on all levels
+  for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+  {
+
+    // Assemble face stencils
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      // Compute both local stiffness matrices
+      compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
+      compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
+
+      // Assemble edgeToVertex stencil
+      real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
+      P2Face::EdgeToVertex::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+    }
+
+    // Assemble edge stencils
+    for (auto& it : storage_->getEdges()) {
+      Edge &edge = *it.second;
+
+      // Assemble edgeToVertex
+      Face* face = storage_->getFace(edge.neighborFaces()[0]);
+      real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
+      compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+      compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+      P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
+
+      if (edge.getNumNeighborFaces() == 2) {
+        face = storage_->getFace(edge.neighborFaces()[1]);
+        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
+        P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
+      }
+
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Edge = {}", PointND<real_t, 7>(&vStencil[0])));
+    }
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex &vertex = *it.second;
+
+      // Assemble EdgeToVertex
+      real_t* vStencil = storage_->getVertex(vertex.getID())->getData(vertexStencilID_)->getPointer(level);
+      for (auto& faceId : vertex.neighborFaces())
+      {
+        Face* face = storage_->getFace(faceId);
+        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
+        P2Vertex::EdgeToVertex::assembleStencil(vertex, *face, local_stiffness_gray, vStencil, storage_);
+      }
+
+//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Vertex = {}", PointND<real_t, 5>(&vStencil[0])));
+    }
+
+  }
+}
+
+template<class UFCOperator>
+void EdgeDoFToVertexDoFOperator<UFCOperator>::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
+  real_t coords[6];
+  fenics::compute_micro_coords(face, level, coords, element_type);
+  UFCOperator gen;
+  gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
+}
+
+template<class UFCOperator>
+void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t> &src,
                                             P1Function<real_t> &dst,
                                             uint_t level,
                                             DoFType flag,
@@ -76,15 +161,18 @@ void EdgeDoFToVertexDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src,
   dst.getCommunicator(level)->endCommunication<Edge, Face>();
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator::getVertexStencilID() const {
+template<class UFCOperator>
+const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator<UFCOperator>::getVertexStencilID() const {
   return vertexStencilID_;
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator::getEdgeStencilID() const {
+template<class UFCOperator>
+const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator<UFCOperator>::getEdgeStencilID() const {
   return edgeStencilID_;
 }
 
-const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator::getFaceStencilID() const {
+template<class UFCOperator>
+const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator<UFCOperator>::getFaceStencilID() const {
   return faceStencilID_;
 }
 

@@ -13,7 +13,9 @@ public:
   P2P1TaylorHoodStokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : A(storage, minLevel, maxLevel),
       div_x_vertexToVertex(storage, minLevel, maxLevel),
+      div_x_edgeToVertex(storage, minLevel, maxLevel),
       div_y_vertexToVertex(storage, minLevel, maxLevel),
+      div_y_edgeToVertex(storage, minLevel, maxLevel),
       divT_x_vertexToVertex(storage, minLevel, maxLevel),
       divT_x_vertexToEdge(storage, minLevel, maxLevel),
       divT_y_vertexToVertex(storage, minLevel, maxLevel),
@@ -33,16 +35,16 @@ public:
 
 
     div_x_vertexToVertex.apply(*src.u.getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary, Replace);
-//    div_x_edgeToVertex.apply(*src.u.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
+    div_x_edgeToVertex.apply(*src.u.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
     div_y_vertexToVertex.apply(*src.v.getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
-//    div_y_edgeToVertex.apply(*src.v.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
+    div_y_edgeToVertex.apply(*src.v.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
   }
 
   P2ConstantLaplaceOperator A;
   P1DivxOperator div_x_vertexToVertex;
-//  EdgeToVertexDivx div_x_edgeToVertex;
+  EdgeToVertexDivxOperator div_x_edgeToVertex;
   P1DivyOperator div_y_vertexToVertex;
-//  EdgeToVertexDivy div_y_edgeToVertex;
+  EdgeToVertexDivyOperator div_y_edgeToVertex;
   P1DivTxOperator divT_x_vertexToVertex;
   VertexToEdgeDivTxOperator divT_x_vertexToEdge;
   P1DivTyOperator divT_y_vertexToVertex;
