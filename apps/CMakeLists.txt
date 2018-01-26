@@ -92,7 +92,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
 
 waLBerla_add_executable( NAME StokesP2P1
         FILES StokesP2P1.cpp
-        DEPENDS tinyhhg_core fmt)
+        DEPENDS tinyhhg_core)
 
 
     #add_executable (tinytest_fmg fmg_test.cpp)
