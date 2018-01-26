@@ -126,7 +126,8 @@ stages:
       - echo "Building PETSc"
       - echo "Using up to $(nproc) processors for compilation"
       - apt-get update
-      - apt-get -q -y install pkg-config gfortran petsc-dev
+      - apt-get -q -y install pkg-config gfortran-6 petsc-dev libgfortran-6-dev
+      - rm -rf /opt/openmpi
       - export PATH=${PATH/\/opt\/openmpi\/bin:}
       - export CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH/\/opt\/openmpi:}
       - cd $CI_PROJECT_DIR

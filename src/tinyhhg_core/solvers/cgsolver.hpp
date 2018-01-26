@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fmt/format.h>
-
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 
 namespace hhg
@@ -55,14 +53,14 @@ public:
 
       if (printInfo)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] residual: {}", sqrsnew));
+        WALBERLA_LOG_INFO_ON_ROOT("[CG] residual: " << sqrsnew);
       }
 
       if (sqrsnew/res_start < tolerance)
       {
         if (printInfo)
         {
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[CG] converged after {} iterations", i));
+          WALBERLA_LOG_INFO_ON_ROOT("[CG] converged after " << i << " iterations");
         }
         break;
       }

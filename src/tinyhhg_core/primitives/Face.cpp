@@ -1,5 +1,3 @@
-#include <fmt/ostream.h>
-
 #include "Face.hpp"
 #include "Edge.hpp"
 #include "Vertex.hpp"

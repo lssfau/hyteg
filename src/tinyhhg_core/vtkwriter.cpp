@@ -1,6 +1,7 @@
 #include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "vtkwriter.hpp"
 #include "levelinfo.hpp"
+#include "tinyhhg_core/format.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFunction.hpp"
 
@@ -131,7 +132,7 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 
 std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const
 {
-  return fmt::format( "_{}_level{}_ts{}", DoFTypeToString_.at( dofType ), std::to_string( level ), std::to_string( timestep ) );
+  return hhg::format("_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep);
 }
 
 
@@ -550,7 +551,8 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
     {
       if ( getNumRegisteredFunctions( dofType ) > 0 )
       {
-        const std::string completeFilePath( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
+        const std::string completeFilePath = hhg::format("%s/%s%s.vtu", dir_.c_str(), filename_.c_str(),fileNameExtension( dofType, level, timestep ).c_str());
+        //( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
 
         WALBERLA_LOG_PROGRESS_ON_ROOT( "[VTK] Writing output to " << completeFilePath );
 

@@ -11,11 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-include_directories ( extern/fmt-4.1.0 )
 include_directories ( src )
-#include_directories ( src/tinyhhg_core )
-#include_directories ( ${MPI_CXX_INCLUDE_PATH})
-#include_directories ( ${tinyhhg_BINARY_DIR}/src/tinyhhg_core )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
@@ -62,7 +58,6 @@ waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
 
-add_subdirectory (extern/fmt-4.1.0)
 add_subdirectory( src )
 add_subdirectory( apps )
 add_subdirectory( tests )

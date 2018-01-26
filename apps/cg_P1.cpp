@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, tolerance, maxiter, hhg::Inner, true);
   timer.end();
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
+  WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);
