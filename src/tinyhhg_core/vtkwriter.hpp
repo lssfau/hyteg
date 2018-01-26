@@ -1,18 +1,16 @@
 
 #pragma once
 
+#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "core/mpi/MPITextFile.h"
 
 #include "levelinfo.hpp"
 #include "Function.hpp"
 #include "p1functionspace/P1Function.hpp"
-#include "p1functionspace/P1Memory.hpp"
 
 #include "dgfunctionspace/DGFunction.hpp"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
-#include "tinyhhg_core/indexing/EdgeDoFIndexing.hpp"
-
 #include <string>
 
 namespace hhg
@@ -22,9 +20,9 @@ namespace vtkDetail{
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
 
-SPECIALIZE(uint_t, indexing::edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, indexing::edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, indexing::edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
+SPECIALIZE(uint_t, edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
+SPECIALIZE(uint_t, edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
+SPECIALIZE(uint_t, edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
 }
 
 using walberla::uint_t;

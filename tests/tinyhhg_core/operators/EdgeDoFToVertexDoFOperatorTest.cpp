@@ -60,24 +60,24 @@ static void testEdgeDoFToVertexDoFOperator()
     auto edge = it.second;
     auto stencil = edge->getData( edgeToVertexOperator.getEdgeStencilID() )->getPointer( maxLevel );
 
-    for ( const auto & stencilDir : indexing::edgedof::macroedge::neighborsOnEdgeFromVertex )
+    for ( const auto & stencilDir : edgedof::macroedge::neighborsOnEdgeFromVertex )
     {
-      stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+      stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
     }
 
-    for ( const auto & stencilDir : indexing::edgedof::macroedge::neighborsOnSouthFaceFromVertex )
+    for ( const auto & stencilDir : edgedof::macroedge::neighborsOnSouthFaceFromVertex )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeVerticalStencilValue;
       }
       else
       {
@@ -87,19 +87,19 @@ static void testEdgeDoFToVertexDoFOperator()
 
     if ( edge->getNumNeighborFaces() == 2 )
     {
-      for ( const auto & stencilDir : indexing::edgedof::macroface::neighborsFromVertex )
+      for ( const auto & stencilDir : edgedof::macroface::neighborsFromVertex )
       {
         if ( isDiagonalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeDiagonalStencilValue;
+          stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeDiagonalStencilValue;
         }
         else if ( isHorizontalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
+          stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeHorizontalStencilValue;
         }
         else if ( isVerticalEdge( stencilDir ) )
         {
-          stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeVerticalStencilValue;
+          stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroEdgeVerticalStencilValue;
         }
         else
         {
@@ -114,19 +114,19 @@ static void testEdgeDoFToVertexDoFOperator()
     auto face = it.second;
     auto stencil = face->getData( edgeToVertexOperator.getFaceStencilID() )->getPointer( maxLevel );
 
-    for ( const auto & stencilDir : indexing::edgedof::macroface::neighborsFromVertex )
+    for ( const auto & stencilDir : edgedof::macroface::neighborsFromVertex )
     {
       if ( isDiagonalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceDiagonalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceDiagonalStencilValue;
       }
       else if ( isHorizontalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceHorizontalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceHorizontalStencilValue;
       }
       else if ( isVerticalEdge( stencilDir ) )
       {
-        stencil[ indexing::edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceVerticalStencilValue;
+        stencil[ edgedof::stencilIndexFromVertex( stencilDir ) ] = macroFaceVerticalStencilValue;
       }
       else
       {

@@ -10,7 +10,6 @@
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
 #include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
 

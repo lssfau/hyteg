@@ -14,65 +14,46 @@
 #include <string>
 
 
-namespace hhg
-{
+namespace hhg {
 
 /////////////////////
 // Function memory //
 /////////////////////
 
-inline uint_t P1VertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroVertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
 }
 
-inline uint_t P1EdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroEdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge( level );
   return num_dofs_per_edge + numDependencies * ( num_dofs_per_edge - 1 );
 }
 
-inline uint_t P1FaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   return levelinfo::num_microvertices_per_face(level);
 }
-
-template< typename ValueType >
-using VertexP1FunctionMemory = FunctionMemory< ValueType >;
-
-template< typename ValueType >
-using EdgeP1FunctionMemory = FunctionMemory< ValueType >;
-
-template< typename ValueType >
-using FaceP1FunctionMemory = FunctionMemory< ValueType >;
 
 
 ////////////////////
 // Stencil memory //
 ////////////////////
 
-template< typename ValueType >
-using VertexP1StencilMemory = StencilMemory< ValueType >;
-
-template< typename ValueType >
-using EdgeP1StencilMemory = StencilMemory< ValueType >;
-
-template< typename ValueType >
-using FaceP1StencilMemory = StencilMemory< ValueType >;
-
-inline uint_t P1VertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
 }
 
-inline uint_t P1EdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroEdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( numDependencies );
   return 7;
 }
 
-inline uint_t P1FaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
 {
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( numDependencies );
@@ -203,4 +184,4 @@ public:
 };
 
 
-}
+} // namespace hhg

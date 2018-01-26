@@ -25,11 +25,11 @@
 #  pragma warning(pop)
 #endif
 
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
-#include "P1Vertex.hpp"
-#include "P1Edge.hpp"
-#include "P1Face.hpp"
+#include "VertexDoFMacroVertex.hpp"
+#include "VertexDoFMacroEdge.hpp"
+#include "VertexDoFMacroFace.hpp"
 
 #include "tinyhhg_core/polynomial/LSQPInterpolator.hpp"
 

@@ -7,7 +7,6 @@
 #include "tinyhhg_core/levelinfo.hpp"
 
 namespace hhg {
-namespace indexing {
 namespace edgedof {
 
 template< uint_t level >
@@ -147,7 +146,7 @@ constexpr std::array<stencilDirection ,1> neighborsOnEdgeFromHorizontalEdge = {{
 constexpr std::array<stencilDirection ,2> neighborsOnSouthFaceFromHorizontalEdge = {{ sD::EDGE_DI_S, sD::EDGE_VE_SE }};
 constexpr std::array<stencilDirection ,2> neighborsOnNorthFaceFromHorizontalEdge = {{ sD::EDGE_DI_N, sD::EDGE_VE_NW }};
 
-class Iterator : public EdgeIterator
+class Iterator : public indexing::EdgeIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -170,19 +169,19 @@ typedef stencilDirection sD;
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
 {
-  return macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
 };
 
 template< uint_t level >
 inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & row )
 {
-  return 2 * levelToFaceSizeAnyEdgeDoF< level > + macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return 2 * levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
 }
 
 template< uint_t level >
 inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
 {
-  return levelToFaceSizeAnyEdgeDoF< level > + macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
 }
 
 // Stencil access functions
@@ -366,7 +365,7 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
 
 // Iterators
 
-class Iterator : public FaceIterator
+class Iterator : public indexing::FaceIterator
 {
 public:
   Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
@@ -374,23 +373,13 @@ public:
   {}
 };
 
-class BorderIterator : public FaceBorderIterator
+class BorderIterator : public indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+  BorderIterator( const uint_t & level, const indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
     FaceBorderIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
-
-template< uint_t level >
-inline Index getBottomLeftCorner() { return getFaceBottomLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
-template< uint_t level >
-inline Index getBottomRightCorner() { return getFaceBottomRightCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
-template< uint_t level >
-inline Index getTopLeftCorner() { return getFaceTopLeftCorner< levelinfo::num_microedges_per_edge( level ) >(); }
-
 
 } // namespace macroface
 
@@ -486,5 +475,4 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
 }
 
 } // namespace edgedof
-} // namespace indexing
 } // namespace hhg

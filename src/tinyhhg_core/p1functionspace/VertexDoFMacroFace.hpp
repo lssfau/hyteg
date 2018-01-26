@@ -5,7 +5,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
@@ -78,11 +78,11 @@ inline void fillLocalCoords(uint_t i, uint_t j, const P1Elements::P1Element& ele
 
 template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Face &face,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& faceMemoryId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
                             std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr) {
 
-  FaceP1FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
+  FunctionMemory< ValueType > *faceMemory = face.getData(faceMemoryId);
 
   std::vector<ValueType*> srcPtr;
   for(auto src : srcIds){
@@ -126,8 +126,8 @@ SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 template< typename ValueType, uint_t Level >
 inline void assignTmpl(Face &face,
                    const std::vector<ValueType>& scalars,
-                   const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
-                   const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
+                   const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                   const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -156,8 +156,8 @@ SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 template< typename ValueType, uint_t Level >
 inline void addTmpl(Face &face,
                 const std::vector<ValueType>& scalars,
-                const std::vector<PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>> &srcIds,
-                const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId) {
+                const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -188,8 +188,8 @@ SPECIALIZE_WITH_VALUETYPE(void, addTmpl, add)
 
 template< typename ValueType, uint_t Level >
 inline real_t dotTmpl(Face &face,
-                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& lhsId,
-                  const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& rhsId) {
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Face>& lhsId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Face>& rhsId) {
 
   real_t sp = 0.0;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -213,9 +213,9 @@ inline real_t dotTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot)
 
 template< typename ValueType, uint_t Level >
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
-                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
+inline void apply_tmpl(Face &face, const PrimitiveDataID< StencilMemory< ValueType >, Face>& operatorId,
+                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -269,9 +269,9 @@ SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
 
 template< typename ValueType, uint_t Level >
 inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId,
                                  UpdateType update) {
   typedef stencilDirection SD;
 
@@ -320,8 +320,8 @@ SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientTmpl, applyCoefficient)
 
 template< typename ValueType, uint_t Level >
 inline void applyCoefficientDGTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                                  const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId,
                                  UpdateType update) {
   typedef stencilDirection SD;
@@ -373,8 +373,8 @@ SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
 
 template< typename ValueType, uint_t Level >
 inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                                 const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                                  std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
                                  UpdateType update) {
   using namespace P1Elements;
@@ -390,7 +390,7 @@ inline void applyElementwiseTmpl(Face &face, std::function<void(Matrix3r&, const
   ValueType tmp;
   real_t localCoords[6];
   Matrix3r localStiffness;
-  std::vector<real_t> faceStencil(P1FaceStencilMemorySize(Level, 0));
+  std::vector<real_t> faceStencil(vertexDoFMacroFaceStencilMemorySize(Level, 0));
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
@@ -447,8 +447,8 @@ SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template<typename ValueType, uint_t Level, uint_t PolyDegree>
 inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
-                                const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                                const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
+                                const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -458,7 +458,7 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
   ValueType* dst = face.getData(dstId)->getPointer( Level );
 
   ValueType tmp;
-  std::vector<real_t> faceStencil(P1FaceStencilMemorySize(Level, 0));
+  std::vector<real_t> faceStencil(vertexDoFMacroFaceStencilMemorySize(Level, 0));
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
@@ -580,9 +580,9 @@ inline void applyPolynomialTmpl(Face &face, const PrimitiveDataID<FaceP1Polynomi
 SPECIALIZE_POLYNOMIAL(void, applyPolynomialTmpl, applyPolynomial)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
-                           const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                           const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
+inline void smooth_gs_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
+                           const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                           const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -614,9 +614,9 @@ SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
 template< typename ValueType, uint_t Level >
 inline void smooth_gs_coefficient_tmpl(Face &face,
                                        const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
-                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
-                                       const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &coeffId) {
+                                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId) {
 
   typedef stencilDirection SD;
 
@@ -636,7 +636,7 @@ inline void smooth_gs_coefficient_tmpl(Face &face,
   std::array<SD,3> triangleGrayNE = { SD::VERTEX_C, SD::VERTEX_N,  SD::VERTEX_E  };
 
   ValueType tmp;
-  std::vector<real_t> opr_data(P1FaceStencilMemorySize(Level, 0));
+  std::vector<real_t> opr_data(vertexDoFMacroFaceStencilMemorySize(Level, 0));
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
@@ -667,8 +667,8 @@ SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_coefficient_tmpl, smooth_gs_coefficien
 
 template<typename ValueType, uint_t Level, uint_t PolyDegree>
 inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
-                                      const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                                      const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId) {
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -677,7 +677,7 @@ inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1Po
   auto dst = face.getData(dstId)->getPointer( Level );
   auto rhs = face.getData(rhsId)->getPointer( Level );
 
-  std::vector<real_t> opr_data(P1FaceStencilMemorySize(Level, 0));
+  std::vector<real_t> opr_data(vertexDoFMacroFaceStencilMemorySize(Level, 0));
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
@@ -746,9 +746,9 @@ inline void smooth_gs_polynomial_tmpl(Face &face, const PrimitiveDataID<FaceP1Po
 SPECIALIZE_POLYNOMIAL(void, smooth_gs_polynomial_tmpl, smooth_gs_polynomial)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
+inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
                             ValueType relax) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -779,10 +779,10 @@ inline void smooth_sor_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 SPECIALIZE_WITH_VALUETYPE(void, smooth_sor_tmpl, smooth_sor)
 
 template< typename ValueType, uint_t Level >
-inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< ValueType >, Face>& operatorId,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &rhsId,
-                            const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &tmpId) {
+inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &tmpId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -812,7 +812,7 @@ inline void smooth_jac_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemor
 SPECIALIZE_WITH_VALUETYPE(void, smooth_jac_tmpl, smooth_jac)
 
 template< typename ValueType, uint_t Level >
-inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
+inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face>& memoryId) {
 
   typedef stencilDirection SD;
   using namespace vertexdof::macroface;
@@ -845,7 +845,7 @@ inline void prolongate_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemo
 SPECIALIZE_WITH_VALUETYPE(void, prolongate_tmpl, prolongate)
 
 template< typename ValueType, uint_t Level >
-inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face>& memoryId) {
+inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face>& memoryId) {
 
   typedef stencilDirection SD;
   using namespace vertexdof::macroface;
@@ -937,7 +937,7 @@ inline void prolongateQuadratic_tmpl(Face &face, const PrimitiveDataID<FaceP1Fun
 SPECIALIZE_WITH_VALUETYPE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template< typename ValueType, uint_t Level >
-inline void restrict_tmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &memoryId) {
+inline void restrict_tmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &memoryId) {
 
   uint_t N_c = levelinfo::num_microvertices_per_edge(Level - 1);
   uint_t N_c_i = N_c;
@@ -978,7 +978,7 @@ inline bool is_boundary(uint_t index, uint_t length) {
 }
 
 template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Face &face, const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &dstId, uint_t& num) {
+inline void enumerateTmpl(Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, uint_t& num) {
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -1064,9 +1064,9 @@ SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
 
 #ifdef HHG_BUILD_WITH_PETSC
 template< uint_t Level >
-inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1StencilMemory< real_t >, Face>& operatorId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
+inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<StencilMemory< real_t >, Face>& operatorId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &srcId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -1098,8 +1098,8 @@ SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 
 template< typename ValueType, uint_t Level >
 inline void createVectorFromFunctionTmpl(Face &face,
-                              const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                              const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
+                              const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
                               Vec& vec) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -1124,8 +1124,8 @@ SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFu
 
 template< typename ValueType, uint_t Level >
 inline void createFunctionFromVectorTmpl(Face &face,
-                                         const PrimitiveDataID<FaceP1FunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FaceP1FunctionMemory< PetscInt >, Face> &numeratorId,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
                                          Vec& vec) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);

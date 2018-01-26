@@ -25,11 +25,11 @@
 #  pragma warning(pop)
 #endif
 
-#include "tinyhhg_core/p1functionspace/P1Memory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
-#include "P1Vertex.hpp"
-#include "P1Edge.hpp"
-#include "P1Face.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 
 namespace hhg
 {

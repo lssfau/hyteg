@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
     auto start = walberla::timing::getWcTime();
     solver.solve(L, *u, *f, *r, maxLevel, 1e-6, coarseMaxiter, hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
     auto end = walberla::timing::getWcTime();
-    hhg::projectMean(u->p, *tmp, maxLevel);
+    hhg::vertexdof::projectMean(u->p, *tmp, maxLevel);
 
 
     L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);

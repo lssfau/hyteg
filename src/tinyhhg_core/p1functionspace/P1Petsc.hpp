@@ -1,8 +1,8 @@
 #pragma once
 
-#include "tinyhhg_core/p1functionspace/P1Vertex.hpp"
-#include "tinyhhg_core/p1functionspace/P1Edge.hpp"
-#include "tinyhhg_core/p1functionspace/P1Face.hpp"
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 
 namespace hhg {
 namespace petsc {

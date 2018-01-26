@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/debug/Debug.h"
+#include "core/Abort.h"
 #include "tinyhhg_core/indexing/Common.hpp"
 
 namespace hhg {
@@ -23,10 +24,10 @@ inline constexpr uint_t linearMacroFaceSize()
 
 /// General linear memory layout indexing function for macro faces
 template< uint_t width >
-inline constexpr uint_t linearMacroFaceIndex( const uint_t & col, const uint_t & row )
+inline constexpr uint_t linearMacroFaceIndex( const uint_t & x, const uint_t & y )
 {
-  const uint_t rowOffset = row * ( width + 1 ) - ( ( ( row + 1 ) * ( row ) ) / 2 );
-  return rowOffset + col;
+  const uint_t rowOffset = y * ( width + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
+  return rowOffset + x;
 }
 
 }
@@ -39,9 +40,9 @@ inline constexpr uint_t macroFaceSize()
 }
 
 template< uint_t width >
-inline constexpr uint_t macroFaceIndex( const uint_t & col, const uint_t & row )
+inline constexpr uint_t macroFaceIndex( const uint_t & x, const uint_t & y )
 {
-  return layout::linearMacroFaceIndex< width >( col, row );
+  return layout::linearMacroFaceIndex< width >( x, y );
 }
 
 
@@ -64,6 +65,7 @@ public:
     width_( width ), offsetToCenter_( offsetToCenter ),
     totalNumberOfDoFs_( ( ( width - 3 * offsetToCenter + 1 ) * ( width - 3 * offsetToCenter ) ) / 2 ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of face must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
     coordinates_.dep() = 0;
@@ -182,6 +184,10 @@ inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orient
 ///     WALBERLA_LOG_INFO_ON_ROOT( "FaceBorderIterator: col = " << it.col() << ", row = " << it.row() );
 ///   }
 ///
+/// \param width width of one edge of the face
+/// \param direction FaceBorderDirection indicating the face border of interest
+/// \param offsetToCenter if > 0, the iterator iterates parallel to the specified border, shifted to the center of the face by offsetToCenter
+/// \param offsetFromVertices the iterator skips the first and last offsetFromVertices points of the border
 class FaceBorderIterator
 {
 public:
@@ -198,6 +204,7 @@ public:
     width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ),
     offsetFromVertices_( offsetFromVertices ), step_( 0 )
   {
+    WALBERLA_ASSERT_GREATER( width, 0, "Size of face must be larger than zero!" );
     WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond face width!" );
 
     coordinates_.dep() = 0;
