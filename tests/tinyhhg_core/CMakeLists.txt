@@ -157,6 +157,3 @@ waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS tinyhhg_
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
-
-waLBerla_compile_test(FILES OperatorTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME OperatorTest)
