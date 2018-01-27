@@ -5,10 +5,6 @@
 
 namespace hhg{
 
-template class EdgeDoFToVertexDoFOperator<hhg::fenics::NoAssemble>;
-template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
-template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
-
 template<class UFCOperator>
 EdgeDoFToVertexDoFOperator<UFCOperator>::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
                                                        const size_t & minLevel,
@@ -196,4 +192,9 @@ uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t 
 }
 
 }/// namespace EdgeDoFToVertexDoF
+
+template class EdgeDoFToVertexDoFOperator<hhg::fenics::NoAssemble>;
+template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
+template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
+
 }/// namespace hhg
