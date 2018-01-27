@@ -87,7 +87,7 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
     case sD::VERTEX_E:
       return index< level >( col + 1);
     case sD::VERTEX_SE:
-      return index< level >( col + 1, 0);
+      return index< level >( col, 0);
     case sD::VERTEX_NW:
       return index< level >( col    , 1);
     default:
