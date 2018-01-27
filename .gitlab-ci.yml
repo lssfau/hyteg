@@ -27,7 +27,7 @@ stages:
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
-      - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
+      - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS+=" --allow-run-as-root" ; fi
       - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR
       - cmake . -LAH
       - cd $CI_PROJECT_DIR/build/apps
@@ -320,7 +320,7 @@ coverage:
       # - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir build
       - cd build
-      - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
+      - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS+=" --allow-run-as-root" ; fi
       - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR
       - cd tests
       - make -j $(nproc) -l $(nproc)
