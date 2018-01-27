@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
     discr_l2_err = std::sqrt(err_p2.dot(err_p2, maxLevel) / npoints);
 
     //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
-    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,end - start))
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err,end - start))
     solveTime += end-start;
 
     if (i >= convergenceStartIter) {
