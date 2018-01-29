@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
   }
 
   /// apply Gauss Seidl smoother i times
-  for(uint i = 0; i < iterations; ++i) {
+  for(uint_t i = 0; i < iterations; ++i) {
     L.smooth_gs(u, rightHandSide, level, hhg::Inner);
   }
 
