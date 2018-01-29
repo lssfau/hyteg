@@ -46,5 +46,13 @@ int main(int argc, char* argv[])
   vtkOutput.add( &u.p );
   vtkOutput.write( level );
 
+//  PETScManager petscManager;
+//  hhg::P2P1TaylorHoodFunction<PetscInt> numerator("numerator", storage, level, level);
+//  uint_t num = 0;
+//  uint_t localSize = numerator.enumerate(level, num);
+//  hhg::PETScSparseMatrix<hhg::P2P1TaylorHoodStokesOperator, hhg::P2P1TaylorHoodFunction> Lpetsc(localSize, num);
+//  Lpetsc.createMatrixFromFunction(L, level, numerator, hhg::All);
+//  Lpetsc.print("../output/th.m");
+
   return EXIT_SUCCESS;
 }

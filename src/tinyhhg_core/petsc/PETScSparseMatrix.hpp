@@ -16,6 +16,7 @@
 #include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
+#include "tinyhhg_core/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 
 namespace hhg {
 
