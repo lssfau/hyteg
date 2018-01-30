@@ -114,36 +114,8 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
                                             UpdateType updateType)
 {
   using namespace EdgeDoFToVertexDoF;
-  src.getCommunicator(level)->startCommunication<Edge, Vertex>();
-  src.getCommunicator(level)->startCommunication<Face, Edge>();
-  src.getCommunicator(level)->endCommunication<Edge, Vertex>();
-
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if (testFlag(vertex.getDoFType(), flag))
-    {
-      applyVertex(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
-    }
-  }
-
-  dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
-
-  // end pulling edge halos
-  src.getCommunicator(level)->endCommunication<Face, Edge>();
-
-  for (auto& it : storage_->getEdges()) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.getDoFType(), flag))
-    {
-      applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
-    }
-  }
-
-  dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
-
-  dst.getCommunicator(level)->startCommunication<Edge, Face>();
+  ///there might be room for optimization in the communication. i.e. splitting communicate into start and end to overlap comm and calc
+  src.getCommunicator(level)->communicate<Edge, Face>();
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -154,7 +126,29 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
     }
   }
 
-  dst.getCommunicator(level)->endCommunication<Edge, Face>();
+
+  src.getCommunicator(level)->communicate<Face, Edge>();
+
+  for (auto& it : storage_->getEdges()) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag))
+    {
+      applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+    }
+  }
+
+  src.getCommunicator(level)->communicate<Edge, Vertex>();
+
+  for (auto& it : storage_->getVertices()) {
+    Vertex& vertex = *it.second;
+
+    if (testFlag(vertex.getDoFType(), flag))
+    {
+      applyVertex(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+    }
+  }
+
 }
 
 template<class UFCOperator>

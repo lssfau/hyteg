@@ -141,13 +141,6 @@ static void testEdgeDoFToVertexDoFOperator()
   std::function< real_t ( const Point3D & ) > initEdgeSrc = [ edgeSrcValue ]( const Point3D & ) -> real_t { return edgeSrcValue; };
   edge_src->interpolate( initEdgeSrc, maxLevel, DoFType::All );
 
-  auto communicator = edge_src->getCommunicator( maxLevel );
-
-  // Pull all halos
-  communicator->communicate< Face, Edge >();
-  communicator->communicate< Edge, Vertex >();
-  communicator->communicate< Edge, Face >();
-
   edgeToVertexOperator.apply( *edge_src, *vertex_dst, maxLevel, DoFType::All, UpdateType::Replace );
 
   // Check macro vertices
@@ -168,9 +161,9 @@ static void testEdgeDoFToVertexDoFOperator()
       auto ptr = edgeFunction->getPointer( maxLevel );
       auto idx = vertexdof::macroedge::index< maxLevel >( idxIt.col() );
 
-      const real_t expectedValue = edgeSrcValue * 
-        ( 2.0 * real_c( edge->getNumNeighborFaces() ) * macroEdgeDiagonalStencilValue 
-        + ( 2.0 + real_c( edge->getNumNeighborFaces() ) ) * macroEdgeHorizontalStencilValue 
+      const real_t expectedValue = edgeSrcValue *
+        ( 2.0 * real_c( edge->getNumNeighborFaces() ) * macroEdgeDiagonalStencilValue
+        + ( 2.0 + real_c( edge->getNumNeighborFaces() ) ) * macroEdgeHorizontalStencilValue
         + 2.0 * real_c( edge->getNumNeighborFaces() ) * macroEdgeVerticalStencilValue );
 
       WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );

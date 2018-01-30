@@ -167,13 +167,6 @@ static void testEdgeDoFToEdgeDoFOperator()
   std::function< real_t ( const Point3D & ) > initEdgeSrc = [ edgeSrcValue ]( const Point3D & ) -> real_t { return edgeSrcValue; };
   edge_src->interpolate( initEdgeSrc, maxLevel, DoFType::All );
 
-  auto communicator = edge_src->getCommunicator( maxLevel );
-
-  // Pull all halos
-  communicator->communicate< Face, Edge >();
-  communicator->communicate< Edge, Vertex >();
-  communicator->communicate< Edge, Face >();
-
   edgeToEdgeOperator.apply( *edge_src, *edge_dst, maxLevel, DoFType::All, UpdateType::Replace );
 
   // Check macro edges
