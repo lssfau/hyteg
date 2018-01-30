@@ -90,8 +90,23 @@ template<class UFCOperator>
 void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
                                             UpdateType updateType) {
 
+  ///the order of communication is crucial here.
+  ///first the vertex dofs on the macro vertex need to be communicated to the edge since they are needed on the edge and the face
+  src.getCommunicator(level)->communicate<Vertex, Edge>();
+  ///secondly the vertex dofs on the macro edge are communicated to the face passing on the vertex dof from the macro vertex
+  src.getCommunicator(level)->communicate<Edge, Face>();
+  ///lastly the vertex dofs on the macro face are communicated to the edge which also contain vertex dofs which are located on neighboring edges
   src.getCommunicator(level)->startCommunication<Face, Edge>();
-  src.getCommunicator(level)->startCommunication<Edge, Face>();
+
+  for (auto& it : storage_->getFaces()) {
+    Face& face = *it.second;
+
+    if (testFlag(face.type, flag))
+    {
+      VertexDoFToEdgeDoF::applyFace(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+    }
+  }
+
   src.getCommunicator(level)->endCommunication<Face, Edge>();
 
   for (auto& it : storage_->getEdges()) {
@@ -100,17 +115,6 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     if (testFlag(edge.getDoFType(), flag))
     {
       VertexDoFToEdgeDoF::applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
-    }
-  }
-
-  src.getCommunicator(level)->endCommunication<Edge, Face>();
-
-  for (auto& it : storage_->getFaces()) {
-    Face& face = *it.second;
-
-    if (testFlag(face.type, flag))
-    {
-      VertexDoFToEdgeDoF::applyFace(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
     }
   }
 

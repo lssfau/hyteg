@@ -59,6 +59,10 @@ waLBerla_execute_test(NAME EdgeDoFToVertexDoFOperatorTest)
 waLBerla_compile_test(FILES operators/EdgeDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 
+waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
+
+
 ## P2 ##
 
 waLBerla_compile_test(FILES P2/P2GSTest.cpp DEPENDS tinyhhg_core core)

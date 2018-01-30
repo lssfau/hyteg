@@ -199,7 +199,7 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
   uint_t rowsize = levelinfo::num_microvertices_per_edge( Level );
   cout << "Horizontal Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
-    for (uint_t i = 1; i < rowsize; ++i) {
+    for (uint_t i = 1; i < rowsize-1; ++i) {
       cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)] << "|";
     }
     cout << endl;
@@ -208,8 +208,22 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
     cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
   }
   cout << endl << "     |";
-  for(uint_t i = 1; i < rowsize; ++i){
+  for(uint_t i = 1; i < rowsize-1; ++i){
     cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_SE)] << "|";
+  }
+  cout << endl << "Diagonal Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 1; i < rowsize; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_DI_NW)] << "|";
+    }
+    cout << endl;
+  }
+//  for(uint_t i = 1; i < rowsize; ++i){
+//    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
+//  }
+//  cout << endl << "     |";
+  for(uint_t i = 0; i < rowsize-1; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_DI_SE)] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
