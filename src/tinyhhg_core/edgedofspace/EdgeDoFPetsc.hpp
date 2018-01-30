@@ -11,6 +11,69 @@ using walberla::uint_t;
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
+                                     EdgeDoFFunction<PetscInt> &numerator,
+                                     Vec &vec,
+                                     uint_t level,
+                                     DoFType flag) {
+
+  for (auto &it : function.getStorage()->getEdges()) {
+    Edge &edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+      edgedof::macroedge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
+    }
+  }
+
+  for (auto &it : function.getStorage()->getFaces()) {
+    Face &face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      edgedof::macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+    }
+  }
+}
+
+inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
+                                     EdgeDoFFunction<PetscInt> &numerator,
+                                     Vec &vec,
+                                     uint_t level,
+                                     DoFType flag) {
+  function.getCommunicator(level)->template startCommunication<Vertex, Edge>();
+  function.getCommunicator(level)->template endCommunication<Vertex, Edge>();
+
+  for (auto &it : function.getStorage()->getEdges()) {
+    Edge &edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), flag)) {
+      edgedof::macroedge::createFunctionFromVector<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
+    }
+  }
+
+  function.getCommunicator(level)->template startCommunication<Edge, Face>();
+  function.getCommunicator(level)->template endCommunication<Edge, Face>();
+
+  for (auto &it : function.getStorage()->getFaces()) {
+    Face &face = *it.second;
+
+    if (testFlag(face.type, flag)) {
+      edgedof::macroface::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+    }
+  }
+}
+
+inline void applyDirichletBC(EdgeDoFFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
+
+  for (auto &it : numerator.getStorage()->getEdges()) {
+    Edge &edge = *it.second;
+
+    if (testFlag(edge.getDoFType(), DirichletBoundary)) {
+      edgedof::macroedge::applyDirichletBC(level, edge, mat, numerator.getEdgeDataID());
+    }
+  }
+
+}
+
 
 template<uint_t Level>
 inline void saveEdgeOperatorTmpl( const Edge & edge,

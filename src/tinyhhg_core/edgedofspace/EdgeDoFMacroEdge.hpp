@@ -215,6 +215,58 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
 
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
+template< typename ValueType, uint_t Level >
+inline void createVectorFromFunctionTmpl(Edge &edge,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
+                                         Vec& vec) {
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+template< typename ValueType, uint_t Level >
+inline void createFunctionFromVectorTmpl(Edge &edge,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
+                                         Vec& vec) {
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    VecGetValues(vec,1,&numerator[idx],&src[idx]);
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+
+template< uint_t Level >
+inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
+                                 const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
+
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    mat.push_back(numerator[idx]);
+  }
+
+}
+SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
+#endif
+
 
 } ///namespace macroedge
 } ///namespace edgedof

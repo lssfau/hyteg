@@ -379,6 +379,85 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
 
 }
 
+#ifdef HHG_BUILD_WITH_PETSC
+
+template< typename ValueType, uint_t Level >
+inline void createVectorFromFunctionTmpl(Face &face,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                         Vec& vec) {
+
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
+    }
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+
+
+template< typename ValueType, uint_t Level >
+inline void createFunctionFromVectorTmpl(Face &face,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                         Vec& vec) {
+
+  auto src = face.getData(srcId)->getPointer( Level );
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      VecGetValues(vec,1,&numerator[idx],&src[idx]);
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      VecGetValues(vec,1,&numerator[idx],&src[idx]);
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      VecGetValues(vec,1,&numerator[idx],&src[idx]);
+    }
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+#endif
+
 }
 }
 }
