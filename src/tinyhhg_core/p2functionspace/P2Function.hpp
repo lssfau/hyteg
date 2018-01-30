@@ -21,7 +21,14 @@ public:
       Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel ),
       vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel ) ),
       edgeDoFFunction_(   std::make_shared<              EdgeDoFFunction< ValueType > >( name + "_EdgeDoF",   storage, minLevel, maxLevel )  )
-  {}
+  {
+    for ( uint_t level = minLevel; level <= maxLevel; level++ )
+    {
+      /// one has to use the communicators of the vertexDoF and edgeDoF function to communicate
+      /// TODO: find better solution
+      communicators_[ level ] = NULL;
+    }
+  }
 
   std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
   std::shared_ptr<              EdgeDoFFunction< ValueType > > getEdgeDoFFunction()   const { return edgeDoFFunction_;   }

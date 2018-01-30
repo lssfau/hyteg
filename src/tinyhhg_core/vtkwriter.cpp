@@ -602,13 +602,6 @@ void VTKOutput::syncAllFunctions( const uint_t & level ) const
     function->getCommunicator( level )->template communicate< Vertex, Edge >();
     function->getCommunicator( level )->template communicate< Edge,   Face >();
   }
-
-  // P2 sync should not be necessary since the respective functions should have been updated above already. But to be safe..
-  for ( const auto & function : p2Functions_ )
-  {
-    function->getCommunicator( level )->template communicate< Vertex, Edge >();
-    function->getCommunicator( level )->template communicate< Edge,   Face >();
-  }
 }
 
 }
