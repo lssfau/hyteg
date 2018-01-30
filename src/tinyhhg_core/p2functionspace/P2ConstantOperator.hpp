@@ -10,6 +10,8 @@
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
 #include "generated/p2_diffusion.h"
+#include "generated/p2_divt.h"
+#include "generated/p2_div.h"
 
 namespace hhg {
 
@@ -166,19 +168,19 @@ public:
 
   }
 
-  const P1Operator<fenics::NoAssemble>& getVertexToVertexOpr() const {
+  P1Operator<fenics::NoAssemble>& getVertexToVertexOpr() {
     return vertexToVertex;
   }
 
-  const GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() const {
+  GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() {
     return edgeToVertex;
   }
 
-  const GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() const {
+  GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() {
     return vertexToEdge;
   }
 
-  const EdgeDoFOperator& getEdgeToEdgeOpr() const {
+  EdgeDoFOperator& getEdgeToEdgeOpr() {
     return edgeToEdge;
   }
 
@@ -313,5 +315,9 @@ private:
 };
 
 typedef P2ConstantOperator<p2_diffusion_cell_integral_0_otherwise> P2ConstantLaplaceOperator;
+typedef P2ConstantOperator<p2_divt_cell_integral_0_otherwise> P2ConstantDivTxOperator;
+typedef P2ConstantOperator<p2_divt_cell_integral_1_otherwise> P2ConstantDivTyOperator;
+typedef P2ConstantOperator<p2_div_cell_integral_0_otherwise> P2ConstantDivxOperator;
+typedef P2ConstantOperator<p2_div_cell_integral_1_otherwise> P2ConstantDivyOperator;
 
 }
