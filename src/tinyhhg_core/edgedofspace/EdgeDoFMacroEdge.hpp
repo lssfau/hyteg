@@ -218,12 +218,18 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
     }
     cout << endl;
   }
-//  for(uint_t i = 1; i < rowsize; ++i){
-//    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
-//  }
-//  cout << endl << "     |";
   for(uint_t i = 0; i < rowsize-1; ++i){
     cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_DI_SE)] << "|";
+  }
+  cout << endl << "Vertical Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 0; i < rowsize -1; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_VE_N)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_VE_S)] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
