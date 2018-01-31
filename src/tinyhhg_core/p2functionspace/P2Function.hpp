@@ -6,6 +6,7 @@
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "P2Multigrid.hpp"
 
 
 namespace hhg {
@@ -237,7 +238,35 @@ private:
     inline void
     restrict_impl( uint_t sourceLevel, DoFType flag = All )
     {
-      WALBERLA_ABORT( "P2Function - Restrict not implemented!" );
+      WALBERLA_LOG_DEVEL( "P2 to P2 restrict is highly work in progress!" );
+
+      for ( const auto & it : this->getStorage()->getFaces() )
+      {
+        const Face & face = *it.second;
+
+        if ( testFlag(face.type, flag) )
+        {
+          P2::macroface::restrict< ValueType >( sourceLevel, face,
+                                                      vertexDoFFunction_->getFaceDataID(),
+                                                      edgeDoFFunction_->getFaceDataID());
+        }
+      }
+
+      ///sync the vertex dofs which contain the missing edge dofs
+      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Face  , Edge   >();
+
+      for ( const auto & it : this->getStorage()->getEdges() )
+      {
+        const Edge & edge = *it.second;
+
+        if ( testFlag( edge.getDoFType(), flag ) )
+        {
+          P2::macroedge::restrict< ValueType >( sourceLevel, edge,
+                                                      vertexDoFFunction_->getEdgeDataID(),
+                                                      edgeDoFFunction_->getEdgeDataID());
+        }
+      }
+
     }
 
     inline void

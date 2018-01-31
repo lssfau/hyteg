@@ -80,6 +80,9 @@ waLBerla_execute_test(NAME P2P1TransferTest)
 waLBerla_compile_test(FILES P2/P2VertexInterpolateTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2VertexInterpolateTest)
 
+waLBerla_compile_test(FILES P2/P2RestrictTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2Restrict)
+
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscTest.cpp DEPENDS tinyhhg_core core)
   waLBerla_execute_test(NAME P2PetscTest1 COMMAND $<TARGET_FILE:P2PetscTest> )
