@@ -9,10 +9,14 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/vtkwriter.hpp"
+
 namespace hhg {
 
 using walberla::uint_t;
 using walberla::uint_c;
+using walberla::real_t;
 
 static void testVertexDoFFunction()
 {
@@ -23,6 +27,14 @@ static void testVertexDoFFunction()
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   writeDomainPartitioningVTK( storage, "../../output", "single_tet" );
+
+  auto x = std::make_shared< P1Function< real_t > >( "x", storage, level, level );
+
+  VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
+  vtkOutput.set3D();
+  vtkOutput.add( x );
+  vtkOutput.write( level );
+
 }
 
 } // namespace hhg
