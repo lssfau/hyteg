@@ -368,6 +368,11 @@ public:
 
 } // namespace macrocell
 
+
+// ################
+// ### Stencils ###
+// ################
+
 constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
 {
   typedef stencilDirection sD;
