@@ -121,9 +121,9 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
       const Point3D dy = ( x2 - x0 ) / real_c( numIntervals );
       const Point3D dz = ( x3 - x0 ) / real_c( numIntervals );
 
-      for ( const auto & it : vertexdof::macrocell::Iterator( level, 0 ) )
+      for ( const auto & idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
       {
-        const Point3D vtkPoint = it.dep() * dz + it.row() * dy + it.col() * dx;
+        const Point3D vtkPoint = real_c( idxIt.dep() ) * dz + real_c( idxIt.row() ) * dy + real_c( idxIt.col() ) * dx;
         output << std::scientific << vtkPoint[0] << " " << vtkPoint[1] << " " << vtkPoint[2] << "\n";
       }
     }
@@ -380,9 +380,9 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
 
         output << std::scientific;
 
-        for ( const auto & it : vertexdof::macrocell::Iterator( level ) )
+        for ( const auto & idxIt : vertexdof::macrocell::Iterator( level ) )
         {
-          output << cellData[ vtkDetail::vertexDoFOnMacroCellIndex( level, it.x(), it.y(), it.z() ) ] << " ";
+          output << cellData[ vtkDetail::vertexDoFOnMacroCellIndex( level, idxIt.x(), idxIt.y(), idxIt.z() ) ] << " ";
         }
       }
     }
