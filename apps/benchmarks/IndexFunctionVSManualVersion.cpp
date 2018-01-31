@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 
   std::shared_ptr<Face> face = storage->getFaces().begin().operator*().second;
 
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D& x)  { return x.x[0] * 4; };
+  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D& x)  { return x[0] * 4; };
   src->interpolate(ones,level);
 
   real_t* oprPtr = face->getData(M.getFaceStencilID())->getPointer( level );

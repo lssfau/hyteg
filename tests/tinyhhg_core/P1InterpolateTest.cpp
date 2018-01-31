@@ -61,11 +61,11 @@ int main(int argc, char **argv)
   for(auto faceIter : storage->getFaces())
   {
     auto face = faceIter.second;
-    value = face->coords[0].x[0] * 2 + face->coords[0].x[0];
+    value = face->coords[0][0] * 2 + face->coords[0][0];
 //    Edge *faceEdge0 = storage->getEdge(face->getEdgeID0().getID());
 //    Edge *faceEdge1 = storage->getEdge(face->getEdgeID1().getID());
-    xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((v_perEdge-1));
-    yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((v_perEdge-1));
+    xStepSize = walberla::real_c(face->coords[1][0] - face->coords[0][0]) / walberla::real_c((v_perEdge-1));
+    yStepSize = walberla::real_c(face->coords[2][1] - face->coords[0][1]) / walberla::real_c((v_perEdge-1));
 
     vertexdof::macroface::interpolate< real_t >(maxLevel, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < v_perEdge; ++i)
@@ -92,9 +92,9 @@ int main(int argc, char **argv)
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
     hhg::vertexdof::macroedge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
-    value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
-    xStepSize = edge->getDirection().x[0] / walberla::real_c((v_perEdge-1));
-    yStepSize = edge->getDirection().x[1] / walberla::real_c((v_perEdge-1));
+    value = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
+    xStepSize = edge->getDirection()[0] / walberla::real_c((v_perEdge-1));
+    yStepSize = edge->getDirection()[1] / walberla::real_c((v_perEdge-1));
     value += 2*xStepSize;
     value += yStepSize;
     for(uint_t i = 1; i < v_perEdge-1; ++i)

@@ -179,6 +179,8 @@ public:
     }
   }
 
+protected:
+
   T x[N];
 };
 
