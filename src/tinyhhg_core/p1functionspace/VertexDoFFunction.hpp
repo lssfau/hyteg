@@ -27,10 +27,12 @@ public:
   VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
       Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
   {
+    auto cellVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell   > >( minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
     auto faceVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, vertexDoFMacroFaceFunctionMemorySize );
     auto edgeVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge   > >( minLevel, maxLevel, vertexDoFMacroEdgeFunctionMemorySize   );
     auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >( minLevel, maxLevel, vertexDoFMacroVertexFunctionMemorySize );
 
+    storage->addCellData( cellDataID_, cellVertexDoFFunctionMemoryDataHandling, name );
     storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
     storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
     storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
@@ -41,11 +43,10 @@ public:
     }
   }
 
-  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
-
-  const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
-
-  const PrimitiveDataID< FunctionMemory< ValueType >, Face> &getFaceDataID() const { return faceDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex> & getVertexDataID() const { return vertexDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Edge>   & getEdgeDataID()   const { return edgeDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Face>   & getFaceDataID()   const { return faceDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >, Cell>   & getCellDataID()   const { return cellDataID_; }
 
   // TODO: split this function into impl
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
@@ -80,6 +81,7 @@ private:
   PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
   PrimitiveDataID< FunctionMemory< ValueType >, Edge >   edgeDataID_;
   PrimitiveDataID< FunctionMemory< ValueType >, Face >   faceDataID_;
+  PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 };
 
 template< typename ValueType >
