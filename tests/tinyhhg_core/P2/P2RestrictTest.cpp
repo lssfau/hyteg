@@ -12,7 +12,7 @@ namespace hhg {
 static void testP2Smooth() {
   const uint_t sourceLevel = 3;
 
-  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/quad_2el.msh");
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
 
   SetupPrimitiveStorage setupStorage(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
 
@@ -30,8 +30,13 @@ static void testP2Smooth() {
 
   for (auto &edgeIT : storage->getEdges()) {
     auto edge = edgeIT.second;
-    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
   }
+//
+//  for (auto &edgeIT : storage->getEdges()) {
+//    auto edge = edgeIT.second;
+//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//  }
 
   //hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*storage->getEdge(PrimitiveID(6)), x->getVertexDoFFunction()->getEdgeDataID());
 

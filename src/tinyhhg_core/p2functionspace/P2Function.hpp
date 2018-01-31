@@ -253,7 +253,7 @@ private:
       }
 
       ///sync the vertex dofs which contain the missing edge dofs
-      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Face  , Edge   >();
+      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Face  , Edge   >();
 
       for ( const auto & it : this->getStorage()->getEdges() )
       {

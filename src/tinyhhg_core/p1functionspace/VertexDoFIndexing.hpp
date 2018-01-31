@@ -327,8 +327,8 @@ public:
 class BorderIterator : public hhg::indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
-    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter )
+  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0) :
+    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
 
