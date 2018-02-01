@@ -291,7 +291,19 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
 
     for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE );
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
+
+      for ( const auto & spanningVertexIndex : spanningVertexIndices )
+      {
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
+      cellCounter++;
+    }
+
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices )
       {
