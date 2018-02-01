@@ -20,6 +20,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_div_K_grad.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -379,11 +380,42 @@ private:
   std::shared_ptr<FenicsOperator> fenicsOperator;
 };
 
+template<class FenicsOperator1, class FenicsOperator2, class FenicsOperator3>
+class P1TensorCoefficientOperator : public P1CoefficientOperator {
+public:
+  P1TensorCoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+                              const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
+                              size_t minLevel,
+                              size_t maxLevel)
+      : P1CoefficientOperator(fillOperators(),
+                              storage, coefficients, minLevel, maxLevel)
+  { }
+
+  std::vector<fenics::TabulateTensor> fillOperators() {
+    fenicsOperator1 = std::make_shared<FenicsOperator1>();
+    fenicsOperator2 = std::make_shared<FenicsOperator2>();
+    fenicsOperator3 = std::make_shared<FenicsOperator3>();
+    std::vector<fenics::TabulateTensor> operators;
+    operators.push_back(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    operators.push_back(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    operators.push_back(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    return operators;
+  }
+private:
+  std::shared_ptr<FenicsOperator1> fenicsOperator1;
+  std::shared_ptr<FenicsOperator2> fenicsOperator2;
+  std::shared_ptr<FenicsOperator3> fenicsOperator3;
+};
+
 typedef P1ScalarCoefficientOperator<p1_diffusion_cell_integral_0_otherwise> P1ScalarCoefficientLaplaceOperator;
 typedef P1ScalarCoefficientOperator<p1_stokes_epsilon_cell_integral_0_otherwise> P1CoefficientEpsilonOperator_uu;
 typedef P1ScalarCoefficientOperator<p1_stokes_epsilon_cell_integral_1_otherwise> P1CoefficientEpsilonOperator_uv;
 typedef P1ScalarCoefficientOperator<p1_stokes_epsilon_cell_integral_2_otherwise> P1CoefficientEpsilonOperator_vu;
 typedef P1ScalarCoefficientOperator<p1_stokes_epsilon_cell_integral_3_otherwise> P1CoefficientEpsilonOperator_vv;
+
+typedef P1TensorCoefficientOperator<p1_div_k_grad_cell_integral_0_otherwise,
+                                    p1_div_k_grad_cell_integral_1_otherwise,
+                                    p1_div_k_grad_cell_integral_2_otherwise> P1TensorCoefficientLaplaceOperator;
 
 }
 

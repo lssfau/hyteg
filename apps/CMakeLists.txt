@@ -26,7 +26,9 @@ waLBerla_add_executable( NAME cg_P1_varcoeff
         FILES cg_P1_varcoeff.cpp
         DEPENDS tinyhhg_core fmt)
 
-
+waLBerla_add_executable( NAME cg_P1_tensorvarcoeff
+        FILES cg_P1_tensorvarcoeff.cpp
+        DEPENDS tinyhhg_core fmt)
 
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_bubble       CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
