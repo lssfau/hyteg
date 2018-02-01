@@ -38,30 +38,31 @@ namespace hhg
 class P1CoefficientOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  P1CoefficientOperator(const std::vector<fenics::TabulateTensor>& operators,
-                        const std::shared_ptr< PrimitiveStorage > & storage,
-                        const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
+  P1CoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                         size_t minLevel,
                         size_t maxLevel)
-    : Operator(storage, minLevel, maxLevel), coefficients_(coefficients)
+    : Operator(storage, minLevel, maxLevel)
   {
-    WALBERLA_ASSERT_EQUAL(operators.size(), coefficients.size());
-    init(operators, minLevel, maxLevel);
   }
 
   ~P1CoefficientOperator()
   {
   }
 
-private:
+  void addOperatorAndCoefficient(const fenics::TabulateTensor& fenicsTabulateTensor, const std::shared_ptr<P1Function< real_t >>& coefficient) {
+    operators_.push_back(fenicsTabulateTensor);
+    coefficients_.push_back(coefficient);
+  }
 
-  void init(const std::vector<fenics::TabulateTensor>& operators, uint_t minLevel, uint_t maxLevel)
+  void init()
   {
-    vertexLocalMatrixIDs_.resize(operators.size());
-    edgeLocalMatrixIDs_.resize(operators.size());
-    faceLocalMatrixIDs_.resize(operators.size());
+    WALBERLA_ASSERT(operators_.size() > 0, "At least one operator needs to be added before calling init()");
 
-    for(uint_t oprIdx = 0; oprIdx < operators.size(); ++oprIdx) {
+    vertexLocalMatrixIDs_.resize(operators_.size());
+    edgeLocalMatrixIDs_.resize(operators_.size());
+    faceLocalMatrixIDs_.resize(operators_.size());
+
+    for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
       auto faceP1LocalMatrixMemoryDataHandling = std::make_shared<FaceP1LocalMatrixMemoryDataHandling>(minLevel_,
                                                                                                        maxLevel_);
       auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared<EdgeP1LocalMatrixMemoryDataHandling>(minLevel_,
@@ -83,8 +84,8 @@ private:
 
           auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
 
-          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
-          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
+          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
         }
 
         for (auto &it : storage_->getEdges()) {
@@ -94,15 +95,15 @@ private:
 
           // first face
           Face *face = storage_->getFace(edge.neighborFaces()[0]);
-          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
-          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
+          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
 
 
           if (edge.getNumNeighborFaces() == 2) {
             // second face
             Face *face = storage_->getFace(edge.neighborFaces()[1]);
-            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
-            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
+            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
+            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
           }
         }
 
@@ -116,7 +117,7 @@ private:
           for (auto &faceId : vertex.neighborFaces()) {
             Face *face = storage_->getFace(faceId);
 
-            compute_local_stiffness(operators[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
+            compute_local_stiffness(operators_[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
             ++neighborId;
           }
         }
@@ -125,6 +126,7 @@ private:
     }
   }
 
+private:
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
@@ -357,6 +359,7 @@ private:
 
 private:
   std::vector<std::shared_ptr<P1Function< real_t >>> coefficients_;
+  std::vector<fenics::TabulateTensor> operators_;
 };
 
 template<class FenicsOperator>
@@ -366,15 +369,14 @@ public:
                               const std::shared_ptr<P1Function< real_t >>& coefficient,
                               size_t minLevel,
                               size_t maxLevel)
-    : P1CoefficientOperator(fillOperators(),
-                            storage, std::vector<std::shared_ptr<P1Function< real_t >>>{coefficient}, minLevel, maxLevel)
-      { }
+    : P1CoefficientOperator(storage, minLevel, maxLevel) {
 
-  std::vector<fenics::TabulateTensor> fillOperators() {
     fenicsOperator = std::make_shared<FenicsOperator>();
-    std::vector<fenics::TabulateTensor> operators;
-    operators.push_back(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    return operators;
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficient);
+
+    this->init();
   }
 private:
   std::shared_ptr<FenicsOperator> fenicsOperator;
@@ -387,20 +389,24 @@ public:
                               const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
                               size_t minLevel,
                               size_t maxLevel)
-      : P1CoefficientOperator(fillOperators(),
-                              storage, coefficients, minLevel, maxLevel)
-  { }
-
-  std::vector<fenics::TabulateTensor> fillOperators() {
+      : P1CoefficientOperator(storage, minLevel, maxLevel) {
+    WALBERLA_ASSERT_EQUAL(coefficients.size(), 3);
     fenicsOperator1 = std::make_shared<FenicsOperator1>();
     fenicsOperator2 = std::make_shared<FenicsOperator2>();
     fenicsOperator3 = std::make_shared<FenicsOperator3>();
-    std::vector<fenics::TabulateTensor> operators;
-    operators.push_back(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    operators.push_back(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    operators.push_back(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    return operators;
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[0]);
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[1]);
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[2]);
+
+    this->init();
   }
+
 private:
   std::shared_ptr<FenicsOperator1> fenicsOperator1;
   std::shared_ptr<FenicsOperator2> fenicsOperator2;

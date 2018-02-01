@@ -20,6 +20,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_div_K_grad.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -41,42 +42,47 @@ class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< 
 public:
   typedef LSQPInterpolator<MonomialBasis2D> Interpolator;
 
-  P1PolynomialOperator(const std::vector<fenics::TabulateTensor>& operators,
-                       const std::shared_ptr< PrimitiveStorage > & storage,
-                       const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
-                       const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients,
+  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                        uint_t minLevel,
                        uint_t maxLevel,
                        uint_t polyDegree,
                        uint_t interpolationLevel)
       : Operator(storage, minLevel, maxLevel),
         polyDegree_(polyDegree),
-        interpolationLevel_(interpolationLevel),
-        coefficients_(coefficients),
-        analyticCoefficients_(analyticCoefficients)
+        interpolationLevel_(interpolationLevel)
   {
-    WALBERLA_ASSERT_EQUAL(operators.size(), coefficients.size());
-    WALBERLA_ASSERT_EQUAL(operators.size(), analyticCoefficients.size());
-    initLocalStiffnessMatrices(operators);
-    interpolateStencils(operators);
   }
 
   ~P1PolynomialOperator()
   {
   }
 
+  void addOperatorAndCoefficient(const fenics::TabulateTensor& fenicsTabulateTensor,
+                                 const std::shared_ptr<P1Function< real_t >>& coefficient,
+                                 const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient) {
+    operators_.push_back(fenicsTabulateTensor);
+    coefficients_.push_back(coefficient);
+    analyticCoefficients_.push_back(analyticCoefficient);
+  }
+
+  void init() {
+    WALBERLA_ASSERT(operators_.size() > 0, "At least one operator needs to be added before calling init()");
+    initLocalStiffnessMatrices();
+    interpolateStencils();
+  }
+
 private:
 
-  void initLocalStiffnessMatrices(const std::vector<fenics::TabulateTensor>& operators)
+  void initLocalStiffnessMatrices()
   {
     auto faceP1PolynomialMemoryDataHandling = std::make_shared< FaceP1PolynomialMemoryDataHandling >(polyDegree_);
     storage_->addFaceData(facePolynomialID_, faceP1PolynomialMemoryDataHandling, "P1OperatorFacePolynomial");
 
-    vertexLocalMatrixIDs_.resize(operators.size());
-    edgeLocalMatrixIDs_.resize(operators.size());
-    faceLocalMatrixIDs_.resize(operators.size());
+    vertexLocalMatrixIDs_.resize(operators_.size());
+    edgeLocalMatrixIDs_.resize(operators_.size());
+    faceLocalMatrixIDs_.resize(operators_.size());
 
-    for(uint_t oprIdx = 0; oprIdx < operators.size(); ++oprIdx) {
+    for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
 
       auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
       auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
@@ -94,8 +100,8 @@ private:
 
           auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
 
-          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(interpolationLevel_), fenics::GRAY);
-          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(interpolationLevel_), fenics::BLUE);
+          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(interpolationLevel_), fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(interpolationLevel_), fenics::BLUE);
         }
 
         for (auto &it : storage_->getEdges()) {
@@ -105,15 +111,15 @@ private:
 
           // first face
           Face *face = storage_->getFace(edge.neighborFaces()[0]);
-          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
-          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
+          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
 
 
           if (edge.getNumNeighborFaces() == 2) {
             // second face
             Face *face = storage_->getFace(edge.neighborFaces()[1]);
-            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
-            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
+            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
+            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
           }
         }
 
@@ -127,7 +133,7 @@ private:
           for (auto &faceId : vertex.neighborFaces()) {
             Face *face = storage_->getFace(faceId);
 
-            compute_local_stiffness(operators[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
+            compute_local_stiffness(operators_[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
             ++neighborId;
           }
         }
@@ -135,7 +141,7 @@ private:
     }
   }
 
-  void interpolateStencils(const std::vector<fenics::TabulateTensor>& operators) {
+  void interpolateStencils() {
     typedef stencilDirection SD;
     using namespace P1Elements;
 
@@ -183,7 +189,7 @@ private:
 
           std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
-          for(uint_t oprIdx = 0; oprIdx < operators.size(); ++oprIdx) {
+          for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
 
             auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
 
@@ -507,7 +513,8 @@ private:
   uint_t polyDegree_;
   uint_t interpolationLevel_;
   std::vector<std::shared_ptr<P1Function< real_t >>> coefficients_;
-  const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients_;
+  std::vector<std::function<real_t(const hhg::Point3D&)>> analyticCoefficients_;
+  std::vector<fenics::TabulateTensor> operators_;
 };
 
 template<class FenicsOperator>
@@ -520,18 +527,12 @@ public:
                                         size_t maxLevel,
                                         uint_t polyDegree,
                                         uint_t interpolationLevel)
-      : P1PolynomialOperator(fillOperators(),
-                             storage,
-                             std::vector<std::shared_ptr<P1Function< real_t >>>{coefficient},
-                             std::vector<std::function<real_t(const hhg::Point3D&)>>{analyticCoefficient},
-                             minLevel, maxLevel, polyDegree, interpolationLevel)
-  { }
-
-  std::vector<fenics::TabulateTensor> fillOperators() {
+      : P1PolynomialOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
+  {
     fenicsOperator = std::make_shared<FenicsOperator>();
-    std::vector<fenics::TabulateTensor> operators;
-    operators.push_back(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    return operators;
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficient, analyticCoefficient);
+    this->init();
   }
 private:
   std::shared_ptr<FenicsOperator> fenicsOperator;
@@ -547,19 +548,22 @@ public:
                                         size_t maxLevel,
                                         uint_t polyDegree,
                                         uint_t interpolationLevel)
-      : P1PolynomialOperator(fillOperators(),
-                              storage, coefficients, analyticCoefficients, minLevel, maxLevel, polyDegree, interpolationLevel)
-  { }
-
-  std::vector<fenics::TabulateTensor> fillOperators() {
+      : P1PolynomialOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
+  {
+    WALBERLA_ASSERT_EQUAL(coefficients.size(), 3);
     fenicsOperator1 = std::make_shared<FenicsOperator1>();
     fenicsOperator2 = std::make_shared<FenicsOperator2>();
     fenicsOperator3 = std::make_shared<FenicsOperator3>();
-    std::vector<fenics::TabulateTensor> operators;
-    operators.push_back(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    operators.push_back(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    operators.push_back(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    return operators;
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[0], analyticCoefficients[0]);
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[1], analyticCoefficients[1]);
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                    coefficients[2], analyticCoefficients[2]);
+
+    this->init();
   }
 private:
   std::shared_ptr<FenicsOperator1> fenicsOperator1;
@@ -568,6 +572,10 @@ private:
 };
 
 using P1PolynomialScalarCoefficientLaplaceOperator = P1PolynomialScalarCoefficientOperator<p1_diffusion_cell_integral_0_otherwise>;
+
+using P1PolynomialTensorCoefficientLaplaceOperator = P1PolynomialTensorCoefficientOperator<p1_div_k_grad_cell_integral_0_otherwise,
+    p1_div_k_grad_cell_integral_1_otherwise,
+    p1_div_k_grad_cell_integral_2_otherwise>;
 
 }
 
