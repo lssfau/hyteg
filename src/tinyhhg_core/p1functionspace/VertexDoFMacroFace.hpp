@@ -268,20 +268,28 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID< StencilMemory< ValueTy
 SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
 
 template< typename ValueType, uint_t Level >
-inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
+inline void applyCoefficientTmpl(Face &face, const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>>& operatorIds,
                                  const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
                                  const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
-                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId,
+                                 const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &coeffIds,
                                  UpdateType update) {
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto localMatrices = face.getData(operatorId);
   auto src = face.getData(srcId)->getPointer(Level);
   auto dst = face.getData(dstId)->getPointer(Level);
-  auto coeff = face.getData(coeffId)->getPointer(Level);
+
+  std::vector<FaceP1LocalMatrixMemory*> localMatricesVector;
+  for(auto operatorId : operatorIds) {
+    localMatricesVector.push_back(face.getData(operatorId));
+  }
+
+  std::vector<real_t*> coeffs;
+  for(auto coeffId : coeffIds) {
+    coeffs.push_back(face.getData(coeffId)->getPointer( Level ));
+  }
 
   ValueType tmp;
 
@@ -303,12 +311,20 @@ inline void applyCoefficientTmpl(Face &face, const PrimitiveDataID<FaceP1LocalMa
         tmp = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
       }
 
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayS, {2,0,1});
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueSE, {1,2,0});
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueSW, {0,1,2});
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayNW, {1,0,2});
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), src, coeff, triangleBlueN, {2,1,0});
-      tmp += assembleLocal<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), src, coeff, triangleGrayNE, {0,2,1});
+      for (uint_t coeffIdx = 0; coeffIdx < coeffIds.size(); ++coeffIdx) {
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), src, coeffs[coeffIdx], triangleGrayS,
+                                               {2, 0, 1});
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), src, coeffs[coeffIdx], triangleBlueSE,
+                                               {1, 2, 0});
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), src, coeffs[coeffIdx], triangleBlueSW,
+                                               {0, 1, 2});
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), src, coeffs[coeffIdx], triangleGrayNW,
+                                               {1, 0, 2});
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), src, coeffs[coeffIdx], triangleBlueN,
+                                               {2, 1, 0});
+        tmp += assembleLocal<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), src, coeffs[coeffIdx], triangleGrayNE,
+                                               {0, 2, 1});
+      }
 
       dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)] = tmp;
     }
@@ -613,20 +629,28 @@ SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
 
 template< typename ValueType, uint_t Level >
 inline void smooth_gs_coefficient_tmpl(Face &face,
-                                       const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
+                                       const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>>& operatorIds,
                                        const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
                                        const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
-                                       const PrimitiveDataID<FunctionMemory< ValueType >, Face> &coeffId) {
+                                       const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &coeffIds) {
 
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
-  auto localMatrices = face.getData(operatorId);
   auto dst = face.getData(dstId)->getPointer(Level);
   auto rhs = face.getData(rhsId)->getPointer( Level );
-  auto coeff = face.getData(coeffId)->getPointer(Level);
+
+  std::vector<FaceP1LocalMatrixMemory*> localMatricesVector;
+  for(auto operatorId : operatorIds) {
+    localMatricesVector.push_back(face.getData(operatorId));
+  }
+
+  std::vector<real_t*> coeffs;
+  for(auto coeffId : coeffIds) {
+    coeffs.push_back(face.getData(coeffId)->getPointer( Level ));
+  }
 
   std::array<SD,3> triangleBlueSW = { SD::VERTEX_C, SD::VERTEX_W,  SD::VERTEX_S  };
   std::array<SD,3> triangleGrayS  = { SD::VERTEX_C, SD::VERTEX_S,  SD::VERTEX_SE };
@@ -643,12 +667,20 @@ inline void smooth_gs_coefficient_tmpl(Face &face,
 
       std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayS, {2,0,1});
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueSE, {1,2,0});
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueSW, {0,1,2});
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayNW, {1,0,2});
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getBlueMatrix(Level), opr_data.data(), coeff, triangleBlueN, {2,1,0});
-      assembleLocalStencil<ValueType, Level>(i, j, localMatrices->getGrayMatrix(Level), opr_data.data(), coeff, triangleGrayNE, {0,2,1});
+      for (uint_t coeffIdx = 0; coeffIdx < coeffIds.size(); ++coeffIdx) {
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleGrayS, {2, 0, 1});
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleBlueSE, {1, 2, 0});
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleBlueSW, {0, 1, 2});
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleGrayNW, {1, 0, 2});
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getBlueMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleBlueN, {2, 1, 0});
+        assembleLocalStencil<ValueType, Level>(i, j, localMatricesVector[coeffIdx]->getGrayMatrix(Level), opr_data.data(), coeffs[coeffIdx],
+                                               triangleGrayNE, {0, 2, 1});
+      }
 
       tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
 
