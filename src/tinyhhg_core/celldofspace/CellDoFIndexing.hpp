@@ -12,7 +12,9 @@ using indexing::Index;
 
 enum class CellType : uint_t
 {
-  WHITE
+  WHITE_UP,
+  BLUE,
+  GREEN,
 };
 
 namespace macrocell {
@@ -26,12 +28,19 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
 
   switch ( microCellType )
   {
-  case CellType::WHITE:
+  case CellType::WHITE_UP:
     return std::array< Index, 4 >( {{
       Index( cellX    , cellY    , cellZ     ),
       Index( cellX + 1, cellY    , cellZ     ),
       Index( cellX    , cellY + 1, cellZ     ),
       Index( cellX    , cellY    , cellZ + 1 )
+    }} );
+  case CellType::BLUE:
+    return std::array< Index, 4 >( {{
+      Index( cellX + 1, cellY    , cellZ     ),
+      Index( cellX + 1, cellY    , cellZ + 1 ),
+      Index( cellX    , cellY    , cellZ + 1 ),
+      Index( cellX + 1, cellY + 1, cellZ     )
     }} );
   default:
     WALBERLA_ABORT( "Not implement for this cell type." );
@@ -39,6 +48,8 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
   }
   return std::array< Index, 4 >();
 }
+
+
 
 }
 }
