@@ -21,7 +21,15 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  walberla::shared_ptr<walberla::config::Config> cfg = walberla::config::create(argc, argv);
+  walberla::shared_ptr<walberla::config::Config> cfg;
+
+  if (argc == 1) {
+    walberla::shared_ptr<walberla::config::Config> cfg_(new walberla::config::Config);
+    cfg_->readParameterFile("../data/param/gmg_varcoeff_vs_poly.prm");
+    cfg = cfg_;
+  } else {
+    cfg = walberla::config::create(argc, argv);
+  }
   WALBERLA_LOG_INFO("config = " << *cfg);
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
@@ -57,25 +65,47 @@ int main(int argc, char* argv[])
   hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
   hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
   hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
-  std::shared_ptr<P1Function< real_t >> coefficient = std::make_shared<P1Function< real_t >>("coeff", storage, minLevel, maxLevel);
+  std::shared_ptr<P1Function< real_t >> coefficient_11 = std::make_shared<P1Function< real_t >>("coeff_11", storage, minLevel, maxLevel);
+  std::shared_ptr<P1Function< real_t >> coefficient_12 = std::make_shared<P1Function< real_t >>("coeff_12", storage, minLevel, maxLevel);
+  std::shared_ptr<P1Function< real_t >> coefficient_22 = std::make_shared<P1Function< real_t >>("coeff_22", storage, minLevel, maxLevel);
+  std::vector<std::shared_ptr<P1Function< real_t >>> coefficients;
+  coefficients.push_back(coefficient_11);
+  coefficients.push_back(coefficient_12);
+  coefficients.push_back(coefficient_22);
+  auto coordX = std::make_shared<hhg::P1Function<real_t>>("x", storage, minLevel, maxLevel);
+  auto coordY = std::make_shared<hhg::P1Function<real_t>>("y", storage, minLevel, maxLevel);
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperatorNodal;
-  typedef hhg::P1PolynomialLaplaceOperator SolveOperatorPoly;
+  typedef hhg::P1TensorCoefficientLaplaceOperator SolveOperatorNodal;
+  typedef hhg::P1PolynomialTensorCoefficientLaplaceOperator SolveOperatorPoly;
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
-  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 0.78546668391367*pow(x[0], 5) + 0.510366500099077*pow(x[0], 4)*x[1] + 0.391730092723877*pow(x[0], 4) + 0.207487088173805*pow(x[0], 3)*pow(x[1], 2) + 0.0805663025864225*pow(x[0], 3)*x[1] + 0.536962603494453*pow(x[0], 3) + 0.531408246732952*pow(x[0], 2)*pow(x[1], 3) + 0.169273512762915*pow(x[0], 2)*pow(x[1], 2) + 0.650313969995998*pow(x[0], 2)*x[1] + 0.936768966999531*pow(x[0], 2) + 0.33272576173186*x[0]*pow(x[1], 4) + 0.467034357005117*x[0]*pow(x[1], 3) + 0.710869731775775*x[0]*pow(x[1], 2) + 0.0716850897166866*x[0]*x[1] + 0.952980913121537*x[0] + 0.80834990475715*pow(x[1], 5) + 0.736229430842718*pow(x[1], 4) + 0.908328209520154*pow(x[1], 3) + 0.864072771153344*pow(x[1], 2) + 0.475144899525835*x[1] + 1; };
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return pow(x[0], 3)*pow(x[1], 2)/(x[0]*x[1] + 1); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return x[0]*(-x[0]*x[1]*(x[0]*x[1] + 1)*(x[0]*(x[0]*x[1] + 2)*(0.510366500099077*pow(x[0], 4) + 0.41497417634761*pow(x[0], 3)*x[1] + 0.0805663025864225*pow(x[0], 3) + 1.59422474019885*pow(x[0], 2)*pow(x[1], 2) + 0.33854702552583*pow(x[0], 2)*x[1] + 0.650313969995998*pow(x[0], 2) + 1.33090304692744*x[0]*pow(x[1], 3) + 1.40110307101535*x[0]*pow(x[1], 2) + 1.42173946355155*x[0]*x[1] + 0.0716850897166866*x[0] + 4.04174952378575*pow(x[1], 4) + 2.94491772337087*pow(x[1], 3) + 2.72498462856046*pow(x[1], 2) + 1.72814554230669*x[1] + 0.475144899525835) + x[1]*(2*x[0]*x[1] + 3)*(3.92733341956835*pow(x[0], 4) + 2.04146600039631*pow(x[0], 3)*x[1] + 1.56692037089551*pow(x[0], 3) + 0.622461264521414*pow(x[0], 2)*pow(x[1], 2) + 0.241698907759268*pow(x[0], 2)*x[1] + 1.61088781048336*pow(x[0], 2) + 1.0628164934659*x[0]*pow(x[1], 3) + 0.33854702552583*x[0]*pow(x[1], 2) + 1.300627939992*x[0]*x[1] + 1.87353793399906*x[0] + 0.33272576173186*pow(x[1], 4) + 0.467034357005117*pow(x[1], 3) + 0.710869731775775*pow(x[1], 2) + 0.0716850897166866*x[1] + 0.952980913121537)) + 2*(pow(x[0], 2)*(-pow(x[0], 2)*pow(x[1], 2) + 2*x[0]*x[1]*(x[0]*x[1] + 1) - pow(x[0]*x[1] + 1, 2)) + pow(x[1], 2)*(-pow(x[0], 2)*pow(x[1], 2) + 3*x[0]*x[1]*(x[0]*x[1] + 1) - 3*pow(x[0]*x[1] + 1, 2)))*(0.78546668391367*pow(x[0], 5) + 0.510366500099077*pow(x[0], 4)*x[1] + 0.391730092723877*pow(x[0], 4) + 0.207487088173805*pow(x[0], 3)*pow(x[1], 2) + 0.0805663025864225*pow(x[0], 3)*x[1] + 0.536962603494453*pow(x[0], 3) + 0.531408246732952*pow(x[0], 2)*pow(x[1], 3) + 0.169273512762915*pow(x[0], 2)*pow(x[1], 2) + 0.650313969995998*pow(x[0], 2)*x[1] + 0.936768966999531*pow(x[0], 2) + 0.33272576173186*x[0]*pow(x[1], 4) + 0.467034357005117*x[0]*pow(x[1], 3) + 0.710869731775775*x[0]*pow(x[1], 2) + 0.0716850897166866*x[0]*x[1] + 0.952980913121537*x[0] + 0.80834990475715*pow(x[1], 5) + 0.736229430842718*pow(x[1], 4) + 0.908328209520154*pow(x[1], 3) + 0.864072771153344*pow(x[1], 2) + 0.475144899525835*x[1] + 1))/pow(x[0]*x[1] + 1, 3); };
+  std::function<real_t(const hhg::Point3D&)> map_x = [](const hhg::Point3D& x) { return (1.0*x[1] + 1.0)*cos(1.5707963267949*x[0] - 2.35619449019234); };
+  std::function<real_t(const hhg::Point3D&)> map_y = [](const hhg::Point3D& x) { return -(1.0*x[1] + 1.0)*sin(1.5707963267949*x[0] - 2.35619449019234); };
+  std::function<real_t(const hhg::Point3D&)> coeff_11 = [](const hhg::Point3D& x) { return 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2)*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2) + 1.0*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2))/(x[1] + 1); };
+  std::function<real_t(const hhg::Point3D&)> coeff_12 = [](const hhg::Point3D& x) { return 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2) - 1.0)*sin(1.5707963267949*x[0] - 2.35619449019234)*cos(1.5707963267949*x[0] - 2.35619449019234)/(x[1] + 1); };
+  std::function<real_t(const hhg::Point3D&)> coeff_22 = [](const hhg::Point3D& x) { return 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2)*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2) + 1.0*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2))/(x[1] + 1); };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return (-(x[1] + 1)*(3.14159265358979*(x[1] + 1)*sin(x[0])*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2)*cosh(x[1]) + 3.14159265358979*(x[1] + 1)*sin(1.5707963267949*x[0] - 2.35619449019234)*cos(x[0])*cos(1.5707963267949*x[0] - 2.35619449019234)*sinh(x[1]) - 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2)*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2) + 1.0*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2))*sin(x[0])*sinh(x[1]) + 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2)*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2) + 1.0*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2))*sin(x[0])*sinh(x[1]) - 1.0*(2.46740110027234*pow(x[1] + 1, 2) - 1.0)*sin(x[0])*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2)*cosh(x[1]) + 1.0*(2.46740110027234*pow(x[1] + 1, 2) - 1.0)*sin(x[0])*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2)*cosh(x[1]) + 1.27323954473516*(2.46740110027234*pow(x[1] + 1, 2) - 1.0)*sin(1.5707963267949*x[0] - 2.35619449019234)*cos(x[0])*cos(1.5707963267949*x[0] - 2.35619449019234)*cosh(x[1]) + 0.636619772367581*(7.75156917007495*pow(x[1] + 1, 2) - 3.14159265358979)*sin(1.5707963267949*x[0] - 2.35619449019234)*cos(x[0])*cos(1.5707963267949*x[0] - 2.35619449019234)*sinh(x[1])) + 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2)*pow(cos(1.5707963267949*x[0] - 2.35619449019234), 2) + 1.0*pow(sin(1.5707963267949*x[0] - 2.35619449019234), 2))*sin(x[0])*cosh(x[1]) + 0.636619772367581*(2.46740110027234*pow(x[1] + 1, 2) - 1.0)*sin(1.5707963267949*x[0] - 2.35619449019234)*cos(x[0])*cos(1.5707963267949*x[0] - 2.35619449019234)*sinh(x[1]))/pow(x[1] + 1, 2); };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+
+  std::vector<std::function<real_t(const hhg::Point3D&)>> analyticCoefficients;
+  analyticCoefficients.push_back(coeff_11);
+  analyticCoefficients.push_back(coeff_12);
+  analyticCoefficients.push_back(coeff_22);
+
+  coordX->interpolate(map_x, maxLevel);
+  coordY->interpolate(map_y, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
 
   for (uint_t level = minLevel; level <= maxLevel; ++level) {
-    coefficient->interpolate(coeff, level);
+    coefficient_11->interpolate(coeff_11, level);
+    coefficient_12->interpolate(coeff_12, level);
+    coefficient_22->interpolate(coeff_22, level);
   }
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
@@ -89,9 +119,9 @@ int main(int argc, char* argv[])
 
   auto start = walberla::timing::getWcTime();
   if (polynomialOperator) {
-    L = std::make_shared<SolveOperatorPoly>(storage, coefficient, coeff, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
+    L = std::make_shared<SolveOperatorPoly>(storage, coefficients, analyticCoefficients, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
   } else {
-    L = std::make_shared<SolveOperatorNodal>(storage, coefficient, coeff, minLevel, maxLevel);
+    L = std::make_shared<SolveOperatorNodal>(storage, coefficients, minLevel, maxLevel);
   }
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
@@ -164,6 +194,13 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
   WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
+
+  if (parameters.getParameter<bool>("vtkOutput")) {
+    hhg::VTKOutput vtkOutput("../output", "gmg_varcoeff_vs_poly");
+    vtkOutput.add(coordX.get());
+    vtkOutput.add(coordY.get());
+    vtkOutput.write(maxLevel, 0);
+  }
 
   return 0;
 }

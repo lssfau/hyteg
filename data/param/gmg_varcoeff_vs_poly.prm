@@ -9,4 +9,5 @@ Parameters
   polynomialOperator true;
   interpolationLevel 7;
   maxPolyDegree 5;
+  vtkOutput false;
 }
