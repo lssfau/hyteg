@@ -36,15 +36,15 @@
 namespace hhg
 {
 
-template<class UFCOperator>
 class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
   typedef LSQPInterpolator<MonomialBasis2D> Interpolator;
 
-  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage,
-                       const std::shared_ptr<P1Function< real_t >>& coefficient,
-                       const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient,
+  P1PolynomialOperator(const std::vector<fenics::TabulateTensor>& operators,
+                       const std::shared_ptr< PrimitiveStorage > & storage,
+                       const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
+                       const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients,
                        uint_t minLevel,
                        uint_t maxLevel,
                        uint_t polyDegree,
@@ -52,11 +52,13 @@ public:
       : Operator(storage, minLevel, maxLevel),
         polyDegree_(polyDegree),
         interpolationLevel_(interpolationLevel),
-        coefficientP1_(coefficient),
-        analyticCoefficient_(analyticCoefficient)
+        coefficients_(coefficients),
+        analyticCoefficients_(analyticCoefficients)
   {
-    initLocalStiffnessMatrices();
-    interpolateStencils();
+    WALBERLA_ASSERT_EQUAL(operators.size(), coefficients.size());
+    WALBERLA_ASSERT_EQUAL(operators.size(), analyticCoefficients.size());
+    initLocalStiffnessMatrices(operators);
+    interpolateStencils(operators);
   }
 
   ~P1PolynomialOperator()
@@ -65,71 +67,75 @@ public:
 
 private:
 
-  void initLocalStiffnessMatrices()
+  void initLocalStiffnessMatrices(const std::vector<fenics::TabulateTensor>& operators)
   {
     auto faceP1PolynomialMemoryDataHandling = std::make_shared< FaceP1PolynomialMemoryDataHandling >(polyDegree_);
-    auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
-    auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
-    auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
     storage_->addFaceData(facePolynomialID_, faceP1PolynomialMemoryDataHandling, "P1OperatorFacePolynomial");
-    storage_->addFaceData(faceLocalMatrixID_, faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
-    storage_->addEdgeData(edgeLocalMatrixID_, edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
-    storage_->addVertexData(vertexLocalMatrixID_, vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
 
-    // Initialize face stiffness matrices only on InterpolationLevel
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
+    vertexLocalMatrixIDs_.resize(operators.size());
+    edgeLocalMatrixIDs_.resize(operators.size());
+    faceLocalMatrixIDs_.resize(operators.size());
 
-      auto faceLocalMatrices = face.getData(faceLocalMatrixID_);
+    for(uint_t oprIdx = 0; oprIdx < operators.size(); ++oprIdx) {
 
-      compute_local_stiffness(face, interpolationLevel_, faceLocalMatrices->getGrayMatrix(interpolationLevel_), fenics::GRAY);
-      compute_local_stiffness(face, interpolationLevel_, faceLocalMatrices->getBlueMatrix(interpolationLevel_), fenics::BLUE);
-    }
+      auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
+      auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
+      auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
 
-    // Initialize other local stiffness matrices on lower dimensional primitives as usual
-    for (uint_t level = minLevel_; level <= maxLevel_; ++level)
-    {
-      for (auto& it : storage_->getEdges()) {
-        Edge& edge = *it.second;
+      storage_->addFaceData(faceLocalMatrixIDs_[oprIdx], faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
+      storage_->addEdgeData(edgeLocalMatrixIDs_[oprIdx], edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
+      storage_->addVertexData(vertexLocalMatrixIDs_[oprIdx], vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
 
-        auto edgeLocalMatrices = edge.getData(edgeLocalMatrixID_);
+      // Initialize other local stiffness matrices on lower dimensional primitives as usual
+      for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
 
-        // first face
-        Face* face = storage_->getFace(edge.neighborFaces()[0]);
-        compute_local_stiffness(*face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
-        compute_local_stiffness(*face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
+        for (auto& it : storage_->getFaces()) {
+          Face& face = *it.second;
+
+          auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
+
+          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(interpolationLevel_), fenics::GRAY);
+          compute_local_stiffness(operators[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(interpolationLevel_), fenics::BLUE);
+        }
+
+        for (auto &it : storage_->getEdges()) {
+          Edge &edge = *it.second;
+
+          auto edgeLocalMatrices = edge.getData(edgeLocalMatrixIDs_[oprIdx]);
+
+          // first face
+          Face *face = storage_->getFace(edge.neighborFaces()[0]);
+          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
+          compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
 
 
+          if (edge.getNumNeighborFaces() == 2) {
+            // second face
+            Face *face = storage_->getFace(edge.neighborFaces()[1]);
+            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
+            compute_local_stiffness(operators[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
+          }
+        }
 
-        if (edge.getNumNeighborFaces() == 2)
-        {
-          // second face
-          Face* face = storage_->getFace(edge.neighborFaces()[1]);
-          compute_local_stiffness(*face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
-          compute_local_stiffness(*face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
+        for (auto &it : storage_->getVertices()) {
+          Vertex &vertex = *it.second;
+
+          auto vertexLocalMatrices = vertex.getData(vertexLocalMatrixIDs_[oprIdx]);
+
+          // iterate over adjacent faces
+          uint_t neighborId = 0;
+          for (auto &faceId : vertex.neighborFaces()) {
+            Face *face = storage_->getFace(faceId);
+
+            compute_local_stiffness(operators[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
+            ++neighborId;
+          }
         }
       }
-
-      for (auto& it : storage_->getVertices()) {
-        Vertex& vertex = *it.second;
-
-        auto vertexLocalMatrices = vertex.getData(vertexLocalMatrixID_);
-
-        // iterate over adjacent faces
-        uint_t neighborId = 0;
-        for (auto& faceId : vertex.neighborFaces())
-        {
-          Face* face = storage_->getFace(faceId);
-
-          compute_local_stiffness(*face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
-          ++neighborId;
-        }
-      }
-
     }
   }
 
-  void interpolateStencils() {
+  void interpolateStencils(const std::vector<fenics::TabulateTensor>& operators) {
     typedef stencilDirection SD;
     using namespace P1Elements;
 
@@ -139,13 +145,6 @@ private:
       Face& face = *it.second;
 
       auto facePolynomials = face.getData(facePolynomialID_);
-
-      // compute stiffness matrices on maxLevel
-      Matrix3r local_stiffness_gray;
-      Matrix3r local_stiffness_blue;
-
-      compute_local_stiffness(face, maxLevel_, local_stiffness_gray, fenics::GRAY);
-      compute_local_stiffness(face, maxLevel_, local_stiffness_blue, fenics::BLUE);
 
       uint_t rowsize = levelinfo::num_microvertices_per_edge(interpolationLevel_);
       uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
@@ -184,29 +183,47 @@ private:
 
           std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
 
-          // elementS
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d2f) + analyticCoefficient_(x + d0f - d2f));
-          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[0], FaceVertexDoF::P1GrayDoFMaps[0], local_stiffness_gray, faceStencil, coeffWeight);
+          for(uint_t oprIdx = 0; oprIdx < operators.size(); ++oprIdx) {
 
-          // elementNE
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d0f) +analyticCoefficient_(x + d2f));
-          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[1], FaceVertexDoF::P1GrayDoFMaps[1], local_stiffness_gray, faceStencil, coeffWeight);
+            auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
 
-          // elementNW
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d0f + d2f) +analyticCoefficient_(x - d0f));
-          assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[2], FaceVertexDoF::P1GrayDoFMaps[2], local_stiffness_gray, faceStencil, coeffWeight);
+            // elementS
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d2f) +
+                                       analyticCoefficients_[oprIdx](x + d0f - d2f));
+            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[0], FaceVertexDoF::P1GrayDoFMaps[0],
+                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
 
-          // elementSW
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x - d0f) +analyticCoefficient_(x - d2f));
-          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[0], FaceVertexDoF::P1BlueDoFMaps[0], local_stiffness_blue, faceStencil, coeffWeight);
+            // elementNE
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d0f) +
+                                       analyticCoefficients_[oprIdx](x + d2f));
+            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[1], FaceVertexDoF::P1GrayDoFMaps[1],
+                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
 
-          // elementSE
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d0f - d2f) +analyticCoefficient_(x + d0f));
-          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[1], FaceVertexDoF::P1BlueDoFMaps[1], local_stiffness_blue, faceStencil, coeffWeight);
+            // elementNW
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d0f + d2f) +
+                                       analyticCoefficients_[oprIdx](x - d0f));
+            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[2], FaceVertexDoF::P1GrayDoFMaps[2],
+                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
 
-          // elementN
-          coeffWeight = 1.0 / 3.0 * (analyticCoefficient_(x) + analyticCoefficient_(x + d2f) +analyticCoefficient_(x - d0f + d2f));
-          assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[2], FaceVertexDoF::P1BlueDoFMaps[2], local_stiffness_blue, faceStencil, coeffWeight);
+            // elementSW
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d0f) +
+                                       analyticCoefficients_[oprIdx](x - d2f));
+            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[0], FaceVertexDoF::P1BlueDoFMaps[0],
+                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
+
+            // elementSE
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d0f - d2f) +
+                                       analyticCoefficients_[oprIdx](x + d0f));
+            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[1], FaceVertexDoF::P1BlueDoFMaps[1],
+                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
+
+            // elementN
+            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d2f) +
+                                       analyticCoefficients_[oprIdx](x - d0f + d2f));
+            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[2], FaceVertexDoF::P1BlueDoFMaps[2],
+                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
+
+          }
 
 //          if (i == 1 && j == 1) {
 //            WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("nodal = {}", PointND<real_t, 7>(&faceStencil[0])));
@@ -261,16 +278,30 @@ private:
 
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
+    std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
+    std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;
+
+    for (auto coefficient : coefficients_) {
+      vertexCoeffIds.push_back(coefficient->getVertexDataID());
+      edgeCoeffIds.push_back(coefficient->getEdgeDataID());
+    }
+
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
-    coefficientP1_->getCommunicator(level)->startCommunication<Edge, Vertex>();
+    for (auto coefficient : coefficients_) {
+      coefficient->getCommunicator(level)->startCommunication<Edge, Vertex>();
+    }
 
     // start pulling edge halos
     src.getCommunicator(level)->startCommunication<Face, Edge>();
-    coefficientP1_->getCommunicator(level)->startCommunication<Face, Edge>();
+    for (auto coefficient : coefficients_) {
+      coefficient->getCommunicator(level)->startCommunication<Face, Edge>();
+    }
 
     // end pulling vertex halos
-    coefficientP1_->getCommunicator(level)->endCommunication<Edge, Vertex>();
+    for (auto coefficient : coefficients_) {
+      coefficient->getCommunicator(level)->endCommunication<Edge, Vertex>();
+    }
     src.getCommunicator(level)->endCommunication<Edge, Vertex>();
 
     for (auto& it : storage_->getVertices()) {
@@ -278,14 +309,16 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), coefficientP1_->getVertexDataID(), level, updateType);
+        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoeffIds, level, updateType);
       }
     }
 
     dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
 
     // end pulling edge halos
-    coefficientP1_->getCommunicator(level)->endCommunication<Face, Edge>();
+    for (auto coefficient : coefficients_) {
+      coefficient->getCommunicator(level)->endCommunication<Face, Edge>();
+    }
     src.getCommunicator(level)->endCommunication<Face, Edge>();
 
     for (auto& it : storage_->getEdges()) {
@@ -293,7 +326,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), coefficientP1_->getEdgeDataID(), updateType);
+        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoeffIds, updateType);
       }
     }
 
@@ -315,6 +348,14 @@ private:
 
   void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
   {
+    std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
+    std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;
+
+    for (auto coefficient : coefficients_) {
+      vertexCoeffIds.push_back(coefficient->getVertexDataID());
+      edgeCoeffIds.push_back(coefficient->getEdgeDataID());
+    }
+
     // start pulling vertex halos
     dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
 
@@ -329,7 +370,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::macrovertex::smooth_gs_coefficient(vertex, storage_, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), coefficientP1_->getVertexDataID(), level);
+        vertexdof::macrovertex::smooth_gs_coefficient(vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID(), vertexCoeffIds, level);
       }
     }
 
@@ -343,7 +384,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::macroedge::smooth_gs_coefficient<real_t>(level, edge, storage_, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), coefficientP1_->getEdgeDataID());
+        vertexdof::macroedge::smooth_gs_coefficient<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID(), edgeCoeffIds);
       }
     }
 
@@ -451,26 +492,82 @@ private:
   }
 #endif
 
-  PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex> vertexLocalMatrixID_;
-  PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge> edgeLocalMatrixID_;
-  PrimitiveDataID<FaceP1LocalMatrixMemory, Face> faceLocalMatrixID_;
+  std::vector<PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex>> vertexLocalMatrixIDs_;
+  std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> edgeLocalMatrixIDs_;
+  std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> faceLocalMatrixIDs_;
   PrimitiveDataID<FaceP1PolynomialMemory, Face> facePolynomialID_;
 
-  void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
+  void compute_local_stiffness(const fenics::TabulateTensor& opr, const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
     fenics::compute_micro_coords(face, level, coords, element_type);
-    UFCOperator gen;
-    gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
+    opr(local_stiffness.data(), NULL, coords, 0);
   }
 
 private:
   uint_t polyDegree_;
   uint_t interpolationLevel_;
-  std::shared_ptr<P1Function< real_t >> coefficientP1_;
-  const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient_;
+  std::vector<std::shared_ptr<P1Function< real_t >>> coefficients_;
+  const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients_;
 };
 
-using P1PolynomialLaplaceOperator = P1PolynomialOperator<p1_diffusion_cell_integral_0_otherwise>;
+template<class FenicsOperator>
+class P1PolynomialScalarCoefficientOperator : public P1PolynomialOperator {
+public:
+  P1PolynomialScalarCoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+                                        const std::shared_ptr<P1Function< real_t >>& coefficient,
+                                        const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient,
+                                        size_t minLevel,
+                                        size_t maxLevel,
+                                        uint_t polyDegree,
+                                        uint_t interpolationLevel)
+      : P1PolynomialOperator(fillOperators(),
+                             storage,
+                             std::vector<std::shared_ptr<P1Function< real_t >>>{coefficient},
+                             std::vector<std::function<real_t(const hhg::Point3D&)>>{analyticCoefficient},
+                             minLevel, maxLevel, polyDegree, interpolationLevel)
+  { }
+
+  std::vector<fenics::TabulateTensor> fillOperators() {
+    fenicsOperator = std::make_shared<FenicsOperator>();
+    std::vector<fenics::TabulateTensor> operators;
+    operators.push_back(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    return operators;
+  }
+private:
+  std::shared_ptr<FenicsOperator> fenicsOperator;
+};
+
+template<class FenicsOperator1, class FenicsOperator2, class FenicsOperator3>
+class P1PolynomialTensorCoefficientOperator : public P1PolynomialOperator {
+public:
+  P1PolynomialTensorCoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+                                        const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
+                                        const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients,
+                                        size_t minLevel,
+                                        size_t maxLevel,
+                                        uint_t polyDegree,
+                                        uint_t interpolationLevel)
+      : P1PolynomialOperator(fillOperators(),
+                              storage, coefficients, analyticCoefficients, minLevel, maxLevel, polyDegree, interpolationLevel)
+  { }
+
+  std::vector<fenics::TabulateTensor> fillOperators() {
+    fenicsOperator1 = std::make_shared<FenicsOperator1>();
+    fenicsOperator2 = std::make_shared<FenicsOperator2>();
+    fenicsOperator3 = std::make_shared<FenicsOperator3>();
+    std::vector<fenics::TabulateTensor> operators;
+    operators.push_back(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    operators.push_back(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    operators.push_back(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    return operators;
+  }
+private:
+  std::shared_ptr<FenicsOperator1> fenicsOperator1;
+  std::shared_ptr<FenicsOperator2> fenicsOperator2;
+  std::shared_ptr<FenicsOperator3> fenicsOperator3;
+};
+
+using P1PolynomialScalarCoefficientLaplaceOperator = P1PolynomialScalarCoefficientOperator<p1_diffusion_cell_integral_0_otherwise>;
 
 }
 

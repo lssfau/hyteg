@@ -41,8 +41,7 @@ int main(int argc, char* argv[])
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
-  typedef hhg::P1PolynomialLaplaceOperator<maxPolyDegree, interpolationLevel> SolveOperator;
-//  typedef hhg::P1VariableCoefficientLaplaceOperator SolveOperator;
+  typedef hhg::P1PolynomialScalarCoefficientLaplaceOperator SolveOperator;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -69,7 +68,7 @@ int main(int argc, char* argv[])
 
 //  SolveOperator L(storage, coefficient, minLevel, maxLevel);
 
-  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel);
+  SolveOperator L(storage, coefficient, coeff, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
   L.enableTiming( timingTree );
 
 //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
