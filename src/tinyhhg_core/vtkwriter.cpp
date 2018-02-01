@@ -398,7 +398,7 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
 
 void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
-  WALBERLA_ASSERT( write2D_, "Three-dimensional output not yet implemented for edge DoFs!" )
+  WALBERLA_ASSERT( write2D_, "Three-dimensional output not yet implemented for edge DoFs!" );
 
   WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
                    || dofType == VTKOutput::DoFType::EDGE_VERTICAL
