@@ -9,6 +9,7 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 
