@@ -262,24 +262,40 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
   }
   else
   {
+    // calculates the position of the point in the VTK list of points from a logical vertex index
+    auto calcVTKPointArrayPosition = [ level ]( const indexing::Index & vertexIndex ) -> uint_t
+    {
+      const uint_t zOffset =   levelinfo::num_microvertices_per_cell( level )
+                             - levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() );
+      const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() )
+                             - levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() - vertexIndex.y() );
+      const uint_t xOffset = vertexIndex.x();
+      return xOffset + yOffset + zOffset;
+    };
+
     const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
 
     uint_t cellCounter = 0;
 
     for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) ) )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE );
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices )
       {
-        const uint_t zOffset =   levelinfo::num_microvertices_per_cell( level )
-                               - levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - spanningVertexIndex.z() );
-        const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - spanningVertexIndex.z() )
-                               - levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - spanningVertexIndex.z() - spanningVertexIndex.y() );
-        const uint_t xOffset = spanningVertexIndex.x();
-        // calculating the position of the vertex in the VTK point "array"
-        const uint_t vtkPointsArrayPosition = xOffset + yOffset + zOffset;
-        output << vtkPointsArrayPosition << " ";
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
+      cellCounter++;
+    }
+
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE );
+
+      for ( const auto & spanningVertexIndex : spanningVertexIndices )
+      {
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
       }
       output << "\n";
       cellCounter++;
