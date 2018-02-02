@@ -62,7 +62,7 @@ public:
   {
     WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
     WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
-    return x[M*row + col];
+    return x[N*row + col];
   }
 
   /// Get const reference to a single matrix component
@@ -73,7 +73,7 @@ public:
   {
     WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
     WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
-    return x[M*row + col];
+    return x[N*row + col];
   }
 
   /// Get raw pointer to underlying matrix data
