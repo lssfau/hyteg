@@ -47,6 +47,34 @@ static void testP2Smooth() {
 
   //hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*storage->getEdge(PrimitiveID(6)), x->getVertexDoFFunction()->getEdgeDataID());
 
+  ///calculate expected entry for idx = 1 on face 0
+  real_t expected = 0;
+  expected += (1./8.) * (-46 + 3 * 47 + 3 * 48 - 49);
+  expected += (1./8.) * (-98 + 3 * 99 + 3 *127 - 128);
+  expected += (1./8.) * (-70 - 72);
+  expected += (1./8.) * (-105 - 133 - 106 - 134);
+
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(3))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[1], expected);
+
+
+  ///calculate expected entry for idx = 2 on face 1
+  expected = 0;
+  expected += (1./8.) * (- 64 + 3 * 65 + 3 * 66 - 67);
+  expected += (1./8.) * (- 143 + 3 * 147 + 3 * 91 - 94);
+  expected += (1./8.) * (- 115 - 122);
+  expected += (1./8.) * (- 142 - 146 - 86 - 90);
+
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[2], expected);
+
+  ///calculate expected entry for idx = 2 on face 1
+  expected = 0;
+  expected += (1./8.) * (- 61 + 3 * 60 + 3 * 59 - 58);
+  expected += (1./8.) * (- 120 + 3 * 123 + 3 * 95 - 97);
+  expected += (1./8.) * (- 148 - 153);
+  expected += (1./8.) * (- 124 - 121 - 96 - 93);
+
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
+
 
 }
 
