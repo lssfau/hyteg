@@ -1,5 +1,5 @@
-#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
