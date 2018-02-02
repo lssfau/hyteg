@@ -40,19 +40,19 @@ int main(int argc, char* argv[])
   auto solver = hhg::MinResSolver<hhg::P2P1TaylorHoodFunction<real_t>, hhg::P2P1TaylorHoodStokesOperator>(storage, level, level);
   solver.solve(L, u, f, r, level, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
+//  PETScManager petscManager;
+//  f.u.interpolate(bc_x, level, hhg::DirichletBoundary);
+//  auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction<PetscInt>>("numerator", storage, level, level);
+//  uint_t num = 0;
+//  uint_t localSize = numerator->enumerate(level, num);
+//  PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localSize, num);
+//  solver.solve(L, u, f, r, level, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+
   VTKOutput vtkOutput( "../output", "StokesP2P1" );
   vtkOutput.add( &u.u );
   vtkOutput.add( &u.v );
   vtkOutput.add( &u.p );
   vtkOutput.write( level );
-
-//  PETScManager petscManager;
-//  hhg::P2P1TaylorHoodFunction<PetscInt> numerator("numerator", storage, level, level);
-//  uint_t num = 0;
-//  uint_t localSize = numerator.enumerate(level, num);
-//  hhg::PETScSparseMatrix<hhg::P2P1TaylorHoodStokesOperator, hhg::P2P1TaylorHoodFunction> Lpetsc(localSize, num);
-//  Lpetsc.createMatrixFromFunction(L, level, numerator, hhg::All);
-//  Lpetsc.print("../output/th.m");
 
   return EXIT_SUCCESS;
 }

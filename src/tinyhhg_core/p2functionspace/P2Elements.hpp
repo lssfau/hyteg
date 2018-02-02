@@ -81,8 +81,8 @@ static const std::array<DoFMap, 3> P2BlueDoFMaps =
          {{2, 0, 1}}
      }};
 
-template<typename StencilMemory>
-inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix, StencilMemory &stencil) {
   for (uint_t i = 0; i < P2Face::P2GrayElements.size(); ++i) {
     for (uint_t j = 0; j < 3; ++j) {
       stencil[P2GrayStencilMaps[i][j]] += grayMatrix(P2GrayDoFMaps[i][0], P2GrayDoFMaps[i][j]);
@@ -133,8 +133,8 @@ static const std::array<DoFMap, 3> P2BlueDoFMaps =
          {{2, 4, 5, 3}}
      }};
 
-template<typename StencilMemory>
-inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix, StencilMemory &stencil) {
 
   for (uint_t i = 0; i < P2Face::P2GrayElements.size(); ++i) {
     for (uint_t j = 0; j < 3; ++j) {
@@ -153,8 +153,8 @@ inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatr
 
 namespace VertexToEdge {
 
-template<typename StencilMemory>
-inline void assembleStencil(const Matrix6r &grayMatrix, const Matrix6r &blueMatrix, StencilMemory &stencil) {
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix, StencilMemory &stencil) {
 
   // Horizontal
   stencil[vertexdof::stencilIndexFromHorizontalEdge(SD::VERTEX_W)] = grayMatrix(5, 0) + blueMatrix(5, 1);
@@ -260,8 +260,8 @@ inline StencilMap convertStencilDirectionsToIndices(const P2Element& element)
   return {{ vertexdof::stencilIndexFromVertex( element[0] ), vertexdof::stencilIndexFromVertex( element[1] ), vertexdof::stencilIndexFromVertex( element[2] ) }};
 }
 
-template<typename StencilMemory>
-inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix,
                             StencilMemory &stencil, bool south) {
 
   uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
@@ -327,8 +327,8 @@ inline StencilMap convertStencilDirectionsToIndices(const P2Element& element)
   return {{ edgedof::stencilIndexFromVertex( element[3] ), edgedof::stencilIndexFromVertex( element[4] ), edgedof::stencilIndexFromVertex( element[5] ) }};
 }
 
-template<typename StencilMemory>
-inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix,
                             StencilMemory &stencil, bool south) {
 
   uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
@@ -392,8 +392,8 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
 
 namespace VertexToEdge {
 
-template<typename StencilMemory>
-inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix,
                             StencilMemory &stencil, bool south) {
 
   uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
@@ -422,8 +422,8 @@ inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &
 
 namespace EdgeToEdge {
 
-template<typename StencilMemory>
-inline void assembleStencil(const Edge& edge, const Face& face, const Matrix6r &grayMatrix, const Matrix6r &blueMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Edge& edge, const Face& face, const Matrixr<M,N> &grayMatrix, const Matrixr<M,N> &blueMatrix,
                             StencilMemory &stencil, bool south) {
 
   uint_t start_id = face.vertex_index(edge.neighborVertices()[0]);
@@ -456,8 +456,8 @@ namespace P2Vertex {
 
 namespace VertexToVertex {
 
-template<typename StencilMemory>
-inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix6r &grayMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrixr<M,N> &grayMatrix,
                             StencilMemory &stencil, const std::shared_ptr< PrimitiveStorage > & storage) {
 
   uint_t v_i = face.vertex_index(vertex.getID());
@@ -490,8 +490,8 @@ inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix
 
 namespace EdgeToVertex {
 
-template<typename StencilMemory>
-inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix6r &grayMatrix,
+template<typename StencilMemory, uint_t M, uint_t N>
+inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrixr<M,N> &grayMatrix,
                             StencilMemory &stencil, const std::shared_ptr< PrimitiveStorage > & storage) {
 
   uint_t v_i = face.vertex_index(vertex.getID());
