@@ -313,10 +313,43 @@ void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< Primit
       cellCounter++;
     }
 
-    for ( uint_t remainingCell = cellCounter; remainingCell < numberOfCells; remainingCell++ )
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 ) )
     {
-      output << "0 0 0 0\n";
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
+
+      for ( const auto & spanningVertexIndex : spanningVertexIndices )
+      {
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
+      cellCounter++;
     }
+
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
+
+      for ( const auto & spanningVertexIndex : spanningVertexIndices )
+      {
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
+      cellCounter++;
+    }
+
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
+
+      for ( const auto & spanningVertexIndex : spanningVertexIndices )
+      {
+        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
+      cellCounter++;
+    }
+
+    WALBERLA_ASSERT_EQUAL( cellCounter, numberOfCells );
 
     output << "\n</DataArray>\n";
     output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
