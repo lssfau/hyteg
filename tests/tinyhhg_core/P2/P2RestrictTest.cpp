@@ -28,6 +28,11 @@ static void testP2Smooth() {
 //    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
 //  }
 
+//  for (auto &edgeIT : storage->getEdges()) {
+//    auto edge = edgeIT.second;
+//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//  }
+
   x->restrict(sourceLevel,hhg::All);
 
 //  for (auto &faceIT : storage->getFaces()) {
@@ -39,8 +44,6 @@ static void testP2Smooth() {
 //    auto edge = edgeIT.second;
 //    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
-
-  //hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*storage->getEdge(PrimitiveID(6)), x->getVertexDoFFunction()->getEdgeDataID());
 
   ///calculate expected entry for idx = 1 on face 0
   real_t expected = 0;

@@ -40,33 +40,33 @@ void restrictTmpl(const Face & face,
     using hhg::edgedof::macroface::indexFromVertex;
 
     tmp = 0;
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_HO_E )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_DI_NE)];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_DI_NE)];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_DI_NE)];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_DI_NE)];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_HO_E )];
 
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_HO_E )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_DI_NE)];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_DI_NE)];
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow    ,sD::EDGE_HO_E )] * 3;
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow    ,sD::EDGE_DI_NE)] * 3;
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow    ,sD::EDGE_VE_N )] * 3;
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow    ,sD::EDGE_HO_E )] * 3;
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_HO_E )];
 
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_HO_E )];
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 1,sD::EDGE_VE_N )] * 3;
     tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 1,sD::EDGE_DI_NE)] * 3;
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_HO_E )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_DI_NE)];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_DI_NE)];
 
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_HO_E )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_VE_N )];
-    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_VE_N )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_HO_E )];
 
     tmp *= 0.125;
 
@@ -227,7 +227,7 @@ void restrictTmpl(const Edge & edge,
     }
 
 
-    dstVertexDofData[targetIndex] = tmp;
+    dstVertexDofData[targetIndex] += tmp;
 
 
   }
