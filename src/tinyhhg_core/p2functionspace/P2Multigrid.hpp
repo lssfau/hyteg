@@ -18,8 +18,10 @@ void restrictTmpl(const Face & face,
          const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
          const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
 
-  ValueType* vertexDofData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
-  ValueType* edgeDofData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
+  ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofCoarseData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofCoarseData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1);
 
   typedef hhg::stencilDirection sD;
   sD targetDirection;
@@ -27,6 +29,53 @@ void restrictTmpl(const Face & face,
   indexing::FaceBorderDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
   indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
   indexing::FaceBorderDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+
+  real_t tmp;
+
+
+  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel -1, 1)){
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+
+    using hhg::edgedof::macroface::indexFromVertex;
+
+    tmp = 0;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_HO_E )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow + 1,sD::EDGE_DI_NE)];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow + 1,sD::EDGE_DI_NE)];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow + 1,sD::EDGE_HO_E )];
+
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_HO_E )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 2,fineRow    ,sD::EDGE_DI_NE)];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow    ,sD::EDGE_HO_E )] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow    ,sD::EDGE_DI_NE)] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow    ,sD::EDGE_VE_N )] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow    ,sD::EDGE_HO_E )] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow    ,sD::EDGE_HO_E )];
+
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol - 1,fineRow - 1,sD::EDGE_HO_E )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 1,sD::EDGE_VE_N )] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 1,sD::EDGE_DI_NE)] * 3;
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_HO_E )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_DI_NE)];
+
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_HO_E )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_VE_N )];
+    tmp += edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_HO_E )];
+
+    tmp *= 0.125;
+
+    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1>(it.col(),it.row(),sD::VERTEX_C)] += tmp;
+
+  }
+
+
+
 
   ///this need to be done in two steps since we would overwrite already updated entries otherwise
   ///put edge dofs which cant be reached from edge onto vertexdof
@@ -39,10 +88,10 @@ void restrictTmpl(const Face & face,
     }
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    vertexDofData[vertexIndex] = edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() + 1,sD::EDGE_VE_N)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() + 1,sD::EDGE_DI_NW)]+
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row() + 1,sD::EDGE_VE_N)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row() + 1,sD::EDGE_DI_NW)];
+    vertexDofFineData[vertexIndex] = edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() + 1,sD::EDGE_VE_N)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() + 1,sD::EDGE_DI_NW)]+
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row() + 1,sD::EDGE_VE_N)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row() + 1,sD::EDGE_DI_NW)];
   }
 
   ///second edge
@@ -53,10 +102,10 @@ void restrictTmpl(const Face & face,
     }
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    vertexDofData[vertexIndex] = edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() - 1,sD::EDGE_VE_S)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() - 1,sD::EDGE_HO_W)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row()    ,sD::EDGE_VE_S)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row()    ,sD::EDGE_HO_W)];
+    vertexDofFineData[vertexIndex] = edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() - 1,sD::EDGE_VE_S)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col()    ,it.row() - 1,sD::EDGE_HO_W)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row()    ,sD::EDGE_VE_S)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() - 1,it.row()    ,sD::EDGE_HO_W)];
   }
 
   ///third edge
@@ -67,10 +116,10 @@ void restrictTmpl(const Face & face,
     }
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    vertexDofData[vertexIndex] = edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row() - 1,sD::EDGE_DI_SE)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row() - 1,sD::EDGE_HO_E)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row()    ,sD::EDGE_DI_SE)] +
-                                 edgeDofData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row()    ,sD::EDGE_HO_E)];
+    vertexDofFineData[vertexIndex] = edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row() - 1,sD::EDGE_DI_SE)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row() - 1,sD::EDGE_HO_E)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row()    ,sD::EDGE_DI_SE)] +
+                                 edgeDofFineData[hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col() + 1,it.row()    ,sD::EDGE_HO_E)];
   }
 
   ///write data to edgedofs
@@ -87,8 +136,8 @@ void restrictTmpl(const Face & face,
     uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    edgeDofData[targetIndex] *= 3.;
-    edgeDofData[targetIndex] -= vertexDofData[vertexIndex];
+    edgeDofFineData[targetIndex] *= 3.;
+    edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
 
   if(face.edge_orientation[1] == 1){
@@ -104,8 +153,8 @@ void restrictTmpl(const Face & face,
     uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    edgeDofData[targetIndex] *= 3.;
-    edgeDofData[targetIndex] -= vertexDofData[vertexIndex];
+    edgeDofFineData[targetIndex] *= 3.;
+    edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
 
   if(face.edge_orientation[2] == 1){
@@ -121,8 +170,8 @@ void restrictTmpl(const Face & face,
     uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
     uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
 
-    edgeDofData[targetIndex] *= 3.;
-    edgeDofData[targetIndex] -= vertexDofData[vertexIndex];
+    edgeDofFineData[targetIndex] *= 3.;
+    edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
 
 }

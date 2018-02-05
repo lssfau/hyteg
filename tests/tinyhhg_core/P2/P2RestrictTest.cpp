@@ -20,30 +20,25 @@ static void testP2Smooth() {
 
   auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel);
 
-  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1; };
-
-
-  //x->interpolate(ones,sourceLevel);
   uint_t num = 1;
   x->enumerate(sourceLevel,num);
 
-
-  hhg::vertexdof::macroedge::printFunctionMemory< real_t, sourceLevel >(*storage->getEdge(PrimitiveID(3)),x->getVertexDoFFunction()->getEdgeDataID());
-  hhg::edgedof::macroedge::printFunctionMemory< real_t, sourceLevel >(*storage->getEdge(PrimitiveID(3)),x->getEdgeDoFFunction()->getEdgeDataID());
-
-  for (auto &faceIT : storage->getFaces()) {
-    auto face = faceIT.second;
-    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
-  }
-
-
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//  }
 
   x->restrict(sourceLevel,hhg::All);
 
-  for (auto &edgeIT : storage->getEdges()) {
-    auto edge = edgeIT.second;
-    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
-  }
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//  }
+
+//  for (auto &edgeIT : storage->getEdges()) {
+//    auto edge = edgeIT.second;
+//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//  }
 
   //hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*storage->getEdge(PrimitiveID(6)), x->getVertexDoFFunction()->getEdgeDataID());
 
