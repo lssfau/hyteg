@@ -73,7 +73,7 @@ static void testP2Smooth() {
   expected += (1./8.) * (- 148 - 153);
   expected += (1./8.) * (- 124 - 121 - 96 - 93);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(4))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
 
 
 }
