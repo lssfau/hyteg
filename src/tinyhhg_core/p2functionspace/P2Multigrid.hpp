@@ -14,9 +14,18 @@ using walberla::uint_t;
 namespace macroface {
 
 template< typename ValueType, uint_t sourceLevel >
+void prolongateTmpl(const Face &face,
+                    const PrimitiveDataID <FunctionMemory<ValueType>, Face> &id,
+                    const PrimitiveDataID < FunctionMemory < ValueType >, Face> &dataID) {
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
+
+template< typename ValueType, uint_t sourceLevel >
 void restrictTmpl(const Face & face,
-         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
-         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
 
   ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
   ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
@@ -235,8 +244,8 @@ SPECIALIZE_WITH_VALUETYPE(void, restrictTmpl, restrict)
 
 template< typename ValueType, uint_t sourceLevel >
 void postRestrictTmpl(const Face & face,
-                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
-                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
 
   typedef hhg::stencilDirection sD;
   sD targetDirection;
