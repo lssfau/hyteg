@@ -32,7 +32,7 @@ void restrictTmpl(const Face & face,
 
   real_t tmp;
 
-
+  /// update vertex dof entries
   for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel -1, 1)){
     uint_t fineCol = it.col() * 2;
     uint_t fineRow = it.row() * 2;
@@ -72,6 +72,33 @@ void restrictTmpl(const Face & face,
 
     vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1>(it.col(),it.row(),sD::VERTEX_C)] += tmp;
 
+  }
+
+  /// update edge dof entries
+  for ( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel - 1, 0 ) )
+  {
+    using hhg::edgedof::macroface::indexFromVertex;
+
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+    /// horizontal
+    if( it.row() != 0) {
+      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_NW )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_N  )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_NW )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_SE )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_S  )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_SE )];
+
+    }
+    /// diagonal
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel ) - 1)) {
+
+    }
+    /// vertical
+    if( it.col() != 0) {
+
+    }
   }
 
 
