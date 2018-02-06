@@ -252,6 +252,12 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 #endif
 }
 
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,
+                                    const std::shared_ptr< walberla::WcTimingTree > & timingTree ) :
+  PrimitiveStorage(setupStorage)
+{
+  timingTree_ = timingTree;
+}
 
 
 void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const

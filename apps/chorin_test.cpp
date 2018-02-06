@@ -1,7 +1,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 
 #include <boost/core/null_deleter.hpp>
-#include <fmt/format.h>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -35,13 +34,11 @@ int main(int argc, char* argv[])
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage,timingTree);
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
   loadbalancing::distributed::parmetis( *storage );
 #endif
-
-  storage->enableGlobalTiming(timingTree);
 
 //  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
 //  real_t dt = 0.025 * minimalEdgeLength;

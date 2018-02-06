@@ -16,13 +16,10 @@ void cscycle(size_t level, size_t minLevel, CSolver& csolver, O& A, F& x, F&ax, 
 
   if (level == minLevel)
   {
-    // fmt::printf("Coarse solve...\n");
     csolver.solve(A, x, b, r, minLevel, coarse_tolerance, coarse_maxiter, hhg::Inner, false);
   }
   else
   {
-    // fmt::printf("Level %d...\n", level);
-
     // pre-smooth
     for (size_t i = 0; i < nu_pre; ++i)
     {
@@ -121,9 +118,9 @@ int main(int argc, char* argv[])
 
   auto csolver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator>(storage, minLevel, minLevel);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)npoints));
+  WALBERLA_LOG_INFO_ON_ROOT("Num dofs = {}" << uint_c(npoints));
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error      Time");
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"))
 
   real_t rel_res = 1.0;
 
@@ -136,7 +133,7 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&x, &x_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",0,begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0))
 
   real_t totalTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -156,7 +153,7 @@ int main(int argc, char* argv[])
     err.assign({1.0, -1.0}, { &x, &x_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",i+1,begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,end-start))
     totalTime += end-start;
 
     if (i >= convergenceStartIter) {

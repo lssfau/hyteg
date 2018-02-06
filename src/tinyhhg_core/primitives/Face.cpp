@@ -1,5 +1,3 @@
-#include <fmt/ostream.h>
-
 #include "Face.hpp"
 #include "Edge.hpp"
 #include "Vertex.hpp"
@@ -83,6 +81,30 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
   }
 
   WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face");
+}
+
+PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const
+{
+  std::vector<PrimitiveID> edges_v0 = adjacent_edges(v0);
+  std::vector<PrimitiveID> edges_v1 = adjacent_edges(v1);
+
+  if (edges_v0[0] == edges_v1[0]) {
+    return edges_v0[0];
+  }
+
+  if (edges_v0[0] == edges_v1[1]) {
+    return edges_v0[0];
+  }
+
+  if (edges_v0[1] == edges_v1[0]) {
+    return edges_v0[1];
+  }
+
+  if (edges_v0[1] == edges_v1[1]) {
+    return edges_v0[1];
+  }
+
+  WALBERLA_ABORT("Face::get_edge_between_vertices: Vertex v1 does not belong to face");
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)

@@ -54,19 +54,25 @@ inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
-  for ( uint_t i = 0; i < scalars.size(); i++ )
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const real_t scalar  = scalars[i];
-    auto         srcData = edge.getData( srcIds[i] )->getPointer( Level );
+    ValueType tmp = static_cast< ValueType >( 0.0 );
 
-    for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
-      dstData[ idx ] += scalar * srcData[ idx ];
+      const real_t scalar  = scalars[i];
+      const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
+
+      tmp += scalar * srcData[ idx ];
     }
+
+    dstData[ idx ] += tmp;
   }
 }
 
@@ -79,16 +85,26 @@ inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
-    dstData[ idx ] = static_cast< ValueType >( 0 );
-  }
+    ValueType tmp = static_cast< ValueType >( 0.0 );
 
-  addTmpl< ValueType, Level >( edge, scalars, srcIds, dstId );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+
+    for ( uint_t i = 0; i < scalars.size(); i++ )
+    {
+      const real_t scalar  = scalars[i];
+      const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
+
+      tmp += scalar * srcData[ idx ];
+    }
+
+    dstData[ idx ] = tmp;
+  }
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
@@ -174,6 +190,102 @@ inline void applyTmpl(Edge &edge,
 
 SPECIALIZE(void, applyTmpl, apply)
 
+template< typename ValueType, size_t Level >
+inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+  ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
+  using namespace std;
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << edge << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+  cout << "Horizontal Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 1; i < rowsize-1; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
+  }
+  cout << endl << "     |";
+  for(uint_t i = 1; i < rowsize-1; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_SE)] << "|";
+  }
+  cout << endl << "Diagonal Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 1; i < rowsize; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_DI_NW)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 0; i < rowsize-1; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_DI_SE)] << "|";
+  }
+  cout << endl << "Vertical Edge" << endl;
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 0; i < rowsize -1; ++i) {
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_VE_N)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_VE_S)] << "|";
+  }
+  cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
+
+}
+
+#ifdef HHG_BUILD_WITH_PETSC
+template< typename ValueType, uint_t Level >
+inline void createVectorFromFunctionTmpl(Edge &edge,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
+                                         Vec& vec) {
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+
+template< typename ValueType, uint_t Level >
+inline void createFunctionFromVectorTmpl(Edge &edge,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
+                                         Vec& vec) {
+  auto src = edge.getData(srcId)->getPointer( Level );
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    VecGetValues(vec,1,&numerator[idx],&src[idx]);
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+
+template< uint_t Level >
+inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
+                                 const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
+
+  auto numerator = edge.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    mat.push_back(numerator[idx]);
+  }
+
+}
+SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
+#endif
 
 
 } ///namespace macroedge

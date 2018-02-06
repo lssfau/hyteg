@@ -32,27 +32,30 @@ class BubbleFunction;
 template< typename VType >
 class DGFunction;
 
+// Composites
+
+template< typename VType >
+class P2Function;
+
 
 ///////////////////////////////////////////////////////////////////
 // Function trait defining the value type of the derived classes //
 ///////////////////////////////////////////////////////////////////
 
-// Empty trait
-
+/// Empty trait
 template< typename FunctionType >
 struct FunctionTrait;
 
-// vertex DoF specialization
-
+/// Vertex DoF specialization
 template< typename VType >
 struct FunctionTrait< vertexdof::VertexDoFFunction< VType > >
 {
   typedef VType ValueType;
 
-  static std::string getTypeName() { return "P1Function"; }
+  static std::string getTypeName() { return "P1Function / VertexDoFFunction"; }
 };
 
-// Edge DoF specialization
+/// Edge DoF specialization
 template< typename VType >
 struct FunctionTrait< EdgeDoFFunction< VType > >
 {
@@ -61,8 +64,7 @@ struct FunctionTrait< EdgeDoFFunction< VType > >
   static std::string getTypeName() { return "EdgeDoFFunction"; }
 };
 
-// Bubble specialization (Cell DoFs)
-
+/// Bubble specialization (Cell DoFs)
 template< typename VType >
 struct FunctionTrait< BubbleFunction< VType > >
 {
@@ -71,8 +73,7 @@ struct FunctionTrait< BubbleFunction< VType > >
   static std::string getTypeName() { return "BubbleFunction"; }
 };
 
-// DG specialization
-
+/// DG specialization
 template< typename VType >
 struct FunctionTrait< DGFunction< VType > >
 {
@@ -81,5 +82,13 @@ struct FunctionTrait< DGFunction< VType > >
   static std::string getTypeName() { return "DGFunction"; }
 };
 
+/// P2 specialization
+template< typename VType >
+struct FunctionTrait< P2Function< VType > >
+{
+  typedef VType ValueType;
+
+  static std::string getTypeName() { return "P2Function"; }
+};
 
 }

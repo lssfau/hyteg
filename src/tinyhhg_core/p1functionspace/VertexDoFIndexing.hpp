@@ -78,9 +78,9 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & x, const stencil
     case sD::VERTEX_E:
       return index< level >( x + 1);
     case sD::VERTEX_SE:
-      return index< level >( x + 1, 0);
+      return index< level >( x , 0);
     case sD::VERTEX_NW:
-      return index< level >( x    , 1);
+      return index< level >( x , 1);
     default:
       return std::numeric_limits< uint_t >::max();
   }

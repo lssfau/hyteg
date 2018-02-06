@@ -438,7 +438,7 @@ inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< Valu
         tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
       }
     }
-    
+
     dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C ) ] = (1.0-relax) * dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ]
                                                                                                              + relax * tmp/opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
   }
@@ -630,6 +630,32 @@ inline void integrateDGTmpl(Edge &edge,
     dst[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] = tmp;
   }
 }
+
+template< typename ValueType, size_t Level >
+inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+  ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
+  using namespace std;
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << edge << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+
+  if(edge.getNumNeighborFaces() == 2) {
+    for (uint_t i = 0; i < (rowsize - 1); ++i) {
+      cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)] << "|";
+    }
+    cout << endl;
+  }
+  for(uint_t i = 0; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex< Level >(i, stencilDirection::VERTEX_C)] << "|";
+  }
+  cout << endl << "     |";
+  for(uint_t i = 1; i < rowsize; ++i){
+    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex< Level >(i, stencilDirection::VERTEX_S)] << "|";
+  }
+  cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
+
+}
+
 
 SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 

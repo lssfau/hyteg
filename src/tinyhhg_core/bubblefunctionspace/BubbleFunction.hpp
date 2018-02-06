@@ -26,7 +26,7 @@ public:
     storage->addVertexData( vertexDataID_, vertexBubbleFunctionMemoryDataHandling, name );
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->addPackInfo( std::make_shared< BubblePackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, storage_ ) );
+      communicators_[level]->addPackInfo( std::make_shared< BubblePackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage() ) );
     }
   }
 
@@ -38,7 +38,6 @@ public:
 
  private:
 
-  using Function< BubbleFunction< ValueType > >::storage_;
   using Function< BubbleFunction< ValueType > >::communicators_;
 
   inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
@@ -110,7 +109,7 @@ void BubbleFunction< ValueType >::assign_impl(const std::vector< ValueType > sca
       srcFaceIDs.push_back(function->faceDataID_);
     }
 
-    for (auto &it : storage_->getFaces()) {
+    for (auto &it : this->getStorage()->getFaces()) {
       Face &face = *it.second;
 
       if (testFlag(face.type, flag)) {
@@ -135,7 +134,7 @@ void BubbleFunction< ValueType >::add_impl(const std::vector< ValueType > scalar
       srcFaceIDs.push_back(function->faceDataID_);
     }
 
-    for (auto &it : storage_->getFaces()) {
+    for (auto &it : this->getStorage()->getFaces()) {
       Face &face = *it.second;
 
       if (testFlag(face.type, flag)) {
@@ -148,7 +147,7 @@ template< typename ValueType >
 real_t BubbleFunction< ValueType >::dot_impl(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag) {
   real_t scalarProduct = 0.0;
 
-  for (auto &it : storage_->getFaces()) {
+  for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
@@ -164,7 +163,7 @@ real_t BubbleFunction< ValueType >::dot_impl(BubbleFunction< ValueType > &rhs, u
 template< typename ValueType >
 void BubbleFunction< ValueType >::enumerate_impl(size_t level, uint_t& num)
 {
-  for (auto &it : storage_->getFaces()) {
+  for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
     BubbleFace::enumerate< ValueType >(level, face, faceDataID_, num);
