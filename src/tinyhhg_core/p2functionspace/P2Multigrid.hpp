@@ -233,6 +233,78 @@ void restrictTmpl(const Face & face,
 
 SPECIALIZE_WITH_VALUETYPE(void, restrictTmpl, restrict)
 
+template< typename ValueType, uint_t sourceLevel >
+void postRestrictTmpl(const Face & face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
+
+  typedef hhg::stencilDirection sD;
+  sD targetDirection;
+
+  indexing::FaceBorderDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
+  indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
+  indexing::FaceBorderDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+
+  ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
+  ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+
+  if(face.edge_orientation[0] == 1){
+    targetDirection = sD::EDGE_VE_N;
+  } else {
+    targetDirection = sD::EDGE_DI_NW;
+  }
+  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, firstFaceBorderDirection, 0, 1) ){
+    ///ignore every second entry
+    if(it.col()%2 == 1){
+      continue;
+    }
+    uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
+    uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
+
+    edgeDofFineData[targetIndex] += vertexDofFineData[vertexIndex];
+    edgeDofFineData[targetIndex] /= 3.;
+  }
+
+  if(face.edge_orientation[1] == 1){
+    targetDirection = sD::EDGE_HO_W;
+  } else {
+    targetDirection = sD::EDGE_VE_S;
+  }
+  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, secondFaceBorderDirection, 0, 1) ){
+    ///ignore every second entry
+    if(it.col()%2 == 1){
+      continue;
+    }
+    uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
+    uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
+
+    edgeDofFineData[targetIndex] += vertexDofFineData[vertexIndex];
+    edgeDofFineData[targetIndex] /= 3.;
+
+  }
+
+  if(face.edge_orientation[2] == 1){
+    targetDirection = sD::EDGE_DI_SE;
+  } else {
+    targetDirection = sD::EDGE_HO_E;
+  }
+  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, thirdFaceBorderDirection, 0, 1) ){
+    ///ignore every second entry
+    if(it.row()%2 == 1){
+      continue;
+    }
+    uint_t targetIndex = hhg::edgedof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), targetDirection);
+    uint_t vertexIndex = hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(it.col(),it.row(), sD::VERTEX_C);
+
+    edgeDofFineData[targetIndex] += vertexDofFineData[vertexIndex];
+    edgeDofFineData[targetIndex] /= 3.;
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, postRestrictTmpl, postRestrict)
+
+
 }/// namespace macroface
 
 namespace macroedge {
@@ -303,8 +375,6 @@ void restrictTmpl(const Edge & edge,
     }
 
     edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),sD::EDGE_HO_E)] += tmp;
-
-
   }
 }
 

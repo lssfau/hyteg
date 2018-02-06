@@ -252,8 +252,19 @@ private:
         }
       }
 
-      ///sync the vertex dofs which contain the missing edge dofs
+      /// sync the vertex dofs which contain the missing edge dofs
       edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Face  , Edge   >();
+
+      /// remove the temporary updates
+      for ( const auto & it : this->getStorage()->getFaces() ) {
+        const Face &face = *it.second;
+
+        if (testFlag(face.type, flag)) {
+          P2::macroface::postRestrict<ValueType>(sourceLevel, face,
+                                                 vertexDoFFunction_->getFaceDataID(),
+                                                 edgeDoFFunction_->getFaceDataID());
+        }
+      }
 
       for ( const auto & it : this->getStorage()->getEdges() )
       {
