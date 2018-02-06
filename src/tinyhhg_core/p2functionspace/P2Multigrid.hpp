@@ -86,18 +86,45 @@ void restrictTmpl(const Face & face,
       tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_NW )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_N  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_NW )];
+
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_W  )];
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_E  )];
+
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_SE )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_S  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_SE )];
 
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_HO_E)] += tmp;
     }
     /// diagonal
-    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel ) - 1)) {
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_HO_W  )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_VE_S  )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_SW )];
 
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_NW )];
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_SE )];
+
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_HO_E  )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_VE_N  )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_NW )];
+
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_DI_NE)] += tmp;
     }
     /// vertical
     if( it.col() != 0) {
+      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_HO_W  )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_DI_NW )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_NW )];
 
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_N  )];
+      tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_S  )];
+
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_HO_E  )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_DI_SE )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_SE )];
+
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_VE_N)] += tmp;
     }
   }
 
