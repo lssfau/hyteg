@@ -221,6 +221,13 @@ gcc_7_mpionly:
    tags:
       - docker
 
+clang_3.6_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   tags:
+      - cuda
+      - docker
+
 clang_4.0_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
