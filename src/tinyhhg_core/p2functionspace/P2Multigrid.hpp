@@ -83,7 +83,8 @@ void restrictTmpl(const Face & face,
     uint_t fineRow = it.row() * 2;
     /// horizontal
     if( it.row() != 0) {
-      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_NW )];
+      tmp  = 0;
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_NW )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_N  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_NW )];
 
@@ -241,47 +242,67 @@ void restrictTmpl(const Edge & edge,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & vertexDoFMemoryID,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeDoFMemoryID){
 
-  ValueType* dstVertexDofData = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
-  ValueType* srcEdgeDofData    = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofCoarseData = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofCoarseData   = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofFineData     = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
 
   typedef hhg::stencilDirection sD;
+  real_t tmp;
 
   for( const auto& it : hhg::vertexdof::macroedge::Iterator(sourceLevel -1,1 )){
     uint_t targetIndex = hhg::vertexdof::macroedge::indexFromVertex< sourceLevel - 1 >(it.col(), sD::VERTEX_C);
-    real_t tmp = 0;
+    tmp = 0;
     ///south face
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_SE)];
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_VE_S )];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_SE)];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_VE_S )];
 
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_SE)];
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_DI_SE)];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_SE)];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_DI_SE)];
 
-    tmp +=  3./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_VE_S )];
+    tmp +=  3./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_VE_S )];
     ///this weight is adjusted to to precomputation from the edge
-    tmp +=  1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_DI_SE)];
+    tmp +=  1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_DI_SE)];
 
     ///on edge
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_W )];
-    tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_E )];
-    tmp +=  3./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_HO_W )];
-    tmp +=  3./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_HO_E )];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_W )];
+    tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_E )];
+    tmp +=  3./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_HO_W )];
+    tmp +=  3./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_HO_E )];
 
 
     if(edge.getNumNeighborFaces() == 2){
-      tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_NW)];
-      tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_DI_NW)];
+      tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_NW)];
+      tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_DI_NW)];
 
-      tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_NW)];
-      tmp += -1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_VE_N )];
+      tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_HO_NW)];
+      tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 + 1, sD::EDGE_VE_N )];
 
-      tmp +=  3./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_DI_NW)];
+      tmp +=  3./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_DI_NW)];
       ///this weight is adjusted to to precomputation from the edge
-      tmp +=  1./8. * srcEdgeDofData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_VE_N )];
+      tmp +=  1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_VE_N )];
 
     }
+    vertexDofCoarseData[targetIndex] += tmp;
+  }
 
+  for( const auto& it : hhg::edgedof::macroedge::Iterator(sourceLevel -1,0 )){
+    using hhg::edgedof::macroedge::indexFromVertex;
 
-    dstVertexDofData[targetIndex] += tmp;
+    tmp  = 0;
+    tmp += 0.5 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_DI_SE)];
+    tmp += 0.5 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_VE_S)];
+    tmp += 0.25 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_HO_SE)];
+
+    tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_HO_W  )];
+    tmp += 0.75 * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_HO_E  )];
+
+    if(edge.getNumNeighborFaces() == 2) {
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_DI_NW )];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_VE_N  )];
+      tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_HO_NW )];
+    }
+
+    edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),sD::EDGE_HO_E)] += tmp;
 
 
   }
