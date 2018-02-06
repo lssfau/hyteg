@@ -45,6 +45,28 @@ using walberla::real_t;
 /// | CRISSCROSS | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
 /// | DIAMOND    | (nx+1)*(ny+1) + nx*ny | 4*nx*ny    |
 ///
+/*! \htmlonly
+  <center>
+  <table>
+  <tr>
+  <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
+  </tr>
+  <tr>
+  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
+  </tr>
+  <tr>
+  <td align="center">CRISS</td>
+  <td align="center">CROSS</td>
+  <td align="center">CRISSCROSS</td>
+  <td align="center">DIAMOND</td>
+  </tr>
+  </table>
+  </center>
+  \endhtmlonly
+*/
 /// <b>Details of inline mesh generators for annuli:</b>
 ///
 /// Meshing of a partial annulus is (conceptually) handled by meshing the correspondig
@@ -57,12 +79,21 @@ using walberla::real_t;
 /// |:-------------|:----------------:|:-----------:|
 /// | full annulus |  nTan*(2*nRad+1) | 4*nTan*nRad |
 ///
-/// \image html Mesh_RectangleCriss.png      "Sample mesh generated for a rectangle using CRISS flavour (nx=3, ny=2)"
-/// \image html Mesh_RectangleCross.png      "Sample mesh generated for a rectangle using CROSS flavour (nx=3, ny=2)"
-/// \image html Mesh_RectangleCrissCross.png "Sample mesh generated for a rectangle using CRISSCROSS flavour (nx=3, ny=2)"
-/// \image html Mesh_RectangleDiamond.png    "Sample mesh generated for a rectangle using DIAMOND flavour (nx=3, ny=2)"
-/// \image html Mesh_AnnulusPartial.png      "Sample mesh of a partial annulus (nTan=4, nRad=2)"
-/// \image html Mesh_AnnulusFull.png         "Sample mesh of full annulus (nTan=15, nRad=2)"
+/*! \htmlonly
+  <center>
+  <table>
+  <tr>
+  <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
+  <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
+  </tr>
+  <tr>
+  <td align="center">partial annulus (nTan=4, nRad=2)</td>
+  <td align="center">full annulus (nTan=15, nRad=2)</td>
+  </tr>
+  </table>
+  </center>
+  \endhtmlonly
+*/
 ///
 /// \note The inline mesh generators currently set all vertex and edge primitives on the domain boundary to
 ///       **DoFType DirichletBoundary** and those inside the domain, and of course all face primitives, to
