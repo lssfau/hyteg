@@ -28,7 +28,7 @@ stages:
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR -DPETSC_ARCH=$PETSC_ARCH
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR
       - cmake . -LAH
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $(nproc) -l $(nproc)
@@ -49,6 +49,8 @@ stages:
       CMAKE_BUILD_TYPE: "Release"
       WALBERLA_BUFFER_DEBUG: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+      WALBERLA_SANITIZE_ADDRESS: "ON"
+      WALBERLA_SANITIZE_UNDEFINED: "ON"
 
 
 .build_mpionly_template: &build_mpionly_definition
@@ -83,6 +85,8 @@ stages:
       CMAKE_BUILD_TYPE: "DebugOptimized"
       WALBERLA_BUFFER_DEBUG: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+      WALBERLA_SANITIZE_ADDRESS: "ON"
+      WALBERLA_SANITIZE_UNDEFINED: "ON"
 
 
 .build_mpionly_dbg_template: &build_mpionly_dbg_definition
@@ -122,22 +126,14 @@ stages:
 
 .build_petsc_template: &build_petsc_definition
    <<: *build_definition
-   before_script:
-      - echo "Building PETSc"
-      - echo "Using up to $(nproc) processors for compilation"
-      - apt-get update
-      - apt-get -q -y install pkg-config gfortran petsc-dev
-      - cd $CI_PROJECT_DIR
-
-.build_petsc_hybrid_template: &build_petsc_hybrid_definition
-   <<: *build_petsc_definition
    variables:
       WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BUILD_WITH_OPENMP: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
       OMP_NUM_THREADS: "4"
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "Release"
       HHG_BUILD_WITH_PETSC: "ON"
+      PETSC_DIR: "/opt/petsc"
 
 ###############################################################################
 ##                                                                           ##
@@ -147,8 +143,8 @@ stages:
 
 
 
-intel_17_hybrid:
-   <<: *build_hybrid_definition
+intel_17_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
    tags:
       - docker
@@ -168,13 +164,6 @@ intel_17_mpionly_dbg:
       - docker
       - intel
 
-intel_17_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   tags:
-      - docker
-      - intel
-
 intel_17_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
@@ -182,22 +171,22 @@ intel_17_hybrid_dbg_sp:
       - docker
       - intel
 
-intel_17_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+intel_17_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
    tags:
       - docker
       - intel
 
-gcc_5_hybrid:
-   <<: *build_hybrid_definition
+gcc_5_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
    tags:
       - cuda
       - docker
 
-gcc_6_hybrid:
-   <<: *build_hybrid_definition
+gcc_6_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
@@ -214,33 +203,33 @@ gcc_6_mpionly_dbg:
    tags:
       - docker
 
-gcc_6_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   tags:
-      - docker
-
 gcc_6_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
 
-gcc_6_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+gcc_6_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
 
-clang_3.5_mpionly:
+gcc_7_mpionly:
    <<: *build_mpionly_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.5
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   tags:
+      - docker
+
+clang_3.6_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
    tags:
       - cuda
       - docker
 
-clang_4.0_hybrid:
-   <<: *build_hybrid_definition
+clang_4.0_mpionly:
+   <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
@@ -257,21 +246,21 @@ clang_4.0_mpionly_dbg:
    tags:
       - docker
 
-clang_4.0_hybrid_dbg:
-   <<: *build_hybrid_dbg_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   tags:
-      - docker
-
 clang_4.0_hybrid_dbg_sp:
    <<: *build_hybrid_dbg_sp_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
 
-clang_4.0_petsc_hybrid:
-   <<: *build_petsc_hybrid_definition
+clang_4.0_petsc:
+   <<: *build_petsc_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   tags:
+      - docker
+
+clang_5.0_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
    tags:
       - docker
 
@@ -339,7 +328,7 @@ coverage:
       - mkdir build
       - cd build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR -DPETSC_ARCH=$PETSC_ARCH
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR
       - cd tests
       - make -j $(nproc) -l $(nproc)
       - ctest -LE $CTEST_EXCLUDE_LABELS -C $CMAKE_BUILD_TYPE --output-on-failure -j 2
