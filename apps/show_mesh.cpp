@@ -177,7 +177,7 @@ int main( int argc, char* argv[] )
 
   hhg::loadbalancing::roundRobin( *setupStorage );
 
-  const size_t minLevel = 0;
+  const size_t minLevel = 2;
   const size_t maxLevel = std::max( minLevel, (size_t)2 );
   const size_t outLevel = minLevel;
 
