@@ -15,9 +15,28 @@ namespace macroface {
 
 template< typename ValueType, uint_t sourceLevel >
 void prolongateTmpl(const Face &face,
-                    const PrimitiveDataID <FunctionMemory<ValueType>, Face> &id,
-                    const PrimitiveDataID < FunctionMemory < ValueType >, Face> &dataID) {
+                    const PrimitiveDataID < FunctionMemory < ValueType >, Face> & vertexDoFMemoryID,
+                    const PrimitiveDataID < FunctionMemory < ValueType >, Face> & edgeDoFMemoryID   ){
 
+  ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel + 1 );
+  ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel + 1);
+  ValueType* vertexDofCoarseData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
+  ValueType* edgeDofCoarseData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+
+  typedef hhg::stencilDirection sD;
+
+  /// update vertexdofs from vertexdofs
+  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel , 1)) {
+
+    using hhg::vertexdof::macroface::indexFromVertex;
+
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+
+    vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol, fineRow, sD::VERTEX_C)] =
+      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::VERTEX_C)];
+
+  }
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
