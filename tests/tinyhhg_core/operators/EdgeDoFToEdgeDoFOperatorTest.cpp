@@ -43,7 +43,8 @@ static void testEdgeDoFToEdgeDoFOperator()
   for ( const auto & it : storage->getEdges() )
   {
     auto edge = it.second;
-    auto stencil = edge->getData( edgeToEdgeOperator.getEdgeStencilID_() )->getPointer( maxLevel );
+
+    auto stencil = edge->getData( edgeToEdgeOperator.getEdgeStencilID() )->getPointer( maxLevel );
 
     for ( const auto & stencilDir : edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge )
     {
@@ -97,7 +98,7 @@ static void testEdgeDoFToEdgeDoFOperator()
   for ( const auto & it : storage->getFaces() )
   {
     auto face = it.second;
-    auto stencil = face->getData( edgeToEdgeOperator.getFaceStencilID_() )->getPointer( maxLevel );
+    auto stencil = face->getData( edgeToEdgeOperator.getFaceStencilID() )->getPointer( maxLevel );
 
     for ( const auto & stencilDir : edgedof::macroface::neighborsFromHorizontalEdge )
     {
@@ -165,13 +166,6 @@ static void testEdgeDoFToEdgeDoFOperator()
 
   std::function< real_t ( const Point3D & ) > initEdgeSrc = [ edgeSrcValue ]( const Point3D & ) -> real_t { return edgeSrcValue; };
   edge_src->interpolate( initEdgeSrc, maxLevel, DoFType::All );
-
-  auto communicator = edge_src->getCommunicator( maxLevel );
-
-  // Pull all halos
-  communicator->communicate< Face, Edge >();
-  communicator->communicate< Edge, Vertex >();
-  communicator->communicate< Edge, Face >();
 
   edgeToEdgeOperator.apply( *edge_src, *edge_dst, maxLevel, DoFType::All, UpdateType::Replace );
 

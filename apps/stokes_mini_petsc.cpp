@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
   uint_t num = 0;
   uint_t localSize = numerator.enumerate(maxLevel, num);
 //
-  fmt::print("num = {}\n", num);
   hhg::PETScSparseMatrix<hhg::MiniStokesOperator, hhg::MiniStokesFunction> Lpetsc(localSize, num);
   Lpetsc.createMatrixFromFunction(L, maxLevel, numerator);
   Lpetsc.print("../output/matrix.mat");

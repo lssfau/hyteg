@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fmt/format.h>
-
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 
 namespace hhg
@@ -71,7 +69,7 @@ public:
     real_t c_new = 1.0;
 
     if (printInfo) {
-      WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", std::abs(gamma_new)));
+      WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: "<< std::scientific << std::abs(gamma_new));
     }
 
     if (gamma_new < tolerance)
@@ -125,14 +123,14 @@ public:
 
       if (printInfo)
       {
-        WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] residuum: {:e}", std::abs(eta)));
+        WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: " << std::scientific << std::abs(eta));
       }
 
       if (std::abs(eta)/res_start < tolerance)
       {
         if (printInfo)
         {
-          WALBERLA_LOG_INFO_ON_ROOT(fmt::format("[MinRes] converged after {:d} iterations", i));
+          WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged after " << std::defaultfloat <<  i << " iterations");
         }
         break;
       }

@@ -5,7 +5,6 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/debug/Debug.h"
 
-#include <fmt/ostream.h>
 #include <cmath>
 #include <array>
 #include <iomanip>
@@ -63,7 +62,7 @@ public:
   {
     WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
     WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
-    return x[M*row + col];
+    return x[N*row + col];
   }
 
   /// Get const reference to a single matrix component
@@ -74,7 +73,7 @@ public:
   {
     WALBERLA_ASSERT(row < M, "Matrix row index out of bounds: row = " << row << " but M = " << M);
     WALBERLA_ASSERT(col < N, "Matrix column index out of bounds: col = " << col << " but N = " << N);
-    return x[M*row + col];
+    return x[N*row + col];
   }
 
   /// Get raw pointer to underlying matrix data
@@ -116,6 +115,7 @@ inline std::ostream& operator<<(std::ostream &os, const Matrix<T, M, N> &matrix)
   return os;
 }
 
+template<uint_t M, uint_t N> using Matrixr = Matrix<real_t, M, N>;
 typedef Matrix<real_t, 3, 3> Matrix3r;
 typedef Matrix<real_t, 6, 6> Matrix6r;
 

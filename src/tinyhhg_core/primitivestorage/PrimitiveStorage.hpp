@@ -28,6 +28,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
+  PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,  const std::shared_ptr< walberla::WcTimingTree > & timingTree);
 
   /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
   static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string & meshFilePath );
@@ -215,21 +216,6 @@ public:
   /// Fills the passed set with all neighboring ranks (== all ranks from primitives that are located in the direct neighborhood)
   void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
-
-  /// enables timing in all methods of the function spaces
-  inline void enableGlobalTiming(){
-    if(!timingTree_) {
-      timingTree_ = std::make_shared<walberla::WcTimingTree>();
-    }
-  }
-
-  /// enables timing in all methods of the function spaces
-  /// and adds them to an existing timing tree
-  inline void enableGlobalTiming(const std::shared_ptr< walberla::WcTimingTree > & timingTree){
-    if(!timingTree_) {
-      timingTree_ = timingTree;
-    }
-  }
 
   inline std::shared_ptr< walberla::WcTimingTree >& getTimingTree(){
     return timingTree_;

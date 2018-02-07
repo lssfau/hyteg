@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("discrete L2 error = {:e}", discr_l2_err));
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << std::scientific << discr_l2_err);
 
   //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
   return EXIT_SUCCESS;

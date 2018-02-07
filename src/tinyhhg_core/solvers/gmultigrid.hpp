@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fmt/format.h>
-
 namespace hhg
 {
 

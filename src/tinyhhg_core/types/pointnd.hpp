@@ -5,9 +5,9 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 
-#include <fmt/ostream.h>
 #include <cmath>
 #include <array>
+#include <iostream>
 
 namespace hhg
 {

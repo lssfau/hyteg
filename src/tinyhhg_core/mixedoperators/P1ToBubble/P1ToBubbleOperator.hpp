@@ -1,7 +1,5 @@
 #pragma once
 
-#include <fmt/format.h>
-
 #include <array>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/Operator.hpp"
