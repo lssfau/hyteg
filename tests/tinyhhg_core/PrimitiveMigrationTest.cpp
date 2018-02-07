@@ -47,7 +47,7 @@ static void testPrimitiveMigration()
 
   loadbalancing::roundRobin( setupStorage );
 
-  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
+  //WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
 
