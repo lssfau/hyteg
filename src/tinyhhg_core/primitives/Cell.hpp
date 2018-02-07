@@ -2,6 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/types/pointnd.hpp"
 
 namespace hhg {
 
@@ -12,7 +13,8 @@ public:
   Cell( const PrimitiveID                & primitiveID,
         const std::vector< PrimitiveID > & vertexIDs,
         const std::vector< PrimitiveID > & edgeIDs,
-        const std::vector< PrimitiveID > & faceIDs );
+        const std::vector< PrimitiveID > & faceIDs,
+        const std::array< Point3D, 4 >   & coordinates );
 
   Cell( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
 
@@ -33,6 +35,8 @@ public:
     return genericGetData< DataType >( index );
   }
 
+  const std::array< Point3D, 4 > & getCoordinates() const { return coordinates_; }
+
 protected:
 
   /// Not public in order to guarantee that data is only added through the governing structure.
@@ -44,8 +48,12 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_UNUSED( sendBuffer ); }
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_UNUSED( recvBuffer ); };
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_ASSERT( false, "Serialization not implemented for macro cell!" ); WALBERLA_UNUSED( sendBuffer ); }
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_ASSERT( false, "Deserialization not implemented for macro cell!" ); WALBERLA_UNUSED( recvBuffer ); };
+
+private:
+
+  std::array< Point3D, 4 > coordinates_;
 
 };
 
