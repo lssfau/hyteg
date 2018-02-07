@@ -34,9 +34,27 @@ void prolongateTmpl(const Face &face,
     uint_t fineRow = it.row() * 2;
 
     vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol, fineRow, sD::VERTEX_C)] =
-      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::VERTEX_C)];
-
+      edgeDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::VERTEX_C)];
   }
+
+  /// update vertexdofs from edgedofs
+  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel , 1)) {
+
+    using hhg::vertexdof::macroface::indexFromVertex;
+
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+
+    vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol + 1, fineRow, sD::VERTEX_C)] =
+      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_HO_E)];
+
+    vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol + 1, fineRow + 1, sD::VERTEX_C)] =
+      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_DI_NE)];
+
+    vertexDofFineData[indexFromVertex< sourceLevel + 1 >(fineCol    , fineRow + 1, sD::VERTEX_C)] =
+      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_VE_N)];
+  }
+
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
@@ -97,8 +115,9 @@ void restrictTmpl(const Face & face,
     tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_HO_E )];
 
     tmp *= 0.125;
+    tmp += vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol, fineRow, sD::VERTEX_C)];
 
-    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1>(it.col(),it.row(),sD::VERTEX_C)] += tmp;
+    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1>(it.col(),it.row(),sD::VERTEX_C)] = tmp;
 
   }
 
@@ -111,7 +130,7 @@ void restrictTmpl(const Face & face,
     uint_t fineRow = it.row() * 2;
     /// horizontal
     if( it.row() != 0) {
-      tmp  = 0;
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol +1, fineRow, sD::VERTEX_C)];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_DI_NW )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_N  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_NW )];
@@ -123,11 +142,12 @@ void restrictTmpl(const Face & face,
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_VE_S  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow,sD::EDGE_HO_SE )];
 
-      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_HO_E)] += tmp;
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_HO_E)] = tmp;
     }
     /// diagonal
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
-      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_HO_W  )];
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1, sD::VERTEX_C)];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_HO_W  )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_VE_S  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_SW )];
 
@@ -138,11 +158,12 @@ void restrictTmpl(const Face & face,
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_VE_N  )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1,sD::EDGE_DI_NW )];
 
-      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_DI_NE)] += tmp;
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_DI_NE)] = tmp;
     }
     /// vertical
     if( it.col() != 0) {
-      tmp  = 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_HO_W  )];
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1, sD::VERTEX_C)];
+      tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_HO_W  )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_DI_NW )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_NW )];
 
@@ -153,7 +174,7 @@ void restrictTmpl(const Face & face,
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_DI_SE )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_SE )];
 
-      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_VE_N)] += tmp;
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_VE_N)] = tmp;
     }
   }
 
@@ -345,13 +366,14 @@ void restrictTmpl(const Edge & edge,
   ValueType* vertexDofCoarseData = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
   ValueType* edgeDofCoarseData   = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1 );
   ValueType* edgeDofFineData     = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofFineData   = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
 
   typedef hhg::stencilDirection sD;
   real_t tmp;
 
   for( const auto& it : hhg::vertexdof::macroedge::Iterator(sourceLevel -1,1 )){
     uint_t targetIndex = hhg::vertexdof::macroedge::indexFromVertex< sourceLevel - 1 >(it.col(), sD::VERTEX_C);
-    tmp = 0;
+    tmp = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2, sD::VERTEX_C)];
     ///south face
     tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_HO_SE)];
     tmp += -1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2 - 1, sD::EDGE_VE_S )];
@@ -382,13 +404,13 @@ void restrictTmpl(const Edge & edge,
       tmp +=  1./8. * edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2    , sD::EDGE_VE_N )];
 
     }
-    vertexDofCoarseData[targetIndex] += tmp;
+    vertexDofCoarseData[targetIndex] = tmp;
   }
 
   for( const auto& it : hhg::edgedof::macroedge::Iterator(sourceLevel -1,0 )){
     using hhg::edgedof::macroedge::indexFromVertex;
 
-    tmp  = 0;
+    tmp  = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::VERTEX_C)];
     tmp += 0.5 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_DI_SE)];
     tmp += 0.5 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_VE_S)];
     tmp += 0.25 * edgeDofFineData[indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::EDGE_HO_SE)];
@@ -402,7 +424,7 @@ void restrictTmpl(const Edge & edge,
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(it.col() * 2 + 1,sD::EDGE_HO_NW )];
     }
 
-    edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),sD::EDGE_HO_E)] += tmp;
+    edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),sD::EDGE_HO_E)] = tmp;
   }
 }
 

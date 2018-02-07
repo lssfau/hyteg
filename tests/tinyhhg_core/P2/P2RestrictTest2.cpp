@@ -24,19 +24,19 @@ static void testP2Smooth() {
   std::function<real_t(const hhg::Point3D &)> two = [](const hhg::Point3D &) { return 2; };
 
   x->interpolate(ones, sourceLevel);
-  x->interpolate(two, sourceLevel - 1);
+  //x->interpolate(two, sourceLevel - 1);
 
   x->restrict(sourceLevel, hhg::All);
 
-//  for (auto &faceIT : storage->getFaces()) {
-//    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
-//  }
-//
-//  for (auto &edgeIT : storage->getEdges()) {
-//    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
-//  }
+  for (auto &faceIT : storage->getFaces()) {
+    auto face = faceIT.second;
+    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+  }
+
+  for (auto &edgeIT : storage->getEdges()) {
+    auto edge = edgeIT.second;
+    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+  }
 
   for (auto &faceIT : storage->getFaces()) {
     auto face = faceIT.second;
@@ -47,6 +47,8 @@ static void testP2Smooth() {
     auto edge = edgeIT.second;
     hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
   }
+
+  //TODO add checks
 
 }
 
