@@ -11,7 +11,9 @@
 #include "tinyhhg_core/primitives/Vertex.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #include <algorithm>
 #include <map>
@@ -252,7 +254,12 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 #endif
 }
 
-
+std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const std::string & meshFilePath )
+{
+  const MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFilePath );
+  const SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  return std::make_shared< PrimitiveStorage >( setupStorage );
+}
 
 void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {
@@ -261,8 +268,9 @@ void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
   primitiveMap.insert( vertices_.begin(), vertices_.end() );
   primitiveMap.insert( edges_.begin(), edges_.end() );
   primitiveMap.insert( faces_.begin(), faces_.end() );
+  primitiveMap.insert( cells_.begin(), cells_.end() );
 
-  WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() );
+  WALBERLA_ASSERT_EQUAL( primitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() + cells_.size() );
 }
 
 

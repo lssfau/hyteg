@@ -29,6 +29,9 @@ public:
 
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
 
+  /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
+  static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string & meshFilePath );
+
   void checkConsistency();
 
   /// @name \ref Primitive access methods
