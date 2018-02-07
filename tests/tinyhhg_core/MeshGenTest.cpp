@@ -19,22 +19,22 @@ namespace hhg {
 static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour flavour )
 {
 
-  MeshInfo *meshInfo = nullptr;
+  std::shared_ptr< MeshInfo > meshInfo;
 
   // perform mesh generation
   switch( testDomain )
     {
     case RECTANGLE:
-      meshInfo = new MeshInfo( MeshInfo::meshRectangle( Point2D( {-2.0, 1.0} ), Point2D( {0.0, 3.0} ),
+      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshRectangle( Point2D( {-2.0, 1.0} ), Point2D( {0.0, 3.0} ),
                                                         flavour, 3, 2 ) );
       break;
 
     case PARTIAL_ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*PI, 0.75*PI, flavour, 4, 2 ) );
+      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*PI, 0.75*PI, flavour, 4, 2 ) );
       break;
 
     case ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 4, 2 ) );
+      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, 4, 2 ) );
       break;
     }
 
