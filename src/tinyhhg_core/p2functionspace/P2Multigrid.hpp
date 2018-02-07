@@ -38,21 +38,101 @@ void prolongateTmpl(const Face &face,
   }
 
   /// update vertexdofs from edgedofs
-  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel , 1)) {
+  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel , 0)) {
 
     using hhg::vertexdof::macroface::indexFromVertex;
 
     uint_t fineCol = it.col() * 2;
     uint_t fineRow = it.row() * 2;
 
-    vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol + 1, fineRow, sD::VERTEX_C)] =
-      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_HO_E)];
+    if(fineRow != 0) {
+      vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow, sD::VERTEX_C)] =
+        edgeDofCoarseData[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E)];
+    }
 
-    vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol + 1, fineRow + 1, sD::VERTEX_C)] =
-      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_DI_NE)];
+    if(fineCol + 1 + fineRow != (hhg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
+      vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow + 1, sD::VERTEX_C)] =
+        edgeDofCoarseData[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)];
+    }
 
-    vertexDofFineData[indexFromVertex< sourceLevel + 1 >(fineCol    , fineRow + 1, sD::VERTEX_C)] =
-      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::EDGE_VE_N)];
+    if(fineCol != 0) {
+      vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol, fineRow + 1, sD::VERTEX_C)] =
+        edgeDofCoarseData[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_VE_N)];
+    }
+  }
+
+  /// update edgedofs
+  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel , 0)) {
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+
+    using hhg::edgedof::macroface::indexFromVertex;
+
+    if(fineRow != 0) {
+      /// lower left horizontal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol, fineRow, sD::EDGE_HO_E)] =
+        0.75 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1, it.row(), sD::VERTEX_C)] +
+        0.375 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row(), sD::VERTEX_C)];
+
+      /// lower right horizontal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow, sD::EDGE_HO_E)] =
+        0.75 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col()   , it.row(), sD::VERTEX_C)] +
+        0.375 *  vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1,it.row(), sD::VERTEX_C)];
+    }
+
+    /// inner horizontal edge
+    edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol , fineRow + 1, sD::EDGE_HO_E)] =
+      0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_VE_N )] +
+      0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+      0.25 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E )] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col()   , it.row(), sD::VERTEX_C)] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1,it.row(), sD::VERTEX_C)];
+
+
+    if(fineCol + 1 + fineRow != (hhg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
+      /// lower outer diagonal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow, sD::EDGE_DI_NE)] =
+        0.75 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row() + 1, sD::VERTEX_C)] +
+        0.375 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1, it.row(), sD::VERTEX_C)];
+
+      /// upper outer diagonal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol , fineRow + 1, sD::EDGE_DI_NE)] =
+        0.75 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1, it.row()    , sD::VERTEX_C)] +
+        0.375  * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col()    , it.row() + 1, sD::VERTEX_C)];
+    }
+
+    /// inner diagonal edge
+    edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol , fineRow , sD::EDGE_DI_NE)] =
+      0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_VE_N )] +
+      0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E )] +
+      0.25 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col()    ,it.row() + 1, sD::VERTEX_C)] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1,it.row()    , sD::VERTEX_C)];
+
+
+    /// we have to update some edge dof which are contained in the upside down triangles
+    if(it.col() + 1 + it.row() != hhg::levelinfo::num_microvertices_per_edge(sourceLevel) - 1) {
+      /// horzitonal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow + 1, sD::EDGE_HO_E)] =
+        0.5 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col() + 1, it.row(), sD::EDGE_VE_N)] +
+        0.5 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+        0.25 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row() + 1, sD::EDGE_HO_E)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row() + 1, sD::VERTEX_C)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1, it.row() + 1, sD::VERTEX_C)];
+
+      /// diagonal edge
+      edgeDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, fineRow + 1, sD::EDGE_DI_NE)] =
+        0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col() + 1, it.row() + 1, sD::EDGE_VE_S )] +
+        0.5  * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col() + 1, it.row() + 1, sD::EDGE_HO_W )] +
+        0.25 * edgeDofCoarseData[indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_DI_NE)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col()    ,it.row() + 1, sD::VERTEX_C)] +
+        -0.125 * vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel>(it.col() + 1,it.row()    , sD::VERTEX_C)];
+
+    }
   }
 
 }

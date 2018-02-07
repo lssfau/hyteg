@@ -867,7 +867,7 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
-  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  cout << face << std::left << setprecision(1) << fixed << setfill(' ')  << endl << "Vertex DoFs: ";
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
     cout << setw(5) << faceMemory[hhg::vertexdof::macroface::indexFromVertex< Level >(it.col(),it.row(), stencilDirection::VERTEX_C)] << "|";
