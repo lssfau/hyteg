@@ -257,7 +257,7 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const std::string & meshFilePath )
 {
   const MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFilePath );
-  const SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   return std::make_shared< PrimitiveStorage >( setupStorage );
 }
 
