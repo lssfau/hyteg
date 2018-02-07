@@ -25,6 +25,8 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
     {
       IDType id = (j)*(nx+1)+(i);
       WALBERLA_ASSERT_LESS( id, (nx+1)*(ny+1) );
+      /// since ny is only used in DEBUG mode we need this macro:
+      WALBERLA_UNUSED( ny );
       return id;
     };
 
