@@ -251,8 +251,6 @@ private:
     inline void
     restrict_impl( uint_t sourceLevel, DoFType flag = All )
     {
-      WALBERLA_LOG_DEVEL( "P2 to P2 restrict is highly work in progress!" );
-
       edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex,Edge   >();
       edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge  ,Face   >();
 

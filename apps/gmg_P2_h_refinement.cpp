@@ -36,14 +36,14 @@ int main(int argc, char* argv[])
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
-  hhg::P2Function< real_t > r("r", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > f("f", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > u("u", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > Lu("Lu", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > tmp("tmp", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > u_exact("u_exact", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > err("err", storage, maxLevel, maxLevel);
-  hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, maxLevel, maxLevel);
+  hhg::P2Function< real_t > r("r", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > f("f", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > u("u", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > Lu("Lu", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > tmp("tmp", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > err("err", storage, minLevel, maxLevel);
+  hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("Setting up stiffness operator");
   auto start = walberla::timing::getWcTime();
-  hhg::P2ConstantLaplaceOperator L(storage, maxLevel, maxLevel);
+  hhg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel );
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
 
