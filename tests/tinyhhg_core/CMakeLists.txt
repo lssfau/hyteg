@@ -98,6 +98,9 @@ waLBerla_execute_test(NAME PrimitiveStorageTest1 COMMAND $<TARGET_FILE:Primitive
 waLBerla_execute_test(NAME PrimitiveStorageTest3 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 3 )
 waLBerla_execute_test(NAME PrimitiveStorageTest8 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 8 )
 
+waLBerla_compile_test(FILES PrimitiveRelativeOrderingTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_execute_test(NAME PrimitiveRelativeOrderingTest)
+
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core core fmt)
 waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest> )
 waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3 )
