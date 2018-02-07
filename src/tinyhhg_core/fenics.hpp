@@ -30,6 +30,14 @@ inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6
   coords[5] = orientation*d2[1];
 }
 
+class NoAssemble {
+ public:
+  void tabulate_tensor(real_t * A,
+                       const real_t * const * w,
+                       const real_t * coordinate_dofs,
+                       int cell_orientation) const { }
+};
+
 typedef std::function<void(real_t *,
                       const real_t * const *,
                       const real_t *,

@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <fmt/format.h>
 #include <tinyhhg_core/Operator.hpp>
 
 #include <array>

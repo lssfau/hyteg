@@ -1,4 +1,5 @@
 #include "core/mpi/Environment.h"
+#include "core/debug/CheckFunctions.h"
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -179,7 +180,7 @@ void PrimitiveStorageTutorial()
     // Getting the data via the respective ID
     SimulationData * data = primitive.second->getData( simulationDataID );
 
-    WALBERLA_ASSERT_EQUAL( data->size_, 42 );
+    WALBERLA_CHECK_EQUAL( data->size_, 42 );
   }
   /// [DataRetrieval]
 
@@ -194,7 +195,7 @@ void PrimitiveStorageTutorial()
       // Getting the data via the respective ID
       SimulationData * data = it.second->getData( vertexSimulationDataID );
 
-      WALBERLA_ASSERT_EQUAL( data->size_, 4711 );
+      WALBERLA_CHECK_EQUAL( data->size_, 4711 );
   }
 
 }

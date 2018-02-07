@@ -15,6 +15,9 @@
 #include "tinyhhg_core/composites/petsc/ministokespetsc.hpp"
 #include "tinyhhg_core/composites/petsc/p1stokespetsc.hpp"
 
+#include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
+#include "tinyhhg_core/composites/petsc/P2P1TaylorHoodPetsc.hpp"
+
 namespace hhg {
 
 template <class OperatorType, template <class> class FunctionType>
@@ -88,9 +91,14 @@ public:
 
   inline Mat& get() { return mat; }
 
-
-
-
+  bool isSymmetric(real_t tol = real_c(1e-14)) {
+    Mat B;
+    MatTranspose(mat, MAT_INITIAL_MATRIX, &B);
+    PetscBool flg;
+    MatIsTranspose(mat, B, (PetscReal) tol, &flg);
+    MatDestroy(&B);
+    return flg;
+  }
 
 };
 

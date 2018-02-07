@@ -1179,6 +1179,20 @@ inline void createFunctionFromVectorTmpl(Face &face,
 SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
+template< typename ValueType, size_t Level >
+inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
+  ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
+  using namespace std;
+  cout << setfill('=') << setw(100) << "" << endl;
+  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  for ( const auto & it : vertexdof::macroface::Iterator( Level, 0 ) ){
+    if(it.col() == 0) std::cout << std::endl;
+    cout << setw(5) << faceMemory[hhg::vertexdof::macroface::indexFromVertex< Level >(it.col(),it.row(), stencilDirection::VERTEX_C)] << "|";
+  }
+  cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
+
+}
+
 }// namespace macroface
 }// namespace vertexdof
 }// namespace hhg

@@ -1,7 +1,5 @@
-#ifndef VERTEX_HPP
-#define VERTEX_HPP
+#pragma once
 
-#include <fmt/ostream.h>
 #include "tinyhhg_core/types/pointnd.hpp"
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
@@ -102,5 +100,3 @@ private:
 };
 
 }
-
-#endif /* VERTEX_HPP */

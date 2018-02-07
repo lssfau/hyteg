@@ -1,0 +1,7 @@
+Parameters
+{
+  mesh ../data/meshes/tri_1el.msh;
+  level 3;
+  maxiter 10000;
+  tolerance 1e-10;
+}

@@ -1,6 +1,5 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
 
 #include <boost/core/null_deleter.hpp>
@@ -53,13 +52,11 @@ int main(int argc, char* argv[])
     return std::sin(std::atan2 (x[1], x[0]));
   };
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage,timingTree);
 
   #ifdef WALBERLA_BUILD_WITH_PARMETIS
     loadbalancing::distributed::parmetis( *storage );
   #endif
-
-  storage->enableGlobalTiming(timingTree);
 
   // Setting up Functions
   auto c_old = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);

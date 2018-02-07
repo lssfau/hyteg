@@ -7,16 +7,13 @@ option ( HHG_BUILD_WITH_LIKWID            "Compile with LIKWID"                 
 option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                          OFF)
 option ( HHG_BUILD_WITH_EIGEN             "Build with Eigen"                          OFF)
 option ( WALBERLA_BUILD_WITH_CXX14        "Build with c++14 support" ON)
+option ( HHG_REMOVE_WALBERLA              "Remove unnecessary walberla components" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
-include_directories ( extern/fmt-3.0.1 )
 include_directories ( src )
-#include_directories ( src/tinyhhg_core )
-#include_directories ( ${MPI_CXX_INCLUDE_PATH})
-#include_directories ( ${tinyhhg_BINARY_DIR}/src/tinyhhg_core )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
@@ -27,12 +24,17 @@ if ( HHG_BUILD_WITH_PETSC )
     link_directories    ( ${PETSC_LIBRARY_DIR} )
     list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
+    message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
 
 if ( HHG_BUILD_WITH_EIGEN )
     find_package( Eigen3 REQUIRED )
     include_directories ( ${EIGEN3_INCLUDE_DIRS} )
     link_directories    ( ${EIGEN3_LIBRARY_DIR} )
+endif()
+
+if( HHG_REMOVE_WALBERLA )
+    execute_process(COMMAND ${tinyhhg_SOURCE_DIR}/cmake/patchWalberla.sh WORKING_DIRECTORY ${WALBERLA_DIR})
 endif()
 
 find_package( waLBerla )
@@ -68,7 +70,6 @@ waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
 
-add_subdirectory (extern/fmt-3.0.1)
 add_subdirectory( src )
 add_subdirectory( apps )
 add_subdirectory( tests )

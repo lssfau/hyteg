@@ -50,6 +50,7 @@ public:
 
   std::vector<PrimitiveID> adjacent_edges(const PrimitiveID& vertex) const;
   PrimitiveID get_vertex_opposite_to_edge(const PrimitiveID& edge) const;
+  PrimitiveID get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const;
 
   DoFType type;
   real_t area;

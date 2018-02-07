@@ -1,6 +1,5 @@
 #pragma once
 
-#include <fmt/format.h>
 #include <tinyhhg_core/Operator.hpp>
 
 #include <array>
@@ -15,7 +14,7 @@
 #ifdef _MSC_VER
 #  pragma warning(pop)
 #endif
-
+#if 0
 namespace hhg
 {
 
@@ -690,3 +689,4 @@ typedef P1ToP1BubbleOperator<p1bubble_divt_cell_integral_0_otherwise> P1ToP1Bubb
 typedef P1ToP1BubbleOperator<p1bubble_divt_cell_integral_1_otherwise> P1ToP1BubbleDivTyOperator;
 #endif
 }
+#endif
