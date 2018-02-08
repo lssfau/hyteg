@@ -5,6 +5,8 @@
 #include "core/debug/Debug.h"
 #include "core/DataTypes.h"
 
+#include <cassert>
+
 namespace hhg {
 namespace indexing {
 
