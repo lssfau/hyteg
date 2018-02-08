@@ -34,7 +34,7 @@ void prolongateTmpl(const Face &face,
     uint_t fineRow = it.row() * 2;
 
     vertexDofFineData[indexFromVertex< sourceLevel +1 >(fineCol, fineRow, sD::VERTEX_C)] =
-      edgeDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::VERTEX_C)];
+      vertexDofCoarseData[indexFromVertex< sourceLevel >(it.col(), it.row(), sD::VERTEX_C)];
   }
 
   /// update vertexdofs from edgedofs
