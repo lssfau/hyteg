@@ -136,6 +136,11 @@ CellBorderIterator & CellBorderIterator::operator++() // prefix
 
   step_++;
 
+  if ( step_ == totalNumberOfSteps_ )
+  {
+    return *this;
+  }
+
   if ( step_ == wrapAroundStep_ )
   {
     const IndexIncrement secondDirIncrement = calculateIncrement( vertices_[0], vertices_[2] );
