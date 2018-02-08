@@ -229,6 +229,9 @@ private:
       edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex,Edge   >();
       edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge  ,Face   >();
 
+      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex,Edge   >();
+      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge  ,Face   >();
+
       for ( const auto & it : this->getStorage()->getFaces() )
       {
         const Face & face = *it.second;
