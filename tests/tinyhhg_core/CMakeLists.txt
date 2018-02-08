@@ -86,8 +86,8 @@ waLBerla_execute_test(NAME P2RestrictTest)
 waLBerla_compile_test(FILES P2/P2RestrictTest2.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2RestrictTest2)
 
-waLBerla_compile_test(FILES P2/P2Prolongate.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME P2Prolongate)
+waLBerla_compile_test(FILES P2/P2ProlongateTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2ProlongateTest)
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscTest.cpp DEPENDS tinyhhg_core core)

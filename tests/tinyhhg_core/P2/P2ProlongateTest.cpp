@@ -20,8 +20,7 @@ static void testP2Smooth() {
 
   auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1);
 
-  std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 1; };
-  std::function<real_t(const hhg::Point3D &)> two = [](const hhg::Point3D &) { return 2; };
+  std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 13; };
 
   x->interpolate(ones, sourceLevel);
 
