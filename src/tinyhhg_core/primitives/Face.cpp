@@ -107,6 +107,14 @@ PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const Primiti
   WALBERLA_ABORT("Face::get_edge_between_vertices: Vertex v1 does not belong to face");
 }
 
+bool Face::hasBoundaryVertex() const {
+  return verticesOnBoundary.size() > 0;
+}
+
+bool Face::hasBoundaryEdge() const {
+  return edgesOnBoundary.size() > 0;
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
   return os << "Face { id = " << face.getID().getID() << "; "
