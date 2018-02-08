@@ -34,7 +34,7 @@ public:
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo(
-        std::make_shared<DGPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, storage_));
+        std::make_shared<DGPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage()));
     }
   }
 
@@ -48,7 +48,6 @@ public:
 
 private:
 
-  using Function<DGFunction<ValueType> >::storage_;
   using Function<DGFunction<ValueType> >::communicators_;
 
   PrimitiveDataID<FunctionMemory<ValueType>, Vertex> vertexDataID_;
@@ -98,7 +97,7 @@ void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, con
     srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for (auto &it : storage_->getFaces()) {
+  for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
@@ -126,28 +125,28 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
     srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for (auto &it : storage_->getVertices()) {
+  for (auto &it : this->getStorage()->getVertices()) {
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
-      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, srcVertexIDs, expr, storage_);
+      DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, srcVertexIDs, expr, this->getStorage());
     }
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
 
-  for (auto &it : storage_->getEdges()) {
+  for (auto &it : this->getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
-      DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr, storage_);
+      DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr, this->getStorage());
     }
   }
 
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto &it : storage_->getFaces()) {
+  for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
@@ -175,7 +174,7 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
     srcFaceIDs.push_back(function->faceDataID_);
   }
 
-  for (auto &it : storage_->getVertices()) {
+  for (auto &it : this->getStorage()->getVertices()) {
     Vertex &vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag)) {
@@ -185,7 +184,7 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
 
-  for (auto &it : storage_->getEdges()) {
+  for (auto &it : this->getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag)) {
@@ -196,7 +195,7 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto &it : storage_->getFaces()) {
+  for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
     if (testFlag(face.type, flag)) {
@@ -231,7 +230,7 @@ void DGFunction< ValueType >::restrict_impl(uint_t level, DoFType flag) {
 
 template< typename ValueType >
 void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
     DGVertex::enumerate(vertex,vertexDataID_,level,num);
   }
@@ -239,7 +238,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
   communicators_[level]->template startCommunication<Vertex, Edge>();
   communicators_[level]->template endCommunication<Vertex, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     DGEdge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
@@ -247,7 +246,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
   communicators_[level]->template startCommunication<Edge, Face>();
   communicators_[level]->template endCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
     DGFace::enumerate< ValueType >(level, face, faceDataID_, num);
   }
@@ -268,12 +267,12 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   src.getCommunicator(level)->template startCommunication<Face, Edge>();
   src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
 
-  for (auto& it : storage_->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
     if (testFlag(vertex.getDoFType(), flag))
     {
-      DGVertex::projectP1< real_t >(level, vertex, storage_, src.getVertexDataID(), this->getVertexDataID(), updateType);
+      DGVertex::projectP1< real_t >(level, vertex, this->getStorage(), src.getVertexDataID(), this->getVertexDataID(), updateType);
     }
   }
 
@@ -281,12 +280,12 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
 
   src.getCommunicator(level)->template endCommunication<Face, Edge>();
 
-  for (auto& it : storage_->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
     if (testFlag(edge.getDoFType(), flag))
     {
-      DGEdge::projectP1< real_t >(level, edge, storage_, src.getEdgeDataID(), this->getEdgeDataID(), updateType);
+      DGEdge::projectP1< real_t >(level, edge, this->getStorage(), src.getEdgeDataID(), this->getEdgeDataID(), updateType);
     }
   }
 
@@ -294,12 +293,12 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
 
   this->getCommunicator(level)->template startCommunication<Edge, Face>();
 
-  for (auto& it : storage_->getFaces()) {
+  for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
     if (testFlag(face.type, flag))
     {
-      DGFace::projectP1<real_t>(level, face, storage_, src.getFaceDataID(), this->getFaceDataID(), updateType);
+      DGFace::projectP1<real_t>(level, face, this->getStorage(), src.getFaceDataID(), this->getFaceDataID(), updateType);
     }
   }
 

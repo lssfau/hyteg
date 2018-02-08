@@ -11,12 +11,17 @@
 #include "dgfunctionspace/DGFunction.hpp"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+
 #include <string>
 
 namespace hhg
 {
 
 namespace vtkDetail{
+SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
+
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
 
@@ -46,10 +51,18 @@ public:
   void add( const BubbleFunction < real_t > * function ) { bubbleFunctions_.push_back( function ); };
   void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
 
+  void add( const P2Function     < real_t > * function ) { p2Functions_.push_back( function );
+                                                           p1Functions_.push_back( function->getVertexDoFFunction().get() );
+                                                           edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+
   void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
   void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
+
+  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
+                                                                              p1Functions_.push_back( function->getVertexDoFFunction().get() );
+                                                                              edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
 
   /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
   /// Therefore always writes output if timestep is 0.
@@ -65,7 +78,8 @@ private:
     EDGE_HORIZONTAL,
     EDGE_VERTICAL,
     EDGE_DIAGONAL,
-    DG
+    DG,
+    P2
   };
 
   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
@@ -76,6 +90,7 @@ private:
   void writeP1      ( std::ostream & output, const uint_t & level                                     ) const;
   void writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
   void writeDGDoFs  ( std::ostream & output, const uint_t & level                                     ) const;
+  void writeP2      ( std::ostream & output, const uint_t & level                                     ) const;
 
   std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const;
 
@@ -85,7 +100,14 @@ private:
   void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
   void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
 
+  void writeVertexDoFData( std::ostream & output, const vertexdof::VertexDoFFunction< real_t > * function,
+                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
+  void writeEdgeDoFData  ( std::ostream & output, const EdgeDoFFunction< real_t > * function,
+                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const;
+
   void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+
+  void syncAllFunctions( const uint_t & level ) const;
 
   std::string dir_;
   std::string filename_;
@@ -96,6 +118,8 @@ private:
   std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;
   std::vector< const BubbleFunction < real_t > * > bubbleFunctions_;
   std::vector< const DGFunction     < real_t > * > dgFunctions_;
+
+  std::vector< const P2Function     < real_t > * > p2Functions_;
 
 };
 

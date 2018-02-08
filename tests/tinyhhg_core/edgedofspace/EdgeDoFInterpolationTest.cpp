@@ -1,0 +1,113 @@
+
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "core/Environment.h"
+#include "core/debug/all.h"
+
+using walberla::real_t;
+using namespace hhg;
+
+int main(int argc, char **argv)
+{
+  walberla::debug::enterTestMode();
+  walberla::mpi::Environment MPIenv(argc, argv);
+  walberla::MPIManager::instance()->useWorldComm();
+
+  MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+
+  const size_t level = 5;
+
+  size_t mEperEdge = levelinfo::num_microedges_per_edge(level);
+
+  EdgeDoFFunction< real_t > x("x", storage, level, level);
+  std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> emptyEdgeIds;
+  std::vector<PrimitiveDataID<FunctionMemory< real_t >, Face>> emptyFaceIds;
+
+  for (auto face : storage->getFaces())
+  {
+    for (size_t i = 0; i < levelinfo::num_microedges_per_face(level); ++i)
+    {
+      WALBERLA_CHECK_FLOAT_EQUAL(face.second->getData(x.getFaceDataID())->getPointer(level)[i], 0.0);
+    }
+  }
+  for (auto edge : storage->getEdges())
+  {
+    for (size_t i = 0; i < mEperEdge + edge.second->getNumHigherDimNeighbors() * ( mEperEdge * 2 + (mEperEdge - 1) ); ++i)
+    {
+      WALBERLA_CHECK_FLOAT_EQUAL(edge.second->getData(x.getEdgeDataID())->getPointer(level)[i], 0.0);
+    }
+  }
+
+
+  std::function<real_t(const Point3D &,const std::vector<real_t>&)> exact = [](const Point3D & xx, const std::vector<real_t>&) { return 2*xx[0] + xx[1]; };
+
+  real_t value,xStepSize, yStepSize;
+  for(auto faceIter : storage->getFaces())
+  {
+    auto face = faceIter.second;
+    xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((mEperEdge));
+    yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((mEperEdge));
+    value = (xStepSize / 2 + face->coords[0].x[0]) * 2 + face->coords[0].x[0];
+
+    edgedof::macroface::interpolate< real_t >(level, *face, x.getFaceDataID(), emptyFaceIds, exact);
+    for (uint_t i = 0; i < mEperEdge; ++i)
+    {
+      for (uint_t j = 0; j < mEperEdge - i; ++j)
+      {
+        uint_t idx_ho = edgedof::macroface::indexFromHorizontalEdge<level>(j, i, stencilDirection::EDGE_HO_C);
+        uint_t idx_di = edgedof::macroface::indexFromDiagonalEdge<level>(j, i, stencilDirection::EDGE_DI_C);
+        uint_t idx_ve = edgedof::macroface::indexFromVerticalEdge<level>(j, i, stencilDirection::EDGE_VE_C);
+        if (i == 0)
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ho], 0.0,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value);
+        } else
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ho], value,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value);
+        }
+        if (j == 0)
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ve], 0.0,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value);
+        } else
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ve], value + yStepSize / 2 - xStepSize,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value + yStepSize / 2 - xStepSize);
+        }
+        if (i + j == levelinfo::num_microvertices_per_edge(level) - 2)
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_di], 0.0,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value);
+        } else
+        {
+          WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_di], value + yStepSize / 2 ,
+                                     "i: " << i << " j: " << j << " idx: " << idx_ho << " value was " << value + yStepSize / 2);
+        }
+        value += 2 * xStepSize;
+      }
+      value = yStepSize * (real_t) (i + 1) + xStepSize / 2 * 2;
+    }
+  }
+
+  for(auto edgeIter : storage->getEdges()){
+    auto edge = edgeIter.second;
+    hhg::edgedof::macroedge::interpolate< real_t >(level, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
+    value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
+    xStepSize = edge->getDirection().x[0] / walberla::real_c((mEperEdge));
+    yStepSize = edge->getDirection().x[1] / walberla::real_c((mEperEdge));
+    value += xStepSize * 2 / 2;
+    value += yStepSize / 2;
+    for(uint_t i = 0; i < mEperEdge; ++i)
+    {
+      WALBERLA_CHECK_FLOAT_EQUAL(edge->getData(x.getEdgeDataID())->getPointer(level)[i], value,
+                                 "i: " << i << " edge: "<< *edge);
+      value += 2*xStepSize;
+      value += yStepSize;
+    }
+  }
+
+  return EXIT_SUCCESS;
+}

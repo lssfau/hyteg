@@ -5,8 +5,12 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
+#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/p2functionspace/generated/p2_div.h"
+
 namespace hhg {
 
+template<class UFCOperator>
 class EdgeDoFToVertexDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t >, hhg::P1Function < real_t > >
 {
 public:
@@ -21,6 +25,9 @@ public:
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
 
 private:
+  void assembleStencils();
+  void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
+
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
@@ -45,4 +52,9 @@ uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t 
 uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
 
 }/// namespace EdgeDoFToVertexDoF
+
+typedef EdgeDoFToVertexDoFOperator<hhg::fenics::NoAssemble> GenericEdgeDoFToVertexDoFOperator;
+typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise> EdgeToVertexDivxOperator;
+typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise> EdgeToVertexDivyOperator;
+
 }/// namespace hhg

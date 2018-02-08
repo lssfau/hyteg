@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <fmt/format.h>
 #include <tinyhhg_core/Operator.hpp>
 
 #include <array>
@@ -45,8 +44,6 @@ public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-    using namespace P1Elements;
-    typedef stencilDirection sD;
 
     auto faceP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face   > >( minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
     auto edgeP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge   > >( minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize );
@@ -55,6 +52,77 @@ public:
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
+
+    // Only assemble stencils if UFCOperator is specified
+    if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
+      assembleStencils();
+    }
+  }
+
+  ~P1Operator()
+  {
+  }
+
+  void scale(real_t scalar) {
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
+      for (auto &it : storage_->getFaces())
+      {
+        Face &face = *it.second;
+        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
+
+        for ( const auto & neighbor : vertexdof::macroface::neighborsWithCenter )
+        {
+          face_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+        }
+      }
+
+      for (auto& it : storage_->getEdges())
+      {
+        Edge &edge = *it.second;
+        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
+
+        edge_stencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] *= scalar;
+
+        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+        {
+          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+        }
+
+        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+        {
+          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+        }
+
+        if (edge.getNumNeighborFaces() == 2)
+        {
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+          {
+            edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
+          }
+        }
+      }
+
+      for (auto& it : storage_->getVertices()) {
+        Vertex &vertex = *it.second;
+        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
+        for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
+          vertex_stencil[i] *= scalar;
+        }
+      }
+    }
+  }
+
+  const PrimitiveDataID<StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
+
+  const PrimitiveDataID<StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+
+  const PrimitiveDataID<StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+
+private:
+
+  void assembleStencils() {
+    using namespace P1Elements;
+    typedef stencilDirection sD;
 
     Matrix3r local_stiffness_gray;
     Matrix3r local_stiffness_blue;
@@ -91,7 +159,6 @@ public:
           face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ] = 1.0 / face_stencil[ vertexdof::stencilIndexFromVertex( sD::VERTEX_C ) ];
         }
 
-//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:face_stencil = {}", face.getID().getID(), PointND<real_t, 7>(&face_stencil[0])));
       }
 
       for (auto& it : storage_->getEdges()) {
@@ -214,65 +281,6 @@ public:
     }
 
   }
-
-  ~P1Operator()
-  {
-  }
-
-  void scale(real_t scalar) {
-    for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
-      for (auto &it : storage_->getFaces())
-      {
-        Face &face = *it.second;
-        auto face_stencil = face.getData(faceStencilID_)->getPointer( level );
-
-        for ( const auto & neighbor : vertexdof::macroface::neighborsWithCenter )
-        {
-          face_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
-        }
-      }
-
-      for (auto& it : storage_->getEdges())
-      {
-        Edge &edge = *it.second;
-        auto edge_stencil = edge.getData(edgeStencilID_)->getPointer( level );
-
-        edge_stencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] *= scalar;
-
-        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
-        {
-          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
-        }
-
-        for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
-        {
-          edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
-        }
-
-        if (edge.getNumNeighborFaces() == 2)
-        {
-          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
-          {
-            edge_stencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *= scalar;
-          }
-        }
-      }
-
-      for (auto& it : storage_->getVertices()) {
-        Vertex &vertex = *it.second;
-        auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer( level );
-        for (uint_t i = 0; i < vertex.getData(vertexStencilID_)->getSize(level); ++i) {
-          vertex_stencil[i] *= scalar;
-        }
-      }
-    }
-  }
-
-  const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const { return vertexStencilID_; }
-
-  const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
-
-  const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
 
 private:
 

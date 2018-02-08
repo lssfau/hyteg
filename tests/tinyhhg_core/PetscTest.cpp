@@ -1,6 +1,5 @@
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
 
 #ifndef HHG_BUILD_WITH_PETSC
@@ -51,7 +50,7 @@ int main(int argc, char* argv[])
 
   uint_t num = 0;
   uint_t dofsOnRank = numerator->enumerate(Level,num);
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("Num dofs = {}", (size_t)num))
+  WALBERLA_LOG_INFO_ON_ROOT("Num dofs = " << uint_c(num))
 
 
   PETScLUSolver<real_t, hhg::P1Function, hhg::P1LaplaceOperator> solver(numerator, dofsOnRank, num);
@@ -61,7 +60,7 @@ int main(int argc, char* argv[])
   solver.solve(A,x,x,x,Level,0,0);
   timer.end();
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("time was: {}",timer.last()));
+  WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
   err.assign({1.0, -1.0}, {&x, &x_exact}, Level);
 
   real_t discr_l2_err = std::sqrt(err.dot(err, Level) / (real_t)num);

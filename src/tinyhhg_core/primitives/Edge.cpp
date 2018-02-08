@@ -1,8 +1,6 @@
 #include "Edge.hpp"
 #include "Vertex.hpp"
 
-#include <fmt/format.h>
-
 #include <core/mpi/MPIManager.h>
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
