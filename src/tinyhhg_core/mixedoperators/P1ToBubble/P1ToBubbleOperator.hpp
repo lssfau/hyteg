@@ -13,7 +13,7 @@
 #  pragma warning(push, 0)
 #endif
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 
 #include "generated/p1_to_bubble_div.h"
 

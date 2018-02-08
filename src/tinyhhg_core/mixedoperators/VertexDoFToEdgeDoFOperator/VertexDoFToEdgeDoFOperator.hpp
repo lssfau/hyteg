@@ -8,7 +8,7 @@
 #  pragma warning(push, 0)
 #endif
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
 
 #ifdef _MSC_VER
