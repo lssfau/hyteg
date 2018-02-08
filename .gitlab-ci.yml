@@ -128,7 +128,7 @@ stages:
    <<: *build_definition
    variables:
       WALBERLA_BUILD_WITH_MPI: "ON"
-      WALBERLA_BULD_WITH_OPENMP: "OFF"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
       OMP_NUM_THREADS: "4"
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "Release"
