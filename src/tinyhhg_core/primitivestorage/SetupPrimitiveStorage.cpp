@@ -264,7 +264,27 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
                                                   vertices_.at( vertexID2.getID() )->getCoordinates(),
                                                   vertices_.at( vertexID3.getID() )->getCoordinates() }};
 
-    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates );
+    std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
+
+    // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
+
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID2 ) ] = 2;
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID2 ) ] = 2;
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
   }
 
   for (auto& it : edges_) {

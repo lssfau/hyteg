@@ -10,11 +10,22 @@ class Cell : public Primitive
 {
 public:
 
+  /// Creates a macro-cell instance
+  ///
+  /// \param primitiveID ID of this macro-cell
+  /// \param vertexIDs neighbor macro-vertex IDs
+  /// \param edgeIDs neighbor macro-edge IDs
+  /// \param faceIDs neighbor macro-face IDs
+  /// \param coordinates absolute coordinates of the four vertices of this macro-cell
+  /// \param cellLocalVertexToFaceLocalVertexMaps Maps for each face of the macro-cell that map the local vertex ID (one of 0, 1, 2) of the face
+  ///                                             to the corresponding local vertex ID (one of 0, 1, 2, 3) of the respective neighboring macro-cell. \n
+  ///                                             Refer to the documentation for detailed illustrations of that mapping.
   Cell( const PrimitiveID                & primitiveID,
         const std::vector< PrimitiveID > & vertexIDs,
         const std::vector< PrimitiveID > & edgeIDs,
         const std::vector< PrimitiveID > & faceIDs,
-        const std::array< Point3D, 4 >   & coordinates );
+        const std::array< Point3D, 4 >   & coordinates,
+        const std::array< std::map< uint_t, uint_t >, 4 > & faceLocalVertexToCellLocalVertexMaps );
 
   Cell( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
 
@@ -35,7 +46,9 @@ public:
     return genericGetData< DataType >( index );
   }
 
-  const std::array< Point3D, 4 > & getCoordinates() const { return coordinates_; }
+  const std::array< Point3D, 4 > &                    getCoordinates()                             const { return coordinates_; }
+  const std::array< std::map< uint_t, uint_t >, 4 > & getFaceLocalVertexToCellLocalVertexMaps()    const { return faceLocalVertexToCellLocalVertexMaps_; }
+        uint_t                                        getLocalFaceID( const PrimitiveID & faceID ) const;
 
 protected:
 
@@ -54,6 +67,7 @@ protected:
 private:
 
   std::array< Point3D, 4 > coordinates_;
+  std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
 
 };
 
