@@ -9,6 +9,7 @@
 
 namespace hhg {
 
+///this test check restrict on specific points on the grid
 static void testP2Smooth() {
   const uint_t sourceLevel = 3;
 
@@ -23,10 +24,16 @@ static void testP2Smooth() {
   uint_t num = 1;
   x->enumerate(sourceLevel,num);
 
-//  for (auto &faceIT : storage->getFaces()) {
-//    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
-//  }
+  for (auto &faceIT : storage->getFaces()) {
+    auto face = faceIT.second;
+    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+  }
+
+    for (auto &faceIT : storage->getFaces()) {
+    auto face = faceIT.second;
+    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+  }
+
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
@@ -35,10 +42,6 @@ static void testP2Smooth() {
 
   x->restrict(sourceLevel,hhg::All);
 
-//  for (auto &faceIT : storage->getFaces()) {
-//    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
-//  }
 
 
 //  for (auto &faceIT : storage->getFaces()) {
