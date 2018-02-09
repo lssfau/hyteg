@@ -199,6 +199,10 @@ public:
   inline void addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
                            const std::string                         & identifier );
+
+  /// Creates an invalid PrimitiveDataID - no \ref Primitive of the storage will ever have data attached that corresponds to this ID.
+  template< typename DataType, typename PrimitiveType >
+  inline PrimitiveDataID< DataType, PrimitiveType > generateInvalidPrimitiveDataID() { return generateDataID< DataType, PrimitiveType >(); }
   ///@}
 
   /// Migrates the passed (local!) primitives to the respective target process.
