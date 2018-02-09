@@ -10,6 +10,7 @@
 namespace hhg {
 namespace indexing {
 
+using walberla::uint_t;
 using walberla::uint_c;
 
 /// Helper function to create a 'tuple' from two integers taking less than 5 bits of space.
