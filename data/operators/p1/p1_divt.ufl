@@ -1,7 +1,0 @@
-# generate code with ffc p1_divt.ufl
-element = FiniteElement("Lagrange", triangle, 1)
-
-p = TrialFunction(element)
-v = TestFunction(element)
-
-forms = [- v.dx(i)*p*dx for i in range(2)]

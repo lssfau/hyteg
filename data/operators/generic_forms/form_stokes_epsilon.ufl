@@ -1,6 +1,3 @@
-# generate code with ffc p1_stokes_epsilon.ufl
-element = FiniteElement('Lagrange', triangle, 1)
-
 u = TrialFunction(element)
 v = TestFunction(element)
 
