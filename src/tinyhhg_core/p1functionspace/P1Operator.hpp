@@ -13,7 +13,7 @@
 #  pragma warning(push, 0)
 #endif
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_div.h"

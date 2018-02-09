@@ -6,7 +6,7 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "BubbleDataHandling.hpp"
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
