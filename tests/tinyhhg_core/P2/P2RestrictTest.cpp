@@ -26,7 +26,7 @@ static void testP2Smooth() {
 
   for (auto &faceIT : storage->getFaces()) {
     auto face = faceIT.second;
-    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getVertexDoFFunction()->getFaceDataID());
   }
 
     for (auto &faceIT : storage->getFaces()) {
