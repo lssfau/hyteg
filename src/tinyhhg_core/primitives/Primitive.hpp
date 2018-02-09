@@ -198,7 +198,7 @@ inline void Primitive::getNeighborPrimitivesGenerically< Cell >( std::vector< Pr
 template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified index" );
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified DataID!" );
   return data_.at( index )->template get< DataType >();
 }
 
