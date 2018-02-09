@@ -106,7 +106,7 @@ static void testP2Smooth() {
   //edgedof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getEdgeDoFFunction()->getFaceDataID());
 
 
-  Edge * doubleEdge;
+  Edge * doubleEdge = nullptr;
   for(auto e : storage->getEdges()){
     if(e.second->getNumNeighborFaces() == 2){
       doubleEdge = e.second.get();
