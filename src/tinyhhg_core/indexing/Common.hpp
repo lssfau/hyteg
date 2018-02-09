@@ -92,5 +92,11 @@ inline Index operator+( const IndexIncrement & lhs, Index rhs )
   return rhs;
 }
 
+inline std::ostream & operator<<( std::ostream & os, const Index & index )
+{
+  os << "( " << index.x() << ", " << index.y() << ", " << index.z() << " )";
+  return os;
+}
+
 }
 }
