@@ -36,8 +36,11 @@ endif()
 
 ## VertexDoFSpace ##
 
-waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS tinyhhg_core core fmt)
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME VertexDoFFunctionTest)
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFMacroCellPackInfoTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFMacroCellPackInfoTest)
 
 ## EdgeDoFSpace ##
 
