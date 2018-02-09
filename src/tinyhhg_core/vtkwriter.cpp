@@ -159,10 +159,6 @@ std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType & dofType, co
 
 void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
 {
-
-  output << "<Points>\n";
-  output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
-
   if ( write2D_ )
   {
     for ( const auto & it : storage->getFaces() )
