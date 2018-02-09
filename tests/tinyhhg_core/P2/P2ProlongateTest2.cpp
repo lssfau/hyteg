@@ -9,33 +9,36 @@
 
 namespace hhg {
 
+/// this test writes specific values at certain points and
+/// checks wether these values are propagated correctly after one prolongation step
 static void testP2Smooth() {
+
   const uint_t sourceLevel = 2;
-
   MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
-
-  SetupPrimitiveStorage setupStorage(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-
+  std::shared_ptr<SetupPrimitiveStorage> setupStorage = std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
   auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1);
-
-  std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 0; };
-
   typedef stencilDirection sD;
 
+  /// this should not be necessary but just to be save
+  std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 0; };
   x->interpolate(zeros, sourceLevel);
 
   real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
   real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
 
+  /// all possible vertical edge Dof locations that need to be updated by the face
   std::vector<std::pair<uint_t, uint_t > > vertical   = { {1,0},{2,0},{3,0},{1,1},{2,1},{1,2} };
+  /// all possible horizontal edge Dof locations that need to be updated by the face
   std::vector<std::pair<uint_t, uint_t > > horizontal = { {0,1},{1,1},{2,1},{0,2},{1,2},{0,3} };
+  /// all possible diagonal edge Dof locations that need to be updated by the face
   std::vector<std::pair<uint_t, uint_t > > diagonal   = { {0,0},{1,0},{2,0},{0,1},{1,1},{0,2} };
+  /// all possible vertex dof locations that need to be updated by the face
+  std::vector<std::pair<uint_t, uint_t > > vertex     = { {1,1},{2,1},{1,2} };
 
-
-  /// VERTICAL EDGE ///
-
+///////////////////////////
+/// CHECH VERTICAL EDGE ///
+///////////////////////////
   for(auto p : vertical) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
@@ -43,7 +46,7 @@ static void testP2Smooth() {
 
     x->prolongate(sourceLevel, hhg::All);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2, p.second *2 + 1, sD::EDGE_VE_N)], 12.,p.first << " " << p.second);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2, p.second *2 + 1, sD::EDGE_VE_N)], 12.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2, p.second *2 + 1, sD::EDGE_VE_S)], 12.);
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2, p.second *2 + 1, sD::EDGE_HO_E)], 8.);
@@ -61,10 +64,9 @@ static void testP2Smooth() {
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(p.first, p.second, stencilDirection::EDGE_VE_N)] = 0.0;
 
   }
-  //////////////////////////
-
-  /// HORIZONTAL EDGE ///
-
+/////////////////////////////
+/// CHECK HORIZONTAL EDGE ///
+/////////////////////////////
   for(auto p : horizontal) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
@@ -72,7 +74,7 @@ static void testP2Smooth() {
 
     x->prolongate(sourceLevel, hhg::All);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2, sD::EDGE_VE_N)], 8.,p.first << " " << p.second);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2, sD::EDGE_VE_N)], 8.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2, sD::EDGE_VE_S)], 8.);
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2, sD::EDGE_HO_E)], 12.);
@@ -90,7 +92,9 @@ static void testP2Smooth() {
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(p.first, p.second, stencilDirection::EDGE_HO_E)] = 0.0;
 
   }
-
+///////////////////////////
+/// CHECK DIAGONAL EDGE ///
+///////////////////////////
   for(auto p : diagonal) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
@@ -98,7 +102,7 @@ static void testP2Smooth() {
 
     x->prolongate(sourceLevel, hhg::All);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_N)], 8., p.first << " " << p.second);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_N)], 8.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_S)], 8.);
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_HO_E)], 8.);
@@ -116,37 +120,49 @@ static void testP2Smooth() {
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(p.first, p.second, stencilDirection::EDGE_DI_NE)] = 0.0;
 
   }
+////////////////////
+/// CHECK VERTEX ///
+////////////////////
+  for( auto p : vertex ){
+    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(
+      sourceLevel)[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
 
 
-  for (auto &faceIT : storage->getFaces()) {
-    auto face = faceIT.second;
-    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+    x->prolongate(sourceLevel, hhg::All);
+
+    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex<sourceLevel + 1>(p.first * 2 , p.second * 2 , sD::VERTEX_C)],
+                               16.,
+                               p.first << " " << p.second);
+
+    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(
+      sourceLevel)[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(p.first, p.second, stencilDirection::VERTEX_C)] = 0.0;
+
   }
+///////////////////////////
+
+
+
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
 //    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
-  for (auto &faceIT : storage->getFaces()) {
-    auto face = faceIT.second;
-    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
-  }
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
 //    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
-
-
 }
-
-
-
-
-
-
 }/// namespace hhg
 
 int main( int argc, char* argv[] )
