@@ -39,7 +39,7 @@ public:
 
     for ( uint_t level = minLevel; level <= maxLevel; ++level )
     {
-      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage() ) );
+      communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
     }
   }
 
