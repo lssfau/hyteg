@@ -89,10 +89,12 @@ public:
 private:
 
   const uint_t    width_;
+  const uint_t    internalWidth_;
   const uint_t    offsetToCenter_;
   const uint_t    totalNumberOfDoFs_;
         uint_t    step_;
         Index     coordinates_;
+        Index     internalCoordinates_;
 
 };
 

@@ -23,19 +23,23 @@ static constexpr uint_t tup( const uint_t & a, const uint_t & b )
 }
 
 CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter, const bool & end ) :
-  width_( width ), offsetToCenter_( offsetToCenter ),
+  width_( width ), internalWidth_( width - ( offsetToCenter == 0 ? 0 : (2 + 2*offsetToCenter)) ), offsetToCenter_( offsetToCenter ),
   // Number of vertices in a tetrahedron with edge length n:
   // T(n) = ( (n+2) * (n+1) * n ) / 6
   // Number of _inner_ vertices of a tetrahedron with edge length n:
   // T(n-4) = ( (n-2) * (n-3) * (n-4) ) / 6
-  totalNumberOfDoFs_( ( ( width - 4 * offsetToCenter + 2 ) * ( width - 4 * offsetToCenter + 1 ) * ( width - 4 * offsetToCenter ) ) / 6 ), step_( 0 )
+  totalNumberOfDoFs_( ( ( internalWidth_ + 2 ) * ( internalWidth_ + 1 ) * ( internalWidth_ ) ) / 6 ), step_( 0 )
 {
   WALBERLA_ASSERT_GREATER( width, 0, "Size of cell must be larger than zero!" );
   WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond cell width!" );
 
-  coordinates_.col() = offsetToCenter;
-  coordinates_.row() = offsetToCenter;
-  coordinates_.dep() = offsetToCenter;
+  coordinates_.x() = offsetToCenter_;
+  coordinates_.y() = offsetToCenter_;
+  coordinates_.z() = offsetToCenter_;
+
+  internalCoordinates_.x() = 0;
+  internalCoordinates_.y() = 0;
+  internalCoordinates_.z() = 0;
 
   if ( end )
   {
@@ -49,28 +53,30 @@ CellIterator & CellIterator::operator++() // prefix
 
   step_++;
 
-  const uint_t currentDep = coordinates_.dep();
-  const uint_t currentRow = coordinates_.row();
-  const uint_t currentCol = coordinates_.col();
+  const uint_t currentDep = internalCoordinates_.dep();
+  const uint_t currentRow = internalCoordinates_.row();
+  const uint_t currentCol = internalCoordinates_.col();
 
-  const uint_t lengthOfCurrentRowWithoutOffset   = width_ - currentRow - currentDep;
-  const uint_t heightOfCurrentSliceWithoutOffset = width_ - currentDep;
+  const uint_t lengthOfCurrentRow   = internalWidth_ - currentRow - currentDep;
+  const uint_t heightOfCurrentSlice = internalWidth_ - currentDep;
 
-  if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter_ - 1 )
+  if ( currentCol < lengthOfCurrentRow - 1 )
   {
-    coordinates_.col()++;
+    internalCoordinates_.col()++;
   }
-  else if ( currentRow < heightOfCurrentSliceWithoutOffset - offsetToCenter_ - 1 )
+  else if ( currentRow < heightOfCurrentSlice - 1 )
   {
-    coordinates_.row()++;
-    coordinates_.col() = offsetToCenter_;
+    internalCoordinates_.row()++;
+    internalCoordinates_.col() = 0;
   }
   else
   {
-    coordinates_.dep()++;
-    coordinates_.row() = offsetToCenter_;
-    coordinates_.col() = offsetToCenter_;
+    internalCoordinates_.dep()++;
+    internalCoordinates_.row() = 0;
+    internalCoordinates_.col() = 0;
   }
+
+  coordinates_ = internalCoordinates_ + IndexIncrement( (int) offsetToCenter_ , (int) offsetToCenter_, (int) offsetToCenter_ );
 
   return *this;
 }
@@ -81,6 +87,7 @@ CellIterator CellIterator::operator++( int ) // postfix
   ++*this;
   return tmp;
 }
+
 
 CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
                                         const bool & end ) :
