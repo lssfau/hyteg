@@ -271,7 +271,7 @@ void restrictTmpl(const Face & face,
     }
     /// vertical
     if( it.col() != 0) {
-      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1, sD::VERTEX_C)];
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol, fineRow + 1, sD::VERTEX_C)];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_HO_W  )];
       tmp += 0.5  * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_DI_NW )];
       tmp += 0.25 * edgeDofFineData[indexFromVertex< sourceLevel >(fineCol, fineRow + 1,sD::EDGE_VE_NW )];
