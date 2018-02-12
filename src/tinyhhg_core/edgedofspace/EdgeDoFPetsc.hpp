@@ -3,6 +3,9 @@
 
 #include "core/DataTypes.h"
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+
 namespace hhg {
 namespace EdgeDoF {
 

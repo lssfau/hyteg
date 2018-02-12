@@ -28,7 +28,7 @@ stages:
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHHG_BUILD_WITH_PETSC=$HHG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR -DWALBERLA_SANITIZE_ADDRESS=$WALBERLA_SANITIZE_ADDRESS -DWALBERLA_SANITIZE_UNDEFINED=$WALBERLA_SANITIZE_UNDEFINED
       - cmake . -LAH
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $(nproc) -l $(nproc)
@@ -219,6 +219,13 @@ gcc_7_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
    tags:
+      - docker
+
+clang_3.6_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   tags:
+      - cuda
       - docker
 
 clang_4.0_mpionly:

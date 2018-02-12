@@ -41,12 +41,15 @@ public:
     }
   }
 
-  uint_t getSize( const uint_t & level ) const { WALBERLA_ASSERT_GREATER( data_.count( level ), 0, "Requested level not allocated" ); return data_.at( level )->size(); }
-
   virtual ~FunctionMemory(){}
 
+  /// Returns true if data is allocated at the specified level, false otherwise.
+  inline bool hasLevel( const uint_t & level ) const { return data_.count( level ) > 0; }
+
+  inline uint_t getSize( const uint_t & level ) const { WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->size(); }
+
   // Returns a pointer to the first entry of the allocated array
-  inline ValueType * getPointer( const uint_t & level ) const { return data_.at( level )->data(); }
+  inline ValueType * getPointer( const uint_t & level ) const { WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->data(); }
 
   /// Serializes the allocated data to a send buffer
   inline void serialize( SendBuffer & sendBuffer ) const
@@ -97,7 +100,7 @@ private:
   /// Allocates an array of size size for a certain level
   inline void addLevel( const uint_t & level, const uint_t & size, const ValueType & fillValue )
   {
-    WALBERLA_ASSERT_EQUAL( data_.count(level), 0, "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
+    WALBERLA_ASSERT( !hasLevel( level ), "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
     data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size, fillValue ) );
   }
 

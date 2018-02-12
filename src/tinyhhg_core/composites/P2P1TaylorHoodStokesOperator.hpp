@@ -1,7 +1,8 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/mixedoperators/P2ToP1Operator.hpp"
+#include "tinyhhg_core/mixedoperators/P1ToP2Operator.hpp"
 
 namespace hhg
 {
@@ -22,24 +23,20 @@ public:
   void apply(P2P1TaylorHoodFunction<real_t>& src, P2P1TaylorHoodFunction<real_t>& dst, size_t level, DoFType flag)
   {
     A.apply(src.u, dst.u, level, flag, Replace);
-    divT_x.getVertexToVertexOpr().apply(src.p, *dst.u.getVertexDoFFunction(), level, flag, Add);
-    divT_x.getVertexToEdgeOpr().apply(src.p, *dst.u.getEdgeDoFFunction(), level, flag, Add);
+    divT_x.apply(src.p, dst.u, level, flag, Add);
 
     A.apply(src.v, dst.v, level, flag, Replace);
-    divT_y.getVertexToVertexOpr().apply(src.p, *dst.v.getVertexDoFFunction(), level, flag, Add);
-    divT_y.getVertexToEdgeOpr().apply(src.p, *dst.v.getEdgeDoFFunction(), level, flag, Add);
+    divT_y.apply(src.p, dst.v, level, flag, Add);
 
-    div_x.getVertexToVertexOpr().apply(*src.u.getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary, Replace);
-    div_x.getEdgeToVertexOpr().apply(*src.u.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
-    div_y.getVertexToVertexOpr().apply(*src.v.getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
-    div_y.getEdgeToVertexOpr().apply(*src.v.getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary, Add);
+    div_x.apply(src.u, dst.p, level, flag | DirichletBoundary, Replace);
+    div_y.apply(src.v, dst.p, level, flag | DirichletBoundary, Add);
   }
 
   P2ConstantLaplaceOperator A;
-  P2ConstantDivxOperator div_x;
-  P2ConstantDivyOperator div_y;
-  P2ConstantDivTxOperator divT_x;
-  P2ConstantDivTyOperator divT_y;
+  P2ToP1ConstantDivxOperator div_x;
+  P2ToP1ConstantDivyOperator div_y;
+  P1ToP2ConstantDivTxOperator divT_x;
+  P1ToP2ConstantDivTyOperator divT_y;
 };
 
 }

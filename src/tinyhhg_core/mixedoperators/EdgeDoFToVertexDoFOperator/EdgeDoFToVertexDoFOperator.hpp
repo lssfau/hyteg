@@ -5,7 +5,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/p2functionspace/generated/p2_div.h"
 
 namespace hhg {
