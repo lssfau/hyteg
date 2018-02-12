@@ -7,12 +7,24 @@
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
 
 #include "core/DataTypes.h"
 
 namespace hhg {
 namespace vertexdof {
 namespace macroedge {
+
+using walberla::real_c;
+using indexing::Index;
+
+template< uint_t Level >
+inline Point3D coordinateFromIndex( const Edge & edge, const Index & index )
+{
+  const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
+  const Point3D step         = ( edge.getCoordinates()[1] - edge.getCoordinates()[0] ) * stepFrequency;
+  return edge.getCoordinates()[0] + step * real_c( index.x() );
+}
 
 template<typename ValueType, uint_t Level>
 inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
@@ -48,31 +60,28 @@ template< typename ValueType, uint_t Level >
 inline void interpolateTmpl(Edge &edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr) {
+                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+{
+  ValueType * edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
 
-  FunctionMemory< ValueType > *edgeMemory = edge.getData(edgeMemoryId);
-
-  std::vector<ValueType*> srcPtr;
-  for(auto src : srcIds){
-    srcPtr.push_back(edge.getData(src)->getPointer( Level ));
+  std::vector< ValueType * > srcPtr;
+  for( const auto & src : srcIds )
+  {
+    srcPtr.push_back( edge.getData(src)->getPointer( Level ) );
   }
 
-  std::vector<ValueType> srcVector(srcIds.size());
+  std::vector<ValueType> srcVector( srcIds.size() );
 
-  size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  Point3D x = edge.getCoordinates()[0];
-  Point3D dx = edge.getDirection()/(real_t) (rowsize - 1);
+  for ( const auto & it : vertexdof::macroedge::Iterator( Level, 1 ) )
+  {
+    const Point3D coordinate = coordinateFromIndex< Level >( edge, it );
+    const uint_t  idx        = vertexdof::macroedge::indexFromVertex<Level>( it.x(), stencilDirection::VERTEX_C );
 
-  x += dx;
-
-  for (size_t i = 1; i < rowsize - 1; ++i) {
-
-    for (uint_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    for ( uint_t k = 0; k < srcPtr.size(); ++k )
+    {
+      srcVector[ k ] = srcPtr[ k ][ idx ];
     }
-
-    edgeMemory->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = expr(x, srcVector);
-    x += dx;
+    edgeData[ idx ] = expr( coordinate, srcVector );
   }
 }
 
