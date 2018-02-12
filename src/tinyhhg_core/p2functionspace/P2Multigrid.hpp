@@ -593,5 +593,23 @@ SPECIALIZE_WITH_VALUETYPE(void, restrictTmpl, restrict)
 
 }/// namespace macroedge
 
+namespace macrovertex {
+
+template<typename ValueType, uint_t sourceLevel>
+void prolongateTmpl(const Vertex &vertex,
+                    const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &vertexDoFMemoryID,
+                    const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &edgeDoFMemoryID) {
+  ValueType *vertexDofFineData = vertex.getData(vertexDoFMemoryID)->getPointer(sourceLevel + 1);
+  ValueType *vertexDofCoarseData = vertex.getData(vertexDoFMemoryID)->getPointer(sourceLevel);
+
+  vertexDofFineData[0] = vertexDofCoarseData[0];
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
+
+}/// namespace macrovertex
+
+
 }/// namespace P2
 }/// namespace hhg

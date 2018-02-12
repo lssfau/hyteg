@@ -54,32 +54,28 @@ static void testP2Prolongate() {
     }
   }
 
+
   for (auto &edgeIT : storage->getEdges()) {
     auto edge = edgeIT.second;
-    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
-  }
+    edgeDoFFineData = edge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(
+      sourceLevel + 1);
+    vertexDoFFineData = edge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(
+      sourceLevel + 1);
 
-for (auto &edgeIT : storage->getEdges()) {
-  auto edge = edgeIT.second;
-  edgeDoFFineData = edge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(
-    sourceLevel + 1);
-  vertexDoFFineData = edge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(
-    sourceLevel + 1);
-
-  for (const auto &it : hhg::vertexdof::macroedge::Iterator(sourceLevel + 1, 1)) {
-    WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFFineData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel + 1>(it.col(), sD::VERTEX_C)],
-      13.,
-      it.col() << " " << it.row());
-  }
-
-  for (const auto &it : hhg::edgedof::macroedge::Iterator(sourceLevel + 1, 0)) {
+    for (const auto &it : hhg::vertexdof::macroedge::Iterator(sourceLevel + 1, 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel + 1>(it.col(), sD::EDGE_HO_E)],
+        vertexDoFFineData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel + 1>(it.col(), sD::VERTEX_C)],
         13.,
         it.col() << " " << it.row());
+    }
+
+    for (const auto &it : hhg::edgedof::macroedge::Iterator(sourceLevel + 1, 0)) {
+        WALBERLA_CHECK_FLOAT_EQUAL(
+          edgeDoFFineData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel + 1>(it.col(), sD::EDGE_HO_E)],
+          13.,
+          it.col() << " " << it.row());
+    }
   }
-}
 
 
   x->prolongate(sourceLevel + 1, hhg::All);

@@ -255,6 +255,18 @@ private:
                                                   edgeDoFFunction_->getEdgeDataID());
         }
       }
+
+      for ( const auto & it : this->getStorage()->getVertices() )
+      {
+        const Vertex & vertex = *it.second;
+
+        if ( testFlag(vertex.getDoFType(), flag) )
+        {
+          P2::macrovertex::prolongate< ValueType >( sourceLevel, vertex,
+                                                  vertexDoFFunction_->getVertexDataID(),
+                                                  edgeDoFFunction_->getVertexDataID());
+        }
+      }
     }
 
     inline void
