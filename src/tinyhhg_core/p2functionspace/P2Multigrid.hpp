@@ -468,6 +468,57 @@ SPECIALIZE_WITH_VALUETYPE(void, postRestrictTmpl, postRestrict)
 namespace macroedge {
 
 template< typename ValueType, uint_t sourceLevel >
+void prolongateTmpl(const Edge & edge,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & vertexDoFMemoryID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeDoFMemoryID) {
+  ValueType *vertexDofFineData = edge.getData(vertexDoFMemoryID)->getPointer(sourceLevel + 1);
+  ValueType *edgeDofFineData = edge.getData(edgeDoFMemoryID)->getPointer(sourceLevel + 1);
+  ValueType *vertexDofCoarseData = edge.getData(vertexDoFMemoryID)->getPointer(sourceLevel);
+  ValueType *edgeDofCoarseData = edge.getData(edgeDoFMemoryID)->getPointer(sourceLevel);
+
+  typedef hhg::stencilDirection sD;
+
+/// update vertexdofs from vertexdofs
+  for (const auto &it : hhg::vertexdof::macroedge::Iterator(sourceLevel, 1)) {
+
+    using hhg::vertexdof::macroedge::indexFromVertex;
+
+    uint_t fineCol = it.col() * 2;
+
+    vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol, sD::VERTEX_C)] =
+      vertexDofCoarseData[indexFromVertex<sourceLevel>(it.col(), sD::VERTEX_C)];
+
+    /// since the iterator does not include the fist and last vertex we need to handle the first edge separately
+    if(it.col() == 1){
+      vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol - 1, sD::VERTEX_C)] =
+        edgeDofCoarseData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel>(it.col(), sD::EDGE_HO_W)];
+    }
+
+    vertexDofFineData[indexFromVertex<sourceLevel + 1>(fineCol + 1, sD::VERTEX_C)] =
+      edgeDofCoarseData[hhg::edgedof::macroface::indexFromVertex<sourceLevel>(it.col(), it.row(), sD::EDGE_HO_E)];
+  }
+
+  for (const auto &it : hhg::edgedof::macroedge::Iterator(sourceLevel, 0)) {
+    uint_t fineCol = it.col() * 2;
+
+    /// left horizontal edge
+    edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel + 1>(fineCol, sD::EDGE_HO_E)] =
+      0.75 * edgeDofCoarseData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel>(it.col(), sD::EDGE_HO_E)] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col() + 1, sD::VERTEX_C)] +
+      0.375 * vertexDofCoarseData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col(), sD::VERTEX_C)];
+
+    /// right horizontal edge
+    edgeDofFineData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel + 1>(fineCol + 1, sD::EDGE_HO_E)] =
+      0.75 * edgeDofCoarseData[hhg::edgedof::macroedge::indexFromVertex<sourceLevel>(it.col(), sD::EDGE_HO_E)] +
+      -0.125 * vertexDofCoarseData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col(), sD::VERTEX_C)] +
+      0.375 * vertexDofCoarseData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col() + 1, sD::VERTEX_C)];
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
+
+template< typename ValueType, uint_t sourceLevel >
 void restrictTmpl(const Edge & edge,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & vertexDoFMemoryID,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeDoFMemoryID){

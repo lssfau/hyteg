@@ -243,6 +243,18 @@ private:
                                                 edgeDoFFunction_->getFaceDataID());
         }
       }
+
+      for ( const auto & it : this->getStorage()->getEdges() )
+      {
+        const Edge & edge = *it.second;
+
+        if ( testFlag(edge.getDoFType(), flag) )
+        {
+          P2::macroedge::prolongate< ValueType >( sourceLevel, edge,
+                                                  vertexDoFFunction_->getEdgeDataID(),
+                                                  edgeDoFFunction_->getEdgeDataID());
+        }
+      }
     }
 
     inline void
