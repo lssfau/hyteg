@@ -1,8 +1,10 @@
 #pragma once
 
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
+
 #include <tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp>
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
@@ -89,47 +91,63 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
                                                       uint_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
-  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
-  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
+  std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+  std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
+  std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
+  std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-  for (auto& function : srcFunctions)
+  for ( const auto & function : srcFunctions )
   {
     srcVertexIDs.push_back(function->vertexDataID_);
     srcEdgeIDs.push_back(function->edgeDataID_);
     srcFaceIDs.push_back(function->faceDataID_);
+    srcCellIDs.push_back(function->cellDataID_);
   }
 
-  for (auto& it : this->getStorage()->getVertices()) {
-      Vertex& vertex = *it.second;
+  for ( const auto & it : this->getStorage()->getVertices() )
+  {
+    Vertex & vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag)) {
-        vertexdof::macrovertex::interpolate(vertex, vertexDataID_, srcVertexIDs, expr, level);
-      }
+    if ( testFlag( vertex.getDoFType(), flag ) )
+    {
+      vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
+    }
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
 
-  for (auto& it : this->getStorage()->getEdges()) {
-      Edge& edge = *it.second;
+  for ( const auto & it : this->getStorage()->getEdges() )
+  {
+    Edge & edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag)) {
-        vertexdof::macroedge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr);
-      }
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+    }
   }
 
   communicators_[level]->template endCommunication<Vertex, Edge>();
   communicators_[level]->template startCommunication<Edge, Face>();
 
-  for (auto& it : this->getStorage()->getFaces()) {
-      Face& face = *it.second;
+  for ( auto& it : this->getStorage()->getFaces() )
+  {
+    Face & face = *it.second;
 
-      if (testFlag(face.type, flag)) {
-        vertexdof::macroface::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
-      }
+    if ( testFlag( face.type, flag ) )
+    {
+      vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+    }
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+
+  for ( const auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+
+  }
 }
 
 template< typename ValueType >
@@ -139,44 +157,59 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face > >     srcFaceIDs;
+    std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Cell > >     srcCellIDs;
 
-    for (auto& function : functions)
+    for ( const auto & function : functions )
     {
-        srcVertexIDs.push_back(function->vertexDataID_);
-        srcEdgeIDs.push_back(function->edgeDataID_);
-        srcFaceIDs.push_back(function->faceDataID_);
+      srcVertexIDs.push_back( function->vertexDataID_ );
+      srcEdgeIDs.push_back( function->edgeDataID_ );
+      srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
     }
 
-    for (auto& it : this->getStorage()->getVertices()) {
-        Vertex& vertex = *it.second;
+    for ( const auto & it : this->getStorage()->getVertices() )
+    {
+      Vertex & vertex = *it.second;
 
-        if (testFlag(vertex.getDoFType(), flag)) {
-          vertexdof::macrovertex::assign(vertex, scalars, srcVertexIDs, vertexDataID_, level);
-        }
+      if ( testFlag( vertex.getDoFType(), flag ) )
+      {
+        vertexdof::macrovertex::assign( vertex, scalars, srcVertexIDs, vertexDataID_, level );
+      }
     }
 
-    communicators_[level]->template startCommunication<Vertex, Edge>();
+    communicators_[level]->template startCommunication< Vertex, Edge >();
 
-    for (auto& it : this->getStorage()->getEdges()) {
-        Edge& edge = *it.second;
+    for ( const auto & it : this->getStorage()->getEdges() )
+    {
+      Edge & edge = *it.second;
 
-        if (testFlag(edge.getDoFType(), flag)) {
-          vertexdof::macroedge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
-        }
+      if ( testFlag( edge.getDoFType(), flag ) )
+      {
+        vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+      }
     }
 
-    communicators_[level]->template endCommunication<Vertex, Edge>();
-    communicators_[level]->template startCommunication<Edge, Face>();
+    communicators_[level]->template endCommunication< Vertex, Edge >();
+    communicators_[level]->template startCommunication< Edge, Face >();
 
-    for (auto& it : this->getStorage()->getFaces()) {
-        Face& face = *it.second;
+    for ( const auto & it : this->getStorage()->getFaces() )
+    {
+      Face & face = *it.second;
 
-        if (testFlag(face.type, flag)) {
-          vertexdof::macroface::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
-        }
+      if ( testFlag( face.type, flag ) )
+      {
+        vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+      }
     }
 
     communicators_[level]->template endCommunication<Edge, Face>();
+
+    for ( const auto & it : this->getStorage()->getCells() )
+    {
+        Cell & cell = *it.second;
+        vertexdof::macrocell::assign< ValueType >(level, cell, scalars, srcCellIDs, cellDataID_);
+    }
+
 }
 
 template< typename ValueType >
