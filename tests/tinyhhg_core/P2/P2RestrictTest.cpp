@@ -24,17 +24,15 @@ static void testP2Smooth() {
   uint_t num = 1;
   x->enumerate(sourceLevel,num);
 
-  for (auto &faceIT : storage->getFaces()) {
-    auto face = faceIT.second;
-    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getVertexDoFFunction()->getFaceDataID());
-  }
-
-    for (auto &faceIT : storage->getFaces()) {
-    auto face = faceIT.second;
-    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
-  }
-
-
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//  }
+//
+//    for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//  }
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
 //    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
@@ -81,6 +79,27 @@ static void testP2Smooth() {
   expected += (1./8.) * (- 124 - 121 - 96 - 93);
 
   WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(4))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
+
+  ///calculate expected entry for vertex dof on face at 4,2
+  expected = 34;
+  /// horizontal edges
+  expected += (1./8.) * (- 85 - 87);
+  expected += (1./8.) * (- 79 + 3 * 80 + 3 * 81 - 82);
+  expected += (1./8.) * (- 73 - 75);
+  /// vertical edges
+  expected += (1./8.) * (- 146 - 147);
+  expected += (1./8.) * (3 * 142 - 143);
+  expected += (1./8.) * (-135 + 3 * 136);
+  expected += (1./8.) * (-129 - 130);
+  /// diagonal edges
+  expected += (1./8.) * (- 118 - 119);
+  expected += (1./8.) * (- 113 + 3 * 114);
+  expected += (1./8.) * ( 3 * 109- 110);
+  expected += (1./8.) * (- 102 - 103);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->
+    getFace(PrimitiveID(6))->
+    getData(x->getVertexDoFFunction()->getFaceDataID())->
+    getPointer(sourceLevel - 1)[hhg::vertexdof::macroface::indexFromVertex< sourceLevel -1 >(2,1,stencilDirection::VERTEX_C)], expected);
 
 
 }

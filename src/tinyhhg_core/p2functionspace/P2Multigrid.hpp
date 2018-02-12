@@ -219,9 +219,9 @@ void restrictTmpl(const Face & face,
     tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 1,sD::EDGE_DI_NE)];
 
     tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_VE_N )];
-    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol    ,fineRow - 2,sD::EDGE_DI_NE)];
     tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_VE_N )];
-    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_HO_E )];
+    tmp -= edgeDofFineData[indexFromVertex< sourceLevel >(fineCol + 1,fineRow - 2,sD::EDGE_DI_NE)];
 
     tmp *= 0.125;
     tmp += vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol, fineRow, sD::VERTEX_C)];
