@@ -10,6 +10,7 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/vtkwriter.hpp"
 
 namespace hhg {
@@ -20,11 +21,11 @@ using walberla::real_t;
 
 static void testVertexDoFMacroCellPackInfo()
 {
-  const uint_t level = 3;
+  const uint_t level = 4;
 
   auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
 
-  auto x = std::make_shared< P1Function< real_t > >( "x", storage, level, level );
+  auto x = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "x", storage, level, level );
 
   // Writing 1.0 to all macro-faces
   for ( const auto & f : storage->getFaces() )
@@ -68,6 +69,24 @@ static void testVertexDoFMacroCellPackInfo()
     }
   }
 
+  // Now we check the correct rotation during the unpacking process by interpolation of a function
+  std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
+  x->interpolate( expr, level );
+
+  x->getCommunicator( level )->template communicate< Vertex, Edge >();
+  x->getCommunicator( level )->template communicate< Edge, Face >();
+  x->getCommunicator( level )->template communicate< Face, Cell >();
+
+  for ( const auto & f : storage->getCells() )
+  {
+    auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
+    for ( const auto & it : vertexdof::macrocell::Iterator( level ) )
+    {
+      const Point3D coordinate = vertexdof::macrocell::coordinateFromIndex< level >( *f.second, it );
+      const uint_t  idx        = vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      WALBERLA_CHECK_FLOAT_EQUAL( cellData[ idx ], expr( coordinate ) );
+    }
+  }
 }
 
 } // namespace hhg
