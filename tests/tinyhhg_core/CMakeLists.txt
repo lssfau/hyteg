@@ -83,9 +83,6 @@ waLBerla_execute_test(NAME P2VertexInterpolateTest)
 waLBerla_compile_test(FILES P2/P2RestrictTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2RestrictTest)
 
-waLBerla_compile_test(FILES P2/P2RestrictTest2.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME P2RestrictTest2)
-
 waLBerla_compile_test(FILES P2/P2ProlongateTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2ProlongateTest)
 

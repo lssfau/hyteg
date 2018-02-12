@@ -10,7 +10,7 @@
 namespace hhg {
 
 ///this test check restrict on specific points on the grid
-static void testP2Smooth() {
+static void testP2Restrict() {
   const uint_t sourceLevel = 3;
 
   MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
@@ -104,6 +104,74 @@ static void testP2Smooth() {
 
 }
 
+/// sets all values on the source level to a specific value and checks after one restrict step
+static void testP2Restrict2() {
+  const uint_t sourceLevel = 3;
+
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
+  std::shared_ptr<SetupPrimitiveStorage> setupStorage =
+    std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 1, sourceLevel);
+  typedef stencilDirection sD;
+  std::function<real_t(const hhg::Point3D &)> values = [](const hhg::Point3D &) { return 13; };
+
+  x->interpolate(values, sourceLevel);
+  x->restrict(sourceLevel, hhg::All);
+
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//  }
+//
+//  for (auto &edgeIT : storage->getEdges()) {
+//    auto edge = edgeIT.second;
+//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//  }
+//
+//  for (auto &faceIT : storage->getFaces()) {
+//    auto face = faceIT.second;
+//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//  }
+//
+//  for (auto &edgeIT : storage->getEdges()) {
+//    auto edge = edgeIT.second;
+//    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
+//  }
+
+  real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 1);
+  real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 1);
+
+  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
+    WALBERLA_CHECK_FLOAT_EQUAL(
+      vertexDoFCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1 >(it.col(), it.row(), sD::VERTEX_C)],
+      13.,
+      it.col() << " " << it.row());
+  }
+
+  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel - 1, 0)) {
+    if(it.row() != 0) {
+      WALBERLA_CHECK_FLOAT_EQUAL(
+        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex< sourceLevel - 1 >(it.col(), it.row(), sD::EDGE_HO_E)],
+        65.,
+        it.col() << " " << it.row());
+    }
+    if(it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+      WALBERLA_CHECK_FLOAT_EQUAL(
+        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex< sourceLevel - 1 >(it.col(), it.row(), sD::EDGE_DI_NE)],
+        65.,
+        it.col() << " " << it.row());
+    }
+    if(it.col() != 0) {
+      WALBERLA_CHECK_FLOAT_EQUAL(
+        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex< sourceLevel - 1 >(it.col(), it.row(), sD::EDGE_VE_N)],
+        65.,
+        it.col() << " " << it.row());
+    }
+  }
+
+}
+
 }/// namespace hhg
 
 int main( int argc, char* argv[] )
@@ -113,7 +181,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testP2Smooth();
+  hhg::testP2Restrict2();
 
   return EXIT_SUCCESS;
 }

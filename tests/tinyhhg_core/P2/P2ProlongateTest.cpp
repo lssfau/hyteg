@@ -10,7 +10,7 @@
 namespace hhg {
 
 /// this test checks if a constant value is prolongated correctly to all points on the finer level
-static void testP2Smooth() {
+static void testP2Prolongate() {
   const uint_t sourceLevel = 2;
 
   MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
@@ -80,7 +80,7 @@ static void testP2Smooth() {
 
 /// this test writes specific values at certain points and
 /// checks wether these values are propagated correctly after one prolongation step
-static void testP2Smooth2() {
+static void testP2Prolongate2() {
 
   const uint_t sourceLevel = 2;
   MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/tri_1el.msh");
@@ -245,8 +245,8 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testP2Smooth();
-  hhg::testP2Smooth2();
+  hhg::testP2Prolongate();
+  hhg::testP2Prolongate2();
 
   return EXIT_SUCCESS;
 }
