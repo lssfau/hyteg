@@ -219,44 +219,58 @@ inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face > >     srcFaceIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Cell > >     srcCellIDs;
 
-  for (auto& function : functions)
+  for ( auto& function : functions )
   {
-      srcVertexIDs.push_back(function->vertexDataID_);
-      srcEdgeIDs.push_back(function->edgeDataID_);
-      srcFaceIDs.push_back(function->faceDataID_);
+    srcVertexIDs.push_back( function->vertexDataID_ );
+    srcEdgeIDs.push_back( function->edgeDataID_ );
+    srcFaceIDs.push_back( function->faceDataID_ );
+    srcCellIDs.push_back( function->cellDataID_ );
   }
 
-  for (auto& it : this->getStorage()->getVertices()) {
-      Vertex& vertex = *it.second;
+  for ( const auto & it : this->getStorage()->getVertices() )
+  {
+    Vertex & vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag)) {
-        vertexdof::macrovertex::add(vertex, scalars, srcVertexIDs, vertexDataID_, level);
-      }
+    if ( testFlag( vertex.getDoFType(), flag ) )
+    {
+      vertexdof::macrovertex::add( vertex, scalars, srcVertexIDs, vertexDataID_, level );
+    }
   }
 
-  communicators_[level]->template startCommunication<Vertex, Edge>();
+  communicators_[level]->template startCommunication< Vertex, Edge >();
 
-  for (auto& it : this->getStorage()->getEdges()) {
-      Edge& edge = *it.second;
+  for ( const auto & it : this->getStorage()->getEdges() )
+  {
+    Edge & edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag)) {
-        vertexdof::macroedge::add< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
-      }
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      vertexdof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+    }
   }
 
-  communicators_[level]->template endCommunication<Vertex, Edge>();
-  communicators_[level]->template startCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication< Vertex, Edge >();
+  communicators_[level]->template startCommunication< Edge, Face >();
 
-  for (auto& it : this->getStorage()->getFaces()) {
-      Face& face = *it.second;
+  for ( const auto & it : this->getStorage()->getFaces() )
+  {
+    Face & face = *it.second;
 
-      if (testFlag(face.type, flag)) {
-        vertexdof::macroface::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
-      }
+    if ( testFlag( face.type, flag ) )
+    {
+      vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+    }
   }
 
-  communicators_[level]->template endCommunication<Edge, Face>();
+  communicators_[level]->template endCommunication< Edge, Face >();
+
+  for ( const auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+    vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+  }
 }
 
 template< typename ValueType >
@@ -264,28 +278,40 @@ inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueT
 {
   real_t scalarProduct = 0.0;
 
-  for (auto& it : this->getStorage()->getVertices()) {
-      Vertex& vertex = *it.second;
+  for ( const auto & it : this->getStorage()->getVertices() )
+  {
+    Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag)) {
-        scalarProduct += vertexdof::macrovertex::dot(vertex, vertexDataID_, rhs.vertexDataID_, level);
-      }
+    if ( testFlag( vertex.getDoFType(), flag ) )
+    {
+      scalarProduct += vertexdof::macrovertex::dot( vertex, vertexDataID_, rhs.vertexDataID_, level );
+    }
   }
 
-  for (auto& it : this->getStorage()->getEdges()) {
-      Edge& edge = *it.second;
+  for ( const auto & it : this->getStorage()->getEdges() )
+  {
+    Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag)) {
-        scalarProduct += vertexdof::macroedge::dot< ValueType >(level, edge, edgeDataID_, rhs.edgeDataID_);
-      }
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
+    }
   }
 
-  for (auto& it : this->getStorage()->getFaces()) {
-      Face& face = *it.second;
+  for ( const auto & it : this->getStorage()->getFaces() )
+  {
+    Face& face = *it.second;
 
-      if (testFlag(face.type, flag)) {
-        scalarProduct += vertexdof::macroface::dot< ValueType >(level, face, faceDataID_, rhs.faceDataID_);
-      }
+    if ( testFlag( face.type, flag ) )
+    {
+      scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
+    }
+  }
+
+  for ( const auto & it : this->getStorage()->getCells() )
+  {
+    Cell& cell = *it.second;
+    scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
   }
 
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );

@@ -30,11 +30,13 @@ static void testVertexDoFFunction()
 
   auto x = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "x", storage, level, level );
   auto y = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "y", storage, level, level );
+  auto z = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "z", storage, level, level );
 
   x->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
   y->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
   std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
+  std::function< real_t( const hhg::Point3D & ) > ones = []( const hhg::Point3D &    ) -> real_t { return 1.0; };
 
   x->interpolate( expr, level );
 
@@ -42,7 +44,8 @@ static void testVertexDoFFunction()
   x->getCommunicator( level )->template communicate< Edge, Face >();
   x->getCommunicator( level )->template communicate< Face, Cell >();
 
-  y->assign( { 13.0 }, { x.get() }, level );
+  y->assign( { 7.0 }, { x.get() }, level );
+  y->add( { 6.0 }, { x.get() }, level );
 
   y->getCommunicator( level )->template communicate< Vertex, Edge >();
   y->getCommunicator( level )->template communicate< Edge, Face >();
@@ -59,6 +62,10 @@ static void testVertexDoFFunction()
       WALBERLA_CHECK_FLOAT_EQUAL( 13.0 * xData[ idx ], yData[ idx ] );
     }
   }
+
+  z->interpolate( ones, level );
+  const real_t zScalarProduct = z->dot( *z, level );
+  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( levelinfo::num_microvertices_per_cell( level ) ) );
 
   VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
   vtkOutput.set3D();

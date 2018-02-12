@@ -94,6 +94,59 @@ inline void assignTmpl( const Cell & cell,
 SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign);
 
 
+template< typename ValueType, uint_t Level >
+inline void addTmpl( const Cell & cell,
+                     const std::vector< ValueType > & scalars,
+                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
+                     const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( Level );
+
+  std::vector< ValueType * > srcPtr;
+  for( const auto & src : srcIds )
+  {
+    srcPtr.push_back( cell.getData( src )->getPointer( Level ));
+  }
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex< Level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+
+    ValueType tmp = scalars[0] * srcPtr[0][ idx ];
+
+    for ( uint_t k = 1; k < srcIds.size(); ++k )
+    {
+      tmp += scalars[k] * srcPtr[k][ idx ];
+    }
+    dst[ idx ] += tmp;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, addTmpl, add);
+
+
+template< typename ValueType, uint_t Level >
+inline real_t dotTmpl( const Cell & cell,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId)
+{
+  real_t sp = 0.0;
+
+  const ValueType * lhsPtr = cell.getData( lhsId )->getPointer( Level );
+  const ValueType * rhsPtr = cell.getData( rhsId )->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex< Level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    sp += lhsPtr[ idx ] * rhsPtr[ idx ];
+  }
+
+  return sp;
+}
+
+SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot);
+
+
 } // namespace macrocell
 } // namespace vertexdof
 } // namespace hhg
