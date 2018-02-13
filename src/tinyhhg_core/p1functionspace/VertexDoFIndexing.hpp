@@ -382,6 +382,28 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
   }
 }
 
+
+/// neighbor arrays from vertex dof
+constexpr std::array<stencilDirection, 15> neighborsWithCenter = {{ hhg::stencilDirection::VERTEX_C,
+                                                                    hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                    hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                    hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                    hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+                                                                    hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSW,
+                                                                    hhg::stencilDirection::VERTEX_FC, hhg::stencilDirection::VERTEX_FN,
+                                                                    hhg::stencilDirection::VERTEX_FE, hhg::stencilDirection::VERTEX_FNE,
+                                                                 }};
+
+constexpr std::array<stencilDirection, 14> neighborsWithoutCenter = {{
+                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                       hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+                                                                       hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSW,
+                                                                       hhg::stencilDirection::VERTEX_FC, hhg::stencilDirection::VERTEX_FN,
+                                                                       hhg::stencilDirection::VERTEX_FE, hhg::stencilDirection::VERTEX_FNE,
+                                                                    }};
+
 // Iterators
 
 /// Iterator over a vertex DoF macro cell.
@@ -428,7 +450,23 @@ constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
     case sD::VERTEX_NW:
       return 5;
     case sD::VERTEX_N:
-        return 6;
+      return 6;
+    case sD::VERTEX_BC:
+      return 7;
+    case sD::VERTEX_BW:
+      return 8;
+    case sD::VERTEX_BS:
+      return 9;
+    case sD::VERTEX_BSW:
+      return 10;
+    case sD::VERTEX_FC:
+      return 11;
+    case sD::VERTEX_FN:
+      return 12;
+    case sD::VERTEX_FE:
+      return 13;
+    case sD::VERTEX_FNE:
+      return 14;
     default:
       return std::numeric_limits<size_t>::max();
   }

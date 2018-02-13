@@ -65,6 +65,13 @@ inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const u
   return 7;
 }
 
+inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+{
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( numDependencies );
+  return 15;
+}
+
 
 class VertexP1LocalMatrixMemory
 {

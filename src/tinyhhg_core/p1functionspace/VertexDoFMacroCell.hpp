@@ -11,6 +11,8 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -145,6 +147,70 @@ inline real_t dotTmpl( const Cell & cell,
 }
 
 SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot);
+
+
+template< typename ValueType, uint_t Level >
+inline void applyTmpl( Cell & cell,
+                        const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & srcId,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
+                        const UpdateType update )
+{
+  typedef stencilDirection sd;
+
+  const ValueType * operatorData = cell.getData( operatorId )->getPointer( Level );
+  const ValueType * src          = cell.getData( srcId )->getPointer( Level );
+        ValueType * dst          = cell.getData( dstId )->getPointer( Level );
+
+  ValueType tmp;
+
+  if( update == Replace )
+  {
+    for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+    {
+      const uint_t x = it.x();
+      const uint_t y = it.y();
+      const uint_t z = it.z();
+
+      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, sd::VERTEX_C );
+
+      tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
+
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+      {
+        const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+        const uint_t idx        = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, neighbor );
+        tmp += operatorData[ stencilIdx ] * src[ idx ];
+      }
+
+      dst[ centerIdx ] = tmp;
+    }
+  }
+  else
+  {
+    for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+    {
+      const uint_t x = it.x();
+      const uint_t y = it.y();
+      const uint_t z = it.z();
+
+      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, sd::VERTEX_C );
+
+      tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
+
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+      {
+        const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+        const uint_t idx        = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, neighbor );
+        tmp += operatorData[ stencilIdx ] * src[ idx ];
+      }
+
+      dst[ centerIdx ] += tmp;
+    }
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, applyTmpl, apply)
 
 
 } // namespace macrocell

@@ -67,6 +67,46 @@ static void testVertexDoFFunction()
   const real_t zScalarProduct = z->dot( *z, level );
   WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( levelinfo::num_microvertices_per_cell( level ) ) );
 
+  // *****************
+  // Apply
+
+  auto operatorHandling  = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >( level, level, vertexDoFMacroCellStencilMemorySize );
+  PrimitiveDataID< StencilMemory< real_t >, Cell > cellOperatorID;
+  storage->addCellData( cellOperatorID, operatorHandling, "cell operator" );
+
+  auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
+  auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
+
+  src->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+  dst->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+
+  for ( const auto & cellIt : storage->getCells() )
+  {
+    auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
+    operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
+    operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC ) ] = 2.0;
+  }
+
+  src->interpolate( ones, level );
+  src->getCommunicator( level )->template communicate< Vertex, Edge >();
+  src->getCommunicator( level )->template communicate< Edge, Face >();
+  src->getCommunicator( level )->template communicate< Face, Cell >();
+
+  for ( const auto & cellIt : storage->getCells() )
+  {
+    vertexdof::macrocell::apply< real_t >( level, *cellIt.second, cellOperatorID, src->getCellDataID(), dst->getCellDataID(), UpdateType::Replace );
+
+    auto dstData = cellIt.second->getData( dst->getCellDataID() )->getPointer( level );
+    for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+    {
+      const uint_t idx = vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      WALBERLA_CHECK_FLOAT_EQUAL( dstData[ idx ], 3.0 );
+    }
+  }
+
+
+
+
   VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
   vtkOutput.set3D();
   vtkOutput.add( x );
