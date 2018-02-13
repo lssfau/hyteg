@@ -1,5 +1,17 @@
 waLBerla_link_files_to_builddir(*.msh)
 
+## Convergence ##
+waLBerla_compile_test(FILES Convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1CGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P1BubbleCGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1BubbleCGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2CGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
 ## Indexing ##
 
@@ -81,9 +93,6 @@ waLBerla_execute_test(NAME P2GSTest)
 
 waLBerla_compile_test(FILES P2/P2SimpleSmoothTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2SimpleSmoothTest)
-
-waLBerla_compile_test(FILES P2/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
 waLBerla_compile_test(FILES P2/P2P1TransferTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2P1TransferTest)
