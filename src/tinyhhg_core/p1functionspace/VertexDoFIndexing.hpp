@@ -348,7 +348,35 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
   switch( dir )
   {
     case sD::VERTEX_C:
-      return index< level >( x, y, z );
+      return index< level >( x    , y    , z     );
+    case sD::VERTEX_W:
+      return index< level >( x - 1, y    , z     );
+    case sD::VERTEX_E:
+      return index< level >( x + 1, y    , z     );
+    case sD::VERTEX_N:
+      return index< level >( x    , y + 1, z     );
+    case sD::VERTEX_S:
+      return index< level >( x    , y - 1, z     );
+    case sD::VERTEX_NW:
+      return index< level >( x - 1, y + 1, z     );
+    case sD::VERTEX_SE:
+      return index< level >( x + 1, y - 1, z     );
+    case sD::VERTEX_BC:
+      return index< level >( x    , y    , z + 1 );
+    case sD::VERTEX_BW:
+      return index< level >( x - 1, y    , z + 1 );
+    case sD::VERTEX_BS:
+      return index< level >( x    , y - 1, z + 1 );
+    case sD::VERTEX_BSW:
+      return index< level >( x - 1, y - 1, z + 1 );
+    case sD::VERTEX_FC:
+      return index< level >( x    , y    , z - 1 );
+    case sD::VERTEX_FN:
+      return index< level >( x    , y + 1, z - 1 );
+    case sD::VERTEX_FE:
+      return index< level >( x + 1, y    , z - 1 );
+    case sD::VERTEX_FNE:
+      return index< level >( x + 1, y + 1, z - 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
