@@ -636,7 +636,7 @@ void VTKOutput::writeP2( std::ostream & output, const uint_t & level ) const
   writePointsForMicroVertices( output, storage, level + 1 );
   writePointsFooter( output );
 
-  writeCells( output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
+  writeCells( output, storage, level + 1 );
 
   output << "<PointData>\n";
 
