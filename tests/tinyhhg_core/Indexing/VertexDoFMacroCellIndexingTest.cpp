@@ -3,6 +3,7 @@
 #include "tinyhhg_core/indexing/Common.hpp"
 
 #include "core/mpi/all.h"
+#include "core/debug/CheckFunctions.h"
 
 namespace hhg {
 
