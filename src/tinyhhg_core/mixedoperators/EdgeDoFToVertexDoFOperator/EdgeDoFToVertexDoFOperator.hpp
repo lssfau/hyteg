@@ -5,8 +5,16 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/p2functionspace/generated/p2_div.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 
