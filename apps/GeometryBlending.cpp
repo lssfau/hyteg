@@ -3,8 +3,6 @@
 #include <core/Environment.h>
 #include <core/config/Config.h>
 
-#include <tinyhhg_core/geometry/Geometry.hpp>
-#include <tinyhhg_core/geometry/IdentityMap.hpp>
 #include <tinyhhg_core/geometry/CircularMap.hpp>
 
 using walberla::real_t;
@@ -42,31 +40,21 @@ int main(int argc, char* argv[])
   std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> emptyEdgeIds;
   std::vector<PrimitiveDataID<FunctionMemory< real_t >, Face>> emptyFaceIds;
 
-  hhg::Geometry geometry(storage);
-
   for (auto& it : storage->getFaces()) {
     Face& face = *it.second;
-
-    auto geometryMap = face.getData(geometry.getFaceMapID());
 
     // Create map
     if (face.hasBoundaryEdge()) {
       face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, {{0.5, 0.5}}, 0.25)));
     }
 
-    geometryMap->map = std::shared_ptr<FaceMap>(new IdentityMap());
-
     // Apply map
     std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> tmp_x = [&](const hhg::Point3D& x_,const std::vector<real_t>&) {
-      hhg::Point3D out;
-      geometryMap->map->evalF(x_, out);
-      return out[0];
+      return x_[0];
     };
 
     std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> tmp_y = [&](const hhg::Point3D& x_,const std::vector<real_t>&) {
-      hhg::Point3D out;
-      geometryMap->map->evalF(x_, out);
-      return out[1];
+      return x_[1];
     };
 
     std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> tmp_k11 = [&](const hhg::Point3D& x_,const std::vector<real_t>&) {
@@ -74,7 +62,7 @@ int main(int argc, char* argv[])
       hhg::Matrix2r out;
       tmp[0] = x_[0];
       tmp[1] = x_[1];
-      geometryMap->map->evalDF(tmp, out);
+      face.blendingMap->evalDF(tmp, out);
       return out(0,0);
     };
 
@@ -83,7 +71,7 @@ int main(int argc, char* argv[])
       hhg::Matrix2r out;
       tmp[0] = x_[0];
       tmp[1] = x_[1];
-      geometryMap->map->evalDF(tmp, out);
+      face.blendingMap->evalDF(tmp, out);
       return out(0,1);
     };
 
@@ -92,7 +80,7 @@ int main(int argc, char* argv[])
       hhg::Matrix2r out;
       tmp[0] = x_[0];
       tmp[1] = x_[1];
-      geometryMap->map->evalDF(tmp, out);
+      face.blendingMap->evalDF(tmp, out);
       return out(1,1);
     };
 
