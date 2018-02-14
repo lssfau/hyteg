@@ -6,6 +6,8 @@
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 #include <tinyhhg_core/math.hpp>
+#include <tinyhhg_core/geometry/FaceMap.hpp>
+#include <tinyhhg_core/geometry/AffineMap.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 
@@ -43,6 +45,8 @@ public:
     neighborEdges_.push_back( edgeIDs[2] );
     std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
     area = std::abs(0.5 * math::det2(B));
+
+    blendingMap = std::shared_ptr<FaceMap>(new AffineMap(coords));
   }
 
   Face( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
@@ -56,6 +60,7 @@ public:
 
   bool hasBoundaryVertex() const;
   bool hasBoundaryEdge() const;
+  void setBlendingMap(const std::shared_ptr<FaceMap>& newMap);
 
   DoFType type;
   real_t area;
@@ -63,6 +68,7 @@ public:
   std::vector<PrimitiveID> verticesOnBoundary;
   std::vector<PrimitiveID> edgesOnBoundary;
   std::array<Point3D, 3> coords;
+  std::shared_ptr<FaceMap> blendingMap;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 

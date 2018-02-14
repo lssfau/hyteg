@@ -4,12 +4,12 @@
 
 namespace hhg {
 
-class IdentityMap : public FaceMap2D {
+class IdentityMap : public FaceMap {
 public:
 
-  IdentityMap(const Face& face) : FaceMap2D(face) {}
+  IdentityMap() {}
 
-  void evalF(const Point2D& x, Point2D& Fx) {
+  void evalF(const Point3D& x, Point3D& Fx) {
     Fx = x;
   }
 

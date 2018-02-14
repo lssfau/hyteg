@@ -115,6 +115,10 @@ bool Face::hasBoundaryEdge() const {
   return edgesOnBoundary.size() > 0;
 }
 
+void Face::setBlendingMap(const std::shared_ptr<FaceMap>& newMap) {
+  blendingMap = newMap;
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
   return os << "Face { id = " << face.getID().getID() << "; "

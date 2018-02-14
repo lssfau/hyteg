@@ -6,7 +6,7 @@ namespace hhg {
 
 class MacroFaceFaceMap2DMemory {
 public:
-  std::shared_ptr<FaceMap2D> map;
+  std::shared_ptr<FaceMap> map;
 };
 
 }

@@ -51,26 +51,21 @@ int main(int argc, char* argv[])
 
     // Create map
     if (face.hasBoundaryEdge()) {
-      WALBERLA_LOG_INFO("Detected boundary face");
-      geometryMap->map = std::shared_ptr<FaceMap2D>(new CircularMap(face, storage, {{0.5, 0.5}}, 0.25));
-    } else {
-      geometryMap->map = std::shared_ptr<FaceMap2D>(new IdentityMap(face));
+      face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, {{0.5, 0.5}}, 0.25)));
     }
+
+    geometryMap->map = std::shared_ptr<FaceMap>(new IdentityMap());
 
     // Apply map
     std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> tmp_x = [&](const hhg::Point3D& x_,const std::vector<real_t>&) {
-      hhg::Point2D tmp, out;
-      tmp[0] = x_[0];
-      tmp[1] = x_[1];
-      geometryMap->map->evalF(tmp, out);
+      hhg::Point3D out;
+      geometryMap->map->evalF(x_, out);
       return out[0];
     };
 
     std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> tmp_y = [&](const hhg::Point3D& x_,const std::vector<real_t>&) {
-      hhg::Point2D tmp, out;
-      tmp[0] = x_[0];
-      tmp[1] = x_[1];
-      geometryMap->map->evalF(tmp, out);
+      hhg::Point3D out;
+      geometryMap->map->evalF(x_, out);
       return out[1];
     };
 
