@@ -166,6 +166,22 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
     return index< level >( x - 1, y + 1 );
   case sD::VERTEX_SE:
     return index< level >( x + 1, y - 1 );
+  case sD::VERTEX_BC:
+    return index< level >( x    , y    , 0 );
+  case sD::VERTEX_BW:
+    return index< level >( x - 1, y    , 0 );
+  case sD::VERTEX_BS:
+    return index< level >( x    , y - 1, 0 );
+  case sD::VERTEX_BSW:
+    return index< level >( x - 1, y - 1, 0 );
+  case sD::VERTEX_FC:
+    return index< level >( x - 1, y - 1, 1 );
+  case sD::VERTEX_FN:
+    return index< level >( x - 1, y    , 1 );
+  case sD::VERTEX_FE:
+    return index< level >( x    , y - 1, 1 );
+  case sD::VERTEX_FNE:
+    return index< level >( x    , y    , 1 );
   default:
     return std::numeric_limits< uint_t >::max();
   }
