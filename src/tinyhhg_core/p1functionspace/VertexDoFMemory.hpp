@@ -32,8 +32,8 @@ inline uint_t vertexDoFMacroEdgeFunctionMemorySize( const uint_t & level, const 
 
 inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  WALBERLA_UNUSED( primitive );
-  return levelinfo::num_microvertices_per_face( level );
+  const uint_t width = (1 << level) + 1;
+  return levelinfo::num_microvertices_per_face( level ) + primitive.getNumNeighborCells() * levelinfo::num_microvertices_per_face_from_width( width - 1 );
 }
 
 inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive )

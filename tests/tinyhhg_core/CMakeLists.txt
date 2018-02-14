@@ -57,6 +57,9 @@ waLBerla_execute_test(NAME VertexDoFFunctionTest)
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFMacroCellPackInfoTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME VertexDoFMacroCellPackInfoTest)
 
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFMemoryTest)
+
 ## EdgeDoFSpace ##
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
