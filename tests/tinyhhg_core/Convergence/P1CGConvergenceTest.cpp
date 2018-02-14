@@ -2,7 +2,6 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <core/Environment.h>
 
-
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
@@ -15,7 +14,7 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const uint level           = 4;
+  const uint_t level         = 4;
   const std::string meshFile = "../../data/meshes/quad_8el.msh";
   const real_t tolerance     = 1e-15;
   const uint_t maxIter       = 1000;
