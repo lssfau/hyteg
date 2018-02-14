@@ -45,19 +45,19 @@ private:
 namespace EdgeDoFToVertexDoF {
 
 /// \param level the stencil size is independent of the level
-/// \param numDependencies number of adjacent edges of the vertex
+/// \param primitive \ref Primitive the memory is allocated on
 /// \return number of entries in the stencil on a macro vertex, be aware that this one entry to large on the boundaries
-uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 /// \param level the stencil size is independent of the level
-/// \param numDependencies number of adjacent faces of the edge
+/// \param primitive \ref Primitive the memory is allocated on
 /// \return number of entries in the stencil on a macro edge
-uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 /// \param level the stencil size is independent of the level
-/// \param numDependencies on a macro face this is always constant
+/// \param primitive \ref Primitive the memory is allocated on
 /// \return number of entries in the stencil on a macro face
-uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 }/// namespace EdgeDoFToVertexDoF
 

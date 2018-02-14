@@ -19,25 +19,26 @@ namespace hhg {
 // Function memory //
 /////////////////////
 
-inline uint_t vertexDoFMacroVertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroVertexFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
+  return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges();
 }
 
-inline uint_t vertexDoFMacroEdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroEdgeFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
   size_t num_dofs_per_edge = levelinfo::num_microvertices_per_edge( level );
-  return num_dofs_per_edge + numDependencies * ( num_dofs_per_edge - 1 );
+  return num_dofs_per_edge + primitive.getNumNeighborFaces() * ( num_dofs_per_edge - 1 );
 }
 
-inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  return levelinfo::num_microvertices_per_face(level);
+  WALBERLA_UNUSED( primitive );
+  return levelinfo::num_microvertices_per_face( level );
 }
 
-inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return levelinfo::num_microvertices_per_cell( level );
 }
 
@@ -46,29 +47,29 @@ inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const 
 // Stencil memory //
 ////////////////////
 
-inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  return levelinfo::num_microvertices_per_vertex( level ) + numDependencies;
+  return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges();
 }
 
-inline uint_t vertexDoFMacroEdgeStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroEdgeStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return 7;
 }
 
-inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return 7;
 }
 
-inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return 15;
 }
 

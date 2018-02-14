@@ -43,14 +43,14 @@ private:
 namespace VertexDoFToEdgeDoF {
 
 /// \param level stencil size is independent of level
-/// \param numDependencies number of adjacent faces of the edge
+/// \param primitive \ref Primitive the memory is allocated on
 /// \return number of the stencil entries
-uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 /// \param level stencil size is independent of level
-/// \param numDependencies not needed for faces
+/// \param primitive \ref Primitive the memory is allocated on
 /// \return number of the stencil entries
-uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 }
 
 typedef VertexDoFToEdgeDoFOperator<hhg::fenics::NoAssemble> GenericVertexDoFToEdgeDoFOperator;

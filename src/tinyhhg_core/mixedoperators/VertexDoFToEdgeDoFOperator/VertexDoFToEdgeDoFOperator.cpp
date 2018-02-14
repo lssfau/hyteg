@@ -122,20 +122,17 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
 
 namespace VertexDoFToEdgeDoF {
 
-///
-/// \param level stencil size is independent of level
-/// \param numDependencies number of adjacent faces of the edge
-/// \return number of the stencil entries
-uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies)
+
+uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  return 2 + numDependencies;
+  return 2 + primitive.getNumNeighborFaces();
 }
 
-uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies)
+uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return 4 + 4 + 4;
 }
 }

@@ -14,21 +14,21 @@
 namespace hhg
 {
 
-inline uint_t bubbleVertexFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t bubbleVertexFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  return numDependencies;
+  return primitive.getNumNeighborEdges();
 }
 
-inline uint_t bubbleEdgeFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t bubbleEdgeFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  size_t num_cell_dofs = numDependencies * ( 2 * levelinfo::num_microedges_per_edge( level ) - 1 );
+  size_t num_cell_dofs = primitive.getNumNeighborFaces() * ( 2 * levelinfo::num_microedges_per_edge( level ) - 1 );
   return num_cell_dofs;
 }
 
-inline uint_t bubbleFaceFunctionMemorySize( const uint_t & level, const uint_t & numDependencies )
+inline uint_t bubbleFaceFunctionMemorySize( const uint_t & level, const Primitive & primitive )
 {
-  WALBERLA_UNUSED( numDependencies );
+  WALBERLA_UNUSED( primitive );
   return levelinfo::num_microfaces_per_face( level );
 }
 
