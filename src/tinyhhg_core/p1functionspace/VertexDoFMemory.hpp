@@ -55,15 +55,13 @@ inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const
 inline uint_t vertexDoFMacroEdgeStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( primitive );
-  return 7;
+  return 3 + 2 * primitive.getNumNeighborFaces();
 }
 
 inline uint_t vertexDoFMacroFaceStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( primitive );
-  return 7;
+  return 7 + 4 * primitive.getNumNeighborCells();
 }
 
 inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const Primitive & primitive )
