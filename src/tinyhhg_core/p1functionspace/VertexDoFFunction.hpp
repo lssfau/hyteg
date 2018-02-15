@@ -56,6 +56,9 @@ public:
   // TODO: write more general version
   inline real_t getMaxValue(uint_t level);
 
+  inline uint_t getNumLocalDoFs ( const uint_t & level ) const;
+  inline uint_t getNumGlobalDoFs( const uint_t & level ) const;
+
 private:
 
   using Function< VertexDoFFunction< ValueType > >::communicators_;
@@ -567,6 +570,26 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue(uint_t level)
   real_t globalMax = walberla::mpi::allReduce(localMax, walberla::mpi::MAX);
 
   return globalMax;
+}
+
+
+template< typename ValueType >
+inline uint_t VertexDoFFunction< ValueType >::getNumLocalDoFs( const uint_t & level ) const
+{
+  const uint_t numDoFsOnSingleVertex = 1;
+  const uint_t numDoFsOnSingleEdge   = levelinfo::num_microvertices_per_edge( level ) - 2;
+  const uint_t numDoFsOnSingleFace   = levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
+  const uint_t numDoFsOnSingleCell   = levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - 4 );
+  return   numDoFsOnSingleVertex * this->getStorage()->getNumberOfLocalVertices()
+         + numDoFsOnSingleEdge   * this->getStorage()->getNumberOfLocalEdges()
+         + numDoFsOnSingleFace   * this->getStorage()->getNumberOfLocalFaces()
+         + numDoFsOnSingleCell   * this->getStorage()->getNumberOfLocalCells();
+}
+
+template< typename ValueType >
+inline uint_t VertexDoFFunction< ValueType >::getNumGlobalDoFs( const uint_t & level ) const
+{
+  return walberla::mpi::allReduce( getNumLocalDoFs( level ), walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
 }
 
 } // namespace vertexdof
