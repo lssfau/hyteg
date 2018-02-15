@@ -1,9 +1,8 @@
 Parameters
 {
-  mesh ../../data/meshes/quad_8el.msh;
-  level 4;
+  mesh ../../data/meshes/quad_2el.msh;
+  level 2;
   maxiter 100;
-  tolerance 1e-10;
   vtkOutput false;
   printTiming false;
 }
