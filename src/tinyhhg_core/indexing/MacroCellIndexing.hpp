@@ -140,13 +140,13 @@ public:
 
   CellBorderIterator( const uint_t & width, const uint_t & vertex0,
                       const uint_t & vertex1, const uint_t & vertex2,
-                      const bool & end = false );
+                      const uint_t & offsetToCenter = 0, const bool & end = false );
 
   CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
-                      const bool & end = false );
+                      const uint_t & offsetToCenter = 0, const bool & end = false );
 
-  CellBorderIterator begin() { return CellBorderIterator( width_, vertices_       ); }
-  CellBorderIterator end()   { return CellBorderIterator( width_, vertices_, true ); }
+  CellBorderIterator begin() { return CellBorderIterator( width_, vertices_, offsetToCenter_       ); }
+  CellBorderIterator end()   { return CellBorderIterator( width_, vertices_, offsetToCenter_, true ); }
 
   bool operator==( const CellBorderIterator & other ) const { return other.step_ == step_; }
   bool operator!=( const CellBorderIterator & other ) const { return other.step_ != step_; }
@@ -163,7 +163,10 @@ private:
 
   const uint_t                  width_;
   const std::array< uint_t, 3 > vertices_;
+  const uint_t                  offsetToCenter_;
   const uint_t                  totalNumberOfSteps_;
+  const IndexIncrement          firstDirIncrement_;
+  const IndexIncrement          secondDirIncrement_;
         uint_t                  step_;
         uint_t                  wrapAroundStep_;
         Index                   coordinates_;

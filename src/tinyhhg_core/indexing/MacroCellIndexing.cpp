@@ -2,6 +2,7 @@
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
 #include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
 #include "core/debug/Debug.h"
 #include "core/DataTypes.h"
 
@@ -17,9 +18,17 @@ using walberla::uint_c;
 /// Allows for more readable switch statements in some cases.
 static constexpr uint_t tup( const uint_t & a, const uint_t & b )
 {
-  assert( a < (1 << 8) );
-  assert( b < (1 << 8) );
+  assert( a < (1 << 4) );
+  assert( b < (1 << 4) );
   return a << 4 | b;
+}
+
+static constexpr uint_t tup( const uint_t & a, const uint_t & b, const uint_t & c )
+{
+  assert( a < (1 << 4) );
+  assert( b < (1 << 4) );
+  assert( c < (1 << 4) );
+  return a << 8 | b << 4 | c;
 }
 
 CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter, const bool & end ) :
@@ -90,9 +99,12 @@ CellIterator CellIterator::operator++( int ) // postfix
 
 
 CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
-                                        const bool & end ) :
-    width_( width ), vertices_( vertices ), totalNumberOfSteps_( levelinfo::num_microvertices_per_face_from_width( width ) ), 
-    wrapAroundStep_( width ), wrapArounds_( uint_c( 0 ) )
+                                        const uint_t & offsetToCenter, const bool & end ) :
+  width_( width ), vertices_( vertices ), offsetToCenter_( offsetToCenter ),
+	totalNumberOfSteps_( levelinfo::num_microvertices_per_face_from_width( width - offsetToCenter ) ),
+	firstDirIncrement_( calculateIncrement( vertices_[0], vertices_[1] ) ),
+	secondDirIncrement_( calculateIncrement( vertices_[0], vertices_[2] ) ),
+  wrapAroundStep_( width - offsetToCenter ), wrapArounds_( uint_c( 0 ) )
 {
   WALBERLA_ASSERT_LESS_EQUAL( vertices_[0], 3 );
   WALBERLA_ASSERT_LESS_EQUAL( vertices_[1], 3 );
@@ -130,14 +142,73 @@ CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< 
     break;
   }
 
+  switch ( tup( vertices_[0], vertices_[1], vertices_[2] ) )
+  {
+  // Front face
+  case tup( 0, 1, 2 ):
+  case tup( 0, 2, 1 ):
+    coordinates_ += IndexIncrement( 0, 0, (int) offsetToCenter );
+    break;
+  case tup( 1, 0, 2 ):
+  case tup( 1, 2, 0 ):
+    coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, (int) offsetToCenter );
+    break;
+  case tup( 2, 0, 1 ):
+  case tup( 2, 1, 0 ):
+    coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, (int) offsetToCenter );
+    break;
+
+  // Bottom face
+  case tup( 0, 1, 3 ):
+  case tup( 0, 3, 1 ):
+    coordinates_ += IndexIncrement( 0,  (int) offsetToCenter, 0 );
+    break;
+  case tup( 1, 0, 3 ):
+  case tup( 1, 3, 0 ):
+    coordinates_ += IndexIncrement( -(int) offsetToCenter, (int) offsetToCenter, 0 );
+    break;
+  case tup( 3, 0, 1 ):
+  case tup( 3, 1, 0 ):
+  	coordinates_ += IndexIncrement( 0, (int) offsetToCenter, -(int) offsetToCenter );
+    break;
+
+  // Left face
+  case tup( 0, 2, 3 ):
+  case tup( 0, 3, 2 ):
+    coordinates_ += IndexIncrement( (int) offsetToCenter, 0, 0 );
+    break;
+  case tup( 2, 0, 3 ):
+  case tup( 2, 3, 0 ):
+    coordinates_ += IndexIncrement( (int) offsetToCenter, -(int) offsetToCenter, 0 );
+    break;
+  case tup( 3, 0, 2 ):
+  case tup( 3, 2, 0 ):
+    coordinates_ += IndexIncrement( (int) offsetToCenter, 0, -(int) offsetToCenter );
+    break;
+
+  // Back/diagonal face
+  case tup( 3, 1, 2 ):
+  case tup( 3, 2, 1 ):
+    coordinates_ += IndexIncrement( 0, 0, -(int) offsetToCenter );
+    break;
+  case tup( 1, 3, 2 ):
+  case tup( 1, 2, 3 ):
+    coordinates_ += IndexIncrement( -(int) offsetToCenter, 0, 0 );
+    break;
+  case tup( 2, 3, 1 ):
+  case tup( 2, 1, 3 ):
+    coordinates_ += IndexIncrement( 0, -(int) offsetToCenter, 0 );
+    break;
+  }
+
   wrapAroundCoordinates_ = coordinates_;
 }
 
 
 CellBorderIterator::CellBorderIterator( const uint_t & width, const uint_t & vertex0,
                                         const uint_t & vertex1, const uint_t & vertex2,
-                                        const bool & end ) :
-    CellBorderIterator( width, {{ vertex0, vertex1, vertex2 }}, end )
+                                        const uint_t & offsetToCenter, const bool & end ) :
+    CellBorderIterator( width, {{ vertex0, vertex1, vertex2 }}, offsetToCenter, end )
 {}
 
 CellBorderIterator & CellBorderIterator::operator++() // prefix
@@ -153,18 +224,17 @@ CellBorderIterator & CellBorderIterator::operator++() // prefix
 
   if ( step_ == wrapAroundStep_ )
   {
-    const IndexIncrement secondDirIncrement = calculateIncrement( vertices_[0], vertices_[2] );
-    wrapAroundCoordinates_ += secondDirIncrement;
+
+    wrapAroundCoordinates_ += secondDirIncrement_;
     coordinates_ = wrapAroundCoordinates_;
 
     WALBERLA_ASSERT_GREATER_EQUAL( width_, wrapArounds_ + 1 );
-    wrapAroundStep_ += width_ - ( wrapArounds_ + 1 );
+    wrapAroundStep_ += ( width_ - offsetToCenter_ ) - ( wrapArounds_ + 1 );
     wrapArounds_++;
   }
   else
   {
-    const IndexIncrement firstDirIncrement = calculateIncrement( vertices_[0], vertices_[1] );
-    coordinates_ += firstDirIncrement;
+    coordinates_ += firstDirIncrement_;
   }
 
   return *this;
