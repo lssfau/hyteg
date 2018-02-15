@@ -19,13 +19,12 @@ using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
 
-static void testVertexDoFFunction( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
+static void testVertexDoFFunction( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode,
+                                   const std::string & meshFile )
 {
   const uint_t level = 3;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-
-  writeDomainPartitioningVTK( storage, "../../output", "single_tet" );
+  auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
   auto x = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "x", storage, level, level );
   auto y = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "y", storage, level, level );
@@ -64,7 +63,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
   z->interpolate( ones, level );
   const real_t zScalarProduct = z->dot( *z, level );
-  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( levelinfo::num_microvertices_per_cell( level ) ) );
+  WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Test only works with 1 process currently." )
+  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( z->getNumLocalDoFs( level ) ) );
 
   // *****************
   // Apply
@@ -121,20 +121,20 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     for ( const auto & it : storage->getVertices() )
     {
       StencilMemory< real_t > * vertexStencil = it.second->getData( op->getVertexStencilID() );
-      WALBERLA_CHECK_EQUAL( vertexStencil->getSize( level ), 4 );
-      for ( uint_t i = 0; i < 4; i++ ) vertexStencil->getPointer( level )[ i ] = 1.0;
+      WALBERLA_CHECK_EQUAL( vertexStencil->getSize( level ), it.second->getNumNeighborEdges() + 1 );
+      for ( uint_t i = 0; i < it.second->getNumNeighborEdges() + 1; i++ ) vertexStencil->getPointer( level )[ i ] = 1.0;
     }
     for ( const auto & it : storage->getEdges() )
     {
       StencilMemory< real_t > * edgeStencil = it.second->getData( op->getEdgeStencilID() );
-      WALBERLA_CHECK_EQUAL( edgeStencil->getSize( level ), 7 );
-      for ( uint_t i = 0; i < 7; i++ ) edgeStencil->getPointer( level )[ i ] = 1.0;
+      WALBERLA_CHECK_EQUAL( edgeStencil->getSize( level ), 3 + 2 * it.second->getNumNeighborFaces() );
+      for ( uint_t i = 0; i < 3 + 2 * it.second->getNumNeighborFaces(); i++ ) edgeStencil->getPointer( level )[ i ] = 1.0;
     }
     for ( const auto & it : storage->getFaces() )
     {
       StencilMemory< real_t > * faceStencil = it.second->getData( op->getFaceStencilID() );
-      WALBERLA_CHECK_EQUAL( faceStencil->getSize( level ), 11 );
-      for ( uint_t i = 0; i < 11; i++ ) faceStencil->getPointer( level )[ i ] = 1.0;
+      WALBERLA_CHECK_EQUAL( faceStencil->getSize( level ), 7 + 4 * it.second->getNumNeighborCells() );
+      for ( uint_t i = 0; i < 7 + 4 * it.second->getNumNeighborCells(); i++ ) faceStencil->getPointer( level )[ i ] = 1.0;
     }
     for ( const auto & it : storage->getCells() )
     {
@@ -155,14 +155,14 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     for ( const auto & it : storage->getVertices() )
     {
       auto vertexDst = it.second->getData( dst->getVertexDataID() )->getPointer( level );
-      WALBERLA_CHECK_FLOAT_EQUAL( vertexDst[ 0 ], 4.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( vertexDst[ 0 ], real_c( it.second->getNumNeighborEdges() + 1 ) );
     }
     for ( const auto & it : storage->getEdges() )
     {
       auto edgeDst = it.second->getData( dst->getEdgeDataID() )->getPointer( level );
       for ( const auto & idxIt : vertexdof::macroedge::Iterator( level, 1 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[ vertexdof::macroedge::indexFromVertex< level >( idxIt.x(), stencilDirection::VERTEX_C ) ], 7.0 );
+        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[ vertexdof::macroedge::indexFromVertex< level >( idxIt.x(), stencilDirection::VERTEX_C ) ], real_c( 3 + 2 * it.second->getNumNeighborFaces() ) );
       }
     }
     for ( const auto & it : storage->getFaces() )
@@ -170,7 +170,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       auto faceDst = it.second->getData( dst->getFaceDataID() )->getPointer( level );
       for ( const auto & idxIt : vertexdof::macroface::Iterator( level, 1 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( faceDst[ vertexdof::macroface::indexFromVertex< level >( idxIt.x(), idxIt.y(), stencilDirection::VERTEX_C ) ], 11.0 );
+        WALBERLA_CHECK_FLOAT_EQUAL( faceDst[ vertexdof::macroface::indexFromVertex< level >( idxIt.x(), idxIt.y(), stencilDirection::VERTEX_C ) ], real_c( 7 + 4 * it.second->getNumNeighborCells() ) );
       }
     }
     for ( const auto & it : storage->getCells() )
@@ -181,16 +181,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
         WALBERLA_CHECK_FLOAT_EQUAL( cellDst[ vertexdof::macrocell::indexFromVertex< level >( idxIt.x(), idxIt.y(), idxIt.z(), stencilDirection::VERTEX_C ) ], 15.0 );
       }
     }
-
-
   }
-
-  VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
-  vtkOutput.set3D();
-  vtkOutput.add( x );
-  vtkOutput.add( y );
-  vtkOutput.write( level );
-
 }
 
 } // namespace hhg
@@ -198,13 +189,13 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
 int main( int argc, char* argv[] )
 {
-   walberla::debug::enterTestMode();
+  walberla::debug::enterTestMode();
 
-   walberla::Environment walberlaEnv(argc, argv);
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-   hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
+  walberla::Environment walberlaEnv(argc, argv);
+  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+  walberla::MPIManager::instance()->useWorldComm();
+  hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
+  hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
 
-   return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
