@@ -10,6 +10,7 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/vtkwriter.hpp"
 
 namespace hhg {
@@ -22,9 +23,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 {
   const uint_t level = 3;
 
-  MeshInfo mesh  = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-  SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
 
   writeDomainPartitioningVTK( storage, "../../output", "single_tet" );
 
@@ -70,38 +69,120 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   // *****************
   // Apply
 
-  auto operatorHandling  = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >( level, level, vertexDoFMacroCellStencilMemorySize );
-  PrimitiveDataID< StencilMemory< real_t >, Cell > cellOperatorID;
-  storage->addCellData( cellOperatorID, operatorHandling, "cell operator" );
-
-  auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
-  auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
-
-  src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-  dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-
-  for ( const auto & cellIt : storage->getCells() )
+  // Apply test I
+  // Simple check if apply is working at all on macro-cells.
+  // The apply test II below probably also covers this case but we want to keep old tests anyway right? :)
   {
-    auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
-    operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
-    operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC ) ] = 2.0;
+    auto operatorHandling  = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >( level, level, vertexDoFMacroCellStencilMemorySize );
+    PrimitiveDataID< StencilMemory< real_t >, Cell > cellOperatorID;
+    storage->addCellData( cellOperatorID, operatorHandling, "cell operator" );
+
+    auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
+    auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
+
+    src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+    dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+
+    for ( const auto & cellIt : storage->getCells() )
+    {
+      auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
+      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
+      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC ) ] = 2.0;
+    }
+
+    src->interpolate( ones, level );
+    src->getCommunicator( level )->template communicate< Vertex, Edge >();
+    src->getCommunicator( level )->template communicate< Edge, Face >();
+    src->getCommunicator( level )->template communicate< Face, Cell >();
+
+    for ( const auto & cellIt : storage->getCells() )
+    {
+      vertexdof::macrocell::apply< real_t >( level, *cellIt.second, cellOperatorID, src->getCellDataID(), dst->getCellDataID(), UpdateType::Replace );
+
+      auto dstData = cellIt.second->getData( dst->getCellDataID() )->getPointer( level );
+      for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+      {
+        const uint_t idx = vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+        WALBERLA_CHECK_FLOAT_EQUAL( dstData[ idx ], 3.0 );
+      }
+    }
   }
 
-  src->interpolate( ones, level );
-  src->getCommunicator( level )->template communicate< Vertex, Edge >();
-  src->getCommunicator( level )->template communicate< Edge, Face >();
-  src->getCommunicator( level )->template communicate< Face, Cell >();
-
-  for ( const auto & cellIt : storage->getCells() )
+  // Apply test II
+  // 1. Set all stencil weights of all primitives to 1.0
+  // 2. Interpolate 1.0 everywhere
+  // 3. Apply the operator
+  // Expected result: each point's value equals its stencil size
+  // If either lower to upper or upper to lower primitive-dimension communication is defect,
+  // the result should be wrong at the borders.
   {
-    vertexdof::macrocell::apply< real_t >( level, *cellIt.second, cellOperatorID, src->getCellDataID(), dst->getCellDataID(), UpdateType::Replace );
+    auto op = std::make_shared< P1ZeroOperator >( storage, level, level );
 
-    auto dstData = cellIt.second->getData( dst->getCellDataID() )->getPointer( level );
-    for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+    for ( const auto & it : storage->getVertices() )
     {
-      const uint_t idx = vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
-      WALBERLA_CHECK_FLOAT_EQUAL( dstData[ idx ], 3.0 );
+      StencilMemory< real_t > * vertexStencil = it.second->getData( op->getVertexStencilID() );
+      WALBERLA_CHECK_EQUAL( vertexStencil->getSize( level ), 4 );
+      for ( uint_t i = 0; i < 4; i++ ) vertexStencil->getPointer( level )[ i ] = 1.0;
     }
+    for ( const auto & it : storage->getEdges() )
+    {
+      StencilMemory< real_t > * edgeStencil = it.second->getData( op->getEdgeStencilID() );
+      WALBERLA_CHECK_EQUAL( edgeStencil->getSize( level ), 7 );
+      for ( uint_t i = 0; i < 7; i++ ) edgeStencil->getPointer( level )[ i ] = 1.0;
+    }
+    for ( const auto & it : storage->getFaces() )
+    {
+      StencilMemory< real_t > * faceStencil = it.second->getData( op->getFaceStencilID() );
+      WALBERLA_CHECK_EQUAL( faceStencil->getSize( level ), 11 );
+      for ( uint_t i = 0; i < 11; i++ ) faceStencil->getPointer( level )[ i ] = 1.0;
+    }
+    for ( const auto & it : storage->getCells() )
+    {
+      StencilMemory< real_t > * cellStencil = it.second->getData( op->getCellStencilID() );
+      WALBERLA_CHECK_EQUAL( cellStencil->getSize( level ), 15 );
+      for ( uint_t i = 0; i < 15; i++ ) cellStencil->getPointer( level )[ i ] = 1.0;
+    }
+
+    auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
+    auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
+
+    src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+    dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+
+    src->interpolate( ones, level );
+    op->apply( *src, *dst, level, DoFType::All );
+
+    for ( const auto & it : storage->getVertices() )
+    {
+      auto vertexDst = it.second->getData( dst->getVertexDataID() )->getPointer( level );
+      WALBERLA_CHECK_FLOAT_EQUAL( vertexDst[ 0 ], 4.0 );
+    }
+    for ( const auto & it : storage->getEdges() )
+    {
+      auto edgeDst = it.second->getData( dst->getEdgeDataID() )->getPointer( level );
+      for ( const auto & idxIt : vertexdof::macroedge::Iterator( level, 1 ) )
+      {
+        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[ vertexdof::macroedge::indexFromVertex< level >( idxIt.x(), stencilDirection::VERTEX_C ) ], 7.0 );
+      }
+    }
+    for ( const auto & it : storage->getFaces() )
+    {
+      auto faceDst = it.second->getData( dst->getFaceDataID() )->getPointer( level );
+      for ( const auto & idxIt : vertexdof::macroface::Iterator( level, 1 ) )
+      {
+        WALBERLA_CHECK_FLOAT_EQUAL( faceDst[ vertexdof::macroface::indexFromVertex< level >( idxIt.x(), idxIt.y(), stencilDirection::VERTEX_C ) ], 11.0 );
+      }
+    }
+    for ( const auto & it : storage->getCells() )
+    {
+      auto cellDst = it.second->getData( dst->getCellDataID() )->getPointer( level );
+      for ( const auto & idxIt : vertexdof::macrocell::Iterator( level, 1 ) )
+      {
+        WALBERLA_CHECK_FLOAT_EQUAL( cellDst[ vertexdof::macrocell::indexFromVertex< level >( idxIt.x(), idxIt.y(), idxIt.z(), stencilDirection::VERTEX_C ) ], 15.0 );
+      }
+    }
+
+
   }
 
   VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
