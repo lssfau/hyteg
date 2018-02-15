@@ -13,7 +13,7 @@ public:
     Fx = x;
   }
 
-  void evalDF(const Point2D& x, Matrix2r& DFx) {
+  void evalDF(const Point3D& x, Matrix2r& DFx) {
     DFx(0,0) = 1.0;
     DFx(0,1) = 0.0;
     DFx(1,0) = 0.0;

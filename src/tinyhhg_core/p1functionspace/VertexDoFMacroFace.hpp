@@ -75,17 +75,20 @@ inline void interpolateTmpl(Face &face,
   std::vector<ValueType> srcVector(srcIds.size());
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  Point3D xRef, xPhy;
+  Point3D x, x0, xBlend;
 
   auto dstPtr = faceMemory->getPointer( Level );
 
-  real_t h = 1.0 / (walberla::real_c(rowsize - 1));
+  x0 = face.coords[0];
+
+  Point3D d0 = (face.coords[1] - face.coords[0])/(walberla::real_c(rowsize - 1));
+  Point3D d2 = (face.coords[2] - face.coords[0])/(walberla::real_c(rowsize - 1));
 
   uint_t inner_rowsize = rowsize;
 
   for (uint_t i = 1; i < rowsize - 2; ++i) {
-    xRef[0] = h;
-    xRef[1] += h;
+    x = x0;
+    x += real_c(i)*d2 + d0;
 
     for (uint_t j = 1; j < inner_rowsize - 2; ++j) {
 
@@ -93,9 +96,9 @@ inline void interpolateTmpl(Face &face,
         srcVector[k] = srcPtr[k][vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)];
       }
 
-      face.blendingMap->evalF(xRef, xPhy);
-      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(xPhy, srcVector);
-      xRef[0] += h;
+      face.blendingMap->evalF(x, xBlend);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(xBlend, srcVector);
+      x += d0;
     }
 
     inner_rowsize -= 1;

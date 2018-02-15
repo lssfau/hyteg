@@ -8,6 +8,7 @@
 #include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
+#include <tinyhhg_core/geometry/IdentityMap.hpp>
 
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
@@ -41,6 +42,8 @@ public:
 
     const std::array<walberla::real_t,3> init{{tangent_[1], -tangent_[0], 0.0}};
     normal2D_ = Point3D(init);
+
+    blendingMap_ = std::shared_ptr<FaceMap>(new IdentityMap());
   }
 
   Edge( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
@@ -51,6 +54,11 @@ public:
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
   bool opposite_face_exists(const PrimitiveID& face) const;
   PrimitiveID get_opposite_face(const PrimitiveID& face) const;
+
+  void setBlendingMap(const std::shared_ptr<FaceMap>& newMap);
+  const std::shared_ptr<FaceMap>& getBlendingMap() const;
+
+  bool onBoundary() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
@@ -108,6 +116,7 @@ private:
   real_t  length_;
   Point3D tangent_;
   Point3D normal2D_;
+  std::shared_ptr<FaceMap> blendingMap_;
 
 };
 

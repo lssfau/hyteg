@@ -62,6 +62,7 @@ inline void interpolateTmpl(Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   Point3D x = edge.getCoordinates()[0];
   Point3D dx = edge.getDirection()/(real_t) (rowsize - 1);
+  Point3D xBlend;
 
   x += dx;
 
@@ -71,7 +72,8 @@ inline void interpolateTmpl(Edge &edge,
       srcVector[k] = srcPtr[k][ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
     }
 
-    edgeMemory->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = expr(x, srcVector);
+    edge.getBlendingMap()->evalF(x, xBlend);
+    edgeMemory->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = expr(xBlend, srcVector);
     x += dx;
   }
 }

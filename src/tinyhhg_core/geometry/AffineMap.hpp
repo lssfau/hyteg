@@ -18,7 +18,7 @@ public:
     xPhy[1] = c[1] + dx[1] * xRef[0] + dy[1] * xRef[1];
   }
 
-  void evalDF(const Point2D&, Matrix2r& DFx) {
+  void evalDF(const Point3D&, Matrix2r& DFx) {
     DFx(0,0) = dx[0];
     DFx(0,1) = dy[0];
     DFx(1,0) = dx[1];

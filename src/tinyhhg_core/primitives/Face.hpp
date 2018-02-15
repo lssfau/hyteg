@@ -6,8 +6,7 @@
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
 #include <tinyhhg_core/math.hpp>
-#include <tinyhhg_core/geometry/FaceMap.hpp>
-#include <tinyhhg_core/geometry/AffineMap.hpp>
+#include <tinyhhg_core/geometry/IdentityMap.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 
@@ -46,7 +45,7 @@ public:
     std::array<Point3D, 2> B({{coords[1]-coords[0], coords[2] - coords[0]}});
     area = std::abs(0.5 * math::det2(B));
 
-    blendingMap = std::shared_ptr<FaceMap>(new AffineMap(coords));
+    blendingMap = std::shared_ptr<FaceMap>(new IdentityMap());
   }
 
   Face( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
