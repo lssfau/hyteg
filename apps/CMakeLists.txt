@@ -74,6 +74,10 @@ waLBerla_add_executable( NAME gmg_P2
         FILES gmg_P2.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME GeometryBlending
+        FILES GeometryBlending.cpp
+        DEPENDS tinyhhg_core)
+
 if( HHG_BUILD_WITH_EIGEN )
 waLBerla_add_executable( NAME cg_P1_varcoeff_poly
         FILES cg_P1_varcoeff_poly.cpp
@@ -83,6 +87,7 @@ waLBerla_add_executable( NAME gmg_varcoeff_vs_poly
         FILES gmg_varcoeff_vs_poly.cpp
         DEPENDS tinyhhg_core)
 endif()
+
 
 if( HHG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME stokes_mini_petsc

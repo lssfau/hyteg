@@ -12,6 +12,7 @@ enum UpdateType
 enum DoFType:size_t
 {
   All = 1+2+4,
+  Boundary = 2+4,
   Inner = 1,
   DirichletBoundary = 2,
   NeumannBoundary = 4,

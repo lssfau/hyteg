@@ -142,7 +142,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
     Face &face = *it.second;
 
     size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-    Point3D x, x0;
+    Point3D x, x0, xBlend;
 
     x0 = face.coords[0];
 
@@ -158,7 +158,8 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
 
       for (size_t j = 0; j < inner_rowsize; ++j)
       {
-        output << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
+        face.blendingMap->evalF(x, xBlend);
+        output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << " ";
         x += d0;
       }
 

@@ -97,6 +97,18 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
   WALBERLA_ABORT("Edge::get_opposite_face: Face does not belong to edge");
 }
 
+void Edge::setBlendingMap(const std::shared_ptr<FaceMap>& newMap) {
+  blendingMap_ = newMap;
+}
+
+const std::shared_ptr<FaceMap>& Edge::getBlendingMap() const {
+  return blendingMap_;
+}
+
+bool Edge::onBoundary() const {
+  return testFlag(dofType_, hhg::Boundary);
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "

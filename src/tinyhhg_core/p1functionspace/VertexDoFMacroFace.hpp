@@ -92,7 +92,7 @@ inline void interpolateTmpl(Face &face,
   std::vector<ValueType> srcVector(srcIds.size());
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  Point3D x, x0;
+  Point3D x, x0, xBlend;
 
   auto dstPtr = faceMemory->getPointer( Level );
 
@@ -113,7 +113,8 @@ inline void interpolateTmpl(Face &face,
         srcVector[k] = srcPtr[k][vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)];
       }
 
-      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(x, srcVector);
+      face.blendingMap->evalF(x, xBlend);
+      dstPtr[vertexdof::macroface::indexFromVertex<Level>(j, i, stencilDirection::VERTEX_C)] = expr(xBlend, srcVector);
       x += d0;
     }
 
