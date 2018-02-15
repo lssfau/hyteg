@@ -286,9 +286,6 @@ void restrictTmpl(const Face & face,
       edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_VE_N)] = tmp;
     }
   }
-#if 0
-
-
 
   ///this need to be done in two steps since we would overwrite already updated entries otherwise
   ///put edge dofs which cant be reached from edge onto vertexdof
@@ -386,7 +383,6 @@ void restrictTmpl(const Face & face,
     edgeDofFineData[targetIndex] *= 3.;
     edgeDofFineData[targetIndex] -= vertexDofFineData[vertexIndex];
   }
-#endif
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, restrictTmpl, restrict)
@@ -395,7 +391,6 @@ template< typename ValueType, uint_t sourceLevel >
 void postRestrictTmpl(const Face & face,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
-#if 0
   typedef hhg::stencilDirection sD;
   sD targetDirection;
 
@@ -457,7 +452,6 @@ void postRestrictTmpl(const Face & face,
     edgeDofFineData[targetIndex] += vertexDofFineData[vertexIndex];
     edgeDofFineData[targetIndex] /= 3.;
   }
-#endif
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, postRestrictTmpl, postRestrict)
