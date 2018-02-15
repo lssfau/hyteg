@@ -44,6 +44,12 @@ if(WALBERLA_CXX_COMPILER_IS_INTEL)
     add_flag ( CMAKE_CXX_FLAGS "-std=c++14" )
 endif()
 
+# Clang complains about braces in correct init list
+# see: https://stackoverflow.com/questions/31555584/why-is-clang-warning-suggest-braces-around-initialization-of-subobject-wmis
+if(WALBERLA_CXX_COMPILER_IS_CLANG)
+    add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
+endif()
+
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
                  src/tinyhhg_core/HHGDefinitions.hpp )
 

@@ -4,7 +4,6 @@
 
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/tinyhhg.hpp>
-#include <fmt/format.h>
 #include <core/Environment.h>
 #include <core/config/Create.h>
 
@@ -45,7 +44,10 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
 
-  MeshInfo meshInfo = MeshInfo::unitSquareMesh(level_H);
+  uint_t numMacroEdgesPerRectangleEdge = uint_c(std::pow(2, level_H));
+  MeshInfo meshInfo = MeshInfo::meshRectangle({{0.0, 0.0}}, {{1.0, 1.0}}, MeshInfo::meshFlavour::CRISS,
+                                              numMacroEdgesPerRectangleEdge, numMacroEdgesPerRectangleEdge);
+
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( setupStorage );
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT("iter  abs_res       rel_res       conv          L2-error      Time");
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));
 
   real_t rel_res = 1.0;
 
@@ -148,7 +150,7 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0));
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -167,7 +169,7 @@ int main(int argc, char* argv[])
     err.assign({1.0, -1.0}, { &u, &u_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err,end - start));
     solveTime += end-start;
 
     if (i >= convergenceStartIter) {

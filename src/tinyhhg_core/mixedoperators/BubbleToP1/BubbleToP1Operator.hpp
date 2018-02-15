@@ -14,7 +14,7 @@
 #  pragma warning(push, 0)
 #endif
 
-#include "tinyhhg_core/fenics.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 
 #include "generated/bubble_to_p1_divt.h"
 

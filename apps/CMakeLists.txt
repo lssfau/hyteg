@@ -28,7 +28,7 @@ waLBerla_add_executable( NAME cg_P1_varcoeff
 
 waLBerla_add_executable( NAME cg_P1_tensorvarcoeff
         FILES cg_P1_tensorvarcoeff.cpp
-        DEPENDS tinyhhg_core fmt)
+        DEPENDS tinyhhg_core)
 
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_bubble       CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
@@ -77,11 +77,11 @@ waLBerla_add_executable( NAME gmg_P2
 if( HHG_BUILD_WITH_EIGEN )
 waLBerla_add_executable( NAME cg_P1_varcoeff_poly
         FILES cg_P1_varcoeff_poly.cpp
-        DEPENDS tinyhhg_core fmt)
+        DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME gmg_varcoeff_vs_poly
         FILES gmg_varcoeff_vs_poly.cpp
-        DEPENDS tinyhhg_core fmt)
+        DEPENDS tinyhhg_core)
 endif()
 
 if( HHG_BUILD_WITH_PETSC )
@@ -102,12 +102,16 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES benchmarks/IndexFunctionVSManualVersion.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME show_mesh
+        FILES show_mesh.cpp
+        DEPENDS tinyhhg_core)
+
 waLBerla_add_executable( NAME StokesP2P1
         FILES StokesP2P1.cpp
         DEPENDS tinyhhg_core)
 
 
-    #add_executable (tinytest_fmg fmg_test.cpp)
+#add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
 #
 #add_executable (tinytest_chorin chorin_test.cpp)
