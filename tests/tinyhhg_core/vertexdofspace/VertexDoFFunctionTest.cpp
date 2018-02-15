@@ -18,7 +18,7 @@ using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
 
-static void testVertexDoFFunction()
+static void testVertexDoFFunction( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
 {
   const uint_t level = 3;
 
@@ -32,8 +32,8 @@ static void testVertexDoFFunction()
   auto y = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "y", storage, level, level );
   auto z = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "z", storage, level, level );
 
-  x->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-  y->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+  x->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+  y->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
 
   std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
   std::function< real_t( const hhg::Point3D & ) > ones = []( const hhg::Point3D &    ) -> real_t { return 1.0; };
@@ -77,8 +77,8 @@ static void testVertexDoFFunction()
   auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
   auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
 
-  src->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-  dst->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+  src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+  dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
 
   for ( const auto & cellIt : storage->getCells() )
   {
@@ -104,9 +104,6 @@ static void testVertexDoFFunction()
     }
   }
 
-
-
-
   VTKOutput vtkOutput( "../../output", "vertex_dof_macro_cell_test" );
   vtkOutput.set3D();
   vtkOutput.add( x );
@@ -125,7 +122,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFFunction();
+   hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   hhg::testVertexDoFFunction( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
 
    return EXIT_SUCCESS;
 }

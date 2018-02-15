@@ -299,7 +299,27 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const Pr
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
 {
-  WALBERLA_ABORT( "Local communication face -> cell not yet implemented" );
+  const ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+        ValueType * cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
+
+  const uint_t localFaceID = receiver->getLocalFaceID( sender->getID() );
+  const uint_t iterationVertex0 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+  for ( const auto & faceIdx : vertexdof::macroface::Iterator( level_ ) )
+  {
+    auto cellIdx = *cellIterator;
+
+    cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ] =
+        faceData[ indexFromVertexOnMacroFace( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C ) ];
+
+    cellIterator++;
+  }
+
+  WALBERLA_ASSERT( cellIterator == cellIterator.end() );
 }
 
 

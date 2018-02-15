@@ -19,7 +19,7 @@ using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
 
-static void testVertexDoFMacroCellPackInfo()
+static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
 {
   const uint_t level = 4;
 
@@ -52,7 +52,7 @@ static void testVertexDoFMacroCellPackInfo()
   }
 
   // Communicating macro-face data to the macro-cell
-  x->getCommunicator( level )->setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+  x->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
   x->getCommunicator( level )->template communicate< Face, Cell >();
 
   // Macro-cell DoFs are 1.0 at the borders now
@@ -99,7 +99,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFMacroCellPackInfo();
+   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
 
    return EXIT_SUCCESS;
 }
