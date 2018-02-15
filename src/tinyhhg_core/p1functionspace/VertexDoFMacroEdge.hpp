@@ -182,6 +182,8 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueTyp
       }
     }
 
+    WALBERLA_ASSERT_LESS( edge.getNumNeighborFaces(), 3, "VertexDoFSpace: macro-edge apply not yet implemented for edges with more than 2 neighbor faces." );
+
     if (update == Replace) {
       dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
     } else if (update == Add) {
