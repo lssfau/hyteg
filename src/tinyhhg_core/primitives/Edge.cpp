@@ -33,16 +33,17 @@ uint_t Edge::vertex_index(const PrimitiveID& vertex) const
 uint_t Edge::face_index(const PrimitiveID& face) const
 {
   WALBERLA_ASSERT_GREATER_EQUAL(getNumNeighborFaces(), 1);
-  WALBERLA_ASSERT_LESS_EQUAL(getNumNeighborFaces(), 2);
 
-  if (face.getID() == neighborFaces_[0].getID()) {
-    return 0;
-  } else if(getNumNeighborFaces() == 2 && face.getID() == neighborFaces_[1].getID()) {
-    return 1;
-  } else {
-    WALBERLA_ASSERT(false, "Edge::face_index: Face does not belong to edge");
-    return std::numeric_limits<uint_t>::max();
+  for ( uint_t localFaceID = 0; localFaceID < getNumNeighborFaces(); localFaceID++ )
+  {
+    if ( face.getID() == neighborFaces_[ localFaceID ].getID() )
+    {
+      return localFaceID;
+    }
   }
+
+  WALBERLA_ASSERT(false, "Edge::face_index: Face does not belong to edge");
+  return std::numeric_limits<std::size_t>::max();
 }
 
 PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
