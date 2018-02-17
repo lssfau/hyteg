@@ -12,10 +12,10 @@ class CircularMap : public FaceMap {
   {
     // Get edge on boundary
     // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
-//    WALBERLA_ASSERT_EQUAL(face.hasBoundaryEdge(), true);
-//    WALBERLA_ASSERT_EQUAL(face.edgesOnBoundary.size(), 1);
+    WALBERLA_ASSERT_EQUAL(face.hasBoundaryEdge(), true);
+    WALBERLA_ASSERT_EQUAL(face.edgesOnBoundary.size(), 1);
 
-    const Edge& edge = *storage->getEdge(face.edgesOnBoundary[1]);
+    const Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
     const Vertex& vertex = *storage->getVertex(face.get_vertex_opposite_to_edge(edge.getID()));
 
     Point3D x2, x3;

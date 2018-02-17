@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   const uint_t maxiter = 10000;
 
   /// read mesh file and create storage
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/unitsquare_with_circular_hole.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   hhg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
@@ -54,28 +54,22 @@ int main(int argc, char* argv[])
     return x_[1];
   };
 
-//  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return sin(x_[0])*sinh(x_[1]); };
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return x_[0]; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return sin(x_[0])*sinh(x_[1]); };
 
-  Point3D circleCenter{{0, 0, 0.0}};
-  real_t circleRadius = 1.0;
+  Point3D circleCenter{{0.5, 0.5, 0}};
+  real_t circleRadius = 0.25;
 
   for (auto& it : storage->getFaces()) {
     Face &face = *it.second;
 
-//    if (face.hasBoundaryEdge()) {
+    if (face.hasBoundaryEdge()) {
+      Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
 
-//      Edge& edge1 = *storage->getEdge(face.edgesOnBoundary[1]);
-
-//        if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.9) {
-//          edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-//        }
-//      }
-
-      Edge& edge1 = *storage->getEdge(face.edgesOnBoundary[1]);
-      edge1.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-      face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-//    }
+      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
+        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
+      }
+    }
   }
 
   x->interpolate(tmp_x, level, hhg::All);
