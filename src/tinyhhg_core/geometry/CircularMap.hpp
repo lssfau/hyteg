@@ -12,10 +12,10 @@ class CircularMap : public FaceMap {
   {
     // Get edge on boundary
     // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
-    WALBERLA_ASSERT_EQUAL(face.hasBoundaryEdge(), true);
-    WALBERLA_ASSERT_EQUAL(face.edgesOnBoundary.size(), 1);
+//    WALBERLA_ASSERT_EQUAL(face.hasBoundaryEdge(), true);
+//    WALBERLA_ASSERT_EQUAL(face.edgesOnBoundary.size(), 1);
 
-    const Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
+    const Edge& edge = *storage->getEdge(face.edgesOnBoundary[1]);
     const Vertex& vertex = *storage->getVertex(face.get_vertex_opposite_to_edge(edge.getID()));
 
     Point3D x2, x3;
@@ -36,11 +36,20 @@ class CircularMap : public FaceMap {
     } else if (s3bar_ > 0.5 * walberla::math::PI) {
       s3bar_ -= 2.0 * walberla::math::PI;
     }
+
+    invDet_ = 1.0 / (x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]);
   }
 
   void evalF(const Point3D& x, Point3D& Fx) {
-    Fx[0] =  x1_[0] + x2bar_[0]*(-x3bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + x3bar_[0]*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + (radius_*cos(s1_ + s3bar_*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))) - x1_[0] - x3bar_[0]*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + center_[0])*(-x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x3bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1)/(-x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1);
-    Fx[1] =  x1_[1] + x2bar_[1]*(-x3bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + x3bar_[1]*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + (radius_*sin(s1_ + s3bar_*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))) - x1_[1] - x3bar_[1]*(x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])) + center_[1])*(-x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x3bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1)/(-x2bar_[0]*(x[1] - x1_[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(x[0] - x1_[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1);
+    real_t xi = (x3bar_[0]*(x1_[1] - x[1]) - x3bar_[1]*(x1_[0] - x[0])) * invDet_;
+    real_t eta = (-x2bar_[0]*(x1_[1] - x[1]) + x2bar_[1]*(x1_[0] - x[0])) * invDet_;
+
+    Fx = x;
+
+    if (std::abs(eta - 1) > 1e-12) {
+      Fx[0] += (-eta - xi + 1)*(eta*x3bar_[0] - radius_*cos(eta*s3bar_ + s1_) + x1_[0] - center_[0])/(eta - 1);
+      Fx[1] += (-eta - xi + 1)*(eta*x3bar_[1] - radius_*sin(eta*s3bar_ + s1_) + x1_[1] - center_[1])/(eta - 1);
+    }
   }
 
   void evalDF(const Point3D& x, Matrix2r& DFx) {
@@ -50,8 +59,12 @@ class CircularMap : public FaceMap {
     DFx(1,1) =  x2bar_[0]*x3bar_[1]/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[0]*(center_[1] + radius_*sin(s1_ + s3bar_*(x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))) - x1_[1] - x3bar_[1]*(x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])))*(-x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x3bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1)/((x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])*pow(-x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1, 2)) - x3bar_[0]*x2bar_[1]/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + (-x2bar_[0]/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[0]/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))*(center_[1] + radius_*sin(s1_ + s3bar_*(x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))) - x1_[1] - x3bar_[1]*(x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])))/(-x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1) + (radius_*s3bar_*x2bar_[0]*cos(s1_ + s3bar_*(x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1])))/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x2bar_[0]*x3bar_[1]/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]))*(-x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x3bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) - x3bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1)/(-x2bar_[0]*(-x1_[1] + x[1])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + x2bar_[1]*(-x1_[0] + x[0])/(x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]) + 1);
   }
 
-  real_t detDF(const Point2D& x) {
-    return 1.0;
+  void evalDFinv(const Point3D& x, Matrix2r& DFxInv) {
+    Matrix2r tmp;
+    evalDF(x, tmp);
+    real_t invDet = 1.0 / tmp.det();
+    DFxInv = tmp.adj();
+    DFxInv *= invDet;
   }
 
  private:
@@ -64,6 +77,8 @@ class CircularMap : public FaceMap {
   real_t radius_;
   real_t s1_;
   real_t s3bar_;
+
+  real_t invDet_;
 };
 
 }

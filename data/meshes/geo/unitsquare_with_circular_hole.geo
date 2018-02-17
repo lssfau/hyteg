@@ -41,5 +41,5 @@ Line Loop(2) = {2, 3, 4, 1};
 //+
 Plane Surface(1) = {1, 2};
 Physical Point(1) = {1, 2, 3, 4, 6, 7, 8, 9};
-Physical Line(1) = {1, 2, 3, 4};
+Physical Line(1) = {1, 2, 3, 4, 5, 6, 7, 8};
 Physical Surface(0) = {1};

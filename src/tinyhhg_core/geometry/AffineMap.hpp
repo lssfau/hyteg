@@ -7,32 +7,42 @@ namespace hhg {
 class AffineMap : public FaceMap {
 public:
 
-  AffineMap(const std::array<Point3D, 3>& coords) {
-    c = coords[0];
-    dx = coords[1] - coords[0];
-    dy = coords[2] - coords[0];
+  AffineMap(const std::array<Point3D, 3>& fromCoords, const std::array<Point3D, 3>& toCoords) {
+    x1_ = fromCoords[0];
+    x2_ = fromCoords[1];
+    x3_ = fromCoords[2];
+
+    xb1_ = toCoords[0];
+    xb2_ = toCoords[1];
+    xb3_ = toCoords[2];
   }
 
-  void evalF(const Point3D& xRef, Point3D& xPhy) {
-    xPhy[0] = c[0] + dx[0] * xRef[0] + dy[0] * xRef[1];
-    xPhy[1] = c[1] + dx[1] * xRef[0] + dy[1] * xRef[1];
+  void evalF(const Point3D& x, Point3D& Fx) {
+    Fx[0] =  (xb1_[0]*((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1])) + (xb1_[0] - xb2_[0])*((x[0] - x1_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x[1] - x1_[1])) - (xb1_[0] - xb3_[0])*((x[0] - x1_[0])*(x1_[1] - x2_[1]) - (x1_[0] - x2_[0])*(x[1] - x1_[1])))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
+    Fx[1] =  (xb1_[1]*((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1])) + (xb1_[1] - xb2_[1])*((x[0] - x1_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x[1] - x1_[1])) - (xb1_[1] - xb3_[1])*((x[0] - x1_[0])*(x1_[1] - x2_[1]) - (x1_[0] - x2_[0])*(x[1] - x1_[1])))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
   }
 
   void evalDF(const Point3D&, Matrix2r& DFx) {
-    DFx(0,0) = dx[0];
-    DFx(0,1) = dy[0];
-    DFx(1,0) = dx[1];
-    DFx(1,1) = dy[1];
+    DFx(0,0) =  ((xb1_[0] - xb2_[0])*(x1_[1] - x3_[1]) - (xb1_[0] - xb3_[0])*(x1_[1] - x2_[1]))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
+    DFx(0,1) =  ((x1_[0] - x2_[0])*(xb1_[0] - xb3_[0]) - (x1_[0] - x3_[0])*(xb1_[0] - xb2_[0]))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
+    DFx(1,0) =  (-(x1_[1] - x2_[1])*(xb1_[1] - xb3_[1]) + (x1_[1] - x3_[1])*(xb1_[1] - xb2_[1]))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
+    DFx(1,1) =  ((x1_[0] - x2_[0])*(xb1_[1] - xb3_[1]) - (x1_[0] - x3_[0])*(xb1_[1] - xb2_[1]))/((x1_[0] - x2_[0])*(x1_[1] - x3_[1]) - (x1_[0] - x3_[0])*(x1_[1] - x2_[1]));
   }
 
-  real_t detDF(const Point2D& x) {
-    return dx[0] * dy[1] - dy[0] * dx[1];
+  void evalDFinv(const Point3D&, Matrix2r& DFxInv) {
+    DFxInv(0,0) =  (x1_[0]*xb2_[1] - x1_[0]*xb3_[1] - x2_[0]*xb1_[1] + x2_[0]*xb3_[1] + x3_[0]*xb1_[1] - x3_[0]*xb2_[1])/(xb1_[0]*xb2_[1] - xb1_[0]*xb3_[1] - xb2_[0]*xb1_[1] + xb2_[0]*xb3_[1] + xb3_[0]*xb1_[1] - xb3_[0]*xb2_[1]);
+    DFxInv(0,1) =  (-x1_[0]*xb2_[0] + x1_[0]*xb3_[0] + x2_[0]*xb1_[0] - x2_[0]*xb3_[0] - x3_[0]*xb1_[0] + x3_[0]*xb2_[0])/(xb1_[0]*xb2_[1] - xb1_[0]*xb3_[1] - xb2_[0]*xb1_[1] + xb2_[0]*xb3_[1] + xb3_[0]*xb1_[1] - xb3_[0]*xb2_[1]);
+    DFxInv(1,0) =  (x1_[1]*xb2_[1] - x1_[1]*xb3_[1] - x2_[1]*xb1_[1] + x2_[1]*xb3_[1] + x3_[1]*xb1_[1] - x3_[1]*xb2_[1])/(xb1_[0]*xb2_[1] - xb1_[0]*xb3_[1] - xb2_[0]*xb1_[1] + xb2_[0]*xb3_[1] + xb3_[0]*xb1_[1] - xb3_[0]*xb2_[1]);
+    DFxInv(1,1) =  (xb1_[0]*x2_[1] - xb1_[0]*x3_[1] - xb2_[0]*x1_[1] + xb2_[0]*x3_[1] + xb3_[0]*x1_[1] - xb3_[0]*x2_[1])/(xb1_[0]*xb2_[1] - xb1_[0]*xb3_[1] - xb2_[0]*xb1_[1] + xb2_[0]*xb3_[1] + xb3_[0]*xb1_[1] - xb3_[0]*xb2_[1]);
   }
 
 private:
-  Point3D c;
-  Point3D dx;
-  Point3D dy;
+  Point3D x1_;
+  Point3D x2_;
+  Point3D x3_;
+  Point3D xb1_;
+  Point3D xb2_;
+  Point3D xb3_;
 };
 
 }

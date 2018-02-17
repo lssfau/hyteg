@@ -32,7 +32,10 @@ inline void interpolate(Vertex &vertex,
     srcVector[k] = vertex.getData(srcIds[k])->getPointer(level)[0];
   }
 
-  vertexMemory->getPointer( level )[0] = expr(vertex.getCoordinates(), srcVector);
+  Point3D xBlend;
+  vertex.getBlendingMap()->evalF(vertex.getCoordinates(), xBlend);
+
+  vertexMemory->getPointer( level )[0] = expr(xBlend, srcVector);
 }
 
 template< typename ValueType >

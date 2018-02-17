@@ -90,6 +90,65 @@ public:
     return &x[0];
   }
 
+  Matrix<T, M, N>& operator*=(T scalar)
+  {
+    for (uint_t i = 0; i < Size; ++i)
+    {
+      x[i] *= scalar;
+    }
+    return *this;
+  }
+
+  Matrix<T, N, M> transpose()
+  {
+    Matrix<T, N, M> out;
+    for (uint_t i = 0; i < M; ++i)
+    {
+      for (uint_t j = 0; j < N; ++j)
+      {
+        out(j, i) = (*this)(i, j);
+      }
+    }
+    return out;
+  }
+
+  template<uint_t N_rhs>
+  Matrix<T, M, N_rhs> mul(const Matrix<T, N, N_rhs>& rhs)
+  {
+    Matrix<T, M, N_rhs> out;
+    for (uint_t i = 0; i < M; ++i)
+    {
+      for (uint_t j = 0; j < N_rhs; ++j)
+      {
+        for (uint_t k = 0; k < N; ++k) {
+          out(i, j) += (*this)(i, k) * rhs(k, j);
+        }
+      }
+    }
+    return out;
+  }
+
+  Matrix<T, M, N> adj() const
+  {
+    if (N == M && N == 2) {
+      Matrix<T, M, N> out;
+      out(0,0) = (*this)(1,1);
+      out(0,1) = -(*this)(0,1);
+      out(1,0) = -(*this)(1,0);
+      out(1,1) = (*this)(0,0);
+      return out;
+    }
+    WALBERLA_ABORT("Determinant computation not implemented for matrix dimensions " << M << " x " << N)
+  }
+
+  T det() const
+  {
+    if (N == M && N == 2) {
+      return (*this)(0,0) * (*this)(1,1) - (*this)(0,1) * (*this)(1,0);
+    }
+    WALBERLA_ABORT("Determinant computation not implemented for matrix dimensions " << M << " x " << N)
+  }
+
 private:
   T x[Size];
 };

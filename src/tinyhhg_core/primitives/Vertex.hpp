@@ -6,6 +6,7 @@
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/mesh/MeshInfo.hpp>
+#include <tinyhhg_core/geometry/FaceMap.hpp>
 
 #include <vector>
 
@@ -56,6 +57,9 @@ public:
   /// Spatial coordinates of vertex
   const Point3D getCoordinates() const { return coordinates_; }
 
+  void setBlendingMap(const std::shared_ptr<FaceMap>& newMap);
+  const std::shared_ptr<FaceMap>& getBlendingMap() const;
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
@@ -97,6 +101,7 @@ private:
 
   DoFType dofType_;
   Point3D coordinates_;
+  std::shared_ptr<FaceMap> blendingMap_;
 };
 
 }

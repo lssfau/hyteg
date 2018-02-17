@@ -1,5 +1,6 @@
 #include "Vertex.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include <tinyhhg_core/geometry/IdentityMap.hpp>
 
 #include <core/mpi/MPIManager.h>
 
@@ -10,7 +11,9 @@ using walberla::uint_c;
 
 Vertex::Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates )
   : Primitive( primitiveID ), dofType_(Inner), coordinates_( coordinates )
-{}
+{
+  blendingMap_ = std::shared_ptr<FaceMap>(new IdentityMap());
+}
 
 uint_t Vertex::edge_index(const PrimitiveID& edge) const
 {
@@ -22,6 +25,14 @@ uint_t Vertex::face_index(const PrimitiveID& face) const
 {
   auto it = std::find(neighborFaces().begin(), neighborFaces().end(), face);
   return uint_c((it - neighborFaces().begin()));
+}
+
+void Vertex::setBlendingMap(const std::shared_ptr<FaceMap>& newMap) {
+  blendingMap_ = newMap;
+}
+
+const std::shared_ptr<FaceMap>& Vertex::getBlendingMap() const {
+  return blendingMap_;
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)

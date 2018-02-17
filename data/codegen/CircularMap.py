@@ -11,13 +11,12 @@ radius = symbols('radius')
 A = Matrix([[x2bar, x3bar], [y2bar, y3bar]])
 Ainv = A**(-1)
 
-print(A)
-print(Ainv)
-
 Tinv = Ainv * Matrix([[x - x1],[y - y1]])
 
 xi = Tinv[0]
 eta = Tinv[1]
+
+#xi, eta = symbols('xi eta')
 
 def phi(s):
   return radius * cos(s) + x_c;
@@ -36,6 +35,8 @@ def Psi(eta):
 F = A * Tinv + Matrix([[x1], [y1]]) + (1 - xi - eta) * Matrix([[Phi(eta)], [Psi(eta)]])
 DF = F.jacobian([x,y])
 
+det = DF.det()
+
 
 x.name = 'x[0]'
 y.name = 'x[1]'
@@ -51,6 +52,9 @@ x_c.name = 'center_[0]'
 y_c.name = 'center_[1]'
 radius.name = 'radius_'
 
+# print('real_t xi = {};'.format(ccode(simplify(xi_))))
+# print('real_t eta = {};'.format(ccode(simplify(eta_))))
+
 print('Fx[0] =  {};'.format(ccode(F[0])))
 print('Fx[1] =  {};'.format(ccode(F[1])))
 
@@ -58,3 +62,10 @@ print('DFx(0,0) =  {};'.format(ccode(DF[(0,0)])))
 print('DFx(0,1) =  {};'.format(ccode(DF[(0,1)])))
 print('DFx(1,0) =  {};'.format(ccode(DF[(1,0)])))
 print('DFx(1,1) =  {};'.format(ccode(DF[(1,1)])))
+
+# print('DFxInv(0,0) =  {};'.format(ccode(DFinv[(0,0)])))
+# print('DFxInv(0,1) =  {};'.format(ccode(DFinv[(0,1)])))
+# print('DFxInv(1,0) =  {};'.format(ccode(DFinv[(1,0)])))
+# print('DFxInv(1,1) =  {};'.format(ccode(DFinv[(1,1)])))
+
+print('det = {};'.format(ccode(det)))
