@@ -6,6 +6,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <core/Environment.h>
 #include <core/config/Create.h>
+#include <tinyhhg_core/geometry/CircularMap.hpp>
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -77,13 +78,29 @@ int main(int argc, char* argv[])
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
 
   typedef hhg::P1BlendingLaplaceOperator SolveOperatorNodal;
-//  typedef hhg::P1PolynomialTensorCoefficientLaplaceOperator SolveOperatorPoly;
+  typedef hhg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+
+  Point3D circleCenter{{0.5, 0.5, 0}};
+  real_t circleRadius = 0.25;
+
+  for (auto& it : storage->getFaces()) {
+    Face &face = *it.second;
+
+    if (face.hasBoundaryEdge()) {
+      Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
+
+      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
+        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
+      }
+    }
+  }
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
@@ -98,7 +115,7 @@ int main(int argc, char* argv[])
 
   auto start = walberla::timing::getWcTime();
   if (polynomialOperator) {
-//    L = std::make_shared<SolveOperatorPoly>(storage, coefficients, analyticCoefficients, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
+    L = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
   } else {
     L = std::make_shared<SolveOperatorNodal>(storage, minLevel, maxLevel);
   }

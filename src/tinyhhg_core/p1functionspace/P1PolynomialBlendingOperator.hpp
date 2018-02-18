@@ -11,6 +11,7 @@
 #  pragma warning(push, 0)
 #endif
 
+#include "VertexDoFBlending.hpp"
 #include "tinyhhg_core/fenics/fenics.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
@@ -36,12 +37,12 @@
 namespace hhg
 {
 
-class P1PolynomialOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
   typedef LSQPInterpolator<MonomialBasis2D> Interpolator;
 
-  P1PolynomialOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+  P1PolynomialBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                        uint_t minLevel,
                        uint_t maxLevel,
                        uint_t polyDegree,
@@ -52,16 +53,12 @@ public:
   {
   }
 
-  ~P1PolynomialOperator()
+  ~P1PolynomialBlendingOperator()
   {
   }
 
-  void addOperatorAndCoefficient(const fenics::TabulateTensor& fenicsTabulateTensor,
-                                 const std::shared_ptr<P1Function< real_t >>& coefficient,
-                                 const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient) {
+  void addOperator(const fenics::TabulateTensor& fenicsTabulateTensor) {
     operators_.push_back(fenicsTabulateTensor);
-    coefficients_.push_back(coefficient);
-    analyticCoefficients_.push_back(analyticCoefficient);
   }
 
   void init() {
@@ -174,6 +171,21 @@ private:
       real_t ref_h = walberla::real_c(1)/(walberla::real_c(rowsizeFine - 1));
       Point2D ref_x;
 
+      Point3D offsetSW = -1.0/3.0 * d0f - 1.0/3.0 * d2f;
+      Point3D offsetS = 1.0/3.0 * d0f - 2.0/3.0 * d2f;
+      Point3D offsetSE = 2.0/3.0 * d0f - 1.0/3.0 * d2f;
+
+      Point3D offsetNE = 1.0/3.0 * d0f + 1.0/3.0 * d2f;
+      Point3D offsetN = -1.0/3.0 * d0f + 2.0/3.0 * d2f;
+      Point3D offsetNW = -2.0/3.0 * d0f + 1.0/3.0 * d2f;
+
+      Matrix2r mappingTensor;
+      real_t* coeffs[] = { &mappingTensor(0,0), &mappingTensor(0,1), &mappingTensor(1,1) };
+      std::vector<FaceP1LocalMatrixMemory *> localMatricesVector;
+      for (auto operatorId : faceLocalMatrixIDs_) {
+        localMatricesVector.push_back(face.getData(operatorId));
+      }
+
       for (uint_t j = 1; j < rowsize - 2; ++j) {
 
         ref_x[1] = j * ref_H;
@@ -186,53 +198,7 @@ private:
 
           ref_x[0] = i * ref_H;
 
-          std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
-
-          for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
-
-            auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
-
-            // elementS
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d2f) +
-                                       analyticCoefficients_[oprIdx](x + d0f - d2f));
-            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[0], FaceVertexDoF::P1GrayDoFMaps[0],
-                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-            // elementNE
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d0f) +
-                                       analyticCoefficients_[oprIdx](x + d2f));
-            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[1], FaceVertexDoF::P1GrayDoFMaps[1],
-                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-            // elementNW
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d0f + d2f) +
-                                       analyticCoefficients_[oprIdx](x - d0f));
-            assembleP1LocalStencil(FaceVertexDoF::P1GrayStencilMaps[2], FaceVertexDoF::P1GrayDoFMaps[2],
-                                   faceLocalMatrices->getGrayMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-            // elementSW
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x - d0f) +
-                                       analyticCoefficients_[oprIdx](x - d2f));
-            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[0], FaceVertexDoF::P1BlueDoFMaps[0],
-                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-            // elementSE
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d0f - d2f) +
-                                       analyticCoefficients_[oprIdx](x + d0f));
-            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[1], FaceVertexDoF::P1BlueDoFMaps[1],
-                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-            // elementN
-            coeffWeight = 1.0 / 3.0 * (analyticCoefficients_[oprIdx](x) + analyticCoefficients_[oprIdx](x + d2f) +
-                                       analyticCoefficients_[oprIdx](x - d0f + d2f));
-            assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[2], FaceVertexDoF::P1BlueDoFMaps[2],
-                                   faceLocalMatrices->getBlueMatrix(interpolationLevel_), faceStencil, coeffWeight);
-
-          }
-
-//          if (i == 1 && j == 1) {
-//            WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("nodal = {}", PointND<real_t, 7>(&faceStencil[0])));
-//          }
+          vertexdof::blending::macroface::assembleStencil(maxLevel_, face, faceStencil, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
 
           horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)]);
 
@@ -259,25 +225,6 @@ private:
       horiInterpolator.interpolate(facePolynomials->getHoriPolynomial(polyDegree_));
       vertInterpolator.interpolate(facePolynomials->getVertPolynomial(polyDegree_));
       diagInterpolator.interpolate(facePolynomials->getDiagPolynomial(polyDegree_));
-
-//      std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = facePolynomials->getHoriPolynomial().eval(Point2D({ 1 * ref_H - 0.5 * ref_h, 1*ref_H  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = facePolynomials->getHoriPolynomial().eval(Point2D({ 1 * ref_H + 0.5 * ref_h, 1*ref_H  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = facePolynomials->getVertPolynomial().eval(Point2D({ 1 * ref_H, 1*ref_H - 0.5 * ref_h  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = facePolynomials->getVertPolynomial().eval(Point2D({ 1 * ref_H, 1*ref_H + 0.5 * ref_h  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = facePolynomials->getDiagPolynomial().eval(Point2D({ 1 * ref_H + 0.5 * ref_h, 1*ref_H - 0.5 * ref_h  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = facePolynomials->getDiagPolynomial().eval(Point2D({ 1 * ref_H - 0.5 * ref_h, 1*ref_H + 0.5 * ref_h  }));
-//      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]
-//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]
-//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]
-//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]
-//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]
-//                                                                                - faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])];
-//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("poly  = {}", PointND<real_t, 7>(&faceStencil[0])));
-
-//      WALBERLA_LOG_DEVEL("polynomials[0] = " << facePolynomials->getHoriPolynomial());
-//      WALBERLA_LOG_DEVEL("polynomials[1] = " << facePolynomials->getVertPolynomial());
-//      WALBERLA_LOG_DEVEL("polynomials[2] = " << facePolynomials->getDiagPolynomial());
     }
   }
 
@@ -314,7 +261,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoeffIds, level, updateType);
+        vertexdof::blending::macrovertex::applyBlending< real_t >(level, vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
 
@@ -331,7 +278,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoeffIds, updateType);
+        vertexdof::blending::macroedge::applyBlending< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -375,7 +322,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::macrovertex::smooth_gs_coefficient(vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID(), vertexCoeffIds, level);
+        vertexdof::blending::macrovertex::smooth_gs_blending(level, vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
 
@@ -389,7 +336,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::macroedge::smooth_gs_coefficient<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID(), edgeCoeffIds);
+        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -516,51 +463,22 @@ private:
   std::vector<fenics::TabulateTensor> operators_;
 };
 
-template<class FenicsOperator>
-class P1PolynomialScalarCoefficientOperator : public P1PolynomialOperator {
-public:
-  P1PolynomialScalarCoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
-                                        const std::shared_ptr<P1Function< real_t >>& coefficient,
-                                        const std::function<real_t(const hhg::Point3D&)>& analyticCoefficient,
-                                        size_t minLevel,
-                                        size_t maxLevel,
-                                        uint_t polyDegree,
-                                        uint_t interpolationLevel)
-      : P1PolynomialOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
-  {
-    fenicsOperator = std::make_shared<FenicsOperator>();
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                    coefficient, analyticCoefficient);
-    this->init();
-  }
-private:
-  std::shared_ptr<FenicsOperator> fenicsOperator;
-};
-
 template<class FenicsOperator1, class FenicsOperator2, class FenicsOperator3>
-class P1PolynomialTensorCoefficientOperator : public P1PolynomialOperator {
+class P1PolynomialTensorBlendingOperator : public P1PolynomialBlendingOperator {
 public:
-  P1PolynomialTensorCoefficientOperator(const std::shared_ptr< PrimitiveStorage > & storage,
-                                        const std::vector<std::shared_ptr<P1Function< real_t >>>& coefficients,
-                                        const std::vector<std::function<real_t(const hhg::Point3D&)>>& analyticCoefficients,
+  P1PolynomialTensorBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                                         size_t minLevel,
                                         size_t maxLevel,
                                         uint_t polyDegree,
                                         uint_t interpolationLevel)
-      : P1PolynomialOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
+      : P1PolynomialBlendingOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
   {
-    WALBERLA_ASSERT_EQUAL(coefficients.size(), 3);
     fenicsOperator1 = std::make_shared<FenicsOperator1>();
     fenicsOperator2 = std::make_shared<FenicsOperator2>();
     fenicsOperator3 = std::make_shared<FenicsOperator3>();
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                    coefficients[0], analyticCoefficients[0]);
-
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                    coefficients[1], analyticCoefficients[1]);
-
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                    coefficients[2], analyticCoefficients[2]);
+    this->addOperator(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    this->addOperator(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    this->addOperator(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     this->init();
   }
@@ -570,9 +488,7 @@ private:
   std::shared_ptr<FenicsOperator3> fenicsOperator3;
 };
 
-using P1PolynomialScalarCoefficientLaplaceOperator = P1PolynomialScalarCoefficientOperator<p1_diffusion_cell_integral_0_otherwise>;
-
-using P1PolynomialTensorCoefficientLaplaceOperator = P1PolynomialTensorCoefficientOperator<p1_div_k_grad_cell_integral_0_otherwise,
+using P1PolynomialBlendingLaplaceOperator = P1PolynomialTensorBlendingOperator<p1_div_k_grad_cell_integral_0_otherwise,
     p1_div_k_grad_cell_integral_1_otherwise,
     p1_div_k_grad_cell_integral_2_otherwise>;
 
