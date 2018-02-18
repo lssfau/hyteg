@@ -16,8 +16,7 @@ namespace vertexdof {
 namespace blending {
 namespace macroface {
 
-template<typename ValueType, uint_t Level>
-inline void assembleLocalStencil(uint_t i, uint_t j, const Matrix3r& localMatrix,
+inline void assembleLocalStencil(const Matrix3r& localMatrix,
                                  double* opr_data,
                                  real_t coeff,
                                  const std::array<stencilDirection,3>& vertices,
@@ -26,6 +25,68 @@ inline void assembleLocalStencil(uint_t i, uint_t j, const Matrix3r& localMatrix
   opr_data[vertexdof::stencilIndexFromVertex(vertices[0])] += coeff * localMatrix(idx[0],idx[0]);
   opr_data[vertexdof::stencilIndexFromVertex(vertices[1])] += coeff * localMatrix(idx[0],idx[1]);
   opr_data[vertexdof::stencilIndexFromVertex(vertices[2])] += coeff * localMatrix(idx[0],idx[2]);
+}
+
+inline void assembleStencil(uint_t level, Face& face, std::vector<real_t>& opr_data, const Point3D& x,
+                            const std::vector<FaceP1LocalMatrixMemory *>& localMatricesVector,
+                            Matrix2r& mappingTensor, real_t* coeffs[3], const Point3D& offsetS,
+                            const Point3D& offsetSE, const Point3D& offsetSW, const Point3D& offsetNW,
+                            const Point3D& offsetN, const Point3D& offsetNE) {
+  std::fill(opr_data.begin(), opr_data.end(), 0.0);
+
+  face.blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementS,
+                       P1Elements::FaceVertexDoF::P1GrayDoFMaps[0]);
+  }
+
+  face.blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementSE,
+                         P1Elements::FaceVertexDoF::P1BlueDoFMaps[1]);
+  }
+
+  face.blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementSW,
+                         P1Elements::FaceVertexDoF::P1BlueDoFMaps[0]);
+  }
+
+  face.blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementNW,
+                         P1Elements::FaceVertexDoF::P1GrayDoFMaps[2]);
+  }
+
+  face.blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementN,
+                         P1Elements::FaceVertexDoF::P1BlueDoFMaps[2]);
+  }
+
+  face.blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementNE,
+                         P1Elements::FaceVertexDoF::P1GrayDoFMaps[1]);
+  }
 }
 
 template<typename ValueType, uint_t Level>
@@ -56,13 +117,6 @@ inline void applyBlendingTmpl(Face &face,
 
   ValueType tmp;
 
-  std::array<SD, 3> triangleBlueSW = {SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S};
-  std::array<SD, 3> triangleGrayS = {SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE};
-  std::array<SD, 3> triangleBlueSE = {SD::VERTEX_C, SD::VERTEX_SE, SD::VERTEX_E};
-  std::array<SD, 3> triangleGrayNW = {SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_NW};
-  std::array<SD, 3> triangleBlueN = {SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_N};
-  std::array<SD, 3> triangleGrayNE = {SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_E};
-
   Point3D offsetSW = -1.0/3.0 * d0 - 1.0/3.0 * d2;
   Point3D offsetS = 1.0/3.0 * d0 - 2.0/3.0 * d2;
   Point3D offsetSE = 2.0/3.0 * d0 - 1.0/3.0 * d2;
@@ -80,75 +134,7 @@ inline void applyBlendingTmpl(Face &face,
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      std::fill(opr_data.begin(), opr_data.end(), 0.0);
-
-      face.blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getGrayMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleGrayS,
-                                               {2, 0, 1});
-      }
-
-      face.blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getBlueMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleBlueSE,
-                                               {1, 2, 0});
-      }
-
-      face.blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getBlueMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleBlueSW,
-                                               {0, 1, 2});
-      }
-
-      face.blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getGrayMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleGrayNW,
-                                               {1, 0, 2});
-      }
-
-      face.blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getBlueMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleBlueN,
-                                               {2, 1, 0});
-      }
-
-      face.blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               j,
-                                               localMatricesVector[coeffIdx]->getGrayMatrix(Level),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleGrayNE,
-                                               {0, 2, 1});
-      }
-
-      auto stencil = PointND<real_t,7>(opr_data.data());
+      assembleStencil(Level, face, opr_data, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
 
       if (update == Replace) {
         tmp = ValueType(0);
@@ -179,8 +165,7 @@ SPECIALIZE_WITH_VALUETYPE(void, applyBlendingTmpl, applyBlending)
 
 namespace macroedge {
 
-template<typename ValueType, uint_t Level>
-inline void assembleLocalStencil(uint_t pos, const Matrix3r& localMatrix,
+inline void assembleLocalStencil(const Matrix3r& localMatrix,
                                  real_t* opr_data,
                                  real_t coeff,
                                  const std::array< stencilDirection, 3 >& vertices,
@@ -189,6 +174,71 @@ inline void assembleLocalStencil(uint_t pos, const Matrix3r& localMatrix,
   opr_data[vertexdof::stencilIndexFromVertex( vertices[0] )] += coeff * localMatrix(idx[0],idx[0]);
   opr_data[vertexdof::stencilIndexFromVertex( vertices[1] )] += coeff * localMatrix(idx[0],idx[1]);
   opr_data[vertexdof::stencilIndexFromVertex( vertices[2] )] += coeff * localMatrix(idx[0],idx[2]);
+}
+
+inline void assembleStencil(uint_t level, Edge& edge, Face* faceS, Face* faceN, std::vector<real_t>& opr_data, const Point3D& x,
+                            const std::vector<EdgeP1LocalMatrixMemory *>& localMatricesVector,
+                            Matrix2r& mappingTensor, real_t* coeffs[3], const Point3D& offsetS,
+                            const Point3D& offsetSE, const Point3D& offsetSW, const Point3D& offsetNW,
+                            const Point3D& offsetN, const Point3D& offsetNE, uint_t s_south, uint_t e_south,
+                            uint_t o_south, uint_t s_north, uint_t e_north, uint_t o_north) {
+  std::fill(opr_data.begin(), opr_data.end(), 0.0);
+
+  faceS->blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 0),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementSW,
+                         {e_south, s_south, o_south});
+  }
+
+  faceS->blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level, 0),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementS,
+                         {o_south, e_south, s_south});
+  }
+
+  faceS->blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
+  for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+    assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 0),
+                         opr_data.data(),
+                         *coeffs[coeffIdx],
+                         P1Elements::FaceVertexDoF::elementSE,
+                         {s_south, o_south, e_south});
+  }
+
+  if (edge.getNumNeighborFaces() == 2) {
+    faceN->blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
+    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+      assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 1),
+                           opr_data.data(),
+                           *coeffs[coeffIdx],
+                           P1Elements::FaceVertexDoF::elementNW,
+                           {e_north, o_north, s_north});
+    }
+
+    faceN->blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
+    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+      assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level, 1),
+                           opr_data.data(),
+                           *coeffs[coeffIdx],
+                           P1Elements::FaceVertexDoF::elementN,
+                           {o_north, s_north, e_north});
+    }
+
+    faceN->blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
+    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
+      assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 1),
+                           opr_data.data(),
+                           *coeffs[coeffIdx],
+                           P1Elements::FaceVertexDoF::elementNE,
+                           {s_north, e_north, o_north});
+    }
+  }
 }
 
 template< typename ValueType, uint_t Level >
@@ -215,13 +265,6 @@ inline void applyBlendingTmpl(Edge &edge,
   }
 
   ValueType tmp;
-
-  std::array< stencilDirection, 3 > triangleGraySW = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  };
-  std::array< stencilDirection, 3 > triangleBlueS  = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE };
-  std::array< stencilDirection, 3 > triangleGraySE = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  };
-  std::array< stencilDirection, 3 > triangleGrayNW = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_NW };
-  std::array< stencilDirection, 3 > triangleBlueN  = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_N  };
-  std::array< stencilDirection, 3 > triangleGrayNE = { stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_E  };
 
   Face* faceS = storage->getFace(edge.neighborFaces()[0]);
   Face* faceN;
@@ -263,69 +306,7 @@ inline void applyBlendingTmpl(Edge &edge,
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    std::fill(opr_data.begin(), opr_data.end(), 0.0);
-
-    faceS->blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
-    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-      assembleLocalStencil<ValueType, Level>(i,
-                                             localMatricesVector[coeffIdx]->getGrayMatrix(Level, 0),
-                                             opr_data.data(),
-                                             *coeffs[coeffIdx],
-                                             triangleGraySW,
-                                             {e_south, s_south, o_south});
-    }
-
-    faceS->blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
-    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-      assembleLocalStencil<ValueType, Level>(i,
-                                             localMatricesVector[coeffIdx]->getBlueMatrix(Level, 0),
-                                             opr_data.data(),
-                                             *coeffs[coeffIdx],
-                                             triangleBlueS,
-                                             {o_south, e_south, s_south});
-    }
-
-    faceS->blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
-    for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-      assembleLocalStencil<ValueType, Level>(i,
-                                             localMatricesVector[coeffIdx]->getGrayMatrix(Level, 0),
-                                             opr_data.data(),
-                                             *coeffs[coeffIdx],
-                                             triangleGraySE,
-                                             {s_south, o_south, e_south});
-    }
-
-    if (edge.getNumNeighborFaces() == 2) {
-      faceN->blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               localMatricesVector[coeffIdx]->getGrayMatrix(Level, 1),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleGrayNW,
-                                               {e_north, s_north, o_north});
-      }
-
-      faceN->blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               localMatricesVector[coeffIdx]->getBlueMatrix(Level, 1),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleBlueN,
-                                               {o_north, e_north, s_north});
-      }
-
-      faceN->blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
-      for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
-        assembleLocalStencil<ValueType, Level>(i,
-                                               localMatricesVector[coeffIdx]->getGrayMatrix(Level, 1),
-                                               opr_data.data(),
-                                               *coeffs[coeffIdx],
-                                               triangleGrayNE,
-                                               {s_north, o_north, e_north});
-      }
-    }
+    assembleStencil(Level, edge, faceS, faceN, opr_data, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE, s_south, e_south, o_south, s_north, e_north, o_north);
 
     tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
 
