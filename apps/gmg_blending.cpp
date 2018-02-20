@@ -30,13 +30,14 @@ int main(int argc, char* argv[])
   } else {
     cfg = walberla::config::create(argc, argv);
   }
-  WALBERLA_LOG_INFO("config = " << *cfg);
+  WALBERLA_LOG_INFO_ON_ROOT("config = " << *cfg);
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
   uint_t level_H = parameters.getParameter<uint_t>("level_h_coarse");
   uint_t level_h = parameters.getParameter<uint_t>("level_h_fine");
   const uint_t minLevel = 2;
   const uint_t maxLevel = level_h - level_H;
+  const uint_t maxMemoryLevel = maxLevel + 1;
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
   const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
   const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
@@ -74,24 +75,16 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::P1Function< real_t > r("r", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > f("f", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > u("u", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > Lu("Lu", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > err("err", storage, minLevel, maxLevel);
-  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
-  std::shared_ptr<P1Function< real_t >> coefficient_11 = std::make_shared<P1Function< real_t >>("coeff_11", storage, minLevel, maxLevel);
-  std::shared_ptr<P1Function< real_t >> coefficient_12 = std::make_shared<P1Function< real_t >>("coeff_12", storage, minLevel, maxLevel);
-  std::shared_ptr<P1Function< real_t >> coefficient_22 = std::make_shared<P1Function< real_t >>("coeff_22", storage, minLevel, maxLevel);
-  std::vector<std::shared_ptr<P1Function< real_t >>> coefficients;
-  coefficients.push_back(coefficient_11);
-  coefficients.push_back(coefficient_12);
-  coefficients.push_back(coefficient_22);
-  auto coordX = std::make_shared<hhg::P1Function<real_t>>("x", storage, minLevel, maxLevel);
-  auto coordY = std::make_shared<hhg::P1Function<real_t>>("y", storage, minLevel, maxLevel);
-
-  hhg::P1MassOperator M(storage, minLevel, maxLevel);
+  hhg::P1Function< real_t > r("r", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > f("f", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > u("u", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > Lu("Lu", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > err("err", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxMemoryLevel);
+  hhg::P1Function< real_t > tmp("npoints_helper", storage, minLevel, maxMemoryLevel);
+  auto coordX = std::make_shared<hhg::P1Function<real_t>>("x", storage, minLevel, maxMemoryLevel);
+  auto coordY = std::make_shared<hhg::P1Function<real_t>>("y", storage, minLevel, maxMemoryLevel);
 
   typedef hhg::P1BlendingLaplaceOperator SolveOperatorNodal;
   typedef hhg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
@@ -100,6 +93,7 @@ int main(int argc, char* argv[])
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   std::function<real_t(const hhg::Point3D&)> xExpr = [](const hhg::Point3D& x) { return x[0]; };
@@ -117,14 +111,12 @@ int main(int argc, char* argv[])
   f.interpolate(rhs, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Setting up stiffness operator");
+  SolveOperator Lpoly;
   SolveOperator L;
 
   auto start = walberla::timing::getWcTime();
-  if (polynomialOperator) {
-    L = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel, maxPolyDegree, interpolationLevel);
-  } else {
-    L = std::make_shared<SolveOperatorNodal>(storage, minLevel, maxLevel);
-  }
+  Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxMemoryLevel, maxPolyDegree, interpolationLevel);
+  L = std::make_shared<SolveOperatorNodal>(storage, minLevel, maxMemoryLevel);
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
 
@@ -134,14 +126,14 @@ int main(int argc, char* argv[])
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
   typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver> LaplaceSover;
-  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxMemoryLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));
 
   real_t rel_res = 1.0;
 
-  L->apply(u, Lu, maxLevel, hhg::Inner);
+  Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner);
 
   real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
@@ -160,9 +152,9 @@ int main(int argc, char* argv[])
   for (; i < max_outer_iter; ++i)
   {
     start = walberla::timing::getWcTime();
-    laplaceSolver.solve(*L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
+    laplaceSolver.solve(*Lpoly, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
     end = walberla::timing::getWcTime();
-    L->apply(u, Lu, maxLevel, hhg::Inner);
+    Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Lu }, maxLevel, hhg::Inner);
     real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;
@@ -171,6 +163,16 @@ int main(int argc, char* argv[])
 
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err,end - start));
     solveTime += end-start;
+
+    WALBERLA_LOG_INFO_ON_ROOT("Estimating discretization error...");
+    u.prolongate(maxLevel, hhg::All);
+    L->apply(u, r, maxMemoryLevel, hhg::All);
+
+    tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
+    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::All);
+    real_t estH1Error = r.dot(tmp, maxMemoryLevel, hhg::All);
+
+    WALBERLA_LOG_INFO_ON_ROOT("Estimated H1 error = " << estH1Error);
 
     if (i >= convergenceStartIter) {
       averageConvergenceRate += abs_res/abs_res_old;
