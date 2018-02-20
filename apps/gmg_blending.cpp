@@ -48,6 +48,22 @@ int main(int argc, char* argv[])
   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/unitsquare_with_circular_hole.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
+  Point3D circleCenter{{0.5, 0.5, 0}};
+  real_t circleRadius = 0.25;
+
+  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
+    Face &face = *it->second;
+
+    if (face.hasBoundaryEdge()) {
+      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
+
+      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+      }
+    }
+  }
+
   hhg::loadbalancing::roundRobin( setupStorage );
 
   if (polynomialOperator) {
@@ -86,21 +102,11 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
-  Point3D circleCenter{{0.5, 0.5, 0}};
-  real_t circleRadius = 0.25;
+  std::function<real_t(const hhg::Point3D&)> xExpr = [](const hhg::Point3D& x) { return x[0]; };
+  std::function<real_t(const hhg::Point3D&)> yExpr = [](const hhg::Point3D& x) { return x[1]; };
 
-  for (auto& it : storage->getFaces()) {
-    Face &face = *it.second;
-
-    if (face.hasBoundaryEdge()) {
-      Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
-
-      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
-        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-      }
-    }
-  }
+  coordX->interpolate(xExpr, maxLevel, hhg::All);
+  coordY->interpolate(yExpr, maxLevel, hhg::All);
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
@@ -144,7 +150,7 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0.0));
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);

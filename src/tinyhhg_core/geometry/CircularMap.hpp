@@ -7,7 +7,7 @@ namespace hhg {
 class CircularMap : public FaceMap {
  public:
 
-  CircularMap(const Face& face, const std::shared_ptr<PrimitiveStorage>& storage, const Point3D& center, real_t radius)
+  CircularMap(const Face& face, const SetupPrimitiveStorage& storage, const Point3D& center, real_t radius)
       : center_(center), radius_(radius)
   {
     // Get edge on boundary
@@ -15,8 +15,8 @@ class CircularMap : public FaceMap {
     WALBERLA_ASSERT_EQUAL(face.hasBoundaryEdge(), true);
     WALBERLA_ASSERT_EQUAL(face.edgesOnBoundary.size(), 1);
 
-    const Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
-    const Vertex& vertex = *storage->getVertex(face.get_vertex_opposite_to_edge(edge.getID()));
+    const Edge& edge = *storage.getEdge(face.edgesOnBoundary[0]);
+    const Vertex& vertex = *storage.getVertex(face.get_vertex_opposite_to_edge(edge.getID()));
 
     Point3D x2, x3;
 
