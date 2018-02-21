@@ -38,6 +38,15 @@ public:
     }
   }
 
+  inline void interpolate(std::function<ValueType(const Point3D &)>& expr,
+                          uint_t level,
+                          DoFType flag = All);
+
+  inline void interpolateExtended(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr,
+                                  const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                  uint_t level,
+                                  DoFType flag = All);
+
   inline void assign(const std::vector<ValueType> scalars,
                      const std::vector<DGFunction< ValueType >*> functions,
                      uint_t level,
@@ -64,10 +73,7 @@ private:
   PrimitiveDataID<FunctionMemory<ValueType>, Edge> edgeDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
 
-  inline void interpolate_impl(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr,
-                               const std::vector<DGFunction<ValueType>*> srcFunctions,
-                               uint_t level,
-                               DoFType flag = All) override;
+
 
   inline void enumerate_impl(uint_t level, uint_t& num) override;
 
@@ -100,10 +106,20 @@ void DGFunction< ValueType >::add(const std::vector<ValueType> scalars, const st
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                               const std::vector<DGFunction<ValueType>*> srcFunctions,
-                                               uint_t level,
-                                               DoFType flag) {
+inline void DGFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+                                                 uint_t level, DoFType flag)
+{
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+      return expr(x);
+  };
+  interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template< typename ValueType >
+void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                                  const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                                  uint_t level,
+                                                  DoFType flag) {
 
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;

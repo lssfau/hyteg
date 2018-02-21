@@ -34,6 +34,32 @@ public:
   std::shared_ptr<              EdgeDoFFunction< ValueType > > getEdgeDoFFunction()   const { return edgeDoFFunction_;   }
 
   inline void
+  interpolate( std::function< ValueType( const Point3D& ) >& expr,
+               uint_t level, DoFType flag = All )
+  {
+    vertexDoFFunction_->interpolate( expr, level, flag );
+    edgeDoFFunction_->interpolate( expr, level, flag );
+  }
+
+
+    inline void
+  interpolateExtended( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                       const std::vector< P2Function< ValueType > * > srcFunctions, uint_t level, DoFType flag = All )
+  {
+    std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
+    std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
+
+    for ( const auto & function : srcFunctions )
+    {
+      vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
+      edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
+    }
+
+    vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
+    edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
+  }
+
+  inline void
   assign( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
           uint_t level, DoFType flag = All )
   {
@@ -224,22 +250,7 @@ private:
 
   using Function< P2Function< ValueType > >::communicators_;
 
-    inline void
-    interpolate_impl( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                      const std::vector< P2Function< ValueType > * > srcFunctions, uint_t level, DoFType flag = All )
-    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
-      std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
 
-      for ( const auto & function : srcFunctions )
-      {
-        vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-        edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
-      }
-
-      vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
-    }
     inline void
     enumerate_impl( uint_t level, uint_t& num )
     {

@@ -38,15 +38,6 @@ public:
 
   virtual ~Function() {}
 
-  inline void interpolate( std::function< ValueType( const Point3D & ) > & expr,
-                           uint_t                                          level,
-                           DoFType                                         flag = All );
-
-  inline void interpolateExtended( std::function< ValueType( const Point3D &, const std::vector<ValueType>& ) > & expr,
-                                   const std::vector<FunctionType*>&               srcFunctions,
-                                   uint_t                                          level,
-                                   DoFType                                         flag = All );
-
   inline uint_t enumerate( uint_t   level,
                            uint_t & num );
 
@@ -76,13 +67,8 @@ public:
 
 protected:
 
-    virtual void
-    interpolate_impl( std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                      const std::vector<FunctionType*> srcFunctions,
-                      uint_t level, DoFType flag = All ) = 0;
-
-    virtual void
-    enumerate_impl( uint_t level, uint_t& num ) = 0;
+  virtual void
+  enumerate_impl( uint_t level, uint_t& num ) = 0;
 
   const std::string functionName_;
   const std::weak_ptr< PrimitiveStorage > storage_;
@@ -115,33 +101,6 @@ protected:
 
 };
 
-
-template< typename FunctionType >
-void Function< FunctionType >::interpolate(std::function< ValueType(const Point3D&)>& expr, uint_t level, DoFType flag)
-{
-  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
-    return expr(x);
-  };
-
-  startTiming( "Interpolate" );
-
-  interpolate_impl( exprExtended, {}, level, flag );
-
-  stopTiming( "Interpolate" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::interpolateExtended(std::function< ValueType(const Point3D&,const std::vector<ValueType>&)>& expr,
-                                                   const std::vector<FunctionType*>& srcFunctions,
-                                                   uint_t level,
-                                                   DoFType flag)
-{
-  startTiming( "InterpolateExt" );
-
-  interpolate_impl( expr, srcFunctions, level, flag );
-
-  stopTiming( "InterpolateExt" );
-}
 
 template< typename FunctionType >
 uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)

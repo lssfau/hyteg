@@ -80,6 +80,18 @@ public:
   add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
        uint_t level, DoFType flag = All );
 
+  /// Interpolates a given expression to a EdgeDoFFunction
+
+  inline void
+  interpolate(std::function< ValueType( const Point3D & ) >& expr,
+                          uint_t level, DoFType flag = All);
+
+  inline void
+  interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                      const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                      uint_t level,
+                      DoFType flag = All);
+
   inline real_t
   dot( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
@@ -91,12 +103,7 @@ private:
 
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
 
-    /// Interpolates a given expression to a EdgeDoFFunction
-    inline void
-    interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                             const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                                             uint_t level,
-                                             DoFType flag = All);
+
 
     inline void
     enumerate_impl( uint_t level, uint_t& num );
@@ -107,10 +114,20 @@ private:
 };
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                                           const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                                                           uint_t level,
-                                                           DoFType flag)
+inline void EdgeDoFFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+                                                      uint_t level, DoFType flag)
+{
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+      return expr(x);
+  };
+  interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template< typename ValueType >
+inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                                              const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                                                              uint_t level,
+                                                              DoFType flag)
 {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
