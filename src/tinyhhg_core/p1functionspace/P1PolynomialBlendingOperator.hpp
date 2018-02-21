@@ -45,10 +45,8 @@ public:
   P1PolynomialBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                        uint_t minLevel,
                        uint_t maxLevel,
-                       uint_t polyDegree,
                        uint_t interpolationLevel)
       : Operator(storage, minLevel, maxLevel),
-        polyDegree_(polyDegree),
         interpolationLevel_(interpolationLevel)
   {
   }
@@ -64,7 +62,6 @@ public:
   void init() {
     WALBERLA_ASSERT(operators_.size() > 0, "At least one operator needs to be added before calling init()");
     initLocalStiffnessMatrices();
-    interpolateStencils();
   }
 
 private:
@@ -137,7 +134,8 @@ private:
     }
   }
 
-  void interpolateStencils() {
+public:
+  void interpolateStencils(uint_t fineLevel, uint_t polyDegree) {
     typedef stencilDirection SD;
     using namespace P1Elements;
 
@@ -147,15 +145,16 @@ private:
       Face& face = *it.second;
 
       auto facePolynomials = face.getData(facePolynomialID_);
+      facePolynomials->addDegree(polyDegree);
 
       uint_t rowsize = levelinfo::num_microvertices_per_edge(interpolationLevel_);
-      uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
+      uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(fineLevel);
       uint_t inner_rowsize = rowsize;
       real_t coeffWeight;
 
-      Interpolator horiInterpolator(polyDegree_, interpolationLevel_);
-      Interpolator vertInterpolator(polyDegree_, interpolationLevel_);
-      Interpolator diagInterpolator(polyDegree_, interpolationLevel_);
+      Interpolator horiInterpolator(polyDegree, interpolationLevel_);
+      Interpolator vertInterpolator(polyDegree, interpolationLevel_);
+      Interpolator diagInterpolator(polyDegree, interpolationLevel_);
 
       Point3D x, x0;
       x0 = face.coords[0];
@@ -198,7 +197,7 @@ private:
 
           ref_x[0] = i * ref_H;
 
-          vertexdof::blending::macroface::assembleStencil(maxLevel_, face, faceStencil, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
+          vertexdof::blending::macroface::assembleStencil(fineLevel, face, faceStencil, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
 
           horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)]);
 
@@ -222,11 +221,63 @@ private:
         --inner_rowsize;
       }
 
-      horiInterpolator.interpolate(facePolynomials->getHoriPolynomial(polyDegree_));
-      vertInterpolator.interpolate(facePolynomials->getVertPolynomial(polyDegree_));
-      diagInterpolator.interpolate(facePolynomials->getDiagPolynomial(polyDegree_));
+      horiInterpolator.interpolate(facePolynomials->getHoriPolynomial(polyDegree));
+      vertInterpolator.interpolate(facePolynomials->getVertPolynomial(polyDegree));
+      diagInterpolator.interpolate(facePolynomials->getDiagPolynomial(polyDegree));
     }
   }
+
+  void useDegree(uint_t degree) {
+    polyDegree_ = degree;
+  }
+
+  real_t lInfinityError(uint_t degreeA, uint_t degreeB, uint_t level) {
+
+    real_t error = std::numeric_limits<real_t>::min();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+      auto polynomials = face.getData(facePolynomialID_);
+
+      auto horiPolyA = polynomials->getHoriPolynomial(degreeA);
+      auto vertPolyA = polynomials->getVertPolynomial(degreeA);
+      auto diagPolyA = polynomials->getDiagPolynomial(degreeA);
+
+      auto horiPolyB = polynomials->getHoriPolynomial(degreeB);
+      auto vertPolyB = polynomials->getVertPolynomial(degreeB);
+      auto diagPolyB = polynomials->getDiagPolynomial(degreeB);
+
+//      error = std::max(error, horiPolyA.lInfinityError(horiPolyB));
+//      error = std::max(error, vertPolyA.lInfinityError(vertPolyB));
+//      error = std::max(error, diagPolyA.lInfinityError(diagPolyB));
+
+      uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+      uint_t inner_rowsize = rowsize;
+      real_t ref_H = walberla::real_c(1)/(walberla::real_c(rowsize - 1));
+
+      Point2D ref_x;
+
+      for (uint_t j = 1; j < rowsize - 2; ++j) {
+        ref_x[1] = j * ref_H;
+        for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+          ref_x[0] = i * ref_H;
+
+          error = std::max(error, std::abs(horiPolyA.eval(ref_x) - horiPolyB.eval(ref_x)));
+          error = std::max(error, std::abs(vertPolyA.eval(ref_x) - vertPolyB.eval(ref_x)));
+          error = std::max(error, std::abs(diagPolyA.eval(ref_x) - diagPolyB.eval(ref_x)));
+
+        }
+
+        --inner_rowsize;
+      }
+    }
+
+    walberla::mpi::allReduceInplace(error, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm());
+
+    return error;
+  }
+
+private:
 
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
@@ -469,9 +520,8 @@ public:
   P1PolynomialTensorBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                                         size_t minLevel,
                                         size_t maxLevel,
-                                        uint_t polyDegree,
                                         uint_t interpolationLevel)
-      : P1PolynomialBlendingOperator(storage, minLevel, maxLevel, polyDegree, interpolationLevel)
+      : P1PolynomialBlendingOperator(storage, minLevel, maxLevel, interpolationLevel)
   {
     fenicsOperator1 = std::make_shared<FenicsOperator1>();
     fenicsOperator2 = std::make_shared<FenicsOperator2>();

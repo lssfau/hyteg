@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
+  u.interpolate(exact, maxMemoryLevel, hhg::DirichletBoundary);
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
   u_exact.interpolate(exact, maxLevel);
@@ -111,17 +112,56 @@ int main(int argc, char* argv[])
   f.interpolate(rhs, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Setting up stiffness operator");
-  SolveOperator Lpoly;
+  std::shared_ptr<SolveOperatorPoly> Lpoly;
   SolveOperator L;
+  SolveOperator solveOperator;
+  uint_t useDegree;
 
   auto start = walberla::timing::getWcTime();
-  Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxMemoryLevel, maxPolyDegree, interpolationLevel);
   L = std::make_shared<SolveOperatorNodal>(storage, minLevel, maxMemoryLevel);
+
+  if (polynomialOperator) {
+    Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxMemoryLevel, interpolationLevel);
+
+    for (uint_t i = 0; i <= 12; ++i) {
+      Lpoly->interpolateStencils(maxMemoryLevel, i);
+    }
+
+    useDegree = maxPolyDegree;
+    Lpoly->useDegree(useDegree);
+
+    real_t polyError34 = Lpoly->lInfinityError(3, 4, 5);
+    real_t polyError45 = Lpoly->lInfinityError(4, 5, 5);
+    real_t polyError56 = Lpoly->lInfinityError(5, 6, 5);
+    real_t polyError67 = Lpoly->lInfinityError(6, 7, 5);
+    real_t polyError78 = Lpoly->lInfinityError(7, 8, 5);
+    real_t polyError89 = Lpoly->lInfinityError(8, 9, 5);
+    real_t polyError910 = Lpoly->lInfinityError(9, 10, 5);
+    real_t polyError1011 = Lpoly->lInfinityError(10, 11, 5);
+    real_t polyError1112 = Lpoly->lInfinityError(11, 12, 5);
+
+    WALBERLA_LOG_INFO_ON_ROOT("polyError34 = " << polyError34);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError45 = " << polyError45);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError56 = " << polyError56);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError67 = " << polyError67);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError78 = " << polyError78);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError89 = " << polyError89);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError910 = " << polyError910);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError1011 = " << polyError1011);
+    WALBERLA_LOG_INFO_ON_ROOT("polyError1112 = " << polyError1112);
+
+    solveOperator = Lpoly;
+  } else {
+    solveOperator = L;
+  }
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
+
+  npoints_helper.interpolate(ones, maxMemoryLevel);
+  real_t npointsMaxMemoryLevel = npoints_helper.dot(npoints_helper, maxMemoryLevel);
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
@@ -129,11 +169,11 @@ int main(int argc, char* argv[])
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxMemoryLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Time"));
 
   real_t rel_res = 1.0;
 
-  Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
+  solveOperator->apply(u, Lu, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner);
 
   real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
@@ -142,7 +182,15 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0.0));
+  // Estimating discretization error
+  u.prolongate(maxLevel, hhg::Inner);
+  L->apply(u, r, maxMemoryLevel, hhg::Inner);
+  tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
+  L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
+  real_t estL2Error = std::sqrt(tmp.dot(tmp, maxMemoryLevel) / npointsMaxMemoryLevel);
+  real_t estL2ErrorOld = estL2Error;
+
+  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -152,32 +200,38 @@ int main(int argc, char* argv[])
   for (; i < max_outer_iter; ++i)
   {
     start = walberla::timing::getWcTime();
-    laplaceSolver.solve(*Lpoly, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
+    laplaceSolver.solve(*solveOperator, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false);
     end = walberla::timing::getWcTime();
-    Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
+    solveOperator->apply(u, Lu, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Lu }, maxLevel, hhg::Inner);
     real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;
     err.assign({1.0, -1.0}, { &u, &u_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err,end - start));
-    solveTime += end-start;
-
-    WALBERLA_LOG_INFO_ON_ROOT("Estimating discretization error...");
-    u.prolongate(maxLevel, hhg::All);
-    L->apply(u, r, maxMemoryLevel, hhg::All);
-
+    // Estimating discretization error
+    u.prolongate(maxLevel, hhg::Inner);
+    L->apply(u, r, maxMemoryLevel, hhg::Inner);
     tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
-    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::All);
-    real_t estH1Error = r.dot(tmp, maxMemoryLevel, hhg::All);
+    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
+    estL2Error = std::sqrt(tmp.dot(tmp, maxMemoryLevel) / npointsMaxMemoryLevel);
 
-    WALBERLA_LOG_INFO_ON_ROOT("Estimated H1 error = " << estH1Error);
+//    if (polynomialOperator) {
+//      if (estL2Error / estL2ErrorOld > 0.9 && useDegree < 12) {
+//        WALBERLA_LOG_INFO_ON_ROOT("Increasing polynomial degree to " << useDegree + 1);
+//        ++useDegree;
+//        Lpoly->useDegree(useDegree);
+//      }
+//    }
+
+    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, end - start));
+    solveTime += end-start;
 
     if (i >= convergenceStartIter) {
       averageConvergenceRate += abs_res/abs_res_old;
     }
 
+    estL2ErrorOld = estL2Error;
     abs_res_old = abs_res;
 
     if (rel_res < mg_tolerance)

@@ -8,7 +8,7 @@ import sys
 
 x, y = symbols('x y')
 
-DEGREE = 7
+DEGREE = 12
 
 monomials = []
 

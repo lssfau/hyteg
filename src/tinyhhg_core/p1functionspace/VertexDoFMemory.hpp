@@ -152,14 +152,12 @@ public:
 
   std::map<uint_t, FacePolynomials> polynomials_;
 
-  FaceP1PolynomialMemory(uint_t maxDegree) {
-    addDegree(maxDegree);
-  }
+  FaceP1PolynomialMemory() {}
 
   inline FacePolynomials& addDegree(uint_t degree)
   {
-    if (polynomials_.count(degree)>0) {
-      WALBERLA_LOG_WARNING("Degree already exists.")
+    if (polynomialDegreeExists(degree)) {
+      WALBERLA_LOG_WARNING("Degree already exists.");
     }
 
     FacePolynomials& tmp = polynomials_[degree];
@@ -167,6 +165,10 @@ public:
     tmp.vertPoly = std::make_shared<GeneralPolynomial2D>(degree);
     tmp.diagPoly = std::make_shared<GeneralPolynomial2D>(degree);
     return tmp;
+  }
+
+  bool polynomialDegreeExists(uint_t degree) {
+    return polynomials_.count(degree)>0;
   }
 
   GeneralPolynomial2D& getHoriPolynomial(uint_t maxDegree) {

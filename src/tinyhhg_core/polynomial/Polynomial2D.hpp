@@ -60,6 +60,26 @@ class Polynomial2D {
     }
   }
 
+  real_t lInfinityError(const Polynomial2D& rhs) {
+    real_t error = std::numeric_limits<real_t>::min();
+
+    uint_t i = 0;
+
+    for (; i < std::min(numCoefficients_, rhs.numCoefficients_); ++i) {
+      error = std::max(error, std::abs(coeffs_[i] - rhs.coeffs_[i]));
+    }
+
+    for (; i < numCoefficients_; ++i) {
+      error = std::max(error, std::abs(coeffs_[i]));
+    }
+
+    for (; i < rhs.numCoefficients_; ++i) {
+      error = std::max(error, std::abs(rhs.coeffs_[i]));
+    }
+
+    return error;
+  }
+
 private:
   uint_t degree_;
   uint_t numCoefficients_;

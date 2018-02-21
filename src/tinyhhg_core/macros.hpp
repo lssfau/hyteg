@@ -100,6 +100,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 2, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 2, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 2, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 2, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 2, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 2, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 2, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -123,6 +133,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 3, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 3, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 3, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 3, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 3, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 3, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 3, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -146,6 +166,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 4, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 4, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 4, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 4, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 4, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 4, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 4, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -169,6 +199,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 5, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 5, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 5, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 5, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 5, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 5, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 5, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -192,6 +232,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 6, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 6, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 6, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 6, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 6, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 6, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 6, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -215,6 +265,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 7, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 7, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 7, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 7, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 7, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 7, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 7, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -238,6 +298,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 8, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 8, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 8, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 8, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 8, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 8, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 8, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -261,6 +331,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType, 9, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType, 9, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType, 9, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType, 9, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType, 9, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType, 9, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType, 9, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -284,6 +364,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType,10, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType,10, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType,10, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType,10, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType,10, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType,10, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType,10, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -307,6 +397,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType,11, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType,11, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType,11, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType,11, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType,11, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType,11, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType,11, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -330,11 +430,21 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType,12, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType,12, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType,12, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType,12, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType,12, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType,12, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType,12, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
       }                                                                   \
-    case 13:                                                               \
+    case 13:                                                              \
       {                                                                   \
         switch(polyDegree) {                                              \
           case 0:                                                         \
@@ -353,6 +463,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType,13, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType,13, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType,13, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType,13, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType,13, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType,13, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType,13, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
@@ -376,6 +496,16 @@ inline type func(uint_t level, uint_t polyDegree, Args&&... args)         \
             return func_tmpl< ValueType,14, 6 >(args...);                 \
           case 7:                                                         \
             return func_tmpl< ValueType,14, 7 >(args...);                 \
+          case 8:                                                         \
+            return func_tmpl< ValueType,14, 8 >(args...);                 \
+          case 9:                                                         \
+            return func_tmpl< ValueType,14, 9 >(args...);                 \
+          case 10:                                                        \
+            return func_tmpl< ValueType,14, 10 >(args...);                \
+          case 11:                                                        \
+            return func_tmpl< ValueType,14, 11 >(args...);                \
+          case 12:                                                        \
+            return func_tmpl< ValueType,14, 12 >(args...);                \
           default:                                                        \
             WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
         }                                                                 \
