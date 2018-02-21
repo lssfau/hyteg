@@ -169,19 +169,19 @@ const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperato
 
 namespace EdgeDoFToVertexDoF {
 ////////// Stencil sizes //////////
-uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive ) {
   WALBERLA_UNUSED(level);
-  return 2 * numDependencies;
+  return 2 * primitive.getNumNeighborEdges();
 }
 
-uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive ) {
   WALBERLA_UNUSED(level);
-  return 2 + 5 * numDependencies;
+  return 2 + 5 * primitive.getNumNeighborFaces();
 }
 
-uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const uint_t &numDependencies) {
+uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive ) {
   WALBERLA_UNUSED(level);
-  WALBERLA_UNUSED(numDependencies);
+  WALBERLA_UNUSED(primitive);
   return 12;
 }
 

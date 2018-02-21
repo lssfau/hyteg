@@ -30,6 +30,9 @@ public:
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,  const std::shared_ptr< walberla::WcTimingTree > & timingTree);
 
+  /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
+  static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string & meshFilePath );
+
   void checkConsistency();
 
   /// @name \ref Primitive access methods
@@ -196,6 +199,10 @@ public:
   inline void addCellData(       PrimitiveDataID< DataType, Cell >   & dataID,
                            const std::shared_ptr< DataHandlingType > & dataHandling,
                            const std::string                         & identifier );
+
+  /// Creates an invalid PrimitiveDataID - no \ref Primitive of the storage will ever have data attached that corresponds to this ID.
+  template< typename DataType, typename PrimitiveType >
+  inline PrimitiveDataID< DataType, PrimitiveType > generateInvalidPrimitiveDataID() { return generateDataID< DataType, PrimitiveType >(); }
   ///@}
 
   /// Migrates the passed (local!) primitives to the respective target process.

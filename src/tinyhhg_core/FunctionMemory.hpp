@@ -2,6 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
+#include "tinyhhg_core/primitives/Primitive.hpp"
 
 #include <core/DataTypes.h>
 #include <core/logging/Logging.h>
@@ -27,17 +28,17 @@ class FunctionMemory
 public:
 
   /// Constructs memory for a function
-  FunctionMemory( const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction,
-                  const uint_t & numDependencies,
-                  const uint_t & minLevel,
-                  const uint_t & maxLevel,
+  FunctionMemory( const std::function< uint_t ( uint_t level, const Primitive & primitive ) > & sizeFunction,
+                  const Primitive & primitive,
+                  const uint_t    & minLevel,
+                  const uint_t    & maxLevel,
                   const ValueType fillValue = ValueType() ) :
     fillValue_( fillValue )
   {
     WALBERLA_ASSERT_LESS_EQUAL( minLevel, maxLevel, "minLevel should be equal or less than maxLevel during FunctionMemory allocation." );
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      addLevel( level, sizeFunction( level, numDependencies ), fillValue );
+      addLevel( level, sizeFunction( level, primitive ), fillValue );
     }
   }
 
@@ -168,7 +169,7 @@ class MemoryDataHandling : public PrimitiveDataHandling< DataType, PrimitiveType
 {
 public:
 
-  MemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel, const std::function< uint_t ( uint_t level, uint_t numDependencies ) > & sizeFunction )
+  MemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel, const std::function< uint_t ( uint_t level, const Primitive & primitive ) > & sizeFunction )
     : minLevel_( minLevel ),
       maxLevel_( maxLevel ),
       sizeFunction_( sizeFunction )
@@ -176,11 +177,9 @@ public:
 
   virtual ~MemoryDataHandling() {}
 
-    std::shared_ptr< DataType > initialize(const PrimitiveType *const primitive) const {
-      return std::make_shared< DataType >(sizeFunction_,
-      primitive->getNumHigherDimNeighbors(),
-      minLevel_,
-      maxLevel_);
+  std::shared_ptr< DataType > initialize( const PrimitiveType * const primitive ) const
+  {
+    return std::make_shared< DataType >( sizeFunction_, *primitive, minLevel_, maxLevel_ );
   }
 
   virtual void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const
@@ -200,7 +199,7 @@ private:
 
   const uint_t minLevel_;
   const uint_t maxLevel_;
-  const std::function< uint_t ( uint_t level, uint_t numDependencies ) > sizeFunction_;
+  const std::function< uint_t ( uint_t level, const Primitive & primitive ) > sizeFunction_;
 
 
 };

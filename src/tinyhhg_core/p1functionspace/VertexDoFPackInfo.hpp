@@ -12,19 +12,31 @@ namespace hhg {
 namespace {
 SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
 SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
+SPECIALIZE( uint_t, vertexdof::macrocell::indexFromVertex, indexFromVertexOnMacroCell );
 }
 
 template< typename ValueType >
-class VertexDoFPackInfo : public communication::DoFSpacePackInfo<ValueType> {
-
+class VertexDoFPackInfo : public communication::DoFSpacePackInfo<ValueType>
+{
 public:
-  VertexDoFPackInfo(uint_t level,
-             PrimitiveDataID<FunctionMemory< ValueType >, Vertex> dataIDVertex,
-             PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge,
-             PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace,
-             std::weak_ptr<PrimitiveStorage> storage)
-    : communication::DoFSpacePackInfo< ValueType >(level,dataIDVertex,dataIDEdge,dataIDFace,storage)
+
+  VertexDoFPackInfo( uint_t level,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
+                     std::weak_ptr< PrimitiveStorage>                       storage )
+    : communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, storage )
   {}
+
+  VertexDoFPackInfo(uint_t level,
+             PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex,
+             PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
+             PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
+             PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell,
+             std::weak_ptr< PrimitiveStorage >                      storage )
+    : communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
+  {}
+
   void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
   void unpackEdgeFromVertex(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
@@ -49,11 +61,24 @@ public:
 
   void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const override;
 
+  void packFaceForCell(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+  void unpackCellFromFace(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+  void communicateLocalFaceToCell(const Face *sender, Cell *receiver) const override;
+
+  void packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+  void unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+  void communicateLocalCellToFace(const Cell *sender, Face *receiver) const override;
+
 private:
   using communication::DoFSpacePackInfo< ValueType >::level_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDEdge_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
+  using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
   using communication::DoFSpacePackInfo< ValueType >::storage_;
 };
 
@@ -249,6 +274,146 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
     idx++;
   }
 }
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::packFaceForCell(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+{
+  const ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+
+  // only inner points
+  for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
+  {
+    buffer << faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
+  }
+}
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
+  ValueType * cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
+  const uint_t localFaceID = receiver->getLocalFaceID( sender );
+  const uint_t iterationVertex0 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
+  {
+    buffer >> cellData[ indexFromVertexOnMacroCell( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
+  }
+}
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
+{
+  const ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+        ValueType * cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
+
+  const uint_t localFaceID = receiver->getLocalFaceID( sender->getID() );
+  const uint_t iterationVertex0 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+  for ( const auto & faceIdx : vertexdof::macroface::Iterator( level_ ) )
+  {
+    auto cellIdx = *cellIterator;
+
+    cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ] =
+        faceData[ indexFromVertexOnMacroFace( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C ) ];
+
+    cellIterator++;
+  }
+
+  WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+}
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+{
+  const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+  const uint_t localFaceID = sender->getLocalFaceID( receiver );
+  const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ) )
+  {
+    buffer << cellData[ indexFromVertexOnMacroCell( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
+  }
+}
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
+  ValueType * faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
+
+  stencilDirection neighborDirection;
+
+  WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
+  WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
+
+  if ( receiver->cell_index( sender ) == 0 )
+  {
+    neighborDirection = stencilDirection::VERTEX_BC;
+  }
+  else
+  {
+    WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender ), 1 );
+    neighborDirection = stencilDirection::VERTEX_FNE;
+  }
+
+  for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
+  {
+    if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
+    {
+      buffer >> faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), neighborDirection ) ];
+    }
+  }
+}
+
+template< typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *sender, Face *receiver) const
+{
+  const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+  const uint_t localFaceID = sender->getLocalFaceID( receiver->getID() );
+  const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  ValueType * faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
+
+  stencilDirection neighborDirection;
+
+  WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
+  WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
+
+  if ( receiver->cell_index( sender->getID() ) == 0 )
+  {
+    neighborDirection = stencilDirection::VERTEX_BC;
+  }
+  else
+  {
+    WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender->getID() ), 1 );
+    neighborDirection = stencilDirection::VERTEX_FNE;
+  }
+
+  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+
+  for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
+  {
+    if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
+    {
+      auto cellIdx = *cellIterator;
+      faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), neighborDirection ) ] =
+          cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ];
+      cellIterator++;
+    }
+  }
+
+  WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+}
+
 
 
 } //namespace hhg

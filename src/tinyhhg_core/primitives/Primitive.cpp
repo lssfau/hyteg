@@ -4,7 +4,16 @@
 
 #include <core/mpi/BufferDataTypeExtensions.h>
 
+#include <algorithm>
+
 namespace hhg {
+
+bool Primitive::neighborPrimitiveExists( const PrimitiveID & primitiveID ) const
+{
+  std::vector< PrimitiveID > neighborIDs;
+  getNeighborPrimitives( neighborIDs );
+  return std::find( neighborIDs.begin(), neighborIDs.end(), primitiveID ) != neighborIDs.end();
+}
 
 void Primitive::getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrimitives ) const
 {

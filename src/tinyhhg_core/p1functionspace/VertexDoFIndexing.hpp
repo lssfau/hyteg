@@ -166,6 +166,22 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
     return index< level >( x - 1, y + 1 );
   case sD::VERTEX_SE:
     return index< level >( x + 1, y - 1 );
+  case sD::VERTEX_BC:
+    return index< level >( x    , y    , 0 );
+  case sD::VERTEX_BW:
+    return index< level >( x - 1, y    , 0 );
+  case sD::VERTEX_BS:
+    return index< level >( x    , y - 1, 0 );
+  case sD::VERTEX_BSW:
+    return index< level >( x - 1, y - 1, 0 );
+  case sD::VERTEX_FC:
+    return index< level >( x - 1, y - 1, 1 );
+  case sD::VERTEX_FN:
+    return index< level >( x - 1, y    , 1 );
+  case sD::VERTEX_FE:
+    return index< level >( x    , y - 1, 1 );
+  case sD::VERTEX_FNE:
+    return index< level >( x    , y    , 1 );
   default:
     return std::numeric_limits< uint_t >::max();
   }
@@ -348,11 +364,61 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, con
   switch( dir )
   {
     case sD::VERTEX_C:
-      return index< level >( x, y, z );
+      return index< level >( x    , y    , z     );
+    case sD::VERTEX_W:
+      return index< level >( x - 1, y    , z     );
+    case sD::VERTEX_E:
+      return index< level >( x + 1, y    , z     );
+    case sD::VERTEX_N:
+      return index< level >( x    , y + 1, z     );
+    case sD::VERTEX_S:
+      return index< level >( x    , y - 1, z     );
+    case sD::VERTEX_NW:
+      return index< level >( x - 1, y + 1, z     );
+    case sD::VERTEX_SE:
+      return index< level >( x + 1, y - 1, z     );
+    case sD::VERTEX_BC:
+      return index< level >( x    , y    , z + 1 );
+    case sD::VERTEX_BW:
+      return index< level >( x - 1, y    , z + 1 );
+    case sD::VERTEX_BS:
+      return index< level >( x    , y - 1, z + 1 );
+    case sD::VERTEX_BSW:
+      return index< level >( x - 1, y - 1, z + 1 );
+    case sD::VERTEX_FC:
+      return index< level >( x    , y    , z - 1 );
+    case sD::VERTEX_FN:
+      return index< level >( x    , y + 1, z - 1 );
+    case sD::VERTEX_FE:
+      return index< level >( x + 1, y    , z - 1 );
+    case sD::VERTEX_FNE:
+      return index< level >( x + 1, y + 1, z - 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
 }
+
+
+/// neighbor arrays from vertex dof
+constexpr std::array<stencilDirection, 15> neighborsWithCenter = {{ hhg::stencilDirection::VERTEX_C,
+                                                                    hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                    hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                    hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                    hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+                                                                    hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSW,
+                                                                    hhg::stencilDirection::VERTEX_FC, hhg::stencilDirection::VERTEX_FN,
+                                                                    hhg::stencilDirection::VERTEX_FE, hhg::stencilDirection::VERTEX_FNE,
+                                                                 }};
+
+constexpr std::array<stencilDirection, 14> neighborsWithoutCenter = {{
+                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                       hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+                                                                       hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSW,
+                                                                       hhg::stencilDirection::VERTEX_FC, hhg::stencilDirection::VERTEX_FN,
+                                                                       hhg::stencilDirection::VERTEX_FE, hhg::stencilDirection::VERTEX_FNE,
+                                                                    }};
 
 // Iterators
 
@@ -366,7 +432,23 @@ public:
   {}
 };
 
+/// Iterator over the borders (faces) of a macro-cell.
+/// See \ref CellBorderIterator for more information.
+class BorderIterator : public hhg::indexing::CellBorderIterator
+{
+public:
+  BorderIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
+                  const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
+    CellBorderIterator( levelinfo::num_microvertices_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
+  {}
+};
+
 } // namespace macrocell
+
+
+// ################
+// ### Stencils ###
+// ################
 
 constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
 {
@@ -385,7 +467,23 @@ constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
     case sD::VERTEX_NW:
       return 5;
     case sD::VERTEX_N:
-        return 6;
+      return 6;
+    case sD::VERTEX_BC:
+      return 7;
+    case sD::VERTEX_BW:
+      return 8;
+    case sD::VERTEX_BS:
+      return 9;
+    case sD::VERTEX_BSW:
+      return 10;
+    case sD::VERTEX_FC:
+      return 11;
+    case sD::VERTEX_FN:
+      return 12;
+    case sD::VERTEX_FE:
+      return 13;
+    case sD::VERTEX_FNE:
+      return 14;
     default:
       return std::numeric_limits<size_t>::max();
   }

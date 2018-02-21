@@ -69,19 +69,19 @@ private:
 template< typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > > VertexDGFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, vertex->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > > EdgeDGFunctionMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGEdgeFunctionMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( DGEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > > FaceDGFunctionMemoryDataHandling< ValueType >::initialize( const Face * const face ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGFaceFunctionMemorySize, 0, minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( DGFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
 }
 
 

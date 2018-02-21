@@ -43,6 +43,11 @@ if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
 endif()
 
+# MSVC generates so many warnings that the CI log gets too large to complete the job successfully - therefore we suppress a prominent one.
+if(WALBERLA_CXX_COMPILER_IS_MSVC)
+    add_flag( CMAKE_CXX_FLAGS "/wd4100" )
+endif()
+
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
                  src/tinyhhg_core/HHGDefinitions.hpp )
 

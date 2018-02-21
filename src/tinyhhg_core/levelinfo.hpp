@@ -31,10 +31,15 @@ constexpr inline uint_t num_microedges_per_face(uint_t level)
   return 3 * ( ( ( num_microedges_per_edge( level ) + 1 ) * num_microedges_per_edge( level ) ) / 2 );
 }
 
+constexpr inline uint_t num_microvertices_per_face_from_width( const uint_t & width )
+{
+  return ((width * (width + 1u)) >> 1u);
+}
+
 constexpr inline uint_t num_microvertices_per_face(uint_t level)
 {
-  //(pow(2,level) + 1) * (pow(2,level) + 2) / 2
-  return ((((1u << level) + 1u) * ((1u << level) + 2u)) >> 1u);
+  const uint_t width = ( 1u << level ) + 1u;
+  return num_microvertices_per_face_from_width( width );
 }
 
 constexpr inline uint_t num_microfaces_per_face(uint_t level)
@@ -43,6 +48,24 @@ constexpr inline uint_t num_microfaces_per_face(uint_t level)
   return (1u << (2u*level));
 }
 
+constexpr inline uint_t num_microvertices_per_cell_from_width( const uint_t & width )
+{
+  return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
 }
+
+constexpr inline uint_t num_microvertices_per_cell( const uint_t & level )
+{
+  const uint_t width = ( 1u << level ) + 1;
+  return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
+}
+
+constexpr inline uint_t num_microcells_per_cell( const uint_t & level )
+{
+  // num_microcells_per_cell = 8 ^ level
+  return (1 << (3 * level));
+}
+
+}
+
 }
 

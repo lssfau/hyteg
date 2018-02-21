@@ -72,10 +72,15 @@ inline PrimitiveID::IDType PrimitiveID::getID() const
 
 inline std::ostream& PrimitiveID::toStream( std::ostream& os ) const
 {
-  os << uintToBitString( id_ ) << " (" << id_ << ")";
+  os << id_;
   return os;
 }
 
+inline std::ostream & operator<<( std::ostream & os, const PrimitiveID & id )
+{
+  id.toStream( os );
+  return os;
+}
 
 template< typename Buffer_T >
 void PrimitiveID::toBuffer( Buffer_T& buffer ) const {
