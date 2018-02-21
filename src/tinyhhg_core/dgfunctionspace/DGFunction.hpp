@@ -119,8 +119,9 @@ template< typename ValueType >
 void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
                                                   const std::vector<DGFunction<ValueType>*> srcFunctions,
                                                   uint_t level,
-                                                  DoFType flag) {
-
+                                                  DoFType flag)
+{
+  this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -163,13 +164,16 @@ void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const 
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Interpolate" );
 }
 
 template< typename ValueType >
 void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
                                      const std::vector<DGFunction<ValueType> *> functions,
                                      uint_t level,
-                                     DoFType flag) {
+                                     DoFType flag)
+{
+  this->startTiming( "Assign" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -212,11 +216,14 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Assign" );
 }
 
 
 template< typename ValueType >
-void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
+void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num)
+{
+  this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
     DGVertex::enumerate(vertex,vertexDataID_,level,num);
@@ -243,6 +250,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+  this->stopTiming( "Enumerate" );
 }
 
 template< typename ValueType >

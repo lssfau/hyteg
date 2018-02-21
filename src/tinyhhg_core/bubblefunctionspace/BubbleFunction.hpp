@@ -64,7 +64,9 @@ template< typename ValueType >
 void BubbleFunction< ValueType >::assign(const std::vector< ValueType > scalars,
                             const std::vector<BubbleFunction<ValueType> *> functions,
                             size_t level,
-                            DoFType flag) {
+                            DoFType flag)
+{
+    this->startTiming( "Assign" );
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex>> srcVertexIDs;
     std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge>> srcEdgeIDs;
@@ -83,13 +85,16 @@ void BubbleFunction< ValueType >::assign(const std::vector< ValueType > scalars,
         BubbleFace::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
     }
+    this->stopTiming( "Assign" );
 }
 
 template< typename ValueType >
 void BubbleFunction< ValueType >::add(const std::vector< ValueType > scalars,
                          const std::vector<BubbleFunction< ValueType > *> functions,
                          size_t level,
-                         DoFType flag) {
+                         DoFType flag)
+{
+    this->startTiming( "Add" );
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex>> srcVertexIDs;
     std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge>> srcEdgeIDs;
@@ -108,10 +113,13 @@ void BubbleFunction< ValueType >::add(const std::vector< ValueType > scalars,
         BubbleFace::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
     }
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
-real_t BubbleFunction< ValueType >::dot(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag) {
+real_t BubbleFunction< ValueType >::dot(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag)
+{
+  this->startTiming( "Dot" );
   real_t scalarProduct = 0.0;
 
   for (auto &it : this->getStorage()->getFaces()) {
@@ -123,13 +131,14 @@ real_t BubbleFunction< ValueType >::dot(BubbleFunction< ValueType > &rhs, uint_t
   }
 
   walberla::mpi::allReduceInplace(scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm());
-
+  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
 template< typename ValueType >
 void BubbleFunction< ValueType >::enumerate_impl(size_t level, uint_t& num)
 {
+  this->startTiming( "Enumerate" );
   for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
@@ -140,6 +149,7 @@ void BubbleFunction< ValueType >::enumerate_impl(size_t level, uint_t& num)
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+  this->stopTiming( "Enumerate" );
 }
 
 }

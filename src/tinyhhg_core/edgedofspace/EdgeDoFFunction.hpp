@@ -129,6 +129,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<Valu
                                                               uint_t level,
                                                               DoFType flag)
 {
+  this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
@@ -162,11 +163,13 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<Valu
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+  this->stopTiming( "Interpolate" );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Assign" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
@@ -199,12 +202,13 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
-
+  this->stopTiming( "Assign" );
 }
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Add" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
@@ -237,11 +241,13 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
+  this->startTiming( "Dot" );
   real_t scalarProduct =  0.0 ;
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -265,6 +271,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
   }
 
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
@@ -272,6 +279,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
+  this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
@@ -292,7 +300,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
-
+  this->stopTiming( "Enumerate" );
 }
 
 
