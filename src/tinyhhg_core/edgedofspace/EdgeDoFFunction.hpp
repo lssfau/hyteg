@@ -80,6 +80,9 @@ public:
   add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
        uint_t level, DoFType flag = All );
 
+  inline real_t
+  dot( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
@@ -94,9 +97,6 @@ private:
                                              const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                                              uint_t level,
                                              DoFType flag = All);
-
-    inline real_t
-    dot_impl( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
     inline void
     prolongate_impl( uint_t sourceLevel, DoFType flag = All );
@@ -232,7 +232,7 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
 }
 
 template< typename ValueType >
-inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   real_t scalarProduct =  0.0 ;
 

@@ -54,7 +54,8 @@ public:
 
   inline void add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  // TODO: split this function into impl
+  inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
+
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   // TODO: write more general version
@@ -72,7 +73,6 @@ private:
                                const std::vector<VertexDoFFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
 
-  inline real_t dot_impl(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
   inline void prolongate_impl(uint_t sourceLevel, DoFType flag = All);
 
@@ -277,7 +277,7 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
 }
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   real_t scalarProduct = 0.0;
 

@@ -67,6 +67,15 @@ public:
     edgeDoFFunction_->add  ( scalars, edgeDoFFunctions,   level, flag );
   }
 
+  inline real_t
+  dot( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+  {
+    real_t sum = real_c( 0 );
+    sum += vertexDoFFunction_->dot( *rhs.vertexDoFFunction_, level, flag);
+    sum += edgeDoFFunction_->dot  ( *rhs.edgeDoFFunction_,   level, flag);
+    return sum;
+  }
+
   inline void
   prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
@@ -211,15 +220,6 @@ private:
 
       vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
       edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
-    }
-
-    inline real_t
-    dot_impl( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
-    {
-      real_t sum = real_c( 0 );
-      sum += vertexDoFFunction_->dot( *rhs.vertexDoFFunction_, level, flag);
-      sum += edgeDoFFunction_->dot  ( *rhs.edgeDoFFunction_,   level, flag);
-      return sum;
     }
 
     inline void

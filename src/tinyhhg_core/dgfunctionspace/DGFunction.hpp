@@ -69,10 +69,6 @@ private:
                                uint_t level,
                                DoFType flag = All) override;
 
-
-
-  inline real_t dot_impl(DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All) override;
-
   inline void prolongate_impl(uint_t level, DoFType flag = All) override;
 
   inline void prolongateQuadratic_impl(uint_t level, DoFType flag = All) override;
@@ -206,13 +202,6 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
-}
-
-template< typename ValueType >
-real_t DGFunction< ValueType >::dot_impl(DGFunction<ValueType> &rhs,
-                                         uint_t level,
-                                         DoFType flag) {
-  return 0;
 }
 
 template< typename ValueType >

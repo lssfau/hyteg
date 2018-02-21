@@ -40,6 +40,8 @@ public:
            size_t level,
            DoFType flag = All);
 
+  real_t dot(BubbleFunction<ValueType> &rhs, size_t level, DoFType flag = All);
+
   const PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -56,7 +58,7 @@ public:
 
 
 
-  real_t dot_impl(BubbleFunction<ValueType> &rhs, size_t level, DoFType flag = All);
+
 
   void prolongate_impl(size_t level, DoFType flag = All) {
     WALBERLA_UNUSED( level );
@@ -146,7 +148,7 @@ void BubbleFunction< ValueType >::add(const std::vector< ValueType > scalars,
 }
 
 template< typename ValueType >
-real_t BubbleFunction< ValueType >::dot_impl(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag) {
+real_t BubbleFunction< ValueType >::dot(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag) {
   real_t scalarProduct = 0.0;
 
   for (auto &it : this->getStorage()->getFaces()) {

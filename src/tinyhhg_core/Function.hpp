@@ -47,10 +47,6 @@ public:
                                    uint_t                                          level,
                                    DoFType                                         flag = All );
 
-  inline real_t dot( FunctionType & rhs,
-                     uint_t         level,
-                     DoFType        flag = All );
-
   inline void prolongate( uint_t  level,
                           DoFType flag = All );
 
@@ -93,9 +89,6 @@ protected:
     interpolate_impl( std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                       const std::vector<FunctionType*> srcFunctions,
                       uint_t level, DoFType flag = All ) = 0;
-
-    virtual real_t
-    dot_impl( FunctionType& rhs, uint_t level, DoFType flag = All ) = 0;
 
     virtual void
     prolongate_impl( uint_t level, DoFType flag = All ) = 0;
@@ -166,18 +159,6 @@ void Function< FunctionType >::interpolateExtended(std::function< ValueType(cons
   interpolate_impl( expr, srcFunctions, level, flag );
 
   stopTiming( "InterpolateExt" );
-}
-
-template< typename FunctionType >
-real_t Function< FunctionType >::dot(FunctionType& rhs, size_t level, DoFType flag)
-{
-  startTiming( "Dot" );
-
-  real_t dotResult = dot_impl( rhs, level, flag );
-
-  stopTiming( "Dot" );
-
-  return dotResult;
 }
 
 template< typename FunctionType >
