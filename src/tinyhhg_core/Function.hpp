@@ -47,15 +47,6 @@ public:
                                    uint_t                                          level,
                                    DoFType                                         flag = All );
 
-  inline void prolongate( uint_t  level,
-                          DoFType flag = All );
-
-  inline void prolongateQuadratic( uint_t  level,
-                                   DoFType flag = All );
-
-  inline void restrict( uint_t  level,
-                        DoFType flag = All );
-
   inline uint_t enumerate( uint_t   level,
                            uint_t & num );
 
@@ -89,15 +80,6 @@ protected:
     interpolate_impl( std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                       const std::vector<FunctionType*> srcFunctions,
                       uint_t level, DoFType flag = All ) = 0;
-
-    virtual void
-    prolongate_impl( uint_t level, DoFType flag = All ) = 0;
-
-    virtual void
-    prolongateQuadratic_impl( uint_t level, DoFType flag = All ) = 0;
-
-    virtual void
-    restrict_impl( uint_t level, DoFType flag = All ) = 0;
 
     virtual void
     enumerate_impl( uint_t level, uint_t& num ) = 0;
@@ -159,36 +141,6 @@ void Function< FunctionType >::interpolateExtended(std::function< ValueType(cons
   interpolate_impl( expr, srcFunctions, level, flag );
 
   stopTiming( "InterpolateExt" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::prolongate(size_t level, DoFType flag)
-{
-  startTiming( "Prolongate" );
-
-  prolongate_impl( level, flag );
-
-  stopTiming( "Prolongate" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::prolongateQuadratic(size_t level, DoFType flag)
-{
-  startTiming( "Prolongate Quadratic" );
-
-  prolongateQuadratic_impl( level, flag );
-
-  stopTiming( "Prolongate Quadratic" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::restrict(size_t level, DoFType flag)
-{
-  startTiming( "Restrict" );
-
-  restrict_impl( level, flag );
-
-  stopTiming( "Restrict" );
 }
 
 template< typename FunctionType >

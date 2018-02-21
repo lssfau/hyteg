@@ -56,6 +56,12 @@ public:
 
   inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
+  inline void prolongate(uint_t sourceLevel, DoFType flag = All);
+
+  inline void prolongateQuadratic(uint_t sourceLevel, DoFType flag = All);
+
+  inline void restrict(uint_t sourceLevel, DoFType flag = All);
+
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   // TODO: write more general version
@@ -72,13 +78,6 @@ private:
   inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                                const std::vector<VertexDoFFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
-
-
-  inline void prolongate_impl(uint_t sourceLevel, DoFType flag = All);
-
-  inline void prolongateQuadratic_impl(uint_t sourceLevel, DoFType flag = All);
-
-  inline void restrict_impl(uint_t sourceLevel, DoFType flag = All);
 
   inline void enumerate_impl(uint_t level, uint_t& num);
 
@@ -323,7 +322,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -363,7 +362,7 @@ inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, 
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel + 1;
 
@@ -403,7 +402,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sour
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType flag)
 {
   const size_t destinationLevel = sourceLevel - 1;
 

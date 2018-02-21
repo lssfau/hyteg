@@ -57,27 +57,6 @@ public:
                                uint_t level, DoFType flag = All);
 
 
-
-
-
-  void prolongate_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble prolongate not implemented");
-  }
-
-  void prolongateQuadratic_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble prolongate quadratic not implemented");
-  }
-
-  void restrict_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble restrict not implemented");
-  }
-
   void enumerate_impl(size_t level, uint_t& num);
 
   PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> vertexDataID_;

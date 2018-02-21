@@ -201,6 +201,25 @@ public:
     this->stopTiming( "Restrict P2 -> P1" );
   }
 
+  inline void
+  prolongate( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Prolongate not implemented!" );
+  }
+
+  inline void
+  prolongateQuadratic( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
+  }
+
+  inline void
+  restrict( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Restrict not implemented!" );
+  }
+
+
 private:
 
   using Function< P2Function< ValueType > >::communicators_;
@@ -221,25 +240,6 @@ private:
       vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
       edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
     }
-
-    inline void
-    prolongate_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Prolongate not implemented!" );
-    }
-
-    inline void
-    prolongateQuadratic_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
-    }
-
-    inline void
-    restrict_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Restrict not implemented!" );
-    }
-
     inline void
     enumerate_impl( uint_t level, uint_t& num )
     {

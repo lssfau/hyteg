@@ -69,12 +69,6 @@ private:
                                uint_t level,
                                DoFType flag = All) override;
 
-  inline void prolongate_impl(uint_t level, DoFType flag = All) override;
-
-  inline void prolongateQuadratic_impl(uint_t level, DoFType flag = All) override;
-
-  inline void restrict_impl(uint_t level, DoFType flag = All) override;
-
   inline void enumerate_impl(uint_t level, uint_t& num) override;
 
 };
@@ -204,20 +198,6 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   communicators_[level]->template endCommunication<Edge, Face>();
 }
 
-template< typename ValueType >
-void DGFunction< ValueType >::prolongate_impl(uint_t level, DoFType flag) {
-
-}
-
-template< typename ValueType >
-void DGFunction< ValueType >::prolongateQuadratic_impl(uint_t level, DoFType flag) {
-
-}
-
-template< typename ValueType >
-void DGFunction< ValueType >::restrict_impl(uint_t level, DoFType flag) {
-
-}
 
 template< typename ValueType >
 void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {

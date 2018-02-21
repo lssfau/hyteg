@@ -99,15 +99,6 @@ private:
                                              DoFType flag = All);
 
     inline void
-    prolongate_impl( uint_t sourceLevel, DoFType flag = All );
-
-    inline void
-    prolongateQuadratic_impl( uint_t sourceLevel, DoFType flag = All );
-
-    inline void
-    restrict_impl( uint_t sourceLevel, DoFType flag = All );
-
-    inline void
     enumerate_impl( uint_t level, uint_t& num );
 
     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
@@ -260,23 +251,6 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
   return scalarProduct;
 }
 
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
-
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
-
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
