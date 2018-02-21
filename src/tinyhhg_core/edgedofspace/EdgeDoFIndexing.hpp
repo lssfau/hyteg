@@ -169,19 +169,21 @@ typedef stencilDirection sD;
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
 {
-  return indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return indexing::macroFaceIndex( levelToWidthAnyEdgeDoF< level >, col, row );
 };
 
 template< uint_t level >
 inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & row )
 {
-  return 2 * levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return 2 * levelToFaceSizeAnyEdgeDoF< level > +
+  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF< level >, col, row );
 }
 
 template< uint_t level >
 inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
 {
-  return levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return levelToFaceSizeAnyEdgeDoF< level > +
+  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF< level >, col, row );
 }
 
 // Stencil access functions

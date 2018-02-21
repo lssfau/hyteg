@@ -126,7 +126,7 @@ namespace macroface {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & x, const uint_t & y )
 {
-  return hhg::indexing::macroFaceIndex< levelinfo::num_microvertices_per_edge( level ) >( x, y );
+  return hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
@@ -136,9 +136,9 @@ inline constexpr uint_t index( const uint_t & x, const uint_t & y, const uint_t 
 {
   WALBERLA_ASSERT( neighbor <= 1 );
 
-  return              hhg::indexing::macroFaceSize< levelinfo::num_microvertices_per_edge( level )     >()
-         + neighbor * hhg::indexing::macroFaceSize< levelinfo::num_microvertices_per_edge( level ) - 1 >()
-         + hhg::indexing::macroFaceIndex< levelinfo::num_microvertices_per_edge( level ) - 1 >( x, y );
+  return hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) )
+         + neighbor * hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 1 )
+         + hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x, y );
 
 };
 
