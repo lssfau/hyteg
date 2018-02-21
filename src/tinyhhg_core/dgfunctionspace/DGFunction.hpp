@@ -43,6 +43,11 @@ public:
                      uint_t level,
                      DoFType flag = All);
 
+  inline void add(const std::vector<ValueType> scalars,
+                  const std::vector<DGFunction< ValueType >*> functions,
+                  uint_t level,
+                  DoFType flag = All);
+
   const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -64,10 +69,7 @@ private:
                                uint_t level,
                                DoFType flag = All) override;
 
-  inline void add_impl(const std::vector<ValueType> scalars,
-                       const std::vector<DGFunction< ValueType >*> functions,
-                       uint_t level,
-                       DoFType flag = All) override;
+
 
   inline real_t dot_impl(DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All) override;
 
@@ -82,7 +84,7 @@ private:
 };
 
 template< typename ValueType >
-void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<DGFunction<ValueType> *> functions, uint_t level,
+void DGFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<DGFunction<ValueType> *> functions, uint_t level,
                           DoFType flag) {
 
   // Collect all source IDs in a vector

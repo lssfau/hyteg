@@ -35,6 +35,11 @@ public:
               size_t level,
               DoFType flag = All);
 
+  void add(const std::vector<ValueType> scalars,
+           const std::vector<BubbleFunction<ValueType> *> functions,
+           size_t level,
+           DoFType flag = All);
+
   const PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -49,10 +54,7 @@ public:
                                const std::vector<BubbleFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
 
-  void add_impl(const std::vector<ValueType> scalars,
-           const std::vector<BubbleFunction<ValueType> *> functions,
-           size_t level,
-           DoFType flag = All);
+
 
   real_t dot_impl(BubbleFunction<ValueType> &rhs, size_t level, DoFType flag = All);
 
@@ -119,7 +121,7 @@ void BubbleFunction< ValueType >::assign(const std::vector< ValueType > scalars,
 }
 
 template< typename ValueType >
-void BubbleFunction< ValueType >::add_impl(const std::vector< ValueType > scalars,
+void BubbleFunction< ValueType >::add(const std::vector< ValueType > scalars,
                          const std::vector<BubbleFunction< ValueType > *> functions,
                          size_t level,
                          DoFType flag) {

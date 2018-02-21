@@ -51,6 +51,23 @@ public:
   }
 
   inline void
+  add( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
+       uint_t level, DoFType flag = All )
+  {
+    std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
+    std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
+
+    for ( const auto & function : functions )
+    {
+      vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
+      edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
+    }
+
+    vertexDoFFunction_->add( scalars, vertexDoFFunctions, level, flag );
+    edgeDoFFunction_->add  ( scalars, edgeDoFFunctions,   level, flag );
+  }
+
+  inline void
   prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
     this->startTiming( "Prolongate P1 -> P2" );
@@ -194,23 +211,6 @@ private:
 
       vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
       edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
-    }
-
-    inline void
-    add_impl( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
-              uint_t level, DoFType flag = All )
-    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
-      std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
-
-      for ( const auto & function : functions )
-      {
-        vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-        edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
-      }
-
-      vertexDoFFunction_->add( scalars, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->add  ( scalars, edgeDoFFunctions,   level, flag );
     }
 
     inline real_t

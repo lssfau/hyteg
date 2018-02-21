@@ -76,6 +76,10 @@ public:
   assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
           uint_t level, DoFType flag = All );
 
+  inline void
+  add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
+       uint_t level, DoFType flag = All );
+
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
@@ -90,10 +94,6 @@ private:
                                              const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                                              uint_t level,
                                              DoFType flag = All);
-
-    inline void
-    add_impl( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-              uint_t level, DoFType flag = All );
 
     inline real_t
     dot_impl( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
@@ -195,7 +195,7 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
 }
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;

@@ -52,6 +52,8 @@ public:
 
   inline void assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
+  inline void add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
+
   // TODO: split this function into impl
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
@@ -69,10 +71,6 @@ private:
   inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                                const std::vector<VertexDoFFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
-
-
-
-  inline void add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
   inline real_t dot_impl(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
@@ -218,7 +216,7 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
