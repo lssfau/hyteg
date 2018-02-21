@@ -9,6 +9,8 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include <cassert>
+
 namespace hhg {
 namespace vertexdof {
 
@@ -123,18 +125,16 @@ namespace macroface {
 /// Direct access functions
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-template< uint_t level >
-inline constexpr uint_t index( const uint_t & x, const uint_t & y )
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y )
 {
   return hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
 /// \param neighbor 0 or 1 for the respective neighbor
-template< uint_t level >
-inline constexpr uint_t index( const uint_t & x, const uint_t & y, const uint_t & neighbor )
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & neighbor )
 {
-  WALBERLA_ASSERT( neighbor <= 1 );
+  assert( neighbor <= 1 );
 
   return hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) )
          + neighbor * hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 1 )
@@ -145,43 +145,42 @@ inline constexpr uint_t index( const uint_t & x, const uint_t & y, const uint_t 
 // Stencil access functions
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-template< uint_t level >
-inline constexpr uint_t indexFromVertex( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
   switch( dir )
   {
   case sD::VERTEX_C:
-    return index< level >( x    , y     );
+    return index( level, x, y );
   case sD::VERTEX_E:
-    return index< level >( x + 1, y     );
+    return index( level, x + 1, y );
   case sD::VERTEX_W:
-    return index< level >( x - 1, y     );
+    return index( level, x - 1, y );
   case sD::VERTEX_N:
-    return index< level >( x    , y + 1 );
+    return index( level, x, y + 1 );
   case sD::VERTEX_S:
-    return index< level >( x    , y - 1 );
+    return index( level, x, y - 1 );
   case sD::VERTEX_NW:
-    return index< level >( x - 1, y + 1 );
+    return index( level, x - 1, y + 1 );
   case sD::VERTEX_SE:
-    return index< level >( x + 1, y - 1 );
+    return index( level, x + 1, y - 1 );
   case sD::VERTEX_BC:
-    return index< level >( x    , y    , 0 );
+    return index( level, x, y, 0 );
   case sD::VERTEX_BW:
-    return index< level >( x - 1, y    , 0 );
+    return index( level, x - 1, y, 0 );
   case sD::VERTEX_BS:
-    return index< level >( x    , y - 1, 0 );
+    return index( level, x, y - 1, 0 );
   case sD::VERTEX_BSW:
-    return index< level >( x - 1, y - 1, 0 );
+    return index( level, x - 1, y - 1, 0 );
   case sD::VERTEX_FC:
-    return index< level >( x - 1, y - 1, 1 );
+    return index( level, x - 1, y - 1, 1 );
   case sD::VERTEX_FN:
-    return index< level >( x - 1, y    , 1 );
+    return index( level, x - 1, y, 1 );
   case sD::VERTEX_FE:
-    return index< level >( x    , y - 1, 1 );
+    return index( level, x, y - 1, 1 );
   case sD::VERTEX_FNE:
-    return index< level >( x    , y    , 1 );
+    return index( level, x, y, 1 );
   default:
     return std::numeric_limits< uint_t >::max();
   }
@@ -197,13 +196,13 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & x, const uint_t 
   switch( dir )
   {
     case sD::VERTEX_W:
-      return index< level >( x    , y);
+      return index( level, x, y );
     case sD::VERTEX_E:
-      return index< level >( x + 1, y);
+      return index( level, x + 1, y );
     case sD::VERTEX_SE:
-      return index< level >( x + 1, y - 1);
+      return index( level, x + 1, y - 1 );
     case sD::VERTEX_NW:
-      return index< level >( x    , y + 1);
+      return index( level, x, y + 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -224,13 +223,13 @@ inline constexpr uint_t indexFromDiagonalEdge( const uint_t & x, const uint_t & 
   switch( dir )
   {
     case sD::VERTEX_SE:
-      return index< level >( x + 1, y);
+      return index( level, x + 1, y );
     case sD::VERTEX_NE:
-      return index< level >( x + 1, y + 1);
+      return index( level, x + 1, y + 1 );
     case sD::VERTEX_NW:
-      return index< level >( x    , y + 1);
+      return index( level, x, y + 1 );
     case sD::VERTEX_SW:
-      return index< level >( x    , y    );
+      return index( level, x, y );
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -251,13 +250,13 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & x, const uint_t & 
   switch( dir )
   {
     case sD::VERTEX_S:
-      return index< level >( x    , y    );
+      return index( level, x, y );
     case sD::VERTEX_SE:
-      return index< level >( x + 1, y    );
+      return index( level, x + 1, y );
     case sD::VERTEX_N:
-      return index< level >( x    , y + 1);
+      return index( level, x, y + 1 );
     case sD::VERTEX_NW:
-      return index< level >( x - 1, y + 1);
+      return index( level, x - 1, y + 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -271,11 +270,11 @@ inline constexpr uint_t indexFromGrayFace( const uint_t & x, const uint_t & y, c
   switch( dir )
   {
   case sD::VERTEX_SW:
-    return index< level >( x    , y     );
+    return index( level, x, y );
   case sD::VERTEX_SE:
-    return index< level >( x + 1, y     );
+    return index( level, x + 1, y );
   case sD::VERTEX_NW:
-    return index< level >( x    , y + 1 );
+    return index( level, x, y + 1 );
   default:
     return std::numeric_limits< uint_t >::max();
   }
@@ -289,11 +288,11 @@ inline constexpr uint_t indexFromBlueFace( const uint_t & x, const uint_t & y, c
   switch( dir )
   {
   case sD::VERTEX_SE:
-    return index< level >( x + 1, y     );
+    return index( level, x + 1, y );
   case sD::VERTEX_NW:
-    return index< level >( x    , y + 1 );
+    return index( level, x, y + 1 );
   case sD::VERTEX_NE:
-    return index< level >( x + 1, y + 1 );
+    return index( level, x + 1, y + 1 );
   default:
     return std::numeric_limits< uint_t >::max();
   }

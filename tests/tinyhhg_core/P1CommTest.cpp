@@ -57,10 +57,14 @@ int main (int argc, char ** argv )
       for ( const auto & it : vertexdof::macroface::BorderIterator( maxLevel, faceBorderDirection, 1 ) )
       {
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_SE ) ], faceData[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ]);
+          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_SE ) ],
+                               faceData[vertexdof::macroface::indexFromVertex(
+          maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_N ) ], faceData[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ]);
+          WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_N ) ],
+                               faceData[vertexdof::macroface::indexFromVertex(
+          maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -78,7 +82,9 @@ int main (int argc, char ** argv )
 #endif
       for ( const auto & it : vertexdof::macroface::BorderIterator( maxLevel, faceBorderDirection, 0 )  )
       {
-        WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_C) ], faceData[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ]);
+        WALBERLA_CHECK_EQUAL(edgeData[ vertexdof::macroedge::indexFromVertex< maxLevel >( idxCounter, stencilDirection::VERTEX_C) ],
+                             faceData[vertexdof::macroface::indexFromVertex(
+        maxLevel, it.col(), it.row(), stencilDirection::VERTEX_C )]);
         numberOfChecks++;
         idxCounter++;
       }

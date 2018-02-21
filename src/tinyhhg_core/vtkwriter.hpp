@@ -22,7 +22,7 @@ namespace hhg
 namespace vtkDetail
 {
 SPECIALIZE( uint_t, vertexdof::macrocell::index, vertexDoFOnMacroCellIndex )
-SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
+// SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
 
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)

@@ -170,7 +170,9 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       auto faceDst = it.second->getData( dst->getFaceDataID() )->getPointer( level );
       for ( const auto & idxIt : vertexdof::macroface::Iterator( level, 1 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( faceDst[ vertexdof::macroface::indexFromVertex< level >( idxIt.x(), idxIt.y(), stencilDirection::VERTEX_C ) ], real_c( 7 + 4 * it.second->getNumNeighborCells() ) );
+        WALBERLA_CHECK_FLOAT_EQUAL( faceDst[vertexdof::macroface::indexFromVertex( level, idxIt.x(),
+                                                                                   idxIt.y(),
+                                                                                   stencilDirection::VERTEX_C )], real_c( 7 + 4 * it.second->getNumNeighborCells() ) );
       }
     }
     for ( const auto & it : storage->getCells() )

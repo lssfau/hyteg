@@ -32,7 +32,8 @@ inline void prolongateP1ToP2Tmpl( const Face & face,
 
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 0 ) )
   {
-    const uint_t idx = vertexdof::macroface::indexFromVertex< Level >( it.col(), it.row(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(),
+                                                              stencilDirection::VERTEX_C );
     p2Vertices[ idx ] = p1Vertices[ idx ];
   }
 
@@ -69,7 +70,8 @@ inline void restrictP2ToP1Tmpl( const Face & face,
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
   {
     ValueType tmp;
-    const uint_t idx = vertexdof::macroface::indexFromVertex< Level >( it.col(), it.row(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(),
+                                                              stencilDirection::VERTEX_C );
     tmp = p2Vertices[ idx ];
 
     const std::array< stencilDirection, 6 > directVertexDoFNeighbors = {{

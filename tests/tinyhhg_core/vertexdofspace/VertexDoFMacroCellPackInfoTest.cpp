@@ -33,7 +33,8 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto faceData = f.second->getData( x->getFaceDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macroface::Iterator( level ) )
     {
-      faceData[ vertexdof::macroface::indexFromVertex< level >( it.x(), it.y(), stencilDirection::VERTEX_C ) ] = 1.0;
+      faceData[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(),
+                                                      stencilDirection::VERTEX_C )] = 1.0;
     }
   }
 

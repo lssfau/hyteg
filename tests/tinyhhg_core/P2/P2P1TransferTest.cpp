@@ -49,7 +49,7 @@ static void testP2P1Transfer()
   const auto p1FaceDataID = p1Function->getFaceDataID();
         auto p1FaceData   = storage->getFace( faceIDs[ 0 ] )->getData( p1FaceDataID )->getPointer( level );
 
-  const uint_t idx = vertexdof::macroface::indexFromVertex< level >( x, y, stencilDirection::VERTEX_C );
+  const uint_t idx = vertexdof::macroface::indexFromVertex( level, x, y, stencilDirection::VERTEX_C );
 
   p1FaceData[ idx ] = testValue;
 
@@ -91,7 +91,8 @@ static void testP2P1Transfer()
 
   for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( p1FaceData[ vertexdof::macroface::indexFromVertex< level >( x, y, neighbor ) ], 0.25 * testValue );
+    WALBERLA_CHECK_FLOAT_EQUAL( p1FaceData[vertexdof::macroface::indexFromVertex( level, x, y,
+                                                                                  neighbor )], 0.25 * testValue );
   }
 
   vtkOutput.write( level, 3 );

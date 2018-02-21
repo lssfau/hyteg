@@ -11,7 +11,7 @@ namespace hhg {
 
 namespace {
 SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
-SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
+// SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
 SPECIALIZE( uint_t, vertexdof::macrocell::indexFromVertex, indexFromVertexOnMacroCell );
 }
 
@@ -192,7 +192,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Pr
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
   {
-    buffer >> faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -206,7 +206,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *send
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
   {
-    faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
+    faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
   }
 }
@@ -223,7 +223,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
   {
-    buffer << faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -270,7 +270,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
   {
-    edgeData[ indexFromVertexOnMacroEdge( level_, idx, dir ) ] = faceData[ indexFromVertexOnMacroFace( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    edgeData[ indexFromVertexOnMacroEdge( level_, idx, dir ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
     idx++;
   }
 }
@@ -283,7 +283,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForCell(const Face *sender, const P
   // only inner points
   for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
   {
-    buffer << faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
+    buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -320,7 +320,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *send
     auto cellIdx = *cellIterator;
 
     cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ] =
-        faceData[ indexFromVertexOnMacroFace( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C ) ];
+        faceData[ vertexdof::macroface::indexFromVertex( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C ) ];
 
     cellIterator++;
   }
@@ -367,7 +367,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const Pr
   {
     if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
     {
-      buffer >> faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), neighborDirection ) ];
+      buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection ) ];
     }
   }
 }
@@ -405,7 +405,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
     if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
     {
       auto cellIdx = *cellIterator;
-      faceData[ indexFromVertexOnMacroFace( level_, it.x(), it.y(), neighborDirection ) ] =
+      faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection ) ] =
           cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ];
       cellIterator++;
     }

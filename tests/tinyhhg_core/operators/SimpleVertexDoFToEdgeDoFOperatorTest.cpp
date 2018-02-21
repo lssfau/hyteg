@@ -32,7 +32,7 @@ static void testOperator() {
     for (uint_t i = 0; i < faceStencilSize; ++i) {
       faceStencilData[i] = 1;
     }
-    hhg::vertexdof::macroface::interpolateTmpl< real_t, level >(*face,vertexDof->getFaceDataID(),{},onesVec);
+    hhg::vertexdof::macroface::interpolate< real_t >(level, *face,vertexDof->getFaceDataID(),{},onesVec);
   }
 
   for (auto &edgeIT : storage->getEdges()) {

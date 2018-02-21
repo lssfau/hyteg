@@ -72,7 +72,8 @@ int main(int argc, char **argv)
     {
       for (uint_t j = 0; j < v_perEdge - i; ++j)
       {
-        uint_t idx = vertexdof::macroface::indexFromVertex<maxLevel>(j, i, stencilDirection::VERTEX_C);
+        uint_t idx = vertexdof::macroface::indexFromVertex( maxLevel, j, i,
+                                                            stencilDirection::VERTEX_C );
         if (vertexdof::macroface::is_boundary(idx, v_perEdge))
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(maxLevel)[idx], 0.0,

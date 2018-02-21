@@ -51,7 +51,10 @@ static void testP2Function()
 
   for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataX[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataX[vertexdof::macroface::indexFromVertex( maxLevel,
+                                                                                          it.col(),
+                                                                                          it.row(),
+                                                                                          stencilDirection::VERTEX_C )], real_c( 2 ) );
   }
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
@@ -69,7 +72,10 @@ static void testP2Function()
 
   for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataY[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ], real_c( 6 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel,
+                                                                                          it.col(),
+                                                                                          it.row(),
+                                                                                          stencilDirection::VERTEX_C )], real_c( 6 ) );
   }
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
@@ -87,7 +93,10 @@ static void testP2Function()
 
   for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataY[ vertexdof::macroface::indexFromVertex< maxLevel >( it.col(), it.row(), stencilDirection::VERTEX_C ) ], real_c( 20 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFFaceDataY[vertexdof::macroface::indexFromVertex( maxLevel,
+                                                                                          it.col(),
+                                                                                          it.row(),
+                                                                                          stencilDirection::VERTEX_C )], real_c( 20 ) );
   }
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )

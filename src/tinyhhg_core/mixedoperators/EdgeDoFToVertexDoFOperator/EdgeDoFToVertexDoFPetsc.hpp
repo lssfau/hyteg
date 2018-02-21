@@ -87,7 +87,8 @@ inline void saveFaceOperatorTmpl( const Face & face,
 
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
   {
-    dstInt = dst[ vertexdof::macroface::indexFromVertex<Level>( it.col(), it.row(), stencilDirection::VERTEX_C) ];
+    dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(),
+                                                                 stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : edgedof::macroface::neighborsFromVertex )
     {
