@@ -159,6 +159,47 @@ public:
     this->stopTiming( "Restrict P2 -> P1" );
   }
 
+  inline void
+  restrictInjection( uint_t sourceLevel, DoFType flag = All )
+  {
+    for ( const auto & it : this->getStorage()->getFaces() )
+    {
+      const Face & face = *it.second;
+
+      if ( testFlag(face.type, flag) )
+      {
+        P2::macroface::restrictInjection< ValueType >( sourceLevel, face,
+                                                       vertexDoFFunction_->getFaceDataID(),
+                                                       edgeDoFFunction_->getFaceDataID());
+      }
+    }
+
+    for ( const auto & it : this->getStorage()->getEdges() )
+    {
+      const Edge & edge = *it.second;
+
+      if ( testFlag( edge.getDoFType(), flag ) )
+      {
+        P2::macroedge::restrictInjection< ValueType >( sourceLevel, edge,
+                                                       vertexDoFFunction_->getEdgeDataID(),
+                                                       edgeDoFFunction_->getEdgeDataID());
+      }
+    }
+
+    for ( const auto & it : this->getStorage()->getVertices() )
+    {
+      const Vertex & vertex = *it.second;
+
+      if ( testFlag( vertex.getDoFType(), flag ) )
+      {
+        P2::macrovertex::restrictInjection< ValueType >( sourceLevel, vertex,
+                                                       vertexDoFFunction_->getVertexDataID(),
+                                                       edgeDoFFunction_->getVertexDataID());
+      }
+    }
+
+  }
+
 private:
 
   using Function< P2Function< ValueType > >::communicators_;
@@ -322,6 +363,7 @@ private:
       //TODO: add vertex restrict
 
     }
+
 
     inline void
     enumerate_impl( uint_t level, uint_t& num )

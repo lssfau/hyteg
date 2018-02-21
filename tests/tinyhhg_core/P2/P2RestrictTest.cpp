@@ -205,6 +205,29 @@ static void testP2Restrict2() {
 
 }
 
+
+static void testP2InterpolateAndRestrict() {
+
+  const uint_t sourceLevel = 3;
+  MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
+  std::shared_ptr<SetupPrimitiveStorage> setupStorage =
+    std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
+  auto x = P2Function<real_t> ("x", storage, sourceLevel - 1, sourceLevel);
+  auto y = P2Function<real_t> ("y", storage, sourceLevel - 1, sourceLevel);
+  auto error = P2Function<real_t> ("x", storage, sourceLevel - 1, sourceLevel);
+
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
+  x.interpolate(exact,sourceLevel    ,hhg::All);
+  y.interpolate(exact,sourceLevel - 1,hhg::All);
+
+  x.restrictInjection(sourceLevel,hhg::All);
+
+  error.assign({1.0, -1.0}, {&x, &y}, sourceLevel - 1, hhg::All);
+
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dot(error,sourceLevel - 1,hhg::All),0.);
+}
+
 }/// namespace hhg
 
 int main( int argc, char* argv[] )
@@ -216,6 +239,7 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   hhg::testP2Restrict();
   hhg::testP2Restrict2();
+  hhg::testP2InterpolateAndRestrict();
 
   return EXIT_SUCCESS;
 }

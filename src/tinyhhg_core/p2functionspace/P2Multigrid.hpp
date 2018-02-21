@@ -457,6 +457,65 @@ void postRestrictTmpl(const Face & face,
 SPECIALIZE_WITH_VALUETYPE(void, postRestrictTmpl, postRestrict)
 
 
+template< typename ValueType, uint_t sourceLevel >
+void restrictInjectionTmpl(const Face & face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & vertexDoFMemoryID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
+
+  ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
+  ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofCoarseData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofCoarseData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1);
+
+  typedef hhg::stencilDirection sD;
+  sD targetDirection;
+
+  indexing::FaceBorderDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
+  indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
+  indexing::FaceBorderDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+
+  real_t tmp;
+
+  /// update vertex dof entries
+  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel -1, 1)){
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+
+    using hhg::edgedof::macroface::indexFromVertex;
+
+    tmp = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol, fineRow, sD::VERTEX_C)];
+    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel - 1>(it.col(),it.row(),sD::VERTEX_C)] = tmp;
+  }
+
+  /// update edge dof entries
+  for ( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel - 1, 0 ) )
+  {
+    using hhg::edgedof::macroface::indexFromVertex;
+
+    uint_t fineCol = it.col() * 2;
+    uint_t fineRow = it.row() * 2;
+    /// horizontal
+    if( it.row() != 0) {
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol +1, fineRow, sD::VERTEX_C)];
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_HO_E)] = tmp;
+    }
+    /// diagonal
+    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol + 1, fineRow + 1, sD::VERTEX_C)];
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_DI_NE)] = tmp;
+    }
+    /// vertical
+    if( it.col() != 0) {
+      tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex< sourceLevel >(fineCol, fineRow + 1, sD::VERTEX_C)];
+      edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),it.row(),sD::EDGE_VE_N)] = tmp;
+    }
+  }
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, restrictInjectionTmpl, restrictInjection)
+
+
 }/// namespace macroface
 
 namespace macroedge {
@@ -584,6 +643,36 @@ void restrictTmpl(const Edge & edge,
 
 SPECIALIZE_WITH_VALUETYPE(void, restrictTmpl, restrict)
 
+template< typename ValueType, uint_t sourceLevel >
+void restrictInjectionTmpl(const Edge & edge,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & vertexDoFMemoryID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeDoFMemoryID){
+
+  ValueType* vertexDofCoarseData = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofCoarseData   = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1 );
+  ValueType* edgeDofFineData     = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
+  ValueType* vertexDofFineData   = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
+
+  typedef hhg::stencilDirection sD;
+  real_t tmp;
+
+  for( const auto& it : hhg::vertexdof::macroedge::Iterator(sourceLevel -1,1 )){
+    uint_t targetIndex = hhg::vertexdof::macroedge::indexFromVertex< sourceLevel - 1 >(it.col(), sD::VERTEX_C);
+    tmp = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex< sourceLevel >(it.col() * 2, sD::VERTEX_C)];
+
+    vertexDofCoarseData[targetIndex] = tmp;
+  }
+
+  for( const auto& it : hhg::edgedof::macroedge::Iterator(sourceLevel -1,0 )){
+    using hhg::edgedof::macroedge::indexFromVertex;
+
+    tmp  = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex<sourceLevel>(it.col() * 2 + 1, sD::VERTEX_C)];
+
+    edgeDofCoarseData[indexFromVertex< sourceLevel -1 >(it.col(),sD::EDGE_HO_E)] = tmp;
+  }
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, restrictInjectionTmpl, restrictInjection)
 
 }/// namespace macroedge
 
@@ -601,6 +690,19 @@ void prolongateTmpl(const Vertex &vertex,
 }
 
 SPECIALIZE_WITH_VALUETYPE(void, prolongateTmpl, prolongate)
+
+template<typename ValueType, uint_t sourceLevel>
+void restrictInjectionTmpl(const Vertex &vertex,
+                    const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &vertexDoFMemoryID,
+                    const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &edgeDoFMemoryID) {
+  ValueType *vertexDofFineData   = vertex.getData(vertexDoFMemoryID)->getPointer(sourceLevel     );
+  ValueType *vertexDofCoarseData = vertex.getData(vertexDoFMemoryID)->getPointer(sourceLevel - 1 );
+
+  vertexDofCoarseData[0] = vertexDofFineData[0];
+
+}
+
+SPECIALIZE_WITH_VALUETYPE(void, restrictInjectionTmpl, restrictInjection)
 
 }/// namespace macrovertex
 
