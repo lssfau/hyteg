@@ -38,6 +38,11 @@ public:
     }
   }
 
+  inline void assign(const std::vector<ValueType> scalars,
+                     const std::vector<DGFunction< ValueType >*> functions,
+                     uint_t level,
+                     DoFType flag = All);
+
   const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -58,11 +63,6 @@ private:
                                const std::vector<DGFunction<ValueType>*> srcFunctions,
                                uint_t level,
                                DoFType flag = All) override;
-
-  inline void assign_impl(const std::vector<ValueType> scalars,
-                          const std::vector<DGFunction< ValueType >*> functions,
-                          uint_t level,
-                          DoFType flag = All) override;
 
   inline void add_impl(const std::vector<ValueType> scalars,
                        const std::vector<DGFunction< ValueType >*> functions,
@@ -158,10 +158,10 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
-                                          const std::vector<DGFunction<ValueType> *> functions,
-                                          uint_t level,
-                                          DoFType flag) {
+void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
+                                     const std::vector<DGFunction<ValueType> *> functions,
+                                     uint_t level,
+                                     DoFType flag) {
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;

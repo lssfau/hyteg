@@ -30,6 +30,11 @@ public:
     }
   }
 
+  void assign(const std::vector<ValueType> scalars,
+              const std::vector<BubbleFunction<ValueType> *> functions,
+              size_t level,
+              DoFType flag = All);
+
   const PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -43,11 +48,6 @@ public:
   inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                                const std::vector<BubbleFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
-
-  void assign_impl(const std::vector<ValueType> scalars,
-              const std::vector<BubbleFunction<ValueType> *> functions,
-              size_t level,
-              DoFType flag = All);
 
   void add_impl(const std::vector<ValueType> scalars,
            const std::vector<BubbleFunction<ValueType> *> functions,
@@ -94,7 +94,7 @@ void BubbleFunction< ValueType >::interpolate_impl(std::function< ValueType( con
 }
 
 template< typename ValueType >
-void BubbleFunction< ValueType >::assign_impl(const std::vector< ValueType > scalars,
+void BubbleFunction< ValueType >::assign(const std::vector< ValueType > scalars,
                             const std::vector<BubbleFunction<ValueType> *> functions,
                             size_t level,
                             DoFType flag) {

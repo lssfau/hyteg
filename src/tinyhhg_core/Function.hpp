@@ -47,11 +47,6 @@ public:
                                    uint_t                                          level,
                                    DoFType                                         flag = All );
 
-  inline void assign( const std::vector< ValueType >      scalars,
-                      const std::vector< FunctionType * > functions,
-                      uint_t                              level,
-                      DoFType                             flag = All );
-
   inline void add( const std::vector< ValueType >      scalars,
                    const std::vector< FunctionType * > functions,
                    uint_t                              level,
@@ -103,10 +98,6 @@ protected:
     interpolate_impl( std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                       const std::vector<FunctionType*> srcFunctions,
                       uint_t level, DoFType flag = All ) = 0;
-
-    virtual void
-    assign_impl( const std::vector< ValueType > scalars, const std::vector< FunctionType* > functions, uint_t level,
-                 DoFType flag = All ) = 0;
 
     virtual void
     add_impl( const std::vector< ValueType > scalars, const std::vector< FunctionType* > functions, uint_t level, DoFType flag = All ) = 0;
@@ -183,16 +174,6 @@ void Function< FunctionType >::interpolateExtended(std::function< ValueType(cons
   interpolate_impl( expr, srcFunctions, level, flag );
 
   stopTiming( "InterpolateExt" );
-}
-
-template< typename FunctionType >
-void Function< FunctionType >::assign(const std::vector<ValueType> scalars, const std::vector<FunctionType*> functions, size_t level, DoFType flag)
-{
-  startTiming( "Assign" );
-
-  assign_impl( scalars, functions, level, flag );
-
-  stopTiming( "Assign" );
 }
 
 template< typename FunctionType >

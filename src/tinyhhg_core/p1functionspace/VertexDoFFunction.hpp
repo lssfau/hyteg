@@ -50,6 +50,8 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >, Face>   & getFaceDataID()   const { return faceDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >, Cell>   & getCellDataID()   const { return cellDataID_; }
 
+  inline void assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
+
   // TODO: split this function into impl
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
@@ -68,7 +70,7 @@ private:
                                const std::vector<VertexDoFFunction*> srcFunctions,
                                uint_t level, DoFType flag = All);
 
-  inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
+
 
   inline void add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
@@ -154,7 +156,7 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -176,7 +178,7 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
 
       if ( testFlag( vertex.getDoFType(), flag ) )
       {
-        vertexdof::macrovertex::assign( vertex, scalars, srcVertexIDs, vertexDataID_, level );
+        vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
     }
 
