@@ -125,6 +125,55 @@ public:
     }
   }
 
+  void applyPartial(P1Function< real_t >& src, P1Function< real_t >& dst, uint_t memoryLevel, uint_t coarseLevel, DoFType flag, UpdateType updateType = Replace)
+  {
+    // start pulling vertex halos
+    src.getCommunicator(memoryLevel)->startCommunication<Edge, Vertex>();
+
+    // start pulling edge halos
+    src.getCommunicator(memoryLevel)->startCommunication<Face, Edge>();
+
+    src.getCommunicator(memoryLevel)->endCommunication<Edge, Vertex>();
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex& vertex = *it.second;
+
+      if (testFlag(vertex.getDoFType(), flag))
+      {
+        vertexdof::blending::macrovertex::applyBlending< real_t >(memoryLevel, vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+      }
+    }
+
+    dst.getCommunicator(memoryLevel)->startCommunication<Vertex, Edge>();
+
+    // end pulling edge halos
+    src.getCommunicator(memoryLevel)->endCommunication<Face, Edge>();
+
+    for (auto& it : storage_->getEdges()) {
+      Edge& edge = *it.second;
+
+      if (testFlag(edge.getDoFType(), flag))
+      {
+        vertexdof::blending::macroedge::applyBlending< real_t >(memoryLevel, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+      }
+    }
+
+    dst.getCommunicator(memoryLevel)->endCommunication<Vertex, Edge>();
+
+    dst.getCommunicator(memoryLevel)->startCommunication<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        vertexdof::blending::macroface::applyPartialBlending< real_t >(memoryLevel, coarseLevel, face, faceLocalMatrixIDs_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      }
+    }
+
+    dst.getCommunicator(memoryLevel)->endCommunication<Edge, Face>();
+  }
+
 private:
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
