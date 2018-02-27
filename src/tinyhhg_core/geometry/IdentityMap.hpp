@@ -30,6 +30,10 @@ public:
   real_t detDF(const Point3D& x) {
     return 1.0;
   }
+
+  void serialize(walberla::mpi::SendBuffer& sendBuffer) {
+    sendBuffer << Type::IDENTITY;
+  }
 };
 
 }

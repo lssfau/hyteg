@@ -126,6 +126,7 @@ void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << length_;
   sendBuffer << tangent_;
   sendBuffer << normal2D_;
+  blendingMap_->serialize(sendBuffer);
 }
 
 void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -137,6 +138,7 @@ void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> length_;
   recvBuffer >> tangent_;
   recvBuffer >> normal2D_;
+  blendingMap_ = FaceMap::deserialize(recvBuffer);
 }
 
 }

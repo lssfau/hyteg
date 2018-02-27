@@ -46,12 +46,14 @@ void Vertex::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
   sendBuffer << dofType_;
   sendBuffer << coordinates_;
+  blendingMap_->serialize(sendBuffer);
 }
 
 void Vertex::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
   recvBuffer >> dofType_;
   recvBuffer >> coordinates_;
+  blendingMap_ = FaceMap::deserialize(recvBuffer);
 }
 
 }

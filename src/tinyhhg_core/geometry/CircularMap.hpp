@@ -1,6 +1,10 @@
 #pragma once
 
 #include "FaceMap.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+
+#include "core/math/Utility.h"
 
 namespace hhg {
 
@@ -40,6 +44,17 @@ class CircularMap : public FaceMap {
     invDet_ = 1.0 / (x2bar_[0]*x3bar_[1] - x3bar_[0]*x2bar_[1]);
   }
 
+  CircularMap(walberla::mpi::RecvBuffer& recvBuffer) {
+    recvBuffer >> x1_;
+    recvBuffer >> x2bar_;
+    recvBuffer >> x3bar_;
+    recvBuffer >> center_;
+    recvBuffer >> radius_;
+    recvBuffer >> s1_;
+    recvBuffer >> s3bar_;
+    recvBuffer >> invDet_;
+  }
+
   void evalF(const Point3D& x, Point3D& Fx) {
     real_t xi = (x3bar_[0]*(x1_[1] - x[1]) - x3bar_[1]*(x1_[0] - x[0])) * invDet_;
     real_t eta = (-x2bar_[0]*(x1_[1] - x[1]) + x2bar_[1]*(x1_[0] - x[0])) * invDet_;
@@ -65,6 +80,18 @@ class CircularMap : public FaceMap {
     real_t invDet = 1.0 / tmp.det();
     DFxInv = tmp.adj();
     DFxInv *= invDet;
+  }
+
+  void serialize(walberla::mpi::SendBuffer& sendBuffer) {
+    sendBuffer << Type::CIRCULAR;
+    sendBuffer << x1_;
+    sendBuffer << x2bar_;
+    sendBuffer << x3bar_;
+    sendBuffer << center_;
+    sendBuffer << radius_;
+    sendBuffer << s1_;
+    sendBuffer << s3bar_;
+    sendBuffer << invDet_;
   }
 
  private:

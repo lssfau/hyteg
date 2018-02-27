@@ -4,6 +4,7 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 #include "core/debug/Debug.h"
+#include "core/Abort.h"
 
 #include <cmath>
 #include <array>

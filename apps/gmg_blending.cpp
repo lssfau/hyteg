@@ -75,6 +75,10 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
+#ifdef WALBERLA_BUILD_WITH_PARMETIS
+  loadbalancing::distributed::parmetis( *storage );
+#endif
+
   hhg::P1Function< real_t > r("r", storage, minLevel, maxMemoryLevel);
 //  hhg::P1Function< real_t > r_fe("r_fe", storage, minLevel, maxMemoryLevel);
   hhg::P1Function< real_t > f("f", storage, minLevel, maxMemoryLevel);

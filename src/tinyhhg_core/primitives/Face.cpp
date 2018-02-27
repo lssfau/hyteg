@@ -138,6 +138,7 @@ void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << coords[0];
   sendBuffer << coords[1];
   sendBuffer << coords[2];
+  blendingMap->serialize(sendBuffer);
 }
 
 void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -150,6 +151,7 @@ void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> coords[0];
   recvBuffer >> coords[1];
   recvBuffer >> coords[2];
+  blendingMap = FaceMap::deserialize(recvBuffer);
 }
 
 }
