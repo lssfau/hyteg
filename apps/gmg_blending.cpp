@@ -130,10 +130,7 @@ int main(int argc, char* argv[])
   if (polynomialOperator) {
     Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel, interpolationLevel);
 
-    for (uint_t i = 0; i <= 12; ++i) {
-      Lpoly->interpolateStencils(maxLevel, i);
-    }
-
+    Lpoly->interpolateStencils(maxLevel, maxPolyDegree);
     useDegree = maxPolyDegree;
     Lpoly->useDegree(useDegree);
 
@@ -173,7 +170,7 @@ int main(int argc, char* argv[])
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
   typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver> LaplaceSover;
-  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxMemoryLevel);
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxMemoryLevel, 2, 2);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
@@ -234,15 +231,16 @@ int main(int argc, char* argv[])
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
 
     if (polynomialOperator) {
-      if (estL2Error / estL2ErrorOld > (1.0-1e-3) && useDegree < 12) {
+      if (estL2Error / estL2ErrorOld > 0.99 && useDegree < 12) {
 
-        if (updatedDegree) {
+        if (updatedDegree && abs_res/abs_res_old <= 1.0) {
           WALBERLA_LOG_INFO_ON_ROOT("Increasing polynomial had no effect, finishing");
           break;
         }
 
         WALBERLA_LOG_INFO_ON_ROOT("Increasing polynomial degree to " << useDegree + 1);
         ++useDegree;
+        Lpoly->interpolateStencils(maxLevel, useDegree);
         Lpoly->useDegree(useDegree);
         updatedDegree = true;
       } else {
