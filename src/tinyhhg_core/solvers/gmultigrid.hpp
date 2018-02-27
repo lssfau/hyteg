@@ -14,14 +14,11 @@ public:
     WCYCLE
   };
 
-  GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage, const std::shared_ptr<CoarseSolver>& coarseSolver, uint_t minLevel, uint_t maxLevel)
+  GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage, const std::shared_ptr<CoarseSolver>& coarseSolver, uint_t minLevel, uint_t maxLevel, uint_t nuPre = 3, uint_t nuPost = 3)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(coarseSolver),
-      ax_("gmg_ax", storage, minLevel, maxLevel), tmp_("gmg_tmp", storage, minLevel, maxLevel)
+      ax_("gmg_ax", storage, minLevel, maxLevel), tmp_("gmg_tmp", storage, minLevel, maxLevel),
+      nuPre_(nuPre), nuPost_(nuPost)
   {
-    // TODO: remove hardcoded parameters
-    nuPre_ = 3;
-    nuPost_ = 3;
-
     zero_ = [](const hhg::Point3D&) { return 0.0; };
   }
 
