@@ -1,5 +1,6 @@
 Parameters
 {
+  meshFilename ../data/meshes/unitsquare_with_circular_hole.msh;
   level_h_coarse 0;
   level_h_fine 5;
   max_outer_iter 50;
