@@ -83,7 +83,7 @@ private:
 
     for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
 
-      auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
+      auto faceP1LocalMatrixMemoryDataHandling = std::make_shared< FaceP1LocalMatrixMemoryDataHandling >(minLevel_, std::max(maxLevel_, interpolationLevel_));
       auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared< EdgeP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
       auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared< VertexP1LocalMatrixMemoryDataHandling >(minLevel_, maxLevel_);
 
@@ -92,17 +92,27 @@ private:
       storage_->addVertexData(vertexLocalMatrixIDs_[oprIdx], vertexP1LocalMatrixMemoryDataHandling, "P1OperatorVertexLocalMatrix");
 
       // Initialize other local stiffness matrices on lower dimensional primitives as usual
-      for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
+      for (uint_t level = minLevel_; level <= std::max(maxLevel_, interpolationLevel_); ++level) {
 
-        for (auto& it : storage_->getFaces()) {
-          Face& face = *it.second;
+        for (auto &it : storage_->getFaces()) {
+          Face &face = *it.second;
 
           auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
 
-          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
-          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
+          compute_local_stiffness(operators_[oprIdx],
+                                  face,
+                                  level,
+                                  faceLocalMatrices->getGrayMatrix(level),
+                                  fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx],
+                                  face,
+                                  level,
+                                  faceLocalMatrices->getBlueMatrix(level),
+                                  fenics::BLUE);
         }
+      }
 
+      for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
         for (auto &it : storage_->getEdges()) {
           Edge &edge = *it.second;
 
@@ -150,6 +160,7 @@ private:
       Face& face = *it.second;
 
       auto facePolynomials = face.getData(facePolynomialID_);
+      facePolynomials->addDegree(polyDegree_);
 
       uint_t rowsize = levelinfo::num_microvertices_per_edge(interpolationLevel_);
       uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(maxLevel_);
