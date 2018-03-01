@@ -26,8 +26,9 @@ def phi(x,y):
 
 F = Matrix([radius(x,y) * cos(phi(x,y)), radius(x,y) * sin(phi(x,y))])
 DF = F.jacobian([x,y])
+DFinv = DF**(-1)
 
-K = simplify(DF * DF.T / DF.det())
+K = simplify(DFinv * DFinv.T / sqrt((DFinv.det())**2))
 u = sin(x)*sinh(y)
 
 def gradient(u):
