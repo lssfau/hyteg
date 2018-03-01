@@ -44,11 +44,12 @@ public:
   P1Operator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
-
+    auto cellP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell   > >( minLevel_, maxLevel_, vertexDoFMacroCellStencilMemorySize );
     auto faceP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face   > >( minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
     auto edgeP1StencilMemoryDataHandling   = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge   > >( minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize );
     auto vertexP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex > >( minLevel_, maxLevel_, vertexDoFMacroVertexStencilMemorySize );
 
+    storage->addCellData(cellStencilID_, cellP1StencilMemoryDataHandling, "P1OperatorCellStencil");
     storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
     storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
     storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
@@ -117,6 +118,8 @@ public:
   const PrimitiveDataID<StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
 
   const PrimitiveDataID<StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+
+  const PrimitiveDataID<StencilMemory< real_t >, Cell> &getCellStencilID() const { return cellStencilID_; }
 
 private:
 
@@ -286,17 +289,25 @@ private:
 
   void apply_impl(P1Function< real_t > & src, P1Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
+    src.getCommunicator(level)->communicate< Vertex, Edge >();
+    src.getCommunicator(level)->communicate< Edge  , Face >();
+    src.getCommunicator(level)->communicate< Face  , Cell >();
+
     // start pulling vertex halos
     src.getCommunicator(level)->startCommunication<Edge, Vertex>();
 
     // start pulling edge halos
     src.getCommunicator(level)->startCommunication<Face, Edge>();
 
+    // start pulling face halos
+    src.getCommunicator(level)->startCommunication<Cell, Face>();
+
     // end pulling vertex halos
     src.getCommunicator(level)->endCommunication<Edge, Vertex>();
 
-    for (auto& it : storage_->getVertices()) {
-      Vertex& vertex = *it.second;
+    for ( const auto & it : storage_->getVertices() )
+    {
+      Vertex & vertex = *it.second;
 
       if (testFlag(vertex.getDoFType(), flag))
       {
@@ -309,8 +320,9 @@ private:
     // end pulling edge halos
     src.getCommunicator(level)->endCommunication<Face, Edge>();
 
-    for (auto& it : storage_->getEdges()) {
-      Edge& edge = *it.second;
+    for ( const auto& it : storage_->getEdges() )
+    {
+      Edge & edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag))
       {
@@ -322,8 +334,12 @@ private:
 
     dst.getCommunicator(level)->startCommunication<Edge, Face>();
 
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
+    // end pulling face halos
+    src.getCommunicator(level)->endCommunication<Cell, Face>();
+
+    for ( const auto & it : storage_->getFaces() )
+    {
+      Face & face = *it.second;
 
       if (testFlag(face.type, flag))
       {
@@ -332,6 +348,12 @@ private:
     }
 
     dst.getCommunicator(level)->endCommunication<Edge, Face>();
+
+    for ( const auto & it : storage_->getCells() )
+    {
+      Cell & cell = *it.second;
+      vertexdof::macrocell::apply< real_t >(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+    }
   }
 
   void smooth_gs_impl(P1Function< real_t > & dst, P1Function< real_t > & rhs, size_t level, DoFType flag)
@@ -487,6 +509,7 @@ private:
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face> faceStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Cell> cellStencilID_;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
@@ -506,6 +529,8 @@ private:
   }
 
 };
+
+typedef P1Operator<fenics::NoAssemble> P1ZeroOperator;
 
 typedef P1Operator<p1_diffusion_cell_integral_0_otherwise> P1LaplaceOperator;
 typedef P1Operator<p1_diffusion_cell_integral_0_otherwise, true> P1DiagonalLaplaceOperator;

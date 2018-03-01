@@ -27,10 +27,10 @@ private:
 };
 
 /// on edges only one stencil is required since only the horizontal edge DoFs belong to the edge
-uint_t macroEdgeEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroEdgeEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 /// on face three stencils are needed for horizontal, vertical and diagonal DoFs
-uint_t macroFaceEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const uint_t &numDependencies);
+uint_t macroFaceEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 
 }

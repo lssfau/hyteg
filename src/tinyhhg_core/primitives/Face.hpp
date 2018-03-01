@@ -47,6 +47,7 @@ public:
 
   uint_t vertex_index(const PrimitiveID& vertex) const;
   uint_t edge_index(const PrimitiveID& edge) const;
+  uint_t cell_index( const PrimitiveID & cell ) const;
 
   std::vector<PrimitiveID> adjacent_edges(const PrimitiveID& vertex) const;
   PrimitiveID get_vertex_opposite_to_edge(const PrimitiveID& edge) const;

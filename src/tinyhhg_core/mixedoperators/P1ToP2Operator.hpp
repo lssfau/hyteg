@@ -6,7 +6,15 @@
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "generated/p1_to_p2_divt.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 

@@ -9,9 +9,17 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "generated/p2_diffusion.h"
 #include "generated/p2_divt.h"
 #include "generated/p2_div.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 

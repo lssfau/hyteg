@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 
   std::shared_ptr<Face> face = storage->getFaces().begin().operator*().second;
 
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D& x)  { return x.x[0] * 4; };
+  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D& x)  { return x[0] * 4; };
   src->interpolate(ones,level);
 
   real_t* oprPtr = face->getData(M.getFaceStencilID())->getPointer( level );
@@ -81,20 +81,20 @@ int main(int argc, char **argv) {
 
   walberla::WcTimer timer;
   timer.reset();
-  LIKWID_MARKER_START("Index Apply");
+  LIKWID_MARKER_START("IndexApply");
   hhg::vertexdof::macroface::apply_tmpl<real_t, level> (*face,
                                           M.getFaceStencilID(),
                                           src->getFaceDataID(),
                                           dst1->getFaceDataID(),
                                           Replace);
-  LIKWID_MARKER_STOP("Index Apply");
+  LIKWID_MARKER_STOP("IndexApply");
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Index Apply: " << timer.last());
 
   timer.reset();
-  LIKWID_MARKER_START("Manual Apply");
+  LIKWID_MARKER_START("ManualApply");
   manualApply< level >(oprPtr,srcPtr,dst2Ptr,Replace);
-  LIKWID_MARKER_STOP("Manual Apply");
+  LIKWID_MARKER_STOP("ManualApply");
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Manual Apply: " << timer.last());
 
