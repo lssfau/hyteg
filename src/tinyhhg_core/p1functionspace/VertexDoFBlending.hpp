@@ -527,11 +527,11 @@ inline void applyBlendingTmpl(Edge &edge,
   uint_t e_south = faceS->vertex_index(edge.neighborVertices()[1]);
   uint_t o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
 
-  Point3D d0S = (faceS->coords[e_south] - faceS->coords[s_south])/(walberla::real_c(rowsize - 1));
-  Point3D d2S = (faceS->coords[o_south] - faceS->coords[e_south])/(walberla::real_c(rowsize - 1));
+  Point3D d0S = (faceS->coords[o_south] - faceS->coords[s_south])/(walberla::real_c(rowsize - 1));
+  Point3D d2S = (faceS->coords[e_south] - faceS->coords[o_south])/(walberla::real_c(rowsize - 1));
 
-  Point3D offsetSW = -1.0/3.0 * d0S + 1.0/3.0 * d2S;
-  Point3D offsetS = 1.0/3.0 * d0S + 2.0/3.0 * d2S;
+  Point3D offsetSW = -1.0/3.0 * d0S - 2.0/3.0 * d2S;
+  Point3D offsetS = 1.0/3.0 * d0S - 1.0/3.0 * d2S;
   Point3D offsetSE = 2.0/3.0 * d0S + 1.0/3.0 * d2S;
 
   uint_t s_north, e_north, o_north;
@@ -547,12 +547,12 @@ inline void applyBlendingTmpl(Edge &edge,
     e_north = faceN->vertex_index(edge.neighborVertices()[1]);
     o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
 
-    d0N = (faceN->coords[e_north] - faceN->coords[s_north])/(walberla::real_c(rowsize - 1));
-    d2N = (faceN->coords[o_north] - faceN->coords[e_north])/(walberla::real_c(rowsize - 1));
+    d0N = (faceN->coords[o_north] - faceN->coords[s_north])/(walberla::real_c(rowsize - 1));
+    d2N = (faceN->coords[e_north] - faceN->coords[o_north])/(walberla::real_c(rowsize - 1));
 
-    offsetNE = 1.0/3.0 * d0N + 1.0/3.0 * d2N;
-    offsetN = -1.0/3.0 * d0N + 2.0/3.0 * d2N;
-    offsetNW = -2.0/3.0 * d0N + 1.0/3.0 * d2N;
+    offsetNE = 2.0/3.0 * d0N + 1.0/3.0 * d2N;
+    offsetN = 1.0/3.0 * d0N - 1.0/3.0 * d2N;
+    offsetNW = -1.0/3.0 * d0N - 2.0/3.0 * d2N;
   }
 
   Matrix2r mappingTensor;
@@ -630,11 +630,11 @@ inline void smoothGSBlendingTmpl(Edge &edge,
   uint_t e_south = faceS->vertex_index(edge.neighborVertices()[1]);
   uint_t o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
 
-  Point3D d0S = (faceS->coords[e_south] - faceS->coords[s_south])/(walberla::real_c(rowsize - 1));
-  Point3D d2S = (faceS->coords[o_south] - faceS->coords[e_south])/(walberla::real_c(rowsize - 1));
+  Point3D d0S = (faceS->coords[o_south] - faceS->coords[s_south])/(walberla::real_c(rowsize - 1));
+  Point3D d2S = (faceS->coords[e_south] - faceS->coords[o_south])/(walberla::real_c(rowsize - 1));
 
-  Point3D offsetSW = -1.0/3.0 * d0S + 1.0/3.0 * d2S;
-  Point3D offsetS = 1.0/3.0 * d0S + 2.0/3.0 * d2S;
+  Point3D offsetSW = -1.0/3.0 * d0S - 2.0/3.0 * d2S;
+  Point3D offsetS = 1.0/3.0 * d0S - 1.0/3.0 * d2S;
   Point3D offsetSE = 2.0/3.0 * d0S + 1.0/3.0 * d2S;
 
   uint_t s_north, e_north, o_north;
@@ -650,12 +650,12 @@ inline void smoothGSBlendingTmpl(Edge &edge,
     e_north = faceN->vertex_index(edge.neighborVertices()[1]);
     o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
 
-    d0N = (faceN->coords[e_north] - faceN->coords[s_north])/(walberla::real_c(rowsize - 1));
-    d2N = (faceN->coords[o_north] - faceN->coords[e_north])/(walberla::real_c(rowsize - 1));
+    d0N = (faceN->coords[o_north] - faceN->coords[s_north])/(walberla::real_c(rowsize - 1));
+    d2N = (faceN->coords[e_north] - faceN->coords[o_north])/(walberla::real_c(rowsize - 1));
 
-    offsetNE = 1.0/3.0 * d0N + 1.0/3.0 * d2N;
-    offsetN = -1.0/3.0 * d0N + 2.0/3.0 * d2N;
-    offsetNW = -2.0/3.0 * d0N + 1.0/3.0 * d2N;
+    offsetNE = 2.0/3.0 * d0N + 1.0/3.0 * d2N;
+    offsetN = 1.0/3.0 * d0N - 1.0/3.0 * d2N;
+    offsetNW = -1.0/3.0 * d0N - 2.0/3.0 * d2N;
   }
 
   Matrix2r mappingTensor;
