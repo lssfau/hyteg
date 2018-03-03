@@ -44,9 +44,7 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
 
-  uint_t numMacroEdgesPerRectangleEdge = uint_c(std::pow(2, level_H));
-  MeshInfo meshInfo = MeshInfo::meshRectangle({{0.0, 0.0}}, {{1.0, 1.0}}, MeshInfo::meshFlavour::CRISS,
-                                              numMacroEdgesPerRectangleEdge, numMacroEdgesPerRectangleEdge);
+  MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
 
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
