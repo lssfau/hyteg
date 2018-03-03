@@ -100,8 +100,8 @@ int main(int argc, char* argv[])
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*pow(sinh(x[1]), 2); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(3*pow(sinh(x[1]), 2) + 2)*sin(x[0]); };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -pow(x[0], 2)*sin(x[0])*sinh(x[1]) + 2*pow(x[0], 2)*cos(x[0])*cosh(x[1]) + 2*x[0]*sin(x[0])*cosh(x[1]) - 6*x[0]*cos(x[0])*sinh(x[1]) - 3*pow(x[1], 2)*sin(x[0])*sinh(x[1]) + 2*pow(x[1], 2)*cos(x[0])*cosh(x[1]) - 10*x[1]*sin(x[0])*cosh(x[1]) + 2*x[1]*cos(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
