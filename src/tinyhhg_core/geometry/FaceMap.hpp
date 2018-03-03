@@ -32,6 +32,12 @@ public:
     coeff *= 1.0 / std::abs(invDet);
   }
 
+  real_t evalDetDF(const Point3D& x) {
+    Matrix2r DF;
+    evalDF(x, DF);
+    return DF.det();
+  }
+
   virtual void serialize(walberla::mpi::SendBuffer& sendBuffer) = 0;
   static std::shared_ptr<FaceMap> deserialize(walberla::mpi::RecvBuffer& recvBuffer);
 };

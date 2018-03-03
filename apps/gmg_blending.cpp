@@ -94,13 +94,14 @@ int main(int argc, char* argv[])
   auto coordX = std::make_shared<hhg::P1Function<real_t>>("x", storage, minLevel, maxMemoryLevel);
   auto coordY = std::make_shared<hhg::P1Function<real_t>>("y", storage, minLevel, maxMemoryLevel);
 
+  typedef hhg::P1BlendingMassOperator MassOperator;
   typedef hhg::P1BlendingLaplaceOperator SolveOperatorNodal;
   typedef hhg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*pow(sinh(x[1]), 2); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(3*pow(sinh(x[1]), 2) + 2)*sin(x[0]); };
   std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
@@ -117,12 +118,8 @@ int main(int argc, char* argv[])
 //  u_fe.interpolate(exact, maxLevel, hhg::DirichletBoundary);
 //  u_fe.interpolate(exact, maxMemoryLevel, hhg::DirichletBoundary);
 
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
-  u_exact.interpolate(exact, maxLevel);
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating rhs");
-  f.interpolate(rhs, maxLevel);
-
-  WALBERLA_LOG_INFO_ON_ROOT("Setting up stiffness operator");
+  WALBERLA_LOG_INFO_ON_ROOT("Setting up operators");
+  MassOperator M(storage, minLevel, maxMemoryLevel);
   std::shared_ptr<SolveOperatorPoly> Lpoly;
   std::shared_ptr<SolveOperatorNodal> L;
   SolveOperator solveOperator;
@@ -164,6 +161,12 @@ int main(int argc, char* argv[])
   }
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
+
+  WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
+  u_exact.interpolate(exact, maxLevel);
+  WALBERLA_LOG_INFO_ON_ROOT("Integrating rhs");
+  tmp.interpolate(rhs, maxLevel);
+  M.apply(tmp, f, maxLevel, hhg::All);
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
@@ -234,6 +237,7 @@ int main(int argc, char* argv[])
 
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
 
+#if 0
     if (polynomialOperator) {
       if (estL2Error / estL2ErrorOld > 0.99 && useDegree < 12) {
 
@@ -257,6 +261,8 @@ int main(int argc, char* argv[])
       }
     }
     solveTime += vCycleTime + estimatorTime;
+#endif
+    solveTime += vCycleTime;
 
     if (i >= convergenceStartIter) {
       averageConvergenceRate += abs_res/abs_res_old;

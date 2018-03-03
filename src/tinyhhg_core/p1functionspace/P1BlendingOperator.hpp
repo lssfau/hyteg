@@ -376,6 +376,26 @@ private:
   std::vector<fenics::TabulateTensor> operators_;
 };
 
+template<class FenicsOperator>
+class P1ScalarBlendingOperator : public P1BlendingOperator {
+public:
+   P1ScalarBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+                           size_t minLevel,
+                           size_t maxLevel)
+      : P1BlendingOperator(storage, minLevel, maxLevel) {
+    fenicsOperator = std::make_shared<FenicsOperator>();
+
+    this->addOperatorAndCoefficient(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+
+    this->init();
+  }
+
+ private:
+  std::shared_ptr<FenicsOperator> fenicsOperator;
+};
+
+typedef P1ScalarBlendingOperator<p1_mass_cell_integral_0_otherwise> P1BlendingMassOperator;
+
 template<class FenicsOperator1, class FenicsOperator2, class FenicsOperator3>
 class P1TensorBlendingOperator : public P1BlendingOperator {
 public:

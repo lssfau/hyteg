@@ -197,7 +197,7 @@ public:
 
           ref_x[0] = i * ref_H;
 
-          vertexdof::blending::macroface::assembleStencil(fineLevel, face, faceStencil, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
+          vertexdof::blending::macroface::assembleTensorStencil(fineLevel, face, faceStencil, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
 
           horiInterpolator.addInterpolationPoint(ref_x + Point2D{{ -0.5 * ref_h, 0.0 }}, faceStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_W)]);
 
