@@ -38,27 +38,26 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
 // Stencil access functions
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-template< uint_t Level >
-inline constexpr uint_t indexFromVertex( const uint_t & x, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
   switch( dir )
   {
     case sD::VERTEX_C:
-      return index( Level, x );
+      return index( level, x );
     case sD::VERTEX_E:
-      return index( Level, x + 1 );
+      return index( level, x + 1 );
     case sD::VERTEX_W:
-      return index( Level, x - 1 );
+      return index( level, x - 1 );
     case sD::VERTEX_N:
-      return index( Level, x, 1 );
+      return index( level, x, 1 );
     case sD::VERTEX_S:
-      return index( Level, x - 1, 0 );
+      return index( level, x - 1, 0 );
     case sD::VERTEX_NW:
-      return index( Level, x - 1, 1 );
+      return index( level, x - 1, 1 );
     case sD::VERTEX_SE:
-      return index( Level, x, 0 );
+      return index( level, x, 0 );
     default:
       return std::numeric_limits< uint_t >::max();
   }

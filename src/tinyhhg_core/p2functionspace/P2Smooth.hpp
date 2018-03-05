@@ -60,12 +60,12 @@ void smoothGSvertexDoFTmpl(Edge &edge,
   real_t tmp;
 
   for(uint_t i = 1; i < rowsize - 1; ++i){
-    tmp = rhs[vertexdof::macroedge::indexFromVertex< Level >(i, stencilDirection::VERTEX_C)];
+    tmp = rhs[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
 
     // neighbors on edge
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
       tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *
-        dstVertexDoF[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+        dstVertexDoF[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for(uint_t k = 0; k < edgedof::macroedge::neighborsOnEdgeFromVertex.size(); ++k){
@@ -75,7 +75,7 @@ void smoothGSvertexDoFTmpl(Edge &edge,
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF ) {
       tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *
-        dstVertexDoF[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+        dstVertexDoF[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
     for(uint_t k = 0; k < edgedof::macroedge::neighborsOnSouthFaceFromVertex.size(); ++k){
       tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroedge::neighborsOnSouthFaceFromVertex[k])] *
@@ -85,7 +85,7 @@ void smoothGSvertexDoFTmpl(Edge &edge,
     if (edge.getNumNeighborFaces() == 2) {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF ) {
         tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] *
-          dstVertexDoF[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+          dstVertexDoF[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
       for(uint_t k = 0; k < edgedof::macroedge::neighborsOnNorthFaceFromVertex.size(); ++k){
         tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroedge::neighborsOnNorthFaceFromVertex[k])] *
@@ -93,7 +93,7 @@ void smoothGSvertexDoFTmpl(Edge &edge,
       }
     }
 
-    dstVertexDoF[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] =
+    dstVertexDoF[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] =
       tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
 
     }

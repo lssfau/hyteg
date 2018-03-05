@@ -34,26 +34,26 @@ inline ValueType assembleLocal(uint_t pos, const Matrix3r& localMatrix,
                                const std::array<uint_t,3>& idx)
 {
 
-  ValueType meanCoeff = 1.0/3.0 * (coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 0 ] ) ]
-                                 + coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 1 ] ) ]
-                                 + coeff[ vertexdof::macroedge::indexFromVertex<Level>( pos, vertices[ 2 ] ) ]);
+  ValueType meanCoeff = 1.0/3.0 * (coeff[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[0] )]
+                                 + coeff[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[1] )]
+                                 + coeff[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[2] )]);
 
   ValueType tmp;
-  tmp  = localMatrix(idx[0],idx[0]) * src[ vertexdof::macroedge::indexFromVertex<Level>(pos, vertices[0]) ]
-         + localMatrix(idx[0],idx[1]) * src[ vertexdof::macroedge::indexFromVertex<Level>(pos, vertices[1]) ]
-         + localMatrix(idx[0],idx[2]) * src[ vertexdof::macroedge::indexFromVertex<Level>(pos, vertices[2]) ];
+  tmp  = localMatrix(idx[0],idx[0]) * src[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[0] )]
+         + localMatrix(idx[0],idx[1]) * src[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[1] )]
+         + localMatrix(idx[0],idx[2]) * src[vertexdof::macroedge::indexFromVertex( Level, pos, vertices[2] )];
   return meanCoeff * tmp;
 }
 
 template<uint_t Level>
 inline void fillLocalCoords(uint_t i, const std::array< stencilDirection, 3>& element, const std::array<real_t*, 2>& coords, real_t localCoords[6] )
 {
-  localCoords[0] = coords[0][ vertexdof::macroedge::indexFromVertex<Level>(i, element[0]) ];
-  localCoords[1] = coords[1][ vertexdof::macroedge::indexFromVertex<Level>(i, element[0]) ];
-  localCoords[2] = coords[0][ vertexdof::macroedge::indexFromVertex<Level>(i, element[1]) ];
-  localCoords[3] = coords[1][ vertexdof::macroedge::indexFromVertex<Level>(i, element[1]) ];
-  localCoords[4] = coords[0][ vertexdof::macroedge::indexFromVertex<Level>(i, element[2]) ];
-  localCoords[5] = coords[1][ vertexdof::macroedge::indexFromVertex<Level>(i, element[2]) ];
+  localCoords[0] = coords[0][vertexdof::macroedge::indexFromVertex( Level, i, element[0] )];
+  localCoords[1] = coords[1][vertexdof::macroedge::indexFromVertex( Level, i, element[0] )];
+  localCoords[2] = coords[0][vertexdof::macroedge::indexFromVertex( Level, i, element[1] )];
+  localCoords[3] = coords[1][vertexdof::macroedge::indexFromVertex( Level, i, element[1] )];
+  localCoords[4] = coords[0][vertexdof::macroedge::indexFromVertex( Level, i, element[2] )];
+  localCoords[5] = coords[1][vertexdof::macroedge::indexFromVertex( Level, i, element[2] )];
 }
 
 template< typename ValueType, uint_t Level >
@@ -75,7 +75,7 @@ inline void interpolateTmpl(Edge &edge,
   for ( const auto & it : vertexdof::macroedge::Iterator( Level, 1 ) )
   {
     const Point3D coordinate = coordinateFromIndex< Level >( edge, it );
-    const uint_t  idx        = vertexdof::macroedge::indexFromVertex<Level>( it.x(), stencilDirection::VERTEX_C );
+    const uint_t  idx        = vertexdof::macroedge::indexFromVertex( Level, it.x(), stencilDirection::VERTEX_C );
 
     for ( uint_t k = 0; k < srcPtr.size(); ++k )
     {
@@ -96,13 +96,13 @@ inline void assignTmpl(Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
 
     for (size_t k = 1; k < srcIds.size(); ++k) {
-      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
     }
 
-    edge.getData(dstId)->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
+    edge.getData(dstId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
   }
 }
 
@@ -120,10 +120,10 @@ inline void addTmpl(Edge &edge,
     ValueType tmp = 0.0;
 
     for (size_t k = 0; k < srcIds.size(); ++k) {
-      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+      tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
     }
 
-    edge.getData(dstId)->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] += tmp;
+    edge.getData(dstId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] += tmp;
   }
 }
 
@@ -137,8 +137,8 @@ inline real_t dotTmpl(Edge &edge, const PrimitiveDataID<FunctionMemory< ValueTyp
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    sp += edge.getData(lhsMemoryId)->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ]
-        * edge.getData(rhsMemoryId)->getPointer( Level )[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    sp += edge.getData(lhsMemoryId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+        * edge.getData(rhsMemoryId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
   }
 
   return sp;
@@ -161,33 +161,33 @@ inline void applyTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< ValueTyp
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
 
     // neighbors on edge
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+        tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
     }
 
     WALBERLA_ASSERT_LESS( edge.getNumNeighborFaces(), 3, "VertexDoFSpace: macro-edge apply not yet implemented for edges with more than 2 neighbor faces." );
 
     if (update == Replace) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
     } else if (update == Add) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] += tmp;
     }
   }
 }
@@ -239,7 +239,7 @@ inline void applyCoefficientTmpl(Edge &edge,
       tmp = ValueType(0);
     }
     else {
-      tmp = dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+      tmp = dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
     }
 
     tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 0), src, coeff, triangleGraySW, {e_south, s_south, o_south});
@@ -253,7 +253,7 @@ inline void applyCoefficientTmpl(Edge &edge,
       tmp += assembleLocal<ValueType, Level>(i, localMatrices->getGrayMatrix(Level, 1), src, coeff, triangleGrayNE, {s_north, o_north, e_north});
     }
 
-    dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
   }
 }
 
@@ -345,30 +345,30 @@ inline void applyElementwiseTmpl(Edge &edge,
 
 //    WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:edgeStencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edgeStencil[0])));
 
-    tmp = edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    tmp = edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>(i, neighbor) ];
+      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>(i, neighbor) ];
+      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>(i, neighbor) ];
+        tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
     }
 
     if (update == Replace) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
     } else if (update == Add) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] += tmp;
     }
   }
 }
@@ -388,27 +388,28 @@ inline void smoothGSTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< Value
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] = rhs[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = rhs[vertexdof::macroedge::indexFromVertex( Level, i,
+                                                                                                                                                                stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+        dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
     }
 
-    dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] /= opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] /= opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -430,28 +431,29 @@ inline void smoothSORTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< Valu
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    tmp = rhs[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    tmp = rhs[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      tmp -= opr_data[vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      tmp -= opr_data[vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+        tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
     }
 
-    dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C ) ] = (1.0-relax) * dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ]
-                                                                                                             + relax * tmp/opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = ( 1.0 - relax) * dst[vertexdof::macroedge::indexFromVertex( Level, i,
+                                                                                                                                                                                 stencilDirection::VERTEX_C )]
+                                                                                                            + relax * tmp/opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -472,50 +474,59 @@ inline void smoothJacTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< Valu
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = rhs[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = rhs[vertexdof::macroedge::indexFromVertex( Level, i,
+                                                                                                                                                                stencilDirection::VERTEX_C )];
 
     for (auto& neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     for (auto& neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for (auto& neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+        dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * tmp[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       }
     }
 
-    dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] /= opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] /= opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
   }
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, smoothJacTmpl, smooth_jac )
 
 template< typename ValueType, uint_t SourceLevel >
-inline void prolongateTmpl(Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &memoryId) {
+inline void prolongateTmpl( Edge & edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & memoryId ) {
 
-  size_t rowsize_c = levelinfo::num_microvertices_per_edge(SourceLevel);
+  size_t rowsize_c = levelinfo::num_microvertices_per_edge( SourceLevel );
 
-  auto edge_data_f = edge.getData(memoryId)->getPointer( SourceLevel + 1 );
-  auto edge_data_c = edge.getData(memoryId)->getPointer( SourceLevel );
+  auto edge_data_f = edge.getData( memoryId )->getPointer( SourceLevel + 1 );
+  auto edge_data_c = edge.getData( memoryId )->getPointer( SourceLevel );
 
   size_t i_c;
-  for (i_c = 1; i_c < rowsize_c - 1; ++i_c) {
+  for ( i_c = 1; i_c < rowsize_c - 1; ++i_c ) {
 
-    edge_data_f[vertexdof::macroedge::indexFromVertex<SourceLevel+1>(2*i_c, stencilDirection::VERTEX_C)] = edge_data_c[vertexdof::macroedge::indexFromVertex<SourceLevel>(i_c, stencilDirection::VERTEX_C)];
-    edge_data_f[vertexdof::macroedge::indexFromVertex<SourceLevel+1>(2*i_c-1, stencilDirection::VERTEX_C)] = 0.5*(edge_data_c[vertexdof::macroedge::indexFromVertex<SourceLevel>(i_c-1, stencilDirection::VERTEX_C)]
-                                                              + edge_data_c[vertexdof::macroedge::indexFromVertex<SourceLevel>(i_c, stencilDirection::VERTEX_C)]);
+    edge_data_f[vertexdof::macroedge::indexFromVertex( SourceLevel + 1, 2 * i_c, stencilDirection::VERTEX_C )] = edge_data_c[vertexdof::macroedge::indexFromVertex( SourceLevel,
+                                                                                                                                                                    i_c,
+                                                                                                                                                                    stencilDirection::VERTEX_C )];
+    edge_data_f[vertexdof::macroedge::indexFromVertex( SourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )]
+    = 0.5 * ( edge_data_c[vertexdof::macroedge::indexFromVertex( SourceLevel, i_c - 1, stencilDirection::VERTEX_C )]
+              + edge_data_c[vertexdof::macroedge::indexFromVertex(
+    SourceLevel, i_c, stencilDirection::VERTEX_C )] );
   }
 
-  edge_data_f[vertexdof::macroedge::indexFromVertex<SourceLevel+1>(2*i_c-1, stencilDirection::VERTEX_C)] = 0.5*(edge_data_c[vertexdof::macroedge::indexFromVertex<SourceLevel>(i_c-1, stencilDirection::VERTEX_C)]
-                                                            + edge_data_c[vertexdof::macroedge::indexFromVertex<SourceLevel>(i_c, stencilDirection::VERTEX_C)]);
+  edge_data_f[vertexdof::macroedge::indexFromVertex( SourceLevel + 1, 2 * i_c - 1, stencilDirection::VERTEX_C )] = 0.5 * ( edge_data_c[vertexdof::macroedge::indexFromVertex(
+  SourceLevel,
+  i_c - 1,
+  stencilDirection::VERTEX_C )]
+                                                                                                                           + edge_data_c[vertexdof::macroedge::indexFromVertex(
+  SourceLevel, i_c, stencilDirection::VERTEX_C )] );
 }
 
 SPECIALIZE_WITH_VALUETYPE( void, prolongateTmpl, prolongate )
@@ -558,25 +569,29 @@ inline void restrictTmpl(Edge &edge, const PrimitiveDataID<FunctionMemory< Value
   auto edge_data_c = edge.getData(memoryId)->getPointer( Level - 1 );
 
   uint_t i_c;
-  for ( i_c = 1; i_c < rowsize_c - 1; ++i_c)
-  {
-    edge_data_c[vertexdof::macroedge::indexFromVertex<Level-1>(i_c, stencilDirection::VERTEX_C)] = 1.0 * edge_data_f[vertexdof::macroedge::indexFromVertex<Level>(2*i_c, stencilDirection::VERTEX_C)];
+  for ( i_c = 1; i_c < rowsize_c - 1; ++i_c ) {
+    edge_data_c[vertexdof::macroedge::indexFromVertex( Level - 1, i_c, stencilDirection::VERTEX_C )] = 1.0 * edge_data_f[vertexdof::macroedge::indexFromVertex( Level,
+                                                                                                                                                                2 * i_c,
+                                                                                                                                                                stencilDirection::VERTEX_C )];
 
-    for (auto& neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
-    {
-      edge_data_c[vertexdof::macroedge::indexFromVertex<Level-1>(i_c, stencilDirection::VERTEX_C)] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex<Level>(2*i_c, neighbor)];
+    for ( auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
+      edge_data_c[vertexdof::macroedge::indexFromVertex( Level - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex( Level,
+                                                                                                                                                                   2 * i_c,
+                                                                                                                                                                   neighbor )];
     }
 
-    for (auto& neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
-    {
-      edge_data_c[vertexdof::macroedge::indexFromVertex<Level-1>(i_c, stencilDirection::VERTEX_C)] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex<Level>(2*i_c, neighbor)];
+    for ( auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF ) {
+      edge_data_c[vertexdof::macroedge::indexFromVertex( Level - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex( Level,
+                                                                                                                                                                   2 * i_c,
+                                                                                                                                                                   neighbor )];
     }
 
-    if (edge.getNumNeighborFaces() == 2)
-    {
-      for (auto& neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
-      {
-        edge_data_c[vertexdof::macroedge::indexFromVertex<Level-1>(i_c, stencilDirection::VERTEX_C)] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex<Level>(2*i_c, neighbor)];
+    if ( edge.getNumNeighborFaces() == 2 ) {
+      for ( auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF ) {
+        edge_data_c[vertexdof::macroedge::indexFromVertex( Level - 1, i_c, stencilDirection::VERTEX_C )] += 0.5 * edge_data_f[vertexdof::macroedge::indexFromVertex( Level,
+                                                                                                                                                                     2 *
+                                                                                                                                                                     i_c,
+                                                                                                                                                                     neighbor )];
       }
     }
   }
@@ -590,7 +605,7 @@ inline void enumerateTmpl(Edge &edge, const PrimitiveDataID<FunctionMemory< Valu
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edge.getData(dstId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = walberla::real_c(num++);
+    edge.getData(dstId)->getPointer( Level )[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = walberla::real_c( num++);
   }
 }
 
@@ -627,18 +642,36 @@ inline void integrateDGTmpl(Edge &edge,
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    tmp =  weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SW)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_S)]));
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_SE)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_S)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_SE)]));
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_SE)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_SE)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_E)]));
+    tmp = weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex< Level >( i, sD::CELL_GRAY_SW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i,
+                                                                                                                                                                sD::VERTEX_C )]
+                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_W )] )
+                                                                                                     + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] +
+                                                                                                                     rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_S )] ));
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex< Level >( i, sD::CELL_BLUE_SE )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] +
+                                                                                                                    rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_S )] ) +
+                                                                                                      0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] +
+                                                                                                                    rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_SE )] ));
+    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex< Level >( i, sD::CELL_GRAY_SE )] *
+           ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_SE )] ) +
+             0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_E )] ));
 
     if (edge.getNumNeighborFaces() == 2) {
 
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NW)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_W)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_NW)]));
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_NW)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_NW)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_N)]));
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NE)] * (0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_N)]) + 0.5 * 0.5 * (rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] + rhsP1[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_E)]));
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NW)] * (0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                 + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_W )])
+                                                                                                   + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_NW )]));
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_BLUE_NW)] * (0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                 + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_NW )])
+                                                                                                   + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_N )]));
+      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex<Level>(i, sD::CELL_GRAY_NE)] * (0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                 + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_N )])
+                                                                                                   + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )]
+                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_E )]));
     }
 
-    dst[vertexdof::macroedge::indexFromVertex<Level>(i, sD::VERTEX_C)] = tmp;
+    dst[vertexdof::macroedge::indexFromVertex( Level, i, sD::VERTEX_C )] = tmp;
   }
 }
 
@@ -652,16 +685,16 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
 
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 0; i < (rowsize - 1); ++i) {
-      cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)] << "|";
+      cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 0; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex< Level >(i, stencilDirection::VERTEX_C)] << "|";
+    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] << "|";
   }
   cout << endl << "     |";
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex< Level >(i, stencilDirection::VERTEX_S)] << "|";
+    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_S )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
@@ -684,26 +717,26 @@ inline void saveOperatorTmpl(Edge &edge, const PrimitiveDataID< StencilMemory< r
 
 
   for (uint_t i = 1; i < rowsize - 1; ++i) {
-    PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
-    PetscInt srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
+    PetscInt srcint = src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )];
     //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
     MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
-      srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      srcint = src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF ) {
-      srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      srcint = src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF ) {
-        srcint = src[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+        srcint = src[vertexdof::macroedge::indexFromVertex( Level, i, neighbor )];
         //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
         MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
       }

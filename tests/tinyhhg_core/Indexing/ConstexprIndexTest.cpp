@@ -20,7 +20,7 @@ constexpr size_t sumIndicesEdge(const uint_t x){
   uint_t sum = 0;
   for(uint_t i = 0; i < hhg::vertexdof::macroedge::neighborsWithCenter.size(); ++i)
   {
-    sum += hhg::vertexdof::macroedge::indexFromVertex<3>(x, hhg::vertexdof::macroedge::neighborsWithCenter[i]);
+    sum += hhg::vertexdof::macroedge::indexFromVertex( 3, x, hhg::vertexdof::macroedge::neighborsWithCenter[i] );
   }
   return sum;
 }
@@ -74,7 +74,7 @@ int main() {
   static_assert(hhg::BubbleEdge::indexFaceFromVertex<3>(4, hhg::stencilDirection::CELL_GRAY_SE)==8,"BubbleEdge Index failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
 
-  static_assert(hhg::vertexdof::macroedge::indexFromVertex<3>(4, hhg::stencilDirection::VERTEX_SE)==13,"P1Edge Index failed");
+  static_assert( hhg::vertexdof::macroedge::indexFromVertex( 3, 4, hhg::stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");
   static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
   static_assert(

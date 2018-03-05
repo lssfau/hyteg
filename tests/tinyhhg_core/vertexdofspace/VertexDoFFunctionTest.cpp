@@ -162,7 +162,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       auto edgeDst = it.second->getData( dst->getEdgeDataID() )->getPointer( level );
       for ( const auto & idxIt : vertexdof::macroedge::Iterator( level, 1 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[ vertexdof::macroedge::indexFromVertex< level >( idxIt.x(), stencilDirection::VERTEX_C ) ], real_c( 3 + 2 * it.second->getNumNeighborFaces() ) );
+        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[vertexdof::macroedge::indexFromVertex( level, idxIt.x(), stencilDirection::VERTEX_C )], real_c( 3 + 2 * it.second->getNumNeighborFaces() ) );
       }
     }
     for ( const auto & it : storage->getFaces() )

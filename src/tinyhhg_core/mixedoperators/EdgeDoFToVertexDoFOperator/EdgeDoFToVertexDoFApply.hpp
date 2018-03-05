@@ -65,9 +65,9 @@ inline void applyEdgeTmpl(Edge &edge,
       }
     }
     if (update==Replace) {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
     } else if (update==Add) {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] += tmp;
     }
   }
 }

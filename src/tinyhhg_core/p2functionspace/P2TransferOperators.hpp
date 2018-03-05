@@ -117,7 +117,7 @@ inline void prolongateP1ToP2Tmpl( const Edge & edge,
 
   for ( const auto & it : vertexdof::macroedge::Iterator( Level, 1 ) )
   {
-    const uint_t idx = vertexdof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C );
     const ValueType p1VertexValue     = p1Vertices[ idx ];
     const ValueType p1VertexValueHalf = 0.5 * p1VertexValue;
 
@@ -147,7 +147,7 @@ inline void restrictP2ToP1Tmpl( const Edge & edge,
   for ( const auto & it : vertexdof::macroedge::Iterator( Level, 1 ) )
   {
     ValueType tmp;
-    const uint_t idx = vertexdof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C );
     tmp = p2Vertices[ idx ];
 
     tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_HO_W  ) ];

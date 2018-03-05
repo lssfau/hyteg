@@ -78,20 +78,20 @@ inline void upwindTmpl(Edge &edge,
     n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
-      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
+      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
+      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
 
-      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
-      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
+      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
-      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
-      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
+      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       // CENTER <-- CELL_GRAY_SE (i)
       // NORTH  <-- CELL_GRAY_NE (i)
@@ -165,20 +165,20 @@ inline void upwindTmpl(Edge &edge,
     n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
-      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
+      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
+      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
 
-      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
-      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
+      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
-      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
-      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
+      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       // CENTER <-- CELL_GRAY_NE (i)
       // SOUTH  <-- CELL_GRAY_SE (i)
@@ -340,9 +340,9 @@ inline void projectP1Tmpl(Edge &edge,
   // first face (south)
   {
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       if (updateType==Replace) {
         dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
@@ -356,9 +356,9 @@ inline void projectP1Tmpl(Edge &edge,
   if (edge.getNumNeighborFaces() == 2)
   {
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       if (updateType==Replace) {
         dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;

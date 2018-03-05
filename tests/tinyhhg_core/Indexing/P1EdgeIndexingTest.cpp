@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
   std::vector<uint_t> result;
   for( const auto & n : hhg::vertexdof::macroedge::neighborsWithCenter )
   {
-    size_t idx = hhg::vertexdof::macroedge::indexFromVertex<3>(1, n);
+    size_t idx = hhg::vertexdof::macroedge::indexFromVertex( 3, 1, n );
     result.push_back(idx);
   }
   for(size_t i = 0; i < refOne.size(); ++i){
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   result.clear();
   for( const auto & n : hhg::vertexdof::macroedge::neighborsWithCenter )
   {
-    size_t idx = hhg::vertexdof::macroedge::indexFromVertex<3>(5, n);
+    size_t idx = hhg::vertexdof::macroedge::indexFromVertex( 3, 5, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
