@@ -38,6 +38,25 @@ public:
     }
   }
 
+  inline void interpolate(std::function<ValueType(const Point3D &)>& expr,
+                          uint_t level,
+                          DoFType flag = All);
+
+  inline void interpolateExtended(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr,
+                                  const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                  uint_t level,
+                                  DoFType flag = All);
+
+  inline void assign(const std::vector<ValueType> scalars,
+                     const std::vector<DGFunction< ValueType >*> functions,
+                     uint_t level,
+                     DoFType flag = All);
+
+  inline void add(const std::vector<ValueType> scalars,
+                  const std::vector<DGFunction< ValueType >*> functions,
+                  uint_t level,
+                  DoFType flag = All);
+
   const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -54,35 +73,14 @@ private:
   PrimitiveDataID<FunctionMemory<ValueType>, Edge> edgeDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
 
-  inline void interpolate_impl(std::function<ValueType(const Point3D&, const std::vector<ValueType>&)>& expr,
-                               const std::vector<DGFunction<ValueType>*> srcFunctions,
-                               uint_t level,
-                               DoFType flag = All) override;
 
-  inline void assign_impl(const std::vector<ValueType> scalars,
-                          const std::vector<DGFunction< ValueType >*> functions,
-                          uint_t level,
-                          DoFType flag = All) override;
-
-  inline void add_impl(const std::vector<ValueType> scalars,
-                       const std::vector<DGFunction< ValueType >*> functions,
-                       uint_t level,
-                       DoFType flag = All) override;
-
-  inline real_t dot_impl(DGFunction< ValueType >& rhs, uint_t level, DoFType flag = All) override;
-
-  inline void prolongate_impl(uint_t level, DoFType flag = All) override;
-
-  inline void prolongateQuadratic_impl(uint_t level, DoFType flag = All) override;
-
-  inline void restrict_impl(uint_t level, DoFType flag = All) override;
 
   inline void enumerate_impl(uint_t level, uint_t& num) override;
 
 };
 
 template< typename ValueType >
-void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<DGFunction<ValueType> *> functions, uint_t level,
+void DGFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<DGFunction<ValueType> *> functions, uint_t level,
                           DoFType flag) {
 
   // Collect all source IDs in a vector
@@ -108,11 +106,22 @@ void DGFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, con
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                               const std::vector<DGFunction<ValueType>*> srcFunctions,
-                                               uint_t level,
-                                               DoFType flag) {
+inline void DGFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+                                                 uint_t level, DoFType flag)
+{
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+      return expr(x);
+  };
+  interpolateExtended( exprExtended, {}, level, flag );
+}
 
+template< typename ValueType >
+void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                                  const std::vector<DGFunction<ValueType>*> srcFunctions,
+                                                  uint_t level,
+                                                  DoFType flag)
+{
+  this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -155,13 +164,16 @@ void DGFunction< ValueType >::interpolate_impl(std::function<ValueType(const Poi
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Interpolate" );
 }
 
 template< typename ValueType >
-void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
-                                          const std::vector<DGFunction<ValueType> *> functions,
-                                          uint_t level,
-                                          DoFType flag) {
+void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
+                                     const std::vector<DGFunction<ValueType> *> functions,
+                                     uint_t level,
+                                     DoFType flag)
+{
+  this->startTiming( "Assign" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -204,32 +216,14 @@ void DGFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars,
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Assign" );
 }
 
-template< typename ValueType >
-real_t DGFunction< ValueType >::dot_impl(DGFunction<ValueType> &rhs,
-                                         uint_t level,
-                                         DoFType flag) {
-  return 0;
-}
 
 template< typename ValueType >
-void DGFunction< ValueType >::prolongate_impl(uint_t level, DoFType flag) {
-
-}
-
-template< typename ValueType >
-void DGFunction< ValueType >::prolongateQuadratic_impl(uint_t level, DoFType flag) {
-
-}
-
-template< typename ValueType >
-void DGFunction< ValueType >::restrict_impl(uint_t level, DoFType flag) {
-
-}
-
-template< typename ValueType >
-void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
+void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num)
+{
+  this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
     DGVertex::enumerate(vertex,vertexDataID_,level,num);
@@ -256,6 +250,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num) {
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+  this->stopTiming( "Enumerate" );
 }
 
 template< typename ValueType >

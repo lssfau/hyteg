@@ -30,6 +30,18 @@ public:
     }
   }
 
+  void assign(const std::vector<ValueType> scalars,
+              const std::vector<BubbleFunction<ValueType> *> functions,
+              size_t level,
+              DoFType flag = All);
+
+  void add(const std::vector<ValueType> scalars,
+           const std::vector<BubbleFunction<ValueType> *> functions,
+           size_t level,
+           DoFType flag = All);
+
+  real_t dot(BubbleFunction<ValueType> &rhs, size_t level, DoFType flag = All);
+
   const PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -40,40 +52,6 @@ public:
 
   using Function< BubbleFunction< ValueType > >::communicators_;
 
-  inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                               const std::vector<BubbleFunction*> srcFunctions,
-                               uint_t level, DoFType flag = All);
-
-  void assign_impl(const std::vector<ValueType> scalars,
-              const std::vector<BubbleFunction<ValueType> *> functions,
-              size_t level,
-              DoFType flag = All);
-
-  void add_impl(const std::vector<ValueType> scalars,
-           const std::vector<BubbleFunction<ValueType> *> functions,
-           size_t level,
-           DoFType flag = All);
-
-  real_t dot_impl(BubbleFunction<ValueType> &rhs, size_t level, DoFType flag = All);
-
-  void prolongate_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble prolongate not implemented");
-  }
-
-  void prolongateQuadratic_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble prolongate quadratic not implemented");
-  }
-
-  void restrict_impl(size_t level, DoFType flag = All) {
-    WALBERLA_UNUSED( level );
-    WALBERLA_UNUSED( flag );
-    WALBERLA_ABORT("Bubble restrict not implemented");
-  }
-
   void enumerate_impl(size_t level, uint_t& num);
 
   PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex> vertexDataID_;
@@ -81,23 +59,14 @@ public:
   PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> faceDataID_;
 };
 
-template< typename ValueType >
-void BubbleFunction< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                                                   const std::vector<BubbleFunction*> srcFunctions,
-                                                   uint_t level, DoFType flag) {
-  // TODO: implement Bubble interpolation. It is not required for Dirichlet only interpolation in most of the apps
-  WALBERLA_UNUSED( expr );
-  WALBERLA_UNUSED( srcFunctions );
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( flag );
-  WALBERLA_ASSERT(false, "BubbleFunction::interpolate is not implemented!");
-}
 
 template< typename ValueType >
-void BubbleFunction< ValueType >::assign_impl(const std::vector< ValueType > scalars,
+void BubbleFunction< ValueType >::assign(const std::vector< ValueType > scalars,
                             const std::vector<BubbleFunction<ValueType> *> functions,
                             size_t level,
-                            DoFType flag) {
+                            DoFType flag)
+{
+    this->startTiming( "Assign" );
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex>> srcVertexIDs;
     std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge>> srcEdgeIDs;
@@ -116,13 +85,16 @@ void BubbleFunction< ValueType >::assign_impl(const std::vector< ValueType > sca
         BubbleFace::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
     }
+    this->stopTiming( "Assign" );
 }
 
 template< typename ValueType >
-void BubbleFunction< ValueType >::add_impl(const std::vector< ValueType > scalars,
+void BubbleFunction< ValueType >::add(const std::vector< ValueType > scalars,
                          const std::vector<BubbleFunction< ValueType > *> functions,
                          size_t level,
-                         DoFType flag) {
+                         DoFType flag)
+{
+    this->startTiming( "Add" );
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID<VertexBubbleFunctionMemory< ValueType >, Vertex>> srcVertexIDs;
     std::vector<PrimitiveDataID<EdgeBubbleFunctionMemory< ValueType >, Edge>> srcEdgeIDs;
@@ -141,10 +113,13 @@ void BubbleFunction< ValueType >::add_impl(const std::vector< ValueType > scalar
         BubbleFace::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
       }
     }
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
-real_t BubbleFunction< ValueType >::dot_impl(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag) {
+real_t BubbleFunction< ValueType >::dot(BubbleFunction< ValueType > &rhs, uint_t level, DoFType flag)
+{
+  this->startTiming( "Dot" );
   real_t scalarProduct = 0.0;
 
   for (auto &it : this->getStorage()->getFaces()) {
@@ -156,13 +131,14 @@ real_t BubbleFunction< ValueType >::dot_impl(BubbleFunction< ValueType > &rhs, u
   }
 
   walberla::mpi::allReduceInplace(scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm());
-
+  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
 template< typename ValueType >
 void BubbleFunction< ValueType >::enumerate_impl(size_t level, uint_t& num)
 {
+  this->startTiming( "Enumerate" );
   for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
@@ -173,6 +149,7 @@ void BubbleFunction< ValueType >::enumerate_impl(size_t level, uint_t& num)
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+  this->stopTiming( "Enumerate" );
 }
 
 }
