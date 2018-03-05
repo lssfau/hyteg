@@ -6,7 +6,7 @@
 #include "core/mpi/RecvBuffer.h"
 #include "tinyhhg_core/tinyhhg.hpp"
 
-#include "boost/filesystem.hpp"
+#include "core/Filesystem.h"
 #include "boost/algorithm/string/predicate.hpp"
 
 namespace hhg {
@@ -17,8 +17,8 @@ static void testMeshInfo()
 
   std::vector< std::string > gmshFiles;
 
-  boost::filesystem::recursive_directory_iterator dirIterator( meshFileDir );
-  boost::filesystem::recursive_directory_iterator dirIteratorEnd;
+  walberla::filesystem::recursive_directory_iterator dirIterator( meshFileDir );
+  walberla::filesystem::recursive_directory_iterator dirIteratorEnd;
 
   for ( ; dirIterator != dirIteratorEnd; dirIterator++ )
   {
