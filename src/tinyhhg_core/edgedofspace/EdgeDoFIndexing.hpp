@@ -27,7 +27,7 @@ typedef stencilDirection sD;
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col )
 {
-  return ::hhg::indexing::macroEdgeIndex< levelToWidthAnyEdgeDoF< level > >( col );
+  return ::hhg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF< level >, col );
 };
 
 /// Index of a horizontal edge DoF on a ghost layer of a macro edge.
@@ -35,9 +35,9 @@ inline constexpr uint_t horizontalIndex( const uint_t & col )
 template< uint_t level >
 inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > - 1 );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
 
   const uint_t offset = numHorizontalDoFsOnEdge + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
@@ -49,9 +49,9 @@ inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neig
 template< uint_t level >
 inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > - 1  );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
 
   const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
@@ -63,9 +63,9 @@ inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighb
 template< uint_t level >
 inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > - 1 );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF< level > );
 
   const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
