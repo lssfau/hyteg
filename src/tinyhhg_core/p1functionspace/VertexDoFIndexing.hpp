@@ -21,20 +21,18 @@ namespace vertexdof {
 namespace macroedge {
 
 /// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
-template< uint_t Level >
-inline constexpr uint_t index( const uint_t & x )
+inline constexpr uint_t index( const uint_t & level, const uint_t & x )
 {
-  return hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( Level ), x );
+  return hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
 };
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
-template< uint_t Level >
-inline constexpr uint_t index( const uint_t & x, const uint_t & neighbor )
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & neighbor )
 {
-  return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( Level ) )
-         + neighbor * hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( Level ) - 1 )
-         + hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( Level ) - 1, x );
+  return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) )
+         + neighbor * hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) - 1 )
+         + hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x );
 };
 
 // Stencil access functions
@@ -48,19 +46,19 @@ inline constexpr uint_t indexFromVertex( const uint_t & x, const stencilDirectio
   switch( dir )
   {
     case sD::VERTEX_C:
-      return index< Level >( x    );
+      return index( Level, x );
     case sD::VERTEX_E:
-      return index< Level >( x + 1);
+      return index( Level, x + 1 );
     case sD::VERTEX_W:
-      return index< Level >( x - 1);
+      return index( Level, x - 1 );
     case sD::VERTEX_N:
-      return index< Level >( x    , 1);
+      return index( Level, x, 1 );
     case sD::VERTEX_S:
-      return index< Level >( x - 1, 0);
+      return index( Level, x - 1, 0 );
     case sD::VERTEX_NW:
-      return index< Level >( x - 1, 1);
+      return index( Level, x - 1, 1 );
     case sD::VERTEX_SE:
-      return index< Level >( x    , 0);
+      return index( Level, x, 0 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -76,13 +74,13 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & x, const stencil
   switch( dir )
   {
     case sD::VERTEX_W:
-      return index< Level >( x    );
+      return index( Level, x );
     case sD::VERTEX_E:
-      return index< Level >( x + 1);
+      return index( Level, x + 1 );
     case sD::VERTEX_SE:
-      return index< Level >( x , 0);
+      return index( Level, x, 0 );
     case sD::VERTEX_NW:
-      return index< Level >( x , 1);
+      return index( Level, x, 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
