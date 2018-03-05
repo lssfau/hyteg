@@ -124,7 +124,7 @@ void smoothGSedgeDoFTmpl(Edge &edge,
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF) {
       tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] *
-             dstVertexDoF[ vertexdof::macroedge::indexFromHorizontalEdge<Level>( i, neighbor ) ];
+             dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( Level, i, neighbor )];
     }
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge) {
@@ -134,7 +134,7 @@ void smoothGSedgeDoFTmpl(Edge &edge,
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF) {
       tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] *
-             dstVertexDoF[ vertexdof::macroedge::indexFromHorizontalEdge<Level>( i, neighbor ) ];
+             dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2) {
@@ -145,7 +145,7 @@ void smoothGSedgeDoFTmpl(Edge &edge,
 
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF) {
         tmp -= vertexDoFStencil[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] *
-               dstVertexDoF[ vertexdof::macroedge::indexFromHorizontalEdge<Level>( i, neighbor ) ];
+               dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( Level, i, neighbor )];
       }
     }
 

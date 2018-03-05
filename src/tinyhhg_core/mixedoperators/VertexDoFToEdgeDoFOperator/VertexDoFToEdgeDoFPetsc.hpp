@@ -31,13 +31,13 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
     {
-      srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+      srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
     {
-      srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+      srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
     }
 
@@ -45,7 +45,7 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
       {
-        srcInt = src[ vertexdof::macroedge::indexFromHorizontalEdge< Level >( it.col(), neighbor ) ];
+        srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
         MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
       }
     }

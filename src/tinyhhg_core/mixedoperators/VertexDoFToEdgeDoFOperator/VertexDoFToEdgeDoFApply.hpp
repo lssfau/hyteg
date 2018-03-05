@@ -31,16 +31,16 @@ inline void applyEdgeTmpl(Edge &edge,
     tmp = 0.0;
     for(uint_t k = 0; k < hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF.size(); ++k){
       tmp += opr_data[hhg::vertexdof::stencilIndexFromHorizontalEdge(hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF[k])] *
-             src[hhg::vertexdof::macroedge::indexFromHorizontalEdge< Level >(i, hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF[k])];
+             src[hhg::vertexdof::macroedge::indexFromHorizontalEdge( Level, i, hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF[k] )];
     }
     for(uint_t k = 0; k < hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF.size(); ++k){
       tmp += opr_data[hhg::vertexdof::stencilIndexFromHorizontalEdge(hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF[k])] *
-             src[hhg::vertexdof::macroedge::indexFromHorizontalEdge< Level >(i, hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF[k])];
+             src[hhg::vertexdof::macroedge::indexFromHorizontalEdge( Level, i, hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF[k] )];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF.size(); ++k){
         tmp += opr_data[hhg::vertexdof::stencilIndexFromHorizontalEdge(hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF[k])] *
-               src[hhg::vertexdof::macroedge::indexFromHorizontalEdge< Level >(i, hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF[k])];
+               src[hhg::vertexdof::macroedge::indexFromHorizontalEdge( Level, i, hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF[k] )];
       }
     }
 
