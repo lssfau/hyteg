@@ -23,12 +23,12 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
     tmp = 0.0;
 
     for (auto neighbor : BubbleEdge::neighbors_south) {
-      tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)];
+      tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex( Level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto neighbor : BubbleEdge::neighbors_north) {
-        tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)];
+        tmp += edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)]*src[BubbleEdge::indexFaceFromVertex( Level, i, neighbor )];
       }
     }
 
@@ -59,14 +59,14 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
 
     for (auto neighbor : BubbleEdge::neighbors_south) {
       MatSetValues(mat, 1, &dst_id, 1,
-                   &src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)],
+                   &src[BubbleEdge::indexFaceFromVertex( Level, i, neighbor )],
                    &edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)], INSERT_VALUES);
     }
 
     if (edge.getNumNeighborFaces() == 2) {
       for (auto neighbor : BubbleEdge::neighbors_north) {
         MatSetValues(mat, 1, &dst_id, 1,
-                     &src[BubbleEdge::indexFaceFromVertex<Level>(i, neighbor)],
+                     &src[BubbleEdge::indexFaceFromVertex( Level, i, neighbor )],
                      &edge_vertex_stencil[BubbleEdge::indexEdgeStencil(neighbor)], INSERT_VALUES);
       }
     }

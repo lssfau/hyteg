@@ -5,6 +5,8 @@
 #include "tinyhhg_core/bubblefunctionspace/BubbleMemory.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
 
+#include <cassert>
+
 namespace hhg{
 namespace BubbleEdge{
 //FIXME this can be removed after we moved into walberla namespace
@@ -42,12 +44,11 @@ constexpr std::array<stencilDirection,3> neighbors_north =
 
 //first face is south face by convention
 
-template<size_t Level>
-constexpr inline size_t indexFaceFromVertex(size_t pos, stencilDirection dir) {
+constexpr inline size_t indexFaceFromVertex( const uint_t & level, size_t pos, stencilDirection dir ) {
   typedef stencilDirection sD;
-  const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_GREATER_EQUAL(pos,0);
-  WALBERLA_ASSERT_LESS_EQUAL(pos,vertexOnEdge - 1);
+  const size_t vertexOnEdge = levelinfo::num_microvertices_per_edge(level);
+  assert(pos >= 0);
+  assert(pos <= vertexOnEdge - 1);
   const size_t startFaceS = 0;
   const size_t startFaceN = 2 * (vertexOnEdge - 1) - 1;
   switch (dir) {
@@ -64,13 +65,11 @@ constexpr inline size_t indexFaceFromVertex(size_t pos, stencilDirection dir) {
     case sD::CELL_BLUE_NW:
       return startFaceN + pos * 2 - 1;
     default:
-      WALBERLA_ASSERT(false);
+      // assert(false);
       return std::numeric_limits<size_t>::max();
   }
 
 }
-
-SPECIALIZE(size_t, indexFaceFromVertex, edge_index)
 
 inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &memoryId, uint_t level)
 {
@@ -99,10 +98,10 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
     for (size_t i = 0; i < v_perEdge - 2; ++i)
     {
       cout << "|" << setw(3)
-           << edgeData[edge_index(level, i, sD::CELL_GRAY_NE)];
-      cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1, sD::CELL_BLUE_NW)];
+           << edgeData[indexFaceFromVertex(level, i, sD::CELL_GRAY_NE)];
+      cout << "\\" << setw(3) << edgeData[indexFaceFromVertex(level, i + 1, sD::CELL_BLUE_NW)];
     }
-    cout << "|" << setw(3) << edgeData[edge_index(level, v_perEdge - 1, sD::CELL_GRAY_NW)] << "\\" << endl;
+    cout << "|" << setw(3) << edgeData[indexFaceFromVertex(level, v_perEdge - 1, sD::CELL_GRAY_NW)] << "\\" << endl;
     for (size_t i = 0; i < v_perEdge - 2; ++i)
     { cout << "|    \\  "; }
     cout << "|    \\" << endl;
@@ -121,11 +120,11 @@ inline void printFunctionMemory(Edge &edge, const PrimitiveDataID<EdgeBubbleFunc
   { cout << "  \\    |"; }
   cout << endl;
 //cell South
-  cout << "    \\" << setfill(' ') << setw(3) << edgeData[edge_index(level, 0u, sD::CELL_GRAY_SE)] << "|";
+  cout << "    \\" << setfill(' ') << setw(3) << edgeData[indexFaceFromVertex(level, 0u, sD::CELL_GRAY_SE)] << "|";
   for (size_t i = 0; i < v_perEdge - 2; ++i)
   {
-    cout << setw(3) << edgeData[edge_index(level, i + 1u, sD::CELL_BLUE_SE)];
-    cout << "\\" << setw(3) << edgeData[edge_index(level, i + 1u, sD::CELL_GRAY_SE)] << "|";
+    cout << setw(3) << edgeData[indexFaceFromVertex(level, i + 1u, sD::CELL_BLUE_SE)];
+    cout << "\\" << setw(3) << edgeData[indexFaceFromVertex(level, i + 1u, sD::CELL_GRAY_SE)] << "|";
   }
   cout << "\n     \\  |";
   for (size_t i = 0; i < v_perEdge - 2; ++i)

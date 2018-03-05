@@ -40,7 +40,7 @@ constexpr size_t sumBubbleEdgeIndices(const uint_t x){
   uint_t sum = 0;
   for(uint_t i = 0; i < neighbors.size(); ++i)
   {
-    sum += indexFaceFromVertex<3>(x, neighbors[i]);
+    sum += indexFaceFromVertex( 3, x, neighbors[i]);
   }
   return sum;
 }
@@ -71,7 +71,7 @@ int main() {
   static_assert(hhg::BubbleFace::indexFaceFromVertex<3>(1, 1, hhg::stencilDirection::CELL_GRAY_SE)==1,"BubbleFace Index failed");
   static_assert(sumBubbleFaceIndices(4,2)==194,"BubbleEdge sum failed");
 
-  static_assert(hhg::BubbleEdge::indexFaceFromVertex<3>(4, hhg::stencilDirection::CELL_GRAY_SE)==8,"BubbleEdge Index failed");
+  static_assert( hhg::BubbleEdge::indexFaceFromVertex( 3, 4, hhg::stencilDirection::CELL_GRAY_SE ) == 8, "BubbleEdge Index failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
 
   static_assert( hhg::vertexdof::macroedge::indexFromVertex( 3, 4, hhg::stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");

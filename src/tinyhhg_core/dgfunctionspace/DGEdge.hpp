@@ -18,7 +18,7 @@ inline void enumerateTmpl(Edge &edge,
   }
   for(auto dir : dirs) {
     for (uint_t i = 1; i < (hhg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
-      dst[indexDGFaceFromVertex< Level >(i, dir)] = num;
+      dst[indexDGFaceFromVertex( Level, i, dir )] = num;
       ++num;
     }
   }
@@ -103,30 +103,30 @@ inline void upwindTmpl(Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i + 1, stencilDirection::CELL_BLUE_SE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_SE )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_BLUE_SE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_SE )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -190,30 +190,30 @@ inline void upwindTmpl(Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i+1, stencilDirection::CELL_BLUE_NW)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_NW )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_BLUE_NW)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_NW )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }
@@ -259,9 +259,9 @@ inline void interpolateTmpl(Edge &edge,
   for (size_t i = 1; i < rowsize - 2; ++i) {
 
     for (size_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)];
+      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
     }
-    edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x,srcVector);
+    edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( x, srcVector);
     x += dx;
   }
 
@@ -278,10 +278,10 @@ inline void interpolateTmpl(Edge &edge,
     for (size_t i = 1; i < rowsize - 2; ++i) {
 
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
-      edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x,srcVector);
+      edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( x, srcVector);
       x += dx;
     }
   }
@@ -302,7 +302,7 @@ inline void assignTmpl(Edge &edge,
 
   // gray south cells
   for (size_t i = 1; i < rowsize - 2; ++i) {
-    uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE);
+    uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
     ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
     for (uint_t k = 1; k < srcIds.size(); ++k) {
       tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[cellIndex];
@@ -312,7 +312,7 @@ inline void assignTmpl(Edge &edge,
 
   if(edge.getNumNeighborFaces() == 2) {
     for (size_t i = 1; i < rowsize - 2; ++i) {
-      uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE);
+      uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
       ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer(Level)[cellIndex];
       for (uint_t k = 1; k < srcIds.size(); ++k) {
         tmp += scalars[k]*edge.getData(srcIds[k])->getPointer(Level)[cellIndex];
@@ -345,9 +345,9 @@ inline void projectP1Tmpl(Edge &edge,
                    + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -361,9 +361,9 @@ inline void projectP1Tmpl(Edge &edge,
                    + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }

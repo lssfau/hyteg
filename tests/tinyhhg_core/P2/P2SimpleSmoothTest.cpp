@@ -140,7 +140,7 @@ static void testP2Smooth() {
   }
   edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = -7.;
 
-  vertexdof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
+  vertexdof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
 
 
   P2::edge::smoothGSvertexDoFTmpl< level >(*doubleEdge,
@@ -150,7 +150,7 @@ static void testP2Smooth() {
                                            x->getEdgeDoFFunction()->getEdgeDataID(),
                                            rhs->getVertexDoFFunction()->getEdgeDataID());
 
-  vertexdof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
+  vertexdof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
 
   edgedof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
 
