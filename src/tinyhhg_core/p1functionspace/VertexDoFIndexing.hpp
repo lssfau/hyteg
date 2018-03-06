@@ -347,7 +347,7 @@ namespace macrocell {
 template< uint_t level >
 inline constexpr uint_t index( const uint_t & x, const uint_t & y, const uint_t & z )
 {
-  return hhg::indexing::macroCellIndex< levelinfo::num_microvertices_per_edge( level ) >( x, y, z );
+  return hhg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
 }
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
