@@ -38,7 +38,7 @@ inline void interpolateTmpl(Edge & edge,
     const Point3D currentCoordinates = leftCoords + microEdgeOffset + 2 * it.col() * microEdgeOffset;
 
     for (uint_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex< Level >( it.col() )];
+      srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.col())];
     }
 
     edgeData[ edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates, srcVector );
@@ -140,7 +140,7 @@ inline void enumerateTmpl(Edge &edge,
   ValueType *dst = edge.getData(dstId)->getPointer(Level);
 
   for(uint_t i = 0 ; i < levelinfo::num_microedges_per_edge( Level ) ; ++i){
-    dst[hhg::edgedof::macroedge::horizontalIndex< Level >(i)] = num;
+    dst[hhg::edgedof::macroedge::horizontalIndex( Level, i )] = num;
     ++num;
   }
 }

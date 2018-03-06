@@ -264,10 +264,10 @@ inline void enumerateTmpl(Face &face,
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;
   size_t diagonal_num = num +
-                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
   size_t vertical_num = num +
-                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
   for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
