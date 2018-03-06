@@ -83,7 +83,7 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macrocell::Iterator( level ) )
     {
-      const Point3D coordinate = vertexdof::macrocell::coordinateFromIndex< level >( *f.second, it );
+      const Point3D coordinate = vertexdof::macrocell::coordinateFromIndex( level, *f.second, it );
       const uint_t  idx        = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[ idx ], expr( coordinate ) );
     }
