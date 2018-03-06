@@ -86,7 +86,7 @@ void VTKOutput::writeVertexDoFData( std::ostream & output, const vertexdof::Vert
 
       for ( const auto & idxIt : vertexdof::macrocell::Iterator( level ) )
       {
-        output << cellData[ vtkDetail::vertexDoFOnMacroCellIndex( level, idxIt.x(), idxIt.y(), idxIt.z() ) ] << " ";
+        output << cellData[ vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() ) ] << " ";
       }
     }
   }

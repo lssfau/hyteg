@@ -53,7 +53,7 @@ inline void interpolateTmpl( const Cell & cell,
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
     const Point3D coordinate = coordinateFromIndex< Level >( cell, it );
-    const uint_t  idx        = vertexdof::macrocell::indexFromVertex<Level>( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    const uint_t  idx        = vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
 
     for ( uint_t k = 0; k < srcPtr.size(); ++k )
     {
@@ -81,7 +81,7 @@ inline void assignTmpl( const Cell & cell,
 
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
-    const uint_t idx = vertexdof::macrocell::indexFromVertex< Level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
 
     ValueType tmp = scalars[0] * srcPtr[0][ idx ];
 
@@ -112,7 +112,7 @@ inline void addTmpl( const Cell & cell,
 
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
-    const uint_t idx = vertexdof::macrocell::indexFromVertex< Level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
 
     ValueType tmp = scalars[0] * srcPtr[0][ idx ];
 
@@ -139,7 +139,7 @@ inline real_t dotTmpl( const Cell & cell,
 
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
-    const uint_t idx = vertexdof::macrocell::indexFromVertex< Level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
     sp += lhsPtr[ idx ] * rhsPtr[ idx ];
   }
 
@@ -172,14 +172,14 @@ inline void applyTmpl( Cell & cell,
       const uint_t y = it.y();
       const uint_t z = it.z();
 
-      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, sd::VERTEX_C );
+      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( Level, x, y, z, sd::VERTEX_C );
 
       tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
-        const uint_t idx        = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, neighbor );
+        const uint_t idx        = vertexdof::macrocell::indexFromVertex( Level, x, y, z, neighbor );
         tmp += operatorData[ stencilIdx ] * src[ idx ];
       }
 
@@ -194,14 +194,14 @@ inline void applyTmpl( Cell & cell,
       const uint_t y = it.y();
       const uint_t z = it.z();
 
-      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, sd::VERTEX_C );
+      const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( Level, x, y, z, sd::VERTEX_C );
 
       tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
-        const uint_t idx        = vertexdof::macrocell::indexFromVertex< Level >( x, y, z, neighbor );
+        const uint_t idx        = vertexdof::macrocell::indexFromVertex( Level, x, y, z, neighbor );
         tmp += operatorData[ stencilIdx ] * src[ idx ];
       }
 

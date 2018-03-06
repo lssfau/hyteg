@@ -12,7 +12,7 @@ namespace hhg {
 namespace {
 // SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
 // SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
-SPECIALIZE( uint_t, vertexdof::macrocell::indexFromVertex, indexFromVertexOnMacroCell );
+// SPECIALIZE( uint_t, vertexdof::macrocell::indexFromVertex, vertexdof::macrocell::indexFromVertex );
 }
 
 template< typename ValueType >
@@ -298,7 +298,7 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const Pr
 
   for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
   {
-    buffer >> cellData[ indexFromVertexOnMacroCell( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
+    buffer >> cellData[ vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -319,7 +319,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *send
   {
     auto cellIdx = *cellIterator;
 
-    cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ] =
+    cellData[ vertexdof::macrocell::indexFromVertex( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ] =
         faceData[ vertexdof::macroface::indexFromVertex( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C ) ];
 
     cellIterator++;
@@ -339,7 +339,7 @@ void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const P
 
   for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ) )
   {
-    buffer << cellData[ indexFromVertexOnMacroCell( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
+    buffer << cellData[ vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
   }
 }
 
@@ -406,7 +406,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
     {
       auto cellIdx = *cellIterator;
       faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection ) ] =
-          cellData[ indexFromVertexOnMacroCell( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ];
+          cellData[ vertexdof::macrocell::indexFromVertex( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C ) ];
       cellIterator++;
     }
   }
