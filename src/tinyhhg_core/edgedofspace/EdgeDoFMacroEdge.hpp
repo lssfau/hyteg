@@ -41,7 +41,7 @@ inline void interpolateTmpl(Edge & edge,
       srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.col())];
     }
 
-    edgeData[ edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = expr( currentCoordinates, srcVector );
+    edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = expr( currentCoordinates, srcVector );
   }
 }
 
@@ -62,7 +62,7 @@ inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
   {
     ValueType tmp = static_cast< ValueType >( 0.0 );
 
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -93,7 +93,7 @@ inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
   {
     ValueType tmp = static_cast< ValueType >( 0.0 );
 
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -122,7 +122,7 @@ inline real_t dotTmpl( Edge & edge,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
     scalarProduct += lhsData[ idx ] * rhsData[ idx ];
   }
 
@@ -167,23 +167,23 @@ inline void applyTmpl(Edge &edge,
     tmp = 0.0;
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
       tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
-             src[indexFromHorizontalEdge< Level >(i, neighborsOnEdgeFromHorizontalEdge[k])];
+             src[indexFromHorizontalEdge( Level, i, neighborsOnEdgeFromHorizontalEdge[k] )];
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
       tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
-             src[indexFromHorizontalEdge< Level >(i, neighborsOnSouthFaceFromHorizontalEdge[k])];
+             src[indexFromHorizontalEdge( Level, i, neighborsOnSouthFaceFromHorizontalEdge[k] )];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
         tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
-               src[indexFromHorizontalEdge< Level >(i, neighborsOnNorthFaceFromHorizontalEdge[k])];
+               src[indexFromHorizontalEdge( Level, i, neighborsOnNorthFaceFromHorizontalEdge[k] )];
       }
     }
 
     if (update==Replace) {
-      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] = tmp;
+      dst[indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )] = tmp;
     } else if (update==Add) {
-      dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] += tmp;
+      dst[indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )] += tmp;
     }
   }
 }
@@ -200,36 +200,36 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
   cout << "Horizontal Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 1; i < rowsize-1; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)] << "|";
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_NW )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_W)] << "|";
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_W )] << "|";
   }
   cout << endl << "     |";
   for(uint_t i = 1; i < rowsize-1; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_HO_SE)] << "|";
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_SE )] << "|";
   }
   cout << endl << "Diagonal Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 1; i < rowsize; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_DI_NW)] << "|";
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_NW )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 0; i < rowsize-1; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_DI_SE)] << "|";
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_SE )] << "|";
   }
   cout << endl << "Vertical Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 0; i < rowsize -1; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_VE_N)] << "|";
+      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_N )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex< Level >(i, stencilDirection::EDGE_VE_S)] << "|";
+    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_S )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 

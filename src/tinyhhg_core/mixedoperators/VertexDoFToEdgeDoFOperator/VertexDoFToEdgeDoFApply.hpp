@@ -45,9 +45,9 @@ inline void applyEdgeTmpl(Edge &edge,
     }
 
     if (update==Replace) {
-      dst[hhg::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] = tmp;
+      dst[hhg::edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )] = tmp;
     } else if (update==Add) {
-      dst[hhg::edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)] += tmp;
+      dst[hhg::edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )] += tmp;
     }
   }
 

@@ -6,6 +6,8 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include <cassert>
+
 namespace hhg {
 namespace edgedof {
 
@@ -74,8 +76,7 @@ inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col,
 
 // Stencil access functions
 
-template< uint_t level >
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stencilDirection & dir )
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -93,14 +94,13 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
   case sD::EDGE_VE_SE:
       return verticalIndex( level, col, 0 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
 
 
-template< uint_t level >
-inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -132,7 +132,7 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
   case sD::EDGE_VE_SE:
     return verticalIndex( level, col, 0 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }

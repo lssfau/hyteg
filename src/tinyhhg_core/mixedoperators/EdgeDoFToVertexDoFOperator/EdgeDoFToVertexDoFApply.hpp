@@ -52,16 +52,16 @@ inline void applyEdgeTmpl(Edge &edge,
     tmp = 0.0;
     for(uint_t k = 0; k < macroedge::neighborsOnEdgeFromVertex.size(); ++k){
       tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnEdgeFromVertex[k])] *
-             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnEdgeFromVertex[k])];
+             src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnEdgeFromVertex[k] )];
     }
     for(uint_t k = 0; k < macroedge::neighborsOnSouthFaceFromVertex.size(); ++k){
       tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnSouthFaceFromVertex[k])] *
-             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnSouthFaceFromVertex[k])];
+             src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnSouthFaceFromVertex[k] )];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < macroedge::neighborsOnNorthFaceFromVertex.size(); ++k){
         tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnNorthFaceFromVertex[k])] *
-               src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnNorthFaceFromVertex[k])];
+               src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnNorthFaceFromVertex[k] )];
       }
     }
     if (update==Replace) {

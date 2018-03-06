@@ -178,7 +178,7 @@ static void testEdgeDoFToEdgeDoFOperator()
     for ( const auto & idxIt : edgedof::macroedge::Iterator( maxLevel ) )
     {
       auto ptr = edgeFunction->getPointer( maxLevel );
-      auto idx = edgedof::macroedge::indexFromHorizontalEdge< maxLevel >( idxIt.col(), stencilDirection::EDGE_HO_C );
+      auto idx = edgedof::macroedge::indexFromHorizontalEdge( maxLevel, idxIt.col(), stencilDirection::EDGE_HO_C );
 
       const real_t expectedValue = edgeSrcValue * ( macroEdgeHorizontalStencilValue + real_c( edge->getNumNeighborFaces() ) * ( macroEdgeDiagonalStencilValue + macroEdgeVerticalStencilValue ) );
       WALBERLA_CHECK_FLOAT_EQUAL( ptr[ idx ], expectedValue );

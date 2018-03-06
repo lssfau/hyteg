@@ -27,7 +27,7 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
 
   for( const auto it : edgedof::macroedge::Iterator( Level, 0 ) )
   {
-    dstInt = dst[ edgedof::macroedge::indexFromHorizontalEdge<Level>( it.col(), stencilDirection::EDGE_HO_C ) ];
+    dstInt = dst[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
     {

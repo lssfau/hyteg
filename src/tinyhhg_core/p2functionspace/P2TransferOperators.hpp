@@ -112,7 +112,7 @@ inline void prolongateP1ToP2Tmpl( const Edge & edge,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level, 0 ) )
   {
-    p2Edges[ edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C ) ] = 0;
+    p2Edges[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = 0;
   }
 
   for ( const auto & it : vertexdof::macroedge::Iterator( Level, 1 ) )
@@ -125,7 +125,7 @@ inline void prolongateP1ToP2Tmpl( const Edge & edge,
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
     {
-      const uint_t neighborEdgeIdx = edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor );
+      const uint_t neighborEdgeIdx = edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor );
       p2Edges[ neighborEdgeIdx ] += p1VertexValueHalf;
     }
   }
@@ -150,16 +150,16 @@ inline void restrictP2ToP1Tmpl( const Edge & edge,
     const uint_t idx = vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C );
     tmp = p2Vertices[ idx ];
 
-    tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_HO_W  ) ];
-    tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_HO_E )  ];
+    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_W )];
+    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_E )];
 
-    tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_VE_S  ) ];
-    tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_DI_SE ) ];
+    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_S )];
+    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_SE )];
 
     if ( edge.getNumNeighborFaces() == 2 )
     {
-      tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_VE_N  ) ];
-      tmp += 0.5 * p2Edges[ edgedof::macroedge::indexFromVertex< Level >( it.col(), stencilDirection::EDGE_DI_NW ) ];
+      tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_N )];
+      tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_NW )];
     }
 
     p1Vertices[ idx ] = tmp;

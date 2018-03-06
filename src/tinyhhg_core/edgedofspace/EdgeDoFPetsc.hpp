@@ -96,19 +96,19 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
   PetscInt dstInt;
 
   for(uint_t i = 0; i < rowsize; ++i){
-    dstInt = dst[indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_HO_C)];
+    dstInt = dst[indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )];
 
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
-      srcInt = src[indexFromHorizontalEdge< Level >(i, neighborsOnEdgeFromHorizontalEdge[k])];
+      srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnEdgeFromHorizontalEdge[k] )];
       MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])], INSERT_VALUES);
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
-      srcInt = src[indexFromHorizontalEdge< Level >(i, neighborsOnSouthFaceFromHorizontalEdge[k])];
+      srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnSouthFaceFromHorizontalEdge[k] )];
       MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])], INSERT_VALUES);
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
-        srcInt = src[indexFromHorizontalEdge< Level >(i, neighborsOnNorthFaceFromHorizontalEdge[k])];
+        srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnNorthFaceFromHorizontalEdge[k] )];
         MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])], INSERT_VALUES);
       }
     }
