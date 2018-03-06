@@ -246,7 +246,7 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
     VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
   }
 }
@@ -263,7 +263,7 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
     VecGetValues(vec,1,&numerator[idx],&src[idx]);
   }
 
@@ -279,7 +279,7 @@ inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge< Level >( it.col(), stencilDirection::EDGE_HO_C );
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
     mat.push_back(numerator[idx]);
   }
 
