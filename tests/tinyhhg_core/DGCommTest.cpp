@@ -50,7 +50,7 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       Vertex* vertex = storage->getVertex(vertexIt.getID());
       uint_t* vertexData = vertex->getData(x.getVertexDataID())->getPointer(maxLevel);
       uint_t vPerEdge = levelinfo::num_microvertices_per_edge(maxLevel);
-      uint_t pos;
+      uint_t pos = std::numeric_limits< uint_t >::max();
       if(edge.vertex_index(vertex->getID()) == 0){
         pos = 0;
       } else if(edge.vertex_index(vertex->getID()) == 1) {
