@@ -27,9 +27,9 @@ namespace vtkDetail
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
 SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
 
-SPECIALIZE(uint_t, edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
+//SPECIALIZE(uint_t, edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
+//SPECIALIZE(uint_t, edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
+//SPECIALIZE(uint_t, edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
 }
 
 using walberla::uint_t;

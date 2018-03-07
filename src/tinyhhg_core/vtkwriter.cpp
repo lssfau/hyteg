@@ -111,7 +111,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
       }
       break;
     }
@@ -119,7 +119,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
       }
       break;
     }
@@ -127,7 +127,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
       }
       break;
     }
@@ -660,18 +660,18 @@ void VTKOutput::writeP2( std::ostream & output, const uint_t & level ) const
           }
           else
           {
-            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::horizontalEdgeOnMacroFaceIndex( level, ( it.col() - 1 ) / 2, it.row() / 2  ) ] << " ";
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2  ) ] << " ";
           }
         }
         else
         {
           if ( it.col() % 2 == 0 )
           {
-            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::verticalEdgeOnMacroFaceIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 ) ] << " ";
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 ) ] << " ";
           }
           else
           {
-            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ vtkDetail::diagonalEdgeOnMacroFaceIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 ) ] << " ";
+            output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level )[ edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 ) ] << " ";
           }
         }
       }

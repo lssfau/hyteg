@@ -47,13 +47,13 @@ static void testEdgeDoFFunction()
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[ edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
 
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
   }
 
   // Assign
@@ -64,9 +64,9 @@ static void testEdgeDoFFunction()
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 10 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 10 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 10 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
   }
 
   // Add
@@ -77,9 +77,9 @@ static void testEdgeDoFFunction()
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::horizontalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 48 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::diagonalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 48 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[ edgedof::macroface::verticalIndex< maxLevel >( it.col(), it.row() ) ], real_c( 48 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
   }
 
   // Dot

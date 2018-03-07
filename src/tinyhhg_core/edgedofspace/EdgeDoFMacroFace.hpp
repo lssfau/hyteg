@@ -51,10 +51,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() )];
+        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
+      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
     }
 
     // Do not update vertical DoFs at left border
@@ -62,10 +62,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex< Level >( it.col(), it.row() )];
+        srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition, srcVectorVertical );
+      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = expr( verticalMicroEdgePosition, srcVectorVertical );
     }
 
     // Do not update diagonal DoFs at diagonal border
@@ -73,10 +73,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() )];
+        srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
+      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
     }
   }
 }
@@ -100,9 +100,9 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
     ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
     ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
-    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-    const uint_t idxVertical   = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
+    const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
+    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -167,9 +167,9 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
     ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
     ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
-    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-    const uint_t idxVertical   = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
+    const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
+    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -232,21 +232,21 @@ inline real_t dotTmpl( Face & face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
   }
@@ -274,17 +274,17 @@ inline void enumerateTmpl(Face &face,
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {
-      dst[hhg::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
+      dst[hhg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = horizontal_num;
       ++horizontal_num;
       ++num;
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dst[hhg::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
+      dst[hhg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = diagonal_num;
       ++diagonal_num;
       ++num;
     }
     if( it.col() != 0) {
-      dst[hhg::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
+      dst[hhg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = vertical_num;
       ++vertical_num;
       ++num;
     }
@@ -395,21 +395,21 @@ inline void createVectorFromFunctionTmpl(Face &face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
   }
@@ -434,21 +434,21 @@ inline void createFunctionFromVectorTmpl(Face &face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
   }
