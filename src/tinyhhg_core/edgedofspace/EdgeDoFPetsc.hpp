@@ -136,23 +136,23 @@ inline void saveFaceOperatorTmpl( const Face & face,
   for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     if( it.row() != 0) {
-      dstInt = dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)];
+      dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
-        srcInt = src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+        srcInt = src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
         MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])], INSERT_VALUES);
       }
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dstInt = dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)];
+      dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
-        srcInt = src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+        srcInt = src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
         MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])], INSERT_VALUES);
       }
     }
     if( it.col() != 0) {
-      dstInt = dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)];
+      dstInt = dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
-        srcInt = src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+        srcInt = src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
         MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])], INSERT_VALUES);
       }
     }

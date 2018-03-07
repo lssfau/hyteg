@@ -8,10 +8,6 @@
 
 namespace hhg {
 
-namespace {
-SPECIALIZE(uint_t,edgedof::macroface::indexFromHorizontalEdge,faceIndexFromHorizontalEdge)
-}
-
 using walberla::uint_t;
 
 template<typename ValueType>
@@ -152,11 +148,11 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Prim
   indexing::FaceBorderDirection faceDir = indexing::getFaceBorderDirection(edgeIndexOnFace,receiver->edge_orientation[edgeIndexOnFace]);
   for(const auto& it : BorderIterator(level_,faceDir,0)){
     if(edgeIndexOnFace == 0) {
-      buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)];
+      buffer >> faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)];
     } else if(edgeIndexOnFace == 1){
-      buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)];
+      buffer >> faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)];
     } else if(edgeIndexOnFace == 2){
-      buffer >> faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)];
+      buffer >> faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)];
     } else {
       WALBERLA_ABORT("Wrong edgeIndexOnFace")
     }
@@ -174,13 +170,13 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender
   uint_t indexOnEdge = 0;
   for(const auto& it : BorderIterator(level_,faceDir,0)){
     if(edgeIndexOnFace == 0) {
-      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)] =
+      faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_HO_C)] =
         edgeData[edgedof::macroedge::indexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
     } else if(edgeIndexOnFace == 1){
-      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)] =
+      faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_DI_N)] =
         edgeData[edgedof::macroedge::indexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
     } else if(edgeIndexOnFace == 2){
-      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)] =
+      faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW)] =
         edgeData[edgedof::macroedge::indexFromHorizontalEdge(level_,indexOnEdge,stencilDirection::EDGE_HO_C)];
     } else {
       WALBERLA_ABORT("Wrong edgeIndexOnFace")
@@ -229,13 +225,13 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const Pri
     WALBERLA_ABORT("Wrong edgeIndexOnFace")
   }
   for(const auto& it : BorderIterator(level_,faceBorderDir,1)){
-      buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
+      buffer << faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
   }
   for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
-    buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
+    buffer << faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
   }
   for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
-    buffer << faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
+    buffer << faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
   }
 }
 
@@ -305,21 +301,21 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender
   uint_t indexOnEdge = 1;
   for(const auto& it : BorderIterator(level_,faceBorderDir,1)){
     edgeData[edgedof::macroedge::indexFromVertex(level_, indexOnEdge, dirHorizontal)] =
-        faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
+        faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirOne)];
     ++indexOnEdge;
   }
   stencilDirection dirDiagonal = faceIdOnEdge == 0 ? stencilDirection::EDGE_DI_SW : stencilDirection::EDGE_VE_NW;
   indexOnEdge = 1;
   for(const auto& it : BorderIterator(level_,faceBorderDir,0)){
     edgeData[edgedof::macroedge::indexFromVertex(level_, indexOnEdge, dirDiagonal)] =
-      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
+      faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirTwo)];
     ++indexOnEdge;
   }
   stencilDirection dirVertical = faceIdOnEdge == 0 ? stencilDirection::EDGE_VE_S : stencilDirection::EDGE_DI_NW;
   indexOnEdge = 1;
   for(const auto& it : BorderIterator(level_,faceBorderDir,0)) {
     edgeData[edgedof::macroedge::indexFromVertex(level_, indexOnEdge, dirVertical)] =
-      faceData[faceIndexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
+      faceData[edgedof::macroface::indexFromHorizontalEdge(level_, it.col(), it.row(), faceDirThree)];
     ++indexOnEdge;
   }
 

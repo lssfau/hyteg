@@ -316,37 +316,37 @@ inline void applyTmpl(Face &face,
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
-               src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+               src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
       }
       if (update==Replace) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+        dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+        dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] += tmp;
       }
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
-               src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+               src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
       }
       if (update==Replace) {
-        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
+        dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
+        dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] += tmp;
       }
     }
     if( it.col() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
-               src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+               src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
       }
 
       if (update==Replace) {
-        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
+        dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
+        dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] += tmp;
       }
     }
   }
@@ -363,17 +363,17 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
   cout << "Horizontal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromHorizontalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_HO_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] << "|";
   }
   cout << endl << "Diagonal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_DI_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] << "|";
   }
   cout << endl << "Vertical Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_VE_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 

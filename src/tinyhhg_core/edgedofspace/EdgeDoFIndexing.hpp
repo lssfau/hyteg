@@ -186,23 +186,22 @@ inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col,
 
 // Stencil access functions
 
-template< uint_t Level >
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_HO_C:
-    return horizontalIndex( Level, col, row );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_DI_N:
-    return diagonalIndex( Level, col, row );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_DI_S:
-    return diagonalIndex( Level, col, row - 1 );
+    return diagonalIndex( level, col, row - 1 );
   case sD::EDGE_VE_NW:
-      return verticalIndex( Level, col, row );
+      return verticalIndex( level, col, row );
   case sD::EDGE_VE_SE:
-      return verticalIndex( Level, col + 1, row - 1 );
+      return verticalIndex( level, col + 1, row - 1 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -214,23 +213,22 @@ constexpr std::array<stencilDirection ,5> neighborsFromHorizontalEdge =
    }};
 
 
-template< uint_t Level >
-inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_DI_C:
-    return diagonalIndex( Level, col, row );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_HO_N:
-    return horizontalIndex( Level, col, row + 1 );
+    return horizontalIndex( level, col, row + 1 );
   case sD::EDGE_HO_S:
-    return horizontalIndex( Level, col, row );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_VE_W:
-      return verticalIndex( Level, col, row );
+      return verticalIndex( level, col, row );
   case sD::EDGE_VE_E:
-      return verticalIndex( Level, col + 1, row );
+      return verticalIndex( level, col + 1, row );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -241,23 +239,22 @@ constexpr std::array<stencilDirection ,5> neighborsFromDiagonalEdge =
      sD::EDGE_HO_N, sD::EDGE_VE_W
    }};
 
-template< uint_t Level >
-inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_VE_C:
-    return verticalIndex( Level, col, row );
+    return verticalIndex( level, col, row );
   case sD::EDGE_HO_NW:
-    return horizontalIndex( Level, col - 1, row + 1 );
+    return horizontalIndex( level, col - 1, row + 1 );
   case sD::EDGE_HO_SE:
-    return horizontalIndex( Level, col, row );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_DI_W:
-      return diagonalIndex( Level, col - 1, row );
+      return diagonalIndex( level, col - 1, row );
   case sD::EDGE_DI_E:
-      return diagonalIndex( Level, col, row );
+      return diagonalIndex( level, col, row );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }

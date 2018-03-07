@@ -72,7 +72,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
   {
     if( it.row() != 0 )
     {
-      dstInt = dst[ edgedof::macroface::indexFromHorizontalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_HO_C ) ];
+      dstInt = dst[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromHorizontalEdge )
       {
         srcInt = src[ vertexdof::macroface::indexFromHorizontalEdge< Level >( it.col(), it.row(), neighbor ) ];
@@ -82,7 +82,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
 
     if( it.col() != 0 )
     {
-      dstInt = dst[ edgedof::macroface::indexFromVerticalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_VE_C ) ];
+      dstInt = dst[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromVerticalEdge )
       {
         srcInt = src[ vertexdof::macroface::indexFromVerticalEdge< Level >( it.col(), it.row(), neighbor ) ];
@@ -92,7 +92,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
 
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1) )
     {
-      dstInt = dst[ edgedof::macroface::indexFromDiagonalEdge<Level>( it.col(), it.row(), stencilDirection::EDGE_DI_C ) ];
+      dstInt = dst[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromDiagonalEdge )
       {
         srcInt = src[ vertexdof::macroface::indexFromDiagonalEdge< Level >( it.col(), it.row(), neighbor ) ];
