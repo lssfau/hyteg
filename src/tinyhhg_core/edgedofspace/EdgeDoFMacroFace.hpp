@@ -16,11 +16,11 @@ namespace macroface {
 using walberla::uint_t;
 using walberla::real_c;
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Face & face,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Face & face,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                        std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -81,13 +81,13 @@ inline void interpolateTmpl(Face & face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
+// SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
-template< typename ValueType, uint_t Level >
-inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+template< typename ValueType >
+inline void add( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
+                 const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -149,12 +149,12 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
+// SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
-                        const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+template< typename ValueType >
+inline void assign( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
+                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
+                    const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -215,12 +215,12 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
+// SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
-template< typename ValueType, uint_t Level >
-inline real_t dotTmpl( Face & face,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+template< typename ValueType >
+inline real_t dot( const uint_t & Level, Face & face,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
 {
   auto lhsData = face.getData( lhsId )->getPointer( Level );
   auto rhsData = face.getData( rhsId )->getPointer( Level );
@@ -254,12 +254,12 @@ inline real_t dotTmpl( Face & face,
   return scalarProduct;
 }
 
-SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
+// SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Face &face,
-                          const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
-                          uint_t& num)
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Face &face,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                      uint_t& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;
@@ -293,14 +293,13 @@ inline void enumerateTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+// SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template<uint_t Level>
-inline void applyTmpl(Face &face,
-                       const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
-                       UpdateType update)
+inline void apply( const uint_t & Level, Face &face,
+                   const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
+                   const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                   const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
+                   UpdateType update)
 {
   real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   real_t * src      = face.getData(srcId)->getPointer( Level );
@@ -352,10 +351,10 @@ inline void applyTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, applyTmpl, apply)
+// SPECIALIZE(void, applyTmpl, apply)
 
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory( const uint_t & Level, Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
@@ -381,11 +380,11 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-template< typename ValueType, uint_t Level >
-inline void createVectorFromFunctionTmpl(Face &face,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createVectorFromFunction( const uint_t & Level, Face &face,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                      Vec& vec) {
 
   auto src = face.getData(srcId)->getPointer( Level );
   auto numerator = face.getData(numeratorId)->getPointer( Level );
@@ -416,15 +415,15 @@ inline void createVectorFromFunctionTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+// SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 
 
-template< typename ValueType, uint_t Level >
-inline void createFunctionFromVectorTmpl(Face &face,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createFunctionFromVector( const uint_t & Level, Face &face,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                      Vec& vec) {
 
   auto src = face.getData(srcId)->getPointer( Level );
   auto numerator = face.getData(numeratorId)->getPointer( Level );
@@ -455,7 +454,7 @@ inline void createFunctionFromVectorTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+// SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
 }

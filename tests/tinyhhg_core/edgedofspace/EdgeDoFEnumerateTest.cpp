@@ -53,7 +53,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   }
 
   for ( auto &faceIt : storage->getFaces() ) {
-    hhg::edgedof::macroface::enumerateTmpl< uint_t,Level >(*faceIt.second,x.getFaceDataID(),num);
+    hhg::edgedof::macroface::enumerate< uint_t >(Level,*faceIt.second,x.getFaceDataID(),num);
     size_t idxCounter = 0;
     Face &face = *faceIt.second;
     uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(Level);
