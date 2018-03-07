@@ -92,7 +92,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
 
     for ( const auto & neighbor : edgedof::macroface::neighborsFromVertex )
     {
-      srcInt = src[ edgedof::macroface::indexFromVertex< Level >( it.col(), it.row(), neighbor ) ];
+      srcInt = src[edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
   }

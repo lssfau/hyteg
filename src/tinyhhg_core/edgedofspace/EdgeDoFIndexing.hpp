@@ -265,8 +265,7 @@ constexpr std::array<stencilDirection ,5> neighborsFromVerticalEdge =
      sD::EDGE_HO_NW, sD::EDGE_DI_W
    }};
 
-template< uint_t Level >
-inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -274,29 +273,29 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
   switch( dir )
   {
   case sD::EDGE_HO_W:
-    return horizontalIndex( Level, col - 1, row );
+    return horizontalIndex( level, col - 1, row );
   case sD::EDGE_HO_E:
-    return horizontalIndex( Level, col, row );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_HO_NW:
-    return horizontalIndex( Level, col - 1, row + 1 );
+    return horizontalIndex( level, col - 1, row + 1 );
   case sD::EDGE_HO_SE:
-    return horizontalIndex( Level, col, row - 1 );
+    return horizontalIndex( level, col, row - 1 );
   case sD::EDGE_DI_SW:
-    return diagonalIndex( Level, col - 1, row - 1 );
+    return diagonalIndex( level, col - 1, row - 1 );
   case sD::EDGE_DI_SE:
-    return diagonalIndex( Level, col, row - 1 );
+    return diagonalIndex( level, col, row - 1 );
   case sD::EDGE_DI_NW:
-    return diagonalIndex( Level, col - 1, row );
+    return diagonalIndex( level, col - 1, row );
   case sD::EDGE_DI_NE:
-    return diagonalIndex( Level, col, row );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_VE_N:
-    return verticalIndex( Level, col, row );
+    return verticalIndex( level, col, row );
   case sD::EDGE_VE_S:
-    return verticalIndex( Level, col, row - 1 );
+    return verticalIndex( level, col, row - 1 );
   case sD::EDGE_VE_NW:
-    return verticalIndex( Level, col - 1, row );
+    return verticalIndex( level, col - 1, row );
   case sD::EDGE_VE_SE:
-    return verticalIndex( Level, col + 1, row - 1 );
+    return verticalIndex( level, col + 1, row - 1 );
   default:
     WALBERLA_ASSERT( false );
     return std::numeric_limits< uint_t >::max();

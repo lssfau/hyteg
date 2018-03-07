@@ -85,7 +85,7 @@ inline void restrictP2ToP1Tmpl( const Face & face,
 
     for ( const auto & neighbor : directVertexDoFNeighbors )
     {
-      const uint_t neighborEdgeIdx = edgedof::macroface::indexFromVertex< Level >( it.col(), it.row(), neighbor );
+      const uint_t neighborEdgeIdx = edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor );
       tmp += 0.5 * p2Edges[ neighborEdgeIdx ];
     }
 

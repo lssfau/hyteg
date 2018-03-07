@@ -194,7 +194,7 @@ void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<real_
       /// update from edge dofs
       for(uint_t k = 0; k < edgedof::macroface::neighborsFromVertex.size(); ++k){
         tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] *
-               dstEdgeDoF[edgedof::macroface::indexFromVertex< Level >(col, row, edgedof::macroface::neighborsFromVertex[k])];
+               dstEdgeDoF[edgedof::macroface::indexFromVertex( Level, col, row, edgedof::macroface::neighborsFromVertex[k] )];
       }
       dstVertexDoF[vertexdof::macroface::indexFromVertex( Level, col, row,
                                                                    stencilDirection::VERTEX_C )] = tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)];

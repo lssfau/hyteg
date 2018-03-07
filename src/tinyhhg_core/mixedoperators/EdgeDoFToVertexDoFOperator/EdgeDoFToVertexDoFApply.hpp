@@ -99,7 +99,7 @@ inline void applyFaceTmpl(Face &face,
 
       for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromVertex(neighborsFromVertex[k])] *
-               src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
+               src[indexFromVertex( Level, i, j, neighborsFromVertex[k] )];
       }
 
       if (update==Replace) {
