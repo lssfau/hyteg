@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
   WALBERLA_LOG_INFO_ON_ROOT("time with walberla timer: " << timer.last() );
 
   /// do something with the result to prevent the compiler from removing all the computations
-  real_t check = vertexdof::macroface::dotTmpl< real_t, level >(*face,dst->getFaceDataID(),dst->getFaceDataID());
+  real_t check = vertexdof::macroface::dot< real_t >( level, *face,dst->getFaceDataID(),dst->getFaceDataID());
   WALBERLA_CHECK_FLOAT_UNEQUAL(check ,0. );
 
   LIKWID_MARKER_CLOSE;
