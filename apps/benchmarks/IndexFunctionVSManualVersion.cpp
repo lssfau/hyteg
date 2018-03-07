@@ -81,20 +81,20 @@ int main(int argc, char **argv) {
 
   walberla::WcTimer timer;
   timer.reset();
-  LIKWID_MARKER_START("Index Apply");
+  LIKWID_MARKER_START("IndexApply");
   hhg::vertexdof::macroface::apply_tmpl<real_t, level> (*face,
                                           M.getFaceStencilID(),
                                           src->getFaceDataID(),
                                           dst1->getFaceDataID(),
                                           Replace);
-  LIKWID_MARKER_STOP("Index Apply");
+  LIKWID_MARKER_STOP("IndexApply");
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Index Apply: " << timer.last());
 
   timer.reset();
-  LIKWID_MARKER_START("Manual Apply");
+  LIKWID_MARKER_START("ManualApply");
   manualApply< level >(oprPtr,srcPtr,dst2Ptr,Replace);
-  LIKWID_MARKER_STOP("Manual Apply");
+  LIKWID_MARKER_STOP("ManualApply");
   timer.end();
   WALBERLA_LOG_INFO_ON_ROOT(std::setw(20) << "Manual Apply: " << timer.last());
 
