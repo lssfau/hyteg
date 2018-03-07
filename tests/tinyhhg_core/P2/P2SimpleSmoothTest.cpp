@@ -152,7 +152,7 @@ static void testP2Smooth() {
 
   vertexdof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
 
-  edgedof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
+  edgedof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
 
   P2::edge::smoothGSedgeDoFTmpl< level >(*doubleEdge,
                                            p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
@@ -161,7 +161,7 @@ static void testP2Smooth() {
                                            x->getEdgeDoFFunction()->getEdgeDataID(),
                                            rhs->getEdgeDoFFunction()->getEdgeDataID());
 
-  edgedof::macroedge::printFunctionMemory< real_t, level >(*doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
+  edgedof::macroedge::printFunctionMemory< real_t >(level, *doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
 
 }
 

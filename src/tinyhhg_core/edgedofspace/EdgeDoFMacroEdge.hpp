@@ -1,10 +1,13 @@
 
 #pragma once
 
+#include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/StencilMemory.hpp"
 
 namespace hhg {
 namespace edgedof {
@@ -13,11 +16,11 @@ namespace macroedge {
 using walberla::uint_t;
 using walberla::real_c;
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Edge & edge,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                            std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Edge & edge,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                        std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
 
@@ -45,13 +48,13 @@ inline void interpolateTmpl(Edge & edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
+// SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
-template< typename ValueType, uint_t Level >
-inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
+template< typename ValueType >
+inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType > & scalars,
+                 const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -76,13 +79,13 @@ inline void addTmpl( Edge & edge, const std::vector< ValueType > & scalars,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
+// SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
-                        const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
+template< typename ValueType >
+inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueType > & scalars,
+                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
+                    const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -107,13 +110,13 @@ inline void assignTmpl( Edge & edge, const std::vector< ValueType > & scalars,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
+// SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
 
-template< typename ValueType, uint_t Level >
-inline real_t dotTmpl( Edge & edge,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsId,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
+template< typename ValueType >
+inline real_t dot( const uint_t & Level, Edge & edge,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
 {
   auto lhsData = edge.getData( lhsId )->getPointer( Level );
   auto rhsData = edge.getData( rhsId )->getPointer( Level );
@@ -129,13 +132,13 @@ inline real_t dotTmpl( Edge & edge,
   return scalarProduct;
 }
 
-SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
+// SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Edge &edge,
-                          const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                          uint_t& num)
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Edge &edge,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                      uint_t& num)
 {
   ValueType *dst = edge.getData(dstId)->getPointer(Level);
 
@@ -145,14 +148,14 @@ inline void enumerateTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
+// SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template<uint_t Level>
-inline void applyTmpl(Edge &edge,
-                       const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
-                       UpdateType update)
+
+inline void apply(const uint_t & Level, Edge &edge,
+                  const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
+                  UpdateType update)
 {
   using namespace hhg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
@@ -188,10 +191,10 @@ inline void applyTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, applyTmpl, apply)
+// SPECIALIZE(void, applyTmpl, apply)
 
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory(const uint_t & Level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
@@ -236,8 +239,8 @@ inline void printFunctionMemory(Edge& edge, const PrimitiveDataID<FunctionMemory
 }
 
 #ifdef HHG_BUILD_WITH_PETSC
-template< typename ValueType, uint_t Level >
-inline void createVectorFromFunctionTmpl(Edge &edge,
+template< typename ValueType >
+inline void createVectorFromFunction(const uint_t & Level, Edge &edge,
                                          const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
                                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
                                          Vec& vec) {
@@ -251,13 +254,13 @@ inline void createVectorFromFunctionTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
+// SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
-template< typename ValueType, uint_t Level >
-inline void createFunctionFromVectorTmpl(Edge &edge,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createFunctionFromVector(const uint_t & Level, Edge &edge,
+                                     const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                     const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
+                                     Vec& vec) {
   auto src = edge.getData(srcId)->getPointer( Level );
   auto numerator = edge.getData(numeratorId)->getPointer( Level );
 
@@ -269,11 +272,10 @@ inline void createFunctionFromVectorTmpl(Edge &edge,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
+// SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
-template< uint_t Level >
-inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
-                                 const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
+inline void applyDirichletBC( const uint_t & Level, Edge &edge,std::vector<PetscInt> &mat,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
 
   auto numerator = edge.getData(numeratorId)->getPointer( Level );
 
@@ -284,7 +286,7 @@ inline void applyDirichletBCTmpl(Edge &edge,std::vector<PetscInt> &mat,
   }
 
 }
-SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
+// SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif
 
 

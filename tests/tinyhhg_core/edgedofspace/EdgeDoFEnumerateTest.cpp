@@ -28,7 +28,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   uint_t totalDoFs = hhg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
 
   for (auto &edgeIt : storage->getEdges()) {
-    hhg::edgedof::macroedge::enumerateTmpl< uint_t,Level >(*edgeIt.second,x.getEdgeDataID(),num);
+    hhg::edgedof::macroedge::enumerate< uint_t >(Level,*edgeIt.second,x.getEdgeDataID(),num);
     Edge &edge = *edgeIt.second;
     uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
 
