@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   }
   DGFunction < real_t > x("x", storage, minLevel, maxLevel);
 
-  DGEdge::interpolateTmpl< real_t, maxLevel >(*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  DGEdge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
   //DGEdge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
 
 

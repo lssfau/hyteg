@@ -8,11 +8,11 @@
 namespace hhg {
 namespace BubbleFace {
 
-template< typename ValueType, size_t Level >
-inline void assign_tmpl(Face &face,
-                        const std::vector<ValueType> &scalars,
-                        const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
-                        const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
+template< typename ValueType >
+inline void assign(const uint_t & Level, Face &face,
+                   const std::vector<ValueType> &scalars,
+                   const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
+                   const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -49,13 +49,12 @@ inline void assign_tmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, assign_tmpl, assign)
 
-template< typename ValueType, size_t Level >
-inline void add_tmpl(Face &face,
-                     const std::vector<ValueType> &scalars,
-                     const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
-                     const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
+template< typename ValueType >
+inline void add(const uint_t & Level, Face &face,
+                const std::vector<ValueType> &scalars,
+                const std::vector<PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face>> &srcIds,
+                const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -92,12 +91,11 @@ inline void add_tmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, add_tmpl, add)
 
-template< typename ValueType, size_t Level >
-inline real_t dot_tmpl(Face &face,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &lhsId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &rhsId) {
+template< typename ValueType >
+inline real_t dot(const uint_t & Level, Face &face,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &lhsId,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &rhsId) {
   real_t sp = 0.0;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -126,12 +124,11 @@ inline real_t dot_tmpl(Face &face,
   return sp;
 }
 
-SPECIALIZE_WITH_VALUETYPE(real_t, dot_tmpl, dot)
 
-template< typename ValueType, size_t Level >
-inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, UpdateType update)
+template< typename ValueType >
+inline void apply(const uint_t & Level, Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, UpdateType update)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -179,10 +176,8 @@ inline void apply_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
-
-template< typename ValueType, size_t Level >
-inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, uint_t& num) {
+template< typename ValueType >
+inline void enumerate( const uint_t & Level, Face &face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId, uint_t& num) {
   using walberla::real_c;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -208,10 +203,8 @@ inline void enumerate_tmpl(Face &face, const PrimitiveDataID<FaceBubbleFunctionM
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, enumerate_tmpl, enumerate)
-
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory( const uint_t & Level, Face& face, const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &dstId){
   using namespace std;
   ValueType* faceMemory = face.getData(dstId)->getPointer(Level);
   uint_t verticesPerDge = hhg::levelinfo::num_microvertices_per_edge(Level);
@@ -237,8 +230,8 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FaceBubbleFunc
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-template< typename ValueType, uint_t Level >
-inline void createVectorFromFunctionTmpl(Face &face,
+template< typename ValueType >
+inline void createVectorFromFunction(const uint_t & Level, Face &face,
                                      const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
                                      const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &numeratorId,
                                      Vec& vec) {
@@ -250,13 +243,12 @@ inline void createVectorFromFunctionTmpl(Face &face,
   VecSetValues(vec, dofs, &numerator[0], &src[0], INSERT_VALUES);
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
-template< typename ValueType, uint_t Level >
-inline void createFunctionFromVectorTmpl(Face &face,
-                                         const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createFunctionFromVector(const uint_t & Level, Face &face,
+                                     const PrimitiveDataID<FaceBubbleFunctionMemory< ValueType >, Face> &srcId,
+                                     const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &numeratorId,
+                                     Vec& vec) {
   PetscInt dofs = (PetscInt) levelinfo::num_microfaces_per_face(Level);
 
   auto src = face.getData(srcId)->getPointer( Level );
@@ -265,12 +257,11 @@ inline void createFunctionFromVectorTmpl(Face &face,
   VecGetValues(vec, dofs, &numerator[0], &src[0]);
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
-template< typename ValueType, size_t Level >
-inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat)
+template< typename ValueType >
+inline void saveOperator( const uint_t & Level, Face& face, const PrimitiveDataID<FaceBubbleStencilMemory, Face>& operatorId,
+                          const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
+                          const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -309,7 +300,6 @@ inline void saveOperator_tmpl(Face& face, const PrimitiveDataID<FaceBubbleStenci
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, saveOperator_tmpl, saveOperator)
 
 #endif
 

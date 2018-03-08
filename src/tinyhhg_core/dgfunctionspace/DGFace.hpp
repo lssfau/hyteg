@@ -7,10 +7,10 @@
 namespace hhg {
 namespace DGFace {
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Face &face,
-                          const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
-                          uint_t& num)
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Face &face,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                      uint_t& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   //the outermost gray cells belong to the edge
@@ -36,13 +36,12 @@ inline void enumerateTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Face &face,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>& srcMemoryIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr) {
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Face &face,
+                        const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>& srcMemoryIds,
+                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr) {
 
   auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
 
@@ -99,13 +98,12 @@ inline void interpolateTmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 
-template< typename ValueType, uint_t Level >
-inline void addTmpl(Face &face,
-                            const std::vector<ValueType>& scalars,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
+template< typename ValueType >
+inline void add( const uint_t & Level, Face &face,
+                 const std::vector<ValueType>& scalars,
+                 const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
@@ -151,10 +149,9 @@ inline void addTmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, addTmpl, add)
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl(Face &face,
+template< typename ValueType >
+inline void assign( const uint_t & Level, Face &face,
                     const std::vector<ValueType>& scalars,
                     const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
                     const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId) {
@@ -206,15 +203,14 @@ inline void assignTmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 
-template< typename ValueType, uint_t Level >
-inline void upwindTmpl(Face &face,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &srcId,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
-                       const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Face>, 2> &velocityIds,
-                       UpdateType updateType) {
+template< typename ValueType >
+inline void upwind(const uint_t & Level, Face &face,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Face> &srcId,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                   const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Face>, 2> &velocityIds,
+                   UpdateType updateType) {
 
   using namespace vertexdof::macroface;
 
@@ -381,10 +377,8 @@ inline void upwindTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
-
-template< typename ValueType, uint_t Level >
-inline void projectP1Tmpl(Face &face,
+template< typename ValueType >
+inline void projectP1(const uint_t & Level, Face &face,
                        const std::shared_ptr< PrimitiveStorage >& storage,
                        const PrimitiveDataID < FunctionMemory< ValueType >, Face> &srcId,
                        const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
@@ -441,7 +435,6 @@ inline void projectP1Tmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, projectP1Tmpl, projectP1 )
 
 }//namespace DGFace
 }//namespace hhg

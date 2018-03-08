@@ -5,8 +5,8 @@
 namespace hhg {
 namespace DGEdge {
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Edge &edge,
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Edge &edge,
                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
                       uint_t& num)
 {
@@ -24,15 +24,14 @@ inline void enumerateTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template< typename ValueType, uint_t Level >
-inline void upwindTmpl(Edge &edge,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                       const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Edge>, 2> &velocityIds,
-                       UpdateType updateType) {
+template< typename ValueType >
+inline void upwind(const uint_t & Level, Edge &edge,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                   const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Edge>, 2> &velocityIds,
+                   UpdateType updateType) {
 
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
@@ -220,14 +219,13 @@ inline void upwindTmpl(Edge &edge,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Edge &edge,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
-                            const std::shared_ptr< PrimitiveStorage >& storage ) {
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Edge &edge,
+                        const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
+                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto edgeMemory = edge.getData(edgeMemoryId)->getPointer( Level );
 
@@ -287,14 +285,13 @@ inline void interpolateTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl(Edge &edge,
-                       const std::vector<ValueType>& scalars,
-                       const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                       const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
+template< typename ValueType >
+inline void assign(const uint_t & Level, Edge &edge,
+                   const std::vector<ValueType>& scalars,
+                   const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -322,14 +319,13 @@ inline void assignTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 
-template< typename ValueType, uint_t Level >
-inline void projectP1Tmpl(Edge &edge,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                       UpdateType updateType) {
+template< typename ValueType >
+inline void projectP1(const uint_t & Level, Edge &edge,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                      UpdateType updateType) {
 
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
@@ -369,8 +365,6 @@ inline void projectP1Tmpl(Edge &edge,
   }
 
 }
-
-SPECIALIZE_WITH_VALUETYPE( void, projectP1Tmpl, projectP1 )
 
 
 }//namespace DGEdge
