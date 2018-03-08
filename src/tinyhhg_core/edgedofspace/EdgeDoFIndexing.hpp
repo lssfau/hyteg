@@ -297,7 +297,7 @@ inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & co
   case sD::EDGE_VE_SE:
     return verticalIndex( level, col + 1, row - 1 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
