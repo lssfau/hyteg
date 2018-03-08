@@ -30,7 +30,7 @@ constexpr size_t sumBubbleFaceIndices(const uint_t x, const uint_t y){
   uint_t sum = 0;
   for(uint_t i = 0; i < neighbors.size(); ++i)
   {
-    sum += indexFaceFromVertex<3>(x, y, neighbors[i]);
+    sum += indexFaceFromVertex( 3, x, y, neighbors[i] );
   }
   return sum;
 }
@@ -68,7 +68,7 @@ constexpr size_t sumBlueDGFaceIndices(const uint_t x, const uint_t y){
 int main() {
   std::vector<size_t> refOneOne = {10, 1, 2, 11, 18, 17, 9};
 
-  static_assert(hhg::BubbleFace::indexFaceFromVertex<3>(1, 1, hhg::stencilDirection::CELL_GRAY_SE)==1,"BubbleFace Index failed");
+  static_assert( hhg::BubbleFace::indexFaceFromVertex( 3, 1, 1, hhg::stencilDirection::CELL_GRAY_SE ) == 1, "BubbleFace Index failed");
   static_assert(sumBubbleFaceIndices(4,2)==194,"BubbleEdge sum failed");
 
   static_assert( hhg::BubbleEdge::indexFaceFromVertex( 3, 4, hhg::stencilDirection::CELL_GRAY_SE ) == 8, "BubbleEdge Index failed");

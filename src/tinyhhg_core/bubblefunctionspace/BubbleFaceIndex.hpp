@@ -40,11 +40,10 @@ constexpr std::array<hhg::stencilDirection ,6> neighbors =
   {{stencilDirection::CELL_GRAY_SE, stencilDirection::CELL_GRAY_NE, stencilDirection::CELL_GRAY_NW,
    stencilDirection::CELL_BLUE_SE, stencilDirection::CELL_BLUE_NW, stencilDirection::CELL_BLUE_SW}};
 
-template<size_t Level>
-constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, const stencilDirection dir) {
+constexpr inline size_t indexFaceFromVertex( const uint_t & level, const size_t col, const size_t row, const stencilDirection dir ) {
   typedef hhg::stencilDirection sD;
-  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(Level);
-  WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
+  const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge(level);
+  // WALBERLA_ASSERT_LESS(col+row,vertexBaseLength);
   const size_t grayBaseLength = vertexBaseLength -1;
   const size_t blueBaseLength = vertexBaseLength -2;
   const size_t totalVertices = vertexBaseLength * (vertexBaseLength + 1) / 2;
@@ -66,33 +65,31 @@ constexpr inline size_t indexFaceFromVertex(const size_t col, const size_t row, 
     case sD::CELL_BLUE_SW:
       return cellBlueNW - (blueBaseLength - row) -1;
     default:
-      WALBERLA_ASSERT(false);
+      // WALBERLA_ASSERT(false);
       return std::numeric_limits<size_t>::max();
   }
 
 }
 
 
-template<size_t Level>
-inline size_t indexFaceFromGrayFace(const uint_t col, const uint_t row, stencilDirection dir) {
+inline size_t indexFaceFromGrayFace( const uint_t & level, const uint_t col, const uint_t row, stencilDirection dir ) {
   using namespace hhg::BubbleFace;
   if(dir == stencilDirection ::CELL_GRAY_C)
   {
-    return indexFaceFromVertex<Level>(col, row, stencilDirection::CELL_GRAY_NE);
+    return indexFaceFromVertex( level, col, row, stencilDirection::CELL_GRAY_NE );
   }
-  WALBERLA_ASSERT(false);
+  // WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 
 
-template<size_t Level>
-inline size_t indexFaceFromBlueFace(const uint_t col, const uint_t row, const stencilDirection dir) {
+inline size_t indexFaceFromBlueFace( const uint_t & level, const uint_t col, const uint_t row, const stencilDirection dir ) {
   using namespace hhg::BubbleFace;
   if(dir == stencilDirection::CELL_BLUE_C)
   {
-    return indexFaceFromVertex<Level>(col + 1, row + 1, stencilDirection::CELL_BLUE_SW);
+    return indexFaceFromVertex( level, col + 1, row + 1, stencilDirection::CELL_BLUE_SW );
   }
-  WALBERLA_ASSERT(false);
+  // WALBERLA_ASSERT(false);
   return std::numeric_limits<size_t>::max();
 }
 

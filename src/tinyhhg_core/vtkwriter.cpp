@@ -599,12 +599,12 @@ void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
       {
         for ( size_t i = 0; i < inner_rowsize - 2; ++i )
         {
-          idx = vtkDetail::bubbleGrayFaceIndex( level, i, j, stencilDirection::CELL_GRAY_C );
+          idx = BubbleFace::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
           output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
-          idx = vtkDetail::bubbleBlueFaceIndex( level, i, j, stencilDirection::CELL_BLUE_C );
+          idx = BubbleFace::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
           output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
         }
-        idx = vtkDetail::bubbleGrayFaceIndex( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
+        idx = BubbleFace::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
         output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
         --inner_rowsize;
       }

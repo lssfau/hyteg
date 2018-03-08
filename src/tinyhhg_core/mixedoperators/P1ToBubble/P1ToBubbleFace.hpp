@@ -36,9 +36,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
       }
 
       if (update == Replace) {
-        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
+        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
+        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] += tmp;
       }
     }
     --inner_rowsize;
@@ -58,9 +58,9 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
       }
 
       if (update == Replace) {
-        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
+        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
+        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] += tmp;
       }
     }
     --inner_rowsize;
@@ -89,7 +89,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      PetscInt dst_id = dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection ::CELL_GRAY_C)];
+      PetscInt dst_id = dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection ::CELL_GRAY_C)];
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromGrayFace )
       {
@@ -105,7 +105,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      PetscInt dst_id = dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      PetscInt dst_id = dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C)];
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromBlueFace )
       {

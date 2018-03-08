@@ -25,7 +25,7 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
       tmp = 0.0;
 
       for (auto neighbor : BubbleFace::neighbors) {
-        tmp += opr_data[BubbleFace::indexFaceStencil(neighbor)]*src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)];
+        tmp += opr_data[BubbleFace::indexFaceStencil(neighbor)]*src[BubbleFace::indexFaceFromVertex( Level, i, j, neighbor )];
       }
 
       if (update==Replace) {
@@ -59,7 +59,7 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
                                                                             stencilDirection::VERTEX_C )];
 
       for (auto neighbor : BubbleFace::neighbors) {
-        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)],
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex( Level, i, j, neighbor)],
                      &opr_data[BubbleFace::indexFaceStencil(neighbor)], INSERT_VALUES);
       }
     }
