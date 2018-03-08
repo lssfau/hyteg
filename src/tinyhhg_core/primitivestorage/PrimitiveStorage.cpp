@@ -561,6 +561,8 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       const PrimitiveTypeEnum primitiveType = getPrimitiveType( primitiveID );
       const Primitive *       primitive     = getPrimitive( primitiveID );
 
+      WALBERLA_ASSERT_NOT_IDENTICAL( primitiveType, INVALID, "Sending invalid primitive type..." );
+
       sendBuffer << true;
       sendBuffer << primitiveType;
       sendBuffer << *primitive;
@@ -782,7 +784,7 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
       if ( vertexExistsInNeighborhood( neighborhoodID ) ) neighborVertices_.erase( neighborhoodID.getID() );
       if (   edgeExistsInNeighborhood( neighborhoodID ) )    neighborEdges_.erase( neighborhoodID.getID() );
       if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborFaces_.erase( neighborhoodID.getID() );
-      if (   faceExistsInNeighborhood( neighborhoodID ) )    neighborCells_.erase( neighborhoodID.getID() );
+      if (   cellExistsInNeighborhood( neighborhoodID ) )    neighborCells_.erase( neighborhoodID.getID() );
     }
   }
 
