@@ -255,8 +255,7 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_
   }
 }
 
-template< uint_t level >
-inline constexpr uint_t indexFromGrayFace( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromGrayFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
@@ -273,8 +272,7 @@ inline constexpr uint_t indexFromGrayFace( const uint_t & x, const uint_t & y, c
   }
 }
 
-template< uint_t level >
-inline constexpr uint_t indexFromBlueFace( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromBlueFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
