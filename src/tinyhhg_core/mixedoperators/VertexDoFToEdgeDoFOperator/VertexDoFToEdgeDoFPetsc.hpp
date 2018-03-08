@@ -75,7 +75,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
       dstInt = dst[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromHorizontalEdge )
       {
-        srcInt = src[ vertexdof::macroface::indexFromHorizontalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        srcInt = src[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), neighbor )];
         MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], INSERT_VALUES );
       }
     }
@@ -85,7 +85,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
       dstInt = dst[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromVerticalEdge )
       {
-        srcInt = src[ vertexdof::macroface::indexFromVerticalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        srcInt = src[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), neighbor )];
         MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromVerticalEdge( neighbor ) ], INSERT_VALUES );
       }
     }
@@ -95,7 +95,7 @@ inline void saveFaceOperatorTmpl( const Face & face,
       dstInt = dst[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromDiagonalEdge )
       {
-        srcInt = src[ vertexdof::macroface::indexFromDiagonalEdge< Level >( it.col(), it.row(), neighbor ) ];
+        srcInt = src[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), neighbor )];
         MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromDiagonalEdge( neighbor ) ], INSERT_VALUES );
       }
     }

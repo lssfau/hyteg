@@ -40,16 +40,16 @@ inline void prolongateP1ToP2Tmpl( const Face & face,
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     p2Edges[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
-        0.5 * (   p1Vertices[ vertexdof::macroface::indexFromHorizontalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_W ) ]
-                + p1Vertices[ vertexdof::macroface::indexFromHorizontalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_E ) ] );
+        0.5 * (   p1Vertices[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_W )]
+                + p1Vertices[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_E )] );
 
     p2Edges[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] =
-        0.5 * (   p1Vertices[ vertexdof::macroface::indexFromDiagonalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_NW ) ]
-                + p1Vertices[ vertexdof::macroface::indexFromDiagonalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_SE ) ] );
+        0.5 * (   p1Vertices[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_NW )]
+                + p1Vertices[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_SE )] );
 
     p2Edges[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] =
-        0.5 * (   p1Vertices[ vertexdof::macroface::indexFromVerticalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_N ) ]
-                + p1Vertices[ vertexdof::macroface::indexFromVerticalEdge< Level >( it.col(), it.row(), stencilDirection::VERTEX_S ) ] );
+        0.5 * (   p1Vertices[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_N )]
+                + p1Vertices[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_S )] );
   }
 
 }

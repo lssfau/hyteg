@@ -77,7 +77,7 @@ inline void applyFaceTmpl(Face &face,
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
-               src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+               src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
       }
       if (update==Replace) {
         dst[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] = tmp;
@@ -89,7 +89,7 @@ inline void applyFaceTmpl(Face &face,
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
-               src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+               src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
       }
       if (update==Replace) {
         dst[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] = tmp;
@@ -101,7 +101,7 @@ inline void applyFaceTmpl(Face &face,
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         tmp += opr_data[vertexdof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
-               src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+               src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
       }
 
       if (update==Replace) {

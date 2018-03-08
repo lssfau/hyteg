@@ -184,8 +184,7 @@ inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x,
 
 /// Have a look into the documentation to understand the calculations here
 /// The west vertex has the same col and row index as the horizonal edge
-template< uint_t level >
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
@@ -211,8 +210,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdge =
 
 /// Have a look into the documentation to understand the calculations here
 /// The south west vertex has the same col and row index as the horizonal edge
-template< uint_t level >
-inline constexpr uint_t indexFromDiagonalEdge( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
@@ -238,8 +236,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdge =
 
 /// Have a look into the documentation to understand the calculations here
 /// The south vertex has the same col and row index as the horizonal edge
-template< uint_t level >
-inline constexpr uint_t indexFromVerticalEdge( const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
