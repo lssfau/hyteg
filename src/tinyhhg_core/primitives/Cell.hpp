@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "core/logging/Logging.h"
 
 namespace hhg {
 
@@ -61,8 +62,8 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_ASSERT( false, "Serialization not implemented for macro cell!" ); WALBERLA_UNUSED( sendBuffer ); }
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_ASSERT( false, "Deserialization not implemented for macro cell!" ); WALBERLA_UNUSED( recvBuffer ); };
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_LOG_WARNING( "Serialization not fully implemented for macro cell!" ); WALBERLA_UNUSED( sendBuffer ); }
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_LOG_WARNING( "Deserialization not fully implemented for macro cell!" ); WALBERLA_UNUSED( recvBuffer ); };
 
 private:
 
