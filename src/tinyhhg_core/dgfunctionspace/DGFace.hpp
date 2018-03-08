@@ -18,7 +18,7 @@ inline void enumerateTmpl(Face &face,
   uint_t inner_rowsize = grayRowsize - 2;
   for(uint_t col = 1; col < grayRowsize - 2; ++col){
     for(uint_t row = 1; row < inner_rowsize; ++row){
-      dst[indexDGFaceFromVertex< Level >(col,row,stencilDirection::CELL_GRAY_NE)] = num;
+      dst[indexDGFaceFromVertex( Level, col, row, stencilDirection::CELL_GRAY_NE )] = num;
       ++num;
     }
     --inner_rowsize;
@@ -28,7 +28,7 @@ inline void enumerateTmpl(Face &face,
   inner_rowsize = blueRowsize;
   for(uint_t col = 0; col < blueRowsize; ++col){
     for(uint_t row = 0; row < inner_rowsize; ++row){
-      dst[indexDGFaceFromGrayDGface< Level >(col,row,stencilDirection::CELL_BLUE_E)] = num;
+      dst[indexDGFaceFromGrayDGface( Level, col, row, stencilDirection::CELL_BLUE_E )] = num;
       ++num;
     }
     --inner_rowsize;
@@ -286,21 +286,21 @@ inline void upwindTmpl(Face &face,
         c_up_0 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
       }
       else {
-        c_up_0 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_S)];
+        c_up_0 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_S )];
       }
 
       if (un_1 >= 0) {
         c_up_1 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
       }
       else {
-        c_up_1 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_E)];
+        c_up_1 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_E )];
       }
 
       if (un_2 >= 0) {
         c_up_2 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
       }
       else {
-        c_up_2 = src[indexDGFaceFromGrayDGface<Level>(i, j, stencilDirection::CELL_BLUE_W)];
+        c_up_2 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_W )];
       }
 
       tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;
@@ -350,21 +350,21 @@ inline void upwindTmpl(Face &face,
         c_up_0 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
       }
       else {
-        c_up_0 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_N)];
+        c_up_0 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_N )];
       }
 
       if (un_1 >= 0) {
         c_up_1 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
       }
       else {
-        c_up_1 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_W)];
+        c_up_1 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_W )];
       }
 
       if (un_2 >= 0) {
         c_up_2 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
       }
       else {
-        c_up_2 = src[indexDGFaceFromBlueDGface<Level>(i, j, stencilDirection::CELL_GRAY_E)];
+        c_up_2 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_E )];
       }
 
       tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;

@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   std::vector <size_t> result;
   for(auto n : hhg::BubbleFace::neighbors)
   {
-    size_t idx = indexDGFaceFromVertex<3>(1, 1, n);
+    size_t idx = indexDGFaceFromVertex( 3, 1, 1, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
   result.clear();
   for(auto n : hhg::BubbleFace::neighbors)
   {
-    size_t idx = indexDGFaceFromVertex<3>(2, 5, n);
+    size_t idx = indexDGFaceFromVertex( 3, 2, 5, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -38,18 +38,18 @@ int main(int argc, char* argv[]) {
   result.clear();
 
 
-  WALBERLA_CHECK_EQUAL(50, indexDGFaceFromGrayDGface<3>(1, 3, hhg::stencilDirection::CELL_BLUE_S));
-  WALBERLA_CHECK_EQUAL(55, indexDGFaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_W));
-  WALBERLA_CHECK_EQUAL(48, indexDGFaceFromGrayDGface<3>(5, 1, hhg::stencilDirection::CELL_BLUE_E));
+  WALBERLA_CHECK_EQUAL(50, indexDGFaceFromGrayDGface( 3, 1, 3, hhg::stencilDirection::CELL_BLUE_S ));
+  WALBERLA_CHECK_EQUAL(55, indexDGFaceFromGrayDGface( 3, 2, 3, hhg::stencilDirection::CELL_BLUE_W ));
+  WALBERLA_CHECK_EQUAL(48, indexDGFaceFromGrayDGface( 3, 5, 1, hhg::stencilDirection::CELL_BLUE_E ));
 
 
-  WALBERLA_CHECK_EQUAL(27, indexDGFaceFromBlueDGface<3>(1, 3, hhg::stencilDirection::CELL_GRAY_N));
-  WALBERLA_CHECK_EQUAL(23, indexDGFaceFromBlueDGface<3>(2, 3, hhg::stencilDirection::CELL_GRAY_W));
-  WALBERLA_CHECK_EQUAL(14, indexDGFaceFromBlueDGface<3>(5, 1, hhg::stencilDirection::CELL_GRAY_E));
-  WALBERLA_CHECK_EQUAL(13, indexDGFaceFromBlueDGface<3>(5, 0, hhg::stencilDirection::CELL_GRAY_N));
-  WALBERLA_CHECK_EQUAL(14, indexDGFaceFromBlueDGface<3>(6, 0, hhg::stencilDirection::CELL_GRAY_N));
-  WALBERLA_CHECK_EQUAL(7 , indexDGFaceFromBlueDGface<3>(6, 0, hhg::stencilDirection::CELL_GRAY_E));
-  WALBERLA_CHECK_EQUAL(6 , indexDGFaceFromBlueDGface<3>(6, 0, hhg::stencilDirection::CELL_GRAY_W));
+  WALBERLA_CHECK_EQUAL(27, indexDGFaceFromBlueDGface( 3, 1, 3, hhg::stencilDirection::CELL_GRAY_N ));
+  WALBERLA_CHECK_EQUAL(23, indexDGFaceFromBlueDGface( 3, 2, 3, hhg::stencilDirection::CELL_GRAY_W ));
+  WALBERLA_CHECK_EQUAL(14, indexDGFaceFromBlueDGface( 3, 5, 1, hhg::stencilDirection::CELL_GRAY_E ));
+  WALBERLA_CHECK_EQUAL(13, indexDGFaceFromBlueDGface( 3, 5, 0, hhg::stencilDirection::CELL_GRAY_N ));
+  WALBERLA_CHECK_EQUAL(14, indexDGFaceFromBlueDGface( 3, 6, 0, hhg::stencilDirection::CELL_GRAY_N ));
+  WALBERLA_CHECK_EQUAL(7 , indexDGFaceFromBlueDGface( 3, 6, 0, hhg::stencilDirection::CELL_GRAY_E ));
+  WALBERLA_CHECK_EQUAL(6 , indexDGFaceFromBlueDGface( 3, 6, 0, hhg::stencilDirection::CELL_GRAY_W ));
 
   /// EDGE INDEXING ///
   std::vector<size_t> refOne = {2,17,15,0,1,16};

@@ -50,7 +50,7 @@ constexpr size_t sumGrayDGFaceIndices(const uint_t x, const uint_t y){
   uint_t sum = 0;
   for(uint_t i = 0; i < grayDGfaceneighbors.size(); ++i)
   {
-    sum += indexDGFaceFromGrayDGface<3>(x, y, grayDGfaceneighbors[i]);
+    sum += indexDGFaceFromGrayDGface( 3, x, y, grayDGfaceneighbors[i] );
   }
   return sum;
 }
@@ -60,7 +60,7 @@ constexpr size_t sumBlueDGFaceIndices(const uint_t x, const uint_t y){
   uint_t sum = 0;
   for(uint_t i = 0; i < blueDGfaceneighbors.size(); ++i)
   {
-    sum += indexDGFaceFromBlueDGface<3>(x, y, blueDGfaceneighbors[i]);
+    sum += indexDGFaceFromBlueDGface( 3, x, y, blueDGfaceneighbors[i] );
   }
   return sum;
 }
@@ -81,10 +81,10 @@ int main() {
   hhg::vertexdof::macroface::indexFromVertex( 3, 1, 1, hhg::stencilDirection::VERTEX_C ) == 10, "P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"P1Face Index sum failed");
 
-  static_assert(hhg::DGFace::indexDGFaceFromGrayDGface<3>(2, 3, hhg::stencilDirection::CELL_BLUE_S)==51, "DGFace Index failed");
+  static_assert( hhg::DGFace::indexDGFaceFromGrayDGface( 3, 2, 3, hhg::stencilDirection::CELL_BLUE_S ) == 51, "DGFace Index failed");
   static_assert(sumGrayDGFaceIndices(2, 4)==175,"P1Face Index sum failed");
 
-  static_assert(hhg::DGFace::indexDGFaceFromBlueDGface<3>(5, 0, hhg::stencilDirection::CELL_GRAY_N)==13, "DGFace Index failed");
+  static_assert( hhg::DGFace::indexDGFaceFromBlueDGface( 3, 5, 0, hhg::stencilDirection::CELL_GRAY_N ) == 13, "DGFace Index failed");
   static_assert(sumBlueDGFaceIndices(6, 0)==27,"P1Face Index sum failed");
 
 }

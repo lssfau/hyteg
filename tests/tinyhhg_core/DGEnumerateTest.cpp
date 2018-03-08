@@ -67,7 +67,7 @@ int main (int argc, char ** argv )
     for(uint_t i = 1; i < (rowsize -1 ); ++i){
       for(uint_t j = 1; j < ( inner_rowsize - 1 ); ++j){
         WALBERLA_CHECK_EQUAL(
-          faceData[DGFace::indexDGFaceFromVertex<maxLevel>(i,j,stencilDirection::CELL_GRAY_NE)],
+          faceData[DGFace::indexDGFaceFromVertex( maxLevel, i, j, stencilDirection::CELL_GRAY_NE )],
           check);
         sum += check;
         ++check;
@@ -78,7 +78,7 @@ int main (int argc, char ** argv )
     for(uint_t i = 0; i < rowsize ; ++i){
       for(uint_t j = 0; j <  inner_rowsize ; ++j){
         WALBERLA_CHECK_EQUAL(
-          faceData[DGFace::indexDGFaceFromGrayDGface<maxLevel>(i,j,stencilDirection::CELL_BLUE_E)],
+          faceData[DGFace::indexDGFaceFromGrayDGface( maxLevel, i, j, stencilDirection::CELL_BLUE_E )],
           check);
         sum += check;
         ++check;
