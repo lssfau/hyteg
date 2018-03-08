@@ -19,11 +19,11 @@ using walberla::uint_t;
 
 namespace macroface {
 
-template< typename ValueType, uint_t Level >
-inline void prolongateP1ToP2Tmpl( const Face & face,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2VertexDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2EdgeDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void prolongateP1ToP2( const uint_t & Level, const Face & face,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2VertexDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2EdgeDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p1VertexDoFMemoryID )
 {
         auto p2Vertices = face.getData( p2VertexDoFMemoryID )->getPointer( Level );
         auto p2Edges    = face.getData( p2EdgeDoFMemoryID   )->getPointer( Level );
@@ -54,13 +54,11 @@ inline void prolongateP1ToP2Tmpl( const Face & face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, prolongateP1ToP2Tmpl, prolongateP1ToP2)
-
-template< typename ValueType, uint_t Level >
-inline void restrictP2ToP1Tmpl( const Face & face,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2VertexDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2EdgeDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void restrictP2ToP1( const uint_t & Level, const Face & face,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2VertexDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p2EdgeDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & p1VertexDoFMemoryID )
 {
   const auto p2Vertices = face.getData( p2VertexDoFMemoryID )->getPointer( Level );
   const auto p2Edges    = face.getData( p2EdgeDoFMemoryID   )->getPointer( Level );
@@ -93,17 +91,16 @@ inline void restrictP2ToP1Tmpl( const Face & face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, restrictP2ToP1Tmpl, restrictP2ToP1)
 
 } // namespace macroface
 
 namespace macroedge {
 
-template< typename ValueType, uint_t Level >
-inline void prolongateP1ToP2Tmpl( const Edge & edge,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2VertexDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2EdgeDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void prolongateP1ToP2( const uint_t & Level, const Edge & edge,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2VertexDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2EdgeDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p1VertexDoFMemoryID )
 {
         auto p2Vertices = edge.getData( p2VertexDoFMemoryID )->getPointer( Level );
         auto p2Edges    = edge.getData( p2EdgeDoFMemoryID   )->getPointer( Level );
@@ -131,13 +128,12 @@ inline void prolongateP1ToP2Tmpl( const Edge & edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, prolongateP1ToP2Tmpl, prolongateP1ToP2)
 
-template< typename ValueType, uint_t Level >
-inline void restrictP2ToP1Tmpl( const Edge & edge,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2VertexDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2EdgeDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void restrictP2ToP1( const uint_t & Level, const Edge & edge,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2VertexDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p2EdgeDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & p1VertexDoFMemoryID )
 {
   const auto p2Vertices = edge.getData( p2VertexDoFMemoryID )->getPointer( Level );
   const auto p2Edges    = edge.getData( p2EdgeDoFMemoryID   )->getPointer( Level );
@@ -166,17 +162,16 @@ inline void restrictP2ToP1Tmpl( const Edge & edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, restrictP2ToP1Tmpl, restrictP2ToP1)
 
 } // namespace macroedge
 
 namespace macrovertex {
 
-template< typename ValueType, uint_t Level >
-inline void prolongateP1ToP2Tmpl( const Vertex & vertex,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2VertexDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2EdgeDoFMemoryID,
-                                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void prolongateP1ToP2( const uint_t & Level, const Vertex & vertex,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2VertexDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2EdgeDoFMemoryID,
+                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p1VertexDoFMemoryID )
 {
   WALBERLA_UNUSED( p2EdgeDoFMemoryID );
 
@@ -186,13 +181,12 @@ inline void prolongateP1ToP2Tmpl( const Vertex & vertex,
   p2Vertices[ 0 ] = p1Vertices[ 0 ];
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, prolongateP1ToP2Tmpl, prolongateP1ToP2)
 
-template< typename ValueType, uint_t Level >
-inline void restrictP2ToP1Tmpl( const Vertex & vertex,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2VertexDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2EdgeDoFMemoryID,
-                                const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p1VertexDoFMemoryID )
+template< typename ValueType >
+inline void restrictP2ToP1( const uint_t & Level, const Vertex & vertex,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2VertexDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p2EdgeDoFMemoryID,
+                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & p1VertexDoFMemoryID )
 {
   const auto p2Vertices = vertex.getData( p2VertexDoFMemoryID )->getPointer( Level );
   const auto p2Edges    = vertex.getData( p2EdgeDoFMemoryID   )->getPointer( Level );
@@ -209,7 +203,6 @@ inline void restrictP2ToP1Tmpl( const Vertex & vertex,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, restrictP2ToP1Tmpl, restrictP2ToP1)
 
 } // namespace macrovertex
 

@@ -78,12 +78,12 @@ inline void applyDirichletBC(EdgeDoFFunction<PetscInt> &numerator, std::vector<P
 }
 
 
-template<uint_t Level>
-inline void saveEdgeOperatorTmpl( const Edge & edge,
-                                  const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                                  Mat & mat )
+
+inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
+                              const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
+                              Mat & mat )
 {
   using namespace hhg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
@@ -115,14 +115,13 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
   }
 }
 
-SPECIALIZE(void, saveEdgeOperatorTmpl, saveEdgeOperator);
 
-template<uint_t Level>
-inline void saveFaceOperatorTmpl( const Face & face,
-                                  const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                                  Mat & mat )
+
+inline void saveFaceOperator( const uint_t & Level, const Face & face,
+                              const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
+                              Mat & mat )
 {
   real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   PetscInt * src      = face.getData(srcId)->getPointer( Level );
@@ -159,7 +158,6 @@ inline void saveFaceOperatorTmpl( const Face & face,
   }
 }
 
-SPECIALIZE(void, saveFaceOperatorTmpl, saveFaceOperator);
 
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, EdgeDoFFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)

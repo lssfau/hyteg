@@ -1,6 +1,6 @@
 #ifndef TINYHHG_MACROS_HPP
 #define TINYHHG_MACROS_HPP
-
+#if 0
 #define SPECIALIZE_WITH_VALUETYPE(type, func_tmpl, func)                     \
 template< typename ValueType, typename... Args>                                    \
 inline type func(uint_t level, Args&&... args)                  \
@@ -74,6 +74,6 @@ inline type func(uint_t level, Args&&... args)                  \
       WALBERLA_ABORT("Level " << level << " not supported")   \
   }                                                           \
 }
-
+#endif
 
 #endif //TINYHHG_MACROS_HPP

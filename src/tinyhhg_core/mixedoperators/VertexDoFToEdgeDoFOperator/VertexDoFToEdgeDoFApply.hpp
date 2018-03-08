@@ -12,12 +12,11 @@ namespace hhg{
 namespace VertexDoFToEdgeDoF{
 
 
-template<uint_t Level>
-inline void applyEdgeTmpl(Edge &edge,
-                          const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
-                          UpdateType update) {
+inline void applyEdge(const uint_t & Level, Edge &edge,
+                      const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
+                      UpdateType update) {
 
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
 
@@ -54,14 +53,11 @@ inline void applyEdgeTmpl(Edge &edge,
 }
 
 
-SPECIALIZE(void, applyEdgeTmpl, applyEdge)
-
-template<uint_t Level>
-inline void applyFaceTmpl(Face &face,
-                          const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
-                          UpdateType update){
+inline void applyFace(const uint_t & Level, Face &face,
+                      const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
+                      UpdateType update){
 
   real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   real_t * src      = face.getData(srcId)->getPointer( Level );
@@ -114,7 +110,6 @@ inline void applyFaceTmpl(Face &face,
 
 }
 
-SPECIALIZE(void, applyFaceTmpl, applyFace)
 
 
 } // VertexDoFToEdgeDoFOperator

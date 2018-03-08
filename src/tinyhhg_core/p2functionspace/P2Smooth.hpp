@@ -42,8 +42,8 @@ void smoothGSvertexDoF(uint_t level, Vertex &vertex,
 
 namespace edge {
 
-template< uint_t Level >
-void smoothGSvertexDoFTmpl(Edge &edge,
+
+void smoothGSvertexDoF(const uint_t & Level, Edge &edge,
                        const PrimitiveDataID<StencilMemory< real_t >, Edge> &vertexDoFStencilID,
                        const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstVertexDoFID,
                        const PrimitiveDataID<StencilMemory< real_t >, Edge> &edgeDoFStencilID,
@@ -99,15 +99,13 @@ void smoothGSvertexDoFTmpl(Edge &edge,
     }
 }
 
-SPECIALIZE(void, smoothGSvertexDoFTmpl, smoothGSvertexDoF)
 
-template< uint_t Level >
-void smoothGSedgeDoFTmpl(Edge &edge,
-                         const PrimitiveDataID<StencilMemory< real_t >, Edge> &vertexDoFStencilID,
-                         const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstVertexDoFID,
-                         const PrimitiveDataID<StencilMemory< real_t >, Edge> &edgeDoFStencilID,
-                         const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstEdgeDoFID,
-                         const PrimitiveDataID<FunctionMemory< real_t >, Edge> &rhsEdgeDoFID){
+void smoothGSedgeDoF(const uint_t & Level, Edge &edge,
+                     const PrimitiveDataID<StencilMemory< real_t >, Edge> &vertexDoFStencilID,
+                     const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstVertexDoFID,
+                     const PrimitiveDataID<StencilMemory< real_t >, Edge> &edgeDoFStencilID,
+                     const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstEdgeDoFID,
+                     const PrimitiveDataID<FunctionMemory< real_t >, Edge> &rhsEdgeDoFID){
   size_t rowsize = levelinfo::num_microedges_per_edge( Level );
 
   real_t * vertexDoFStencil = edge.getData(vertexDoFStencilID)->getPointer( Level );
@@ -155,19 +153,18 @@ void smoothGSedgeDoFTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, smoothGSedgeDoFTmpl, smoothGSedgeDoF)
 
 } /// namespace edge
 
 namespace face {
 
 
-template< uint_t Level>
-void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
-                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
-                            const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
-                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
-                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID)
+
+void smoothGSvertexDoF(const uint_t & Level, Face &face, const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
+                       const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID)
 {
   size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
   size_t inner_rowsize = rowsize;
@@ -204,10 +201,9 @@ void smoothGSvertexDoFTmpl(Face &face, const PrimitiveDataID<StencilMemory<real_
   }
 }
 
-SPECIALIZE(void, smoothGSvertexDoFTmpl, smoothGSvertexDoF)
 
-template< uint_t Level>
-void smoothGSedgeDoFTmpl(Face &face,
+
+void smoothGSedgeDoF(const uint_t & Level, Face &face,
                      const PrimitiveDataID<StencilMemory< real_t >, Face> &vertexDoFStencilID,
                      const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstVertexDoFID,
                      const PrimitiveDataID<StencilMemory< real_t >, Face> &edgeDoFStencilID,
@@ -273,7 +269,6 @@ void smoothGSedgeDoFTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, smoothGSedgeDoFTmpl, smoothGSedgeDoF)
 
 } /// namespace face
 

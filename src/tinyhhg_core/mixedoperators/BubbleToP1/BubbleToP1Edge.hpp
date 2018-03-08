@@ -7,10 +7,10 @@
 
 namespace hhg {
 namespace BubbleToP1Edge {
-template<size_t Level>
-inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
-                       const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &srcId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId, UpdateType update) {
+
+inline void apply(const uint_t & Level, Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
+                  const PrimitiveDataID<EdgeBubbleFunctionMemory< real_t >, Edge> &srcId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
@@ -40,13 +40,13 @@ inline void apply_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMe
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
+
 
 #ifdef HHG_BUILD_WITH_PETSC
-template<size_t Level>
-inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
-                              const PrimitiveDataID<EdgeBubbleFunctionMemory< PetscInt >, Edge> &srcId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
+
+inline void saveOperator(const uint_t & Level, Edge &edge, const PrimitiveDataID<EdgeBubbleToP1StencilMemory, Edge> &operatorId,
+                         const PrimitiveDataID<EdgeBubbleFunctionMemory< PetscInt >, Edge> &srcId,
+                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   auto &edge_vertex_stencil = edge.getData(operatorId)->data[Level];
@@ -73,7 +73,6 @@ inline void saveOperator_tmpl(Edge &edge, const PrimitiveDataID<EdgeBubbleToP1St
   }
 }
 
-SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 #endif
 
 }

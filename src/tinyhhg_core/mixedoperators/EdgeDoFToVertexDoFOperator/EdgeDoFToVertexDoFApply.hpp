@@ -32,8 +32,7 @@ inline void applyVertex(uint_t level,
 }
 
 
-template<uint_t Level>
-inline void applyEdgeTmpl(Edge &edge,
+inline void applyEdge(const uint_t & Level, Edge &edge,
                   const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
@@ -72,11 +71,9 @@ inline void applyEdgeTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE(void, applyEdgeTmpl, applyEdge)
 
 
-template<uint_t Level>
-inline void applyFaceTmpl(Face &face,
+inline void applyFace(const uint_t & Level, Face &face,
                        const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
@@ -112,7 +109,6 @@ inline void applyFaceTmpl(Face &face,
   }
 }
 
-SPECIALIZE(void, applyFaceTmpl, applyFace)
 
 } /// EdgeDoFToVertexDoF
 } /// namespace hhg

@@ -87,7 +87,7 @@ static void testP2Smooth() {
 
   //vertexdof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getVertexDoFFunction()->getFaceDataID());
 
-  P2::face::smoothGSvertexDoFTmpl< level >(*face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
+  P2::face::smoothGSvertexDoF(level, *face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
                                            x->getVertexDoFFunction()->getFaceDataID(),
                                            p2operator.getEdgeToVertexOpr().getFaceStencilID(),
                             x->getEdgeDoFFunction()->getFaceDataID(),
@@ -97,7 +97,7 @@ static void testP2Smooth() {
 
   //edgedof::macroface::printFunctionMemory< real_t, level >(*(storage->getFaces().begin()->second),x->getEdgeDoFFunction()->getFaceDataID());
 
-  P2::face::smoothGSedgeDoFTmpl< level >(*face, p2operator.getVertexToEdgeOpr().getFaceStencilID(),
+  P2::face::smoothGSedgeDoF(level, *face, p2operator.getVertexToEdgeOpr().getFaceStencilID(),
                                            x->getVertexDoFFunction()->getFaceDataID(),
                                            p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
                                            x->getEdgeDoFFunction()->getFaceDataID(),
@@ -143,7 +143,7 @@ static void testP2Smooth() {
   vertexdof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getVertexDoFFunction()->getEdgeDataID());
 
 
-  P2::edge::smoothGSvertexDoFTmpl< level >(*doubleEdge,
+  P2::edge::smoothGSvertexDoF( level, *doubleEdge,
                                            p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                            x->getVertexDoFFunction()->getEdgeDataID(),
                                            p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
@@ -154,7 +154,7 @@ static void testP2Smooth() {
 
   edgedof::macroedge::printFunctionMemory< real_t >( level, *doubleEdge,x->getEdgeDoFFunction()->getEdgeDataID());
 
-  P2::edge::smoothGSedgeDoFTmpl< level >(*doubleEdge,
+  P2::edge::smoothGSedgeDoF(level, *doubleEdge,
                                            p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                            x->getVertexDoFFunction()->getEdgeDataID(),
                                            p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
