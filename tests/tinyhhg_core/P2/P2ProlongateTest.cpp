@@ -294,23 +294,26 @@ static void testP2Prolongate2() {
 static void testP2InterpolateAndProlongate() {
 
   const uint_t sourceLevel = 2;
+  const uint_t targetLevel = sourceLevel + 3;
   MeshInfo mesh = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = P2Function<real_t> ("x", storage, sourceLevel, sourceLevel + 1);
-  auto y = P2Function<real_t> ("y", storage, sourceLevel, sourceLevel + 1);
-  auto error = P2Function<real_t> ("x", storage, sourceLevel, sourceLevel + 1);
+  auto x = P2Function<real_t> ("x", storage, sourceLevel, targetLevel);
+  auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel);
+  auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
   x.interpolate(exact,sourceLevel    ,hhg::All);
-  y.interpolate(exact,sourceLevel + 1,hhg::All);
+  y.interpolate(exact,targetLevel,hhg::All);
 
-  x.prolongate(sourceLevel,hhg::All);
+  x.prolongate(sourceLevel    ,hhg::All);
+  x.prolongate(sourceLevel + 1,hhg::All);
+  x.prolongate(sourceLevel + 2,hhg::All);
 
-  error.assign({1.0, -1.0}, {&x, &y}, sourceLevel + 1, hhg::All);
+  error.assign({1.0, -1.0}, {&x, &y}, targetLevel, hhg::All);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(error.dot(error,sourceLevel + 1,hhg::All),0.);
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dot(error,targetLevel,hhg::All),0.);
 
 
 }
