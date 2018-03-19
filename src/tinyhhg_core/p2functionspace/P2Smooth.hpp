@@ -6,7 +6,6 @@
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
-#include "tinyhhg_core/macros.hpp"
 
 namespace hhg{
 namespace P2{

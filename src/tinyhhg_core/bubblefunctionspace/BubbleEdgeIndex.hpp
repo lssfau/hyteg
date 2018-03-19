@@ -1,6 +1,5 @@
 #pragma once
 
-#include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleMemory.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"

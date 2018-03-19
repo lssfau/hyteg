@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/macros.hpp"
 #include "P1ToBubbleMemory.hpp"
 
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"

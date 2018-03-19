@@ -8,7 +8,6 @@
 #include "tinyhhg_core/primitives/Vertex.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/macros.hpp"
 #include "core/DataTypes.h"
 
 
