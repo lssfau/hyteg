@@ -81,7 +81,6 @@ inline void interpolate(const uint_t & Level, Face & face,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
 template< typename ValueType >
@@ -149,7 +148,6 @@ inline void add( const uint_t & Level, Face & face, const std::vector< ValueType
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
 template< typename ValueType >
 inline void assign( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
@@ -215,7 +213,6 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
 template< typename ValueType >
 inline real_t dot( const uint_t & Level, Face & face,
@@ -254,7 +251,6 @@ inline real_t dot( const uint_t & Level, Face & face,
   return scalarProduct;
 }
 
-// SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Face &face,
@@ -293,7 +289,6 @@ inline void enumerate(const uint_t & Level, Face &face,
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 inline void apply( const uint_t & Level, Face &face,
                    const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
@@ -351,7 +346,6 @@ inline void apply( const uint_t & Level, Face &face,
   }
 }
 
-// SPECIALIZE(void, applyTmpl, apply)
 
 template< typename ValueType >
 inline void printFunctionMemory( const uint_t & Level, Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
@@ -415,8 +409,6 @@ inline void createVectorFromFunction( const uint_t & Level, Face &face,
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
-
 
 
 template< typename ValueType >
@@ -454,7 +446,6 @@ inline void createFunctionFromVector( const uint_t & Level, Face &face,
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
 }

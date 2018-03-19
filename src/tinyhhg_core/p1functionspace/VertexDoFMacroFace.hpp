@@ -100,7 +100,6 @@ inline void interpolate(const uint_t & Level,
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 
 template< typename ValueType >
 inline void assign( const uint_t & Level, Face &face,
@@ -132,7 +131,6 @@ inline void assign( const uint_t & Level, Face &face,
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 
 template< typename ValueType >
 inline void add(const uint_t & Level, Face &face,
@@ -166,7 +164,6 @@ inline void add(const uint_t & Level, Face &face,
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, addTmpl, add)
 
 template< typename ValueType >
 inline real_t dot(const uint_t & Level, Face &face,
@@ -192,7 +189,6 @@ inline real_t dot(const uint_t & Level, Face &face,
   return sp;
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(real_t, dotTmpl, dot)
 
 template< typename ValueType >
 inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID< StencilMemory< ValueType >, Face>& operatorId,
@@ -356,7 +352,6 @@ inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID< Stenc
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, apply_tmpl, apply)
 
 template< typename ValueType >
 inline void applyCoefficient(const uint_t & Level, Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
@@ -407,7 +402,6 @@ inline void applyCoefficient(const uint_t & Level, Face &face, const PrimitiveDa
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientTmpl, applyCoefficient)
 
 template< typename ValueType >
 inline void applyCoefficientDG(const uint_t & Level, Face &face, const PrimitiveDataID<FaceP1LocalMatrixMemory, Face>& operatorId,
@@ -459,7 +453,6 @@ inline void applyCoefficientDG(const uint_t & Level, Face &face, const Primitive
 
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
 
 template< typename ValueType >
 inline void applyElementwise(const uint_t & Level, Face &face, std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
@@ -539,7 +532,6 @@ inline void applyElementwise(const uint_t & Level, Face &face, std::function<voi
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template< typename ValueType >
 inline void smooth_gs(const uint_t & Level, Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
@@ -572,7 +564,6 @@ inline void smooth_gs(const uint_t & Level, Face &face, const PrimitiveDataID<St
   }
 }
 
-// //SPECIALIZE_WITH_VALUETYPE(void, smooth_gs_tmpl, smooth_gs)
 
 template< typename ValueType >
 inline void smooth_sor(const uint_t & Level, Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
@@ -607,7 +598,6 @@ inline void smooth_sor(const uint_t & Level, Face &face, const PrimitiveDataID<S
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, smooth_sor_tmpl, smooth_sor)
 
 template< typename ValueType >
 inline void smooth_jac(const uint_t & Level, Face &face, const PrimitiveDataID<StencilMemory< ValueType >, Face>& operatorId,
@@ -641,7 +631,6 @@ inline void smooth_jac(const uint_t & Level, Face &face, const PrimitiveDataID<S
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, smooth_jac_tmpl, smooth_jac)
 
 template< typename ValueType >
 inline void prolongate(const uint_t & Level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face>& memoryId) {
@@ -687,7 +676,6 @@ inline void prolongate(const uint_t & Level, Face &face, const PrimitiveDataID<F
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, prolongate_tmpl, prolongate)
 
 template< typename ValueType >
 inline void prolongateQuadratic(const uint_t & Level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face>& memoryId) {
@@ -806,7 +794,6 @@ inline void prolongateQuadratic(const uint_t & Level, Face &face, const Primitiv
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, prolongateQuadratic_tmpl, prolongateQuadratic)
 
 template< typename ValueType >
 inline void restrict(const uint_t & Level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &memoryId) {
@@ -836,7 +823,6 @@ inline void restrict(const uint_t & Level, Face &face, const PrimitiveDataID<Fun
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, restrict_tmpl, restrict)
 
 /// Checks if a given index is a the boundary of the face
 /// \param index The index which should be checked
@@ -873,7 +859,6 @@ inline void enumerate(const uint_t & Level, Face &face, const PrimitiveDataID<Fu
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 template< typename ValueType >
 inline void integrateDG(const uint_t & Level, Face &face,
@@ -937,7 +922,6 @@ inline void integrateDG(const uint_t & Level, Face &face,
 
 }
 
-//SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 template< typename ValueType >
 inline real_t getMaxValue(const uint_t & Level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId) {
@@ -959,7 +943,6 @@ inline real_t getMaxValue(const uint_t & Level, Face &face, const PrimitiveDataI
   return localMax;
 }
 
-//SPECIALIZE_WITH_VALUETYPE( real_t, getMaxValueTmpl, getMaxValue )
 
 #ifdef HHG_BUILD_WITH_PETSC
 
@@ -992,7 +975,6 @@ inline void saveOperator(const uint_t & Level, Face &face, const PrimitiveDataID
   }
 }
 
-//SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 
 
 template< typename ValueType >
@@ -1017,9 +999,6 @@ inline void createVectorFromFunction(const uint_t & Level, Face &face,
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
-
-
 
 template< typename ValueType >
 inline void createFunctionFromVector(const uint_t & Level, Face &face,
@@ -1043,7 +1022,6 @@ inline void createFunctionFromVector(const uint_t & Level, Face &face,
   }
 }
 
-//SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
 template< typename ValueType, size_t Level >

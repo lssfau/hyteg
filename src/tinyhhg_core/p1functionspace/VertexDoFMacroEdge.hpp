@@ -84,7 +84,6 @@ inline void interpolate(const uint_t & level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 template< typename ValueType >
 inline void assign( const uint_t & level, Edge &edge,
@@ -105,7 +104,6 @@ inline void assign( const uint_t & level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
 template< typename ValueType >
 inline void add( const uint_t & level, Edge &edge,
@@ -126,7 +124,6 @@ inline void add( const uint_t & level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
 template< typename ValueType >
 inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &lhsMemoryId,
@@ -143,7 +140,6 @@ inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Funct
   return sp;
 }
 
-// SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 template< typename ValueType >
 inline void apply( const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
@@ -191,7 +187,6 @@ inline void apply( const uint_t & level, Edge &edge, const PrimitiveDataID< Sten
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, applyTmpl, apply )
 
 template< typename ValueType >
 inline void applyCoefficient( const uint_t & level, Edge &edge,
@@ -256,7 +251,6 @@ inline void applyCoefficient( const uint_t & level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, applyCoefficientTmpl, applyCoefficient )
 
 template< typename ValueType >
 inline void applyElementwise( const uint_t & level, Edge &edge,
@@ -372,7 +366,6 @@ inline void applyElementwise( const uint_t & level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, applyElementwiseTmpl, applyElementwise)
 
 template< typename ValueType >
 inline void smooth_gs( const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
@@ -412,7 +405,6 @@ inline void smooth_gs( const uint_t & level, Edge &edge, const PrimitiveDataID< 
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, smoothGSTmpl, smooth_gs )
 
 template< typename ValueType >
 inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
@@ -456,7 +448,6 @@ inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< 
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, smoothSORTmpl, smooth_sor )
 
 template< typename ValueType >
 inline void smooth_jac(const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
@@ -498,7 +489,6 @@ inline void smooth_jac(const uint_t & level, Edge &edge, const PrimitiveDataID< 
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, smoothJacTmpl, smooth_jac )
 
 template< typename ValueType >
 inline void prolongate( const uint_t & sourceLevel, Edge & edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & memoryId ) {
@@ -528,7 +518,6 @@ inline void prolongate( const uint_t & sourceLevel, Edge & edge, const Primitive
   sourceLevel, i_c, stencilDirection::VERTEX_C )] );
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, prolongateTmpl, prolongate )
 
 template< typename ValueType >
 inline void prolongateQuadratic( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &memoryId) {
@@ -557,7 +546,6 @@ inline void prolongateQuadratic( const uint_t & level, Edge &edge, const Primiti
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, prolongateQuadraticTmpl, prolongateQuadratic )
 
 template< typename ValueType >
 inline void restrict(const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &memoryId) {
@@ -596,7 +584,6 @@ inline void restrict(const uint_t & level, Edge &edge, const PrimitiveDataID<Fun
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, restrictTmpl, restrict )
 
 template< typename ValueType >
 inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, uint_t& num) {
@@ -608,7 +595,6 @@ inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<F
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 template< typename ValueType >
 inline void integrateDG(const uint_t & level, Edge &edge,
@@ -700,7 +686,6 @@ inline void printFunctionMemory( const uint_t & level, Edge& edge, const Primiti
 }
 
 
-// SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
 
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator( const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
@@ -742,7 +727,6 @@ inline void saveOperator( const uint_t & level, Edge &edge, const PrimitiveDataI
   }
 }
 
-// SPECIALIZE(void, saveOperatorTmpl, saveOperator)
 
 template< typename ValueType >
 inline void createVectorFromFunction(const uint_t & level, Edge &edge,
@@ -757,7 +741,6 @@ inline void createVectorFromFunction(const uint_t & level, Edge &edge,
   VecSetValues(vec,rowsize-2,&numerator[1],&src[1],INSERT_VALUES);
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 template< typename ValueType >
 inline void createFunctionFromVector(const uint_t & level, Edge &edge,
@@ -771,7 +754,6 @@ inline void createFunctionFromVector(const uint_t & level, Edge &edge,
   VecGetValues(vec,rowsize-2,&numerator[1],&edge.getData(srcId)->getPointer( level )[1]);
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
 
 inline void applyDirichletBC(const uint_t & level, Edge &edge,std::vector<PetscInt> &mat,
@@ -785,7 +767,6 @@ inline void applyDirichletBC(const uint_t & level, Edge &edge,std::vector<PetscI
   }
 
 }
-// SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif
 
 } // namespace macroedge

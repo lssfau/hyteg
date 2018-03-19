@@ -48,7 +48,6 @@ inline void interpolate(const uint_t & Level, Edge & edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
 template< typename ValueType >
@@ -79,7 +78,6 @@ inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
 
 template< typename ValueType >
@@ -110,8 +108,6 @@ inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueT
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
-
 
 template< typename ValueType >
 inline real_t dot( const uint_t & Level, Edge & edge,
@@ -132,7 +128,6 @@ inline real_t dot( const uint_t & Level, Edge & edge,
   return scalarProduct;
 }
 
-// SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
 
 template< typename ValueType >
@@ -148,7 +143,6 @@ inline void enumerate(const uint_t & Level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
 
 inline void apply(const uint_t & Level, Edge &edge,
@@ -191,7 +185,6 @@ inline void apply(const uint_t & Level, Edge &edge,
   }
 }
 
-// SPECIALIZE(void, applyTmpl, apply)
 
 template< typename ValueType >
 inline void printFunctionMemory(const uint_t & Level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
@@ -254,7 +247,6 @@ inline void createVectorFromFunction(const uint_t & Level, Edge &edge,
   }
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 template< typename ValueType >
 inline void createFunctionFromVector(const uint_t & Level, Edge &edge,
@@ -272,7 +264,6 @@ inline void createFunctionFromVector(const uint_t & Level, Edge &edge,
 
 }
 
-// SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 
 inline void applyDirichletBC( const uint_t & Level, Edge &edge,std::vector<PetscInt> &mat,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
@@ -286,7 +277,6 @@ inline void applyDirichletBC( const uint_t & Level, Edge &edge,std::vector<Petsc
   }
 
 }
-// SPECIALIZE(void, applyDirichletBCTmpl, applyDirichletBC)
 #endif
 
 

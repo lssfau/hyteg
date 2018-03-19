@@ -9,12 +9,6 @@
 
 namespace hhg {
 
-namespace {
-// SPECIALIZE( uint_t, vertexdof::macroedge::indexFromVertex, indexFromVertexOnMacroEdge );
-// SPECIALIZE( uint_t, vertexdof::macroface::indexFromVertex, indexFromVertexOnMacroFace );
-// SPECIALIZE( uint_t, vertexdof::macrocell::indexFromVertex, vertexdof::macrocell::indexFromVertex );
-}
-
 template< typename ValueType >
 class VertexDoFPackInfo : public communication::DoFSpacePackInfo<ValueType>
 {
