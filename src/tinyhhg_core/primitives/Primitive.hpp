@@ -109,7 +109,7 @@ public:
   const std::vector< PrimitiveID > & neighborFaces()    const { return neighborFaces_; }
   const std::vector< PrimitiveID > & neighborCells()    const { return neighborCells_; }
 
-  uint_t getNumNeighborPrimitives() const { return getNumNeighborVertices() + getNumNeighborEdges() + getNumNeighborFaces(); }
+  uint_t getNumNeighborPrimitives() const { return getNumNeighborVertices() + getNumNeighborEdges() + getNumNeighborFaces() + getNumNeighborCells(); }
   uint_t getNumNeighborVertices  () const { return neighborVertices_.size(); }
   uint_t getNumNeighborEdges     () const { return neighborEdges_.size(); }
   uint_t getNumNeighborFaces     () const { return neighborFaces_.size(); }
