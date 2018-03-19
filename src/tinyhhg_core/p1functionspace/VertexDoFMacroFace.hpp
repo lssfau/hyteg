@@ -434,9 +434,6 @@ inline void applyCoefficientDG(const uint_t & Level, Face &face, const Primitive
   std::array<SD,3> triangleBlueNW = { SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_N  };
   std::array<SD,3> triangleGrayNE = { SD::VERTEX_C, SD::VERTEX_N,  SD::VERTEX_E  };
 
-  WALBERLA_ABORT( "Index function template refactoring: TODO!!!" );
-  // TODO #if 0 needs to be removed as soon as DG indexing is refactored
-#if 0
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
@@ -448,18 +445,18 @@ inline void applyCoefficientDG(const uint_t & Level, Face &face, const Primitive
         tmp = dst[vertexdof::macroface::indexFromVertex( Level, i, j, SD::VERTEX_C )];
       }
 
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_SE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGraySE, {2,0,1});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSE, {1,2,0});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSW, {0,1,2});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNW, {1,0,2});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_NW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueNW, {2,1,0});
-      tmp += coeff[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNE, {0,2,1});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_SE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGraySE, {2,0,1});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSE, {1,2,0});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueSW, {0,1,2});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNW, {1,0,2});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_NW)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getBlueMatrix(Level), src, triangleBlueNW, {2,1,0});
+      tmp += coeff[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NE)] * assembleLocalDG< ValueType >( Level, i, j, localMatrices->getGrayMatrix(Level), src, triangleGrayNE, {0,2,1});
 
       dst[vertexdof::macroface::indexFromVertex( Level, i, j, SD::VERTEX_C )] = tmp;
     }
     --inner_rowsize;
   }
-#endif
+
 }
 
 // //SPECIALIZE_WITH_VALUETYPE(void, applyCoefficientDGTmpl, applyCoefficientDG)
@@ -896,42 +893,38 @@ inline void integrateDG(const uint_t & Level, Face &face,
   real_t faceArea = std::pow(4.0, -walberla::real_c(Level)) * face.area;
   real_t weightedFaceArea = faceArea / 3.0;
 
-
-  WALBERLA_ABORT( "Index function template refactoring: TODO!!!" );
-  // TODO #if 0 needs to be removed as soon as DG indexing is refactored
-#if 0
   ValueType tmp;
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      tmp  = rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp  = rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_S )]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_S )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_SE )]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_SE )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_E )]));
 
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_NW )]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_NW )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_N )]));
-      tmp += rhs[DGFace::indexDGFaceFromVertex<Level>(i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
+      tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_N )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
        i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
@@ -941,7 +934,7 @@ inline void integrateDG(const uint_t & Level, Face &face,
     }
     --inner_rowsize;
   }
-#endif
+
 }
 
 //SPECIALIZE_WITH_VALUETYPE( void, integrateDGTmpl, integrateDG )
