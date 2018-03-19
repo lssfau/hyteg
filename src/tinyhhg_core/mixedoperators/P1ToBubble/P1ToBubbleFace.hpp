@@ -1,17 +1,16 @@
 #pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/macros.hpp"
 #include "P1ToBubbleMemory.hpp"
 
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {
 namespace P1ToBubbleFace {
-template<size_t Level>
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, UpdateType update) {
+
+inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -32,13 +31,13 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromGrayFace )
       {
-        tmp += face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(neighbor)] * src[ vertexdof::macroface::indexFromGrayFace<Level>(i, j, neighbor) ];
+        tmp += face_gray_stencil[ vertexdof::stencilIndexFromGrayFace(neighbor)] * src[vertexdof::macroface::indexFromGrayFace( Level, i, j, neighbor )];
       }
 
       if (update == Replace) {
-        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] = tmp;
+        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection::CELL_GRAY_C)] += tmp;
+        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] += tmp;
       }
     }
     --inner_rowsize;
@@ -54,27 +53,26 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMe
 
       for ( const auto neighbor : vertexdof::macroface::neighborsFromBlueFace )
       {
-        tmp += face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(neighbor)] * src[ vertexdof::macroface::indexFromBlueFace<Level>(i, j, neighbor) ];
+        tmp += face_blue_stencil[ vertexdof::stencilIndexFromBlueFace(neighbor)] * src[vertexdof::macroface::indexFromBlueFace( Level, i, j, neighbor )];
       }
 
       if (update == Replace) {
-        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] = tmp;
+        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = tmp;
       } else if (update == Add) {
-        dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)] += tmp;
+        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] += tmp;
       }
     }
     --inner_rowsize;
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
 
 
 #ifdef HHG_BUILD_WITH_PETSC
-template<size_t Level>
-inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &srcId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
+
+inline void saveOperator(const uint_t & Level, Face &face, const PrimitiveDataID<FaceP1ToBubbleStencilMemory, Face> &operatorId,
+                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &srcId,
+                         const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -89,11 +87,11 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 1; ++j)
     {
-      PetscInt dst_id = dst[BubbleFace::indexFaceFromGrayFace<Level>(i, j, stencilDirection ::CELL_GRAY_C)];
+      PetscInt dst_id = dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection ::CELL_GRAY_C)];
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromGrayFace )
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromGrayFace<Level>(i, j, neighbor)], &face_gray_stencil[vertexdof::stencilIndexFromGrayFace(neighbor)], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromGrayFace(Level, i, j, neighbor)], &face_gray_stencil[vertexdof::stencilIndexFromGrayFace(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;
@@ -105,18 +103,17 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceP1ToBubbleSt
   {
     for (size_t j = 0; j  < inner_rowsize - 2; ++j)
     {
-      PetscInt dst_id = dst[BubbleFace::indexFaceFromBlueFace<Level>(i, j, stencilDirection::CELL_BLUE_C)];
+      PetscInt dst_id = dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C)];
 
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromBlueFace )
       {
-        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromBlueFace<Level>(i, j, neighbor)], &face_blue_stencil[vertexdof::stencilIndexFromBlueFace(neighbor)], INSERT_VALUES);
+        MatSetValues(mat, 1, &dst_id, 1, &src[vertexdof::macroface::indexFromBlueFace( Level, i, j, neighbor)], &face_blue_stencil[vertexdof::stencilIndexFromBlueFace(neighbor)], INSERT_VALUES);
       }
     }
     --inner_rowsize;
   }
 }
 
-SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 #endif
 
 }

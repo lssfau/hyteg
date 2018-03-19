@@ -5,8 +5,8 @@
 namespace hhg {
 namespace DGEdge {
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Edge &edge,
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Edge &edge,
                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
                       uint_t& num)
 {
@@ -18,21 +18,20 @@ inline void enumerateTmpl(Edge &edge,
   }
   for(auto dir : dirs) {
     for (uint_t i = 1; i < (hhg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
-      dst[indexDGFaceFromVertex< Level >(i, dir)] = num;
+      dst[indexDGFaceFromVertex( Level, i, dir )] = num;
       ++num;
     }
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template< typename ValueType, uint_t Level >
-inline void upwindTmpl(Edge &edge,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                       const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Edge>, 2> &velocityIds,
-                       UpdateType updateType) {
+template< typename ValueType >
+inline void upwind(const uint_t & Level, Edge &edge,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
+                   const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                   const std::array<PrimitiveDataID< FunctionMemory< ValueType >, Edge>, 2> &velocityIds,
+                   UpdateType updateType) {
 
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
@@ -78,20 +77,20 @@ inline void upwindTmpl(Edge &edge,
     n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
-      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
+      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
+      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
 
-      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
-      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
+      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
-      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
-      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
+      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       // CENTER <-- CELL_GRAY_SE (i)
       // NORTH  <-- CELL_GRAY_NE (i)
@@ -103,30 +102,30 @@ inline void upwindTmpl(Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i + 1, stencilDirection::CELL_BLUE_SE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_SE )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_BLUE_SE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_SE )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -165,20 +164,20 @@ inline void upwindTmpl(Edge &edge,
     n_2 *= faceOrientation;
 
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
-      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]);
+      u_0[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
+      u_0[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]);
 
-      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
-      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      u_1[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
+      u_1[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
-      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + u[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
-      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-          + v[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      u_2[0] = 0.5*(u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + u[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
+      u_2[1] = 0.5*(v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+          + v[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       // CENTER <-- CELL_GRAY_NE (i)
       // SOUTH  <-- CELL_GRAY_SE (i)
@@ -190,44 +189,43 @@ inline void upwindTmpl(Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)];
+        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex<Level>(i+1, stencilDirection::CELL_BLUE_NW)];
+        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_NW )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_BLUE_NW)];
+        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_NW )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, upwindTmpl, upwind )
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Edge &edge,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
-                            const std::shared_ptr< PrimitiveStorage >& storage ) {
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Edge &edge,
+                        const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
+                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto edgeMemory = edge.getData(edgeMemoryId)->getPointer( Level );
 
@@ -259,9 +257,9 @@ inline void interpolateTmpl(Edge &edge,
   for (size_t i = 1; i < rowsize - 2; ++i) {
 
     for (size_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)];
+      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
     }
-    edgeMemory[DGEdge::indexDGFaceFromVertex< Level >(i,stencilDirection::CELL_GRAY_SE)] = expr(x,srcVector);
+    edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( x, srcVector);
     x += dx;
   }
 
@@ -278,23 +276,22 @@ inline void interpolateTmpl(Edge &edge,
     for (size_t i = 1; i < rowsize - 2; ++i) {
 
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)];
+        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
-      edgeMemory[DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = expr(x,srcVector);
+      edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( x, srcVector);
       x += dx;
     }
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, interpolateTmpl, interpolate)
 
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl(Edge &edge,
-                       const std::vector<ValueType>& scalars,
-                       const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                       const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
+template< typename ValueType >
+inline void assign(const uint_t & Level, Edge &edge,
+                   const std::vector<ValueType>& scalars,
+                   const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -302,7 +299,7 @@ inline void assignTmpl(Edge &edge,
 
   // gray south cells
   for (size_t i = 1; i < rowsize - 2; ++i) {
-    uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE);
+    uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
     ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
     for (uint_t k = 1; k < srcIds.size(); ++k) {
       tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[cellIndex];
@@ -312,7 +309,7 @@ inline void assignTmpl(Edge &edge,
 
   if(edge.getNumNeighborFaces() == 2) {
     for (size_t i = 1; i < rowsize - 2; ++i) {
-      uint_t cellIndex = DGEdge::indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE);
+      uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
       ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer(Level)[cellIndex];
       for (uint_t k = 1; k < srcIds.size(); ++k) {
         tmp += scalars[k]*edge.getData(srcIds[k])->getPointer(Level)[cellIndex];
@@ -322,14 +319,13 @@ inline void assignTmpl(Edge &edge,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, assignTmpl, assign)
 
-template< typename ValueType, uint_t Level >
-inline void projectP1Tmpl(Edge &edge,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
-                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                       UpdateType updateType) {
+template< typename ValueType >
+inline void projectP1(const uint_t & Level, Edge &edge,
+                      const std::shared_ptr< PrimitiveStorage >& storage,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &srcId,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
+                      UpdateType updateType) {
 
   auto src = edge.getData(srcId)->getPointer( Level );
   auto dst = edge.getData(dstId)->getPointer( Level );
@@ -340,14 +336,14 @@ inline void projectP1Tmpl(Edge &edge,
   // first face (south)
   {
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_SE)]);
+      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_SE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -356,21 +352,19 @@ inline void projectP1Tmpl(Edge &edge,
   if (edge.getNumNeighborFaces() == 2)
   {
     for (uint_t i = 1; i < rowsize - 2; ++i) {
-      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_E)]
-                   + src[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_N)]);
+      tmp = 1.0/3.0*(src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_E )]
+                   + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] = tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex<Level>(i, stencilDirection::CELL_GRAY_NE)] += tmp;
+        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }
 
 }
-
-SPECIALIZE_WITH_VALUETYPE( void, projectP1Tmpl, projectP1 )
 
 
 }//namespace DGEdge

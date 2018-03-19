@@ -16,7 +16,7 @@ void testNeighborhood2( const Index & index, const std::map< stencilDirection, u
   {
     const auto dir         = it.first;
     const auto linearIndex = it.second;
-    WALBERLA_CHECK_EQUAL( vertexdof::macrocell::indexFromVertex< level >( index.x(), index.y(), index.z(), dir ), linearIndex );
+    WALBERLA_CHECK_EQUAL( vertexdof::macrocell::indexFromVertex( level, index.x(), index.y(), index.z(), dir ), linearIndex );
   }
 }
 
@@ -27,7 +27,7 @@ void testNeighborhood3( const Index & index, const std::map< stencilDirection, u
   {
     const auto dir         = it.first;
     const auto linearIndex = it.second;
-    WALBERLA_CHECK_EQUAL( vertexdof::macrocell::indexFromVertex< level >( index.x(), index.y(), index.z(), dir ), linearIndex );
+    WALBERLA_CHECK_EQUAL( vertexdof::macrocell::indexFromVertex( level, index.x(), index.y(), index.z(), dir ), linearIndex );
   }
 }
 

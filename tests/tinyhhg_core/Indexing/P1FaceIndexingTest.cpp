@@ -15,19 +15,19 @@ void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
     case 0:
       for( const auto & n : hhg::vertexdof::macroface::neighborsWithCenter )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromVertex<3>(col, row, n) );
+        result.push_back( hhg::vertexdof::macroface::indexFromVertex( 3, col, row, n ));
       }
       break;
     case 1:
       for( const auto & n : hhg::vertexdof::macroface::neighborsFromGrayFace )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromGrayFace<3>(col, row, n) );
+        result.push_back( hhg::vertexdof::macroface::indexFromGrayFace( 3, col, row, n ));
       }
       break;
     case 2:
       for( const auto & n : hhg::vertexdof::macroface::neighborsFromBlueFace )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromBlueFace<3>(col, row, n) );
+        result.push_back( hhg::vertexdof::macroface::indexFromBlueFace( 3, col, row, n ));
       }
       break;
     default:
@@ -46,7 +46,7 @@ void testNeighborhood2( const Index & index, const std::map< stencilDirection, u
   {
     const auto dir         = it.first;
     const auto linearIndex = it.second;
-    WALBERLA_CHECK_EQUAL( vertexdof::macroface::indexFromVertex< level >( index.x(), index.y(), dir ), linearIndex );
+    WALBERLA_CHECK_EQUAL( vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), dir ), linearIndex );
   }
 }
 
@@ -57,7 +57,7 @@ void testNeighborhood3( const Index & index, const std::map< stencilDirection, u
   {
     const auto dir         = it.first;
     const auto linearIndex = it.second;
-    WALBERLA_CHECK_EQUAL( vertexdof::macroface::indexFromVertex< level >( index.x(), index.y(), dir ), linearIndex );
+    WALBERLA_CHECK_EQUAL( vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), dir ), linearIndex );
   }
 }
 

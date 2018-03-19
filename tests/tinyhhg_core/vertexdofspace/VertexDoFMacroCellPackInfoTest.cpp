@@ -33,7 +33,8 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto faceData = f.second->getData( x->getFaceDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macroface::Iterator( level ) )
     {
-      faceData[ vertexdof::macroface::indexFromVertex< level >( it.x(), it.y(), stencilDirection::VERTEX_C ) ] = 1.0;
+      faceData[vertexdof::macroface::indexFromVertex( level, it.x(), it.y(),
+                                                      stencilDirection::VERTEX_C )] = 1.0;
     }
   }
 
@@ -43,11 +44,11 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 0, 1, 2 ) )
     {
-      WALBERLA_CHECK_FLOAT_EQUAL( cellData[ vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ], 0.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 0.0 );
     }
     for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 1, 2, 3 ) )
     {
-      WALBERLA_CHECK_FLOAT_EQUAL( cellData[ vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ], 0.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 0.0 );
     }
   }
 
@@ -61,11 +62,11 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 0, 1, 2 ) )
     {
-      WALBERLA_CHECK_FLOAT_EQUAL( cellData[ vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ], 1.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 1.0 );
     }
     for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 1, 2, 3 ) )
     {
-      WALBERLA_CHECK_FLOAT_EQUAL( cellData[ vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ], 1.0 );
+      WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 1.0 );
     }
   }
 
@@ -82,8 +83,8 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
     for ( const auto & it : vertexdof::macrocell::Iterator( level ) )
     {
-      const Point3D coordinate = vertexdof::macrocell::coordinateFromIndex< level >( *f.second, it );
-      const uint_t  idx        = vertexdof::macrocell::indexFromVertex< level >( it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      const Point3D coordinate = vertexdof::macrocell::coordinateFromIndex( level, *f.second, it );
+      const uint_t  idx        = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[ idx ], expr( coordinate ) );
     }
   }

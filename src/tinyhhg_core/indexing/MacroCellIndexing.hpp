@@ -16,18 +16,16 @@ using walberla::uint16_t;
 namespace layout {
 
 /// Required memory for the linear macro cell layout
-template< uint_t width >
-inline constexpr uint_t linearMacroCellSize()
+inline constexpr uint_t linearMacroCellSize( const uint_t & width )
 {
   return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
 }
 
 /// General linear memory layout indexing function for macro cells
-template< uint_t width >
-inline constexpr uint_t linearMacroCellIndex( const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t linearMacroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
 {
   const uint_t widthMinusSlice = width - z;
-  const uint_t sliceOffset = linearMacroCellSize< width >() - ( ( widthMinusSlice + 2 ) * ( widthMinusSlice + 1 ) * widthMinusSlice ) / 6;
+  const uint_t sliceOffset = linearMacroCellSize( width ) - (( widthMinusSlice + 2 ) * ( widthMinusSlice + 1 ) * widthMinusSlice ) / 6;
   const uint_t rowOffset   = y * ( widthMinusSlice + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
   return sliceOffset + rowOffset + x;
 }
@@ -35,16 +33,14 @@ inline constexpr uint_t linearMacroCellIndex( const uint_t & x, const uint_t & y
 } // namespace layout
 
 
-template< uint_t width >
-inline constexpr uint_t macroCellSize()
+inline constexpr uint_t macroCellSize( const uint_t & width )
 {
-  return layout::linearMacroCellSize< width >();
+  return layout::linearMacroCellSize( width );
 }
 
-template< uint_t width >
-inline constexpr uint_t macroCellIndex( const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t macroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
 {
-  return layout::linearMacroCellIndex< width >( x, y, z );
+  return layout::linearMacroCellIndex( width, x, y, z );
 }
 
 

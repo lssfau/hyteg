@@ -19,19 +19,6 @@
 namespace hhg
 {
 
-namespace vtkDetail
-{
-SPECIALIZE( uint_t, vertexdof::macrocell::index, vertexDoFOnMacroCellIndex )
-SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
-
-SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
-SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
-
-SPECIALIZE(uint_t, edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
-}
-
 using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;

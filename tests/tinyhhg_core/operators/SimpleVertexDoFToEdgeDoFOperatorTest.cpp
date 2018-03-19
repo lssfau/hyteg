@@ -32,7 +32,7 @@ static void testOperator() {
     for (uint_t i = 0; i < faceStencilSize; ++i) {
       faceStencilData[i] = 1;
     }
-    hhg::vertexdof::macroface::interpolateTmpl< real_t, level >(*face,vertexDof->getFaceDataID(),{},onesVec);
+    hhg::vertexdof::macroface::interpolate< real_t >(level, *face,vertexDof->getFaceDataID(),{},onesVec);
   }
 
   for (auto &edgeIT : storage->getEdges()) {
@@ -42,7 +42,7 @@ static void testOperator() {
     for (uint_t i = 0; i < edgeStencilSize; ++i) {
       edgeStencilData[i] = 1;
     }
-    hhg::vertexdof::macroedge::interpolateTmpl< real_t, level >(*edge,vertexDof->getEdgeDataID(),{},onesVec);
+    hhg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
   }
 
   for (auto &vertexIT : storage->getVertices()) {
@@ -92,7 +92,7 @@ static void testOperator() {
       ///this check could also be imporoved
       WALBERLA_CHECK(walberla::floatIsEqual(data[i],4.0) || walberla::floatIsEqual(data[i],3.0));
     }
-    hhg::vertexdof::macroedge::interpolateTmpl< real_t, level >(*edge,vertexDof->getEdgeDataID(),{},onesVec);
+    hhg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
   }
 
 }

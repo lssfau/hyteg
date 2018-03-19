@@ -16,15 +16,13 @@ using walberla::uint_t;
 namespace layout {
 
 /// Required memory for the linear macro face layout
-template< uint_t width >
-inline constexpr uint_t linearMacroFaceSize()
+inline constexpr uint_t linearMacroFaceSize( const uint_t & width )
 {
   return ( ( width + 1 ) * width ) / 2;
 }
 
 /// General linear memory layout indexing function for macro faces
-template< uint_t width >
-inline constexpr uint_t linearMacroFaceIndex( const uint_t & x, const uint_t & y )
+inline constexpr uint_t linearMacroFaceIndex( const uint_t & width, const uint_t & x, const uint_t & y )
 {
   const uint_t rowOffset = y * ( width + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
   return rowOffset + x;
@@ -33,18 +31,15 @@ inline constexpr uint_t linearMacroFaceIndex( const uint_t & x, const uint_t & y
 }
 
 
-template< uint_t width >
-inline constexpr uint_t macroFaceSize()
+inline constexpr uint_t macroFaceSize( const uint_t & width )
 {
-  return layout::linearMacroFaceSize< width >();
+  return layout::linearMacroFaceSize( width );
 }
 
-template< uint_t width >
-inline constexpr uint_t macroFaceIndex( const uint_t & x, const uint_t & y )
+inline constexpr uint_t macroFaceIndex( const uint_t & width, const uint_t & x, const uint_t & y )
 {
-  return layout::linearMacroFaceIndex< width >( x, y );
+  return layout::linearMacroFaceIndex( width, x, y );
 }
-
 
 /// Iterator over a face.
 /// Iterates from bottom to top in a row wise fashion.

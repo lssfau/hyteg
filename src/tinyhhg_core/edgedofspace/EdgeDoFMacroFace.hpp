@@ -5,7 +5,6 @@
 #include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/macros.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 
@@ -16,11 +15,11 @@ namespace macroface {
 using walberla::uint_t;
 using walberla::real_c;
 
-template< typename ValueType, uint_t Level >
-inline void interpolateTmpl(Face & face,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Face & face,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
+                        const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                        std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -51,10 +50,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() )];
+        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() ) ] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
+      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
     }
 
     // Do not update vertical DoFs at left border
@@ -62,10 +61,10 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex< Level >( it.col(), it.row() )];
+        srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::verticalIndex< Level >  ( it.col(), it.row() ) ] = expr( verticalMicroEdgePosition, srcVectorVertical );
+      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = expr( verticalMicroEdgePosition, srcVectorVertical );
     }
 
     // Do not update diagonal DoFs at diagonal border
@@ -73,21 +72,20 @@ inline void interpolateTmpl(Face & face,
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
-        srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() )];
+        srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[ edgedof::macroface::diagonalIndex< Level >  ( it.col(), it.row() ) ] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
+      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
     }
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, interpolateTmpl, interpolate )
 
 
-template< typename ValueType, uint_t Level >
-inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+template< typename ValueType >
+inline void add( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
+                 const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -100,9 +98,9 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
     ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
     ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
-    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-    const uint_t idxVertical   = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
+    const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
+    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -149,12 +147,11 @@ inline void addTmpl( Face & face, const std::vector< ValueType > & scalars,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, addTmpl, add )
 
-template< typename ValueType, uint_t Level >
-inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
-                        const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
-                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+template< typename ValueType >
+inline void assign( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
+                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
+                    const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
   WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
   WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
@@ -167,9 +164,9 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
     ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
     ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
-    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
-    const uint_t idxVertical   = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
-    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
+    const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
+    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
@@ -215,12 +212,11 @@ inline void assignTmpl( Face & face, const std::vector< ValueType > & scalars,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, assignTmpl, assign )
 
-template< typename ValueType, uint_t Level >
-inline real_t dotTmpl( Face & face,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
-                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+template< typename ValueType >
+inline real_t dot( const uint_t & Level, Face & face,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
 {
   auto lhsData = face.getData( lhsId )->getPointer( Level );
   auto rhsData = face.getData( rhsId )->getPointer( Level );
@@ -232,21 +228,21 @@ inline real_t dotTmpl( Face & face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
     }
   }
@@ -254,37 +250,36 @@ inline real_t dotTmpl( Face & face,
   return scalarProduct;
 }
 
-SPECIALIZE_WITH_VALUETYPE( real_t, dotTmpl, dot )
 
-template< typename ValueType, uint_t Level >
-inline void enumerateTmpl(Face &face,
-                          const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
-                          uint_t& num)
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Face &face,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
+                      uint_t& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;
   size_t diagonal_num = num +
-                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
   size_t vertical_num = num +
-                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF< Level > -
+                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
   for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {
-      dst[hhg::edgedof::macroface::horizontalIndex< Level >(it.col(), it.row())] = horizontal_num;
+      dst[hhg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = horizontal_num;
       ++horizontal_num;
       ++num;
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dst[hhg::edgedof::macroface::diagonalIndex< Level >(it.col(), it.row())] = diagonal_num;
+      dst[hhg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = diagonal_num;
       ++diagonal_num;
       ++num;
     }
     if( it.col() != 0) {
-      dst[hhg::edgedof::macroface::verticalIndex< Level >(it.col(), it.row())] = vertical_num;
+      dst[hhg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = vertical_num;
       ++vertical_num;
       ++num;
     }
@@ -293,14 +288,12 @@ inline void enumerateTmpl(Face &face,
 
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, enumerateTmpl, enumerate )
 
-template<uint_t Level>
-inline void applyTmpl(Face &face,
-                       const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
-                       UpdateType update)
+inline void apply( const uint_t & Level, Face &face,
+                   const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
+                   const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
+                   const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
+                   UpdateType update)
 {
   real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   real_t * src      = face.getData(srcId)->getPointer( Level );
@@ -316,46 +309,45 @@ inline void applyTmpl(Face &face,
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] *
-               src[indexFromHorizontalEdge< Level >(it.col(), it.row(), neighborsFromHorizontalEdge[k])];
+               src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
       }
       if (update==Replace) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] = tmp;
+        dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromHorizontalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_HO_C)] += tmp;
+        dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] += tmp;
       }
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
-               src[indexFromDiagonalEdge< Level >(it.col(), it.row(), neighborsFromDiagonalEdge[k])];
+               src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
       }
       if (update==Replace) {
-        dst[indexFromDiagonalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_DI_C)] = tmp;
+        dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromDiagonalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_DI_C)] += tmp;
+        dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] += tmp;
       }
     }
     if( it.col() != 0) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] *
-               src[indexFromVerticalEdge< Level >(it.col(), it.row(), neighborsFromVerticalEdge[k])];
+               src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
       }
 
       if (update==Replace) {
-        dst[indexFromVerticalEdge< Level >(it.col(), it.row(), stencilDirection::EDGE_VE_C)] = tmp;
+        dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] = tmp;
       } else if ( update==Add ) {
-        dst[indexFromVerticalEdge<Level>(it.col(), it.row(), stencilDirection::EDGE_VE_C)] += tmp;
+        dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] += tmp;
       }
     }
   }
 }
 
-SPECIALIZE(void, applyTmpl, apply)
 
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory( const uint_t & Level, Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
@@ -363,17 +355,17 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
   cout << "Horizontal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromHorizontalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_HO_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] << "|";
   }
   cout << endl << "Diagonal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_DI_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] << "|";
   }
   cout << endl << "Vertical Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge< Level >(it.col(),it.row(), stencilDirection::EDGE_VE_C)] << "|";
+    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
@@ -381,11 +373,11 @@ inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-template< typename ValueType, uint_t Level >
-inline void createVectorFromFunctionTmpl(Face &face,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createVectorFromFunction( const uint_t & Level, Face &face,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                      Vec& vec) {
 
   auto src = face.getData(srcId)->getPointer( Level );
   auto numerator = face.getData(numeratorId)->getPointer( Level );
@@ -395,36 +387,34 @@ inline void createVectorFromFunctionTmpl(Face &face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
     }
   }
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createVectorFromFunctionTmpl, createVectorFromFunction)
 
 
-
-template< typename ValueType, uint_t Level >
-inline void createFunctionFromVectorTmpl(Face &face,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
-                                         Vec& vec) {
+template< typename ValueType >
+inline void createFunctionFromVector( const uint_t & Level, Face &face,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId,
+                                      Vec& vec) {
 
   auto src = face.getData(srcId)->getPointer( Level );
   auto numerator = face.getData(numeratorId)->getPointer( Level );
@@ -434,28 +424,27 @@ inline void createFunctionFromVectorTmpl(Face &face,
     // Do not read horizontal DoFs at bottom
     if ( it.row() != 0 )
     {
-      const uint_t idx = edgedof::macroface::horizontalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
 
     // Do not read vertical DoFs at left border
     if ( it.col() != 0 )
     {
-      const uint_t idx = edgedof::macroface::verticalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
 
     // Do not read diagonal DoFs at diagonal border
     if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
-      const uint_t idx = edgedof::macroface::diagonalIndex< Level >( it.col(), it.row() );
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
     }
   }
 
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, createFunctionFromVectorTmpl, createFunctionFromVector)
 #endif
 
 }

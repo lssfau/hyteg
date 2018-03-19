@@ -88,19 +88,19 @@ void BubblePackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Pr
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   const uint_t vertexIdOnEdge = sender->vertex_index(receiver);
   if(vertexIdOnEdge == 0){
-    buffer << edgeData[edge_index(level_,0u,sD::CELL_GRAY_SE)];
+    buffer << edgeData[indexFaceFromVertex(level_,0u,sD::CELL_GRAY_SE)];
     if(sender->getNumHigherDimNeighbors() == 2)
     {
       //also send north face data
-      buffer << edgeData[edge_index(level_, 0u, sD::CELL_GRAY_NE)];
+      buffer << edgeData[indexFaceFromVertex(level_, 0u, sD::CELL_GRAY_NE)];
     }
   } else if(vertexIdOnEdge == 1){
     const uint_t lastPos = levelinfo::num_microvertices_per_edge(level_) -1;
-    buffer << edgeData[edge_index(level_,lastPos,sD::CELL_GRAY_SW)];
+    buffer << edgeData[indexFaceFromVertex(level_,lastPos,sD::CELL_GRAY_SW)];
     if(sender->getNumHigherDimNeighbors() == 2)
     {
       //also send north face data
-      buffer << edgeData[edge_index(level_, lastPos, sD::CELL_GRAY_NW)];
+      buffer << edgeData[indexFaceFromVertex(level_, lastPos, sD::CELL_GRAY_NW)];
     }
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender);
@@ -127,22 +127,22 @@ void BubblePackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sende
 
   if(vertexIdOnEdge == 0){
     const uint_t southFaceIdOnVertex = receiver->face_index(sender->neighborFaces()[0]);
-    vertexData[southFaceIdOnVertex] = edgeData[edge_index(level_,0u,sD::CELL_GRAY_SE)];
+    vertexData[southFaceIdOnVertex] = edgeData[indexFaceFromVertex(level_,0u,sD::CELL_GRAY_SE)];
     if(sender->getNumHigherDimNeighbors() == 2)
     {
       //also send north face data
       const uint_t northFaceIdOnVertex = receiver->face_index(sender->neighborFaces()[1]);
-      vertexData[northFaceIdOnVertex] = edgeData[edge_index(level_, 0u, sD::CELL_GRAY_NE)];
+      vertexData[northFaceIdOnVertex] = edgeData[indexFaceFromVertex(level_, 0u, sD::CELL_GRAY_NE)];
     }
   } else if(vertexIdOnEdge == 1){
     const uint_t lastPos = levelinfo::num_microvertices_per_edge(level_) -1;
     const uint_t southFaceIdOnVertex = receiver->face_index(sender->neighborFaces()[0]);
-    vertexData[southFaceIdOnVertex] = edgeData[edge_index(level_,lastPos,sD::CELL_GRAY_SW)];
+    vertexData[southFaceIdOnVertex] = edgeData[indexFaceFromVertex(level_,lastPos,sD::CELL_GRAY_SW)];
     if(sender->getNumHigherDimNeighbors() == 2)
     {
       //also send north face data
       const uint_t northFaceIdOnVertex = receiver->face_index(sender->neighborFaces()[1]);
-      vertexData[northFaceIdOnVertex] = edgeData[edge_index(level_, lastPos, sD::CELL_GRAY_NW)];
+      vertexData[northFaceIdOnVertex] = edgeData[indexFaceFromVertex(level_, lastPos, sD::CELL_GRAY_NW)];
     }
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << receiver->getID().getID() << " is not in Edge: " << sender);
@@ -215,12 +215,12 @@ void BubblePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primi
   //unpack Gray Cell
   for (uint_t i = 0; i < vPerEdge - 1; ++i)
   {
-    buffer >> edgeData[BubbleEdge::edge_index(level_,i,dirCellGray)];
+    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellGray)];
   }
   //unpack Blue Cell
   for (uint_t i = 1; i < vPerEdge - 1; ++i)
   {
-    buffer >> edgeData[BubbleEdge::edge_index(level_,i,dirCellBlue)];
+    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellBlue)];
   }
 }
 
@@ -248,14 +248,14 @@ void BubblePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender,
   //copy Gray Cell
   for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_GRAY, level_); it != indexIterator(); ++it)
   {
-    edgeData[BubbleEdge::edge_index(level_,pos,dirCellGray)] = faceData[*it];
+    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellGray)] = faceData[*it];
     pos++;
   }
   pos = 1;
 
   for(auto it = indexIterator(edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace], CELL_BLUE, level_); it != indexIterator(); ++it)
   {
-    edgeData[BubbleEdge::edge_index(level_,pos,dirCellBlue)] = faceData[*it];
+    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellBlue)] = faceData[*it];
     pos++;
   }
 }
