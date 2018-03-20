@@ -89,14 +89,16 @@ static void testP2Smooth() {
     std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 1; };
     std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 1; };
 
-  P2::face::smoothGSvertexDoF(level, *face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
+    x->interpolate(ones, level);
+    rhs->interpolate(ones, level);
+
+    P2::face::smoothGSvertexDoF(level, *face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
                               x->getVertexDoFFunction()->getFaceDataID(),
                               p2operator.getEdgeToVertexOpr().getFaceStencilID(),
                               x->getEdgeDoFFunction()->getFaceDataID(),
                             rhs->getVertexDoFFunction()->getFaceDataID());
 
-    x->interpolate(ones, level);
-    rhs->interpolate(ones, level);
+
 
     x->getVertexDoFFunction()->getCommunicator(level)->startCommunication<Face, Edge>();
     x->getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
@@ -147,6 +149,7 @@ static void testP2Smooth() {
       doubleEdge = e.second.get();
     }
   }
+  WALBERLA_CHECK(doubleEdge != nullptr);
   vertexToVertexStencil = doubleEdge->getData(p2operator.getVertexToVertexOpr().getEdgeStencilID())->getPointer( level );
   edgeToVertexStencil = doubleEdge->getData(p2operator.getEdgeToVertexOpr().getEdgeStencilID())->getPointer( level );
 
