@@ -1,16 +1,15 @@
 #pragma once
 
 #include "tinyhhg_core/levelinfo.hpp"
-#include "tinyhhg_core/macros.hpp"
 #include "BubbleToP1Memory.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
 
 namespace hhg {
 namespace BubbleToP1Face {
-template<size_t Level>
-inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
-                       const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
-                       const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId, UpdateType update) {
+
+inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
+                  const PrimitiveDataID<FaceBubbleFunctionMemory< real_t >, Face> &srcId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId, UpdateType update) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -25,26 +24,25 @@ inline void apply_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMe
       tmp = 0.0;
 
       for (auto neighbor : BubbleFace::neighbors) {
-        tmp += opr_data[BubbleFace::indexFaceStencil(neighbor)]*src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)];
+        tmp += opr_data[BubbleFace::indexFaceStencil(neighbor)]*src[BubbleFace::indexFaceFromVertex( Level, i, j, neighbor )];
       }
 
       if (update==Replace) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C) ] = tmp;
+        dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
       } else if (update==Add) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C) ] += tmp;
+        dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] += tmp;
       }
     }
     --inner_rowsize;
   }
 }
 
-SPECIALIZE(void, apply_tmpl, apply)
 
 #ifdef HHG_BUILD_WITH_PETSC
-template<size_t Level>
-inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
-                              const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
+
+inline void saveOperator(const uint_t & Level, Face &face, const PrimitiveDataID<FaceBubbleToP1StencilMemory, Face> &operatorId,
+                         const PrimitiveDataID<FaceBubbleFunctionMemory< PetscInt >, Face> &srcId,
+                         const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &dstId, Mat& mat) {
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   size_t inner_rowsize = rowsize;
 
@@ -55,10 +53,11 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   for (size_t i = 1; i < rowsize - 2; ++i) {
     for (size_t j = 1; j < inner_rowsize - 2; ++j) {
 
-      PetscInt dst_id = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      PetscInt dst_id = dst[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                            stencilDirection::VERTEX_C )];
 
       for (auto neighbor : BubbleFace::neighbors) {
-        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex<Level>(i, j, neighbor)],
+        MatSetValues(mat, 1, &dst_id, 1, &src[BubbleFace::indexFaceFromVertex( Level, i, j, neighbor)],
                      &opr_data[BubbleFace::indexFaceStencil(neighbor)], INSERT_VALUES);
       }
     }
@@ -66,7 +65,6 @@ inline void saveOperator_tmpl(Face &face, const PrimitiveDataID<FaceBubbleToP1St
   }
 }
 
-SPECIALIZE(void, saveOperator_tmpl, saveOperator)
 #endif
 
 }

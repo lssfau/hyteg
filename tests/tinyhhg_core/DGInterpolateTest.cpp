@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   }
   DGFunction < real_t > x("x", storage, minLevel, maxLevel);
 
-  DGEdge::interpolateTmpl< real_t, maxLevel >(*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  DGEdge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
   //DGEdge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
 
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   Point3D xPoint = edgeZeroPoint + 1.0/3.0 * (face0Dx + edgeDirectionDx) + edgeDirectionDx;
   for(uint_t i = 1; i < v_perEdge - 2; ++i){
     WALBERLA_CHECK_FLOAT_EQUAL(
-      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_SE)],
+      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex( maxLevel, i, stencilDirection::CELL_GRAY_SE )],
       exact(xPoint,{}), i )
     xPoint += edgeDirectionDx;
   }
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
   xPoint = edgeZeroPoint + 1.0/3.0 * (face1Dx + edgeDirectionDx) + edgeDirectionDx;
   for(uint_t i = 1; i < v_perEdge - 2; ++i){
     WALBERLA_CHECK_FLOAT_EQUAL(
-      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex<maxLevel>(i,stencilDirection::CELL_GRAY_NE)],
+      edgeWithTwoFaces->getData(x.getEdgeDataID())->getPointer(maxLevel)[DGEdge::indexDGFaceFromVertex( maxLevel, i, stencilDirection::CELL_GRAY_NE )],
       exact(xPoint,{}), i )
     xPoint += edgeDirectionDx;
   }

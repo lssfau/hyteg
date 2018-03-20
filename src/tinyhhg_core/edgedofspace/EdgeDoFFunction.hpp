@@ -72,6 +72,29 @@ public:
     }
   }
 
+  inline void
+  assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
+          uint_t level, DoFType flag = All );
+
+  inline void
+  add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
+       uint_t level, DoFType flag = All );
+
+  /// Interpolates a given expression to a EdgeDoFFunction
+
+  inline void
+  interpolate(std::function< ValueType( const Point3D & ) >& expr,
+                          uint_t level, DoFType flag = All);
+
+  inline void
+  interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                      const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                      uint_t level,
+                      DoFType flag = All);
+
+  inline real_t
+  dot( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
@@ -80,32 +103,7 @@ private:
 
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
 
-    /// Interpolates a given expression to a EdgeDoFFunction
-    inline void
-    interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                             const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                                             uint_t level,
-                                             DoFType flag = All);
 
-    inline void
-    assign_impl( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-                 uint_t level, DoFType flag = All );
-
-    inline void
-    add_impl( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-              uint_t level, DoFType flag = All );
-
-    inline real_t
-    dot_impl( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
-
-    inline void
-    prolongate_impl( uint_t sourceLevel, DoFType flag = All );
-
-    inline void
-    prolongateQuadratic_impl( uint_t sourceLevel, DoFType flag = All );
-
-    inline void
-    restrict_impl( uint_t sourceLevel, DoFType flag = All );
 
     inline void
     enumerate_impl( uint_t level, uint_t& num );
@@ -116,11 +114,22 @@ private:
 };
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                                                           const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                                                           uint_t level,
-                                                           DoFType flag)
+inline void EdgeDoFFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+                                                      uint_t level, DoFType flag)
 {
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+      return expr(x);
+  };
+  interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template< typename ValueType >
+inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                                                              const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                                                              uint_t level,
+                                                              DoFType flag)
+{
+  this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
@@ -154,11 +163,13 @@ inline void EdgeDoFFunction< ValueType >::interpolate_impl(std::function<ValueTy
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+  this->stopTiming( "Interpolate" );
 }
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Assign" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
@@ -191,12 +202,13 @@ inline void EdgeDoFFunction< ValueType >::assign_impl(const std::vector<ValueTyp
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
-
+  this->stopTiming( "Assign" );
 }
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Add" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
 
@@ -229,11 +241,13 @@ inline void EdgeDoFFunction< ValueType >::add_impl(const std::vector<ValueType> 
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
-inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
+  this->startTiming( "Dot" );
   real_t scalarProduct =  0.0 ;
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -257,30 +271,15 @@ inline real_t EdgeDoFFunction< ValueType >::dot_impl(EdgeDoFFunction< ValueType 
   }
 
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
-
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
-
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
-{
-  WALBERLA_ASSERT( false, "To be implemented..." );
-}
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
+  this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
@@ -301,7 +300,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
-
+  this->stopTiming( "Enumerate" );
 }
 
 

@@ -85,8 +85,15 @@ static void testP2Smooth() {
     }
 
 
+
     std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 1; };
     std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 1; };
+
+  P2::face::smoothGSvertexDoF(level, *face, p2operator.getVertexToVertexOpr().getFaceStencilID(),
+                              x->getVertexDoFFunction()->getFaceDataID(),
+                              p2operator.getEdgeToVertexOpr().getFaceStencilID(),
+                              x->getEdgeDoFFunction()->getFaceDataID(),
+                            rhs->getVertexDoFFunction()->getFaceDataID());
 
     x->interpolate(ones, level);
     rhs->interpolate(ones, level);
@@ -96,14 +103,10 @@ static void testP2Smooth() {
     x->getEdgeDoFFunction()->getCommunicator(level)->startCommunication<Face, Edge>();
     x->getEdgeDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
 
-    P2::face::smoothGSvertexDoFTmpl< level >(*face,
-                                             p2operator.getVertexToVertexOpr().getFaceStencilID(),
-                                             x->getVertexDoFFunction()->getFaceDataID(),
-                                             p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-                                           x->getEdgeDoFFunction()->getFaceDataID(),
-                                           rhs->getVertexDoFFunction()->getFaceDataID());
 
-    P2::face::smoothGSedgeDoFTmpl< level >(*face, p2operator.getVertexToEdgeOpr().getFaceStencilID(),
+
+
+  P2::face::smoothGSedgeDoF(level, *face, p2operator.getVertexToEdgeOpr().getFaceStencilID(),
                                            x->getVertexDoFFunction()->getFaceDataID(),
                                            p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
                                            x->getEdgeDoFFunction()->getFaceDataID(),
@@ -114,24 +117,24 @@ static void testP2Smooth() {
 
     for (const auto &it : hhg::vertexdof::macroface::Iterator(level, 0)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        vertexDoFData[hhg::vertexdof::macroface::indexFromVertex<level>(it.col(), it.row(), sD::VERTEX_C)],
+        vertexDoFData[hhg::vertexdof::macroface::indexFromVertex(level,it.col(), it.row(), sD::VERTEX_C)],
         1.,
         it.col() << " " << it.row());
     }
 
     for (const auto &it : hhg::edgedof::macroface::Iterator(level, 0)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFData[hhg::edgedof::macroface::indexFromVertex<level>(it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFData[hhg::edgedof::macroface::indexFromVertex(level,it.col(), it.row(), sD::EDGE_HO_E)],
         1.,
         it.col() << " " << it.row());
 
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFData[hhg::edgedof::macroface::indexFromVertex<level>(it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFData[hhg::edgedof::macroface::indexFromVertex(level,it.col(), it.row(), sD::EDGE_DI_NE)],
         1.,
         it.col() << " " << it.row());
 
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFData[hhg::edgedof::macroface::indexFromVertex<level>(it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFData[hhg::edgedof::macroface::indexFromVertex(level,it.col(), it.row(), sD::EDGE_VE_N)],
         1.,
         it.col() << " " << it.row());
     }
@@ -172,14 +175,17 @@ static void testP2Smooth() {
   }
   edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)] = -7.;
 
-  P2::edge::smoothGSvertexDoFTmpl< level >(*doubleEdge,
+
+
+  P2::edge::smoothGSvertexDoF( level, *doubleEdge,
                                            p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                            x->getVertexDoFFunction()->getEdgeDataID(),
                                            p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
                                            x->getEdgeDoFFunction()->getEdgeDataID(),
                                            rhs->getVertexDoFFunction()->getEdgeDataID());
 
-  P2::edge::smoothGSedgeDoFTmpl< level >(*doubleEdge,
+
+  P2::edge::smoothGSedgeDoF(level, *doubleEdge,
                                            p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                            x->getVertexDoFFunction()->getEdgeDataID(),
                                            p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
@@ -189,16 +195,17 @@ static void testP2Smooth() {
   real_t *edgeDoFData = doubleEdge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(level);
   real_t *vertexDoFData = doubleEdge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(level);
 
+
   for (const auto &it : hhg::vertexdof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFData[hhg::vertexdof::macroedge::indexFromVertex<level>(it.col(), sD::VERTEX_C)],
+      vertexDoFData[hhg::vertexdof::macroedge::indexFromVertex(level,it.col(), sD::VERTEX_C)],
       1.,
       it.col() << " " << it.row());
   }
 
   for (const auto &it : hhg::edgedof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      edgeDoFData[hhg::edgedof::macroedge::indexFromVertex<level>(it.col(), sD::EDGE_HO_E)],
+      edgeDoFData[hhg::edgedof::macroedge::indexFromVertex(level,it.col(), sD::EDGE_HO_E)],
       1.,
       it.col() << " " << it.row());
   }

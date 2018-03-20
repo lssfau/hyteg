@@ -49,7 +49,7 @@ static void testP2P1Transfer()
   const auto p1FaceDataID = p1Function->getFaceDataID();
         auto p1FaceData   = storage->getFace( faceIDs[ 0 ] )->getData( p1FaceDataID )->getPointer( level );
 
-  const uint_t idx = vertexdof::macroface::indexFromVertex< level >( x, y, stencilDirection::VERTEX_C );
+  const uint_t idx = vertexdof::macroface::indexFromVertex( level, x, y, stencilDirection::VERTEX_C );
 
   p1FaceData[ idx ] = testValue;
 
@@ -67,19 +67,19 @@ static void testP2P1Transfer()
 
   WALBERLA_CHECK_FLOAT_EQUAL( p2VertexDoFFaceData[ idx ], testValue );
 
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_HO_W  ) ], 0.5 * testValue );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_HO_E  ) ], 0.5 * testValue );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_DI_NW ) ], 0.5 * testValue );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_DI_SE ) ], 0.5 * testValue );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_VE_N  ) ], 0.5 * testValue );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_VE_S  ) ], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_HO_W )], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_HO_E )], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_DI_NW )], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_DI_SE )], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_VE_N )], 0.5 * testValue );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_VE_S )], 0.5 * testValue );
 
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_HO_NW ) ], 0.0 );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_HO_SE ) ], 0.0 );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_DI_SW ) ], 0.0 );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_DI_NE ) ], 0.0 );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_VE_NW ) ], 0.0 );
-  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[ edgedof::macroface::indexFromVertex< level >( x, y, stencilDirection::EDGE_VE_SE ) ], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_HO_NW )], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_HO_SE )], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_DI_SW )], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_DI_NE )], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_VE_NW )], 0.0 );
+  WALBERLA_CHECK_FLOAT_EQUAL( p2EdgeDoFFaceData[edgedof::macroface::indexFromVertex( level, x, y, stencilDirection::EDGE_VE_SE )], 0.0 );
 
   vtkOutput.write( level, 2 );
 
@@ -91,7 +91,8 @@ static void testP2P1Transfer()
 
   for ( const auto & neighbor : vertexdof::macroface::neighborsWithoutCenter )
   {
-    WALBERLA_CHECK_FLOAT_EQUAL( p1FaceData[ vertexdof::macroface::indexFromVertex< level >( x, y, neighbor ) ], 0.25 * testValue );
+    WALBERLA_CHECK_FLOAT_EQUAL( p1FaceData[vertexdof::macroface::indexFromVertex( level, x, y,
+                                                                                  neighbor )], 0.25 * testValue );
   }
 
   vtkOutput.write( level, 3 );

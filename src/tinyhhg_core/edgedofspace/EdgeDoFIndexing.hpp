@@ -6,14 +6,20 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
+#include <cassert>
+
 namespace hhg {
 namespace edgedof {
 
-template< uint_t level >
-constexpr uint_t levelToWidthAnyEdgeDoF = levelinfo::num_microedges_per_edge( level );
+constexpr uint_t levelToWidthAnyEdgeDoF( const uint_t & level )
+{
+  return levelinfo::num_microedges_per_edge( level );
+}
 
-template< uint_t level >
-constexpr uint_t levelToFaceSizeAnyEdgeDoF = levelinfo::num_microedges_per_face( level ) / 3;
+constexpr uint_t levelToFaceSizeAnyEdgeDoF( const uint_t & level )
+{
+  return levelinfo::num_microedges_per_face( level ) / 3;
+}
 
 // ##################
 // ### Macro Edge ###
@@ -24,34 +30,31 @@ namespace macroedge {
 typedef stencilDirection sD;
 
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
-template< uint_t level >
-inline constexpr uint_t horizontalIndex( const uint_t & col )
+inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col )
 {
-  return ::hhg::indexing::macroEdgeIndex< levelToWidthAnyEdgeDoF< level > >( col );
+  return ::hhg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), col );
 };
 
 /// Index of a horizontal edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-template< uint_t level >
-inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
 
   const uint_t offset = numHorizontalDoFsOnEdge + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
-  return offset + horizontalIndex<  level  >( col );
+  return offset + horizontalIndex( level, col );
 };
 
 /// Index of a vertical edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-template< uint_t level >
-inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1  );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
 
   const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
@@ -60,12 +63,11 @@ inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & neighb
 
 /// Index of a diagonal edge DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-template< uint_t level >
-inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighbor )
+inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > - 1 >();
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize< levelToWidthAnyEdgeDoF< level > >();
+  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
 
   const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
@@ -74,8 +76,7 @@ inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & neighb
 
 // Stencil access functions
 
-template< uint_t level >
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stencilDirection & dir )
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -83,24 +84,23 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const stenc
   switch( dir )
   {
   case sD::EDGE_HO_C:
-    return horizontalIndex< level >( col );
+    return horizontalIndex( level, col );
   case sD::EDGE_DI_N:
-    return diagonalIndex< level >( col, 1 );
+    return diagonalIndex( level, col, 1 );
   case sD::EDGE_DI_S:
-    return diagonalIndex< level >( col, 0 );
+    return diagonalIndex( level, col, 0 );
   case sD::EDGE_VE_NW:
-      return verticalIndex< level >( col, 1 );
+      return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_SE:
-      return verticalIndex< level >( col, 0 );
+      return verticalIndex( level, col, 0 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
 
 
-template< uint_t level >
-inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -108,31 +108,31 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const stencilDirect
   switch( dir )
   {
   case sD::EDGE_HO_W:
-    return horizontalIndex< level >( col - 1 );
+    return horizontalIndex( level, col - 1 );
   case sD::EDGE_HO_E:
-    return horizontalIndex< level >( col     );
+    return horizontalIndex( level, col );
   case sD::EDGE_HO_NW:
-    return horizontalIndex< level >( col - 1, 1 );
+    return horizontalIndex( level, col - 1, 1 );
   case sD::EDGE_HO_SE:
-    return horizontalIndex< level >( col - 1, 0 );
+    return horizontalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SW:
-    return diagonalIndex< level >( col - 1, 0 );
+    return diagonalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SE:
-    return diagonalIndex< level >( col    , 0 );
+    return diagonalIndex( level, col, 0 );
   case sD::EDGE_DI_NW:
-    return diagonalIndex< level >( col - 1, 1 );
+    return diagonalIndex( level, col - 1, 1 );
   case sD::EDGE_DI_NE:
-    return diagonalIndex< level >( col    , 1 );
+    return diagonalIndex( level, col, 1 );
   case sD::EDGE_VE_N:
-    return verticalIndex< level >( col    , 1 );
+    return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_S:
-    return verticalIndex< level >( col - 1, 0 );
+    return verticalIndex( level, col - 1, 0 );
   case sD::EDGE_VE_NW:
-    return verticalIndex< level >( col - 1, 1 );
+    return verticalIndex( level, col - 1, 1 );
   case sD::EDGE_VE_SE:
-    return verticalIndex< level >( col    , 0 );
+    return verticalIndex( level, col, 0 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -166,43 +166,42 @@ namespace macroface {
 /// Direct access functions
 
 typedef stencilDirection sD;
-template< uint_t level >
-inline constexpr uint_t horizontalIndex( const uint_t & col, const uint_t & row )
+
+inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
 };
 
-template< uint_t level >
-inline constexpr uint_t verticalIndex( const uint_t & col, const uint_t & row )
+inline constexpr uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return 2 * levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return 2 * levelToFaceSizeAnyEdgeDoF( level ) +
+  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
 }
 
-template< uint_t level >
-inline constexpr uint_t diagonalIndex( const uint_t & col, const uint_t & row )
+inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return levelToFaceSizeAnyEdgeDoF< level > + indexing::macroFaceIndex< levelToWidthAnyEdgeDoF< level > >( col, row );
+  return levelToFaceSizeAnyEdgeDoF( level ) +
+  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
 }
 
 // Stencil access functions
 
-template< uint_t level >
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_HO_C:
-    return horizontalIndex< level >( col, row );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_DI_N:
-    return diagonalIndex< level >( col, row     );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_DI_S:
-    return diagonalIndex< level >( col, row - 1 );
+    return diagonalIndex( level, col, row - 1 );
   case sD::EDGE_VE_NW:
-      return verticalIndex< level >( col    , row     );
+      return verticalIndex( level, col, row );
   case sD::EDGE_VE_SE:
-      return verticalIndex< level >( col + 1, row - 1 );
+      return verticalIndex( level, col + 1, row - 1 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -214,23 +213,22 @@ constexpr std::array<stencilDirection ,5> neighborsFromHorizontalEdge =
    }};
 
 
-template< uint_t level >
-inline constexpr uint_t indexFromDiagonalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_DI_C:
-    return diagonalIndex< level >( col, row );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_HO_N:
-    return horizontalIndex< level >( col, row + 1 );
+    return horizontalIndex( level, col, row + 1 );
   case sD::EDGE_HO_S:
-    return horizontalIndex< level >( col, row     );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_VE_W:
-      return verticalIndex< level >( col    , row );
+      return verticalIndex( level, col, row );
   case sD::EDGE_VE_E:
-      return verticalIndex< level >( col + 1, row );
+      return verticalIndex( level, col + 1, row );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -241,23 +239,22 @@ constexpr std::array<stencilDirection ,5> neighborsFromDiagonalEdge =
      sD::EDGE_HO_N, sD::EDGE_VE_W
    }};
 
-template< uint_t level >
-inline constexpr uint_t indexFromVerticalEdge( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
   case sD::EDGE_VE_C:
-    return verticalIndex< level >( col, row );
+    return verticalIndex( level, col, row );
   case sD::EDGE_HO_NW:
-    return horizontalIndex< level >( col - 1, row + 1 );
+    return horizontalIndex( level, col - 1, row + 1 );
   case sD::EDGE_HO_SE:
-    return horizontalIndex< level >( col    , row     );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_DI_W:
-      return diagonalIndex< level >( col - 1, row );
+      return diagonalIndex( level, col - 1, row );
   case sD::EDGE_DI_E:
-      return diagonalIndex< level >( col    , row );
+      return diagonalIndex( level, col, row );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -268,8 +265,7 @@ constexpr std::array<stencilDirection ,5> neighborsFromVerticalEdge =
      sD::EDGE_HO_NW, sD::EDGE_DI_W
    }};
 
-template< uint_t level >
-inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -277,31 +273,31 @@ inline constexpr uint_t indexFromVertex( const uint_t & col, const uint_t & row,
   switch( dir )
   {
   case sD::EDGE_HO_W:
-    return horizontalIndex< level >( col - 1, row     );
+    return horizontalIndex( level, col - 1, row );
   case sD::EDGE_HO_E:
-    return horizontalIndex< level >( col    , row     );
+    return horizontalIndex( level, col, row );
   case sD::EDGE_HO_NW:
-    return horizontalIndex< level >( col - 1, row + 1 );
+    return horizontalIndex( level, col - 1, row + 1 );
   case sD::EDGE_HO_SE:
-    return horizontalIndex< level >( col    , row - 1 );
+    return horizontalIndex( level, col, row - 1 );
   case sD::EDGE_DI_SW:
-    return diagonalIndex< level >( col - 1, row - 1 );
+    return diagonalIndex( level, col - 1, row - 1 );
   case sD::EDGE_DI_SE:
-    return diagonalIndex< level >( col    , row - 1 );
+    return diagonalIndex( level, col, row - 1 );
   case sD::EDGE_DI_NW:
-    return diagonalIndex< level >( col - 1, row     );
+    return diagonalIndex( level, col - 1, row );
   case sD::EDGE_DI_NE:
-    return diagonalIndex< level >( col    , row     );
+    return diagonalIndex( level, col, row );
   case sD::EDGE_VE_N:
-    return verticalIndex< level >( col    , row     );
+    return verticalIndex( level, col, row );
   case sD::EDGE_VE_S:
-    return verticalIndex< level >( col    , row - 1 );
+    return verticalIndex( level, col, row - 1 );
   case sD::EDGE_VE_NW:
-    return verticalIndex< level >( col - 1, row     );
+    return verticalIndex( level, col - 1, row );
   case sD::EDGE_VE_SE:
-    return verticalIndex< level >( col + 1, row - 1 );
+    return verticalIndex( level, col + 1, row - 1 );
   default:
-    WALBERLA_ASSERT( false );
+    // assert( false );
     return std::numeric_limits< uint_t >::max();
   }
 }

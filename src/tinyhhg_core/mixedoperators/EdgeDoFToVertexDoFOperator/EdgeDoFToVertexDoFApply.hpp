@@ -32,8 +32,7 @@ inline void applyVertex(uint_t level,
 }
 
 
-template<uint_t Level>
-inline void applyEdgeTmpl(Edge &edge,
+inline void applyEdge(const uint_t & Level, Edge &edge,
                   const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
@@ -52,31 +51,29 @@ inline void applyEdgeTmpl(Edge &edge,
     tmp = 0.0;
     for(uint_t k = 0; k < macroedge::neighborsOnEdgeFromVertex.size(); ++k){
       tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnEdgeFromVertex[k])] *
-             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnEdgeFromVertex[k])];
+             src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnEdgeFromVertex[k] )];
     }
     for(uint_t k = 0; k < macroedge::neighborsOnSouthFaceFromVertex.size(); ++k){
       tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnSouthFaceFromVertex[k])] *
-             src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnSouthFaceFromVertex[k])];
+             src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnSouthFaceFromVertex[k] )];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < macroedge::neighborsOnNorthFaceFromVertex.size(); ++k){
         tmp += opr_data[stencilIndexFromVertex(macroedge::neighborsOnNorthFaceFromVertex[k])] *
-               src[macroedge::indexFromVertex< Level >(i, macroedge::neighborsOnNorthFaceFromVertex[k])];
+               src[macroedge::indexFromVertex( Level, i, macroedge::neighborsOnNorthFaceFromVertex[k] )];
       }
     }
     if (update==Replace) {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] = tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] = tmp;
     } else if (update==Add) {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)] += tmp;
+      dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] += tmp;
     }
   }
 }
 
-SPECIALIZE(void, applyEdgeTmpl, applyEdge)
 
 
-template<uint_t Level>
-inline void applyFaceTmpl(Face &face,
+inline void applyFace(const uint_t & Level, Face &face,
                        const PrimitiveDataID<StencilMemory < real_t >, Face> &operatorId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &srcId,
                        const PrimitiveDataID<FunctionMemory< real_t >, Face> &dstId,
@@ -99,20 +96,19 @@ inline void applyFaceTmpl(Face &face,
 
       for(uint_t k = 0; k < neighborsFromVertex.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromVertex(neighborsFromVertex[k])] *
-               src[indexFromVertex< Level >(i, j, neighborsFromVertex[k])];
+               src[indexFromVertex( Level, i, j, neighborsFromVertex[k] )];
       }
 
       if (update==Replace) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp;
+        dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
       } else if (update==Add) {
-        dst[ vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] += tmp;
+        dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] += tmp;
       }
     }
     --inner_rowsize;
   }
 }
 
-SPECIALIZE(void, applyFaceTmpl, applyFace)
 
 } /// EdgeDoFToVertexDoF
 } /// namespace hhg

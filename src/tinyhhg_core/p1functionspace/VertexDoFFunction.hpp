@@ -50,8 +50,27 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >, Face>   & getFaceDataID()   const { return faceDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >, Cell>   & getCellDataID()   const { return cellDataID_; }
 
-  // TODO: split this function into impl
+  inline void assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
+
+  inline void add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
+
+  inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
+
+  inline void prolongate(uint_t sourceLevel, DoFType flag = All);
+
+  inline void prolongateQuadratic(uint_t sourceLevel, DoFType flag = All);
+
+  inline void restrict(uint_t sourceLevel, DoFType flag = All);
+
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
+
+  /// Interpolates a given expression to a VertexDoFFunction
+  inline void interpolate(std::function< ValueType( const Point3D & ) >& expr,
+                          uint_t level, DoFType flag = All);
+
+  inline void interpolateExtended(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                                  const std::vector<VertexDoFFunction*> srcFunctions,
+                                  uint_t level, DoFType flag = All);
 
   // TODO: write more general version
   inline real_t getMaxValue(uint_t level);
@@ -63,23 +82,6 @@ private:
 
   using Function< VertexDoFFunction< ValueType > >::communicators_;
 
-  /// Interpolates a given expression to a VertexDoFFunction
-  inline void interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                               const std::vector<VertexDoFFunction*> srcFunctions,
-                               uint_t level, DoFType flag = All);
-
-  inline void assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
-
-  inline void add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
-
-  inline real_t dot_impl(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
-
-  inline void prolongate_impl(uint_t sourceLevel, DoFType flag = All);
-
-  inline void prolongateQuadratic_impl(uint_t sourceLevel, DoFType flag = All);
-
-  inline void restrict_impl(uint_t sourceLevel, DoFType flag = All);
-
   inline void enumerate_impl(uint_t level, uint_t& num);
 
   PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
@@ -89,10 +91,21 @@ private:
 };
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
-                                                      const std::vector<VertexDoFFunction*> srcFunctions,
-                                                      uint_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+                                                        uint_t level, DoFType flag)
 {
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+      return expr(x);
+  };
+  interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template< typename ValueType >
+inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+                                                                const std::vector<VertexDoFFunction*> srcFunctions,
+                                                                uint_t level, DoFType flag)
+{
+  this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
@@ -151,11 +164,13 @@ inline void VertexDoFFunction< ValueType >::interpolate_impl(std::function< Valu
     vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
 
   }
+  this->stopTiming( "Interpolate" );
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Assign" );
     // Collect all source IDs in a vector
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
     std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
@@ -176,7 +191,7 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
 
       if ( testFlag( vertex.getDoFType(), flag ) )
       {
-        vertexdof::macrovertex::assign( vertex, scalars, srcVertexIDs, vertexDataID_, level );
+        vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
     }
 
@@ -212,12 +227,13 @@ inline void VertexDoFFunction< ValueType >::assign_impl(const std::vector<ValueT
         Cell & cell = *it.second;
         vertexdof::macrocell::assign< ValueType >(level, cell, scalars, srcCellIDs, cellDataID_);
     }
-
+  this->stopTiming( "Assign" );
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
+inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  this->startTiming( "Add" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge > >     srcEdgeIDs;
@@ -274,11 +290,13 @@ inline void VertexDoFFunction< ValueType >::add_impl(const std::vector<ValueType
     Cell & cell = *it.second;
     vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
   }
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
+  this->startTiming( "Dot" );
   real_t scalarProduct = 0.0;
 
   for ( const auto & it : this->getStorage()->getVertices() )
@@ -319,12 +337,14 @@ inline real_t VertexDoFFunction< ValueType >::dot_impl(VertexDoFFunction< ValueT
 
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
 
+  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFType flag)
 {
+  this->startTiming( "Prolongate" );
   const size_t destinationLevel = sourceLevel + 1;
 
   for (auto& it : this->getStorage()->getVertices()) {
@@ -360,11 +380,13 @@ inline void VertexDoFFunction< ValueType >::prolongate_impl(size_t sourceLevel, 
   }
 
   communicators_[destinationLevel]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Prolongate" );
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLevel, DoFType flag)
 {
+  this->startTiming( "Prolongate Quadratic" );
   const size_t destinationLevel = sourceLevel + 1;
 
   for (auto& it : this->getStorage()->getVertices()) {
@@ -400,11 +422,13 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic_impl(size_t sour
   }
 
   communicators_[destinationLevel]->template endCommunication<Edge, Face>();
+  this->stopTiming( "Prolongate Quadratic" );
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, DoFType flag)
+inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType flag)
 {
+  this->startTiming( "Restrict" );
   const size_t destinationLevel = sourceLevel - 1;
 
   // start pulling vertex halos
@@ -453,12 +477,13 @@ inline void VertexDoFFunction< ValueType >::restrict_impl(size_t sourceLevel, Do
   }
 
   communicators_[destinationLevel]->template endCommunication<Edge, Face>();
-
+  this->stopTiming( "Restrict" );
 }
 
 template< typename ValueType >
 inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
+  this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
     vertexdof::macrovertex::enumerate(level, vertex, vertexDataID_, num);
@@ -485,6 +510,7 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t&
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
+  this->stopTiming( "Enumerate" );
 }
 
 template< typename ValueType >

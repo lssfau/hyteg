@@ -140,23 +140,23 @@ static void testCommonIndexing()
 
   // macro cell
 
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  1 >(),   1 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  2 >(),   4 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  3 >(),  10 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  4 >(),  20 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  5 >(),  35 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  6 >(),  56 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  7 >(),  84 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  8 >(), 120 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize<  9 >(), 165 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellSize< 10 >(), 220 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 1 ), 1 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 2 ), 4 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 3 ), 10 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 4 ), 20 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 5 ), 35 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 6 ), 56 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 7 ), 84 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 8 ), 120 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 9 ), 165 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellSize( 10 ), 220 );
 
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 0, 0, 0 ),  0 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 2, 0, 0 ),  2 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 3, 0 ), 13 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 1 ), 20 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 1, 1, 2 ), 29 );
-  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex< 5 >( 0, 0, 4 ), 34 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 0, 0, 0 ), 0 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 2, 0, 0 ), 2 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 1, 3, 0 ), 13 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 1, 1, 1 ), 20 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 1, 1, 2 ), 29 );
+  WALBERLA_CHECK_EQUAL( indexing::macroCellIndex( 5, 0, 0, 4 ), 34 );
 
   testCellIterator( std::vector< std::array< uint_t, 3 > >( {{ {{ 0, 0, 0 }}, {{ 1, 0, 0 }}, {{ 2, 0, 0 }}, {{ 3, 0, 0 }}, {{ 0, 1, 0 }}, {{ 1, 1, 0 }},
                                                                {{ 2, 1, 0 }}, {{ 0, 2, 0 }}, {{ 1, 2, 0 }}, {{ 0, 3, 0 }}, {{ 0, 0, 1 }}, {{ 1, 0, 1 }},

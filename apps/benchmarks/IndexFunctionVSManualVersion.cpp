@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
   walberla::WcTimer timer;
   timer.reset();
   LIKWID_MARKER_START("IndexApply");
-  hhg::vertexdof::macroface::apply_tmpl<real_t, level> (*face,
+  hhg::vertexdof::macroface::apply<real_t> ( level, *face,
                                           M.getFaceStencilID(),
                                           src->getFaceDataID(),
                                           dst1->getFaceDataID(),

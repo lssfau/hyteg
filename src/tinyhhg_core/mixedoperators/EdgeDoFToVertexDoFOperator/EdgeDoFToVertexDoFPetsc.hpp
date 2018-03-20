@@ -28,12 +28,11 @@ inline void saveVertexOperator( const uint_t & level,
   MatSetValues(mat, 1, dst, (PetscInt) ( vertex.getNumNeighborEdges() + vertex.getNumNeighborFaces() ), src, opr_data, INSERT_VALUES );
 }
 
-template<size_t Level>
-inline void saveEdgeOperatorTmpl( const Edge & edge,
-                                  const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                                  Mat & mat )
+inline void saveEdgeOperator( const uint_t & Level,  const Edge & edge,
+                              const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
+                              Mat & mat )
 {
   const real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
   const PetscInt * src      = edge.getData(srcId)->getPointer( Level );
@@ -44,17 +43,17 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
 
   for( const auto it : vertexdof::macroedge::Iterator( Level, 1 ) )
   {
-    dstInt = dst[ vertexdof::macroedge::indexFromVertex<Level>( it.col(), stencilDirection::VERTEX_C) ];
+    dstInt = dst[vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnEdgeFromVertex )
     {
-      srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
+      srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
 
     for ( const auto & neighbor : edgedof::macroedge::neighborsOnSouthFaceFromVertex )
     {
-      srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
+      srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
 
@@ -62,21 +61,19 @@ inline void saveEdgeOperatorTmpl( const Edge & edge,
     {
       for ( const auto & neighbor : edgedof::macroedge::neighborsOnNorthFaceFromVertex )
       {
-        srcInt = src[ edgedof::macroedge::indexFromVertex< Level >( it.col(), neighbor ) ];
+        srcInt = src[edgedof::macroedge::indexFromVertex( Level, it.col(), neighbor )];
         MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
       }
     }
   }
 }
 
-SPECIALIZE(void, saveEdgeOperatorTmpl, saveEdgeOperator);
 
-template<size_t Level>
-inline void saveFaceOperatorTmpl( const Face & face,
-                                  const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
-                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                                  Mat & mat )
+inline void saveFaceOperator( const uint_t & Level, const Face & face,
+                              const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
+                              Mat & mat )
 {
   const real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   const PetscInt * src      = face.getData(srcId)->getPointer( Level );
@@ -87,17 +84,17 @@ inline void saveFaceOperatorTmpl( const Face & face,
 
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
   {
-    dstInt = dst[ vertexdof::macroface::indexFromVertex<Level>( it.col(), it.row(), stencilDirection::VERTEX_C) ];
+    dstInt = dst[vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(),
+                                                                 stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : edgedof::macroface::neighborsFromVertex )
     {
-      srcInt = src[ edgedof::macroface::indexFromVertex< Level >( it.col(), it.row(), neighbor ) ];
+      srcInt = src[edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor )];
       MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ edgedof::stencilIndexFromVertex( neighbor ) ], INSERT_VALUES );
     }
   }
 }
 
-SPECIALIZE(void, saveFaceOperatorTmpl, saveFaceOperator);
 
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P1Function< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
