@@ -9,7 +9,7 @@ namespace hhg {
 namespace P2 {
 namespace macroface {
 
-void smoothJacobiVertexDoF(const uint_t &Level, Face &face,
+void smoothJacobiVertexDoF(const uint_t &level, Face &face,
                            const PrimitiveDataID <StencilMemory<real_t>, Face> &vertexDoFStencilID,
                            const PrimitiveDataID <FunctionMemory<real_t>, Face> &srcVertexDoFID,
                            const PrimitiveDataID <FunctionMemory<real_t>, Face> &dstVertexDoFID,

@@ -13,6 +13,10 @@ waLBerla_execute_test(NAME P2CGConvergenceTest)
 waLBerla_compile_test(FILES Convergence/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2JacobiConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2JacobiConvergenceTest)
+
+
 ## Indexing ##
 
 waLBerla_compile_test(FILES Indexing/CommonIndexingTest.cpp DEPENDS tinyhhg_core core)

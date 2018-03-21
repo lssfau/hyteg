@@ -322,8 +322,8 @@ private:
         P2::macroface::smoothJacobiVertexDoF(level,
                                              face,
                                              vertexToVertex.getFaceStencilID(),
-                                             dst.getVertexDoFFunction()->getFaceDataID(),
                                              src.getVertexDoFFunction()->getFaceDataID(),
+                                             dst.getVertexDoFFunction()->getFaceDataID(),
                                              edgeToVertex.getFaceStencilID(),
                                              src.getEdgeDoFFunction()->getFaceDataID(),
                                              rhs.getVertexDoFFunction()->getFaceDataID());

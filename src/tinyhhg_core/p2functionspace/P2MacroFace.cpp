@@ -7,7 +7,7 @@ namespace hhg{
 namespace P2{
 namespace macroface{
 
-void smoothJacobiVertexDoF(const uint_t & Level, Face &face,
+void smoothJacobiVertexDoF(const uint_t & level, Face &face,
                            const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcVertexDoFID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
@@ -17,38 +17,38 @@ void smoothJacobiVertexDoF(const uint_t & Level, Face &face,
 
 
 
-  size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+  size_t rowsize = levelinfo::num_microvertices_per_edge( level );
   size_t inner_rowsize = rowsize;
 
-  real_t * vertexDoFStencil = face.getData(vertexDoFStencilID)->getPointer( Level );
-  real_t * dstVertexDoF = face.getData(dstVertexDoFID)->getPointer( Level );
-  real_t * srcVertexDoF = face.getData(srcVertexDoFID)->getPointer( Level );
-  real_t * edgeDoFStencil = face.getData(edgeDoFStencilID)->getPointer( Level );
-  real_t * srcEdgeDoF = face.getData(srcEdgeDoFID)->getPointer( Level );
-  real_t * rhs = face.getData(rhsVertexDoFID)->getPointer( Level );
+  real_t * vertexDoFStencil = face.getData(vertexDoFStencilID)->getPointer( level );
+  real_t * dstVertexDoF = face.getData(dstVertexDoFID)->getPointer( level );
+  real_t * srcVertexDoF = face.getData(srcVertexDoFID)->getPointer( level );
+  real_t * edgeDoFStencil = face.getData(edgeDoFStencilID)->getPointer( level );
+  real_t * srcEdgeDoF = face.getData(srcEdgeDoFID)->getPointer( level );
+  real_t * rhs = face.getData(rhsVertexDoFID)->getPointer( level );
 
   real_t tmp;
 
-  for (size_t row = 1; row < rowsize - 2; ++row) {
-    for (size_t col = 1; col < inner_rowsize - 2; ++col) {
-      tmp = rhs[vertexdof::macroface::indexFromVertex( Level, col, row, stencilDirection::VERTEX_C )];
+
+  for ( const auto & it : hhg::vertexdof::macroface::Iterator( level, 1 ) ){
+      tmp = rhs[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), stencilDirection::VERTEX_C )];
 
       /// update from vertex dofs
-      for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])] *
-               srcVertexDoF[vertexdof::macroface::indexFromVertex( Level, col, row,
-                                                                   vertexdof::macroface::neighborsWithoutCenter[k] )];
+      for (auto k : vertexdof::macroface::neighborsWithoutCenter)
+      {
+        tmp -= vertexDoFStencil[vertexdof::stencilIndexFromVertex(k)] *
+               srcVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
+                                                                   k)];
       }
       /// update from edge dofs
-      for(uint_t k = 0; k < edgedof::macroface::neighborsFromVertex.size(); ++k){
-        tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(edgedof::macroface::neighborsFromVertex[k])] *
-               srcEdgeDoF[edgedof::macroface::indexFromVertex( Level, col, row, edgedof::macroface::neighborsFromVertex[k] )];
+      for (auto k : edgedof::macroface::neighborsFromVertex)
+      {
+        tmp -= edgeDoFStencil[edgedof::stencilIndexFromVertex(k)] *
+               srcEdgeDoF[edgedof::macroface::indexFromVertex( level, it.col(), it.row(), k)];
       }
-      dstVertexDoF[vertexdof::macroface::indexFromVertex( Level, col, row,
+      dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
                                                           stencilDirection::VERTEX_C )] = tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)];
 
-    }
-    --inner_rowsize;
   }
 }
 
