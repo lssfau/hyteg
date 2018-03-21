@@ -7,18 +7,13 @@ namespace hhg{
 namespace P2{
 namespace macroface{
 
-void smoothJacobiVertexDoF(const uint_t & level, Face &face,
+void smoothJacobiVertexDoF(const uint_t & level, const Face &face,
                            const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcVertexDoFID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
                            const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcEdgeDoFID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID){
-
-
-
-  size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-  size_t inner_rowsize = rowsize;
 
   real_t * vertexDoFStencil = face.getData(vertexDoFStencilID)->getPointer( level );
   real_t * dstVertexDoF = face.getData(dstVertexDoFID)->getPointer( level );
@@ -53,7 +48,7 @@ void smoothJacobiVertexDoF(const uint_t & level, Face &face,
 }
 
 
-void smoothJacobiEdgeDoF(const uint_t & Level, Face &face,
+void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
                          const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexDoFStencilID,
                          const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcVertexDoFID,
                          const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,

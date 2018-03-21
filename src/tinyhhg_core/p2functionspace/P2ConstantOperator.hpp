@@ -331,7 +331,6 @@ private:
     }
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
-
       if (testFlag(face.type, flag))
       {
         P2::macroface::smoothJacobiEdgeDoF(level,
