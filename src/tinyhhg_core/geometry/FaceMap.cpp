@@ -23,10 +23,10 @@ void FaceMap::evalTensorCoeff(const Point3D& x, Matrix2r& coeff) {
   evalF(x, xPhy);
   Matrix2r Khat;
   // TODO: remove hardcoded TENSOR
-  Khat(0,0) = 3.0 * xPhy[0]*xPhy[0] + 2.0 * xPhy[1]*xPhy[1] + 1.0;
-  Khat(0,1) = -xPhy[0]*xPhy[0] - xPhy[1]*xPhy[1];
+  Khat(0,0) = 1.0;
+  Khat(0,1) = 0.0;
   Khat(1,0) = Khat(0,1);
-  Khat(1,1) = 4.0 * xPhy[0]*xPhy[0] + 5.0 * xPhy[1]*xPhy[1] + 1.0;
+  Khat(1,1) = 1.0;
   evalDFinv(x, coeff);
   real_t invDet = coeff.det();
   Matrix2r coeffT = coeff.transpose();
