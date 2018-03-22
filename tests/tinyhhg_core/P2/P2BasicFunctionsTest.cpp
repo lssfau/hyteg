@@ -40,7 +40,9 @@ static void testP2BasicFunctions()
   // Interpolate
 
   std::function<real_t(const hhg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
+  std::function<real_t(const hhg::Point3D&)> zeros = []( const Point3D & ) -> real_t { return real_c( 0 ); };
   std::function<real_t(const hhg::Point3D&)> func = []( const Point3D & x) -> real_t { return real_c( (1.0 + x[0]) *  (2.0 + x[1])); };
+  std::function<real_t(const hhg::Point3D&)> func2 = []( const Point3D & x) -> real_t { return real_c( (1.0 + (x[0] / 5.0)) *  (2.0 + x[1])); };
 
   walberla::WcTimingPool timer;
 
@@ -120,6 +122,29 @@ static void testP2BasicFunctions()
 
   WALBERLA_LOG_INFO_ON_ROOT( timer );
 
+  ///Check assign against add
+
+  x->interpolate( func, maxLevel, DoFType::All );
+  y->interpolate( func2, maxLevel, DoFType::All );
+  z->interpolate( zeros, maxLevel, DoFType::All );
+
+  z->assign({1.0, -1.0}, {x.get(),y.get()}, maxLevel);
+  x->add({-1.0},{y.get()},maxLevel);
+
+  for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
+  {
+    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())],
+                                faceEdgeDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())]);
+    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())],
+                                faceEdgeDataX[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())]);
+    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataZ[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())],
+                                faceEdgeDataX[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())]);
+  }
+
+  for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) ){
+    WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataZ[vertexdof::macroface::index( maxLevel, it.col(), it.row())],
+                                faceVertexDataX[vertexdof::macroface::index( maxLevel, it.col(), it.row())]);
+  }
 
 }
 
