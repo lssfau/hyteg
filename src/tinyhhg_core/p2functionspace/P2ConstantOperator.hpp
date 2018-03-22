@@ -309,10 +309,15 @@ private:
   }
 
   void smooth_jac_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, P2Function< real_t > & src, size_t level, DoFType flag) override {
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+    ///TODO: remove unneccessary communication here
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
