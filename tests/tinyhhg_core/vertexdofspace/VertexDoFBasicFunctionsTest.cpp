@@ -1,14 +1,17 @@
 
 
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 namespace hhg {
+
+using walberla::real_c;
 
 static void testP2BasicFunctions()
 {
@@ -21,18 +24,15 @@ static void testP2BasicFunctions()
 
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  auto x = std::make_shared< P2Function< real_t > >( "x", storage, minLevel, maxLevel );
-  auto y = std::make_shared< P2Function< real_t > >( "y", storage, minLevel, maxLevel );
+  auto x = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "x", storage, minLevel, maxLevel );
+  auto y = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "y", storage, minLevel, maxLevel );
 
   std::vector< PrimitiveID > faces;
   storage->getFaceIDs( faces );
   Face * face = storage->getFace( faces[0] );
 
-  real_t * faceEdgeDataX = face->getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-  real_t * faceEdgeDataY = face->getData( y->getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-
-  real_t * faceVertexDataX = face->getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-  real_t * faceVertexDataY = face->getData( y->getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
+  real_t * faceVertexDataX = face->getData( x->getFaceDataID() )->getPointer( maxLevel );
+  real_t * faceVertexDataY = face->getData( y->getFaceDataID() )->getPointer( maxLevel );
 
   // Interpolate
 
@@ -45,16 +45,6 @@ static void testP2BasicFunctions()
   y->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
-  for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
-  {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataX[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
-  }
 
   for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) ){
     WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataX[vertexdof::macroface::index( maxLevel, it.col(), it.row())], real_c( 2 ) );
@@ -65,18 +55,12 @@ static void testP2BasicFunctions()
   // Assign
 
   timer["Assign"].start();
+  //y->assign( { 3.0, 2.0 }, { x.get(), y.get() }, maxLevel, DoFType::All );
   y->assign( { 3.0, 2.0 }, { x.get(), y.get() }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
-  for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
-  {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 10 ) );
-  }
 
   for ( const auto & it : vertexdof::macroface::Iterator( maxLevel ) ){
-    WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataX[vertexdof::macroface::index( maxLevel, it.col(), it.row())], real_c( 10 ) );
     WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row())], real_c( 10 ) );
   }
 
@@ -86,12 +70,6 @@ static void testP2BasicFunctions()
   y->add( {{ 4.0, 3.0 }}, {{ x.get(), y.get() }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
-  for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
-  {
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
-    WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 48 ) );
-  }
 
   // Dot
 
