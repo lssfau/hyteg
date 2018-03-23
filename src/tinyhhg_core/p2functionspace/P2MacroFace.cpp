@@ -13,35 +13,15 @@ void smoothJacobiVertexDoF(const uint_t & level, const Face &face,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
                            const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
                            const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcEdgeDoFID,
-                           const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID){
-///TODO: remove hardcoded damping factor
+                           const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID,
+                           const real_t dampingFactor){
+
   real_t * vertexDoFStencil = face.getData(vertexDoFStencilID)->getPointer( level );
   real_t * dstVertexDoF = face.getData(dstVertexDoFID)->getPointer( level );
   real_t * srcVertexDoF = face.getData(srcVertexDoFID)->getPointer( level );
   real_t * edgeDoFStencil = face.getData(edgeDoFStencilID)->getPointer( level );
   real_t * srcEdgeDoF = face.getData(srcEdgeDoFID)->getPointer( level );
   real_t * rhs = face.getData(rhsVertexDoFID)->getPointer( level );
-
-//  vertexDoFStencil[0] = 1.0/3.0;
-//  vertexDoFStencil[1] = 0.0;
-//  vertexDoFStencil[2] = 1.0/3.0;
-//  vertexDoFStencil[3] = 4.0;
-//  vertexDoFStencil[4] = 1.0/3.0;
-//  vertexDoFStencil[5] = 0.0;
-//  vertexDoFStencil[6] = 1.0/3.0;
-//
-//  edgeDoFStencil[0] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[1] = 0.0;
-//  edgeDoFStencil[2] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[3] = 0.0;
-//  edgeDoFStencil[4] = 0.0;
-//  edgeDoFStencil[5] = 0.0;
-//  edgeDoFStencil[6] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[7] = 0.0;
-//  edgeDoFStencil[8] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[9] = 0.0;
-//  edgeDoFStencil[10] = 0.0;
-//  edgeDoFStencil[11] = 0.0;
 
   real_t tmp;
 
@@ -63,7 +43,9 @@ void smoothJacobiVertexDoF(const uint_t & level, const Face &face,
                srcEdgeDoF[edgedof::macroface::indexFromVertex( level, it.col(), it.row(), k)];
       }
       dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
-                                                          stencilDirection::VERTEX_C )] = 0.66 * ( tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)]);
+                                                          stencilDirection::VERTEX_C )] = dampingFactor * ( tmp / vertexDoFStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)])
+                                                                                          + (1.0 - dampingFactor) * srcVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(),
+                                                                                                                                                           stencilDirection::VERTEX_C)] ;
 
   }
 }
@@ -75,44 +57,15 @@ void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
                          const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeDoFStencilID,
                          const PrimitiveDataID<FunctionMemory<real_t>, Face> &srcEdgeDoFID,
                          const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
-                         const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsEdgeDoFID){
-///TODO: remove hardcoded damping factor
+                         const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsEdgeDoFID,
+                         const real_t dampingFactor){
+
   real_t * vertexDoFStencil = face.getData(vertexDoFStencilID)->getPointer( Level );
   real_t * srcVertexDoF = face.getData(srcVertexDoFID)->getPointer( Level );
   real_t * edgeDoFStencil = face.getData(edgeDoFStencilID)->getPointer( Level );
   real_t * srcEdgeDoF = face.getData(srcEdgeDoFID)->getPointer( Level );
   real_t * dstEdgeDoF = face.getData(dstEdgeDoFID)->getPointer( Level );
   real_t * rhs = face.getData(rhsEdgeDoFID)->getPointer( Level );
-//
-//  vertexDoFStencil[0] = - (1.0 + 1.0/3.0);
-//  vertexDoFStencil[1] = - (1.0 + 1.0/3.0);
-//  vertexDoFStencil[2] = 0.0;
-//  vertexDoFStencil[3] = 0.0;
-//  vertexDoFStencil[4] = 0.0;
-//  vertexDoFStencil[5] = 0.0;
-//  vertexDoFStencil[6] = 0.0;
-//  vertexDoFStencil[7] = 0.0;
-//  vertexDoFStencil[8] = - (1.0 + 1.0/3.0);
-//  vertexDoFStencil[9] = 0.0;
-//  vertexDoFStencil[10] = - (1.0 + 1.0/3.0);;
-//  vertexDoFStencil[11] = 0.0;
-//
-//  edgeDoFStencil[0] = (5.0 + 1.0/3.0);
-//  edgeDoFStencil[1] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[2] = 0.0;
-//  edgeDoFStencil[3] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[4] = 0.0;
-//  edgeDoFStencil[5] = (5.0 + 1.0/3.0);
-//  edgeDoFStencil[6] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[7] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[8] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[9] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[10] = (5.0 + 1.0/3.0);
-//  edgeDoFStencil[11] = 0.0;
-//  edgeDoFStencil[12] = - (1.0 + 1.0/3.0);
-//  edgeDoFStencil[13] = 0.0;
-//  edgeDoFStencil[14] = - (1.0 + 1.0/3.0);
-
 
   real_t tmp;
   for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
@@ -130,7 +83,8 @@ void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
       }
 
       dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
-          0.66 * (tmp / edgeDoFStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)]);
+          dampingFactor * (tmp / edgeDoFStencil[edgedof::stencilIndexFromHorizontalEdge(stencilDirection::EDGE_HO_C)]) +
+            (1 - dampingFactor) * srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
 
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
@@ -146,7 +100,8 @@ void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
       }
 
       dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] =
-          0.66 * (tmp / edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)]);
+          dampingFactor * (tmp / edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge(stencilDirection::EDGE_DI_C)]) +
+            (1.0 - dampingFactor) *  srcEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
     }
     if( it.col() != 0) {
       tmp = rhs[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)];
@@ -161,7 +116,8 @@ void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
       }
 
       dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] =
-          0.66 * (tmp / edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)]);
+          dampingFactor * (tmp / edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge(stencilDirection::EDGE_VE_C)]) +
+            (1 - dampingFactor) *  srcEdgeDoF[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
     }
   }
 }

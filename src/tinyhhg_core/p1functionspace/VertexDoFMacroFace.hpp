@@ -883,35 +883,35 @@ inline void integrateDG(const uint_t & Level, Face &face,
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
       tmp  = rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_S )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_S )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_S )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_SE )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_SE )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_SE )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_E )]));
 
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_NW )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_NW )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_NW )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_N )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_N )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_N )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_E )]));
 
       dst[indexFromVertex( Level,   i, j, SD::VERTEX_C )] = weightedFaceArea * tmp;
@@ -1023,8 +1023,8 @@ inline void createFunctionFromVector(const uint_t & Level, Face &face,
 
 #endif
 
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory(uint_t Level, Face &face, const PrimitiveDataID <FunctionMemory<ValueType>, Face> &dstId) {
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
