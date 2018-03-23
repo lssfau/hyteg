@@ -11,6 +11,7 @@
 #include "tinyhhg_core/tinyhhg.hpp"
 
 using walberla::math::PI;
+using walberla::uint_t;
 
 typedef enum { RECTANGLE, ANNULUS, PARTIAL_ANNULUS } testDomainType;
 
@@ -38,11 +39,37 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
       break;
     }
 
+  // test primitive counts
+  if( testDomain == RECTANGLE )
+    {
+      uint_t numVerts = meshInfo->getVertices().size();
+      uint_t numFaces = meshInfo->getFaces().size();
+      uint_t numEdges = meshInfo->getEdges().size();
+
+      switch( flavour )
+       {
+       case hhg::MeshInfo::CRISS :
+       case hhg::MeshInfo::CROSS :
+         WALBERLA_CHECK_EQUAL( numVerts, 12 );
+         WALBERLA_CHECK_EQUAL( numFaces, 12 );
+         WALBERLA_CHECK_EQUAL( numEdges, 23 );
+         break;
+
+       case hhg::MeshInfo::CRISSCROSS :
+       case hhg::MeshInfo::DIAMOND :
+         WALBERLA_CHECK_EQUAL( numVerts, 18 );
+         WALBERLA_CHECK_EQUAL( numFaces, 24 );
+         WALBERLA_CHECK_EQUAL( numEdges, 41 );
+         break;
+       }
+    }
+
   // use generated MeshInfo
   SetupPrimitiveStorage setupStorage( *meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   loadbalancing::roundRobin( setupStorage );
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
   PrimitiveStorage storage( setupStorage );
+
 }
 
 } // namespace hhg
