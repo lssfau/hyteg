@@ -239,8 +239,8 @@ static void testP2JacobiSmooth() {
 
   std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 13; };
   std::function<real_t(const hhg::Point3D &)> two = [](const hhg::Point3D &) { return 2; };
-  std::function< real_t(const Point3D&,const std::vector<real_t>&)> onesExtended = [&ones](const hhg::Point3D& x, const std::vector<real_t>&) {
-    return ones(x);
+  std::function< real_t(const Point3D&,const std::vector<real_t>&)> onesExtended = [&ones](const hhg::Point3D& xx, const std::vector<real_t>&) {
+    return ones(xx);
   };
 
   tmp->interpolate(ones, level);
@@ -416,11 +416,11 @@ static void testP2JacobiSmooth() {
                             x->getEdgeDoFFunction()->getEdgeDataID(),
                             rhs->getEdgeDoFFunction()->getEdgeDataID());
 
+  ///TODO: enable once jacobi on macroedges is implemented
+#if 0
   real_t *edgeDoFData = doubleEdge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(level);
   real_t *vertexDoFData = doubleEdge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(level);
 
-  /// enable once edge jacobi is implemented
-#if 0
   for (const auto &it : hhg::vertexdof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
       vertexDoFData[hhg::vertexdof::macroedge::indexFromVertex(level,it.col(), sD::VERTEX_C)],
