@@ -342,7 +342,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::macroface::applyPolynomial< real_t >(level, polyDegree_, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::macroface::applyPolynomial< real_t >(polyDegree_, level, face, facePolynomialID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -400,7 +400,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::macroface::smooth_gs_polynomial< real_t >(level, polyDegree_, face, facePolynomialID_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::macroface::smooth_gs_polynomial< real_t >(polyDegree_, level, face, facePolynomialID_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 

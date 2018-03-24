@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
   std::vector<size_t> result;
   for(auto n : neighbors)
   {
-    size_t idx = indexFaceFromVertex<3>(1, n);
+    size_t idx = indexFaceFromVertex( 3, 1, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
   result.clear();
   for(auto n : neighbors)
   {
-    size_t idx = indexFaceFromVertex<3>(5, n);
+    size_t idx = indexFaceFromVertex( 3, 5, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }

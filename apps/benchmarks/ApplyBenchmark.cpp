@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  const size_t level = 14;
+  const size_t level = 8;
 
   auto src = std::make_shared<hhg::P1Function<real_t>>("src", storage, level, level);
   auto dst = std::make_shared<hhg::P1Function<real_t>>("dst", storage, level, level);
@@ -41,16 +41,20 @@ int main(int argc, char **argv) {
     [&](const hhg::Point3D& point) { return sqrt(point[0] * point[0] + point[1] * point[1]); };
 
   //P1Function< real_t > x("x", storage, level, level);
+  src->interpolate(exactFunc,level);
 
   walberla::WcTimer timer;
 
   LIKWID_MARKER_START("apply");
   timer.reset();
-  vertexdof::macroface::apply_tmpl<real_t, level >(*face,M.getFaceStencilID(),src->getFaceDataID(),dst->getFaceDataID(),Replace);
+  vertexdof::macroface::apply<real_t>(level, *face,M.getFaceStencilID(),src->getFaceDataID(),dst->getFaceDataID(),Replace);
   timer.end();
   LIKWID_MARKER_STOP("apply");
   WALBERLA_LOG_INFO_ON_ROOT("time with walberla timer: " << timer.last() );
 
+  /// do something with the result to prevent the compiler from removing all the computations
+  real_t check = vertexdof::macroface::dot< real_t >( level, *face,dst->getFaceDataID(),dst->getFaceDataID());
+  WALBERLA_CHECK_FLOAT_UNEQUAL(check ,0. );
 
   LIKWID_MARKER_CLOSE;
 

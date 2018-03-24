@@ -31,7 +31,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] = (T) 0;
+      x_[i] = (T) 0;
     }
   }
 
@@ -41,7 +41,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] = _x[i];
+      x_[i] = _x[i];
     }
   }
 
@@ -51,7 +51,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] = list[i];
+      x_[i] = list[i];
     }
   }
 
@@ -61,7 +61,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] = b.x[i];
+      x_[i] = b.x_[i];
     }
   }
 
@@ -73,7 +73,7 @@ public:
     T tmp = 0.0;
     for (size_t i = 0; i < N; ++i)
     {
-      tmp += x[i] * b.x[i];
+      tmp += x_[i] * b.x_[i];
     }
     return tmp;
   }
@@ -82,7 +82,7 @@ public:
   /// \returns 2D Point normal to this PointND
   PointND<T, 2> normal2D()
   {
-    return PointND<T, 2>({ this->x[1], -this->x[0] });
+    return PointND<T, 2>({ this->x_[1], -this->x_[0] });
   }
 
   /// Computes the squared Euclidean norm of \p this
@@ -106,7 +106,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] += rhs.x[i];
+      x_[i] += rhs.x_[i];
     }
     return *this;
   }
@@ -118,7 +118,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] -= rhs.x[i];
+      x_[i] -= rhs.x_[i];
     }
     return *this;
   }
@@ -130,7 +130,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] *= scalar;
+      x_[i] *= scalar;
     }
     return *this;
   }
@@ -142,7 +142,7 @@ public:
   {
     for (size_t i = 0; i < N; ++i)
     {
-      x[i] /= scalar;
+      x_[i] /= scalar;
     }
     return *this;
   }
@@ -152,7 +152,7 @@ public:
   /// \returns Reference to component at position \p index
   T& operator[](const int index)
   {
-    return x[index];
+    return x_[index];
   }
 
   /// Value of component of vector at position \p index
@@ -160,14 +160,14 @@ public:
   /// \returns Value of component at position \p index
   T operator[](const int index) const
   {
-    return x[index];
+    return x_[index];
   }
 
   void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
   {
     for ( size_t index = 0; index < N; index++ )
     {
-      sendBuffer << x[index];
+      sendBuffer << x_[index];
     }
   }
 
@@ -175,11 +175,13 @@ public:
   {
     for ( size_t index = 0; index < N; index++ )
     {
-      recvBuffer >> x[index];
+      recvBuffer >> x_[index];
     }
   }
 
-  T x[N];
+protected:
+
+  T x_[N];
 };
 
 template<typename T, size_t N>

@@ -11,16 +11,33 @@ namespace hhg {
 static void testEdgeDoFFunctionMemorySize()
 {
   using namespace edgedof;
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 2, 4 ), 8 );
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroVertexFunctionMemorySize( 3, 4 ), 8 );
 
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, 1 ), 15 );
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, 2 ), 26 );
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, 1 ), 31 );
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, 2 ), 54 );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/quad_8el.msh" );
 
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 2, 2 ),  30 );
-  WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 3, 2 ), 108 );
+  for ( const auto & it : storage->getEdges() )
+  {
+    const Edge & edge = *it.second;
+
+    if ( edge.getNumNeighborFaces() == 1 )
+    {
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 15 );
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 31 );
+    }
+    else if ( edge.getNumNeighborFaces() == 2 )
+    {
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 2, edge ), 26 );
+      WALBERLA_CHECK_EQUAL( edgeDoFMacroEdgeFunctionMemorySize( 3, edge ), 54 );
+    }
+  }
+
+  for ( const auto & it : storage->getFaces() )
+  {
+    const Face & face = *it.second;
+
+    WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 2, face ),  30 );
+    WALBERLA_CHECK_EQUAL( edgeDoFMacroFaceFunctionMemorySize( 3, face ), 108 );
+  }
+
 }
 
 } // namespace hhg

@@ -71,19 +71,19 @@ class FaceBubbleStencilMemoryDataHandling : public OnlyInitializeDataHandling< F
 template< typename ValueType >
 std::shared_ptr< VertexBubbleFunctionMemory< ValueType > > VertexBubbleFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< VertexBubbleFunctionMemory< ValueType > >( bubbleVertexFunctionMemorySize, vertex->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< VertexBubbleFunctionMemory< ValueType > >( bubbleVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
 std::shared_ptr< EdgeBubbleFunctionMemory< ValueType > > EdgeBubbleFunctionMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
 {
-  return std::make_shared< EdgeBubbleFunctionMemory< ValueType > >( bubbleEdgeFunctionMemorySize, edge->getNumNeighborFaces(), minLevel_, maxLevel_ );
+  return std::make_shared< EdgeBubbleFunctionMemory< ValueType > >( bubbleEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
-std::shared_ptr< FaceBubbleFunctionMemory< ValueType > > FaceBubbleFunctionMemoryDataHandling< ValueType >::initialize( const Face * const ) const
+std::shared_ptr< FaceBubbleFunctionMemory< ValueType > > FaceBubbleFunctionMemoryDataHandling< ValueType >::initialize( const Face * const face ) const
 {
-  return std::make_shared< FaceBubbleFunctionMemory< ValueType > >( bubbleFaceFunctionMemorySize, 0, minLevel_, maxLevel_ );
+  return std::make_shared< FaceBubbleFunctionMemory< ValueType > >( bubbleFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
 }
 
 }

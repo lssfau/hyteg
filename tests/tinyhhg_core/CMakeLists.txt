@@ -1,5 +1,17 @@
 waLBerla_link_files_to_builddir(*.msh)
 
+## Convergence ##
+waLBerla_compile_test(FILES Convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1CGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P1BubbleCGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1BubbleCGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2CGConvergenceTest)
+
+waLBerla_compile_test(FILES Convergence/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
 ## Indexing ##
 
@@ -11,6 +23,9 @@ waLBerla_execute_test(NAME P1EdgeIndexingTest)
 
 waLBerla_compile_test(FILES Indexing/P1FaceIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1FaceIndexingTest)
+
+waLBerla_compile_test(FILES Indexing/VertexDoFMacroCellIndexingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFMacroCellIndexingTest)
 
 waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroEdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME EdgeDoFOnMacroEdgeIndexingTest)
@@ -33,6 +48,17 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
     waLBerla_execute_test(NAME ConstexprIndexTest)
   endif()
 endif()
+
+## VertexDoFSpace ##
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFFunctionTest)
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFMacroCellPackInfoTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFMacroCellPackInfoTest)
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFMemoryTest)
 
 ## EdgeDoFSpace ##
 
@@ -70,9 +96,6 @@ waLBerla_execute_test(NAME P2GSTest)
 
 waLBerla_compile_test(FILES P2/P2SimpleSmoothTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2SimpleSmoothTest)
-
-waLBerla_compile_test(FILES P2/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 
 waLBerla_compile_test(FILES P2/P2P1TransferTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2P1TransferTest)
@@ -126,6 +149,9 @@ waLBerla_compile_test(FILES PrimitiveStorageTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME PrimitiveStorageTest1 COMMAND $<TARGET_FILE:PrimitiveStorageTest> )
 waLBerla_execute_test(NAME PrimitiveStorageTest3 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 3 )
 waLBerla_execute_test(NAME PrimitiveStorageTest8 COMMAND $<TARGET_FILE:PrimitiveStorageTest> PROCESSES 8 )
+
+waLBerla_compile_test(FILES PrimitiveRelativeOrderingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME PrimitiveRelativeOrderingTest)
 
 waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest> )

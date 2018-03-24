@@ -139,12 +139,12 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
   }
 }
 
-template<typename ValueType, uint_t Level>
-inline void applyBlendingTmpl(Face &face,
-                                 const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
-                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
-                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
-                                 UpdateType update) {
+template<typename ValueType>
+inline void applyBlending(uint_t Level, Face &face,
+                          const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
+                          const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
+                          const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                          UpdateType update) {
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -176,7 +176,7 @@ inline void applyBlendingTmpl(Face &face,
   Point3D offsetNW = -2.0/3.0 * d0 + 1.0/3.0 * d2;
 
   real_t* coeffs[] = { &mappingTensor(0,0), &mappingTensor(0,1), &mappingTensor(1,1) };
-  std::vector<real_t> opr_data(vertexDoFMacroFaceStencilMemorySize(Level, 0));
+  std::vector<real_t> opr_data(7);
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     x = x0;
@@ -194,18 +194,18 @@ inline void applyBlendingTmpl(Face &face,
         tmp = ValueType(0);
       }
       else {
-        tmp = dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
+        tmp = dst[vertexdof::macroface::indexFromVertex(Level, i, j, SD::VERTEX_C)];
       }
 
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex(Level, i, j, SD::VERTEX_C)];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[0])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[1])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[2])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[3])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[4])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, SD::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex(Level, i, j, SD::VERTEX_C)] = tmp;
 
       x += d0;
     }
@@ -213,14 +213,12 @@ inline void applyBlendingTmpl(Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, applyBlendingTmpl, applyBlending)
-
-template<typename ValueType, uint_t Level>
-inline void applyPartialBlendingTmpl(uint_t coarseLevel, Face &face,
-                              const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
-                              const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
-                              const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
-                              UpdateType update) {
+template<typename ValueType>
+inline void applyPartialBlending(uint_t Level, uint_t coarseLevel, Face &face,
+                                 const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                                 UpdateType update) {
   typedef stencilDirection SD;
 
   uint_t rowsize_coarse = levelinfo::num_microvertices_per_edge(coarseLevel);
@@ -257,7 +255,7 @@ inline void applyPartialBlendingTmpl(uint_t coarseLevel, Face &face,
   Point3D offsetNW = -2.0/3.0 * d0f + 1.0/3.0 * d2f;
 
   real_t* coeffs[] = { &mappingTensor(0,0), &mappingTensor(0,1), &mappingTensor(1,1) };
-  std::vector<real_t> opr_data(vertexDoFMacroFaceStencilMemorySize(Level, 0));
+  std::vector<real_t> opr_data(7);
 
   for (uint_t j = 1; j < rowsize_coarse - 2; ++j) {
     x = x0;
@@ -275,18 +273,18 @@ inline void applyPartialBlendingTmpl(uint_t coarseLevel, Face &face,
         tmp = ValueType(0);
       }
       else {
-        tmp = dst[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, SD::VERTEX_C)];
+        tmp = dst[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, SD::VERTEX_C)];
       }
 
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, SD::VERTEX_C)];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[0])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[1])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[2])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[3])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[4])];
-      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[5])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, SD::VERTEX_C)];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[0])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[0])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[1])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[1])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[2])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[2])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[3])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[3])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[4])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[4])];
+      tmp += opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[5])]*src[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, vertexdof::macroface::neighborsWithoutCenter[5])];
 
-      dst[vertexdof::macroface::indexFromVertex<Level>(indexFactor * i, indexFactor * j, SD::VERTEX_C)] = tmp;
+      dst[vertexdof::macroface::indexFromVertex(Level, indexFactor * i, indexFactor * j, SD::VERTEX_C)] = tmp;
 
       x += d0c;
     }
@@ -294,13 +292,11 @@ inline void applyPartialBlendingTmpl(uint_t coarseLevel, Face &face,
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE(void, applyPartialBlendingTmpl, applyPartialBlending)
-
-template<typename ValueType, uint_t Level>
-inline void smoothGSBlendingTmpl(Face &face,
-                              const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
-                              const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
-                              const PrimitiveDataID<FunctionMemory<ValueType>, Face> &rhsId) {
+template<typename ValueType>
+inline void smoothGSBlending(uint_t Level, Face &face,
+                             const std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> &operatorIds,
+                             const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                             const PrimitiveDataID<FunctionMemory<ValueType>, Face> &rhsId) {
   typedef stencilDirection SD;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
@@ -332,7 +328,7 @@ inline void smoothGSBlendingTmpl(Face &face,
   Point3D offsetNW = -2.0/3.0 * d0 + 1.0/3.0 * d2;
 
   real_t* coeffs[] = { &mappingTensor(0,0), &mappingTensor(0,1), &mappingTensor(1,1) };
-  std::vector<real_t> opr_data(vertexDoFMacroFaceStencilMemorySize(Level, 0));
+  std::vector<real_t> opr_data(7);
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     x = x0;
@@ -346,22 +342,20 @@ inline void smoothGSBlendingTmpl(Face &face,
         assembleScalarStencil(Level, face, opr_data, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE);
       }
 
-      tmp = rhs[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)];
+      tmp = rhs[vertexdof::macroface::indexFromVertex(Level, i, j, stencilDirection::VERTEX_C)];
 
       //for (auto neighbor : neighbors) {
       for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex<Level>(i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
+        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
       }
 
-      dst[vertexdof::macroface::indexFromVertex<Level>(i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
+      dst[vertexdof::macroface::indexFromVertex(Level, i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
 
       x += d0;
     }
     --inner_rowsize;
   }
 }
-
-SPECIALIZE_WITH_VALUETYPE(void, smoothGSBlendingTmpl, smoothGSBlending)
 
 } // macroface
 
@@ -496,13 +490,13 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
   }
 }
 
-template< typename ValueType, uint_t Level >
-inline void applyBlendingTmpl(Edge &edge,
-                                 const std::shared_ptr< PrimitiveStorage >& storage,
-                                 const std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> &operatorIds,
-                                 const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                 const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
-                                 UpdateType update) {
+template< typename ValueType>
+inline void applyBlending(uint_t Level, Edge &edge,
+                          const std::shared_ptr< PrimitiveStorage >& storage,
+                          const std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> &operatorIds,
+                          const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                          const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
+                          UpdateType update) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -567,45 +561,43 @@ inline void applyBlendingTmpl(Edge &edge,
       assembleScalarStencil(Level, edge, faceS, faceN, opr_data, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE, s_south, e_south, o_south, s_north, e_north, o_north);
     }
 
-    tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ];
+    tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C ) ];
 
     // neighbors on edge
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex(Level, i, neighbor ) ];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+      tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex(Level, i, neighbor ) ];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex<Level>( i, neighbor ) ];
+        tmp += opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[ vertexdof::macroedge::indexFromVertex(Level, i, neighbor ) ];
       }
     }
 
     if (update == Replace) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] = tmp;
+      dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C ) ] = tmp;
     } else if (update == Add) {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>( i, stencilDirection::VERTEX_C ) ] += tmp;
+      dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C ) ] += tmp;
     }
 
     x += dx;
   }
 }
 
-SPECIALIZE_WITH_VALUETYPE( void, applyBlendingTmpl, applyBlending )
-
-template< typename ValueType, uint_t Level >
-inline void smoothGSBlendingTmpl(Edge &edge,
-                              const std::shared_ptr< PrimitiveStorage >& storage,
-                              const std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> &operatorIds,
-                              const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
-                              const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId) {
+template< typename ValueType>
+inline void smoothGSBlending(uint_t Level, Edge &edge,
+                             const std::shared_ptr< PrimitiveStorage >& storage,
+                             const std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> &operatorIds,
+                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
+                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
@@ -670,33 +662,31 @@ inline void smoothGSBlendingTmpl(Edge &edge,
       assembleScalarStencil(Level, edge, faceS, faceN, opr_data, x, localMatricesVector, mappingTensor, coeffs, offsetS, offsetSE, offsetSW, offsetNW, offsetN, offsetNE, s_south, e_south, o_south, s_north, e_north, o_north);
     }
 
-    dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] = rhs[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C)];
+    dst[vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C) ] = rhs[vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C)];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex(Level, i, neighbor)];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      dst[vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+      dst[vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex(Level, i, neighbor)];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex<Level>(i, neighbor)];
+        dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C) ] -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex(Level, i, neighbor)];
       }
     }
 
-    dst[ vertexdof::macroedge::indexFromVertex<Level>(i, stencilDirection::VERTEX_C) ] /= opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+    dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C) ] /= opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
 
     x += dx;
   }
 }
-
-SPECIALIZE_WITH_VALUETYPE( void, smoothGSBlendingTmpl, smoothGSBlending )
 
 } // macroedge
 

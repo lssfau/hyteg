@@ -47,18 +47,18 @@ int main(int argc, char **argv)
   for(auto faceIter : storage->getFaces())
   {
     auto face = faceIter.second;
-    xStepSize = walberla::real_c(face->coords[1].x[0] - face->coords[0].x[0]) / walberla::real_c((mEperEdge));
-    yStepSize = walberla::real_c(face->coords[2].x[1] - face->coords[0].x[1]) / walberla::real_c((mEperEdge));
-    value = (xStepSize / 2 + face->coords[0].x[0]) * 2 + face->coords[0].x[0];
+    xStepSize = walberla::real_c(face->coords[1][0] - face->coords[0][0]) / walberla::real_c((mEperEdge));
+    yStepSize = walberla::real_c(face->coords[2][1] - face->coords[0][1]) / walberla::real_c((mEperEdge));
+    value = (xStepSize / 2 + face->coords[0][0]) * 2 + face->coords[0][0];
 
     edgedof::macroface::interpolate< real_t >(level, *face, x.getFaceDataID(), emptyFaceIds, exact);
     for (uint_t i = 0; i < mEperEdge; ++i)
     {
       for (uint_t j = 0; j < mEperEdge - i; ++j)
       {
-        uint_t idx_ho = edgedof::macroface::indexFromHorizontalEdge<level>(j, i, stencilDirection::EDGE_HO_C);
-        uint_t idx_di = edgedof::macroface::indexFromDiagonalEdge<level>(j, i, stencilDirection::EDGE_DI_C);
-        uint_t idx_ve = edgedof::macroface::indexFromVerticalEdge<level>(j, i, stencilDirection::EDGE_VE_C);
+        uint_t idx_ho = edgedof::macroface::indexFromHorizontalEdge( level, j, i, stencilDirection::EDGE_HO_C );
+        uint_t idx_di = edgedof::macroface::indexFromDiagonalEdge( level, j, i, stencilDirection::EDGE_DI_C );
+        uint_t idx_ve = edgedof::macroface::indexFromVerticalEdge( level, j, i, stencilDirection::EDGE_VE_C );
         if (i == 0)
         {
           WALBERLA_CHECK_FLOAT_EQUAL(face->getData(x.getFaceDataID())->getPointer(level)[idx_ho], 0.0,
@@ -95,9 +95,9 @@ int main(int argc, char **argv)
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
     hhg::edgedof::macroedge::interpolate< real_t >(level, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
-    value = 2 * edge->getCoordinates()[0].x[0] + edge->getCoordinates()[0].x[1];
-    xStepSize = edge->getDirection().x[0] / walberla::real_c((mEperEdge));
-    yStepSize = edge->getDirection().x[1] / walberla::real_c((mEperEdge));
+    value = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
+    xStepSize = edge->getDirection()[0] / walberla::real_c((mEperEdge));
+    yStepSize = edge->getDirection()[1] / walberla::real_c((mEperEdge));
     value += xStepSize * 2 / 2;
     value += yStepSize / 2;
     for(uint_t i = 0; i < mEperEdge; ++i)

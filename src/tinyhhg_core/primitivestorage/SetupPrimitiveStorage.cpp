@@ -265,10 +265,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
 
     PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID2, vertexID0 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
     PrimitiveID edgeID5 = findCachedPrimitiveID( {{ vertexID2, vertexID3 }}, vertexIDsToEdgeIDs );
 
     PrimitiveID faceID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID2 }}, vertexIDsToFaceIDs );
@@ -303,7 +303,32 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     for ( const auto & id : cellEdges    ) { WALBERLA_ASSERT(   edgeExists( id ) );    edges_[ id.getID() ]->addCell( cellID ); }
     for ( const auto & id : cellFaces    ) { WALBERLA_ASSERT(   faceExists( id ) );    faces_[ id.getID() ]->addCell( cellID ); }
 
-    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces );
+    std::array< Point3D, 4 > cellCoordinates = {{ vertices_.at( vertexID0.getID() )->getCoordinates(),
+                                                  vertices_.at( vertexID1.getID() )->getCoordinates(),
+                                                  vertices_.at( vertexID2.getID() )->getCoordinates(),
+                                                  vertices_.at( vertexID3.getID() )->getCoordinates() }};
+
+    std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
+
+    // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
+
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[0][ faces_.at( faceID0.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[1][ faces_.at( faceID1.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID0 ) ] = 0;
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID2 ) ] = 2;
+    faceLocalVertexToCellLocalVertexMaps[2][ faces_.at( faceID2.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID1 ) ] = 1;
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID2 ) ] = 2;
+    faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
   }
 
   loadbalancing::greedy( *this );

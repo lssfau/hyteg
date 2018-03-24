@@ -1,10 +1,14 @@
 
 #pragma once
 
+#include "core/DataTypes.h"
+#include "tinyhhg_core/indexing/Common.hpp"
+
 namespace hhg {
 namespace indexing {
 
 using walberla::uint_t;
+using walberla::uint16_t;
 
 /// Array access layouts - wrapped by general access function.
 /// The general memory layout can thus be switched globally by setting
@@ -12,18 +16,16 @@ using walberla::uint_t;
 namespace layout {
 
 /// Required memory for the linear macro cell layout
-template< uint_t width >
-inline constexpr uint_t linearMacroCellSize()
+inline constexpr uint_t linearMacroCellSize( const uint_t & width )
 {
   return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
 }
 
 /// General linear memory layout indexing function for macro cells
-template< uint_t width >
-inline constexpr uint_t linearMacroCellIndex( const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t linearMacroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
 {
   const uint_t widthMinusSlice = width - z;
-  const uint_t sliceOffset = linearMacroCellSize< width >() - ( ( widthMinusSlice + 2 ) * ( widthMinusSlice + 1 ) * widthMinusSlice ) / 6;
+  const uint_t sliceOffset = linearMacroCellSize( width ) - (( widthMinusSlice + 2 ) * ( widthMinusSlice + 1 ) * widthMinusSlice ) / 6;
   const uint_t rowOffset   = y * ( widthMinusSlice + 1 ) - ( ( ( y + 1 ) * ( y ) ) / 2 );
   return sliceOffset + rowOffset + x;
 }
@@ -31,16 +33,14 @@ inline constexpr uint_t linearMacroCellIndex( const uint_t & x, const uint_t & y
 } // namespace layout
 
 
-template< uint_t width >
-inline constexpr uint_t macroCellSize()
+inline constexpr uint_t macroCellSize( const uint_t & width )
 {
-  return layout::linearMacroCellSize< width >();
+  return layout::linearMacroCellSize( width );
 }
 
-template< uint_t width >
-inline constexpr uint_t macroCellIndex( const uint_t & x, const uint_t & y, const uint_t & z )
+inline constexpr uint_t macroCellIndex( const uint_t & width, const uint_t & x, const uint_t & y, const uint_t & z )
 {
-  return layout::linearMacroCellIndex< width >( x, y, z );
+  return layout::linearMacroCellIndex( width, x, y, z );
 }
 
 
@@ -68,92 +68,109 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  CellIterator( const uint_t & width, const uint_t & offsetToCenter = 0, const bool & end = false ) :
-    width_( width ), offsetToCenter_( offsetToCenter ),
-    // Number of vertices in a tetrahedron with edge length n:
-    // T(n) = ( (n+2) * (n+1) * n ) / 6
-    // Number of _inner_ vertices of a tetrahedron with edge length n:
-    // T(n-4) = ( (n-2) * (n-3) * (n-4) ) / 6
-    totalNumberOfDoFs_( ( ( width - 4 * offsetToCenter + 2 ) * ( width - 4 * offsetToCenter + 1 ) * ( width - 4 * offsetToCenter ) ) / 6 ), step_( 0 )
-  {
-    WALBERLA_ASSERT_GREATER( width, 0, "Size of cell must be larger than zero!" );
-    WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond cell width!" );
-
-    coordinates_.col() = offsetToCenter;
-    coordinates_.row() = offsetToCenter;
-    coordinates_.dep() = offsetToCenter;
-
-    if ( end )
-    {
-      step_ = totalNumberOfDoFs_;
-    }
-  }
+  CellIterator( const uint_t & width, const uint_t & offsetToCenter = 0, const bool & end = false );
 
   CellIterator begin() { return CellIterator( width_, offsetToCenter_ ); }
   CellIterator end()   { return CellIterator( width_, offsetToCenter_, true ); }
 
-  bool operator==( const CellIterator & other ) const
-  {
-    return other.step_ == step_;
-  }
-
-  bool operator!=( const CellIterator & other ) const
-  {
-    return other.step_ != step_;
-  }
+  bool operator==( const CellIterator & other ) const { return other.step_ == step_; }
+  bool operator!=( const CellIterator & other ) const { return other.step_ != step_; }
 
   reference operator*()  const { return  coordinates_; };
   pointer   operator->() const { return &coordinates_; };
 
-  CellIterator & operator++() // prefix
-  {
-    WALBERLA_ASSERT_LESS_EQUAL( step_, totalNumberOfDoFs_, "Incrementing iterator beyond end!" );
-
-    step_++;
-
-    const uint_t currentDep = coordinates_.dep();
-    const uint_t currentRow = coordinates_.row();
-    const uint_t currentCol = coordinates_.col();
-
-    const uint_t lengthOfCurrentRowWithoutOffset   = width_ - currentRow - currentDep;
-    const uint_t heightOfCurrentSliceWithoutOffset = width_ - currentDep;
-
-    if ( currentCol < lengthOfCurrentRowWithoutOffset - offsetToCenter_ - 1 )
-    {
-      coordinates_.col()++;
-    }
-    else if ( currentRow < heightOfCurrentSliceWithoutOffset - offsetToCenter_ - 1 )
-    {
-      coordinates_.row()++;
-      coordinates_.col() = offsetToCenter_;
-    }
-    else
-    {
-      coordinates_.dep()++;
-      coordinates_.row() = offsetToCenter_;
-      coordinates_.col() = offsetToCenter_;
-    }
-
-    return *this;
-  }
-
-  CellIterator operator++( int ) // postfix
-  {
-    const CellIterator tmp( *this );
-    ++*this;
-    return tmp;
-  }
-
+  CellIterator & operator++(); // prefix
+  CellIterator operator++( int );
 
 private:
 
   const uint_t    width_;
+  const uint_t    internalWidth_;
   const uint_t    offsetToCenter_;
   const uint_t    totalNumberOfDoFs_;
         uint_t    step_;
         Index     coordinates_;
+        Index     internalCoordinates_;
 
 };
+
+
+/// \brief Iterator to iterate over a border of a macro-cell.
+///
+/// A border is one of its four faces.
+/// Using this iterator, each face with corner-coordinates a, b and c can be iterated over in six ways:
+///
+/// c
+/// +
+/// |\
+/// | \
+/// |  \
+/// +---+
+/// a    b
+///
+/// - a -> b -> c (bottom to top in row-wise fashion)
+/// - b -> a -> c (bottom to tip in row-wise fashion (backwards))
+/// - a -> c -> b (left to right in column-wise fashion (columns bottom to top))
+/// - c -> a -> b (left to right in column-wise fashion (columns top to bottom))
+/// - b -> c -> a (top-right to bottom-left (diagonal rows from bottom right to top left))
+/// - c -> b -> a (top-right to bottom-left (diagonal rows from top left to bottom right))
+///
+/// a, b and c can be set to three distinct cell-vertices (combinations of [0, 1, 2, 3], no repetition)
+///
+/// The cell vertices are at the following logical indices (also refer to the documentation):
+///
+/// 0: (      0,       0,       0)
+/// 1: (width-1,       0,       0)
+/// 2: (      0, width-1,       0)
+/// 3: (      0,       0, width-1)
+///
+class CellBorderIterator
+{
+public:
+
+  using iterator_category = std::input_iterator_tag;
+  using value_type        = Index;
+  using reference         = value_type const&;
+  using pointer           = value_type const*;
+  using difference_type   = ptrdiff_t;
+
+  CellBorderIterator( const uint_t & width, const uint_t & vertex0,
+                      const uint_t & vertex1, const uint_t & vertex2,
+                      const uint_t & offsetToCenter = 0, const bool & end = false );
+
+  CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
+                      const uint_t & offsetToCenter = 0, const bool & end = false );
+
+  CellBorderIterator begin() { return CellBorderIterator( width_, vertices_, offsetToCenter_       ); }
+  CellBorderIterator end()   { return CellBorderIterator( width_, vertices_, offsetToCenter_, true ); }
+
+  bool operator==( const CellBorderIterator & other ) const { return other.step_ == step_; }
+  bool operator!=( const CellBorderIterator & other ) const { return other.step_ != step_; }
+
+  reference operator*()  const { return   coordinates_; };
+  pointer   operator->() const { return & coordinates_; };
+
+  CellBorderIterator & operator++(); // prefix
+  CellBorderIterator operator++( int );
+
+private:
+
+  IndexIncrement calculateIncrement( const uint_t & vertex0, const uint_t & vertex1 ) const;
+
+  const uint_t                  width_;
+  const std::array< uint_t, 3 > vertices_;
+  const uint_t                  offsetToCenter_;
+  const uint_t                  totalNumberOfSteps_;
+  const IndexIncrement          firstDirIncrement_;
+  const IndexIncrement          secondDirIncrement_;
+        uint_t                  step_;
+        uint_t                  wrapAroundStep_;
+        Index                   coordinates_;
+        Index                   wrapAroundCoordinates_;
+        uint_t                  wrapArounds_;
+};
+
+
 
 } // namespace indexing
 } // namespace hhg

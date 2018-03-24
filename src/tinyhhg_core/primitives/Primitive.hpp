@@ -9,6 +9,7 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 
+#include <map>
 #include <memory>
 #include <vector>
 #include <map>
@@ -92,6 +93,8 @@ public:
   /// @name Neighborhood
   /// Access to IDs of neighbors of either lower or higher dimension.
   ///@{
+  bool neighborPrimitiveExists( const PrimitiveID & primitiveID ) const;
+
   void getNeighborPrimitives( std::vector< PrimitiveID > & neighborPrimitives ) const;
   void getNeighborVertices( std::vector< PrimitiveID > & neighborVertices ) const { neighborVertices.assign( neighborVertices_.begin(), neighborVertices_.end() ); }
   void getNeighborEdges   ( std::vector< PrimitiveID > & neighborEdges )    const { neighborEdges.assign   ( neighborEdges_.begin(),    neighborEdges_.end()    ); }
@@ -106,7 +109,7 @@ public:
   const std::vector< PrimitiveID > & neighborFaces()    const { return neighborFaces_; }
   const std::vector< PrimitiveID > & neighborCells()    const { return neighborCells_; }
 
-  uint_t getNumNeighborPrimitives() const { return getNumNeighborVertices() + getNumNeighborEdges() + getNumNeighborFaces(); }
+  uint_t getNumNeighborPrimitives() const { return getNumNeighborVertices() + getNumNeighborEdges() + getNumNeighborFaces() + getNumNeighborCells(); }
   uint_t getNumNeighborVertices  () const { return neighborVertices_.size(); }
   uint_t getNumNeighborEdges     () const { return neighborEdges_.size(); }
   uint_t getNumNeighborFaces     () const { return neighborFaces_.size(); }
@@ -138,7 +141,8 @@ protected:
   /// Explicit copy-constructor - added data shall not be copied
   Primitive( const Primitive & other ) :
     primitiveID_( other.primitiveID_ ), neighborVertices_( other.neighborVertices_ ),
-    neighborEdges_( other.neighborEdges_ ), neighborFaces_( other.neighborFaces_ )
+    neighborEdges_( other.neighborEdges_ ), neighborFaces_( other.neighborFaces_ ),
+    neighborCells_( other.neighborCells_ )
   {}
 
   /// Only subclasses shall be constructable
@@ -196,7 +200,7 @@ inline void Primitive::getNeighborPrimitivesGenerically< Cell >( std::vector< Pr
 template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
-  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified index" );
+  WALBERLA_ASSERT_EQUAL( data_.count( index ), 1, "There is no data available for the specified DataID!" );
   return data_.at( index )->template get< DataType >();
 }
 

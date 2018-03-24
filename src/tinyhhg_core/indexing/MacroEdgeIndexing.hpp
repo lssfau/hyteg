@@ -12,31 +12,30 @@ using walberla::uint_t;
 namespace layout {
 
 /// Required memory for the linear macro edge layout
-template< uint_t width >
-constexpr uint_t linearMacroEdgeSize()
+constexpr uint_t linearMacroEdgeSize( const uint_t & width )
 {
   return width;
 }
 
 /// General linear memory layout indexing function for macro edges
-template< uint_t width >
-constexpr uint_t linearMacroEdgeIndex( const uint_t & x )
+constexpr uint_t linearMacroEdgeIndex( const uint_t & width, const uint_t & x )
 {
+  WALBERLA_UNUSED( width );
   return x;
 }
 
 }
 
-template< uint_t width >
-constexpr uint_t macroEdgeSize()
+
+constexpr uint_t macroEdgeSize( const uint_t & width )
 {
-  return layout::linearMacroEdgeSize< width >();
+  return layout::linearMacroEdgeSize( width );
 }
 
-template< uint_t width >
-constexpr uint_t macroEdgeIndex( const uint_t & x )
+
+constexpr uint_t macroEdgeIndex( const uint_t & width, const uint_t & x )
 {
-  return layout::linearMacroEdgeIndex< width >( x );
+  return layout::linearMacroEdgeIndex( width, x );
 }
 
 /// Iterator over an edge.

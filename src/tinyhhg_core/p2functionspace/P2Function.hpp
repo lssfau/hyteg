@@ -34,6 +34,75 @@ public:
   std::shared_ptr<              EdgeDoFFunction< ValueType > > getEdgeDoFFunction()   const { return edgeDoFFunction_;   }
 
   inline void
+  interpolate( std::function< ValueType( const Point3D& ) >& expr,
+               uint_t level, DoFType flag = All )
+  {
+    vertexDoFFunction_->interpolate( expr, level, flag );
+    edgeDoFFunction_->interpolate( expr, level, flag );
+  }
+
+
+    inline void
+  interpolateExtended( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                       const std::vector< P2Function< ValueType > * > srcFunctions, uint_t level, DoFType flag = All )
+  {
+    std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
+    std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
+
+    for ( const auto & function : srcFunctions )
+    {
+      vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
+      edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
+    }
+
+    vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
+    edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
+  }
+
+  inline void
+  assign( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
+          uint_t level, DoFType flag = All )
+  {
+    std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
+    std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
+
+    for ( const auto & function : functions )
+    {
+      vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
+      edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
+    }
+
+    vertexDoFFunction_->assign( scalars, vertexDoFFunctions, level, flag );
+    edgeDoFFunction_->assign  ( scalars, edgeDoFFunctions,   level, flag );
+  }
+
+  inline void
+  add( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
+       uint_t level, DoFType flag = All )
+  {
+    std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
+    std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
+
+    for ( const auto & function : functions )
+    {
+      vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
+      edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
+    }
+
+    vertexDoFFunction_->add( scalars, vertexDoFFunctions, level, flag );
+    edgeDoFFunction_->add  ( scalars, edgeDoFFunctions,   level, flag );
+  }
+
+  inline real_t
+  dot( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+  {
+    real_t sum = real_c( 0 );
+    sum += vertexDoFFunction_->dot( *rhs.vertexDoFFunction_, level, flag);
+    sum += edgeDoFFunction_->dot  ( *rhs.edgeDoFFunction_,   level, flag);
+    return sum;
+  }
+
+  inline void
   prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > > & p1Function, const uint_t & level, const DoFType & flag = All )
   {
     this->startTiming( "Prolongate P1 -> P2" );
@@ -158,87 +227,29 @@ public:
     this->stopTiming( "Restrict P2 -> P1" );
   }
 
+  inline void
+  prolongate( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Prolongate not implemented!" );
+  }
+
+  inline void
+  prolongateQuadratic( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
+  }
+
+  inline void
+  restrict( uint_t sourceLevel, DoFType flag = All )
+  {
+    WALBERLA_ABORT( "P2Function - Restrict not implemented!" );
+  }
+
+
 private:
 
   using Function< P2Function< ValueType > >::communicators_;
 
-    inline void
-    interpolate_impl( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                      const std::vector< P2Function< ValueType > * > srcFunctions, uint_t level, DoFType flag = All )
-    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
-      std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
-
-      for ( const auto & function : srcFunctions )
-      {
-        vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-        edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
-      }
-
-      vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
-    }
-
-    inline void
-    assign_impl( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
-                 uint_t level, DoFType flag = All )
-    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
-      std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
-
-      for ( const auto & function : functions )
-      {
-        vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-        edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
-      }
-
-      vertexDoFFunction_->assign( scalars, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->assign  ( scalars, edgeDoFFunctions,   level, flag );
-    }
-
-    inline void
-    add_impl( const std::vector< ValueType > scalars, const std::vector< P2Function< ValueType >* > functions,
-              uint_t level, DoFType flag = All )
-    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType > * > vertexDoFFunctions;
-      std::vector<              EdgeDoFFunction< ValueType > * > edgeDoFFunctions;
-
-      for ( const auto & function : functions )
-      {
-        vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-        edgeDoFFunctions.push_back  ( function->edgeDoFFunction_.get() );
-      }
-
-      vertexDoFFunction_->add( scalars, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->add  ( scalars, edgeDoFFunctions,   level, flag );
-    }
-
-    inline real_t
-    dot_impl( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
-    {
-      real_t sum = real_c( 0 );
-      sum += vertexDoFFunction_->dot( *rhs.vertexDoFFunction_, level, flag);
-      sum += edgeDoFFunction_->dot  ( *rhs.edgeDoFFunction_,   level, flag);
-      return sum;
-    }
-
-    inline void
-    prolongate_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Prolongate not implemented!" );
-    }
-
-    inline void
-    prolongateQuadratic_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
-    }
-
-    inline void
-    restrict_impl( uint_t sourceLevel, DoFType flag = All )
-    {
-      WALBERLA_ABORT( "P2Function - Restrict not implemented!" );
-    }
 
     inline void
     enumerate_impl( uint_t level, uint_t& num )

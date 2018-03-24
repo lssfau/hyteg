@@ -19,17 +19,6 @@
 namespace hhg
 {
 
-namespace vtkDetail{
-SPECIALIZE(uint_t, vertexdof::macroface::indexFromVertex, vertexDoFOnMacroFaceIndex)
-
-SPECIALIZE(uint_t,BubbleFace::indexFaceFromGrayFace,bubbleGrayFaceIndex)
-SPECIALIZE(uint_t,BubbleFace::indexFaceFromBlueFace,bubbleBlueFaceIndex)
-
-SPECIALIZE(uint_t, edgedof::macroface::horizontalIndex, horizontalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::verticalIndex,   verticalEdgeOnMacroFaceIndex)
-SPECIALIZE(uint_t, edgedof::macroface::diagonalIndex,   diagonalEdgeOnMacroFaceIndex)
-}
-
 using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
@@ -43,8 +32,13 @@ public:
 
   /// \param writeFrequency outputs VTK in the specified frequency
   VTKOutput( const std::string & dir, const std::string & filename, const uint_t & writeFrequency = 1 ) :
-     dir_( dir ), filename_( filename ), writeFrequency_( writeFrequency )
+     dir_( dir ), filename_( filename ), writeFrequency_( writeFrequency ), write2D_( true )
   {}
+
+  /// Writes only macro-faces.
+  void set2D() { write2D_ = true; }
+  /// Writes only macro-cells.
+  void set3D() { write2D_ = false; }
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
   void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
@@ -113,6 +107,8 @@ private:
   std::string filename_;
 
   uint_t writeFrequency_;
+
+  bool write2D_;
 
   std::vector< const P1Function     < real_t > * > p1Functions_;
   std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;

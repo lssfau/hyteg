@@ -3,10 +3,8 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT ( tinyhhg )
 enable_testing()
 
-option ( HHG_BUILD_WITH_LIKWID            "Compile with LIKWID"                       OFF)
-option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                          OFF)
-option ( HHG_BUILD_WITH_EIGEN             "Build with Eigen"                          OFF)
-option ( WALBERLA_BUILD_WITH_CXX14        "Build with c++14 support" ON)
+option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                       OFF)
+option ( HHG_BUILD_WITH_EIGEN             "Build with Eigen"                       OFF)
 option ( HHG_REMOVE_WALBERLA              "Remove unnecessary walberla components" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -48,6 +46,11 @@ endif()
 # see: https://stackoverflow.com/questions/31555584/why-is-clang-warning-suggest-braces-around-initialization-of-subobject-wmis
 if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
+endif()
+
+# MSVC generates so many warnings that the CI log gets too large to complete the job successfully - therefore we suppress a prominent one.
+if(WALBERLA_CXX_COMPILER_IS_MSVC)
+    add_flag( CMAKE_CXX_FLAGS "/wd4100" )
 endif()
 
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp

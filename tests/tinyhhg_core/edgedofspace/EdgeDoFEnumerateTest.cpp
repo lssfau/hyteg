@@ -28,7 +28,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   uint_t totalDoFs = hhg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
 
   for (auto &edgeIt : storage->getEdges()) {
-    hhg::edgedof::macroedge::enumerateTmpl< uint_t,Level >(*edgeIt.second,x.getEdgeDataID(),num);
+    hhg::edgedof::macroedge::enumerate< uint_t >(Level,*edgeIt.second,x.getEdgeDataID(),num);
     Edge &edge = *edgeIt.second;
     uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
 
@@ -36,16 +36,16 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
     for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( Level ); ++i){
       WALBERLA_CHECK_EQUAL(edgeData[i],check);
-      WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_DI_S)],0);
-      WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge< Level >(i,stencilDirection::EDGE_VE_SE)],0);
+      WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_DI_S )], 0);
+      WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_VE_SE )], 0);
       if( i != 0){
-        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromVertex< Level >(i,stencilDirection::EDGE_HO_SE)],0);
+        WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_SE )], 0);
       }
       if(edgeIt.second->getNumNeighborFaces() == 2) {
-        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_DI_N)], 0);
-        WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromHorizontalEdge<Level>(i, stencilDirection::EDGE_VE_NW)], 0);
+        WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_DI_N )], 0);
+        WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_VE_NW )], 0);
         if (i != 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[edgedof::macroedge::indexFromVertex<Level>(i, stencilDirection::EDGE_HO_NW)], 0);
+          WALBERLA_CHECK_EQUAL( edgeData[edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_NW )], 0);
         }
       }
       check++;
@@ -53,7 +53,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   }
 
   for ( auto &faceIt : storage->getFaces() ) {
-    hhg::edgedof::macroface::enumerateTmpl< uint_t,Level >(*faceIt.second,x.getFaceDataID(),num);
+    hhg::edgedof::macroface::enumerate< uint_t >(Level,*faceIt.second,x.getFaceDataID(),num);
     size_t idxCounter = 0;
     Face &face = *faceIt.second;
     uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(Level);
