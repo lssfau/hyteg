@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> map_x = [](const hhg::Point3D& x) { return (1.0*x[1] + 1.0)*cos(1.5707963267949*x[0] - 2.35619449019234); };
   std::function<real_t(const hhg::Point3D&)> map_y = [](const hhg::Point3D& x) { return -(1.0*x[1] + 1.0)*sin(1.5707963267949*x[0] - 2.35619449019234); };
   std::function<real_t(const hhg::Point3D&)> coeff_11 = [](const hhg::Point3D& x) { return 0.636619772367581/(pow(x[1] + 1, 2)*sqrt(pow(x[1] + 1, -2))); };
-  std::function<real_t(const hhg::Point3D&)> coeff_12 = [](const hhg::Point3D& x) { return 0; };
+  std::function<real_t(const hhg::Point3D&)> coeff_12 = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> coeff_22 = [](const hhg::Point3D& x) { return 1.5707963267949/sqrt(pow(x[1] + 1, -2)); };
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(1.5707963267949*pow(x[1] + 1, 2)*sinh(x[1]) + 1.5707963267949*(x[1] + 1)*cosh(x[1]) - 0.636619772367581*sinh(x[1]))*sin(x[0])/(pow(x[1] + 1, 4)*pow(pow(x[1] + 1, -2), 3.0L/2.0L)); };

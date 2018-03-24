@@ -25,6 +25,23 @@ int main(int argc, char* argv[])
   /// read mesh file and create storage
   MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/unitsquare_with_circular_hole.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  Point3D circleCenter{{0.5, 0.5, 0}};
+  real_t circleRadius = 0.25;
+
+  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
+    Face &face = *it->second;
+
+    if (face.hasBoundaryEdge()) {
+      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
+
+      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+      }
+    }
+  }
+
   hhg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -55,22 +72,6 @@ int main(int argc, char* argv[])
   };
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return sin(x_[0])*sinh(x_[1]); };
-
-  Point3D circleCenter{{0.5, 0.5, 0}};
-  real_t circleRadius = 0.25;
-
-  for (auto& it : storage->getFaces()) {
-    Face &face = *it.second;
-
-    if (face.hasBoundaryEdge()) {
-      Edge& edge = *storage->getEdge(face.edgesOnBoundary[0]);
-
-      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
-        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, storage, circleCenter, circleRadius)));
-      }
-    }
-  }
 
   x->interpolate(tmp_x, level, hhg::All);
   y->interpolate(tmp_y, level, hhg::All);
