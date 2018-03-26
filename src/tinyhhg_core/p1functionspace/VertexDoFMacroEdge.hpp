@@ -661,7 +661,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
 }
 
 template< typename ValueType >
-inline void printFunctionMemory( const uint_t & level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+inline void printFunctionMemory( const uint_t & level, const Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;

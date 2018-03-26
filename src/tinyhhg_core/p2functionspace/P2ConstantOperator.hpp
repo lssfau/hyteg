@@ -4,6 +4,7 @@
 #include "P2Elements.hpp"
 #include "P2Smooth.hpp"
 #include "P2MacroFace.hpp"
+#include "P2MacroEdge.hpp"
 
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
@@ -232,16 +233,19 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSvertexDoF(level,edge,
-                                    vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
-                                    edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                    rhs.getVertexDoFFunction()->getEdgeDataID());
-        P2::edge::smoothGSedgeDoF(level, edge,
-                                  vertexToEdge.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
-                                  edgeToEdge.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                  rhs.getEdgeDoFFunction()->getEdgeDataID());
+        P2::macroedge::smoothGaussSeidl(level,
+                                        edge,
+                                        vertexToVertex.getEdgeStencilID(),
+                                        edgeToVertex.getEdgeStencilID(),
+                                        dst.getVertexDoFFunction()->getEdgeDataID(),
+                                        vertexToEdge.getEdgeStencilID(),
+                                        edgeToEdge.getEdgeStencilID(),
+                                        dst.getEdgeDoFFunction()->getEdgeDataID(),
+                                        rhs.getVertexDoFFunction()->getEdgeDataID(),
+                                        rhs.getEdgeDoFFunction()->getEdgeDataID());
       }
     }
+
 
 
     for (auto& it : storage_->getFaces()) {

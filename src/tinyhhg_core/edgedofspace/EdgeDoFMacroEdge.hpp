@@ -186,7 +186,7 @@ inline void apply(const uint_t & Level, Edge &edge,
 
 
 template< typename ValueType >
-inline void printFunctionMemory(const uint_t & Level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
