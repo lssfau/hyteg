@@ -27,6 +27,17 @@ void smoothJacobiEdgeDoF(const uint_t &Level, const Face &face,
                          const PrimitiveDataID <FunctionMemory<real_t>, Face> &rhsEdgeDoFID,
                          const real_t dampingFactor = 2.0/3.0);
 
+
+void smoothGaussSeidl(const uint_t &level, const Face &face,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &vertexToVertexStencilID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &edgeToVertexStencilID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &dstVertexDoFID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &vertexToEdgeStencilID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &edgeToEdgeStencilID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &dstEdgeDoFID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &rhsVertexDoFID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &rhsEdgeDoFID);
+
 }
 }
 }

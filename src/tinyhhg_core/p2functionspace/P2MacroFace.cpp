@@ -1,3 +1,4 @@
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include "P2MacroFace.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
@@ -122,7 +123,106 @@ void smoothJacobiEdgeDoF(const uint_t & Level, const Face &face,
   }
 }
 
+void smoothGaussSeidl(const uint_t &level, const Face &face,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &vertexToVertexStencilID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &edgeToVertexStencilID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &dstVertexDoFID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &vertexToEdgeStencilID,
+                      const PrimitiveDataID <StencilMemory<real_t>, Face> &edgeToEdgeStencilID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &dstEdgeDoFID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &rhsVertexDoFID,
+                      const PrimitiveDataID <FunctionMemory<real_t>, Face> &rhsEdgeDoFID){
+  real_t * vertexToVertexStencil = face.getData(vertexToVertexStencilID)->getPointer( level );
+  real_t * edgeToVertexStencil = face.getData(edgeToVertexStencilID)->getPointer( level );
+  real_t * dstVertexDoF = face.getData( dstVertexDoFID )->getPointer( level );
+  real_t * vertexToEdgeStencil = face.getData( vertexToEdgeStencilID )->getPointer( level );
+  real_t * edgeToEdgeStencil = face.getData( edgeToEdgeStencilID )->getPointer( level );
+  real_t * dstEdgeDoF = face.getData( dstEdgeDoFID )->getPointer( level );
+  real_t * rhsVertexDoF = face.getData( rhsVertexDoFID )->getPointer( level );
+  real_t * rhsEdgeDoF = face.getData( rhsEdgeDoFID )->getPointer( level );
+
+  real_t tmpVertex = 0, tmpEdgeHO = 0, tmpEdgeDI = 0, tmpEdgeVE = 0;
+
+/// sum up weighted values first for vertex and edges and write to corresponding dof afterwards
+  for( const auto & it : hhg::edgedof::macroface::Iterator( level, 0)){
+////////// VERTEX //////////
+    if(!vertexdof::isVertexOnBoundary( level, it)) {
+      tmpVertex = rhsVertexDoF[vertexdof::macroface::indexFromVertex(level, it.col(), it.row(), stencilDirection::VERTEX_C)];
+      /// vertex to vertex
+      for( const auto& dir : vertexdof::macroface::neighborsWithoutCenter ){
+        tmpVertex -= dstVertexDoF[vertexdof::macroface::indexFromVertex(level, it.col(), it.row(), dir)] *
+                     vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
+      }
+      /// edge to vertex
+      for( const auto& dir : edgedof::macroface::neighborsFromVertex ){
+        tmpVertex -= dstEdgeDoF[edgedof::macroface::indexFromVertex(level, it.col(), it.row(), dir)] *
+                     edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
+      }
+    }
+////////// HORIZONTAL EDGE //////////
+    if(!edgedof::isHorizontalEdgeOnBoundary( level,it) ){
+      tmpEdgeHO = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C)];
+      /// vertex to edge
+      for( const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge){
+        tmpEdgeHO -= dstVertexDoF[vertexdof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), dir)] *
+                     vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
+      }
+      /// edge to edge
+      for( const auto& dir : edgedof::macroface::neighborsFromHorizontalEdgeWithoutCenter){
+        tmpEdgeHO -= dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), dir)] *
+                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
+      }
+    }
+////////// VERTICAL EDGE //////////
+    if(!edgedof::isVerticalEdgeOnBoundary( level, it )) {
+      tmpEdgeVE = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, it.col(), it.row(), stencilDirection::EDGE_VE_C)];
+      /// vertex to edge
+      for (const auto &dir : vertexdof::macroface::neighborsFromVerticalEdge) {
+        tmpEdgeVE -= dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge(level, it.col(), it.row(), dir)] *
+                     vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge(dir)];
+      }
+      /// edge to edge
+      for (const auto &dir : edgedof::macroface::neighborsFromVerticalEdgeWithoutCenter) {
+        tmpEdgeVE -= dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, it.col(), it.row(), dir)] *
+                     edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
+      }
+    }
+////////// DIAGONAL EDGE //////////
+    if(!edgedof::isDiagonalEdgeOnBoundary( level, it)) {
+      tmpEdgeDI = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, it.col(), it.row(), stencilDirection::EDGE_DI_C)];
+      /// vertex to edge
+      for (const auto &dir : vertexdof::macroface::neighborsFromDiagonalEdge) {
+        tmpEdgeDI -= dstVertexDoF[vertexdof::macroface::indexFromDiagonalEdge(level, it.col(), it.row(), dir)] *
+                     vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge(dir)];
+      }
+      /// edge to edge
+      for (const auto &dir : edgedof::macroface::neighborsFromDiagonalEdgeWithoutCenter) {
+        tmpEdgeDI -= dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, it.col(), it.row(), dir)] *
+                     edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
+
+      }
+    }
+////////// WRITE DATA /////////
+    if(!vertexdof::isVertexOnBoundary( level, it)){
+      dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), stencilDirection::VERTEX_C)] =
+        tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)];
+    }
+    if(!edgedof::isHorizontalEdgeOnBoundary( level, it)){
+      dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C)] =
+        tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C)];
+    }
+    if(!edgedof::isVerticalEdgeOnBoundary( level, it)){
+      dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_C)] =
+        tmpEdgeVE / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( stencilDirection::EDGE_VE_C)];
+    }
+    if(!edgedof::isDiagonalEdgeOnBoundary( level, it)){
+      dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_C)] =
+        tmpEdgeDI / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( stencilDirection::EDGE_DI_C)];
+    }
+  }
 }
-}
-}
+
+}/// namespace macroface
+}/// namespace P2
+}/// namespace hhg
 
