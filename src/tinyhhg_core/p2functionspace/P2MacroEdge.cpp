@@ -75,24 +75,24 @@ void smoothGaussSeidl(const uint_t &level, const Edge &edge,
                    edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
     }
 
-//    for(const auto & dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF){
-//      tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
-//                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
-//    }
-//    for(const auto & dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge){
-//      tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
-//                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
-//    }
-//    if(edge.getNumNeighborEdges() == 2) {
-//      for (const auto &dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF) {
-//        tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
-//                     vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
-//      }
-//      for (const auto &dir : hhg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge) {
-//        tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
-//                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
-//      }
-//    }
+    for(const auto & dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF){
+      tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
+                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
+    }
+    for(const auto & dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge){
+      tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
+    }
+    if(edge.getNumNeighborEdges() == 2) {
+      for (const auto &dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF) {
+        tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
+                     vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
+      }
+      for (const auto &dir : hhg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge) {
+        tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
+                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
+      }
+    }
 ////////// VERTEX //////////
     if(it.col() != 0) {
       dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C)] =
@@ -102,8 +102,6 @@ void smoothGaussSeidl(const uint_t &level, const Edge &edge,
     tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C)];
 
   }
-  hhg::vertexdof::macroedge::printFunctionMemory< real_t>( level, edge, dstVertexDoFID);
-  hhg::edgedof::macroedge::printFunctionMemory< real_t >( level, edge, dstEdgeDoFID);
 }
 
 
