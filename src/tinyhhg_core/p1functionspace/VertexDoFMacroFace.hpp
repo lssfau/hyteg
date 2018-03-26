@@ -1024,7 +1024,7 @@ inline void createFunctionFromVector(const uint_t & Level, Face &face,
 #endif
 
 template< typename ValueType >
-inline void printFunctionMemory(uint_t Level, Face &face, const PrimitiveDataID <FunctionMemory<ValueType>, Face> &dstId) {
+inline void printFunctionMemory(const uint_t Level,const Face &face, const PrimitiveDataID <FunctionMemory<ValueType>, Face> &dstId) {
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;

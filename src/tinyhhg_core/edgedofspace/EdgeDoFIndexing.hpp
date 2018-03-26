@@ -212,6 +212,10 @@ constexpr std::array<stencilDirection ,5> neighborsFromHorizontalEdge =
      sD::EDGE_DI_N, sD::EDGE_VE_NW
    }};
 
+constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdgeWithoutCenter =
+  {{ sD::EDGE_DI_S, sD::EDGE_VE_SE,
+     sD::EDGE_DI_N, sD::EDGE_VE_NW
+   }};
 
 inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
@@ -239,6 +243,11 @@ constexpr std::array<stencilDirection ,5> neighborsFromDiagonalEdge =
      sD::EDGE_HO_N, sD::EDGE_VE_W
    }};
 
+constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdgeWithoutCenter =
+  {{ sD::EDGE_HO_S, sD::EDGE_VE_E,
+     sD::EDGE_HO_N, sD::EDGE_VE_W
+   }};
+
 inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
@@ -262,6 +271,11 @@ inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_
 constexpr std::array<stencilDirection ,5> neighborsFromVerticalEdge =
   {{ sD::EDGE_VE_C,
      sD::EDGE_HO_SE, sD::EDGE_DI_E,
+     sD::EDGE_HO_NW, sD::EDGE_DI_W
+   }};
+
+constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdgeWithoutCenter =
+  {{ sD::EDGE_HO_SE, sD::EDGE_DI_E,
      sD::EDGE_HO_NW, sD::EDGE_DI_W
    }};
 
@@ -469,6 +483,23 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
       return std::numeric_limits<size_t>::max();
   }
 }
+
+inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.row() == 0 );
+}
+
+inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.col() == 0 );
+}
+
+inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
+}
+
 
 } // namespace edgedof
 } // namespace hhg

@@ -555,5 +555,17 @@ constexpr inline uint_t stencilIndexFromBlueFace( const stencilDirection & dir )
   }
 }
 
+inline bool isVertexOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  if (idx.row() == 0 ){
+    return true;
+  } else if( idx.col() == 0 ){
+    return true;
+  } else if( (idx.row() + idx.col()) == ( hhg::levelinfo::num_microvertices_per_edge( level ) - 1 ) ){
+    return true;
+  } else {
+    return false;
+  }
+}
+
 } /// namespace vertexdof
 } /// namespace hhg
