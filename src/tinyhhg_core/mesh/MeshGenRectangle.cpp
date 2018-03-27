@@ -196,7 +196,7 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
     }
 
   // generate edges from faces
-  meshInfo.deriveEdges();
+  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, 0.1 * std::min( hx, hy ) );
 
   return meshInfo;
 }
@@ -339,9 +339,77 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
     }
 
   // generate edges from faces
-  meshInfo.deriveEdges();
+  meshInfo.deriveEdgesForRectangles( lowerLeft, upperRight, 0.1 * std::min( hx, hy ) );
 
   return meshInfo;
+}
+
+
+void MeshInfo:: deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol )
+{
+
+  MeshInfo::FaceContainer faces = this->getFaces();
+  MeshInfo::VertexContainer verts = this->getVertices();
+
+  DoFType edgeType = Inner;
+  Point3D vertexA, vertexB;
+
+  real_t llX = lowerLeft[0];
+  real_t llY = lowerLeft[1];
+  real_t urX = upperRight[0];
+  real_t urY = upperRight[1];
+
+  // function to check for boundary edges
+  auto edgeOnBoundary = [ llX, llY, urX, urY, tol ] ( Point3D nodeA, Point3D nodeB ) -> bool
+    {
+      bool retVal = false;
+
+      // left boundary
+      if( std::abs( llX - nodeA[0] ) < tol && std::abs( llX - nodeB[0] ) < tol )
+        {
+         retVal = true;
+        }
+      // right boundary
+      if( std::abs( urX - nodeA[0] ) < tol && std::abs( urX - nodeB[0] ) < tol )
+        {
+         retVal = true;
+        }
+      // top boundary
+      if( std::abs( urY - nodeA[1] ) < tol && std::abs( urY - nodeB[1] ) < tol )
+        {
+         retVal = true;
+        }
+      // bottom boundary
+      if( std::abs( llY - nodeA[1] ) < tol && std::abs( llY - nodeB[1] ) < tol )
+        {
+         retVal = true;
+        }
+
+      return retVal;
+    };
+
+  for ( const auto & it : faces )
+    {
+      // extract the three nodes of the face
+      std::vector<IDType> fNode = it.second.getVertices();
+
+      // set the three edges of triangle, edge is on boundary, if both
+      // its vertices are
+      vertexA = verts.find( fNode[0] )->second.getCoordinates();
+      vertexB = verts.find( fNode[1] )->second.getCoordinates();
+      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
+      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeType ) );
+
+      vertexA = verts.find( fNode[0] )->second.getCoordinates();
+      vertexB = verts.find( fNode[2] )->second.getCoordinates();
+      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
+      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeType ) );
+
+      vertexA = verts.find( fNode[1] )->second.getCoordinates();
+      vertexB = verts.find( fNode[2] )->second.getCoordinates();
+      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
+      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeType ) );
+    }
 }
 
 } // namespace hhg

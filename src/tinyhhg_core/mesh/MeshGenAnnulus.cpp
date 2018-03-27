@@ -133,10 +133,75 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
     }
 
   // generate edges from faces
-  meshInfo.deriveEdges();
+  meshInfo.deriveEdgesForFullAnnulus( rhoMin + 0.1 * deltaRho, rhoMax - 0.1 * deltaRho );
 
   // done
   return meshInfo;
+}
+
+
+void MeshInfo:: deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol )
+{
+
+  MeshInfo::FaceContainer faces = this->getFaces();
+  MeshInfo::VertexContainer verts = this->getVertices();
+
+  DoFType edgeType = Inner;
+  Point3D node1, node2;
+  real_t radius1, radius2;
+
+  for ( const auto & it : faces )
+    {
+      // extract the three nodes of the face
+      std::vector<IDType> fNode = it.second.getVertices();
+
+      // determine their position w.r.t. the boundary
+      std::vector<DoFType> dT( 3 );
+      dT[0] = verts.find( fNode[0] )->second.getDoFType();
+      dT[1] = verts.find( fNode[1] )->second.getDoFType();
+      dT[2] = verts.find( fNode[2] )->second.getDoFType();
+
+      // set the three edges of triangle, edge is on boundary, if both
+      // its vertices are
+      edgeType = Inner;
+      if( dT[0] == DirichletBoundary && dT[1] == DirichletBoundary )
+        {
+          radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
+          radius2 = verts.find( fNode[1] )->second.getCoordinates().norm();
+          if( (radius1 < minTol && radius2 < minTol) ||
+              (radius1 > maxTol && radius2 < maxTol) )
+            {
+              edgeType = DirichletBoundary;
+            }
+        }
+      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeType ) );
+
+      edgeType = Inner;
+      if( dT[0] == DirichletBoundary && dT[2] == DirichletBoundary )
+        {
+          radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
+          radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
+          if( (radius1 < minTol && radius2 < minTol) ||
+              (radius1 > maxTol && radius2 < maxTol) )
+            {
+              edgeType = DirichletBoundary;
+            }
+        }
+      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeType ) );
+
+      edgeType = Inner;
+      if( dT[1] == DirichletBoundary && dT[2] == DirichletBoundary )
+        {
+          radius1 = verts.find( fNode[1] )->second.getCoordinates().norm();
+          radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
+          if( (radius1 < minTol && radius2 < minTol) ||
+              (radius1 > maxTol && radius2 < maxTol) )
+            {
+              edgeType = DirichletBoundary;
+            }
+        }
+      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeType ) );
+    }
 }
 
 } // namespace hhg
