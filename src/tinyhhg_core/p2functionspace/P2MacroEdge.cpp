@@ -51,7 +51,7 @@ void smoothGaussSeidl(const uint_t &level, const Edge &edge,
         tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex(level, it.col(), dir)] *
                      edgeToVertexStencil[edgedof::stencilIndexFromVertex(dir)];
       }
-      if(edge.getNumNeighborEdges() == 2) {
+      if(edge.getNumNeighborFaces() == 2) {
         /// north face vertex dof
         for (const auto &dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF) {
           tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex(level, it.col(), dir)] *
@@ -66,24 +66,23 @@ void smoothGaussSeidl(const uint_t &level, const Edge &edge,
     }
 ////////// HORIZONTAL EDGE //////////
     tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge(level, it.col(), stencilDirection::EDGE_HO_C)];
+    /// on edge
     for(const auto & dir : hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF){
       tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
                    vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
     }
-    for(const auto & dir : hhg::edgedof::macroedge::neighborsOnEdgeFromHorizontalEdge){
+    /// on south face
+    for(const auto & dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF){
+      tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
+                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
+    }
+
+    for(const auto & dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge){
       tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                    edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
     }
-
-    for(const auto & dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF){
-      tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
-    }
-    for(const auto & dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge){
-      tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
-                     edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
-    }
-    if(edge.getNumNeighborEdges() == 2) {
+    /// on north face
+    if(edge.getNumNeighborFaces() == 2) {
       for (const auto &dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF) {
         tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge(level, it.col(), dir)] *
                      vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];

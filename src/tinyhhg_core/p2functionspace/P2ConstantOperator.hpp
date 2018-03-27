@@ -209,12 +209,8 @@ private:
   {
     dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
     dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
     dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
     dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
-    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
-    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -227,6 +223,9 @@ private:
                                   rhs.getVertexDoFFunction()->getVertexDataID());
       }
     }
+
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -246,7 +245,8 @@ private:
       }
     }
 
-
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
