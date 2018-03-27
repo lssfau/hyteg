@@ -8,4 +8,5 @@ Parameters
   mg_tolerance 1e-10;
   coarse_tolerance 1e-10;
   vtkOutput false;
+  printTiming false;
 }

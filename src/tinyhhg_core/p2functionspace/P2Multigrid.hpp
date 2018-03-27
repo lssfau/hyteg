@@ -4,6 +4,8 @@
 
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {
 namespace P2 {
