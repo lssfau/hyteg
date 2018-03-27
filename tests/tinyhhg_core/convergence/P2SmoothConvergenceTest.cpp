@@ -36,7 +36,7 @@ static void testP2SmoothConvergence()
   p2Function->interpolate( zeros, level, DirichletBoundary );
   p2Function->interpolate( rand,  level, Inner );
 
-  const uint_t smootherSteps = 2000;
+  const uint_t smootherSteps = 2500;
         real_t discreteL2Norm;
 
   for ( uint_t step = 0; step < smootherSteps; step++ )
