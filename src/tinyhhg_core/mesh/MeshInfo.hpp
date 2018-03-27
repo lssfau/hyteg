@@ -52,10 +52,10 @@ using walberla::real_t;
   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
   </tr>
   <tr>
-  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCriss.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCross.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCrissCross.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleDiamond.png" width="100%"/></td>
   </tr>
   <tr>
   <td align="center">CRISS</td>
@@ -83,8 +83,8 @@ using walberla::real_t;
   <center>
   <table>
   <tr>
-  <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
-  <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
+  <td align="center"><img src="../ExtraPics/Mesh_AnnulusPartial.png" width="50%"/></td>
+  <td align="center"><img src="../ExtraPics/Mesh_AnnulusFull.png" width="50%"/></td>
   </tr>
   <tr>
   <td align="center">partial annulus (nTan=4, nRad=2)</td>
