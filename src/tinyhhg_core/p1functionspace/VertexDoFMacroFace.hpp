@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/debug/all.h"
+#include "core/math/KahanSummation.h"
 
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
@@ -169,7 +170,7 @@ inline real_t dot(const uint_t & Level, Face &face,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Face>& lhsId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Face>& rhsId) {
 
-  real_t sp = 0.0;
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -179,13 +180,13 @@ inline real_t dot(const uint_t & Level, Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      sp += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )]
+      scalarProduct += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )]
           * rhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
     }
     --inner_rowsize;
   }
 
-  return sp;
+  return scalarProduct.get();
 }
 
 
