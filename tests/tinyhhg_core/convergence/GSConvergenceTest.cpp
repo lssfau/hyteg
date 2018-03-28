@@ -2,6 +2,7 @@
 #include <tinyhhg_core/tinyhhg.hpp>
 #include <core/Environment.h>
 #include <core/config/Config.h>
+#include "core/math/Random.h"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -37,12 +38,14 @@ int main(int argc, char* argv[])
   hhg::P2Function< real_t > helperFun ("helperFun", storage, level, level);
 
 
-
   std::function<real_t(const hhg::Point3D&)> exactFunction = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   //std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  walberla::math::seedRandomGenerator(0);
+  std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 1.0); };
 
   p2function.interpolate(exactFunction, level, hhg::DirichletBoundary);
+  p2function.interpolate(rand, level, hhg::Inner);
   p2Exact.interpolate(exactFunction, level);
 
   real_t begin_res, abs_res_old, rel_res, abs_res = 0;
