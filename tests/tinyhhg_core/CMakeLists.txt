@@ -122,6 +122,9 @@ waLBerla_execute_test(NAME P2ProlongateTest)
 waLBerla_compile_test(FILES P2/P2BasicFunctionsTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2BasicFunctionsTest)
 
+waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2PetscSolveTest)
+
 ## convergence ##
 
 waLBerla_compile_test(FILES convergence/GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
