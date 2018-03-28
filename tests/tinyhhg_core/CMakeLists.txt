@@ -88,6 +88,10 @@ waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
+## FE Operators ##
+waLBerla_compile_test(FILES P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1MassOperatorTest )
+waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
 
 ## P2 ##
 
