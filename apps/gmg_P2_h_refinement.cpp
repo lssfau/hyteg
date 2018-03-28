@@ -1,8 +1,19 @@
-#include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
-#include <core/Environment.h>
-#include <core/config/Config.h>
+#include "core/timing/Timer.h"
+#include "core/math/Random.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/logging/Logging.h"
 
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/solvers/gmultigrid.hpp"
+#include "tinyhhg_core/solvers/cgsolver.hpp"
+#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/vtkwriter.hpp"
 #include "tinyhhg_core/misc/ExactStencilWeights.hpp"
 
 using walberla::real_t;
@@ -11,22 +22,21 @@ using walberla::uint_c;
 
 using namespace hhg;
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
 
   walberla::Environment walberlaEnv(argc, argv);
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+  walberla::logging::Logging::instance()->setLogLevel(walberla::logging::Logging::PROGRESS);
   walberla::MPIManager::instance()->useWorldComm();
 
   walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
   cfg->readParameterFile("../data/param/gmg_P2.prm");
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
-  const uint_t minLevel = parameters.getParameter<uint_t>("minLevel");
-  const uint_t maxLevel = parameters.getParameter<uint_t>("maxLevel");
-  const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
-  const uint_t max_cg_iter =  parameters.getParameter<uint_t>("max_cg_iter");
-  const real_t mg_tolerance = parameters.getParameter<real_t>("mg_tolerance");
+  const uint_t minLevel         = parameters.getParameter<uint_t>("minLevel");
+  const uint_t maxLevel         = parameters.getParameter<uint_t>("maxLevel");
+  const uint_t max_outer_iter   = parameters.getParameter<uint_t>("max_outer_iter");
+  const uint_t max_cg_iter      = parameters.getParameter<uint_t>("max_cg_iter");
+  const real_t mg_tolerance     = parameters.getParameter<real_t>("mg_tolerance");
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
 
 
@@ -47,16 +57,18 @@ int main(int argc, char* argv[])
   hhg::P2Function< real_t > err("err", storage, minLevel, maxLevel);
   hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
-  std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D &)> exact = [](const hhg::Point3D &x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D &)> rhs   = [](const hhg::Point3D & ) { return 0; };
+  std::function<real_t(const hhg::Point3D &)> zero  = [](const hhg::Point3D & ) { return 0.0; };
+  std::function<real_t(const hhg::Point3D &)> ones  = [](const hhg::Point3D & ) { return 1.0; };
+  walberla::math::seedRandomGenerator(0);
+  std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 20.0); };
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
+  u.interpolate(rand, maxLevel, hhg::Inner);
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
   u_exact.interpolate(exact, maxLevel);
+
 //  WALBERLA_LOG_INFO_ON_ROOT("Interpolating and integrating rhs");
 //  npoints_helper.interpolate(rhs, maxLevel);
 //  M.apply(npoints_helper, f, maxLevel, hhg::All);
