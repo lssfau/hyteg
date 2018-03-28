@@ -1,5 +1,5 @@
-u = TrialFunction(element)
-v = TestFunction(element)
+v = TestFunction( testElement )
+u = TrialFunction( trialElement )
 
 forms = [ u.dx(i)*v.dx(j)*dx for i in range(2) for j in range(2) ]
 for i in range(2):

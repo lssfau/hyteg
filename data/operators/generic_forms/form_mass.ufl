@@ -1,4 +1,0 @@
-u = TestFunction(element)
-v = TrialFunction(element)
-a = u*v*dx
- 

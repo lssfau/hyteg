@@ -1,4 +1,0 @@
-u = TrialFunction(element)
-q = TestFunction(element)
-
-forms = [-u.dx(i)*q*dx for i in range(2)]
