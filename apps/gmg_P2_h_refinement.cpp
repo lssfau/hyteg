@@ -3,6 +3,8 @@
 #include <core/Environment.h>
 #include <core/config/Config.h>
 
+#include "tinyhhg_core/misc/ExactStencilWeights.hpp"
+
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
@@ -72,6 +74,34 @@ int main(int argc, char* argv[])
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
   typedef GMultigridSolver<hhg::P2Function<real_t>, hhg::P2ConstantLaplaceOperator, CoarseSolver> LaplaceSover;
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
+
+  if (parameters.getParameter<bool>("useExactWeights")) {
+    WALBERLA_LOG_INFO("WARNING: works only on tri_1el mesh");
+    auto weights = hhg::stencilWeights::tri_1el();
+
+    for (uint_t i = minLevel; i <= maxLevel; ++i) {
+      real_t *vToV = storage->getFace(PrimitiveID(6))->getData(L.getVertexToVertexOpr().getFaceStencilID())->getPointer(i);
+      for (uint_t j = 0; j < 7; ++j) {
+        vToV[j] = weights.vertexToVertexStencil[j];
+      }
+
+      real_t *eToV = storage->getFace(PrimitiveID(6))->getData(L.getEdgeToVertexOpr().getFaceStencilID())->getPointer(i);
+      for (uint_t j = 0; j < 12; ++j) {
+        eToV[j] = weights.edgeToVertexStencil[j];
+      }
+
+      real_t *vToE = storage->getFace(PrimitiveID(6))->getData(L.getVertexToEdgeOpr().getFaceStencilID())->getPointer(i);
+      for (uint_t j = 0; j < 12; ++j) {
+        vToE[j] = weights.vertexToEdgeStencil[j];
+      }
+
+      real_t *eToE = storage->getFace(PrimitiveID(6))->getData(L.getEdgeToEdgeOpr().getFaceStencilID())->getPointer(i);
+      for (uint_t j = 0; j < 15; ++j) {
+        eToE[j] = weights.edgeToEdgeStencil[j];
+      }
+    }
+  }
+
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));
