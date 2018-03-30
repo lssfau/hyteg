@@ -172,10 +172,15 @@ int main( int argc, char* argv[] )
       msg.str("");
     }
 
-  SetupPrimitiveStorage *setupStorage;
+  SetupPrimitiveStorage *setupStorage = nullptr;
   setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   hhg::loadbalancing::roundRobin( *setupStorage );
+
+  if( beVerbose )
+    {
+      WALBERLA_LOG_INFO_ON_ROOT( "" << *setupStorage );
+    }
 
   const size_t minLevel = 2;
   const size_t maxLevel = std::max( minLevel, (size_t)2 );
@@ -193,6 +198,7 @@ int main( int argc, char* argv[] )
   vtkOutput.write( outLevel );
 
   delete meshInfo;
+  delete setupStorage;
 
   return 0;
 }

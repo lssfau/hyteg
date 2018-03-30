@@ -52,10 +52,10 @@ using walberla::real_t;
   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
   </tr>
   <tr>
-  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
-  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCriss.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCross.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleCrissCross.png" width="100%"/></td>
+  <td><img src="../ExtraPics/Mesh_RectangleDiamond.png" width="100%"/></td>
   </tr>
   <tr>
   <td align="center">CRISS</td>
@@ -72,7 +72,7 @@ using walberla::real_t;
 /// Meshing of a partial annulus is (conceptually) handled by meshing the correspondig
 /// rectangle in cartesian coordinates. In case of a partial annulus this is given by
 /// lower left vertex (rhoMin, phiMin) and upper right vertex (rhoMax, phiMax).
-/// - For a partial annulus the same for flavours as for rectangles can be specified.
+/// - For a partial annulus the same four flavours as for rectangles can be specified.
 /// - A full annulus is meshed using a CRISSCROSS pattern resulting in
 ///
 /// |              |     #vertices    | #triangles  |
@@ -83,8 +83,8 @@ using walberla::real_t;
   <center>
   <table>
   <tr>
-  <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
-  <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
+  <td align="center"><img src="../ExtraPics/Mesh_AnnulusPartial.png" width="50%"/></td>
+  <td align="center"><img src="../ExtraPics/Mesh_AnnulusFull.png" width="50%"/></td>
   </tr>
   <tr>
   <td align="center">partial annulus (nTan=4, nRad=2)</td>
@@ -237,13 +237,24 @@ private:
   /// Construct a MeshInfo for a rectangular domain using diamond approach
   static MeshInfo meshRectangleDiamond( const Point2D lowerLeft, const Point2D upperRight, uint_t nx, uint_t ny );
 
-  /// Derive information on edges from vertices and faces
+  /// Derive information on edges from vertices and faces (for rectangles)
 
-  /// This method is used in the 2D inline mesh generators. The latter provide only information
-  /// on vertices and faces. The information on the edges is derived from the faces, as each
-  /// face has three edges. The type of edge is set to DirichletBoundary, if both its vertices
-  /// have this type and Inner otherwise.
-  void deriveEdges();
+  /// This method is used in the 2D inline mesh generators for rectangles. The latter
+  /// provide only information on vertices and faces. The information on the edges is
+  /// derived from the faces, as each face has three edges.
+  /// \param lowerLeft   lower left vertex of rectangle
+  /// \param upperRight  upper right vertex of rectangle
+  /// \param tol         parameter used to determine, whether an edge is part of the boundary, or not
+  void deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol );
+
+  /// Derive information on edges from vertices and faces (for full annulus)
+
+  /// This method is used in the 2D inline mesh generator for the full annulus. The latter
+  /// provides only information on vertices and faces. The information on the edges is then
+  /// derived from the faces, as each face has three edges.
+  /// \param minTol  parameter used to determine, whether an edge is part of the inner boundary, or not
+  /// \param maxTol  parameter used to determine, whether an edge is part of the outer boundary, or not
+  void deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol );
 
   VertexContainer vertices_;
   EdgeContainer   edges_;
