@@ -11,6 +11,7 @@
 #include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1BlendingOperatorNew.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "p1functionspace/P1DataHandling.hpp"
