@@ -9,28 +9,28 @@
 namespace hhg {
 namespace P2 {
 namespace macroface {
-void smoothJacobiVertexDoF( const uint_t &                                           level,
-                            const Face &                                             face,
-                            const PrimitiveDataID< StencilMemory< real_t >, Face > & vertexDoFStencilID,
-                            const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcVertexDoFID,
-                            const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstVertexDoFID,
-                            const PrimitiveDataID< StencilMemory< real_t >, Face > & edgeDoFStencilID,
-                            const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcEdgeDoFID,
-                            const PrimitiveDataID< FunctionMemory< real_t >, Face > &rhsVertexDoFID,
+void smoothJacobiVertexDoF( const uint_t&                                            level,
+                            const Face&                                              face,
+                            const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexDoFStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcVertexDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstVertexDoFID,
+                            const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeDoFStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsVertexDoFID,
                             const real_t                                             dampingFactor )
 {
    typedef stencilDirection sD;
 
-   real_t *vertexDoFStencil = face.getData( vertexDoFStencilID )->getPointer( level );
-   real_t *dstVertexDoF     = face.getData( dstVertexDoFID )->getPointer( level );
-   real_t *srcVertexDoF     = face.getData( srcVertexDoFID )->getPointer( level );
-   real_t *edgeDoFStencil   = face.getData( edgeDoFStencilID )->getPointer( level );
-   real_t *srcEdgeDoF       = face.getData( srcEdgeDoFID )->getPointer( level );
-   real_t *rhs              = face.getData( rhsVertexDoFID )->getPointer( level );
+   real_t* vertexDoFStencil = face.getData( vertexDoFStencilID )->getPointer( level );
+   real_t* dstVertexDoF     = face.getData( dstVertexDoFID )->getPointer( level );
+   real_t* srcVertexDoF     = face.getData( srcVertexDoFID )->getPointer( level );
+   real_t* edgeDoFStencil   = face.getData( edgeDoFStencilID )->getPointer( level );
+   real_t* srcEdgeDoF       = face.getData( srcEdgeDoFID )->getPointer( level );
+   real_t* rhs              = face.getData( rhsVertexDoFID )->getPointer( level );
 
    real_t tmp;
 
-   for( const auto &it : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+   for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 1 ) )
    {
       tmp = rhs[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )];
 
@@ -53,27 +53,27 @@ void smoothJacobiVertexDoF( const uint_t &                                      
    }
 }
 
-void smoothJacobiEdgeDoF( const uint_t &                                           Level,
-                          const Face &                                             face,
-                          const PrimitiveDataID< StencilMemory< real_t >, Face > & vertexDoFStencilID,
-                          const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcVertexDoFID,
-                          const PrimitiveDataID< StencilMemory< real_t >, Face > & edgeDoFStencilID,
-                          const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcEdgeDoFID,
-                          const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstEdgeDoFID,
-                          const PrimitiveDataID< FunctionMemory< real_t >, Face > &rhsEdgeDoFID,
+void smoothJacobiEdgeDoF( const uint_t&                                            Level,
+                          const Face&                                              face,
+                          const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexDoFStencilID,
+                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcVertexDoFID,
+                          const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeDoFStencilID,
+                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
+                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstEdgeDoFID,
+                          const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsEdgeDoFID,
                           const real_t                                             dampingFactor )
 {
    typedef stencilDirection sD;
 
-   real_t *vertexDoFStencil = face.getData( vertexDoFStencilID )->getPointer( Level );
-   real_t *srcVertexDoF     = face.getData( srcVertexDoFID )->getPointer( Level );
-   real_t *edgeDoFStencil   = face.getData( edgeDoFStencilID )->getPointer( Level );
-   real_t *srcEdgeDoF       = face.getData( srcEdgeDoFID )->getPointer( Level );
-   real_t *dstEdgeDoF       = face.getData( dstEdgeDoFID )->getPointer( Level );
-   real_t *rhs              = face.getData( rhsEdgeDoFID )->getPointer( Level );
+   real_t* vertexDoFStencil = face.getData( vertexDoFStencilID )->getPointer( Level );
+   real_t* srcVertexDoF     = face.getData( srcVertexDoFID )->getPointer( Level );
+   real_t* edgeDoFStencil   = face.getData( edgeDoFStencilID )->getPointer( Level );
+   real_t* srcEdgeDoF       = face.getData( srcEdgeDoFID )->getPointer( Level );
+   real_t* dstEdgeDoF       = face.getData( dstEdgeDoFID )->getPointer( Level );
+   real_t* rhs              = face.getData( rhsEdgeDoFID )->getPointer( Level );
 
    real_t tmp;
-   for( const auto &it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
+   for( const auto& it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
    {
       if( it.row() != 0 )
       {
@@ -147,45 +147,45 @@ void smoothJacobiEdgeDoF( const uint_t &                                        
    }
 }
 
-void smoothGaussSeidl( const uint_t &                                           level,
-                       const Face &                                             face,
-                       const PrimitiveDataID< StencilMemory< real_t >, Face > & vertexToVertexStencilID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Face > & edgeToVertexStencilID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstVertexDoFID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Face > & vertexToEdgeStencilID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Face > & edgeToEdgeStencilID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstEdgeDoFID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Face > &rhsVertexDoFID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Face > &rhsEdgeDoFID )
+void smoothGaussSeidl( const uint_t&                                            level,
+                       const Face&                                              face,
+                       const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexToVertexStencilID,
+                       const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeToVertexStencilID,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstVertexDoFID,
+                       const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexToEdgeStencilID,
+                       const PrimitiveDataID< StencilMemory< real_t >, Face >&  edgeToEdgeStencilID,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& dstEdgeDoFID,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsVertexDoFID,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& rhsEdgeDoFID )
 {
    typedef stencilDirection sD;
 
-   real_t *vertexToVertexStencil = face.getData( vertexToVertexStencilID )->getPointer( level );
-   real_t *edgeToVertexStencil   = face.getData( edgeToVertexStencilID )->getPointer( level );
-   real_t *dstVertexDoF          = face.getData( dstVertexDoFID )->getPointer( level );
-   real_t *vertexToEdgeStencil   = face.getData( vertexToEdgeStencilID )->getPointer( level );
-   real_t *edgeToEdgeStencil     = face.getData( edgeToEdgeStencilID )->getPointer( level );
-   real_t *dstEdgeDoF            = face.getData( dstEdgeDoFID )->getPointer( level );
-   real_t *rhsVertexDoF          = face.getData( rhsVertexDoFID )->getPointer( level );
-   real_t *rhsEdgeDoF            = face.getData( rhsEdgeDoFID )->getPointer( level );
+   real_t* vertexToVertexStencil = face.getData( vertexToVertexStencilID )->getPointer( level );
+   real_t* edgeToVertexStencil   = face.getData( edgeToVertexStencilID )->getPointer( level );
+   real_t* dstVertexDoF          = face.getData( dstVertexDoFID )->getPointer( level );
+   real_t* vertexToEdgeStencil   = face.getData( vertexToEdgeStencilID )->getPointer( level );
+   real_t* edgeToEdgeStencil     = face.getData( edgeToEdgeStencilID )->getPointer( level );
+   real_t* dstEdgeDoF            = face.getData( dstEdgeDoFID )->getPointer( level );
+   real_t* rhsVertexDoF          = face.getData( rhsVertexDoFID )->getPointer( level );
+   real_t* rhsEdgeDoF            = face.getData( rhsEdgeDoFID )->getPointer( level );
 
    real_t tmpVertex = 0, tmpEdgeHO = 0, tmpEdgeDI = 0, tmpEdgeVE = 0;
 
    /// sum up weighted values first for vertex and edges and write to corresponding dof afterwards
-   for( const auto &it : hhg::edgedof::macroface::Iterator( level, 0 ) )
+   for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
       if( !vertexdof::isVertexOnBoundary( level, it ) )
       {
          tmpVertex = rhsVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )];
          /// vertex to vertex
-         for( const auto &dir : vertexdof::macroface::neighborsWithoutCenter )
+         for( const auto& dir : vertexdof::macroface::neighborsWithoutCenter )
          {
             tmpVertex -= dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// edge to vertex
-         for( const auto &dir : edgedof::macroface::neighborsFromVertex )
+         for( const auto& dir : edgedof::macroface::neighborsFromVertex )
          {
             tmpVertex -= dstEdgeDoF[edgedof::macroface::indexFromVertex( level, it.col(), it.row(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
@@ -196,13 +196,13 @@ void smoothGaussSeidl( const uint_t &                                           
       {
          tmpEdgeHO = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )];
          /// vertex to edge
-         for( const auto &dir : vertexdof::macroface::neighborsFromHorizontalEdge )
+         for( const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge )
          {
             tmpEdgeHO -= dstVertexDoF[vertexdof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
          }
          /// edge to edge
-         for( const auto &dir : edgedof::macroface::neighborsFromHorizontalEdgeWithoutCenter )
+         for( const auto& dir : edgedof::macroface::neighborsFromHorizontalEdgeWithoutCenter )
          {
             tmpEdgeHO -= dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
@@ -213,13 +213,13 @@ void smoothGaussSeidl( const uint_t &                                           
       {
          tmpEdgeVE = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )];
          /// vertex to edge
-         for( const auto &dir : vertexdof::macroface::neighborsFromVerticalEdge )
+         for( const auto& dir : vertexdof::macroface::neighborsFromVerticalEdge )
          {
             tmpEdgeVE -= dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge( dir )];
          }
          /// edge to edge
-         for( const auto &dir : edgedof::macroface::neighborsFromVerticalEdgeWithoutCenter )
+         for( const auto& dir : edgedof::macroface::neighborsFromVerticalEdgeWithoutCenter )
          {
             tmpEdgeVE -= dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( dir )];
@@ -230,13 +230,13 @@ void smoothGaussSeidl( const uint_t &                                           
       {
          tmpEdgeDI = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )];
          /// vertex to edge
-         for( const auto &dir : vertexdof::macroface::neighborsFromDiagonalEdge )
+         for( const auto& dir : vertexdof::macroface::neighborsFromDiagonalEdge )
          {
             tmpEdgeDI -= dstVertexDoF[vertexdof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge( dir )];
          }
          /// edge to edge
-         for( const auto &dir : edgedof::macroface::neighborsFromDiagonalEdgeWithoutCenter )
+         for( const auto& dir : edgedof::macroface::neighborsFromDiagonalEdgeWithoutCenter )
          {
             tmpEdgeDI -= dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( dir )];
