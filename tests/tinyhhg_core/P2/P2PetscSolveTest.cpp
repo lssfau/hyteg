@@ -29,52 +29,73 @@ int main(int argc, char* argv[])
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
-  size_t Level = 4;
+  const size_t level = 2;
 
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::P2Function< real_t > x("x", storage, Level, Level);
-  hhg::P2Function< real_t > x_exact("x_exact", storage, Level, Level);
-  hhg::P2Function< real_t > b("x", storage, Level, Level);
-  hhg::P2Function< real_t > err("err", storage, Level, Level);
-  std::shared_ptr<hhg::P2Function< PetscInt >> numerator = std::make_shared<hhg::P2Function< PetscInt >>("numerator", storage, Level, Level);
+  hhg::P2Function< real_t > x("x", storage, level, level + 1);
+  hhg::P2Function< real_t > x_exact("x_exact", storage, level, level + 1);
+  hhg::P2Function< real_t > b("x", storage, level, level + 1);
+  hhg::P2Function< real_t > err("err", storage, level, level + 1);
+  hhg::P2Function< real_t > residuum("err", storage, level, level + 1);
+  std::shared_ptr<hhg::P2Function< PetscInt >> numerator = std::make_shared<hhg::P2Function< PetscInt >>("numerator", storage, level, level + 1);
 
-  hhg::P2ConstantLaplaceOperator A(storage, Level, Level);
+  hhg::P2ConstantLaplaceOperator A(storage, level, level + 1);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return sin(xx[0])*sinh(xx[1]); };
   walberla::math::seedRandomGenerator(0);
   std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 1.0); };
 
-  x.interpolate(exact, Level, hhg::DirichletBoundary);
-  x.interpolate(rand, Level, hhg::Inner);
-  b.interpolate(exact, Level, hhg::DirichletBoundary);
-  x_exact.interpolate(exact, Level);
+  x.interpolate(exact, level, hhg::DirichletBoundary);
+  x.interpolate(rand, level, hhg::Inner);
+  b.interpolate(exact, level, hhg::DirichletBoundary);
+  x_exact.interpolate(exact, level);
 
-  uint_t num = 0;
-  uint_t dofsOnRank = numerator->enumerate(Level,num);
-  WALBERLA_LOG_INFO_ON_ROOT("Num dofs = " << uint_c(num))
+  x.interpolate(exact, level + 1, hhg::DirichletBoundary);
+  x.interpolate(rand, level + 1, hhg::Inner);
+  b.interpolate(exact, level + 1, hhg::DirichletBoundary);
+  x_exact.interpolate(exact, level + 1);
 
+  uint_t num_1 = 0,num_2 = 0;
+  uint_t dofsOnRank_1 = numerator->enumerate(level,num_1);
+  uint_t dofsOnRank_2 = numerator->enumerate(level + 1,num_2);
 
-  PETScLUSolver<real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator> solver(numerator, dofsOnRank, num);
+  PETScLUSolver<real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator> solver_1(numerator, dofsOnRank_1, num_1);
+  PETScLUSolver<real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator> solver_2(numerator, dofsOnRank_2, num_2);
 
   walberla::WcTimer timer;
-  solver.solve(A,x,b,x,Level,0,0);
+  solver_1.solve(A,x,b,x,level,0,0);
+  solver_2.solve(A,x,b,x,level + 1,0,0);
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
-  err.assign({1.0, -1.0}, {&x, &x_exact}, Level);
+  A.apply(x,residuum,level,hhg::Inner);
+  A.apply(x,residuum,level + 1,hhg::Inner);
 
-  real_t discr_l2_err = std::sqrt(err.dot(err, Level) / (real_t)num);
+  err.assign({1.0, -1.0}, {&x, &x_exact}, level);
+  err.assign({1.0, -1.0}, {&x, &x_exact}, level + 1);
 
-  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
+  real_t discr_l2_err_1 = std::sqrt(err.dot(err, level) / (real_t)num_1);
+  real_t discr_l2_err_2 = std::sqrt(err.dot(err, level + 1) / (real_t)num_2);
+  real_t residuum_l2_1 = std::sqrt(residuum.dot(residuum, level) / (real_t)num_1);
+  real_t residuum_l2_2 = std::sqrt(residuum.dot(residuum, level + 1) / (real_t)num_2);
 
-  WALBERLA_CHECK_FLOAT_EQUAL_EPSILON(discr_l2_err,0.0,1e-13);
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error 1 = " << discr_l2_err_1);
+  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error 2 = " << discr_l2_err_2);
+  WALBERLA_LOG_INFO_ON_ROOT("error ratio = " << (discr_l2_err_1 / discr_l2_err_2));
+  WALBERLA_LOG_INFO_ON_ROOT("residuum 1 = " << residuum_l2_1);
+  WALBERLA_LOG_INFO_ON_ROOT("residuum 1 = " << residuum_l2_2);
+
+  WALBERLA_CHECK_FLOAT_EQUAL_EPSILON(residuum_l2_1,0.0,1e-15);
+  WALBERLA_CHECK_FLOAT_EQUAL_EPSILON(residuum_l2_2,0.0,1e-15);
+  WALBERLA_CHECK_LESS(8.0, (discr_l2_err_1 / discr_l2_err_2));
 
   VTKOutput vtkOutput( "../../output", "P2PetscSolve" );
   vtkOutput.add( &x );
   vtkOutput.add( &x_exact );
   vtkOutput.add( &err );
-  vtkOutput.write( Level );
+  vtkOutput.add( &residuum );
+  vtkOutput.write( level + 1 );
 
 
   return EXIT_SUCCESS;
