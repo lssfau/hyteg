@@ -1,9 +1,20 @@
+#include <tinyhhg_core/primitivestorage/Visualization.hpp>
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "core/DataTypes.h"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
+
+using walberla::uint_t;
 
 namespace hhg {
 

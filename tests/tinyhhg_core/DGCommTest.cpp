@@ -1,7 +1,12 @@
-#include "tinyhhg_core/tinyhhg.hpp"
-
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+
 
 using namespace hhg;
 

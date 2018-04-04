@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 
 //using hhg::P1BubbleFace::index;
 using namespace hhg::DGFace;

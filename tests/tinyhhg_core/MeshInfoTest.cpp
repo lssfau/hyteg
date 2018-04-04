@@ -4,8 +4,11 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-#include "tinyhhg_core/tinyhhg.hpp"
 
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "core/Filesystem.h"
 #include "boost/algorithm/string/predicate.hpp"
 

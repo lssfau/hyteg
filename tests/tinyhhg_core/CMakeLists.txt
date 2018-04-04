@@ -4,9 +4,6 @@ waLBerla_link_files_to_builddir(*.msh)
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P1BubbleCGConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1BubbleCGConvergenceTest)
-
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 
@@ -159,9 +156,6 @@ waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
 waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CommTest)
-
-waLBerla_compile_test(FILES BubbleCommTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME BubbleCommTest)
 
 waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME DGCommTest)

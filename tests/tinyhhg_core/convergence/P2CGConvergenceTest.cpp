@@ -1,7 +1,13 @@
-#include <core/timing/Timer.h>
+#include "core/timing/Timer.h"
 
-#include <core/Environment.h>
-#include <core/config/Config.h>
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/logging/Logging.h"
+
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

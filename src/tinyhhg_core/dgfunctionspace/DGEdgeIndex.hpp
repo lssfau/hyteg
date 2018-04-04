@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 
 namespace hhg {
 namespace DGEdge {
