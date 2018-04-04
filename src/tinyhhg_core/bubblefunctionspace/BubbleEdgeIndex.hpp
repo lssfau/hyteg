@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 
 namespace hhg {

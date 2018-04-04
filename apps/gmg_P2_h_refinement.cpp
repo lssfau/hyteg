@@ -10,10 +10,10 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
-#include "tinyhhg_core/solvers/gmultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/format.hpp"
-#include "tinyhhg_core/vtkwriter.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/misc/ExactStencilWeights.hpp"
 
 using walberla::real_t;

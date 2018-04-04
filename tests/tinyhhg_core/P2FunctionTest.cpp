@@ -7,7 +7,7 @@
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/vtkwriter.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 
 

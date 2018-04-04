@@ -11,6 +11,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/preconditioners/GaussSeidelPreconditioner.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

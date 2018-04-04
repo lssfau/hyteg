@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <string>
 
+#include "core/Abort.h"
+
 namespace hhg {
 
 /// format uses the printf syntax to format a given formatString and return an std::string

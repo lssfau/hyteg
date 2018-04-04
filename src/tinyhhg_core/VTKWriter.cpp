@@ -1,5 +1,5 @@
 #include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
-#include "vtkwriter.hpp"
+#include "VTKWriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/format.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
