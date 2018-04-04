@@ -1,5 +1,5 @@
 #include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
+
 
 using walberla::real_t;
 using walberla::uint_t;

@@ -1,4 +1,4 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 
 int main(int argc, char* argv[])
 {

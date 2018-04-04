@@ -1,4 +1,4 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 
 #include <boost/core/null_deleter.hpp>
 

@@ -1,4 +1,9 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+#include "core/DataTypes.h"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+
 
 using walberla::real_t;
 

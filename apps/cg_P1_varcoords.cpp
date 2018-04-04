@@ -1,5 +1,5 @@
 #include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
+
 #include <core/Environment.h>
 
 #include <boost/core/null_deleter.hpp>

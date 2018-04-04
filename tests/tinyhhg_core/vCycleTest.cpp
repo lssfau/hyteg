@@ -1,4 +1,4 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 #include <tinyhhg_core/likwidwrapper.hpp>
 
 #include <core/Environment.h>

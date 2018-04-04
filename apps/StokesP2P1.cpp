@@ -1,4 +1,4 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 
 using walberla::real_t;
 

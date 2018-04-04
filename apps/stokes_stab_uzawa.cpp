@@ -1,4 +1,4 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 #include "tinyhhg_core/format.hpp"
 
 #include <core/Environment.h>

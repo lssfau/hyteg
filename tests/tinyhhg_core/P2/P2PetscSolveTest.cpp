@@ -1,8 +1,9 @@
-#include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
+#include "core/timing/Timer.h"
+
 #include <core/Environment.h>
 #include "core/math/Random.h"
 #include "tinyhhg_core/misc/ExactStencilWeights.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
 
 #ifndef HHG_BUILD_WITH_PETSC
 #error "This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON"

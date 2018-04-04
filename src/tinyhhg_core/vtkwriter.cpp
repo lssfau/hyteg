@@ -5,7 +5,6 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/celldofspace/CellDoFIndexing.hpp"
-#include "tinyhhg_core/bubblefunctionspace/BubbleFunction.hpp"
 
 
 namespace hhg
@@ -780,12 +779,6 @@ void VTKOutput::syncAllFunctions( const uint_t & level ) const
   }
 
   for ( const auto & function : edgeDoFFunctions_ )
-  {
-    function->getCommunicator( level )->template communicate< Vertex, Edge >();
-    function->getCommunicator( level )->template communicate< Edge,   Face >();
-  }
-
-  for ( const auto & function : bubbleFunctions_ )
   {
     function->getCommunicator( level )->template communicate< Vertex, Edge >();
     function->getCommunicator( level )->template communicate< Edge,   Face >();
