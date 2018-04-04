@@ -170,12 +170,15 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Solve time " << std::defaultfloat << solveTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << setupTime + solveTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
-  WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
-  WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "MinLevel: " << minLevel);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "MaxLevel: " << maxLevel);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "DoFs on MaxLevel: " << (uint_t) npoints);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "Setup time: " << std::defaultfloat << setupTime);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "Solve time: " << std::defaultfloat << solveTime);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "Time to solution: " << std::defaultfloat << setupTime + solveTime);
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i-convergenceStartIter));
+  WALBERLA_LOG_INFO_ON_ROOT(std::setw(25) << "L^2 error: " << std::scientific << discr_l2_err);
+
 
   if (parameters.getParameter<bool>("vtkOutput")) {
     VTKOutput vtkOutput("../output", "gmg_P2_h_refinement");
