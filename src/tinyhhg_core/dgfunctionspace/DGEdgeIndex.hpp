@@ -3,6 +3,8 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/primitives/Edge.hpp"
+#include "tinyhhg_core/primitives/Vertex.hpp"
 
 namespace hhg {
 namespace DGEdge {
