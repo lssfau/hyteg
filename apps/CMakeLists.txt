@@ -1,13 +1,9 @@
-waLBerla_add_executable( NAME cg_bubble
-        FILES cg_bubble.cpp
-        DEPENDS tinyhhg_core core)
-
 waLBerla_add_executable( NAME minres
         FILES minres.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME block_cg
-        FILES block_cg.cpp
+waLBerla_add_executable( NAME BlockCG
+        FILES BlockCG.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME stokes_stab

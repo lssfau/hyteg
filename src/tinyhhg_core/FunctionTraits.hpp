@@ -27,9 +27,6 @@ template< typename VType >
 class EdgeDoFFunction;
 
 template< typename VType >
-class BubbleFunction;
-
-template< typename VType >
 class DGFunction;
 
 // Composites
@@ -62,15 +59,6 @@ struct FunctionTrait< EdgeDoFFunction< VType > >
   typedef VType ValueType;
 
   static std::string getTypeName() { return "EdgeDoFFunction"; }
-};
-
-/// Bubble specialization (Cell DoFs)
-template< typename VType >
-struct FunctionTrait< BubbleFunction< VType > >
-{
-  typedef VType ValueType;
-
-  static std::string getTypeName() { return "BubbleFunction"; }
 };
 
 /// DG specialization

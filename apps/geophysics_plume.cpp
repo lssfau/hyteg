@@ -4,6 +4,11 @@
 
 #include <boost/core/null_deleter.hpp>
 
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
