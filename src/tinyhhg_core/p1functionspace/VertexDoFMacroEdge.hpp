@@ -9,6 +9,7 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 
+#include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
 
 namespace hhg {
@@ -129,15 +130,15 @@ template< typename ValueType >
 inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &lhsMemoryId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsMemoryId) {
 
-  real_t sp = 0.0;
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    sp += edge.getData(lhsMemoryId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )]
+    scalarProduct += edge.getData(lhsMemoryId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )]
         * edge.getData(rhsMemoryId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
   }
 
-  return sp;
+  return scalarProduct.get();
 }
 
 
@@ -661,7 +662,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
 }
 
 template< typename ValueType >
-inline void printFunctionMemory( const uint_t & level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+inline void printFunctionMemory( const uint_t & level, const Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;

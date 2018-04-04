@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/debug/all.h"
+#include "core/math/KahanSummation.h"
 
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
@@ -169,7 +170,7 @@ inline real_t dot(const uint_t & Level, Face &face,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Face>& lhsId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Face>& rhsId) {
 
-  real_t sp = 0.0;
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
 
@@ -179,13 +180,13 @@ inline real_t dot(const uint_t & Level, Face &face,
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
-      sp += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )]
+      scalarProduct += lhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )]
           * rhsPtr[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
     }
     --inner_rowsize;
   }
 
-  return sp;
+  return scalarProduct.get();
 }
 
 
@@ -883,35 +884,35 @@ inline void integrateDG(const uint_t & Level, Face &face,
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
       tmp  = rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_S )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_S )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_S )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_SE )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_SE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_SE )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_SE )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_E )]));
 
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_W )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_NW )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_BLUE_NW)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_NW )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_NW )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_N )]));
       tmp += rhs[DGFace::indexDGFaceFromVertex( Level, i, j, SD::CELL_GRAY_NE)] * (0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_N )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level, 
-       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level, 
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_N )]) + 0.5 * 0.5 * ( rhsP1[indexFromVertex( Level,
+       i, j, SD::VERTEX_C )] + rhsP1[indexFromVertex( Level,
        i, j, SD::VERTEX_E )]));
 
       dst[indexFromVertex( Level,   i, j, SD::VERTEX_C )] = weightedFaceArea * tmp;
@@ -1023,12 +1024,12 @@ inline void createFunctionFromVector(const uint_t & Level, Face &face,
 
 #endif
 
-template< typename ValueType, size_t Level >
-inline void printFunctionMemory(Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
+template< typename ValueType >
+inline void printFunctionMemory(const uint_t Level,const Face &face, const PrimitiveDataID <FunctionMemory<ValueType>, Face> &dstId) {
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;
-  cout << face << std::left << setprecision(1) << fixed << setfill(' ') << endl;
+  cout << face << std::left << setprecision(1) << fixed << setfill(' ')  << endl << "Vertex DoFs: ";
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
     cout << setw(5) << faceMemory[hhg::vertexdof::macroface::indexFromVertex( Level,   it.col(),
