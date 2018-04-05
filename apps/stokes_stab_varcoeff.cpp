@@ -1,4 +1,5 @@
 #include <tinyhhg_core/tinyhhg.hpp>
+#include <tinyhhg_core/geometry/CircularMap.hpp>
 
 using walberla::real_t;
 
@@ -7,15 +8,31 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  std::string meshFileName = "../data/meshes/quad_4el.msh";
+  std::string meshFileName = "../data/meshes/unitsquare_with_circular_hole_neumann.msh";
 
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
+  Point3D circleCenter{{0.5, 0.5, 0}};
+  real_t circleRadius = 0.25;
+
+  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
+    Face &face = *it->second;
+
+    if (face.hasBoundaryEdge()) {
+      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
+
+      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+      }
+    }
+  }
+
   hhg::loadbalancing::roundRobin( setupStorage );
 
   size_t minLevel = 2;
-  size_t maxLevel = 5;
+  size_t maxLevel = 4;
   size_t maxiter = 10000;
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
@@ -26,23 +43,33 @@ int main(int argc, char* argv[])
   hhg::P1StokesFunction<real_t> u("u", storage, minLevel, maxLevel);
   std::shared_ptr<hhg::P1Function< real_t >> coefficient = std::make_shared<hhg::P1Function< real_t >>("coeff", storage, minLevel, maxLevel);
 
-  hhg::P1MassOperator M(storage, minLevel, maxLevel);
-  hhg::P1CoefficientStokesOperator L(storage, coefficient, minLevel, maxLevel);
+  typedef hhg::P1BlendingStokesOperator SolveOperator;
 
-  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return ((0.000112225535684453*exp(17*x[1]) + 1)*(0.89*exp(-10*pow(x[0] - 0.5, 2) - 30*pow(x[1] - (-sqrt(pow(x[0] - 0.5, 2)) + 0.5)*(1.5*sqrt(pow(x[0] - 0.5, 2)) + 0.75) - 0.3, 2)) + 1)*exp(100*pow(-x[0] + 0.5, 2)) + 0.98)*exp(-100*pow(-x[0] + 0.5, 2))/(0.000112225535684453*exp(17*x[1]) + 1); };
+  SolveOperator L(storage, minLevel, maxLevel);
+
+  std::function<real_t(const hhg::Point3D&)> coeff = [](const hhg::Point3D& x) { return 1.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> inflow = [](const hhg::Point3D& x) {
+    if (x[0] < 1e-4) {
+      return 4.0 * x[1] * (1.0 - x[1]);
+    }
 
-  u.u.interpolate(zero, maxLevel, hhg::DirichletBoundary);
+    return 0.0;
+  };
+
+  u.u.interpolate(inflow, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
   coefficient->interpolate(coeff, maxLevel);
-  tmp.interpolate(coeff, maxLevel);
-  M.apply(tmp, f.v, maxLevel, hhg::All);
 
-  auto solver = hhg::MinResSolver<hhg::P1StokesFunction<real_t>, hhg::P1CoefficientStokesOperator>(storage, minLevel, maxLevel);
-  solver.solve(L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+  auto solver = hhg::MinResSolver<hhg::P1StokesFunction<real_t>, SolveOperator>(storage, minLevel, maxLevel);
+  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
 
   // u_u*iHat + u_v*jHat
-  //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p, coefficient.get() }, maxLevel, "../output", "stokes_stab_varcoeff");
+  hhg::VTKOutput vtkOutput("../output", "stokes_stab_varcoeff");
+  vtkOutput.add(&u.u);
+  vtkOutput.add(&u.v);
+  vtkOutput.add(&u.p);
+  vtkOutput.write(maxLevel, 0);
   return EXIT_SUCCESS;
 }

@@ -11,9 +11,9 @@ import random
 x, y = symbols('x y')
 
 def basic_example():
-    k_11 = 3*x**2 + 2 * y**2 + 1
-    k_12 = -x**2 - y**2
-    k_22 = 4*x**2 + 5*y**2 + 1
+    k_11 = 1 + 2*x + 3*y + x**2
+    k_12 = 0
+    k_22 = 1 + 2*x + 3*y + x**2
 
     K = Matrix([[k_11, k_12], [k_12, k_22]])
 

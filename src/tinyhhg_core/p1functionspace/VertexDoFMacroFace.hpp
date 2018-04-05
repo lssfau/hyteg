@@ -23,9 +23,7 @@ using indexing::Index;
 inline Point3D coordinateFromIndex( const uint_t & Level, const Face & face, const Index & index )
 {
   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
-  const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
-  const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
-  return face.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() );
+  return Point3D({index.x() * stepFrequency, index.y() * stepFrequency, 0});
 }
 
 template< typename ValueType >

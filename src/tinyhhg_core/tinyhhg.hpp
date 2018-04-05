@@ -47,6 +47,7 @@
 #include "composites/p1blocklaplaceoperator.hpp"
 #include "composites/p1stokesoperator.hpp"
 #include "composites/P1CoefficientStokesOperator.hpp"
+#include "composites/P1BlendingStokesOperator.hpp"
 #include "composites/P2P1TaylorHoodFunction.hpp"
 #include "composites/P2P1TaylorHoodStokesOperator.hpp"
 

@@ -19,11 +19,11 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const size_t level = 4;
+  const size_t level = 2;
   const uint_t maxiter = 10000;
 
   /// read mesh file and create storage
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
+  MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/quad_4el.msh" );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   Point3D circleCenter{{0.5, 0.5, 0}};
@@ -48,8 +48,16 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> test = [](const hhg::Point3D& x_) { return x_[0]; };
 
   typedef hhg::P1BlendingLaplaceOperatorNew SolveOperator;
+//  typedef hhg::P1DivxOperator SolveOperator;
+  std::shared_ptr<hhg::P1Function< real_t >> coefficient = std::make_shared<hhg::P1Function< real_t >>("coeff", storage, level, level);
+
+//  P1CoefficientEpsilonOperator_uu test_uu(storage, coefficient, level, level);
+//  P1CoefficientEpsilonOperator_uv test_uv(storage, coefficient, level, level);
+//  P1CoefficientEpsilonOperator_vu test_vu(storage, coefficient, level, level);
+//  P1CoefficientEpsilonOperator_vv test_vv(storage, coefficient, level, level);
 
   SolveOperator L(storage, level, level);
+//  SolveOperator L(storage, coefficient, level, level);
 
   auto x = std::make_shared<hhg::P1Function< real_t > >("x", storage, level, level);
   auto y = std::make_shared<hhg::P1Function< real_t > >("y", storage, level, level);
@@ -62,6 +70,9 @@ int main(int argc, char* argv[])
 
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
+
+  coefficient->interpolate(ones, level);
+
   helper->interpolate(ones, level);
   real_t npoints = helper->dot(*helper, level);
 
@@ -73,7 +84,7 @@ int main(int argc, char* argv[])
     return x_[1];
   };
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return sin(x_[0])*sinh(x_[1]); };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return x_[0] + x_[1]; };
 
   x->interpolate(tmp_x, level, hhg::All);
   y->interpolate(tmp_y, level, hhg::All);

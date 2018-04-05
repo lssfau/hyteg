@@ -32,6 +32,14 @@ const P1Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
 const P1Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
 const P1Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W}};
 
+// ordered
+const P1Element elementSWOrd = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S}};
+const P1Element elementSOrd = {{SD::VERTEX_S, SD::VERTEX_SE, SD::VERTEX_C}};
+const P1Element elementSEOrd = {{SD::VERTEX_E, SD::VERTEX_C, SD::VERTEX_SE}};
+const P1Element elementNEOrd = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
+const P1Element elementNOrd = {{SD::VERTEX_N, SD::VERTEX_NW, SD::VERTEX_C}};
+const P1Element elementNWOrd = {{SD::VERTEX_W, SD::VERTEX_C, SD::VERTEX_NW}};
+
 static const std::array<P1Element, 3> P1GrayElements =
     {{
          elementS,

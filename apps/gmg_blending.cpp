@@ -46,24 +46,25 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
+//  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
+  MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   Point3D circleCenter{{0.5, 0.5, 0}};
   real_t circleRadius = 0.25;
 
-  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
-    Face &face = *it->second;
-
-    if (face.hasBoundaryEdge()) {
-      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
-
-      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
-        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
-        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
-      }
-    }
-  }
+//  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
+//    Face &face = *it->second;
+//
+//    if (face.hasBoundaryEdge()) {
+//      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
+//
+//      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
+//        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+//        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+//      }
+//    }
+//  }
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
@@ -100,8 +101,8 @@ int main(int argc, char* argv[])
   typedef Operator< P1Function< real_t >, P1Function< real_t > > GeneralOperator;
   typedef std::shared_ptr<GeneralOperator> SolveOperator;
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*pow(sinh(x[1]), 2); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -(3*pow(sinh(x[1]), 2) + 2)*sin(x[0]); };
+  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D& x) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
@@ -171,8 +172,8 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
 
-  npoints_helper.interpolate(ones, interpolationLevel);
-  real_t npointsCoarse = npoints_helper.dot(npoints_helper, interpolationLevel);
+//  npoints_helper.interpolate(ones, interpolationLevel);
+//  real_t npointsCoarse = npoints_helper.dot(npoints_helper, interpolationLevel);
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
@@ -196,11 +197,12 @@ int main(int argc, char* argv[])
   // Estimating discretization error
   u.prolongateQuadratic(maxLevel, hhg::Inner);
   r.interpolate(zeros, maxMemoryLevel, hhg::All);
-  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
+//  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //  tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
 //  L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
-  real_t estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
-  real_t estL2ErrorOld = estL2Error;
+//  real_t estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
+//  real_t estL2ErrorOld = estL2Error;
+  real_t estL2Error = 0;
 
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
@@ -222,10 +224,10 @@ int main(int argc, char* argv[])
     // Estimating discretization error
     u.prolongateQuadratic(maxLevel, hhg::Inner);
     r.interpolate(zeros, maxMemoryLevel, hhg::All);
-    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
+//    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //    tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
 //    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
-    estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
+//    estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
     end = walberla::timing::getWcTime();
     real_t estimatorTime = end - start;
     solveOperator->apply(u, Lu, maxLevel, hhg::Inner);
@@ -268,7 +270,7 @@ int main(int argc, char* argv[])
       averageConvergenceRate += abs_res/abs_res_old;
     }
 
-    estL2ErrorOld = estL2Error;
+//    estL2ErrorOld = estL2Error;
     abs_res_old = abs_res;
 
     if (rel_res < mg_tolerance)

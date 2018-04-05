@@ -7,9 +7,10 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "P1DataHandling.hpp"
 
-#include "tinyhhg_core/fenics/fenics.hpp"
-
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
@@ -52,7 +53,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-//        vertexdof::blendingnew::macrovertex::applyBlending< real_t >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::blendingnew::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
 
@@ -66,7 +67,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-//        vertexdof::blending::macroedge::applyBlending< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::blendingnew::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -102,6 +103,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
+        WALBERLA_ABORT("To be implemented")
 //        vertexdof::blending::macrovertex::smooth_gs_blending(level, vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
@@ -116,6 +118,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
+        WALBERLA_ABORT("To be implemented")
 //        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
@@ -129,6 +132,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
+        WALBERLA_ABORT("To be implemented")
 //        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, faceLocalMatrixIDs_, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
@@ -227,7 +231,18 @@ private:
   P1Form form;
 };
 
-typedef P1BlendingOperatorNew<P1FormLaplace> P1BlendingLaplaceOperatorNew;
+typedef P1BlendingOperatorNew<P1Form_laplace> P1BlendingLaplaceOperatorNew;
+
+typedef P1BlendingOperatorNew<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
+typedef P1BlendingOperatorNew<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
+typedef P1BlendingOperatorNew<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
+typedef P1BlendingOperatorNew<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
+
+typedef P1BlendingOperatorNew<P1Form_divT_1> P1BlendingDivTOperator_1;
+typedef P1BlendingOperatorNew<P1Form_divT_2> P1BlendingDivTOperator_2;
+
+typedef P1BlendingOperatorNew<P1Form_div_1> P1BlendingDivOperator_1;
+typedef P1BlendingOperatorNew<P1Form_div_2> P1BlendingDivOperator_2;
 
 }
 

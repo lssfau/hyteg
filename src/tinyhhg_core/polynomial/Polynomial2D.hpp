@@ -92,10 +92,12 @@ inline std::ostream& operator<<(std::ostream &os, const Polynomial2D<Basis> &pol
 {
   os << "[";
 
-  for (size_t i = 0; i < poly.numCoefficients_; ++i)
+  uint_t numCoefficients = poly.getNumCoefficients(poly.getDegree());
+
+  for (size_t i = 0; i < numCoefficients; ++i)
   {
     os << poly.getCoefficient(i);
-    if (i != poly.numCoefficients_-1)
+    if (i != numCoefficients-1)
     {
       os << ", ";
     }
