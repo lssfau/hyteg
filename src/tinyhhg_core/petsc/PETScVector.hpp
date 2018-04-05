@@ -6,8 +6,8 @@
 #ifdef HHG_BUILD_WITH_PETSC
 
 #include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
-
 #include "tinyhhg_core/composites/petsc/P1StokesPetsc.hpp"
+#include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
 
 namespace hhg {
 

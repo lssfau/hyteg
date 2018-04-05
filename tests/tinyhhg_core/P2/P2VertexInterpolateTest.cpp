@@ -50,9 +50,9 @@ int main( int argc, char* argv[] )
    // Get vertex values
    auto vertexEdgeData = vertex->getData( u.getEdgeDoFFunction()->getVertexDataID() )->getPointer( level );
 
-   WALBERLA_CHECK_EQUAL( vertexEdgeData[0], 1.0 );
-   WALBERLA_CHECK_EQUAL( vertexEdgeData[1], 1.125 );
-   WALBERLA_CHECK_EQUAL( vertexEdgeData[2], 1.125 );
+   WALBERLA_CHECK_FLOAT_EQUAL( vertexEdgeData[0], 1.0 );
+   WALBERLA_CHECK_FLOAT_EQUAL( vertexEdgeData[1], 1.125 );
+   WALBERLA_CHECK_FLOAT_EQUAL( vertexEdgeData[2], 1.125 );
 
    return EXIT_SUCCESS;
 }
