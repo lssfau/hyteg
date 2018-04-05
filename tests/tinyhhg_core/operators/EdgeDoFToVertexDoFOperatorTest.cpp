@@ -3,13 +3,15 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
+#include "core/DataTypes.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
+using walberla::real_c;
 
 namespace hhg {
 

@@ -1,5 +1,14 @@
-#include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
+#include "core/timing/Timer.h"
+#include "core/mpi/MPIManager.h"
+
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
+
+#include "tinyhhg_core/composites/P1BlockLaplaceOperator.hpp"
+
+#include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 

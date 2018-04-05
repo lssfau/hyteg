@@ -4,9 +4,10 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg {
 

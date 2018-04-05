@@ -2,8 +2,16 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
+#include "core/DataTypes.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+
+using walberla::real_t;
+using walberla::uint_t;
 
 namespace hhg {
 
@@ -23,11 +31,6 @@ static void testFunctionSpaceDataTypes()
   P1Function< uint_t > uintP1Function ( "uint_t P1Function", storage, minLevel, maxLevel );
   P1Function< int >    intP1Function  ( "int    P1Function", storage, minLevel, maxLevel );
   P1Function< float >  floatP1Function( "float  P1Function", storage, minLevel, maxLevel );
-
-  BubbleFunction< real_t > realBubbleFunction ( "real_t BubbleFunction", storage, minLevel, maxLevel );
-  BubbleFunction< uint_t > uintBubbleFunction ( "uint_t BubbleFunction", storage, minLevel, maxLevel );
-  BubbleFunction< int >    intBubbleFunction  ( "int    BubbleFunction", storage, minLevel, maxLevel );
-  BubbleFunction< float >  floatBubbleFunction( "float  BubbleFunction", storage, minLevel, maxLevel );
 
 }
 

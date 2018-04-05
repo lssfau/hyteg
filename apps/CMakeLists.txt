@@ -1,13 +1,9 @@
-waLBerla_add_executable( NAME cg_bubble
-        FILES cg_bubble.cpp
-        DEPENDS tinyhhg_core core)
-
 waLBerla_add_executable( NAME minres
         FILES minres.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME block_cg
-        FILES block_cg.cpp
+waLBerla_add_executable( NAME BlockCG
+        FILES BlockCG.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME stokes_stab
@@ -27,21 +23,15 @@ waLBerla_add_executable( NAME cg_P1_varcoeff
         DEPENDS tinyhhg_core)
 
 
-
-waLBerla_execute_test(NO_MODULE_LABEL NAME cg_bubble       CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
-waLBerla_execute_test(NO_MODULE_LABEL NAME block_cg        CONFIGURATIONS Release RelWithDbgInfo)
+waLBerla_execute_test(NO_MODULE_LABEL NAME BlockCG         CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME stokes_stab     CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1           CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1_varcoeff  CONFIGURATIONS Release RelWithDbgInfo)
 
-waLBerla_add_executable( NAME chorin
-        FILES chorin_test.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME stokes_mini
-        FILES stokes_mini.cpp
+waLBerla_add_executable( NAME Chorin
+        FILES Chorin.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME stokes_stab_varcoeff
@@ -75,12 +65,6 @@ waLBerla_add_executable( NAME gmg_P2
 waLBerla_add_executable( NAME gmg_P2_h_refinement
         FILES gmg_P2_h_refinement.cpp
         DEPENDS tinyhhg_core)
-
-if( HHG_BUILD_WITH_PETSC )
-waLBerla_add_executable( NAME stokes_mini_petsc
-        FILES stokes_mini_petsc.cpp
-        DEPENDS tinyhhg_core)
-endif()
 
 waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp

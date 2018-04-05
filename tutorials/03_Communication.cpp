@@ -1,8 +1,14 @@
-
+#include "tinyhhg_core/primitives/Primitive.hpp"
+#include "tinyhhg_core/communication/PackInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "core/DataTypes.h"
+
+using walberla::uint_t;
 
 namespace hhg {
 

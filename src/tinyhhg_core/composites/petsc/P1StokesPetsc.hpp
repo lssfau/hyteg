@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
+
 namespace hhg {
 namespace petsc {
 

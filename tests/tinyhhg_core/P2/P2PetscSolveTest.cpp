@@ -1,11 +1,20 @@
-#include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
-#include <core/Environment.h>
+#include "core/timing/Timer.h"
+#include "core/Environment.h"
+#include "core/logging/Logging.h"
 #include "core/math/Random.h"
+
+#include "tinyhhg_core/petsc/PETScManager.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/misc/ExactStencilWeights.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
 
 #ifndef HHG_BUILD_WITH_PETSC
-#error "This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON"
+WALBERLA_ABORT("This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON")
 #endif
 
 using walberla::real_t;

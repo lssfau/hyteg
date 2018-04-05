@@ -1,6 +1,6 @@
 #pragma once
 
-#include "minressolver.hpp"
+#include "MinresSolver.hpp"
 
 namespace hhg
 {

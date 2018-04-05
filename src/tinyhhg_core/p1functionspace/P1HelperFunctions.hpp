@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include "core/DataTypes.h"
+
 namespace hhg {
 namespace P1 {
 
@@ -20,7 +22,7 @@ inline real_t getSupremumNorm(std::array<P1Function<real_t>*, N> functions, uint
 
 template<uint_t N>
 inline real_t getApproximateEuclideanNorm(std::array<P1Function<real_t>*, N> functions, uint_t level) {
-  return std::sqrt(real_c(N)) * getSupremumNorm<N>(functions, level);
+  return std::sqrt(walberla::real_c(N)) * getSupremumNorm<N>(functions, level);
 }
 
 }
