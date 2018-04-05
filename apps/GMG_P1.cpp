@@ -1,15 +1,17 @@
+#include <cmath>
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
 
-#include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
-//using walberla::real_t;
+using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
@@ -17,7 +19,6 @@ using walberla::uint_t;
 
 int main( int argc, char** argv )
 {
-   typedef double real_t;
    /// [Create Environment]
    walberla::Environment env( argc, argv );
    walberla::mpi::MPIManager::instance()->useWorldComm();
@@ -38,10 +39,60 @@ int main( int argc, char** argv )
    /// [Get Parameters]
 
    /// [Create Primitive Storage]
-   std::shared_ptr< hhg::PrimitiveStorage > storage = hhg::PrimitiveStorage::createFromGmshFile(meshFile);
+   std::shared_ptr< hhg::PrimitiveStorage > storage = hhg::PrimitiveStorage::createFromGmshFile( meshFile );
    /// [Create Primitive Storage]
 
+   /// [Create Function Spaces]
+   hhg::P1Function< real_t > residuum( "residuum", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t > rightHandSide( "rightHandSide", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t > function( "function", storage, minLevel, maxLevel );
+   /// [Create Function Spaces]
+
    /// [Create Functions]
-   P1Function< real_t > residuum( "residuum", storage, minLevel, maxLevel );
+   std::function< real_t( const hhg::Point3D& ) > boundaryConditions = []( const hhg::Point3D& x ) {
+      real_t radius = sqrt( x[0] * x[0] + x[1] * x[1] );
+      real_t angle  = std::atan2( x[1], x[0] );
+      if( radius < 1.1 )
+      {
+         return std::sin( 10 * angle );
+      } else if( radius > 1.9 )
+      {
+         return std::sin( 5 * angle );
+      }
+   };
    /// [Create Functions]
+
+   /// [Set Boundary Conditions]
+   function.interpolate( boundaryConditions, maxLevel, hhg::DirichletBoundary );
+   /// [Set Boundary Conditions]
+
+   /// [Setup Solvers]
+   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >                       CoarseSolver;
+   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver > GMG;
+
+   hhg::P1LaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
+   auto                   coarseSolver = std::make_shared< CoarseSolver >( storage, minLevel, maxLevel );
+   GMG                    multiGridSolver( storage, coarseSolver, minLevel, maxLevel );
+   /// [Setup Solvers]
+
+   for( uint_t i = 0; i < max_outer_iter; ++i )
+   {
+      multiGridSolver.solve( laplaceOperator,
+                             function,
+                             rightHandSide,
+                             residuum,
+                             maxLevel,
+                             coarse_tolerance,
+                             max_coarse_iter,
+                             hhg::Inner,
+                             GMG::CycleType::VCYCLE );
+   }
+
+   if (parameters.getParameter<bool>("vtkOutput")) {
+      VTKOutput vtkOutput("../output", "gmg_P2_h_refinement");
+      vtkOutput.add(&function);
+      vtkOutput.add(&residuum);
+      vtkOutput.add(&rightHandSide);
+      vtkOutput.write(maxLevel);
+   }
 }
