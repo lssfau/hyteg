@@ -15,8 +15,8 @@ elemList.append( [ "p2", "Lagrange", 2, "Lagrange", 2 ] )
 elemList.append( [ "bubble", "Bubble", 3, "Bubble", 3 ] )
 elemList.append( [ "bubble_to_p1", "Bubble", 3, "Lagrange", 1 ] )
 elemList.append( [ "p1_to_bubble", "Lagrange", 1, "Bubble", 3 ] )
-elemList.append( [ "p1_to_p2", "Lagrange", 1, "Lagrange", 2 ] )
-elemList.append( [ "p2_to_p1", "Lagrange", 2, "Lagrange", 1 ] )
+elemList.append( [ "p1_to_p2", "Lagrange", 2, "Lagrange", 1 ] )
+elemList.append( [ "p2_to_p1", "Lagrange", 1, "Lagrange", 2 ] )
 
 # For each element and pair set the forms to compile
 forms = {}
