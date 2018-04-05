@@ -2,6 +2,9 @@
 
 #include <functional>
 
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/levelinfo.hpp"
+
 namespace hhg
 {
 namespace fenics {

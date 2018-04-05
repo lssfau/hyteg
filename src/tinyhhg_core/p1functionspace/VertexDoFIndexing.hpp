@@ -324,8 +324,8 @@ public:
 class BorderIterator : public hhg::indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0 ) :
-    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter )
+  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0) :
+    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
 
@@ -552,6 +552,18 @@ constexpr inline uint_t stencilIndexFromBlueFace( const stencilDirection & dir )
       return 2;
     default:
       return std::numeric_limits<size_t>::max();
+  }
+}
+
+inline bool isVertexOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  if (idx.row() == 0 ){
+    return true;
+  } else if( idx.col() == 0 ){
+    return true;
+  } else if( (idx.row() + idx.col()) == ( hhg::levelinfo::num_microvertices_per_edge( level ) - 1 ) ){
+    return true;
+  } else {
+    return false;
   }
 }
 

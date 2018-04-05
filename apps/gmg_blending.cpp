@@ -3,10 +3,21 @@
 #define FP_FAST_FMAL
 
 #include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
 #include <core/Environment.h>
 #include <core/config/Create.h>
-#include <tinyhhg_core/geometry/CircularMap.hpp>
+
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
+#include "tinyhhg_core/geometry/CircularMap.hpp"
+#include "tinyhhg_core/format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

@@ -1,9 +1,20 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+
 #include "tinyhhg_core/format.hpp"
 
-#include <core/Environment.h>
+#include "core/Environment.h"
+#include "core/mpi/MPIManager.h"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/composites/P1StokesOperator.hpp"
+#include "tinyhhg_core/solvers/UzawaSolver.hpp"
 
 using walberla::real_t;
+using walberla::uint_t;
+using walberla::real_c;
 
 int main(int argc, char* argv[])
 {

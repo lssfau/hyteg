@@ -11,7 +11,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/vtkwriter.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg {
 

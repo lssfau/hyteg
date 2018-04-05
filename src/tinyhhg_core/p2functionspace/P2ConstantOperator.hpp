@@ -3,6 +3,8 @@
 #include "P2Function.hpp"
 #include "P2Elements.hpp"
 #include "P2Smooth.hpp"
+#include "P2MacroFace.hpp"
+#include "P2MacroEdge.hpp"
 
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
@@ -203,27 +205,12 @@ private:
     vertexToEdge.apply(*src.getVertexDoFFunction(), *dst.getEdgeDoFFunction(), level, flag, Add);
   }
 
-  void smooth_gs_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)
+  void smooth_gs_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag) override
   {
-    /// start communication from face to edge for both DoFFunctions
-    dst.getEdgeDoFFunction()->getCommunicator(level)->startCommunication<Face, Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Face  ,Edge>();
-
-
-    /// start communication from edge to vertex for vertex DoFFunction
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Edge  , Vertex>();
-
-    /// wait for face to edge for edge DoFFunction since the data is needed on the vertex as well
-    dst.getEdgeDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
-
-    /// start communication from edge to vertex for edge DoFFunction
-    dst.getEdgeDoFFunction()->getCommunicator(level)->startCommunication<Edge, Vertex>();
-
-    /// wait for communication from edge to vertex for both DoFFunctions
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Edge, Vertex>();
-    dst.getEdgeDoFFunction()->getCommunicator(level)->endCommunication<Edge, Vertex>();
-
-    /// Smooth vertex DoFFunction
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -237,76 +224,91 @@ private:
       }
     }
 
-    /// communicate updated vertex DoFFunction from vertex to edge
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Vertex, Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Vertex, Edge>();
-
-    /// wait for communication from face to edge of vertex DoFFunction
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face  ,Edge>();
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        P2::edge::smoothGSvertexDoF(level,edge,
-                                    vertexToVertex.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
-                                    edgeToVertex.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                    rhs.getVertexDoFFunction()->getEdgeDataID());
+        P2::macroedge::smoothGaussSeidl(level,
+                                        edge,
+                                        vertexToVertex.getEdgeStencilID(),
+                                        edgeToVertex.getEdgeStencilID(),
+                                        dst.getVertexDoFFunction()->getEdgeDataID(),
+                                        vertexToEdge.getEdgeStencilID(),
+                                        edgeToEdge.getEdgeStencilID(),
+                                        dst.getEdgeDoFFunction()->getEdgeDataID(),
+                                        rhs.getVertexDoFFunction()->getEdgeDataID(),
+                                        rhs.getEdgeDoFFunction()->getEdgeDataID());
       }
     }
 
-    /// communicate updated vertex DoFFunction from edge to face
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Edge, Face>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Edge, Face>();
+    dst.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+    dst.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
       if (testFlag(face.type, flag))
       {
-        P2::face::smoothGSvertexDoF(level, face,
-                                    vertexToVertex.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
-                                    edgeToVertex.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
-                                    rhs.getVertexDoFFunction()->getFaceDataID());
-      }
-    }
-
-    /// communicate updated vertex DoFFunction from face to edge
-    dst.getVertexDoFFunction()->getCommunicator(level)->startCommunication<Face,Edge>();
-    dst.getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
-
-    /// Smooth edge DoFFunction
-
-    for (auto& it : storage_->getEdges()) {
-      Edge& edge = *it.second;
-
-      if (testFlag(edge.getDoFType(), flag))
-      {
-        P2::edge::smoothGSedgeDoF(level, edge,
-                                  vertexToEdge.getEdgeStencilID(), dst.getVertexDoFFunction()->getEdgeDataID(),
-                                  edgeToEdge.getEdgeStencilID(), dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                  rhs.getEdgeDoFFunction()->getEdgeDataID());
-      }
-    }
-
-    /// communicate updated vertex DoFFunction from edge to face
-    dst.getEdgeDoFFunction()->getCommunicator(level)->startCommunication<Edge, Face>();
-    dst.getEdgeDoFFunction()->getCommunicator(level)->endCommunication<Edge, Face>();
-
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        P2::face::smoothGSedgeDoF(level,face,
-                                  vertexToEdge.getFaceStencilID(), dst.getVertexDoFFunction()->getFaceDataID(),
-                                  edgeToEdge.getFaceStencilID(), dst.getEdgeDoFFunction()->getFaceDataID(),
-                                  rhs.getEdgeDoFFunction()->getFaceDataID());
+        P2::macroface::smoothGaussSeidl(level,
+                                        face,
+                                        vertexToVertex.getFaceStencilID(),
+                                        edgeToVertex.getFaceStencilID(),
+                                        dst.getVertexDoFFunction()->getFaceDataID(),
+                                        vertexToEdge.getFaceStencilID(),
+                                        edgeToEdge.getFaceStencilID(),
+                                        dst.getEdgeDoFFunction()->getFaceDataID(),
+                                        rhs.getVertexDoFFunction()->getFaceDataID(),
+                                        rhs.getEdgeDoFFunction()->getFaceDataID());
       }
     }
   }
 
+  void smooth_jac_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, P2Function< real_t > & src, size_t level, DoFType flag) override {
+    ///TODO: remove unneccessary communication here
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    src.getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Vertex>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
+    src.getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+      if (testFlag(face.type, flag))
+      {
+        P2::macroface::smoothJacobiVertexDoF(level,
+                                             face,
+                                             vertexToVertex.getFaceStencilID(),
+                                             src.getVertexDoFFunction()->getFaceDataID(),
+                                             dst.getVertexDoFFunction()->getFaceDataID(),
+                                             edgeToVertex.getFaceStencilID(),
+                                             src.getEdgeDoFFunction()->getFaceDataID(),
+                                             rhs.getVertexDoFFunction()->getFaceDataID());
+      }
+    }
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+      if (testFlag(face.type, flag))
+      {
+        P2::macroface::smoothJacobiEdgeDoF(level,
+                                           face,
+                                           vertexToEdge.getFaceStencilID(),
+                                           src.getVertexDoFFunction()->getFaceDataID(),
+                                           edgeToEdge.getFaceStencilID(),
+                                           src.getEdgeDoFFunction()->getFaceDataID(),
+                                           dst.getEdgeDoFFunction()->getFaceDataID(),
+                                           rhs.getEdgeDoFFunction()->getFaceDataID());
+      }
+    }
+
+  }
 
   P1Operator<fenics::NoAssemble> vertexToVertex;
   GenericEdgeDoFToVertexDoFOperator edgeToVertex;

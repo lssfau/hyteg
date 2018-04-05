@@ -221,7 +221,7 @@ inline real_t dot( const uint_t & Level, Face & face,
   auto lhsData = face.getData( lhsId )->getPointer( Level );
   auto rhsData = face.getData( rhsId )->getPointer( Level );
 
-  real_t scalarProduct = real_c( 0 );
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
 
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
@@ -247,7 +247,7 @@ inline real_t dot( const uint_t & Level, Face & face,
     }
   }
 
-  return scalarProduct;
+  return scalarProduct.get();
 }
 
 

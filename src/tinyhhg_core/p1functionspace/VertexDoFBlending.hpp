@@ -180,7 +180,7 @@ inline void applyBlending(uint_t Level, Face &face,
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     x = x0;
-    x += real_c(j)*d2 + d0;
+    x += walberla::real_c(j)*d2 + d0;
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
@@ -259,7 +259,7 @@ inline void applyPartialBlending(uint_t Level, uint_t coarseLevel, Face &face,
 
   for (uint_t j = 1; j < rowsize_coarse - 2; ++j) {
     x = x0;
-    x += real_c(j)*d2c + d0c;
+    x += walberla::real_c(j)*d2c + d0c;
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
@@ -332,7 +332,7 @@ inline void smoothGSBlending(uint_t Level, Face &face,
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     x = x0;
-    x += real_c(j)*d2 + d0;
+    x += walberla::real_c(j)*d2 + d0;
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 

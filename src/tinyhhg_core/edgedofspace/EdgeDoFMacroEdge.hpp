@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <vector>
 
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
@@ -7,6 +8,8 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+
+#include "core/math/KahanSummation.h"
 
 namespace hhg {
 namespace edgedof {
@@ -116,7 +119,7 @@ inline real_t dot( const uint_t & Level, Edge & edge,
   auto lhsData = edge.getData( lhsId )->getPointer( Level );
   auto rhsData = edge.getData( rhsId )->getPointer( Level );
 
-  real_t scalarProduct = real_c( 0 );
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
@@ -124,7 +127,7 @@ inline real_t dot( const uint_t & Level, Edge & edge,
     scalarProduct += lhsData[ idx ] * rhsData[ idx ];
   }
 
-  return scalarProduct;
+  return scalarProduct.get();
 }
 
 
@@ -186,7 +189,7 @@ inline void apply(const uint_t & Level, Edge &edge,
 
 
 template< typename ValueType >
-inline void printFunctionMemory(const uint_t & Level, Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
+inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
   using namespace std;
   cout << setfill('=') << setw(100) << "" << endl;

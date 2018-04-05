@@ -1,64 +1,57 @@
-#include <tinyhhg_core/tinyhhg.hpp>
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-
-#include "tinyhhg_core/likwidwrapper.hpp"
-
 #include "core/Environment.h"
 
-using walberla::real_t;
+#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+
 using walberla::real_c;
+using walberla::real_t;
 using namespace hhg;
 
+int main( int argc, char** argv )
+{
+   LIKWID_MARKER_INIT;
 
+   walberla::debug::enterTestMode();
+   walberla::mpi::Environment MPIenv( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
 
-int main(int argc, char **argv) {
+   LIKWID_MARKER_THREADINIT;
 
-  LIKWID_MARKER_INIT;
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  walberla::debug::enterTestMode();
-  walberla::mpi::Environment MPIenv(argc, argv);
-  walberla::MPIManager::instance()->useWorldComm();
+   const size_t level = 8;
 
-  LIKWID_MARKER_THREADINIT;
+   auto src = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
+   auto dst = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../data/meshes/tri_1el.msh");
-  SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+   hhg::P1MassOperator M( storage, level, level );
 
-  const size_t level = 8;
+   std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 
-  auto src = std::make_shared<hhg::P1Function<real_t>>("src", storage, level, level);
-  auto dst = std::make_shared<hhg::P1Function<real_t>>("dst", storage, level, level);
+   std::function< real_t( const hhg::Point3D& ) > exactFunc = [&]( const hhg::Point3D& point ) {
+      return sqrt( point[0] * point[0] + point[1] * point[1] );
+   };
 
-  hhg::P1MassOperator M(storage, level, level);
+   //P1Function< real_t > x("x", storage, level, level);
+   src->interpolate( exactFunc, level );
 
+   walberla::WcTimer timer;
 
-  std::shared_ptr<Face> face = storage->getFaces().begin().operator*().second;
+   LIKWID_MARKER_START( "apply" );
+   timer.reset();
+   vertexdof::macroface::apply< real_t >(
+       level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply" );
+   WALBERLA_LOG_INFO_ON_ROOT( "time with walberla timer: " << timer.last() );
 
+   /// do something with the result to prevent the compiler from removing all the computations
+   real_t check = vertexdof::macroface::dot< real_t >( level, *face, dst->getFaceDataID(), dst->getFaceDataID() );
+   WALBERLA_CHECK_FLOAT_UNEQUAL( check, 0. );
 
-  std::function<real_t(const hhg::Point3D&)> exactFunc =
-    [&](const hhg::Point3D& point) { return sqrt(point[0] * point[0] + point[1] * point[1]); };
-
-  //P1Function< real_t > x("x", storage, level, level);
-  src->interpolate(exactFunc,level);
-
-  walberla::WcTimer timer;
-
-  LIKWID_MARKER_START("apply");
-  timer.reset();
-  vertexdof::macroface::apply<real_t>(level, *face,M.getFaceStencilID(),src->getFaceDataID(),dst->getFaceDataID(),Replace);
-  timer.end();
-  LIKWID_MARKER_STOP("apply");
-  WALBERLA_LOG_INFO_ON_ROOT("time with walberla timer: " << timer.last() );
-
-  /// do something with the result to prevent the compiler from removing all the computations
-  real_t check = vertexdof::macroface::dot< real_t >( level, *face,dst->getFaceDataID(),dst->getFaceDataID());
-  WALBERLA_CHECK_FLOAT_UNEQUAL(check ,0. );
-
-  LIKWID_MARKER_CLOSE;
-
-
-
-
+   LIKWID_MARKER_CLOSE;
 }

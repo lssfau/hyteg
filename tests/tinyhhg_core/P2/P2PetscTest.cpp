@@ -1,6 +1,15 @@
-#include <tinyhhg_core/tinyhhg.hpp>
+#include "core/math/Random.h"
+#include "core/DataTypes.h"
+#include "core/mpi/MPIManager.h"
 
-#include <core/math/Random.h>
+#include "tinyhhg_core/petsc/PETScManager.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/petsc/PETScSparseMatrix.hpp"
+
 
 using walberla::real_t;
 

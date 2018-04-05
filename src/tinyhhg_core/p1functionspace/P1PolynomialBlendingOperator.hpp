@@ -190,7 +190,7 @@ public:
         ref_x[1] = j * ref_H;
 
         x = x0;
-        x += real_c(j)*d2 + d0;
+        x += walberla::real_c(j)*d2 + d0;
 
         uint_t i;
         for (i = 1; i < inner_rowsize - 2; ++i) {

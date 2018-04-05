@@ -1,5 +1,4 @@
 // test that the product one^T*M*one with mass matrix M and vector of ones gives area of domain
-
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"

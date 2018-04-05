@@ -269,6 +269,7 @@ void smoothGSedgeDoF(const uint_t & Level, Face &face,
 }
 
 
+
 } /// namespace face
 
 } /// namespace P2

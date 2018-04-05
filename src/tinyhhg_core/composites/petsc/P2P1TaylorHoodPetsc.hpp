@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
+
 namespace hhg {
 namespace petsc {
 
