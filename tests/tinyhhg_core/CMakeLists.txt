@@ -37,12 +37,6 @@ waLBerla_execute_test(NAME EdgeDoFOnMacroEdgeIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroFaceIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME EdgeDoFOnMacroFaceIndexingTest)
 
-waLBerla_compile_test(FILES Indexing/BubbleEdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME BubbleEdgeIndexingTest)
-
-waLBerla_compile_test(FILES Indexing/BubbleFaceIndexingTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME BubbleFaceIndexingTest)
-
 waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME DGIndexingTest)
 

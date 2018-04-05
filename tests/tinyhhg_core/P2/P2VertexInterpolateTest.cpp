@@ -1,13 +1,14 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
+#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
