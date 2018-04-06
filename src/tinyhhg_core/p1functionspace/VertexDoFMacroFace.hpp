@@ -86,6 +86,8 @@ inline void interpolate(const uint_t & Level,
 
   std::vector<ValueType> srcVector( srcIds.size() );
 
+  Point3D xBlend;
+
   for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
   {
     const Point3D coordinate = coordinateFromIndex( Level, face, it );
@@ -96,7 +98,8 @@ inline void interpolate(const uint_t & Level,
     {
       srcVector[ k ] = srcPtr[ k ][ idx ];
     }
-    faceData[ idx ] = expr( coordinate, srcVector );
+    face.getGeometryMap()->evalF(coordinate, xBlend);
+    faceData[ idx ] = expr( xBlend, srcVector );
   }
 }
 

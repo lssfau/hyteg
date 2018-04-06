@@ -46,6 +46,7 @@ public:
   const Primitive * getPrimitive( const PrimitiveID & id ) const;
   const Vertex * getVertex( const PrimitiveID & id ) const { return vertexExists( id ) ? vertices_.at( id.getID() ).get() : nullptr; }
   const Edge   * getEdge  ( const PrimitiveID & id ) const { return edgeExists( id )   ? edges_.at( id.getID() ).get()    : nullptr; }
+        Edge   * getEdge  ( const PrimitiveID & id )       { return edgeExists( id )   ? edges_.at( id.getID() ).get()    : nullptr; }
   const Face   * getFace  ( const PrimitiveID & id ) const { return faceExists( id )   ? faces_.at( id.getID() ).get()    : nullptr; }
   const Cell   * getCell  ( const PrimitiveID & id ) const { return cellExists( id )   ? cells_.at( id.getID() ).get()    : nullptr; }
 

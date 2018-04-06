@@ -98,6 +98,10 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
   WALBERLA_ABORT("Edge::get_opposite_face: Face does not belong to edge");
 }
 
+bool Edge::onBoundary() const {
+  return testFlag(dofType_, hhg::Boundary);
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "

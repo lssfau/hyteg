@@ -29,6 +29,7 @@ inline void interpolate(const uint_t & Level, Vertex &vertex,
   Point3D dir1;
   Point3D dir2;
   Point3D x;
+  Point3D xBlend;
 
   std::vector<ValueType*> srcPtr;
   for(auto src : srcMemoryIds){
@@ -49,7 +50,8 @@ inline void interpolate(const uint_t & Level, Vertex &vertex,
       srcVector[k] = srcPtr[k][vertex.face_index(face->getID()) * 2];
     }
 
-    vertexMemory[vertex.face_index(face->getID()) * 2] = expr(x, srcVector);
+    face->getGeometryMap()->evalF(x, xBlend);
+    vertexMemory[vertex.face_index(face->getID()) * 2] = expr(xBlend, srcVector);
   }
 }
 

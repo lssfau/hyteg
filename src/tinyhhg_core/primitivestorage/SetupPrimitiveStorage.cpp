@@ -84,6 +84,30 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     vertexIDsToEdgeIDs[ vertexIDs ] = edgeID;
   }
 
+  for (auto& it : edges_) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.dofType_, hhg::NeumannBoundary)) {
+
+      for (auto& itv : edge.neighborVertices()) {
+        vertices_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
+      }
+
+    }
+  }
+
+  for (auto& it : edges_) {
+    Edge& edge = *it.second;
+
+    if (testFlag(edge.dofType_, hhg::DirichletBoundary)) {
+
+      for (auto& itv : edge.neighborVertices()) {
+        vertices_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
+      }
+
+    }
+  }
+
   // Adding faces to storage
   const MeshInfo::FaceContainer faces = meshInfo.getFaces();
   for ( const auto & it : faces )
@@ -156,6 +180,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     // Corner coordinates
     std::array< Point3D, 3 > coordinates;
     std::array< PrimitiveID, 3 > vertexIDs;
+    std::vector< PrimitiveID > verticesOnBoundary;
+    std::vector< PrimitiveID > edgesOnBoundary;
 
     if (edgeOrientation[0] == 1)
     {
@@ -187,7 +213,25 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       vertexIDs[2] = edge1Vertex0.getID();
     }
 
-    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates ) );
+    for (uint_t i = 0; i < 3; ++i) {
+      if (testFlag(vertices_[vertexIDs[i].getID()]->dofType_, hhg::Boundary)) {
+        verticesOnBoundary.push_back(vertexIDs[i]);
+      }
+    }
+
+    if (testFlag(edges_[edgeID0.getID()]->dofType_, hhg::Boundary)) {
+      edgesOnBoundary.push_back(edgeID0);
+    }
+
+    if (testFlag(edges_[edgeID1.getID()]->dofType_, hhg::Boundary)) {
+      edgesOnBoundary.push_back(edgeID1);
+    }
+
+    if (testFlag(edges_[edgeID2.getID()]->dofType_, hhg::Boundary)) {
+      edgesOnBoundary.push_back(edgeID2);
+    }
+
+    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, verticesOnBoundary, edgesOnBoundary, coordinates ) );
 
     // Adding face ID to vertices as neighbors
     vertices_[vertexIDs[0].getID()]->addFace(faceID);
@@ -285,30 +329,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
 
     cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
-  }
-
-  for (auto& it : edges_) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.dofType_, hhg::NeumannBoundary)) {
-
-      for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
-      }
-
-    }
-  }
-
-  for (auto& it : edges_) {
-    Edge& edge = *it.second;
-
-    if (testFlag(edge.dofType_, hhg::DirichletBoundary)) {
-
-      for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
-      }
-
-    }
   }
 
   loadbalancing::greedy( *this );

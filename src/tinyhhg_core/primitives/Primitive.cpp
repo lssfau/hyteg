@@ -50,6 +50,7 @@ void Primitive::serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) con
   sendBuffer << neighborEdges_;
   sendBuffer << neighborFaces_;
   sendBuffer << neighborCells_;
+  geometryMap_->serialize(sendBuffer);
 }
 
 void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )
@@ -59,6 +60,15 @@ void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> neighborEdges_;
   recvBuffer >> neighborFaces_;
   recvBuffer >> neighborCells_;
+  geometryMap_ = GeometryMap::deserialize(recvBuffer);
+}
+
+void Primitive::setGeometryMap(const std::shared_ptr<GeometryMap>& newMap) {
+  geometryMap_ = newMap;
+}
+
+const std::shared_ptr<GeometryMap>& Primitive::getGeometryMap() const {
+  return geometryMap_;
 }
 
 } // namespace hhg

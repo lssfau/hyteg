@@ -165,7 +165,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
       Face &face = *it.second;
 
       size_t rowsize = levelinfo::num_microvertices_per_edge( level );
-      Point3D x, x0;
+      Point3D x, x0, xBlend;
 
       x0 = face.coords[0];
 
@@ -181,7 +181,8 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
 
         for (size_t j = 0; j < inner_rowsize; ++j)
         {
-          output << std::scientific << x[0] << " " << x[1] << " " << x[2] << " ";
+          face.getGeometryMap()->evalF(x, xBlend);
+          output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << " ";
           x += d0;
         }
 
@@ -204,6 +205,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
       WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[2] ) || storage->vertexExistsInNeighborhood( neighborVertices[2] ) );
       WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[3] ) || storage->vertexExistsInNeighborhood( neighborVertices[3] ) );
 
+      Point3D xBlend;
       const Point3D x0 = storage->getVertex( neighborVertices[0] )->getCoordinates();
       const Point3D x1 = storage->getVertex( neighborVertices[1] )->getCoordinates();
       const Point3D x2 = storage->getVertex( neighborVertices[2] )->getCoordinates();
@@ -218,7 +220,8 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
       for ( const auto & idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
       {
         const Point3D vtkPoint = real_c( idxIt.dep() ) * dz + real_c( idxIt.row() ) * dy + real_c( idxIt.col() ) * dx;
-        output << std::scientific << vtkPoint[0] << " " << vtkPoint[1] << " " << vtkPoint[2] << "\n";
+        cell.getGeometryMap()->evalF( vtkPoint, xBlend );
+        output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
       }
     }
   }
@@ -244,6 +247,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
     const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
     const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
 
+    Point3D xBlend;
+
     switch ( dofType )
     {
     case DoFType::EDGE_HORIZONTAL:
@@ -251,7 +256,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
       for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
       {
         const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
-        output << horizontalMicroEdgePosition[0] << " " << horizontalMicroEdgePosition[1] << " " << horizontalMicroEdgePosition[2] << "\n";
+        face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+        output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
       }
       break;
     }
@@ -260,7 +266,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
       for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
       {
         const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( real_c( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
-        output << verticalMicroEdgePosition[0]   << " " << verticalMicroEdgePosition[1]   << " " << verticalMicroEdgePosition[2]   << "\n";
+        face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
+        output << xBlend[0]   << " " << xBlend[1]   << " " << xBlend[2]   << "\n";
       }
       break;
     }
@@ -270,7 +277,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
       {
         const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
         const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
-        output << diagonalMicroEdgePosition[0]   << " " << diagonalMicroEdgePosition[1]   << " " << diagonalMicroEdgePosition[2]   << "\n";
+        face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
+        output << xBlend[0]   << " " << xBlend[1]   << " " << xBlend[2]   << "\n";
       }
       break;
     }
