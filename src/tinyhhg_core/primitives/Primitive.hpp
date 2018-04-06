@@ -75,6 +75,7 @@ class Primitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
   typedef internal::PrimitiveData PrimitiveData;
@@ -137,7 +138,6 @@ public:
   void deserialize( walberla::mpi::RecvBuffer & recvBuffer );
   ///@}
 
-  void setGeometryMap(const std::shared_ptr<GeometryMap>& newMap);
   const std::shared_ptr<GeometryMap>& getGeometryMap() const;
 
 protected:

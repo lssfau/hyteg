@@ -334,7 +334,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   loadbalancing::greedy( *this );
 }
 
-const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
+Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id )
 {
   if ( vertexExists( id ) ) { return getVertex( id ); }
   if ( edgeExists( id ) )   { return getEdge( id ); }
@@ -343,6 +343,14 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   return nullptr;
 }
 
+const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) const
+{
+  if ( vertexExists( id ) ) { return getVertex( id ); }
+  if ( edgeExists( id ) )   { return getEdge( id ); }
+  if ( faceExists( id ) )   { return getFace( id ); }
+  if ( cellExists( id ) )   { return getCell( id ); }
+  return nullptr;
+}
 
 void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const
 {

@@ -63,10 +63,6 @@ void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )
   geometryMap_ = GeometryMap::deserialize(recvBuffer);
 }
 
-void Primitive::setGeometryMap(const std::shared_ptr<GeometryMap>& newMap) {
-  geometryMap_ = newMap;
-}
-
 const std::shared_ptr<GeometryMap>& Primitive::getGeometryMap() const {
   return geometryMap_;
 }

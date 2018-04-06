@@ -43,8 +43,10 @@ int main( int argc, char* argv[] )
 
          if( ( edge.getCoordinates()[0] - circleCenter ).norm() < 0.4 )
          {
-            edge.setGeometryMap( std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
-            face.setGeometryMap( std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
+            setupStorage.setGeometryMap( edge.getID(),
+                                         std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
+            setupStorage.setGeometryMap( face.getID(),
+                                         std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
          }
       }
    }
