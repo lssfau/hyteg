@@ -1,8 +1,8 @@
 ///
-/// Created by thoennes on 07.03.17.
-///
 /// \brief Wrapper for the likwid tools
+///
 /// \file likwidwrapper.hpp
+///
 /// This file is used to include likwid if desired or take care of the macros if not
 ///
 

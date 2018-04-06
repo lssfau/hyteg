@@ -42,7 +42,6 @@ public:
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
   void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
-  void add( const BubbleFunction < real_t > * function ) { bubbleFunctions_.push_back( function ); };
   void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
 
   void add( const P2Function     < real_t > * function ) { p2Functions_.push_back( function );
@@ -51,7 +50,6 @@ public:
 
   void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
   void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
-  void add( const std::shared_ptr< BubbleFunction < real_t > > & function ) { bubbleFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
   void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
@@ -99,7 +97,8 @@ private:
   void writeEdgeDoFData  ( std::ostream & output, const EdgeDoFFunction< real_t > * function,
                            const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const;
 
-  void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+  void writeCells2D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+  void writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level     ) const;
 
   void syncAllFunctions( const uint_t & level ) const;
 
@@ -112,7 +111,6 @@ private:
 
   std::vector< const P1Function     < real_t > * > p1Functions_;
   std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;
-  std::vector< const BubbleFunction < real_t > * > bubbleFunctions_;
   std::vector< const DGFunction     < real_t > * > dgFunctions_;
 
   std::vector< const P2Function     < real_t > * > p2Functions_;

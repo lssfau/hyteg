@@ -1,4 +1,5 @@
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 #include "core/mpi/all.h"

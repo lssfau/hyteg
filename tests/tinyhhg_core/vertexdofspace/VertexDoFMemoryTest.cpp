@@ -1,9 +1,9 @@
 
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
 namespace hhg {

@@ -1,4 +1,3 @@
-
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
@@ -7,7 +6,7 @@
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/vtkwriter.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 
 

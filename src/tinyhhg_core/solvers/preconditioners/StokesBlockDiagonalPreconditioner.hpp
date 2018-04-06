@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/solvers/cgsolver.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
 
 namespace hhg {
 

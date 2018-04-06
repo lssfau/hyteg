@@ -1,11 +1,12 @@
-
 #pragma once
 
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "core/mpi/MPITextFile.h"
-
 #include <memory>
-#include <tinyhhg_core/format.hpp>
+
+#include "core/mpi/MPITextFile.h"
+#include "core/debug/CheckFunctions.h"
+
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/format.hpp"
 
 namespace hhg {
 

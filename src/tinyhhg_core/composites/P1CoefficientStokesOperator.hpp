@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/composites/p1stokesfunction.hpp"
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 

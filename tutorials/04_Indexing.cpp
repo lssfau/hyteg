@@ -1,11 +1,8 @@
-
-#include <tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp>
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-
-#include "tinyhhg_core/tinyhhg.hpp"
-
+#include "core/logging/Logging.h"
 
 namespace hhg {
 

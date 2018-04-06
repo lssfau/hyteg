@@ -1,8 +1,15 @@
 
+#include <tinyhhg_core/communication/BufferedCommunication.hpp>
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "tinyhhg_core/tinyhhg.hpp"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/Visualization.hpp"
+#include "tinyhhg_core/communication/PackInfo.hpp"
+
 
 namespace hhg {
 

@@ -1,8 +1,16 @@
-#include <core/timing/Timer.h>
-#include <tinyhhg_core/tinyhhg.hpp>
-#include <core/Environment.h>
-#include <core/config/Config.h>
+#include "core/timing/Timer.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
 #include "core/math/Random.h"
+
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

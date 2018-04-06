@@ -3,10 +3,17 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
+#include "core/DataTypes.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
+
+using walberla::uint_t;
+using walberla::real_c;
 
 namespace hhg {
 

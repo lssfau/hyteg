@@ -1,7 +1,7 @@
 #ifndef TINYHHG_P1BLOCKLAPLACEOPERATOR_HPP
 #define TINYHHG_P1BLOCKLAPLACEOPERATOR_HPP
 
-#include "tinyhhg_core/composites/p1stokesfunction.hpp"
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Operator.hpp"
 
 namespace hhg

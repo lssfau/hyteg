@@ -1,10 +1,10 @@
-
-#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
+#include "core/logging/Logging.h"
 
-#include "tinyhhg_core/tinyhhg.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
 
 namespace hhg {
 
