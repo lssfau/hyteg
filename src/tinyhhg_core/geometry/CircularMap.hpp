@@ -131,7 +131,7 @@ class CircularMap : public GeometryMap
       DFxInv *= invDet;
    }
 
-   void serialize( walberla::mpi::SendBuffer& sendBuffer )
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
    {
       sendBuffer << Type::CIRCULAR;
       sendBuffer << x1_;

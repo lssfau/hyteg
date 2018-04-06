@@ -50,7 +50,7 @@ void Primitive::serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) con
   sendBuffer << neighborEdges_;
   sendBuffer << neighborFaces_;
   sendBuffer << neighborCells_;
-  geometryMap_->serialize(sendBuffer);
+  GeometryMap::serialize(geometryMap_, sendBuffer);
 }
 
 void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )

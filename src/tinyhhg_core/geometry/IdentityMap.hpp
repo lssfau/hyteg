@@ -27,7 +27,7 @@ class IdentityMap : public GeometryMap
       DFinvx( 1, 1 ) = 1.0;
    }
 
-   void serialize( walberla::mpi::SendBuffer& sendBuffer ) { sendBuffer << Type::IDENTITY; }
+   void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << Type::IDENTITY; }
 };
 
 } // namespace hhg
