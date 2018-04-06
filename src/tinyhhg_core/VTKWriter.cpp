@@ -281,186 +281,190 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
   }
 }
 
-void VTKOutput::writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
+void VTKOutput::writeCells2D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const
 {
   output << "<Cells>\n";
   output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
 
-  if ( write2D_ )
-  {
-    const uint_t faceWidth = levelinfo::num_microvertices_per_edge( level );
-    const uint_t numberOfCells = (((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2);
+  const uint_t numberOfCells = (((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2);
 
-    // connectivity
-    size_t offset = 0;
+  // connectivity
+  size_t offset = 0;
 
-    for (auto & it : storage->getFaces()) {
-      //TODO is it really unused?
-      WALBERLA_UNUSED(it);
-      size_t rowsize = faceWidth - 1;
-      size_t inner_rowsize = rowsize;
+  for (auto & it : storage->getFaces()) {
+    //TODO is it really unused?
+    WALBERLA_UNUSED(it);
+    size_t rowsize = faceWidth - 1;
+    size_t inner_rowsize = rowsize;
 
-      for (size_t i = 0; i < rowsize; ++i)
+    for (size_t i = 0; i < rowsize; ++i)
+    {
+      for (size_t j = 0; j < inner_rowsize-1; ++j)
       {
-        for (size_t j = 0; j < inner_rowsize-1; ++j)
-        {
-          output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
-          output << offset + 1 << " " << offset + inner_rowsize + 2 << " " << offset + inner_rowsize + 1 << " ";
-          ++offset;
-        }
-
         output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
-
-        offset += 2;
-        --inner_rowsize;
+        output << offset + 1 << " " << offset + inner_rowsize + 2 << " " << offset + inner_rowsize + 1 << " ";
+        ++offset;
       }
 
-      ++offset;
+      output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
+
+      offset += 2;
+      --inner_rowsize;
     }
 
-    output << "\n</DataArray>\n";
-    output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
+    ++offset;
+  }
 
-    // offsets
-    offset = 3;
-    for (auto& it : storage->getFaces()) {
-      WALBERLA_UNUSED(it);
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
 
-      for (size_t i = 0; i < numberOfCells; ++i)
-      {
-        output << offset << " ";
-        offset += 3;
-      }
-    }
+  // offsets
+  offset = 3;
+  for (auto& it : storage->getFaces()) {
+    WALBERLA_UNUSED(it);
 
-    output << "\n</DataArray>\n";
-    output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
-
-    // cell types
-    for (auto& it : storage->getFaces()) {
-      WALBERLA_UNUSED(it);
-      for (size_t i = 0; i < numberOfCells; ++i)
-      {
-        output << "5 ";
-      }
+    for (size_t i = 0; i < numberOfCells; ++i)
+    {
+      output << offset << " ";
+      offset += 3;
     }
   }
-  else
+
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
+
+  // cell types
+  for (auto& it : storage->getFaces()) {
+    WALBERLA_UNUSED(it);
+    for (size_t i = 0; i < numberOfCells; ++i)
+    {
+      output << "5 ";
+    }
+  }
+
+  output << "\n</DataArray>\n";
+  output << "</Cells>\n";
+}
+
+
+void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
+{
+  output << "<Cells>\n";
+  output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
+
+  // calculates the position of the point in the VTK list of points from a logical vertex index
+  auto calcVTKPointArrayPosition = [ level ]( const indexing::Index & vertexIndex ) -> uint_t
   {
-    // calculates the position of the point in the VTK list of points from a logical vertex index
-    auto calcVTKPointArrayPosition = [ level ]( const indexing::Index & vertexIndex ) -> uint_t
+    const uint_t zOffset =   levelinfo::num_microvertices_per_cell( level )
+                           - levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() );
+    const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() )
+                           - levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() - vertexIndex.y() );
+    const uint_t xOffset = vertexIndex.x();
+    return xOffset + yOffset + zOffset;
+  };
+
+  const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
+
+  uint_t cellCounter = 0;
+
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
+
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const uint_t zOffset =   levelinfo::num_microvertices_per_cell( level )
-                             - levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() );
-      const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() )
-                             - levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() - vertexIndex.y() );
-      const uint_t xOffset = vertexIndex.x();
-      return xOffset + yOffset + zOffset;
-    };
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+    }
+    output << "\n";
+    cellCounter++;
+  }
 
-    const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
 
-    uint_t cellCounter = 0;
-
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) ) )
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
     }
+    output << "\n";
+    cellCounter++;
+  }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
+
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
     }
+    output << "\n";
+    cellCounter++;
+  }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
+
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
     }
+    output << "\n";
+    cellCounter++;
+  }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 ) )
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
+
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
     }
+    output << "\n";
+    cellCounter++;
+  }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  {
+    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
+
+    for ( const auto & spanningVertexIndex : spanningVertexIndices )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
     }
+    output << "\n";
+    cellCounter++;
+  }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
+  WALBERLA_ASSERT_EQUAL( cellCounter, numberOfCells );
+
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
+
+  // offsets
+  uint_t offset = 4;
+  for ( const auto & it : storage->getCells() ) {
+    WALBERLA_UNUSED(it);
+
+    for ( size_t i = 0; i < numberOfCells; ++i )
     {
-      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
-
-      for ( const auto & spanningVertexIndex : spanningVertexIndices )
-      {
-        output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
-      }
-      output << "\n";
-      cellCounter++;
+      output << offset << " ";
+      offset += 4;
     }
+  }
 
-    WALBERLA_ASSERT_EQUAL( cellCounter, numberOfCells );
+  output << "\n</DataArray>\n";
+  output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
 
-    output << "\n</DataArray>\n";
-    output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
-
-    // offsets
-    uint_t offset = 4;
-    for ( const auto & it : storage->getCells() ) {
-      WALBERLA_UNUSED(it);
-
-      for ( size_t i = 0; i < numberOfCells; ++i )
-      {
-        output << offset << " ";
-        offset += 4;
-      }
-    }
-
-    output << "\n</DataArray>\n";
-    output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
-
-    // cell types
-    for ( const auto & it : storage->getCells() ) {
-      WALBERLA_UNUSED(it);
-      for ( size_t i = 0; i < numberOfCells; ++i )
-      {
-        output << "10 ";
-      }
+  // cell types
+  for ( const auto & it : storage->getCells() ) {
+    WALBERLA_UNUSED(it);
+    for ( size_t i = 0; i < numberOfCells; ++i )
+    {
+      output << "10 ";
     }
   }
 
@@ -496,7 +500,14 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
   writePointsForMicroVertices( output, storage, level );
   writePointsFooter( output );
 
-  writeCells( output, storage, level );
+  if ( write2D_ )
+  {
+    writeCells2D( output, storage, levelinfo::num_microvertices_per_edge( level ) );
+  }
+  else
+  {
+    writeCells3D( output, storage, level );
+  }
 
   output << "<PointData>\n";
 
@@ -553,7 +564,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
 
   output << "</PointData>\n";
 
-  writeCells( output, storage, level );
+  writeCells2D( output, storage, levelinfo::num_microedges_per_edge( level ) );
 
   writePieceFooter( output );
 
@@ -577,7 +588,7 @@ void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
   writePointsForMicroVertices( output, storage, level );
   writePointsFooter( output );
 
-  writeCells( output, storage, level );
+  writeCells2D( output, storage, levelinfo::num_microvertices_per_edge( level ) );
 
   output << "<CellData>";
 
@@ -635,7 +646,7 @@ void VTKOutput::writeP2( std::ostream & output, const uint_t & level ) const
   writePointsForMicroVertices( output, storage, level + 1 );
   writePointsFooter( output );
 
-  writeCells( output, storage, level + 1 );
+  writeCells2D( output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
 
   output << "<PointData>\n";
 
