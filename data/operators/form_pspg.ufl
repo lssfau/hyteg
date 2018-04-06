@@ -1,0 +1,5 @@
+q = TestFunction( testElement )
+p = TrialFunction( trialElement )
+
+tau = CellVolume(triangle)/5.0 # h^2/5
+a = -tau*dot(grad(p), grad(q))*dx

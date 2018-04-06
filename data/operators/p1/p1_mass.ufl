@@ -1,8 +1,0 @@
-# generate code with ffc p1_mass.ufl
-element = FiniteElement("Lagrange", triangle, 1)
-
-u = TestFunction(element)
-v = TrialFunction(element)
-
-a = u*v*dx
- 
