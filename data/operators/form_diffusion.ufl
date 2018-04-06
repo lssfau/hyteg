@@ -1,0 +1,4 @@
+v = TestFunction(  testElement )
+u = TrialFunction( trialElement )
+
+a = dot(grad(v), grad(u))*dx

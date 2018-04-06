@@ -1,8 +1,0 @@
-# generate code with ffc bubble_to_p1_divt.ufl
-p1 = FiniteElement("Lagrange", triangle, 1)
-bubble = FiniteElement("Bubble", triangle, 3)
-
-p = TrialFunction(p1)
-v = TestFunction(bubble)
-
-forms = [- v.dx(i)*p*dx for i in range(2)]

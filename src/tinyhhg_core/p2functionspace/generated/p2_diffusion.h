@@ -4305,7 +4305,7 @@ public:
 
   const char * signature() const final override
   {
-    return "b0eb4967a269bb20f1b16ac4835a7da0762f85ee6fc1fa4375160b2bc76015d3b0297c3dbb95e02506f3f35cefbd5e623b4d29a27843c08e4a6df315b284e719";
+    return "b8f4ea76d4eb3365ba15a159a6f74441854eef67635c14dca19b8fa7b6d4ad1237fa014a130312774a7feddab4b64278c06ebc697d00b9d7a98bf8a10ac58471";
   }
 
   std::size_t rank() const final override
