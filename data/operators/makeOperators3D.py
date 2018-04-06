@@ -21,9 +21,6 @@ forms[ "p1" ] = [ "diffusion" ]
 outDir = {}
 outDir[ "p1" ] = [ "p1functionspace/generated" ]
 outDir[ "p2" ] = [ "p2functionspace/generated" ]
-outDir[ "bubble" ] = [ "bubblefunctionspace/generated" ]
-outDir[ "bubble_to_p1" ] = [ "mixedoperators/BubbleToP1/generated" ]
-outDir[ "p1_to_bubble" ] = [ "mixedoperators/P1ToBubble/generated" ]
 outDir[ "p1_to_p2" ] = [ "mixedoperators/generated" ]
 outDir[ "p2_to_p1" ] = [ "mixedoperators/generated" ]
 

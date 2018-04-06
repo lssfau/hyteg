@@ -12,9 +12,6 @@ from helperFuncs import makeOperators
 elemList = list()
 elemList.append( [ "p1", "Lagrange", 1, "Lagrange", 1 ] )
 elemList.append( [ "p2", "Lagrange", 2, "Lagrange", 2 ] )
-elemList.append( [ "bubble", "Bubble", 3, "Bubble", 3 ] )
-elemList.append( [ "bubble_to_p1", "Bubble", 3, "Lagrange", 1 ] )
-elemList.append( [ "p1_to_bubble", "Lagrange", 1, "Bubble", 3 ] )
 elemList.append( [ "p1_to_p2", "Lagrange", 2, "Lagrange", 1 ] )
 elemList.append( [ "p2_to_p1", "Lagrange", 1, "Lagrange", 2 ] )
 
@@ -22,9 +19,6 @@ elemList.append( [ "p2_to_p1", "Lagrange", 1, "Lagrange", 2 ] )
 forms = {}
 forms[ "p1" ] = [ "diffusion", "div", "divt", "mass", "pspg", "stokes_epsilon" ]
 forms[ "p2" ] = [ "diffusion", "div", "divt" ]
-forms[ "bubble" ] = [ "diffusion" ]
-forms[ "bubble_to_p1" ] = [ "divt" ]
-forms[ "p1_to_bubble" ] = [ "div" ]
 forms[ "p1_to_p2" ] = [ "divt" ]
 forms[ "p2_to_p1" ] = [ "div" ]
 
@@ -33,9 +27,6 @@ forms[ "p2_to_p1" ] = [ "div" ]
 outDir = {}
 outDir[ "p1" ] = [ "p1functionspace/generated" ]
 outDir[ "p2" ] = [ "p2functionspace/generated" ]
-outDir[ "bubble" ] = [ "bubblefunctionspace/generated" ]
-outDir[ "bubble_to_p1" ] = [ "mixedoperators/BubbleToP1/generated" ]
-outDir[ "p1_to_bubble" ] = [ "mixedoperators/P1ToBubble/generated" ]
 outDir[ "p1_to_p2" ] = [ "mixedoperators/generated" ]
 outDir[ "p2_to_p1" ] = [ "mixedoperators/generated" ]
 
