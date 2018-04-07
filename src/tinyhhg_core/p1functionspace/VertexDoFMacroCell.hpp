@@ -49,6 +49,8 @@ inline void interpolate( const uint_t & level,
 
   std::vector<ValueType> srcVector( srcIds.size() );
 
+  Point3D xBlend;
+
   for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
   {
     const Point3D coordinate = coordinateFromIndex( level, cell, it );
@@ -58,7 +60,8 @@ inline void interpolate( const uint_t & level,
     {
       srcVector[ k ] = srcPtr[ k ][ idx ];
     }
-    cellData[ idx ] = expr( coordinate, srcVector );
+    cell.getGeometryMap()->evalF( coordinate, xBlend );
+    cellData[ idx ] = expr( xBlend, srcVector );
   }
 }
 

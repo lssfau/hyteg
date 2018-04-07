@@ -39,6 +39,8 @@ inline void interpolate(const uint_t & Level, Face & face,
   const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
   const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
 
+  Point3D xBlend;
+
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
@@ -53,7 +55,8 @@ inline void interpolate(const uint_t & Level, Face & face,
         srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = expr( horizontalMicroEdgePosition, srcVectorHorizontal );
+      face.getGeometryMap()->evalF(horizontalMicroEdgePosition, xBlend);
+      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = expr( xBlend, srcVectorHorizontal );
     }
 
     // Do not update vertical DoFs at left border
@@ -64,7 +67,8 @@ inline void interpolate(const uint_t & Level, Face & face,
         srcVectorVertical[k] = srcPtr[k][edgedof::macroface::verticalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = expr( verticalMicroEdgePosition, srcVectorVertical );
+      face.getGeometryMap()->evalF(verticalMicroEdgePosition, xBlend);
+      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = expr( xBlend, srcVectorVertical );
     }
 
     // Do not update diagonal DoFs at diagonal border
@@ -75,7 +79,8 @@ inline void interpolate(const uint_t & Level, Face & face,
         srcVectorDiagonal[k] = srcPtr[k][edgedof::macroface::diagonalIndex( Level, it.col(), it.row())];
       }
 
-      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = expr( diagonalMicroEdgePosition, srcVectorDiagonal );
+      face.getGeometryMap()->evalF(diagonalMicroEdgePosition, xBlend);
+      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = expr( xBlend, srcVectorDiagonal );
     }
   }
 }

@@ -5,7 +5,6 @@
 
 #include <vector>
 
-#include <tinyhhg_core/types/pointnd.hpp>
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
 
@@ -51,6 +50,8 @@ public:
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
   bool opposite_face_exists(const PrimitiveID& face) const;
   PrimitiveID get_opposite_face(const PrimitiveID& face) const;
+
+  bool onBoundary() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
