@@ -26,6 +26,10 @@ waLBerla_add_executable( NAME cg_P1_tensorvarcoeff
         FILES cg_P1_tensorvarcoeff.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME cg_P1_blending
+        FILES cg_P1_blending.cpp
+        DEPENDS tinyhhg_core)
+
 waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME BlockCG         CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME stokes_stab     CONFIGURATIONS Release RelWithDbgInfo)
