@@ -11,6 +11,7 @@
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormPSPG.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
@@ -243,6 +244,8 @@ typedef P1BlendingOperatorNew<P1Form_divT_2> P1BlendingDivTOperator_2;
 
 typedef P1BlendingOperatorNew<P1Form_div_1> P1BlendingDivOperator_1;
 typedef P1BlendingOperatorNew<P1Form_div_2> P1BlendingDivOperator_2;
+
+typedef P1BlendingOperatorNew<P1Form_pspg> P1BlendingPSPGOperator;
 
 }
 
