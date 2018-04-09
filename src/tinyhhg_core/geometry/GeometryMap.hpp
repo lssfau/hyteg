@@ -12,7 +12,8 @@ class GeometryMap
    enum class Type : uint_t
    {
       IDENTITY = 0,
-      CIRCULAR = 1
+      AFFINE = 1,
+      CIRCULAR = 2
    };
 
    virtual ~GeometryMap(){};
