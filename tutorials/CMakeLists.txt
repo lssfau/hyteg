@@ -13,3 +13,7 @@ waLBerla_add_executable( NAME 03_Communication
 waLBerla_add_executable( NAME 04_Indexing
         FILES 04_Indexing.cpp
         DEPENDS tinyhhg_core )
+
+waLBerla_add_executable( NAME FullAppP1GMG
+        FILES 05_FullAppP1GMG/P1GMG.cpp
+        DEPENDS tinyhhg_core core)

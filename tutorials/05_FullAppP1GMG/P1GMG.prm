@@ -2,12 +2,12 @@ Parameters
 {
   mesh ../data/meshes/annulus.msh;
   minLevel 2;
-  maxLevel 6;
+  maxLevel 8;
   max_outer_iter 20;
   max_coarse_iter 10000;
   mg_tolerance 1e-16;
   coarse_tolerance 1e-16;
-  vtkOutput true;
+  vtkOutput false;
   printTiming false;
   useExactWeights false;
 }

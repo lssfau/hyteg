@@ -66,10 +66,6 @@ waLBerla_add_executable( NAME gmg_P2_h_refinement
         FILES gmg_P2_h_refinement.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME GMG_P1
-        FILES GMG_P1.cpp
-        DEPENDS tinyhhg_core core)
-
 waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp
         DEPENDS tinyhhg_core)
