@@ -233,6 +233,7 @@ inline void interpolate(const uint_t & Level, Edge &edge,
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   Point3D x;
+  Point3D xBlend;
   Point3D x0 = edge.getCoordinates()[0];
   Point3D dx = edge.getDirection()/(walberla::real_c(rowsize - 1));
 
@@ -259,7 +260,9 @@ inline void interpolate(const uint_t & Level, Edge &edge,
     for (size_t k = 0; k < srcPtr.size(); ++k) {
       srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
     }
-    edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( x, srcVector);
+
+    face0->getGeometryMap()->evalF(x, xBlend);
+    edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( xBlend, srcVector);
     x += dx;
   }
 
@@ -279,7 +282,8 @@ inline void interpolate(const uint_t & Level, Edge &edge,
         srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
-      edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( x, srcVector);
+      face1->getGeometryMap()->evalF(x, xBlend);
+      edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( xBlend, srcVector);
       x += dx;
     }
   }

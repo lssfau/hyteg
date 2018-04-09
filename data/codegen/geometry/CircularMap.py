@@ -34,8 +34,7 @@ def Psi(eta):
 
 F = A * Tinv + Matrix([[x1], [y1]]) + (1 - xi - eta) * Matrix([[Phi(eta)], [Psi(eta)]])
 DF = F.jacobian([x,y])
-
-det = DF.det()
+# DFinv = DF**(-1)
 
 
 x.name = 'x[0]'
@@ -55,17 +54,50 @@ radius.name = 'radius_'
 # print('real_t xi = {};'.format(ccode(simplify(xi_))))
 # print('real_t eta = {};'.format(ccode(simplify(eta_))))
 
-print('Fx[0] =  {};'.format(ccode(F[0])))
-print('Fx[1] =  {};'.format(ccode(F[1])))
 
-print('DFx(0,0) =  {};'.format(ccode(DF[(0,0)])))
-print('DFx(0,1) =  {};'.format(ccode(DF[(0,1)])))
-print('DFx(1,0) =  {};'.format(ccode(DF[(1,0)])))
-print('DFx(1,1) =  {};'.format(ccode(DF[(1,1)])))
+# print('Fx[0] =  {};'.format(ccode(F[0])))
+# print('Fx[1] =  {};'.format(ccode(F[1])))
+
+# print('DFx(0,0) =  {};'.format(ccode(DF[(0,0)])))
+# print('DFx(0,1) =  {};'.format(ccode(DF[(0,1)])))
+# print('DFx(1,0) =  {};'.format(ccode(DF[(1,0)])))
+# print('DFx(1,1) =  {};'.format(ccode(DF[(1,1)])))
 
 # print('DFxInv(0,0) =  {};'.format(ccode(DFinv[(0,0)])))
 # print('DFxInv(0,1) =  {};'.format(ccode(DFinv[(0,1)])))
 # print('DFxInv(1,0) =  {};'.format(ccode(DFinv[(1,0)])))
 # print('DFxInv(1,1) =  {};'.format(ccode(DFinv[(1,1)])))
 
-print('det = {};'.format(ccode(det)))
+
+def generateF(symfunc):
+    tmpsyms = numbered_symbols("tmp")
+    symbols, simple = cse(symfunc, symbols=tmpsyms)
+
+    c_code = "void evalF( const Point3D& x, Point3D& Fx ) const {\n"
+
+    for s in symbols:
+        c_code +=  "   real_t " +ccode(s[0]) + " = " + ccode(s[1]) + ";\n"
+
+    for j in range(2):
+        c_code +=  "   Fx[{}] = ".format(j) + ccode(simple[j])+";\n"
+    c_code += "}\n"
+    return c_code
+
+
+def generateDF(symfunc):
+    tmpsyms = numbered_symbols("tmp")
+    symbols, simple = cse(symfunc, symbols=tmpsyms)
+
+    c_code = "void evalDF( const Point3D& x, Matrix2r& DFx ) const {\n"
+
+    for s in symbols:
+        c_code +=  "   real_t " +ccode(s[0]) + " = " + ccode(s[1]) + ";\n"
+
+    for i in range(2):
+        for j in range(2):
+            c_code +=  "   out({},{}) = ".format(i,j) + ccode(simple[2*i+j])+";\n"
+    c_code += "}\n"
+    return c_code
+
+print(generateF([F[0], F[1]]))
+print(generateDF([DF[(0,0)], DF[(0,1)], DF[(1,0)], DF[(1,1)]]))

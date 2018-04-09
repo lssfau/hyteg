@@ -34,42 +34,42 @@ inline void assembleScalarStencil(uint_t level, Face& face, std::vector<real_t>&
                             const Point3D& offsetN, const Point3D& offsetNE) {
   std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetS));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetS));
   assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementS,
                        P1Elements::FaceVertexDoF::P1GrayDoFMaps[0]);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetSE));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetSE));
   assembleLocalStencil(localMatricesVector[0]->getBlueMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementSE,
                        P1Elements::FaceVertexDoF::P1BlueDoFMaps[1]);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetSW));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetSW));
   assembleLocalStencil(localMatricesVector[0]->getBlueMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementSW,
                        P1Elements::FaceVertexDoF::P1BlueDoFMaps[0]);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetNW));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetNW));
   assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementNW,
                        P1Elements::FaceVertexDoF::P1GrayDoFMaps[2]);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetN));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetN));
   assembleLocalStencil(localMatricesVector[0]->getBlueMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementN,
                        P1Elements::FaceVertexDoF::P1BlueDoFMaps[2]);
 
-  mappingTensor(0,0) = std::abs(face.blendingMap->evalDetDF(x + offsetNE));
+  mappingTensor(0,0) = std::abs(face.getGeometryMap()->evalDetDF(x + offsetNE));
   assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level),
                        opr_data.data(),
                        *coeffs[0],
@@ -84,7 +84,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                             const Point3D& offsetN, const Point3D& offsetNE) {
   std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-  face.blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetS, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
                          opr_data.data(),
@@ -93,7 +93,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                        P1Elements::FaceVertexDoF::P1GrayDoFMaps[0]);
   }
 
-  face.blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetSE, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
                          opr_data.data(),
@@ -102,7 +102,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                          P1Elements::FaceVertexDoF::P1BlueDoFMaps[1]);
   }
 
-  face.blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetSW, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
                          opr_data.data(),
@@ -111,7 +111,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                          P1Elements::FaceVertexDoF::P1BlueDoFMaps[0]);
   }
 
-  face.blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetNW, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
                          opr_data.data(),
@@ -120,7 +120,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                          P1Elements::FaceVertexDoF::P1GrayDoFMaps[2]);
   }
 
-  face.blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetN, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level),
                          opr_data.data(),
@@ -129,7 +129,7 @@ inline void assembleTensorStencil(uint_t level, Face& face, std::vector<real_t>&
                          P1Elements::FaceVertexDoF::P1BlueDoFMaps[2]);
   }
 
-  face.blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
+  face.getGeometryMap()->evalTensorCoeff(x + offsetNE, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level),
                          opr_data.data(),
@@ -380,21 +380,21 @@ inline void assembleScalarStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                             uint_t o_south, uint_t s_north, uint_t e_north, uint_t o_north) {
   std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-  mappingTensor(0,0) = std::abs(faceS->blendingMap->evalDetDF(x + offsetSW));
+  mappingTensor(0,0) = std::abs(faceS->getGeometryMap()->evalDetDF(x + offsetSW));
   assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level, 0),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementSW,
                        {e_south, s_south, o_south});
 
-  mappingTensor(0,0) = std::abs(faceS->blendingMap->evalDetDF(x + offsetS));
+  mappingTensor(0,0) = std::abs(faceS->getGeometryMap()->evalDetDF(x + offsetS));
   assembleLocalStencil(localMatricesVector[0]->getBlueMatrix(level, 0),
                        opr_data.data(),
                        *coeffs[0],
                        P1Elements::FaceVertexDoF::elementS,
                        {o_south, e_south, s_south});
 
-  mappingTensor(0,0) = std::abs(faceS->blendingMap->evalDetDF(x + offsetSE));
+  mappingTensor(0,0) = std::abs(faceS->getGeometryMap()->evalDetDF(x + offsetSE));
   assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level, 0),
                        opr_data.data(),
                        *coeffs[0],
@@ -402,21 +402,21 @@ inline void assembleScalarStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                        {s_south, o_south, e_south});
 
   if (edge.getNumNeighborFaces() == 2) {
-    mappingTensor(0,0) = std::abs(faceN->blendingMap->evalDetDF(x + offsetNW));
+    mappingTensor(0,0) = std::abs(faceN->getGeometryMap()->evalDetDF(x + offsetNW));
     assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level, 1),
                          opr_data.data(),
                          *coeffs[0],
                          P1Elements::FaceVertexDoF::elementNW,
                          {e_north, o_north, s_north});
 
-    mappingTensor(0,0) = std::abs(faceN->blendingMap->evalDetDF(x + offsetN));
+    mappingTensor(0,0) = std::abs(faceN->getGeometryMap()->evalDetDF(x + offsetN));
     assembleLocalStencil(localMatricesVector[0]->getBlueMatrix(level, 1),
                          opr_data.data(),
                          *coeffs[0],
                          P1Elements::FaceVertexDoF::elementN,
                          {o_north, s_north, e_north});
 
-    mappingTensor(0,0) = std::abs(faceN->blendingMap->evalDetDF(x + offsetNE));
+    mappingTensor(0,0) = std::abs(faceN->getGeometryMap()->evalDetDF(x + offsetNE));
     assembleLocalStencil(localMatricesVector[0]->getGrayMatrix(level, 1),
                          opr_data.data(),
                          *coeffs[0],
@@ -433,7 +433,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                             uint_t o_south, uint_t s_north, uint_t e_north, uint_t o_north) {
   std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-  faceS->blendingMap->evalTensorCoeff(x + offsetSW, mappingTensor);
+  faceS->getGeometryMap()->evalTensorCoeff(x + offsetSW, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 0),
                          opr_data.data(),
@@ -442,7 +442,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                          {e_south, s_south, o_south});
   }
 
-  faceS->blendingMap->evalTensorCoeff(x + offsetS, mappingTensor);
+  faceS->getGeometryMap()->evalTensorCoeff(x + offsetS, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level, 0),
                          opr_data.data(),
@@ -451,7 +451,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                          {o_south, e_south, s_south});
   }
 
-  faceS->blendingMap->evalTensorCoeff(x + offsetSE, mappingTensor);
+  faceS->getGeometryMap()->evalTensorCoeff(x + offsetSE, mappingTensor);
   for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
     assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 0),
                          opr_data.data(),
@@ -461,7 +461,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
   }
 
   if (edge.getNumNeighborFaces() == 2) {
-    faceN->blendingMap->evalTensorCoeff(x + offsetNW, mappingTensor);
+    faceN->getGeometryMap()->evalTensorCoeff(x + offsetNW, mappingTensor);
     for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
       assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 1),
                            opr_data.data(),
@@ -470,7 +470,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                            {e_north, o_north, s_north});
     }
 
-    faceN->blendingMap->evalTensorCoeff(x + offsetN, mappingTensor);
+    faceN->getGeometryMap()->evalTensorCoeff(x + offsetN, mappingTensor);
     for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
       assembleLocalStencil(localMatricesVector[coeffIdx]->getBlueMatrix(level, 1),
                            opr_data.data(),
@@ -479,7 +479,7 @@ inline void assembleTensorStencil(uint_t level, Edge& edge, Face* faceS, Face* f
                            {o_north, s_north, e_north});
     }
 
-    faceN->blendingMap->evalTensorCoeff(x + offsetNE, mappingTensor);
+    faceN->getGeometryMap()->evalTensorCoeff(x + offsetNE, mappingTensor);
     for (uint_t coeffIdx = 0; coeffIdx < 3; ++coeffIdx) {
       assembleLocalStencil(localMatricesVector[coeffIdx]->getGrayMatrix(level, 1),
                            opr_data.data(),
@@ -731,9 +731,9 @@ inline void applyBlending(uint_t level, Vertex &vertex,
 
     x = face->coords[v_i] + 1.0/3.0 * d0 + 1.0/3.0 * d2;
     if (operatorIds.size() == 3) {
-      face->blendingMap->evalTensorCoeff(x, mappingTensor);
+      face->getGeometryMap()->evalTensorCoeff(x, mappingTensor);
     } else {
-      mappingTensor(0,0) = std::abs(face->blendingMap->evalDetDF(x));
+      mappingTensor(0,0) = std::abs(face->getGeometryMap()->evalDetDF(x));
     }
 
     for (uint_t coeffIdx = 0; coeffIdx < operatorIds.size(); ++coeffIdx) {
@@ -808,9 +808,9 @@ inline void smooth_gs_blending(uint_t level, Vertex &vertex,
 
     x = face->coords[v_i] + 1.0/3.0 * d0 + 1.0/3.0 * d2;
     if (operatorIds.size() == 3) {
-      face->blendingMap->evalTensorCoeff(x, mappingTensor);
+      face->getGeometryMap()->evalTensorCoeff(x, mappingTensor);
     } else {
-      mappingTensor(0,0) = std::abs(face->blendingMap->evalDetDF(x));
+      mappingTensor(0,0) = std::abs(face->getGeometryMap()->evalDetDF(x));
     }
 
     for (uint_t coeffIdx = 0; coeffIdx < operatorIds.size(); ++coeffIdx) {

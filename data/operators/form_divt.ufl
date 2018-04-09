@@ -1,0 +1,4 @@
+v = TestFunction( testElement )
+p = TrialFunction( trialElement )
+
+forms = [- v.dx(i)*p*dx for i in range(2)]

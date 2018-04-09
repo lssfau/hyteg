@@ -33,8 +33,7 @@ inline void interpolate(Vertex &vertex,
   }
 
   Point3D xBlend;
-  vertex.getBlendingMap()->evalF(vertex.getCoordinates(), xBlend);
-
+  vertex.getGeometryMap()->evalF(vertex.getCoordinates(), xBlend);
   vertexMemory->getPointer( level )[0] = expr(xBlend, srcVector);
 }
 

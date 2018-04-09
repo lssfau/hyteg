@@ -9,6 +9,8 @@
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
 
+#include "tinyhhg_core/geometry/IdentityMap.hpp"
+
 #include <map>
 #include <memory>
 #include <vector>
@@ -73,6 +75,7 @@ class Primitive
 {
 public:
 
+  friend class SetupPrimitiveStorage;
   friend class PrimitiveStorage;
 
   typedef internal::PrimitiveData PrimitiveData;
@@ -135,6 +138,8 @@ public:
   void deserialize( walberla::mpi::RecvBuffer & recvBuffer );
   ///@}
 
+  const std::shared_ptr<GeometryMap>& getGeometryMap() const;
+
 protected:
 
   /// Only subclasses shall be constructable
@@ -142,11 +147,11 @@ protected:
   Primitive( const Primitive & other ) :
     primitiveID_( other.primitiveID_ ), neighborVertices_( other.neighborVertices_ ),
     neighborEdges_( other.neighborEdges_ ), neighborFaces_( other.neighborFaces_ ),
-    neighborCells_( other.neighborCells_ )
+    neighborCells_( other.neighborCells_ ), geometryMap_ ( other.geometryMap_ )
   {}
 
   /// Only subclasses shall be constructable
-  Primitive( const PrimitiveID & id ) : primitiveID_( id ) {}
+  Primitive( const PrimitiveID & id ) : primitiveID_( id ), geometryMap_( std::make_shared<IdentityMap>() ) {}
 
   /// Creates Primitive from an MPI buffer
   Primitive( walberla::mpi::RecvBuffer & recvBuffer ) { deserializePrimitive( recvBuffer ); }
@@ -166,6 +171,8 @@ protected:
 
   virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const = 0;
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       = 0;
+
+  std::shared_ptr<GeometryMap> geometryMap_;
 
 private:
 

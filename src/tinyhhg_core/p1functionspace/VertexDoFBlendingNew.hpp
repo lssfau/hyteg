@@ -49,7 +49,7 @@ inline void applyBlending(uint_t Level, Face &face,
   Point3D x0({0,0,0}), x;
   real_t h = 1.0 / (walberla::real_c(rowsize - 1));
 
-  form.faceMap = face.blendingMap;
+  form.geometryMap = face.getGeometryMap();
 
   ValueType tmp;
 
@@ -177,13 +177,13 @@ inline void applyBlending(uint_t Level, Edge &edge,
     std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
     // assemble south
-    form.faceMap = faceS->blendingMap;
+    form.geometryMap = faceS->getGeometryMap();
     assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_W, xS_0 + dirS_S}, P1Elements::FaceVertexDoF::elementSW, opr_data);
     assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_S, xS_0 + dirS_SE}, P1Elements::FaceVertexDoF::elementS, opr_data);
     assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_SE, xS_0 + dirS_E}, P1Elements::FaceVertexDoF::elementSE, opr_data);
 
     if (edge.getNumNeighborFaces() == 2) {
-      form.faceMap = faceN->blendingMap;
+      form.geometryMap = faceN->getGeometryMap();
       assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_E, xN_0 + dirN_N}, P1Elements::FaceVertexDoF::elementNE, opr_data);
       assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_N, xN_0 + dirN_NW}, P1Elements::FaceVertexDoF::elementN, opr_data);
       assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_NW, xN_0 + dirN_W}, P1Elements::FaceVertexDoF::elementNW, opr_data);
@@ -249,7 +249,7 @@ inline void applyBlending(uint_t level, Vertex &vertex,
   for (auto& faceId : vertex.neighborFaces()) {
 
     Face* face = storage->getFace(faceId);
-    form.faceMap = face->blendingMap;
+    form.geometryMap = face->getGeometryMap();
 
     uint_t v_i = face->vertex_index(vertex.getID());
     std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());

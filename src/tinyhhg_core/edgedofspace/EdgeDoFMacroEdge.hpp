@@ -38,6 +38,8 @@ inline void interpolate(const uint_t & Level, Edge & edge,
 
   const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( Level ) );
 
+  Point3D xBlend;
+
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
     const Point3D currentCoordinates = leftCoords + microEdgeOffset + 2 * it.col() * microEdgeOffset;
@@ -46,7 +48,8 @@ inline void interpolate(const uint_t & Level, Edge & edge,
       srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.col())];
     }
 
-    edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = expr( currentCoordinates, srcVector );
+    edge.getGeometryMap()->evalF(currentCoordinates, xBlend);
+    edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = expr(xBlend , srcVector );
   }
 }
 

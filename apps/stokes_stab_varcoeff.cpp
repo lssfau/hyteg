@@ -37,8 +37,10 @@ int main(int argc, char* argv[])
       Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
 
       if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
-        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
-        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
+        setupStorage.setGeometryMap( edge.getID(),
+                                     std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
+        setupStorage.setGeometryMap( face.getID(),
+                                     std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
       }
     }
   }

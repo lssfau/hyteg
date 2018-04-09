@@ -131,10 +131,6 @@ bool Face::hasBoundaryEdge() const {
   return edgesOnBoundary.size() > 0;
 }
 
-void Face::setBlendingMap(const std::shared_ptr<FaceMap>& newMap) {
-  blendingMap = newMap;
-}
-
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
 {
   return os << "Face { id = " << face.getID().getID() << "; "
@@ -154,7 +150,6 @@ void Face::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << coords[0];
   sendBuffer << coords[1];
   sendBuffer << coords[2];
-  blendingMap->serialize(sendBuffer);
 }
 
 void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -167,7 +162,6 @@ void Face::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> coords[0];
   recvBuffer >> coords[1];
   recvBuffer >> coords[2];
-  blendingMap = FaceMap::deserialize(recvBuffer);
 }
 
 }

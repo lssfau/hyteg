@@ -88,7 +88,8 @@ inline void interpolate(const uint_t & level, Edge &edge,
   }
 
   std::vector<ValueType> srcVector( srcIds.size() );
-  Point3D blendingCoordinate;
+
+  Point3D xBlend;
 
   for ( const auto & it : vertexdof::macroedge::Iterator( level, 1 ) )
   {
@@ -99,8 +100,8 @@ inline void interpolate(const uint_t & level, Edge &edge,
     {
       srcVector[ k ] = srcPtr[ k ][ idx ];
     }
-    edge.getBlendingMap()->evalF(coordinate, blendingCoordinate);
-    edgeData[ idx ] = expr( blendingCoordinate, srcVector );
+    edge.getGeometryMap()->evalF(coordinate, xBlend);
+    edgeData[ idx ] = expr( xBlend, srcVector );
   }
 }
 

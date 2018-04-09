@@ -98,14 +98,6 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
   WALBERLA_ABORT("Edge::get_opposite_face: Face does not belong to edge");
 }
 
-void Edge::setBlendingMap(const std::shared_ptr<FaceMap>& newMap) {
-  blendingMap_ = newMap;
-}
-
-const std::shared_ptr<FaceMap>& Edge::getBlendingMap() const {
-  return blendingMap_;
-}
-
 bool Edge::onBoundary() const {
   return testFlag(dofType_, hhg::Boundary);
 }
@@ -127,7 +119,6 @@ void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
   sendBuffer << length_;
   sendBuffer << tangent_;
   sendBuffer << normal2D_;
-  blendingMap_->serialize(sendBuffer);
 }
 
 void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
@@ -139,7 +130,6 @@ void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
   recvBuffer >> length_;
   recvBuffer >> tangent_;
   recvBuffer >> normal2D_;
-  blendingMap_ = FaceMap::deserialize(recvBuffer);
 }
 
 }

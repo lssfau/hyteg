@@ -46,7 +46,7 @@ inline void interpolate(const uint_t & Level, Face &face,
   auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-  Point3D x, x0;
+  Point3D x, x0, xBlend;
 
   x0 = face.coords[0];
 
@@ -73,7 +73,8 @@ inline void interpolate(const uint_t & Level, Face &face,
         srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
       }
 
-      faceMemory[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = expr( x, srcVector);
+      face.getGeometryMap()->evalF(x, xBlend);
+      faceMemory[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = expr( xBlend, srcVector);
       x += d0;
     }
     --inner_rowsize;
@@ -91,7 +92,8 @@ inline void interpolate(const uint_t & Level, Face &face,
         srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
       }
 
-      faceMemory[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = expr( x, srcVector);
+      face.getGeometryMap()->evalF(x, xBlend);
+      faceMemory[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = expr( xBlend, srcVector);
       x += d0;
     }
     --inner_rowsize;

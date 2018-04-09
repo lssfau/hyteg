@@ -97,7 +97,8 @@ private:
   void writeEdgeDoFData  ( std::ostream & output, const EdgeDoFFunction< real_t > * function,
                            const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const;
 
-  void writeCells( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+  void writeCells2D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
+  void writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level     ) const;
 
   void syncAllFunctions( const uint_t & level ) const;
 
