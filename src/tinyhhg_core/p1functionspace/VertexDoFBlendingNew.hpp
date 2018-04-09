@@ -73,12 +73,12 @@ inline void applyBlending(uint_t Level, Face &face,
 
       std::fill(opr_data.begin(), opr_data.end(), 0.0);
 
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirW, x0 + dirS}, P1Elements::FaceVertexDoF::elementSW, opr_data);
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirS, x0 + dirSE}, P1Elements::FaceVertexDoF::elementS, opr_data);
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirSE, x0 + dirE}, P1Elements::FaceVertexDoF::elementSE, opr_data);
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirE, x0 + dirN}, P1Elements::FaceVertexDoF::elementNE, opr_data);
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirN, x0 + dirNW}, P1Elements::FaceVertexDoF::elementN, opr_data);
-      assembleLocalStencil<P1Form>(form, {x0, x0 + dirNW, x0 + dirW}, P1Elements::FaceVertexDoF::elementNW, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, opr_data);
 
 //      PointND<real_t, 7> test(opr_data.data());
 //      WALBERLA_LOG_INFO("stencil = " << test);
