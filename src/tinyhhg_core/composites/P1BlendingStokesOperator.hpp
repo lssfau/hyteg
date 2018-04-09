@@ -47,7 +47,7 @@ public:
   P1BlendingDivOperator_2 div_y;
   P1BlendingDivTOperator_1 divT_x;
   P1BlendingDivTOperator_2 divT_y;
-  P1BlendingPSPGOperator pspg;
+  P1PSPGOperator pspg;
 };
 
 }

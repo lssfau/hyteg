@@ -104,8 +104,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        vertexdof::blending::macrovertex::smooth_gs_blending(level, vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::blendingnew::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
 
@@ -119,8 +118,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::blendingnew::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -133,8 +131,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        WALBERLA_ABORT("To be implemented")
-//        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, faceLocalMatrixIDs_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::blendingnew::macroface::smoothGSBlending<real_t>(level, face, form, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 

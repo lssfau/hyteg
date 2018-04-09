@@ -37,7 +37,7 @@ public:
   {
 
     if (level == minLevel_) {
-      coarseSolver_.solve(A, x, b, r, level, tolerance, maxiter, flag, false);
+      coarseSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, false);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
@@ -87,13 +87,16 @@ private:
   void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag) {
 
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
+    A.A_uv.apply(x.v, r.u, level, flag, Add);
+
     A.divT_y.apply(x.p, r.v, level, flag, Replace);
+    A.A_vu.apply(x.u, r.v, level, flag, Add);
 
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
 
-    A.A.smooth_gs(x.u, r.u, level, flag);
-    A.A.smooth_gs(x.v, r.v, level, flag);
+    A.A_uu.smooth_gs(x.u, r.u, level, flag);
+    A.A_vv.smooth_gs(x.v, r.v, level, flag);
 
     A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
     A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
