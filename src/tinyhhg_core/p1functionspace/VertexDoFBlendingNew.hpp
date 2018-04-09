@@ -46,26 +46,28 @@ inline void applyBlending(uint_t Level, Face &face,
   auto src = face.getData(srcId)->getPointer(Level);
   auto dst = face.getData(dstId)->getPointer(Level);
 
-  Point3D x0({0,0,0}), x;
+  Point3D x0(face.coords[0]), x;
   real_t h = 1.0 / (walberla::real_c(rowsize - 1));
+
+  Point3D d0 = h * (face.coords[1] - face.coords[0]);
+  Point3D d2 = h * (face.coords[2] - face.coords[0]);
 
   form.geometryMap = face.getGeometryMap();
 
   ValueType tmp;
 
-  Point3D dirS({0, -h, 0});
-  Point3D dirSE({h, -h, 0});
-  Point3D dirE({h, 0, 0});
-  Point3D dirW({-h, 0, 0});
-  Point3D dirNW({-h, h, 0});
-  Point3D dirN({0, h, 0});
+  Point3D dirS = -1.0 * d2;
+  Point3D dirSE = d0 - 1.0 * d2;
+  Point3D dirE = d0;
+  Point3D dirW = -1.0 * d0;
+  Point3D dirNW = -1.0 * d0 + d2;
+  Point3D dirN = d2;
 
   std::vector<real_t> opr_data(7);
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     x = x0;
-    x[0] = h;
-    x[1] = j * h;
+    x += walberla::real_c(j)*d2 + d0;
 
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
@@ -98,7 +100,7 @@ inline void applyBlending(uint_t Level, Face &face,
 
       dst[vertexdof::macroface::indexFromVertex(Level, i, j, SD::VERTEX_C)] = tmp;
 
-      x[0] += h;
+      x += d0;
     }
     --inner_rowsize;
   }
@@ -131,26 +133,22 @@ inline void applyBlending(uint_t Level, Edge &edge,
 
   real_t h = 1.0 / (walberla::real_c(rowsize - 1));
 
-  Point3D dS_se = (faceS->coords[e_south] - faceS->coords[s_south]) * h;
-  Point3D dS_so = (faceS->coords[o_south] - faceS->coords[s_south]) * h;
-  Point3D dS_oe = (faceS->coords[e_south] - faceS->coords[o_south]) * h;
+  Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
+  Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
+  Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
 
-  Point3D dirS_S = -1.0 * dS_oe;
-  Point3D dirS_E = dS_se;
-  Point3D dirS_SE = dS_so;
-  Point3D dirS_W = -1.0 * dS_se;
+  Point3D dir_S = -1.0 * dS_oe;
+  Point3D dir_E = dS_se;
+  Point3D dir_SE = dS_so;
+  Point3D dir_W = -1.0 * dS_se;
 
-  Point3D xS_0 = faceS->coords[s_south] + dS_se;
+  Point3D x = edge.getCoordinates()[0];
+  Point3D dx = h * edge.getDirection();
+  x += dx;
 
   uint_t s_north, e_north, o_north;
-  Point3D dN_se;
-  Point3D dN_so;
-  Point3D dN_oe;
-  Point3D dirN_E;
-  Point3D dirN_W;
-  Point3D dirN_NW;
-  Point3D dirN_N;
-  Point3D xN_0;
+  Point3D dir_N;
+  Point3D dir_NW;
 
   if (edge.getNumNeighborFaces() == 2) {
     faceN = storage->getFace(edge.neighborFaces()[1]);
@@ -158,16 +156,11 @@ inline void applyBlending(uint_t Level, Edge &edge,
     e_north = faceN->vertex_index(edge.neighborVertices()[1]);
     o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
 
-    dN_se = (faceN->coords[e_north] - faceN->coords[s_north]) * h;
-    dN_so = (faceN->coords[o_north] - faceN->coords[s_north]) * h;
-    dN_oe = (faceN->coords[e_north] - faceN->coords[o_north]) * h;
+    Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
+    Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
 
-    dirN_E = dN_se;
-    dirN_W = -1.0 * dirN_E;
-    dirN_N = dN_so;
-    dirN_NW = -1.0 * dN_oe;
-
-    xN_0 = faceN->coords[s_north] + dN_se;
+    dir_N = dN_so;
+    dir_NW = -1.0 * dN_oe;
   }
 
   std::vector<real_t> opr_data(7);
@@ -178,15 +171,15 @@ inline void applyBlending(uint_t Level, Edge &edge,
 
     // assemble south
     form.geometryMap = faceS->getGeometryMap();
-    assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_W, xS_0 + dirS_S}, P1Elements::FaceVertexDoF::elementSW, opr_data);
-    assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_S, xS_0 + dirS_SE}, P1Elements::FaceVertexDoF::elementS, opr_data);
-    assembleLocalStencil<P1Form>(form, {xS_0, xS_0 + dirS_SE, xS_0 + dirS_E}, P1Elements::FaceVertexDoF::elementSE, opr_data);
+    assembleLocalStencil<P1Form>(form, {x, x + dir_W, x + dir_S}, P1Elements::FaceVertexDoF::elementSW, opr_data);
+    assembleLocalStencil<P1Form>(form, {x, x + dir_S, x + dir_SE}, P1Elements::FaceVertexDoF::elementS, opr_data);
+    assembleLocalStencil<P1Form>(form, {x, x + dir_SE, x + dir_E}, P1Elements::FaceVertexDoF::elementSE, opr_data);
 
     if (edge.getNumNeighborFaces() == 2) {
       form.geometryMap = faceN->getGeometryMap();
-      assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_E, xN_0 + dirN_N}, P1Elements::FaceVertexDoF::elementNE, opr_data);
-      assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_N, xN_0 + dirN_NW}, P1Elements::FaceVertexDoF::elementN, opr_data);
-      assembleLocalStencil<P1Form>(form, {xN_0, xN_0 + dirN_NW, xN_0 + dirN_W}, P1Elements::FaceVertexDoF::elementNW, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dir_E, x + dir_N}, P1Elements::FaceVertexDoF::elementNE, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dir_N, x + dir_NW}, P1Elements::FaceVertexDoF::elementN, opr_data);
+      assembleLocalStencil<P1Form>(form, {x, x + dir_NW, x + dir_W}, P1Elements::FaceVertexDoF::elementNW, opr_data);
     }
 
     tmp = opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C ) ];
@@ -216,8 +209,7 @@ inline void applyBlending(uint_t Level, Edge &edge,
       dst[ vertexdof::macroedge::indexFromVertex(Level, i, stencilDirection::VERTEX_C ) ] += tmp;
     }
 
-    xS_0 += dS_se;
-    xN_0 += dN_se;
+    x += dx;
   }
 }
 }
@@ -254,12 +246,12 @@ inline void applyBlending(uint_t level, Vertex &vertex,
     uint_t v_i = face->vertex_index(vertex.getID());
     std::vector<PrimitiveID> adj_edges = face->adjacent_edges(vertex.getID());
 
-    Point3D x0 = face->coords[v_i];
-    d0 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[0])->get_opposite_vertex(vertex.getID()))] - x0) * h;
-    d2 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[1])->get_opposite_vertex(vertex.getID()))] - x0) * h;
+    x = face->coords[v_i];
+    d0 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[0])->get_opposite_vertex(vertex.getID()))] - x) * h;
+    d2 = (face->coords[face->vertex_index(storage->getEdge(adj_edges[1])->get_opposite_vertex(vertex.getID()))] - x) * h;
 
     Point3D matrixRow;
-    form.integrate({{x0, x0 + d0, x0 + d2}}, matrixRow);
+    form.integrate({{x, x + d0, x + d2}}, matrixRow);
 
     uint_t i = 1;
     // iterate over adjacent edges
