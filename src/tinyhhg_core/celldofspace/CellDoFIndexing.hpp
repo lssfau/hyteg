@@ -4,6 +4,8 @@
 #include "core/DataTypes.h"
 #include "core/Abort.h"
 
+#include "tinyhhg_core/indexing/Common.hpp"
+
 namespace hhg {
 namespace celldof {
 
@@ -19,6 +21,9 @@ enum class CellType : uint_t
   BLUE_DOWN,
   GREEN_DOWN
 };
+
+std::array< CellType, 6 > allCellTypes = {{ CellType::WHITE_UP, CellType::BLUE_UP, CellType::GREEN_UP,
+                                            CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN }};
 
 namespace macrocell {
 
@@ -79,8 +84,6 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
   }
   return std::array< Index, 4 >();
 }
-
-
 
 }
 }
