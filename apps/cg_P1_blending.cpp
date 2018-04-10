@@ -13,6 +13,7 @@
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperatorNew.hpp"
+#include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperatorNew.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -60,9 +61,16 @@ int main(int argc, char* argv[])
    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
 //   typedef hhg::P1BlendingLaplaceOperator SolveOperator;
-   typedef hhg::P1BlendingLaplaceOperatorNew SolveOperator;
 
-   SolveOperator L(storage, level, level);
+//   typedef hhg::P1BlendingLaplaceOperatorNew SolveOperator;
+//   SolveOperator L(storage, level, level);
+
+   typedef hhg::P1PolynomialBlendingLaplaceOperatorNew SolveOperator;
+   const uint_t interpolationLevel = 4;
+   const uint_t polyDegree = 5;
+   SolveOperator L(storage, level, level, interpolationLevel);
+   L.interpolateStencils(polyDegree);
+   L.useDegree(polyDegree);
 
    auto x = std::make_shared<hhg::P1Function< real_t > >("x", storage, level, level);
    auto y = std::make_shared<hhg::P1Function< real_t > >("y", storage, level, level);
