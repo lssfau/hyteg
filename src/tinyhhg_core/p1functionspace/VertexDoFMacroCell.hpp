@@ -7,7 +7,6 @@
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
