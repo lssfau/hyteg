@@ -22,8 +22,8 @@ enum class CellType : uint_t
   GREEN_DOWN
 };
 
-std::array< CellType, 6 > allCellTypes = {{ CellType::WHITE_UP, CellType::BLUE_UP, CellType::GREEN_UP,
-                                            CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN }};
+const std::array< CellType, 6 > allCellTypes = {{ CellType::WHITE_UP, CellType::BLUE_UP, CellType::GREEN_UP,
+                                                  CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN }};
 
 namespace macrocell {
 
