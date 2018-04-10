@@ -66,8 +66,8 @@ int main(int argc, char* argv[])
 //   SolveOperator L(storage, level, level);
 
    typedef hhg::P1PolynomialBlendingLaplaceOperatorNew SolveOperator;
-   const uint_t interpolationLevel = 4;
-   const uint_t polyDegree = 5;
+   const uint_t interpolationLevel = level;
+   const uint_t polyDegree = 12;
    SolveOperator L(storage, level, level, interpolationLevel);
    L.interpolateStencils(polyDegree);
    L.useDegree(polyDegree);

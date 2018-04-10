@@ -36,7 +36,8 @@ template< class P1Form >
 class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   typedef LSQPInterpolator< MonomialBasis2D > Interpolator;
+   typedef LSQPInterpolator< MonomialBasis2D, LSQPType::EDGE > EdgeInterpolator;
+   typedef LSQPInterpolator< MonomialBasis2D, LSQPType::VERTEX > VertexInterpolator;
 
    P1PolynomialBlendingOperatorNew( const std::shared_ptr< PrimitiveStorage >& storage,
                                     uint_t                                     minLevel,
@@ -77,9 +78,10 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
             uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(level);
             uint_t inner_rowsize = rowsize;
 
-            Interpolator horiInterpolator(polyDegree, interpolationLevel_);
-            Interpolator vertInterpolator(polyDegree, interpolationLevel_);
-            Interpolator diagInterpolator(polyDegree, interpolationLevel_);
+            VertexInterpolator centerInterpolator(polyDegree, interpolationLevel_);
+            EdgeInterpolator horiInterpolator(polyDegree, interpolationLevel_);
+            EdgeInterpolator vertInterpolator(polyDegree, interpolationLevel_);
+            EdgeInterpolator diagInterpolator(polyDegree, interpolationLevel_);
 
             Point3D x, x0;
             x0 = face.coords[0];
@@ -124,6 +126,7 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
                   vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, faceStencil );
                   vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, faceStencil );
 
+                  centerInterpolator.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_C )] );
 
                   horiInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.0}},
                                                           faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_W )] );
@@ -155,10 +158,10 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
                --inner_rowsize;
             }
 
+            centerInterpolator.interpolate( facePolynomials->getCenterPolynomial( polyDegree ) );
             horiInterpolator.interpolate( facePolynomials->getHoriPolynomial( polyDegree ) );
             vertInterpolator.interpolate( facePolynomials->getVertPolynomial( polyDegree ) );
             diagInterpolator.interpolate( facePolynomials->getDiagPolynomial( polyDegree ) );
-//            centerInterpolator.interpolate( facePolynomials->getCenterPolynomial( polyDegree ) );
          }
       }
    }

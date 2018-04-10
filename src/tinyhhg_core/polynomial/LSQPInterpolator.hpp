@@ -8,7 +8,25 @@
 
 namespace hhg {
 
-template<typename Basis>
+enum class LSQPType
+{
+  EDGE,
+  VERTEX
+};
+
+template<LSQPType Type>
+constexpr uint_t GetNumInterpolationPoints(uint_t level)
+{
+  switch(Type)
+  {
+    case LSQPType::EDGE:
+      return (levelinfo::num_microedges_per_face(level) - 3 * levelinfo::num_microedges_per_edge(level) - 3) / 3;
+    case LSQPType::VERTEX:
+      return levelinfo::num_microvertices_per_face(level) - 3 * (levelinfo::num_microvertices_per_edge(level) - 2) - 3;
+  }
+}
+
+template<typename Basis, LSQPType Type>
 class LSQPInterpolator {
 public:
 
@@ -16,7 +34,7 @@ public:
       : degree_(degree),
         numCoefficients_(Polynomial2D<Basis>::getNumCoefficients(degree)),
         interpolationLevel_(interpolationLevel),
-        numInterpolationPoints_((levelinfo::num_microedges_per_face(interpolationLevel) - 3 * levelinfo::num_microedges_per_edge(interpolationLevel) - 3) / 3),
+        numInterpolationPoints_(GetNumInterpolationPoints<Type>(interpolationLevel)),
         offset_(0),
         A(numInterpolationPoints_, Polynomial2D<Basis>::getNumCoefficients(degree)),
         rhs(numInterpolationPoints_, 1) {

@@ -157,6 +157,7 @@ class FaceP1PolynomialMemory
 public:
 
   struct FacePolynomials {
+    std::shared_ptr<GeneralPolynomial2D> centerPoly;
     std::shared_ptr<GeneralPolynomial2D> horiPoly;
     std::shared_ptr<GeneralPolynomial2D> vertPoly;
     std::shared_ptr<GeneralPolynomial2D> diagPoly;
@@ -173,6 +174,7 @@ public:
     }
 
     FacePolynomials& tmp = polynomials_[degree];
+    tmp.centerPoly = std::make_shared<GeneralPolynomial2D>(degree);
     tmp.horiPoly = std::make_shared<GeneralPolynomial2D>(degree);
     tmp.vertPoly = std::make_shared<GeneralPolynomial2D>(degree);
     tmp.diagPoly = std::make_shared<GeneralPolynomial2D>(degree);
@@ -181,6 +183,10 @@ public:
 
   bool polynomialDegreeExists(uint_t degree) {
     return polynomials_.count(degree)>0;
+  }
+
+  GeneralPolynomial2D& getCenterPolynomial(uint_t maxDegree) {
+    return *polynomials_[maxDegree].centerPoly;
   }
 
   GeneralPolynomial2D& getHoriPolynomial(uint_t maxDegree) {
