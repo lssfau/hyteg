@@ -100,6 +100,9 @@ waLBerla_compile_test(FILES P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1MassOperatorTest )
 waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
+
 ## P2 ##
 
 waLBerla_compile_test(FILES P2/P2GSTest.cpp DEPENDS tinyhhg_core core)
