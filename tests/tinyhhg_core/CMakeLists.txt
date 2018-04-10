@@ -61,6 +61,9 @@ waLBerla_execute_test(NAME VertexDoFMemoryTest)
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFBasicFunctionsTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME VertexDoFBasicFunctionsTest)
 
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFStencilAssemblyTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFStencilAssemblyTest)
+
 ## EdgeDoFSpace ##
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
