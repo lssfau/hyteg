@@ -3,6 +3,7 @@
 #include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "core/Environment.h"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -12,7 +13,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
 {
 
   const size_t minLevel = 2;
-  const size_t maxLevel = 2;
+  const size_t maxLevel = 4;
 
   hhg::P1Function< real_t > microCoordX( "microCoordX", storage, minLevel, maxLevel );
   hhg::P1Function< real_t > microCoordY( "microCoordY", storage, minLevel, maxLevel );
@@ -26,6 +27,9 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
     {
       microCoordX.interpolate( compX, lvl );
       microCoordY.interpolate( compY, lvl );
+
+      syncFunctionBetweenPrimitives( &microCoordX, lvl );
+      syncFunctionBetweenPrimitives( &microCoordY, lvl );
     }
 
   P1ElementwiseMassOperator massOp( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
@@ -39,7 +43,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
       vecOfOnes.interpolate( ones, lvl, All );
       massOp.apply( vecOfOnes, aux, lvl, All );
       real_t measure = vecOfOnes.dot( aux, lvl );
-      WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
+      WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": measure = " << std::scientific << measure );
       WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
     }
 }
@@ -58,7 +62,6 @@ int main(int argc, char **argv)
                                                MeshInfo::CRISS, 1, 1 );
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
   checkArea( storage, 2.0 );
 
   // Test with backward facing step

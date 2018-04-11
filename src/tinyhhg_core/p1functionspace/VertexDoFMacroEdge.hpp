@@ -12,6 +12,10 @@
 #include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
 
+#ifdef DEBUG_ELEMENTWISE
+#include "tinyhhg_core/format.hpp"
+#endif
+
 namespace hhg {
 namespace vertexdof {
 namespace macroedge {
@@ -54,6 +58,18 @@ inline void fillLocalCoords( const uint_t & level, uint_t i, const std::array< s
   localCoords[3] = coords[1][vertexdof::macroedge::indexFromVertex( level, i, element[1] )];
   localCoords[4] = coords[0][vertexdof::macroedge::indexFromVertex( level, i, element[2] )];
   localCoords[5] = coords[1][vertexdof::macroedge::indexFromVertex( level, i, element[2] )];
+
+#ifdef DEBUG_ELEMENTWISE
+  WALBERLA_LOG_INFO_ON_ROOT( "Vertex Indices: " 
+                             << vertexdof::macroedge::indexFromVertex( level, i, element[0] ) << ", "
+                             << vertexdof::macroedge::indexFromVertex( level, i, element[1] ) << ", "
+                             << vertexdof::macroedge::indexFromVertex( level, i, element[2] ) );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Local Coordinates: (" << localCoords[0] << ", " << localCoords[1] << ") -- "
+                             << "(" << localCoords[2] << ", " << localCoords[3] << ") -- "
+                             << "(" << localCoords[4] << ", " << localCoords[5] << ")\n" );
+#endif
+
 }
 
 template< typename ValueType >
@@ -258,15 +274,15 @@ inline void applyCoefficient( const uint_t & level, Edge &edge,
 
 template< typename ValueType >
 inline void applyElementwise( const uint_t & level, Edge &edge,
-                                 const std::shared_ptr< PrimitiveStorage >& storage,
-                                 std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
-                                 const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                 const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
-                                 std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Edge>, 2> &coordIds,
-                                 UpdateType update) {
+                              const std::shared_ptr< PrimitiveStorage >& storage,
+                              std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                              const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                              const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
+                              std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Edge>, 2> &coordIds,
+                              UpdateType update ) {
+
   using namespace P1Elements;
   typedef std::array< stencilDirection, 3 > Element;
-  typedef std::array<uint_t, 3> DoFMap;
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t inner_rowsize = rowsize;
@@ -275,40 +291,18 @@ inline void applyElementwise( const uint_t & level, Edge &edge,
   auto dst = edge.getData(dstId)->getPointer(level);
   std::array<ValueType*, 2> globalCoords{{edge.getData(coordIds[0])->getPointer(level), edge.getData(coordIds[1])->getPointer(level)}};
 
-  Face* face = storage->getFace(edge.neighborFaces()[0]);
-  uint_t start = face->vertex_index(edge.neighborVertices()[0]);
-  uint_t end = face->vertex_index(edge.neighborVertices()[1]);
-  uint_t opposite = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
-
-  Element elementSW = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_W, stencilDirection::VERTEX_S}};
-  Element elementS = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_S, stencilDirection::VERTEX_SE}};
-  Element elementSE = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E}};
-  Element elementNE = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_E, stencilDirection::VERTEX_N}};
-  Element elementN = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_N, stencilDirection::VERTEX_NW}};
-  Element elementNW = {{stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W}};
-
-  DoFMap dofMapSW = {{end, start, opposite}};
-  DoFMap dofMapS = {{opposite, end, start}};
-  DoFMap dofMapSE = {{start, opposite, end}};
-
-  DoFMap dofMapNE, dofMapN, dofMapNW;
-
-  if (edge.getNumNeighborFaces() == 2) {
-    face = storage->getFace(edge.neighborFaces()[1]);
-    start = face->vertex_index(edge.neighborVertices()[0]);
-    end = face->vertex_index(edge.neighborVertices()[1]);
-    opposite = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
-
-    dofMapNE = {{start, end, opposite}};
-    dofMapN = {{opposite, start, end}};
-    dofMapNW = {{end, opposite, start}};
-  }
+  Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
+  Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
+  Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
+  Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
+  Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
+  Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
 
   ValueType tmp;
   real_t localCoords[6];
   Matrix3r localStiffness;
   std::vector<real_t> edgeStencil(7);
-
+  
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
     std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
@@ -340,25 +334,35 @@ inline void applyElementwise( const uint_t & level, Edge &edge,
       assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ), {{0,1,2}}, localStiffness, edgeStencil);
     }
 
-//    WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:edgeStencil = {}", edge.getID().getID(), PointND<real_t, 7>(&edgeStencil[0])));
+#ifdef DEBUG_ELEMENTWISE
+    WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format("Edge.id = %d", edge.getID().getID() ));
+    for( uint_t weight = 0; weight < 7; ++weight )
+      {
+        WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, edgeStencil[weight] ) );
+      }
+#endif
 
-    tmp = edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    tmp = edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]
+      * src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
     {
-      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+        * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
     {
-      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+      tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+        * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
     }
 
     if (edge.getNumNeighborFaces() == 2)
     {
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
       {
-        tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ] * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+        tmp += edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+          * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
       }
     }
 

@@ -6,6 +6,10 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
+#ifdef DEBUG_ELEMENTWISE
+#include "tinyhhg_core/format.hpp"
+#endif
+
 namespace hhg {
 namespace vertexdof {
 namespace macrovertex {
@@ -200,6 +204,14 @@ inline void applyElementwise(uint_t level, Vertex &vertex,
 
     assembleP1LocalStencil(stencilMap, {{0,1,2}}, localStiffness, vertexStencil);
   }
+
+#ifdef DEBUG_ELEMENTWISE
+  WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( "Vertex.id = %d", vertex.getID().getID() ));
+  for( uint_t weight = 0; weight < vertexStencil.size(); ++weight )
+    {
+      WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, vertexStencil[weight] ) );
+    }
+#endif
 
   if (update==Replace) {
     dst[0] = vertexStencil[0]*src[0];

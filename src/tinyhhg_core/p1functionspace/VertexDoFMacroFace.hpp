@@ -11,6 +11,10 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 
+#ifdef DEBUG_ELEMENTWISE
+#include "tinyhhg_core/format.hpp"
+#endif
+
 namespace hhg {
 namespace vertexdof {
 namespace macroface {
@@ -482,7 +486,7 @@ inline void applyElementwise(const uint_t & Level, Face &face, std::function<voi
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
 
       std::fill(faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0));
-
+ 
       for (uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k) {
 
         // fill local coords
@@ -503,7 +507,13 @@ inline void applyElementwise(const uint_t & Level, Face &face, std::function<voi
         assembleP1LocalStencil(FaceVertexDoF::P1BlueStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil);
       }
 
-//      WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("FACE.id = {}:faceStencil = {}", face.getID().getID(), PointND<real_t, 7>(&faceStencil[0])));
+#ifdef DEBUG_ELEMENTWISE
+      WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format("FACE.id = %d", face.getID().getID() ));
+      for( uint_t weight = 0; weight < 7; ++weight )
+        {
+          WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, faceStencil[weight] ) );
+        }
+#endif
 
       if (update == Replace) {
         tmp = ValueType(0);
