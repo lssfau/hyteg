@@ -161,7 +161,10 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
   {
     Cell & cell = *it.second;
 
-    vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+    if ( testFlag( cell.getDoFType(), flag ) )
+    {
+      vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+    }
 
   }
   this->stopTiming( "Interpolate" );
@@ -224,8 +227,11 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
 
     for ( const auto & it : this->getStorage()->getCells() )
     {
-        Cell & cell = *it.second;
-        vertexdof::macrocell::assign< ValueType >(level, cell, scalars, srcCellIDs, cellDataID_);
+      Cell & cell = *it.second;
+      if ( testFlag( cell.getDoFType(), flag ) )
+      {
+        vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+      }
     }
   this->stopTiming( "Assign" );
 }
@@ -288,7 +294,10 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   for ( const auto & it : this->getStorage()->getCells() )
   {
     Cell & cell = *it.second;
-    vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+    if ( testFlag( cell.getDoFType(), flag ) )
+    {
+      vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+    }
   }
   this->stopTiming( "Add" );
 }
@@ -332,7 +341,10 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   for ( const auto & it : this->getStorage()->getCells() )
   {
     Cell& cell = *it.second;
-    scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+    if ( testFlag( cell.getDoFType(), flag ) )
+    {
+      scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+    }
   }
 
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
