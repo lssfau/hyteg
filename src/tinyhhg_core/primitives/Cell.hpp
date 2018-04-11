@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 #include "core/logging/Logging.h"
 
 namespace hhg {
@@ -48,6 +49,7 @@ public:
   }
 
   const std::array< Point3D, 4 > &                    getCoordinates()                             const { return coordinates_; }
+  const DoFType                  &                     getDoFType()                                const { return dofType_; }
   const std::array< std::map< uint_t, uint_t >, 4 > & getFaceLocalVertexToCellLocalVertexMaps()    const { return faceLocalVertexToCellLocalVertexMaps_; }
         uint_t                                        getLocalFaceID( const PrimitiveID & faceID ) const;
 
@@ -69,6 +71,7 @@ private:
 
   std::array< Point3D, 4 > coordinates_;
   std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
+  DoFType dofType_;
 
 };
 
