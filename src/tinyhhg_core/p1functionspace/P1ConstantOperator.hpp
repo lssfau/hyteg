@@ -35,10 +35,10 @@ namespace hhg {
 using walberla::real_t;
 
 template < class UFCOperator, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
-class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   P1Operator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    {
       auto cellP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >(
@@ -58,11 +58,18 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       // Only assemble stencils if UFCOperator is specified
       if( !std::is_same< UFCOperator, fenics::NoAssemble >::value )
       {
-         assembleStencils();
+         if ( storage_->hasGlobalCells() )
+         {
+            assembleStencils3D();
+         }
+         else
+         {
+            assembleStencils();
+         }
       }
    }
 
-   ~P1Operator() {}
+   ~P1ConstantOperator() {}
 
    void scale( real_t scalar )
    {
@@ -318,6 +325,29 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       }
    }
 
+   void assembleStencils3D()
+   {
+      for( uint_t level = minLevel_; level <= maxLevel_; level++ )
+      {
+         for ( const auto & it : storage_->getCells() )
+         {
+            auto cell          = it.second;
+            auto stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
+            auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( *cell, level, ufcOperator );
+
+            WALBERLA_ASSERT_EQUAL( stencil.size(), stencilSize );
+
+            for ( uint_t stencilEntryIdx = 0; stencilEntryIdx < stencilSize; stencilEntryIdx++ )
+            {
+               stencilMemory[ stencilEntryIdx ] = stencil[ stencilEntryIdx ];
+            }
+         }
+      }
+   }
+
  private:
    void apply_impl( P1Function< real_t >& src,
                     P1Function< real_t >& dst,
@@ -390,9 +420,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
       for( const auto& it : storage_->getCells() )
       {
-         Cell& cell = *it.second;
-         vertexdof::macrocell::apply< real_t >(
-             level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+        Cell& cell = *it.second;
+        if ( testFlag( cell.getDoFType(), flag ) )
+        {
+          vertexdof::macrocell::apply< real_t >(
+          level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+        }
       }
    }
 
@@ -593,20 +626,20 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    }
 };
 
-typedef P1Operator< fenics::NoAssemble > P1ZeroOperator;
+typedef P1ConstantOperator< fenics::NoAssemble > P1ZeroOperator;
 
-typedef P1Operator< p1_diffusion_cell_integral_0_otherwise >       P1LaplaceOperator;
-typedef P1Operator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1LaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
 
-typedef P1Operator< p1_div_cell_integral_0_otherwise > P1DivxOperator;
-typedef P1Operator< p1_div_cell_integral_1_otherwise > P1DivyOperator;
+typedef P1ConstantOperator< p1_div_cell_integral_0_otherwise > P1DivxOperator;
+typedef P1ConstantOperator< p1_div_cell_integral_1_otherwise > P1DivyOperator;
 
-typedef P1Operator< p1_divt_cell_integral_0_otherwise > P1DivTxOperator;
-typedef P1Operator< p1_divt_cell_integral_1_otherwise > P1DivTyOperator;
+typedef P1ConstantOperator< p1_divt_cell_integral_0_otherwise > P1DivTxOperator;
+typedef P1ConstantOperator< p1_divt_cell_integral_1_otherwise > P1DivTyOperator;
 
-typedef P1Operator< p1_mass_cell_integral_0_otherwise >                    P1MassOperator;
-typedef P1Operator< p1_mass_cell_integral_0_otherwise, false, true, true > P1LumpedInvMassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise >                    P1MassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, false, true, true > P1LumpedInvMassOperator;
 
-typedef P1Operator< p1_pspg_cell_integral_0_otherwise > P1PSPGOperator;
+typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise > P1PSPGOperator;
 
 } // namespace hhg

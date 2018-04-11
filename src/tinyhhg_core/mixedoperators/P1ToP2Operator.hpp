@@ -4,7 +4,7 @@
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -116,7 +116,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
 
   }
 
-  P1Operator<fenics::NoAssemble>& getVertexToVertexOpr() {
+  P1ConstantOperator<fenics::NoAssemble>& getVertexToVertexOpr() {
     return vertexToVertex;
   }
 
@@ -138,7 +138,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   }
 
 
-  P1Operator<fenics::NoAssemble> vertexToVertex;
+  P1ConstantOperator<fenics::NoAssemble> vertexToVertex;
   GenericVertexDoFToEdgeDoFOperator vertexToEdge;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrixr<6, 3>& local_stiffness, fenics::ElementType element_type) {

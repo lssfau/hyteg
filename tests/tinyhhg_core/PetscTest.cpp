@@ -5,7 +5,7 @@
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"

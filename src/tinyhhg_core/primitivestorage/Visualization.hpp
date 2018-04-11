@@ -242,7 +242,11 @@ void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage > & sto
   writeDomainPartitioningVTK( storage, dir, filenameVertices, VTK_VERTEX   );
   writeDomainPartitioningVTK( storage, dir, filenameEdges,    VTK_LINE     );
   writeDomainPartitioningVTK( storage, dir, filenameFaces,    VTK_TRIANGLE );
-  writeDomainPartitioningVTK( storage, dir, filenameCells,    VTK_TETRA    );
+  if ( storage->hasGlobalCells() )
+  {
+    writeDomainPartitioningVTK( storage, dir, filenameCells,    VTK_TETRA    );
+  }
+
 }
 
 void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage > & storage, const std::string & filename )

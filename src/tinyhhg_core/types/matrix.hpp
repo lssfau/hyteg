@@ -178,6 +178,7 @@ inline std::ostream& operator<<(std::ostream &os, const Matrix<T, M, N> &matrix)
 template<uint_t M, uint_t N> using Matrixr = Matrix<real_t, M, N>;
 typedef Matrix<real_t, 2, 2> Matrix2r;
 typedef Matrix<real_t, 3, 3> Matrix3r;
+typedef Matrix<real_t, 4, 4> Matrix4r;
 typedef Matrix<real_t, 6, 6> Matrix6r;
 
 }

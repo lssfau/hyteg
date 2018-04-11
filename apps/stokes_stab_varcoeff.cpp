@@ -8,7 +8,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/composites/P1CoefficientStokesOperator.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 
