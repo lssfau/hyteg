@@ -44,6 +44,9 @@ public:
   uint_t getNumberOfLocalFaces()    const { return faces_.size(); }
   uint_t getNumberOfLocalCells()    const { return cells_.size(); }
 
+  /// Returns true if there are cell-primitives globally (even if there are none on the process that calls this function).
+  bool hasGlobalCells() const { return hasGlobalCells_; }
+
   /// Returns true, if the \ref Primitive that corresponds to the \ref PrimitiveID exists locally.
   bool primitiveExistsLocally( const PrimitiveID & id ) const { return vertexExistsLocally( id ) || edgeExistsLocally( id ) || faceExistsLocally( id ) || cellExistsLocally( id ); }
   /// Returns true, if the \ref Vertex that corresponds to the \ref PrimitiveID exists locally.
@@ -363,6 +366,8 @@ private:
   uint_t modificationStamp_;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
+
+  bool hasGlobalCells_;
 
 };
 
