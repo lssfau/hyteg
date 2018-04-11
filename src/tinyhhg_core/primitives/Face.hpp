@@ -28,11 +28,12 @@ public:
   Face( const PrimitiveID & primitiveID,
         const std::array<PrimitiveID, 3>& vertexIDs,
         const std::array<PrimitiveID, 3>& edgeIDs,
+        const DoFType                   & dofType,
         const std::array< int, 3 >     & edgeOrientation,
         const std::vector<PrimitiveID>& vertexOnBoundaryIDs,
         const std::vector<PrimitiveID>& edgeOnBoundaryIDs,
         const std::array< Point3D, 3 > & coordinates ) :
-    Primitive( primitiveID ), type( Inner ), edge_orientation( edgeOrientation ),
+    Primitive( primitiveID ), type( dofType ), edge_orientation( edgeOrientation ),
     verticesOnBoundary( vertexOnBoundaryIDs ), edgesOnBoundary( edgeOnBoundaryIDs ), coords( coordinates )
   {
     neighborVertices_.push_back( vertexIDs[0] );

@@ -134,6 +134,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID2.getID() ), 1 );
 
+    DoFType dofType = meshInfoFace.getDoFType();
+
     // Edge Orientation
     std::array< int, 3 > edgeOrientation;
 
@@ -231,7 +233,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       edgesOnBoundary.push_back(edgeID2);
     }
 
-    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, verticesOnBoundary, edgesOnBoundary, coordinates ) );
+    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, dofType, edgeOrientation, verticesOnBoundary, edgesOnBoundary, coordinates ) );
 
     // Adding face ID to vertices as neighbors
     vertices_[vertexIDs[0].getID()]->addFace(faceID);
@@ -247,6 +249,33 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     std::vector< PrimitiveID > neighboringVertexIDs = {{ vertexID0, vertexID1, vertexID2 }};
     std::sort( neighboringVertexIDs.begin(), neighboringVertexIDs.end() );
     vertexIDsToFaceIDs[ neighboringVertexIDs ] = faceID;
+  }
+
+  for ( const auto & it : faces_ )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag(face.type, hhg::NeumannBoundary ) )
+    {
+      for ( auto & itv : face.neighborEdges() )
+      {
+        edges_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
+      }
+
+    }
+  }
+
+  for ( const auto & it : faces_ )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag(face.type, hhg::DirichletBoundary ) )
+    {
+      for ( auto & itv : face.neighborEdges() )
+      {
+        edges_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
+      }
+    }
   }
 
   // Adding cells to storage
