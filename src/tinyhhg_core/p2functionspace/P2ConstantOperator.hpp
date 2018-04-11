@@ -9,7 +9,7 @@
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -178,7 +178,7 @@ public:
 
   }
 
-  P1Operator<fenics::NoAssemble>& getVertexToVertexOpr() {
+  P1ConstantOperator<fenics::NoAssemble>& getVertexToVertexOpr() {
     return vertexToVertex;
   }
 
@@ -310,7 +310,7 @@ private:
 
   }
 
-  P1Operator<fenics::NoAssemble> vertexToVertex;
+  P1ConstantOperator<fenics::NoAssemble> vertexToVertex;
   GenericEdgeDoFToVertexDoFOperator edgeToVertex;
   GenericVertexDoFToEdgeDoFOperator vertexToEdge;
   EdgeDoFOperator edgeToEdge;

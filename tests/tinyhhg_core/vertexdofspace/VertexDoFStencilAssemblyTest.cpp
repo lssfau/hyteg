@@ -10,7 +10,7 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
