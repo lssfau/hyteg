@@ -21,8 +21,8 @@ public:
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
   {
     // TODO: remove hardcoded parameters
-    nuPre_ = 3;
-    nuPost_ = 3;
+    nuPre_ = 2;
+    nuPost_ = 2;
 
     nuAdd_ = 2;
 

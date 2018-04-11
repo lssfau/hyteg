@@ -157,10 +157,13 @@ class FaceP1PolynomialMemory
 public:
 
   struct FacePolynomials {
-    std::shared_ptr<GeneralPolynomial2D> centerPoly;
-    std::shared_ptr<GeneralPolynomial2D> horiPoly;
-    std::shared_ptr<GeneralPolynomial2D> vertPoly;
-    std::shared_ptr<GeneralPolynomial2D> diagPoly;
+    std::shared_ptr<GeneralPolynomial2D> polyS;
+    std::shared_ptr<GeneralPolynomial2D> polySE;
+    std::shared_ptr<GeneralPolynomial2D> polyW;
+    std::shared_ptr<GeneralPolynomial2D> polyC;
+    std::shared_ptr<GeneralPolynomial2D> polyE;
+    std::shared_ptr<GeneralPolynomial2D> polyNW;
+    std::shared_ptr<GeneralPolynomial2D> polyN;
   };
 
   std::map<uint_t, FacePolynomials> polynomials_;
@@ -174,10 +177,15 @@ public:
     }
 
     FacePolynomials& tmp = polynomials_[degree];
-    tmp.centerPoly = std::make_shared<GeneralPolynomial2D>(degree);
-    tmp.horiPoly = std::make_shared<GeneralPolynomial2D>(degree);
-    tmp.vertPoly = std::make_shared<GeneralPolynomial2D>(degree);
-    tmp.diagPoly = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyS = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polySE = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyW = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyC = std::make_shared<GeneralPolynomial2D>(degree);
+
+    // TODO: only required in asymmetric case
+    tmp.polyE = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyNW = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyN = std::make_shared<GeneralPolynomial2D>(degree);
     return tmp;
   }
 
@@ -185,20 +193,32 @@ public:
     return polynomials_.count(degree)>0;
   }
 
-  GeneralPolynomial2D& getCenterPolynomial(uint_t maxDegree) {
-    return *polynomials_[maxDegree].centerPoly;
+  GeneralPolynomial2D& getPolynomialS(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyS;
   }
 
-  GeneralPolynomial2D& getHoriPolynomial(uint_t maxDegree) {
-    return *polynomials_[maxDegree].horiPoly;
+  GeneralPolynomial2D& getPolynomialSE(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polySE;
   }
 
-  GeneralPolynomial2D& getVertPolynomial(uint_t maxDegree) {
-    return *polynomials_[maxDegree].vertPoly;
+  GeneralPolynomial2D& getPolynomialW(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyW;
   }
 
-  GeneralPolynomial2D& getDiagPolynomial(uint_t maxDegree) {
-    return *polynomials_[maxDegree].diagPoly;
+  GeneralPolynomial2D& getPolynomialC(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyC;
+  }
+
+  GeneralPolynomial2D& getPolynomialE(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyE;
+  }
+
+  GeneralPolynomial2D& getPolynomialNW(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyNW;
+  }
+
+  GeneralPolynomial2D& getPolynomialN(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyN;
   }
 
 };

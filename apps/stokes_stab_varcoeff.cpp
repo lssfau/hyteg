@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1BlendingStokesOperator.hpp"
+#include "tinyhhg_core/composites/P1PolynomialBlendingStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1CoefficientStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
@@ -56,6 +57,8 @@ int main( int argc, char* argv[] )
    const uint_t coarseMaxiter = 200;
    const real_t mg_tolerance = 1e-9;
    const uint_t maxOuterIter = 100;
+   const uint_t interpolationLevel = 3;
+   const uint_t polyDegree = 4;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
@@ -67,8 +70,12 @@ int main( int argc, char* argv[] )
        std::make_shared< hhg::P1Function< real_t > >( "coeff", storage, minLevel, maxLevel );
 
    typedef hhg::P1BlendingStokesOperator SolveOperator;
-
    SolveOperator L( storage, minLevel, maxLevel );
+
+//   typedef hhg::P1PolynomialBlendingStokesOperator SolveOperator;
+//   SolveOperator L( storage, minLevel, maxLevel, interpolationLevel );
+//   L.interpolateStencils(polyDegree);
+//   L.useDegree(polyDegree);
 
    std::function< real_t( const hhg::Point3D& ) > coeff  = []( const hhg::Point3D& x ) { return 1.0; };
    std::function< real_t( const hhg::Point3D& ) > zero   = []( const hhg::Point3D& ) { return 0.0; };

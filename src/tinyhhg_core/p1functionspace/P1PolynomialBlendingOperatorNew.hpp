@@ -32,7 +32,7 @@
 
 namespace hhg {
 
-template< class P1Form >
+template< class P1Form, bool Symmetric >
 class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
@@ -58,6 +58,15 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
    ~P1PolynomialBlendingOperatorNew() {}
 
    void interpolateStencils( uint_t polyDegree )
+   {
+      if(Symmetric) {
+         interpolateStencilsSymmetric( polyDegree );
+      } else {
+         interpolateStencilsAsymmetric( polyDegree );
+      }
+   }
+
+   void interpolateStencilsSymmetric( uint_t polyDegree )
    {
       typedef stencilDirection SD;
       using namespace P1Elements;
@@ -126,6 +135,11 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
                   vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, faceStencil );
                   vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, faceStencil );
 
+                  //if (i == 1 && j == 1) {
+                  //   PointND<real_t, 7> test(faceStencil.data());
+                  //   WALBERLA_LOG_INFO("stencil = " << test);
+                  //}
+
                   centerInterpolator.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_C )] );
 
                   horiInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.0}},
@@ -158,13 +172,114 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
                --inner_rowsize;
             }
 
-            centerInterpolator.interpolate( facePolynomials->getCenterPolynomial( polyDegree ) );
-            horiInterpolator.interpolate( facePolynomials->getHoriPolynomial( polyDegree ) );
-            vertInterpolator.interpolate( facePolynomials->getVertPolynomial( polyDegree ) );
-            diagInterpolator.interpolate( facePolynomials->getDiagPolynomial( polyDegree ) );
+            centerInterpolator.interpolate( facePolynomials->getPolynomialC( polyDegree ) );
+            horiInterpolator.interpolate( facePolynomials->getPolynomialW( polyDegree ) );
+            vertInterpolator.interpolate( facePolynomials->getPolynomialS( polyDegree ) );
+            diagInterpolator.interpolate( facePolynomials->getPolynomialSE( polyDegree ) );
          }
       }
    }
+
+  void interpolateStencilsAsymmetric( uint_t polyDegree )
+  {
+     typedef stencilDirection SD;
+     using namespace P1Elements;
+
+     std::vector< real_t > faceStencil( 7 );
+
+     for( auto& it : storage_->getFaces() )
+     {
+        Face& face = *it.second;
+        form.geometryMap = face.getGeometryMap();
+
+        for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+        {
+           auto facePolynomials = face.getData( facePolynomialIDs_[level] );
+           facePolynomials->addDegree(polyDegree);
+
+           uint_t rowsize = levelinfo::num_microvertices_per_edge(interpolationLevel_);
+           uint_t rowsizeFine = levelinfo::num_microvertices_per_edge(level);
+           uint_t inner_rowsize = rowsize;
+
+           VertexInterpolator interpolatorS(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorSE(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorW(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorC(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorE(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorNW(polyDegree, interpolationLevel_);
+           VertexInterpolator interpolatorN(polyDegree, interpolationLevel_);
+
+           Point3D x, x0;
+           x0 = face.coords[0];
+
+           real_t ref_H = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+           real_t ref_h = 1.0 / ( walberla::real_c( rowsizeFine - 1 ) );
+
+           Point3D d0 = ref_H * ( face.coords[1] - face.coords[0] );
+           Point3D d2 = ref_H * ( face.coords[2] - face.coords[0] );
+
+           // fine directions
+           Point3D d0f = ref_h * ( face.coords[1] - face.coords[0] );
+           Point3D d2f = ref_h * ( face.coords[2] - face.coords[0] );
+
+           Point2D ref_x;
+
+           Point3D dirS  = -1.0 * d2f;
+           Point3D dirSE = d0f - 1.0 * d2f;
+           Point3D dirE  = d0f;
+           Point3D dirW  = -1.0 * d0f;
+           Point3D dirNW = -1.0 * d0f + d2f;
+           Point3D dirN  = d2f;
+
+           for( uint_t j = 1; j < rowsize - 2; ++j )
+           {
+              ref_x[1] = j * ref_H;
+
+              x = x0;
+              x += walberla::real_c( j ) * d2 + d0;
+
+              uint_t i;
+              for( i = 1; i < inner_rowsize - 2; ++i )
+              {
+                 ref_x[0] = i * ref_H;
+
+                 std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
+
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, faceStencil );
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, faceStencil );
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, faceStencil );
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, faceStencil );
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, faceStencil );
+                 vertexdof::blendingnew::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, faceStencil );
+
+                 //if (i == 1 && j == 1) {
+                 //   PointND<real_t, 7> test(faceStencil.data());
+                 //   WALBERLA_LOG_INFO("stencil = " << test);
+                 //}
+
+                 interpolatorS.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_S )] );
+                 interpolatorSE.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_SE )] );
+                 interpolatorW.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_W )] );
+                 interpolatorC.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_C )] );
+                 interpolatorE.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_E )] );
+                 interpolatorNW.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_NW )] );
+                 interpolatorN.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_N )] );
+
+                 x += d0;
+              }
+              --inner_rowsize;
+           }
+
+           interpolatorS.interpolate( facePolynomials->getPolynomialS( polyDegree ) );
+           interpolatorSE.interpolate( facePolynomials->getPolynomialSE( polyDegree ) );
+           interpolatorW.interpolate( facePolynomials->getPolynomialW( polyDegree ) );
+           interpolatorC.interpolate( facePolynomials->getPolynomialC( polyDegree ) );
+           interpolatorE.interpolate( facePolynomials->getPolynomialE( polyDegree ) );
+           interpolatorNW.interpolate( facePolynomials->getPolynomialNW( polyDegree ) );
+           interpolatorN.interpolate( facePolynomials->getPolynomialN( polyDegree ) );
+        }
+     }
+  }
 
    void useDegree( uint_t degree ) { polyDegree_ = degree; }
 
@@ -217,8 +332,15 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
 
          if (testFlag(face.type, flag))
          {
-            vertexdof::macroface::applyPolynomial< real_t >(
-                polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType );
+            if (Symmetric) {
+               vertexdof::macroface::applyPolynomial<real_t>(
+                   polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(),
+                   updateType);
+            } else {
+               vertexdof::macroface::applyPolynomialFull<real_t>(
+                   polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(),
+                   updateType);
+            }
          }
       }
 
@@ -270,8 +392,13 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
 
          if (testFlag(face.type, flag))
          {
-            vertexdof::macroface::smooth_gs_polynomial< real_t >(
-                polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID() );
+            if (Symmetric) {
+               vertexdof::macroface::smooth_gs_polynomial<real_t>(
+                   polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
+            } else {
+               vertexdof::macroface::smooth_gs_polynomial_full<real_t>(
+                   polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
+            }
          }
       }
 
@@ -393,19 +520,19 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
    P1Form form;
 };
 
-typedef P1PolynomialBlendingOperatorNew< P1Form_laplace > P1PolynomialBlendingLaplaceOperatorNew;
+typedef P1PolynomialBlendingOperatorNew< P1Form_laplace, true > P1PolynomialBlendingLaplaceOperatorNew;
 
-typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_11 > P1PolynomialBlendingEpsilonOperator_11;
-typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_12 > P1PolynomialBlendingEpsilonOperator_12;
-typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_21 > P1PolynomialBlendingEpsilonOperator_21;
-typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_22 > P1PolynomialBlendingEpsilonOperator_22;
+typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_11, true > P1PolynomialBlendingEpsilonOperator_11;
+typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_12, false > P1PolynomialBlendingEpsilonOperator_12;
+typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_21, false > P1PolynomialBlendingEpsilonOperator_21;
+typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_22, true > P1PolynomialBlendingEpsilonOperator_22;
 
-typedef P1PolynomialBlendingOperatorNew< P1Form_divT_1 > P1PolynomialBlendingDivTOperator_1;
-typedef P1PolynomialBlendingOperatorNew< P1Form_divT_2 > P1PolynomialBlendingDivTOperator_2;
+typedef P1PolynomialBlendingOperatorNew< P1Form_divT_1, false > P1PolynomialBlendingDivTOperator_1;
+typedef P1PolynomialBlendingOperatorNew< P1Form_divT_2, false > P1PolynomialBlendingDivTOperator_2;
 
-typedef P1PolynomialBlendingOperatorNew< P1Form_div_1 > P1PolynomialBlendingDivOperator_1;
-typedef P1PolynomialBlendingOperatorNew< P1Form_div_2 > P1PolynomialBlendingDivOperator_2;
+typedef P1PolynomialBlendingOperatorNew< P1Form_div_1, false > P1PolynomialBlendingDivOperator_1;
+typedef P1PolynomialBlendingOperatorNew< P1Form_div_2, false > P1PolynomialBlendingDivOperator_2;
 
-typedef P1PolynomialBlendingOperatorNew< P1Form_pspg > P1PolynomialBlendingPSPGOperator;
+typedef P1PolynomialBlendingOperatorNew< P1Form_pspg, true > P1PolynomialBlendingPSPGOperator;
 
 } // namespace hhg
