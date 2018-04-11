@@ -58,7 +58,14 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       // Only assemble stencils if UFCOperator is specified
       if( !std::is_same< UFCOperator, fenics::NoAssemble >::value )
       {
-         assembleStencils();
+         if ( storage_->hasGlobalCells() )
+         {
+            assembleStencils3D();
+         }
+         else
+         {
+            assembleStencils();
+         }
       }
    }
 
@@ -318,6 +325,29 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       }
    }
 
+   void assembleStencils3D()
+   {
+      for( uint_t level = minLevel_; level <= maxLevel_; level++ )
+      {
+         for ( const auto & it : storage_->getCells() )
+         {
+            auto cell          = it.second;
+            auto stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
+            auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( *cell, level, ufcOperator );
+
+            WALBERLA_ASSERT_EQUAL( stencil.size(), stencilSize );
+
+            for ( uint_t stencilEntryIdx = 0; stencilEntryIdx < stencilSize; stencilEntryIdx++ )
+            {
+               stencilMemory[ stencilEntryIdx ] = stencil[ stencilEntryIdx ];
+            }
+         }
+      }
+   }
+
  private:
    void apply_impl( P1Function< real_t >& src,
                     P1Function< real_t >& dst,
@@ -390,9 +420,12 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
       for( const auto& it : storage_->getCells() )
       {
-         Cell& cell = *it.second;
-         vertexdof::macrocell::apply< real_t >(
-             level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+        Cell& cell = *it.second;
+        if ( testFlag( cell.getDoFType(), flag ) )
+        {
+          vertexdof::macrocell::apply< real_t >(
+          level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+        }
       }
    }
 
