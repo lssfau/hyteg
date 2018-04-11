@@ -795,6 +795,7 @@ void VTKOutput::syncAllFunctions( const uint_t & level ) const
   {
     function->getCommunicator( level )->template communicate< Vertex, Edge >();
     function->getCommunicator( level )->template communicate< Edge,   Face >();
+    function->getCommunicator( level )->template communicate< Face,   Cell >();
   }
 
   for ( const auto & function : edgeDoFFunctions_ )
