@@ -22,10 +22,11 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const uint_t      level           = 4;
+  const uint_t      lowerLevel       = 4;
+  const uint_t      higherLevel     = lowerLevel + 1;
   const std::string meshFile        = "../../data/meshes/3D/tet_1el.msh";
-  const real_t      tolerance       = 1e-15;
-  const uint_t      numIterations   = 300;
+  const real_t      tolerance       = 1e-16;
+  const uint_t      maxIterations   = 10000;
 
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
@@ -33,7 +34,12 @@ int main( int argc, char* argv[] )
 
   writeDomainPartitioningVTK( storage, "../../output", "P1_CG_3D_convergence_partitioning" );
 
-  P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > laplaceOperator3D( storage, level, level );
+  P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > laplaceOperator3D( storage, lowerLevel, higherLevel );
+
+  std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D & p ) -> real_t
+  {
+    return sin(p[0]) * sinh(p[1]) * p[2];
+  };
 
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
   {
@@ -50,56 +56,59 @@ int main( int argc, char* argv[] )
     return walberla::math::realRandom( 0.0, 1.0 );
   };
 
-  hhg::P1Function< real_t > res( "r", storage, level, level );
-  hhg::P1Function< real_t > f( "f", storage, level, level );
-  hhg::P1Function< real_t > u( "u", storage, level, level );
-  hhg::P1Function< real_t > uExact( "u_exact", storage, level, level );
-  hhg::P1Function< real_t > err( "err", storage, level, level );
-  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, level, level );
+  hhg::P1Function< real_t > res( "r", storage, lowerLevel, higherLevel );
+  hhg::P1Function< real_t > f( "f", storage, lowerLevel, higherLevel );
+  hhg::P1Function< real_t > u( "u", storage, lowerLevel, higherLevel );
+  hhg::P1Function< real_t > uExact( "u_exact", storage, lowerLevel, higherLevel );
+  hhg::P1Function< real_t > err( "err", storage, lowerLevel, higherLevel );
+  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, lowerLevel, higherLevel );
 
-  u.interpolate( rand, level, DoFType::Inner );
-  u.interpolate( one, level, DoFType::DirichletBoundary );
-  f.interpolate( zero, level, DoFType::All );
-  res.interpolate( zero, level, DoFType::All );
-  uExact.interpolate( one, level, DoFType::All );
-  oneFunction.interpolate( one, level, DoFType::All );
+  u.interpolate( rand, lowerLevel, DoFType::Inner );
+  u.interpolate( exact, lowerLevel, DoFType::DirichletBoundary );
+  f.interpolate( zero, lowerLevel, DoFType::All );
+  res.interpolate( zero, lowerLevel, DoFType::All );
+  uExact.interpolate( exact, lowerLevel, DoFType::All );
+  oneFunction.interpolate( one, lowerLevel, DoFType::All );
 
-  auto solver = hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > >( storage, level, level );
+  u.interpolate( rand, higherLevel, DoFType::Inner );
+  u.interpolate( exact, higherLevel, DoFType::DirichletBoundary );
+  f.interpolate( zero, higherLevel, DoFType::All );
+  res.interpolate( zero, higherLevel, DoFType::All );
+  uExact.interpolate( exact, higherLevel, DoFType::All );
+  oneFunction.interpolate( one, higherLevel, DoFType::All );
 
-  VTKOutput vtkOutput( "../../output", "P1_CG_3D_convergence_solver", 1 );
-  vtkOutput.set3D();
+  auto solver = hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > >( storage, lowerLevel, higherLevel );
 
-  vtkOutput.add( &u );
-  vtkOutput.add( &err );
+  WALBERLA_CHECK_LESS( lowerLevel, higherLevel );
 
-  real_t discrL2Err;
-  real_t discrL2Res;
-
-  const real_t numPoints = oneFunction.dot( oneFunction, level, DoFType::Inner );
+  const real_t numPointsLowerLevel  = oneFunction.dot( oneFunction, lowerLevel,  DoFType::Inner );
+  const real_t numPointsHigherLevel = oneFunction.dot( oneFunction, higherLevel, DoFType::Inner );
 
   WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
 
-  for ( uint_t iteration = 0; iteration < numIterations; iteration++ )
-  {
-    // vtkOutput.write( level, iteration );
-    solver.solve( laplaceOperator3D, u, f, res, level, tolerance, 1, hhg::Inner, false );
-#if 0
-    err.assign( {1.0, -1.0}, {&u, &uExact}, level );
-    laplaceOperator3D.apply( u, res, level, DoFType::Inner );
-    discrL2Err = std::sqrt( err.dot( err, level, DoFType::Inner) / numPoints );
-    discrL2Res = std::sqrt( res.dot( res, level, DoFType::Inner ) / numPoints );
-    WALBERLA_LOG_INFO( "Iteration " << std::setw( 10 ) << iteration << ": Residual L2: " << std::scientific << discrL2Res << " | Error L2: " << discrL2Err );
-#endif
-  }
+  solver.solve( laplaceOperator3D, u, f, res, lowerLevel,  tolerance, maxIterations, hhg::Inner, true );
+  solver.solve( laplaceOperator3D, u, f, res, higherLevel, tolerance, maxIterations, hhg::Inner, true );
 
-  err.assign( {1.0, -1.0}, {&u, &uExact}, level );
-  laplaceOperator3D.apply( u, res, level, DoFType::Inner );
-  discrL2Err = std::sqrt( err.dot( err, level, DoFType::Inner) / numPoints );
-  discrL2Res = std::sqrt( res.dot( res, level, DoFType::Inner ) / numPoints );
+  err.assign( {1.0, -1.0}, {&u, &uExact}, lowerLevel );
+  err.assign( {1.0, -1.0}, {&u, &uExact}, higherLevel );
+  laplaceOperator3D.apply( u, res, lowerLevel,  DoFType::Inner );
+  laplaceOperator3D.apply( u, res, higherLevel, DoFType::Inner );
 
-  WALBERLA_LOG_INFO( "After " << numIterations << " iterations: Residual L2: " << std::scientific << discrL2Res << " | Error L2: " << discrL2Err );
-  WALBERLA_CHECK_LESS( discrL2Res, 5.3e-13 );
-  WALBERLA_CHECK_LESS( discrL2Err, 1.2e-11 );
+  const real_t discrL2ErrLowerLevel  = std::sqrt( err.dot( err, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
+  const real_t discrL2ErrHigherLevel = std::sqrt( err.dot( err, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
+
+  const real_t discrL2ResLowerLevel  = std::sqrt( res.dot( res, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
+  const real_t discrL2ResHigherLevel = std::sqrt( res.dot( res, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
+
+  WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
+  WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );
+
+  WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.0e-17 );
+  WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 1.7e-17 );
+
+  // L2 err higher level ~ 0.25 * L2 err lower level
+  WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 1.21e-06 );
+  WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 2.8e-07 );
 
   return 0;
 }
