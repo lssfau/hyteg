@@ -15,7 +15,7 @@ namespace hhg
   using walberla::uint_t;
 
   template< typename funcType >
-  syncFunctionBetweenPrimitives( const funcType *function, uint_t level ) {
+  void syncFunctionBetweenPrimitives( const funcType *function, uint_t level ) {
     function->getCommunicator( level )->template communicate< Vertex, Edge   >();
     function->getCommunicator( level )->template communicate< Edge,   Vertex >();
     function->getCommunicator( level )->template communicate< Edge,   Face   >();
