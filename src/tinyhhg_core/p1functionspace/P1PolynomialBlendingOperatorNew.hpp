@@ -19,6 +19,7 @@
 #endif
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
@@ -521,6 +522,7 @@ class P1PolynomialBlendingOperatorNew : public Operator< P1Function< real_t >, P
 };
 
 typedef P1PolynomialBlendingOperatorNew< P1Form_laplace, true > P1PolynomialBlendingLaplaceOperatorNew;
+typedef P1PolynomialBlendingOperatorNew< P1Form_mass, true > P1PolynomialBlendingMassOperatorNew;
 
 typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_11, true > P1PolynomialBlendingEpsilonOperator_11;
 typedef P1PolynomialBlendingOperatorNew< P1Form_epsilon_12, false > P1PolynomialBlendingEpsilonOperator_12;

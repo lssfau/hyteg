@@ -8,6 +8,7 @@
 #include "P1DataHandling.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
 #include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
@@ -230,6 +231,7 @@ private:
 };
 
 typedef P1BlendingOperatorNew<P1Form_laplace> P1BlendingLaplaceOperatorNew;
+typedef P1BlendingOperatorNew<P1Form_mass> P1BlendingMassOperatorNew;
 
 typedef P1BlendingOperatorNew<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
 typedef P1BlendingOperatorNew<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
