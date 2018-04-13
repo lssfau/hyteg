@@ -39,11 +39,62 @@ namespace hhg {
                                    << vertexdof::macroedge::indexFromVertex( level, i, element[1] ) << ", "
                                    << vertexdof::macroedge::indexFromVertex( level, i, element[2] ) );
 
-        WALBERLA_LOG_INFO_ON_ROOT( "Local Coordinates: (" << localCoords[0] << ", " << localCoords[1] << ") -- "
+        WALBERLA_LOG_INFO_ON_ROOT( "Local Coordinates: "
+                                   << "(" << localCoords[0] << ", " << localCoords[1] << ") -- "
                                    << "(" << localCoords[2] << ", " << localCoords[3] << ") -- "
                                    << "(" << localCoords[4] << ", " << localCoords[5] << ")\n" );
 #endif
 
+      }
+
+
+      inline void assembleStencilForMicroNode( const uint_t& level, uint_t i, Edge &edge, 
+                                               const std::array<real_t*, 2>& globalCoords,
+                                               std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                                               std::vector<real_t>& edgeStencil )
+      {
+
+        using namespace P1Elements;
+
+        typedef std::array< stencilDirection, 3 > Element;
+        Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
+        Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
+        Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
+        Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
+        Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
+        Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
+
+        real_t localCoords[6];
+        Matrix3r localStiffness;
+
+        std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
+
+        fillLocalCoords( level, i, elementSW, globalCoords, localCoords);
+        computeElementMatrix(localStiffness, localCoords);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ), {{0,1,2}}, localStiffness, edgeStencil);
+
+        fillLocalCoords( level, i, elementS, globalCoords, localCoords);
+        computeElementMatrix(localStiffness, localCoords);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ), {{0,1,2}}, localStiffness, edgeStencil);
+
+        fillLocalCoords( level, i, elementSE, globalCoords, localCoords);
+        computeElementMatrix(localStiffness, localCoords);
+        assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ), {{0,1,2}}, localStiffness, edgeStencil);
+
+        if (edge.getNumNeighborFaces() == 2)
+          {
+            fillLocalCoords( level, i, elementNE, globalCoords, localCoords);
+            computeElementMatrix(localStiffness, localCoords);
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ), {{0,1,2}}, localStiffness, edgeStencil);
+
+            fillLocalCoords( level, i, elementN, globalCoords, localCoords);
+            computeElementMatrix(localStiffness, localCoords);
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ), {{0,1,2}}, localStiffness, edgeStencil);
+
+            fillLocalCoords( level, i, elementNW, globalCoords, localCoords);
+            computeElementMatrix(localStiffness, localCoords);
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ), {{0,1,2}}, localStiffness, edgeStencil);
+          }
       }
 
 
@@ -57,7 +108,6 @@ namespace hhg {
                                     UpdateType update ) {
 
         using namespace P1Elements;
-        typedef std::array< stencilDirection, 3 > Element;
 
         uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
         uint_t inner_rowsize = rowsize;
@@ -67,56 +117,59 @@ namespace hhg {
         std::array<ValueType*, 2> globalCoords{{edge.getData(coordIds[0])->getPointer(level),
               edge.getData(coordIds[1])->getPointer(level)}};
 
-        Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
-        Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
-        Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
-        Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
-        Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
-        Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
+        // typedef std::array< stencilDirection, 3 > Element;
+        // Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
+        // Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
+        // Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
+        // Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
+        // Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
+        // Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
+        // real_t localCoords[6];
+        // Matrix3r localStiffness;
 
         ValueType tmp;
-        real_t localCoords[6];
-        Matrix3r localStiffness;
         std::vector<real_t> edgeStencil(7);
   
         for (size_t i = 1; i < rowsize - 1; ++i) {
 
-          std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
+          // std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
 
-          fillLocalCoords( level, i, elementSW, globalCoords, localCoords);
-          computeElementMatrix(localStiffness, localCoords);
-          assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ), {{0,1,2}}, localStiffness, edgeStencil);
+//           fillLocalCoords( level, i, elementSW, globalCoords, localCoords);
+//           computeElementMatrix(localStiffness, localCoords);
+//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ), {{0,1,2}}, localStiffness, edgeStencil);
 
-          fillLocalCoords( level, i, elementS, globalCoords, localCoords);
-          computeElementMatrix(localStiffness, localCoords);
-          assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ), {{0,1,2}}, localStiffness, edgeStencil);
+//           fillLocalCoords( level, i, elementS, globalCoords, localCoords);
+//           computeElementMatrix(localStiffness, localCoords);
+//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ), {{0,1,2}}, localStiffness, edgeStencil);
 
-          fillLocalCoords( level, i, elementSE, globalCoords, localCoords);
-          computeElementMatrix(localStiffness, localCoords);
-          assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ), {{0,1,2}}, localStiffness, edgeStencil);
+//           fillLocalCoords( level, i, elementSE, globalCoords, localCoords);
+//           computeElementMatrix(localStiffness, localCoords);
+//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ), {{0,1,2}}, localStiffness, edgeStencil);
 
-          if (edge.getNumNeighborFaces() == 2)
-            {
-              fillLocalCoords( level, i, elementNE, globalCoords, localCoords);
-              computeElementMatrix(localStiffness, localCoords);
-              assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ), {{0,1,2}}, localStiffness, edgeStencil);
+//           if (edge.getNumNeighborFaces() == 2)
+//             {
+//               fillLocalCoords( level, i, elementNE, globalCoords, localCoords);
+//               computeElementMatrix(localStiffness, localCoords);
+//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ), {{0,1,2}}, localStiffness, edgeStencil);
 
-              fillLocalCoords( level, i, elementN, globalCoords, localCoords);
-              computeElementMatrix(localStiffness, localCoords);
-              assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ), {{0,1,2}}, localStiffness, edgeStencil);
+//               fillLocalCoords( level, i, elementN, globalCoords, localCoords);
+//               computeElementMatrix(localStiffness, localCoords);
+//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ), {{0,1,2}}, localStiffness, edgeStencil);
 
-              fillLocalCoords( level, i, elementNW, globalCoords, localCoords);
-              computeElementMatrix(localStiffness, localCoords);
-              assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ), {{0,1,2}}, localStiffness, edgeStencil);
-            }
+//               fillLocalCoords( level, i, elementNW, globalCoords, localCoords);
+//               computeElementMatrix(localStiffness, localCoords);
+//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ), {{0,1,2}}, localStiffness, edgeStencil);
+//             }
 
-#ifdef DEBUG_ELEMENTWISE
-          WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format("Edge.id = %d", edge.getID().getID() ));
-          for( uint_t weight = 0; weight < 7; ++weight )
-            {
-              WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, edgeStencil[weight] ) );
-            }
-#endif
+// #ifdef DEBUG_ELEMENTWISE
+//           WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format("Edge.id = %d", edge.getID().getID() ));
+//           for( uint_t weight = 0; weight < 7; ++weight )
+//             {
+//               WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, edgeStencil[weight] ) );
+//             }
+// #endif
+
+          assembleStencilForMicroNode( level, i, edge, globalCoords, computeElementMatrix, edgeStencil );
 
           tmp = edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]
             * src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
