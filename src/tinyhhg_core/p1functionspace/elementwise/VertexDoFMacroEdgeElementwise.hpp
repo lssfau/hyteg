@@ -107,8 +107,6 @@ namespace hhg {
                                     std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Edge>, 2> &coordIds,
                                     UpdateType update ) {
 
-        using namespace P1Elements;
-
         uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
         uint_t inner_rowsize = rowsize;
 
@@ -117,57 +115,10 @@ namespace hhg {
         std::array<ValueType*, 2> globalCoords{{edge.getData(coordIds[0])->getPointer(level),
               edge.getData(coordIds[1])->getPointer(level)}};
 
-        // typedef std::array< stencilDirection, 3 > Element;
-        // Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
-        // Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
-        // Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
-        // Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
-        // Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
-        // Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
-        // real_t localCoords[6];
-        // Matrix3r localStiffness;
-
         ValueType tmp;
         std::vector<real_t> edgeStencil(7);
   
-        for (size_t i = 1; i < rowsize - 1; ++i) {
-
-          // std::fill(edgeStencil.begin(), edgeStencil.end(), walberla::real_c(0.0));
-
-//           fillLocalCoords( level, i, elementSW, globalCoords, localCoords);
-//           computeElementMatrix(localStiffness, localCoords);
-//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ), {{0,1,2}}, localStiffness, edgeStencil);
-
-//           fillLocalCoords( level, i, elementS, globalCoords, localCoords);
-//           computeElementMatrix(localStiffness, localCoords);
-//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ), {{0,1,2}}, localStiffness, edgeStencil);
-
-//           fillLocalCoords( level, i, elementSE, globalCoords, localCoords);
-//           computeElementMatrix(localStiffness, localCoords);
-//           assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ), {{0,1,2}}, localStiffness, edgeStencil);
-
-//           if (edge.getNumNeighborFaces() == 2)
-//             {
-//               fillLocalCoords( level, i, elementNE, globalCoords, localCoords);
-//               computeElementMatrix(localStiffness, localCoords);
-//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ), {{0,1,2}}, localStiffness, edgeStencil);
-
-//               fillLocalCoords( level, i, elementN, globalCoords, localCoords);
-//               computeElementMatrix(localStiffness, localCoords);
-//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ), {{0,1,2}}, localStiffness, edgeStencil);
-
-//               fillLocalCoords( level, i, elementNW, globalCoords, localCoords);
-//               computeElementMatrix(localStiffness, localCoords);
-//               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ), {{0,1,2}}, localStiffness, edgeStencil);
-//             }
-
-// #ifdef DEBUG_ELEMENTWISE
-//           WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format("Edge.id = %d", edge.getID().getID() ));
-//           for( uint_t weight = 0; weight < 7; ++weight )
-//             {
-//               WALBERLA_LOG_DEVEL_ON_ROOT( hhg::format( " Stencil weight[%d] = %e", weight, edgeStencil[weight] ) );
-//             }
-// #endif
+        for( size_t i = 1; i < rowsize - 1; ++i ) {
 
           assembleStencilForMicroNode( level, i, edge, globalCoords, computeElementMatrix, edgeStencil );
 
@@ -195,13 +146,72 @@ namespace hhg {
                 }
             }
 
-          if (update == Replace) {
+          if( update == Replace ) {
             dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = tmp;
-          } else if (update == Add) {
+          } else if( update == Add ) {
             dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] += tmp;
           }
         }
       }
+
+
+      template< typename ValueType >
+      inline void point_smooth_elementwise( const uint_t & level, Edge &edge,
+                                            const std::shared_ptr< PrimitiveStorage >& storage,
+                                            std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                                            std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Edge>, 2> &coordIds,
+                                            ValueType relax ) {
+
+        uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+        uint_t inner_rowsize = rowsize;
+
+        auto dst = edge.getData(dstId)->getPointer(level);
+        auto rhs = edge.getData(rhsId)->getPointer(level);
+        auto src = edge.getData(srcId)->getPointer(level);
+
+        std::array<ValueType*, 2> globalCoords{{edge.getData(coordIds[0])->getPointer(level),
+              edge.getData(coordIds[1])->getPointer(level)}};
+
+        ValueType tmp;
+        std::vector<real_t> edgeStencil(7);
+  
+        for( size_t i = 1; i < rowsize - 1; ++i ) {
+
+          assembleStencilForMicroNode( level, i, edge, globalCoords, computeElementMatrix, edgeStencil );
+
+          tmp = rhs[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+            {
+              tmp -= edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+                * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+            }
+
+          for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+            {
+              tmp -= edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+                * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+            }
+
+          if( edge.getNumNeighborFaces() == 2 )
+            {
+              for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+                {
+                  tmp -= edgeStencil[ vertexdof::stencilIndexFromVertex( neighbor ) ]
+                    * src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+                }
+            }
+
+          dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] =
+            ( ValueType(1.0) - relax ) * src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )]
+            + relax * tmp / edgeStencil[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+
+        }
+      }
+
 
     } // namespace macroedge
   } // namespace vertexdof

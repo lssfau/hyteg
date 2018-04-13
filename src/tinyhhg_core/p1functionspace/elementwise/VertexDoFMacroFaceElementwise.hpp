@@ -105,8 +105,8 @@ namespace hhg {
               face.getData(coordIds[1])->getPointer(level)}};
 
         ValueType tmp;
-        real_t localCoords[6];
-        Matrix3r localStiffness;
+        // real_t localCoords[6];
+        // Matrix3r localStiffness;
         std::vector<real_t> faceStencil(7);
 
         for (uint_t j = 1; j < rowsize - 2; ++j) {
@@ -171,6 +171,49 @@ namespace hhg {
               * src[vertexdof::macroface::indexFromVertex( level, i, j, vertexdof::macroface::neighborsWithoutCenter[5] )];
 
             dst[vertexdof::macroface::indexFromVertex( level, i, j, SD::VERTEX_C )] = tmp;
+          }
+          --inner_rowsize;
+        }
+      }
+
+
+      template< typename ValueType >
+      inline void point_smooth_elementwise( const uint_t &level, Face &face,
+                                            std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId,
+                                            const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
+                                            std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
+                                            ValueType relax ) {
+
+        uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+        uint_t inner_rowsize = rowsize;
+
+        auto dst = face.getData(dstId)->getPointer( level );
+        auto rhs = face.getData(rhsId)->getPointer( level );
+        auto src = face.getData(srcId)->getPointer( level );
+
+        ValueType tmp;
+        std::vector<real_t> faceStencil(7);
+        std::array<ValueType*, 2> globalCoords{{face.getData(coordIds[0])->getPointer(level),
+              face.getData(coordIds[1])->getPointer(level)}};
+
+        for( uint_t j = 1; j < rowsize - 2; ++j ) {
+          for( uint_t i = 1; i < inner_rowsize - 2; ++i ) {
+
+            assembleStencilForMicroNode( level, i, j, globalCoords, computeElementMatrix, faceStencil );
+
+            tmp = rhs[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )];
+
+            for( uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k ) {
+
+              tmp -= faceStencil[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]
+                * src[vertexdof::macroface::indexFromVertex( level, i, j, vertexdof::macroface::neighborsWithoutCenter[k] )];
+            }
+
+            dst[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] =
+              ( ValueType(1.0) - relax ) * src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )]
+              + relax * tmp / faceStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)];
           }
           --inner_rowsize;
         }
