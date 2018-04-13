@@ -163,9 +163,6 @@ waLBerla_execute_test(NAME DGInterpolateTest)
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
-waLBerla_compile_test(FILES vCycleElementwiseTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME vCycleElementwiseTest COMMAND $<TARGET_FILE:vCycleElementwiseTest> )
-
 waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CommTest)
 
