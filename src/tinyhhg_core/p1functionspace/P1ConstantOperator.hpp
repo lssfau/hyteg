@@ -446,7 +446,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
          if( testFlag( vertex.getDoFType(), flag ) )
          {
-            vertexdof::macrovertex::smooth_gs( vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
+            vertexdof::macrovertex::smooth_gs< real_t >( vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
          }
       }
 
