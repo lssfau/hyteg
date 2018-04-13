@@ -156,7 +156,7 @@ public:
   /// Returns a reference to a map of the locally existing \ref Face instances
   const FaceMap   & getFaces()    const { return faces_;    }
 
-  /// Returns a reference to a map of the locally existing \ref Face instances
+  /// Returns a reference to a map of the locally existing \ref Cell instances
   const CellMap   & getCells()    const { return cells_;    }
 
   ///@}
@@ -455,7 +455,7 @@ template< typename DataType,
           typename DataHandlingType,
           typename >
 inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandlingType > & dataHandling,
-                                                const std::string & identifier,
+                                                const std::string & identifier,  // TODO remark: identifier not used in this function
                                                 const std::map< PrimitiveID::IDType, std::shared_ptr< PrimitiveType > > & primitives,
                                                 const PrimitiveDataID< DataType, PrimitiveType > & dataID )
 {
@@ -486,6 +486,7 @@ inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandl
 
   addDataHandlingCallbacks( dataID, initCallback, serializationCallback, deserializationCallback );
 
+  // initialize memory for all primitives in map
   for ( const auto & primitive : primitives )
   {
     initCallback( primitive.second );

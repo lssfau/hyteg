@@ -35,15 +35,14 @@ namespace hhg {
  * \snippet tutorials/02_PrimitiveData.cpp SimulationDataHandling
  *
  * Our custom data handling must subclass PrimitiveDataHandling, which is templated with
- * the type of the data and the type of the primitive this data belongs to. Since out data
+ * the type of the data and the type of the primitive this data belongs to. Since our data
  * shall be the same for all primitives, we type it with Primitive. We could also create special
- * data structures only for vertices or edges. In this case it needs to be typed with the respective
- * subclass of Primitive (e.g. with Vertex or Edge).
+ * data structures only for vertices or edges. In this case our data handling needs to be typed
+ * with the respective subclass of Primitive (e.g. with Vertex or Edge).
  *
- * Since it inherits from PrimitiveDataHandling it must implement a few virtual methods.
- * The most important one is PrimitiveDataHandling::initialize(). It returns a shared pointer to
- * an initialized object. This way, the PrimitiveStorage does not need to know what type of data it
- * stores.
+ * Since SimulationDataHandling inherits from PrimitiveDataHandling it must implement a few virtual methods.
+ * The most important one is PrimitiveDataHandling::initialize(). This function returns a shared pointer to
+ * an initialized object. This way, the PrimitiveStorage does not need to know what type of data it stores.
  *
  * \snippet tutorials/02_PrimitiveData.cpp SimulationDataHandlingInitialize
  *
