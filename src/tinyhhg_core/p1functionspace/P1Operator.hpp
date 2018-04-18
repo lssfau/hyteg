@@ -10,6 +10,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -597,6 +598,11 @@ typedef P1Operator< fenics::NoAssemble > P1ZeroOperator;
 
 typedef P1Operator< p1_diffusion_cell_integral_0_otherwise >       P1LaplaceOperator;
 typedef P1Operator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
+
+typedef P1Operator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;
+typedef P1Operator <p1_stokes_epsilon_cell_integral_1_otherwise > P1ConstantEpsilonOperator_12;
+typedef P1Operator <p1_stokes_epsilon_cell_integral_2_otherwise > P1ConstantEpsilonOperator_21;
+typedef P1Operator <p1_stokes_epsilon_cell_integral_3_otherwise > P1ConstantEpsilonOperator_22;
 
 typedef P1Operator< p1_div_cell_integral_0_otherwise > P1DivxOperator;
 typedef P1Operator< p1_div_cell_integral_1_otherwise > P1DivyOperator;
