@@ -7,7 +7,7 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-#if (PETSC_VERSION_MAJOR > 3) || (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 9)
+#if (PETSC_VERSION_MAJOR > 3) || (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR >= 9)
 #define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverType
 #else
 #define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverPackage
