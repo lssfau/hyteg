@@ -4,6 +4,9 @@ waLBerla_link_files_to_builddir(*.msh)
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P1CGConvergenceTest3D.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1CGConvergenceTest3D)
+
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 
@@ -61,6 +64,9 @@ waLBerla_execute_test(NAME VertexDoFMemoryTest)
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFBasicFunctionsTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME VertexDoFBasicFunctionsTest)
 
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFStencilAssemblyTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFStencilAssemblyTest)
+
 ## EdgeDoFSpace ##
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
@@ -93,6 +99,15 @@ waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1MassOperatorTest )
 waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
+
+waLBerla_compile_test(FILES P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
+
+waLBerla_compile_test(FILES P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1SmoothingTest )
 
 ## P2 ##
 

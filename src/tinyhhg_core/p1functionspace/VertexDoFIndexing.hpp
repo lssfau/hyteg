@@ -438,6 +438,51 @@ public:
 // ### Stencils ###
 // ################
 
+/// Returns the logical index offset from a micro-vertex resulting from moving in the passed stencil direction
+inline indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirection & dir )
+{
+  typedef stencilDirection sD;
+
+  switch( dir )
+  {
+    case sD::VERTEX_C:
+      return indexing::IndexIncrement( 0, 0, 0 );
+    case sD::VERTEX_W:
+      return indexing::IndexIncrement( -1, 0, 0 );
+    case sD::VERTEX_E:
+      return indexing::IndexIncrement( 1, 0, 0 );
+    case sD::VERTEX_N:
+      return indexing::IndexIncrement( 0, 1, 0 );
+    case sD::VERTEX_S:
+      return indexing::IndexIncrement( 0, -1, 0 );
+    case sD::VERTEX_NW:
+      return indexing::IndexIncrement( -1, 1, 0 );
+    case sD::VERTEX_SE:
+      return indexing::IndexIncrement( 1, -1, 0 );
+    case sD::VERTEX_BC:
+      return indexing::IndexIncrement( 0, 0, 1 );
+    case sD::VERTEX_BW:
+      return indexing::IndexIncrement( -1, 0, 1 );
+    case sD::VERTEX_BS:
+      return indexing::IndexIncrement( 0, -1, 1 );
+    case sD::VERTEX_BSW:
+      return indexing::IndexIncrement( -1, -1, 1 );
+    case sD::VERTEX_FC:
+      return indexing::IndexIncrement( 0, 0, -1 );
+    case sD::VERTEX_FN:
+      return indexing::IndexIncrement( 0, 1, -1 );
+    case sD::VERTEX_FE:
+      return indexing::IndexIncrement( 1, 0, -1 );
+    case sD::VERTEX_FNE:
+      return indexing::IndexIncrement( 1, 1, -1 );
+    default:
+      WALBERLA_ASSERT( false, "Invalid stencil direction" );
+      return indexing::IndexIncrement( std::numeric_limits< int >::max(),
+                                       std::numeric_limits< int >::max(),
+                                       std::numeric_limits< int >::max() );
+  }
+}
+
 constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
 {
   typedef stencilDirection sD;

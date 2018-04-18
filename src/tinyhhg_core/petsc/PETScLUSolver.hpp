@@ -7,6 +7,12 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+#if (PETSC_VERSION_MAJOR > 3) || (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR >= 9)
+#define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverType
+#else
+#define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverPackage
+#endif
+
 namespace hhg{
 
 
@@ -35,7 +41,7 @@ public:
 
       KSPGetPC(ksp,&pc);
       PCSetType(pc,PCLU);
-      PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);
+      HHG_PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);
       //PCFactorSetUpMatSolverPackage(pc); /* call MatGetFactor() to create F */
       //PCFactorGetMatrix(pc,&F);
     }
