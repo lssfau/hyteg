@@ -25,7 +25,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../data/meshes/unitsquare_with_circular_hole.msh";
+   std::string meshFileName = "../../data/meshes/unitsquare_with_circular_hole.msh";
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -54,7 +54,7 @@ int main( int argc, char* argv[] )
    hhg::loadbalancing::roundRobin( setupStorage );
 
    size_t minLevel = 2;
-   size_t maxLevel = 5;
+   size_t maxLevel = 4;
    const uint_t coarseMaxiter = 200;
    const real_t mg_tolerance = 1e-9;
    const uint_t maxOuterIter = 30;
@@ -172,6 +172,8 @@ int main( int argc, char* argv[] )
       }
    }
 
+   WALBERLA_CHECK_LESS( outer, maxOuterIter );
+
    WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << totalTime);
    WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(outer+1-convergenceStartIter));
    WALBERLA_LOG_INFO_ON_ROOT("Dofs: " << 3 * npoints);
@@ -183,23 +185,26 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT("velocity_err = " << std::scientific << discr_u_l2_err);
    WALBERLA_LOG_INFO_ON_ROOT("pressure_err = " << std::scientific << discr_p_l2_err);
 
+   WALBERLA_CHECK_LESS( discr_u_l2_err, 7e-05 );
+   WALBERLA_CHECK_LESS( discr_p_l2_err, 6e-03 );
+
    // u_u*iHat + u_v*jHat
-   hhg::VTKOutput vtkOutput( "../output", "stokes_stab_varcoeff" );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &u_exact.u );
-   vtkOutput.add( &u_exact.v );
-   vtkOutput.add( &u_exact.p );
-   vtkOutput.add( &err.u );
-   vtkOutput.add( &err.v );
-   vtkOutput.add( &err.p );
-   vtkOutput.add( &r.u );
-   vtkOutput.add( &r.v );
-   vtkOutput.add( &r.p );
-   vtkOutput.add( &f.u );
-   vtkOutput.add( &f.v );
-   vtkOutput.add( &f.p );
-   vtkOutput.write( maxLevel, 0 );
+//   hhg::VTKOutput vtkOutput( "../output", "stokes_stab_varcoeff" );
+//   vtkOutput.add( &u.u );
+//   vtkOutput.add( &u.v );
+//   vtkOutput.add( &u.p );
+//   vtkOutput.add( &u_exact.u );
+//   vtkOutput.add( &u_exact.v );
+//   vtkOutput.add( &u_exact.p );
+//   vtkOutput.add( &err.u );
+//   vtkOutput.add( &err.v );
+//   vtkOutput.add( &err.p );
+//   vtkOutput.add( &r.u );
+//   vtkOutput.add( &r.v );
+//   vtkOutput.add( &r.p );
+//   vtkOutput.add( &f.u );
+//   vtkOutput.add( &f.v );
+//   vtkOutput.add( &f.p );
+//   vtkOutput.write( maxLevel, 0 );
    return EXIT_SUCCESS;
 }

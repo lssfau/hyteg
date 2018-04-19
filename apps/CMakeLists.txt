@@ -41,10 +41,6 @@ waLBerla_add_executable( NAME Chorin
         FILES Chorin.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME stokes_stab_varcoeff
-        FILES stokes_stab_varcoeff.cpp
-        DEPENDS tinyhhg_core)
-
 waLBerla_add_executable( NAME dg0_transport
         FILES dg0_transport.cpp
         DEPENDS tinyhhg_core)
