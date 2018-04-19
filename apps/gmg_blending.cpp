@@ -10,7 +10,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1Operator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
@@ -64,18 +64,21 @@ int main(int argc, char* argv[])
   Point3D circleCenter{{0.5, 0.5, 0}};
   real_t circleRadius = 0.25;
 
-//  for (auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it) {
-//    Face &face = *it->second;
-//
-//    if (face.hasBoundaryEdge()) {
-//      Edge& edge = *setupStorage.getEdge(face.edgesOnBoundary[0]);
-//
-//      if ((edge.getCoordinates()[0] - circleCenter).norm() < 0.4) {
-//        edge.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
-//        face.setBlendingMap(std::shared_ptr<FaceMap>(new CircularMap(face, setupStorage, circleCenter, circleRadius)));
-//      }
-//    }
-//  }
+  for( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it )
+  {
+     Face& face = *it->second;
+     if( face.hasBoundaryEdge() )
+     {
+        Edge& edge = *setupStorage.getEdge( face.edgesOnBoundary[0] );
+        if( ( edge.getCoordinates()[0] - circleCenter ).norm() < 0.4 )
+        {
+           setupStorage.setGeometryMap( edge.getID(),
+                                        std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
+           setupStorage.setGeometryMap( face.getID(),
+                                        std::make_shared< CircularMap >( face, setupStorage, circleCenter, circleRadius ) );
+        }
+     }
+  }
 
   hhg::loadbalancing::roundRobin( setupStorage );
 
@@ -114,7 +117,7 @@ int main(int argc, char* argv[])
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D& x) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
 
   std::function<real_t(const hhg::Point3D&)> xExpr = [](const hhg::Point3D& x) { return x[0]; };
@@ -143,7 +146,7 @@ int main(int argc, char* argv[])
   if (polynomialOperator) {
     Lpoly = std::make_shared<SolveOperatorPoly>(storage, minLevel, maxLevel, interpolationLevel);
 
-    Lpoly->interpolateStencils(maxLevel, maxPolyDegree);
+    Lpoly->interpolateStencils(maxPolyDegree);
     useDegree = maxPolyDegree;
     Lpoly->useDegree(useDegree);
 
@@ -220,8 +223,6 @@ int main(int argc, char* argv[])
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
   const uint_t convergenceStartIter = 3;
-
-  bool updatedDegree = false;
 
   uint_t i = 0;
   for (; i < max_outer_iter; ++i)

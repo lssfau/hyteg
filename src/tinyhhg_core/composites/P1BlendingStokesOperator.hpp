@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperatorNew.hpp"
+#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 
 namespace hhg
 {

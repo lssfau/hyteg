@@ -78,14 +78,6 @@ waLBerla_add_executable( NAME GeometryBlending
         DEPENDS tinyhhg_core)
 
 if( HHG_BUILD_WITH_EIGEN )
-waLBerla_add_executable( NAME cg_P1_varcoeff_poly
-        FILES cg_P1_varcoeff_poly.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME gmg_varcoeff_vs_poly
-        FILES gmg_varcoeff_vs_poly.cpp
-        DEPENDS tinyhhg_core)
-
 waLBerla_add_executable( NAME gmg_blending
         FILES gmg_blending.cpp
         DEPENDS tinyhhg_core)

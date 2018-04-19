@@ -12,8 +12,8 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperatorNew.hpp"
-#include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperatorNew.hpp"
+#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
 //   typedef hhg::P1BlendingLaplaceOperator SolveOperator;
 
-   typedef hhg::P1BlendingLaplaceOperatorNew SolveOperator;
+   typedef hhg::P1BlendingLaplaceOperator SolveOperator;
    SolveOperator L(storage, level, level);
 
 //   typedef hhg::P1PolynomialBlendingLaplaceOperatorNew SolveOperator;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 //   L.interpolateStencils(polyDegree);
 //   L.useDegree(polyDegree);
 
-   P1BlendingMassOperatorNew M(storage, level, level);
+   P1BlendingMassOperator M(storage, level, level);
 
    auto x = std::make_shared<hhg::P1Function< real_t > >("x", storage, level, level);
    auto y = std::make_shared<hhg::P1Function< real_t > >("y", storage, level, level);
@@ -97,8 +97,8 @@ int main(int argc, char* argv[])
      return x_[1];
    };
 
-   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*cos(x[1])/(x[0]*x[1] + 1); };
-   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return 2*(-(pow(x[0], 2) + pow(x[1], 2))*sin(x[0])*cos(x[1]) + pow(x[0]*x[1] + 1, 2)*sin(x[0])*cos(x[1]) + (x[0]*x[1] + 1)*(-x[0]*sin(x[0])*sin(x[1]) + x[1]*cos(x[0])*cos(x[1])))/pow(x[0]*x[1] + 1, 3); };
+   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x_) { return sin(x_[0])*cos(x_[1])/(x_[0]*x_[1] + 1); };
+   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x_) { return 2*(-(pow(x_[0], 2) + pow(x_[1], 2))*sin(x_[0])*cos(x_[1]) + pow(x_[0]*x_[1] + 1, 2)*sin(x_[0])*cos(x_[1]) + (x_[0]*x_[1] + 1)*(-x_[0]*sin(x_[0])*sin(x_[1]) + x_[1]*cos(x_[0])*cos(x_[1])))/pow(x_[0]*x_[1] + 1, 3); };
 
    x->interpolate(tmp_x, level, hhg::All);
    y->interpolate(tmp_y, level, hhg::All);

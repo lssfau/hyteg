@@ -67,16 +67,6 @@ inline void assembleLocalStencil(uint_t level, uint_t pos, const Matrix3r& local
   opr_data[vertexdof::stencilIndexFromVertex( vertices[2] )] += meanCoeff * localMatrix(idx[0],idx[2]);
 }
 
-inline void fillLocalCoords( const uint_t & level, uint_t i, const std::array< stencilDirection, 3>& element, const std::array<real_t*, 2>& coords, real_t localCoords[6] )
-{
-  localCoords[0] = coords[0][vertexdof::macroedge::indexFromVertex( level, i, element[0] )];
-  localCoords[1] = coords[1][vertexdof::macroedge::indexFromVertex( level, i, element[0] )];
-  localCoords[2] = coords[0][vertexdof::macroedge::indexFromVertex( level, i, element[1] )];
-  localCoords[3] = coords[1][vertexdof::macroedge::indexFromVertex( level, i, element[1] )];
-  localCoords[4] = coords[0][vertexdof::macroedge::indexFromVertex( level, i, element[2] )];
-  localCoords[5] = coords[1][vertexdof::macroedge::indexFromVertex( level, i, element[2] )];
-}
-
 template< typename ValueType >
 inline void interpolate(const uint_t & level, Edge &edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,

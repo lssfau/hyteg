@@ -1,7 +1,7 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperatorNew.hpp"
+#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
 #include "tinyhhg_core/composites/P1BlendingStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1PolynomialBlendingStokesOperator.hpp"
@@ -15,7 +15,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/TensorUzawaSolver.hpp"
 #include "tinyhhg_core/format.hpp"
 
 using walberla::real_t;
@@ -55,12 +55,9 @@ int main( int argc, char* argv[] )
 
    size_t minLevel = 2;
    size_t maxLevel = 5;
-   size_t maxiter  = 5000;
    const uint_t coarseMaxiter = 200;
    const real_t mg_tolerance = 1e-9;
    const uint_t maxOuterIter = 30;
-   const uint_t interpolationLevel = 4;
-   const uint_t polyDegree = 12;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
@@ -79,10 +76,12 @@ int main( int argc, char* argv[] )
 
 //   typedef hhg::P1PolynomialBlendingStokesOperator SolveOperator;
 //   SolveOperator L( storage, minLevel, maxLevel, interpolationLevel );
+//   const uint_t interpolationLevel = 4;
+//   const uint_t polyDegree = 12;
 //   L.interpolateStencils(polyDegree);
 //   L.useDegree(polyDegree);
 
-   P1BlendingMassOperatorNew M(storage, minLevel, maxLevel);
+   P1BlendingMassOperator M(storage, minLevel, maxLevel);
 
    std::function< real_t( const hhg::Point3D& ) > zeros   = []( const hhg::Point3D& ) { return 0.0; };
    std::function< real_t( const hhg::Point3D& ) > ones   = []( const hhg::Point3D& ) { return 1.0; };
@@ -123,7 +122,7 @@ int main( int argc, char* argv[] )
    one.interpolate(ones, maxLevel, hhg::All);
    real_t npoints = one.dot( one, maxLevel );
 
-   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator> Solver;
+   typedef hhg::TensorUzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator> Solver;
    auto solver = Solver(storage, minLevel, maxLevel);
 
    WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");

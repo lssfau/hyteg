@@ -6,7 +6,7 @@ namespace hhg
 {
 
 template<class F, class O>
-class UzawaSolver
+class TensorUzawaSolver
 {
 public:
 
@@ -16,7 +16,7 @@ public:
     WCYCLE
   };
 
-  UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
+  TensorUzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, minLevel),
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
   {
@@ -29,7 +29,7 @@ public:
     zero_ = [](const hhg::Point3D&) { return 0.0; };
   }
 
-  ~UzawaSolver()
+  ~TensorUzawaSolver()
   {
   }
 
@@ -87,12 +87,14 @@ private:
   void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag) {
 
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
+    A.A_uv.apply(x.v, r.u, level, flag, Add);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
-    A.A.smooth_gs(x.u, r.u, level, flag);
+    A.A_uu.smooth_gs(x.u, r.u, level, flag);
 
     A.divT_y.apply(x.p, r.v, level, flag, Replace);
+    A.A_vu.apply(x.u, r.v, level, flag, Add);
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
-    A.A.smooth_gs(x.v, r.v, level, flag);
+    A.A_vv.smooth_gs(x.v, r.v, level, flag);
 
     A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
     A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);

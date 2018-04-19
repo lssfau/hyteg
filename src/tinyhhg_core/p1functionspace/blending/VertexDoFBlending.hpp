@@ -13,7 +13,7 @@
 
 namespace hhg {
 namespace vertexdof {
-namespace blendingnew {
+namespace blending {
 
 template < class P1Form >
 inline void assembleLocalStencil( const P1Form&                            form,
@@ -560,6 +560,6 @@ inline void smoothGSBlending( uint_t                                            
 
 } // namespace macrovertex
 
-} // namespace blendingnew
+} // namespace blending
 } // namespace vertexdof
 } // namespace hhg

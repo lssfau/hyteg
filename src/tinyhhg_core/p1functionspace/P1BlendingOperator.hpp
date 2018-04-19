@@ -7,34 +7,24 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "P1DataHandling.hpp"
 
-#ifdef _MSC_VER
-#  pragma warning(push, 0)
-#endif
-
-#include "tinyhhg_core/fenics/fenics.hpp"
-
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div_K_grad.h"
-
-#ifdef _MSC_VER
-#  pragma warning(pop)
-#endif
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FormPSPG.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
-#include <tinyhhg_core/p1functionspace/VertexDoFBlending.hpp>
+#include <tinyhhg_core/p1functionspace/blending/VertexDoFBlending.hpp>
 
 namespace hhg
 {
 
+template<class P1Form>
 class P1BlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
@@ -47,131 +37,6 @@ public:
 
   ~P1BlendingOperator()
   {
-  }
-
-  void addOperatorAndCoefficient(const fenics::TabulateTensor& fenicsTabulateTensor) {
-    operators_.push_back(fenicsTabulateTensor);
-  }
-
-  void init()
-  {
-    WALBERLA_ASSERT(operators_.size() > 0, "At least one operator needs to be added before calling init()");
-
-    vertexLocalMatrixIDs_.resize(operators_.size());
-    edgeLocalMatrixIDs_.resize(operators_.size());
-    faceLocalMatrixIDs_.resize(operators_.size());
-
-    for(uint_t oprIdx = 0; oprIdx < operators_.size(); ++oprIdx) {
-      auto faceP1LocalMatrixMemoryDataHandling = std::make_shared<FaceP1LocalMatrixMemoryDataHandling>(minLevel_,
-                                                                                                       maxLevel_);
-      auto edgeP1LocalMatrixMemoryDataHandling = std::make_shared<EdgeP1LocalMatrixMemoryDataHandling>(minLevel_,
-                                                                                                       maxLevel_);
-      auto vertexP1LocalMatrixMemoryDataHandling = std::make_shared<VertexP1LocalMatrixMemoryDataHandling>(minLevel_,
-                                                                                                           maxLevel_);
-
-      auto faceLocalMatrixID_ = PrimitiveID();
-
-      storage_->addFaceData(faceLocalMatrixIDs_[oprIdx], faceP1LocalMatrixMemoryDataHandling, "P1OperatorFaceLocalMatrix");
-      storage_->addEdgeData(edgeLocalMatrixIDs_[oprIdx], edgeP1LocalMatrixMemoryDataHandling, "P1OperatorEdgeLocalMatrix");
-      storage_->addVertexData(vertexLocalMatrixIDs_[oprIdx], vertexP1LocalMatrixMemoryDataHandling,
-                              "P1OperatorVertexLocalMatrix");
-
-      for (uint_t level = minLevel_; level <= maxLevel_; ++level) {
-
-        for (auto &it : storage_->getFaces()) {
-          Face &face = *it.second;
-
-          auto faceLocalMatrices = face.getData(faceLocalMatrixIDs_[oprIdx]);
-
-          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getGrayMatrix(level), fenics::GRAY);
-          compute_local_stiffness(operators_[oprIdx], face, level, faceLocalMatrices->getBlueMatrix(level), fenics::BLUE);
-        }
-
-        for (auto &it : storage_->getEdges()) {
-          Edge &edge = *it.second;
-
-          auto edgeLocalMatrices = edge.getData(edgeLocalMatrixIDs_[oprIdx]);
-
-          // first face
-          Face *face = storage_->getFace(edge.neighborFaces()[0]);
-          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
-          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
-
-
-          if (edge.getNumNeighborFaces() == 2) {
-            // second face
-            Face *face = storage_->getFace(edge.neighborFaces()[1]);
-            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
-            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
-          }
-        }
-
-        for (auto &it : storage_->getVertices()) {
-          Vertex &vertex = *it.second;
-
-          auto vertexLocalMatrices = vertex.getData(vertexLocalMatrixIDs_[oprIdx]);
-
-          // iterate over adjacent faces
-          uint_t neighborId = 0;
-          for (auto &faceId : vertex.neighborFaces()) {
-            Face *face = storage_->getFace(faceId);
-
-            compute_local_stiffness(operators_[oprIdx], *face, level, vertexLocalMatrices->getGrayMatrix(level, neighborId), fenics::GRAY);
-            ++neighborId;
-          }
-        }
-
-      }
-    }
-  }
-
-  void applyPartial(P1Function< real_t >& src, P1Function< real_t >& dst, uint_t memoryLevel, uint_t coarseLevel, DoFType flag, UpdateType updateType = Replace)
-  {
-    // start pulling vertex halos
-    src.getCommunicator(memoryLevel)->startCommunication<Edge, Vertex>();
-
-    // start pulling edge halos
-    src.getCommunicator(memoryLevel)->startCommunication<Face, Edge>();
-
-    src.getCommunicator(memoryLevel)->endCommunication<Edge, Vertex>();
-
-    for (auto& it : storage_->getVertices()) {
-      Vertex& vertex = *it.second;
-
-      if (testFlag(vertex.getDoFType(), flag))
-      {
-        vertexdof::blending::macrovertex::applyBlending< real_t >(memoryLevel, vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
-      }
-    }
-
-    dst.getCommunicator(memoryLevel)->startCommunication<Vertex, Edge>();
-
-    // end pulling edge halos
-    src.getCommunicator(memoryLevel)->endCommunication<Face, Edge>();
-
-    for (auto& it : storage_->getEdges()) {
-      Edge& edge = *it.second;
-
-      if (testFlag(edge.getDoFType(), flag))
-      {
-        vertexdof::blending::macroedge::applyBlending< real_t >(memoryLevel, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
-      }
-    }
-
-    dst.getCommunicator(memoryLevel)->endCommunication<Vertex, Edge>();
-
-    dst.getCommunicator(memoryLevel)->startCommunication<Edge, Face>();
-
-    for (auto& it : storage_->getFaces()) {
-      Face& face = *it.second;
-
-      if (testFlag(face.type, flag))
-      {
-        vertexdof::blending::macroface::applyPartialBlending< real_t >(memoryLevel, coarseLevel, face, faceLocalMatrixIDs_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
-      }
-    }
-
-    dst.getCommunicator(memoryLevel)->endCommunication<Edge, Face>();
   }
 
 private:
@@ -190,7 +55,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::blending::macrovertex::applyBlending< real_t >(level, vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
 
@@ -204,7 +69,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::blending::macroedge::applyBlending< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -217,7 +82,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::blending::macroface::applyBlending< real_t >(level, face, faceLocalMatrixIDs_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, form, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -240,7 +105,7 @@ private:
 
       if (testFlag(vertex.getDoFType(), flag))
       {
-        vertexdof::blending::macrovertex::smooth_gs_blending(level, vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
 
@@ -254,7 +119,7 @@ private:
 
       if (testFlag(edge.getDoFType(), flag))
       {
-        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -267,7 +132,7 @@ private:
 
       if (testFlag(face.type, flag))
       {
-        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, faceLocalMatrixIDs_, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, form, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -362,69 +227,24 @@ private:
   }
 #endif
 
-  std::vector<PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex>> vertexLocalMatrixIDs_;
-  std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> edgeLocalMatrixIDs_;
-  std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> faceLocalMatrixIDs_;
-
-  void compute_local_stiffness(const fenics::TabulateTensor& opr, const Face &face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type) {
-    real_t coords[6];
-    fenics::compute_micro_coords(face, level, coords, element_type);
-    opr(local_stiffness.data(), NULL, coords, 0);
-  }
-
-private:
-  std::vector<fenics::TabulateTensor> operators_;
+  P1Form form;
 };
 
-template<class FenicsOperator>
-class P1ScalarBlendingOperator : public P1BlendingOperator {
-public:
-   P1ScalarBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
-                           size_t minLevel,
-                           size_t maxLevel)
-      : P1BlendingOperator(storage, minLevel, maxLevel) {
-    fenicsOperator = std::make_shared<FenicsOperator>();
+typedef P1BlendingOperator<P1Form_laplace> P1BlendingLaplaceOperator;
+typedef P1BlendingOperator<P1Form_mass> P1BlendingMassOperator;
 
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator::tabulate_tensor, fenicsOperator.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+typedef P1BlendingOperator<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
+typedef P1BlendingOperator<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
+typedef P1BlendingOperator<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
+typedef P1BlendingOperator<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
 
-    this->init();
-  }
+typedef P1BlendingOperator<P1Form_divT_1> P1BlendingDivTOperator_1;
+typedef P1BlendingOperator<P1Form_divT_2> P1BlendingDivTOperator_2;
 
- private:
-  std::shared_ptr<FenicsOperator> fenicsOperator;
-};
+typedef P1BlendingOperator<P1Form_div_1> P1BlendingDivOperator_1;
+typedef P1BlendingOperator<P1Form_div_2> P1BlendingDivOperator_2;
 
-typedef P1ScalarBlendingOperator<p1_mass_cell_integral_0_otherwise> P1BlendingMassOperator;
-
-template<class FenicsOperator1, class FenicsOperator2, class FenicsOperator3>
-class P1TensorBlendingOperator : public P1BlendingOperator {
-public:
-  P1TensorBlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
-                              size_t minLevel,
-                              size_t maxLevel)
-      : P1BlendingOperator(storage, minLevel, maxLevel) {
-    fenicsOperator1 = std::make_shared<FenicsOperator1>();
-    fenicsOperator2 = std::make_shared<FenicsOperator2>();
-    fenicsOperator3 = std::make_shared<FenicsOperator3>();
-
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator1::tabulate_tensor, fenicsOperator1.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator2::tabulate_tensor, fenicsOperator2.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    this->addOperatorAndCoefficient(std::bind(&FenicsOperator3::tabulate_tensor, fenicsOperator3.get(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-
-    this->init();
-  }
-
-private:
-  std::shared_ptr<FenicsOperator1> fenicsOperator1;
-  std::shared_ptr<FenicsOperator2> fenicsOperator2;
-  std::shared_ptr<FenicsOperator3> fenicsOperator3;
-};
-
-typedef P1TensorBlendingOperator<p1_div_k_grad_cell_integral_0_otherwise,
-                                    p1_div_k_grad_cell_integral_1_otherwise,
-                                    p1_div_k_grad_cell_integral_2_otherwise> P1BlendingLaplaceOperator;
+typedef P1BlendingOperator<P1Form_pspg> P1BlendingPSPGOperator;
 
 }
 
