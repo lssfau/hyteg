@@ -1,0 +1,5 @@
+u = TrialFunction( trialElement )
+v = TestFunction( testElement )
+
+forms = [u.dx(0)*v.dx(0)*dx, (u.dx(0)*v.dx(1)+u.dx(1)*v.dx(0))*dx, u.dx(1)*v.dx(1)*dx]
+
