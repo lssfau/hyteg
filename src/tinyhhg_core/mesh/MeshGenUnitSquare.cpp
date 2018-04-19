@@ -9,7 +9,7 @@ namespace hhg {
 MeshInfo MeshInfo::meshUnitSquare(uint_t level) {
   MeshInfo meshInfo;
 
-  uint_t N = std::pow(2 ,level);
+  uint_t N = walberla::uint_c(std::pow(2 ,level));
   real_t h = walberla::real_c(1.0)/walberla::real_c(N);
 
   for (uint_t row = 0; row < N+1; ++row) {
