@@ -144,6 +144,9 @@ stages:
       OMP_WAIT_POLICY: "PASSIVE"
       CMAKE_BUILD_TYPE: "Release"
       HHG_BUILD_WITH_EIGEN: "ON"
+   before_script:
+      - apt-get update
+      - apt-get install libeigen3-dev
 
 ###############################################################################
 ##                                                                           ##
@@ -191,9 +194,6 @@ intel_17_petsc:
 intel_17_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   before_script:
-     - apt-get update
-     - apt-get install libeigen3-dev
    tags:
       - docker
       - intel
@@ -238,9 +238,6 @@ gcc_6_petsc:
 gcc_6_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   before_script:
-     - apt-get update
-     - apt-get install libeigen3-dev
    tags:
       - docker
 
@@ -290,9 +287,6 @@ clang_4.0_petsc:
 clang_4.0_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   before_script:
-     - apt-get update
-     - apt-get install libeigen3-dev
    tags:
       - docker
 
