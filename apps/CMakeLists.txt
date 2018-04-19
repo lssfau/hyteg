@@ -10,6 +10,10 @@ waLBerla_add_executable( NAME stokes_stab
         FILES stokes_stab.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME stokes_flow_through_porous_med
+        FILES stokes_flow_through_porous_med.cpp
+        DEPENDS tinyhhg_core)
+
 waLBerla_add_executable( NAME fullmg
         FILES fullmg.cpp
         DEPENDS tinyhhg_core)
