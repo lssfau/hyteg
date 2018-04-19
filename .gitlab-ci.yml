@@ -135,6 +135,16 @@ stages:
       HHG_BUILD_WITH_PETSC: "ON"
       PETSC_DIR: "/opt/petsc"
 
+.build_eigen_template: &build_eigen_definition
+   <<: *build_definition
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      OMP_NUM_THREADS: "4"
+      OMP_WAIT_POLICY: "PASSIVE"
+      CMAKE_BUILD_TYPE: "Release"
+      HHG_BUILD_WITH_EIGEN: "ON"
+
 ###############################################################################
 ##                                                                           ##
 ##    Linux builds                                                           ##
@@ -178,6 +188,16 @@ intel_17_petsc:
       - docker
       - intel
 
+intel_17_eigen:
+   <<: *build_eigen_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   script:
+     - apt-get update
+     - apt-get install libeigen3-dev
+   tags:
+      - docker
+      - intel      
+
 gcc_5_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
@@ -214,6 +234,15 @@ gcc_6_petsc:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
    tags:
       - docker
+
+gcc_6_eigen:
+   <<: *build_eigen_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   script:
+     - apt-get update
+     - apt-get install libeigen3-dev
+   tags:
+      - docker      
 
 gcc_7_mpionly:
    <<: *build_mpionly_definition
@@ -257,6 +286,15 @@ clang_4.0_petsc:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
    tags:
       - docker
+
+clang_4.0_eigen:
+   <<: *build_eigen_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   script:
+     - apt-get update
+     - apt-get install libeigen3-dev
+   tags:
+      - docker      
 
 clang_5.0_mpionly:
    <<: *build_mpionly_definition

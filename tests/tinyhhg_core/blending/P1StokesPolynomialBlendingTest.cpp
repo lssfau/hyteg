@@ -71,8 +71,12 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t >              err( "err", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t >              Lu( "Lu", storage, minLevel, maxLevel );
 
-   typedef hhg::P1BlendingStokesOperator SolveOperator;
-   SolveOperator L( storage, minLevel, maxLevel );
+   typedef hhg::P1PolynomialBlendingStokesOperator SolveOperator;
+   const uint_t interpolationLevel = 4;
+   const uint_t polyDegree = 12;
+   SolveOperator L( storage, minLevel, maxLevel, interpolationLevel );
+   L.interpolateStencils(polyDegree);
+   L.useDegree(polyDegree);
 
    P1BlendingMassOperator M(storage, minLevel, maxLevel);
 
