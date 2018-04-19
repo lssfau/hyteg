@@ -37,9 +37,6 @@ class GeometryMap
    /// \param x Reference input coordinates
    real_t evalDetDF(const Point3D& x);
 
-   // TODO: remove me before merging into master
-   void evalTensorCoeff(const Point3D& x, Matrix2r& coeff);
-
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );
 
