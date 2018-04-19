@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
   std::function< real_t( const hhg::Point3D& ) > bc_x = []( const hhg::Point3D& x ) {
       if( x[0] < 1e-8 )
       {
-        return 1.0;
+        return 4.0 * x[1] * (1.0 - x[1]);
       } else
       {
         return 0.0;
