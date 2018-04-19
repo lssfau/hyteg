@@ -191,12 +191,12 @@ intel_17_petsc:
 intel_17_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
-   script:
+   before_script:
      - apt-get update
      - apt-get install libeigen3-dev
    tags:
       - docker
-      - intel      
+      - intel
 
 gcc_5_mpionly:
    <<: *build_mpionly_definition
@@ -238,11 +238,11 @@ gcc_6_petsc:
 gcc_6_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
-   script:
+   before_script:
      - apt-get update
      - apt-get install libeigen3-dev
    tags:
-      - docker      
+      - docker
 
 gcc_7_mpionly:
    <<: *build_mpionly_definition
@@ -290,11 +290,11 @@ clang_4.0_petsc:
 clang_4.0_eigen:
    <<: *build_eigen_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
-   script:
+   before_script:
      - apt-get update
      - apt-get install libeigen3-dev
    tags:
-      - docker      
+      - docker
 
 clang_5.0_mpionly:
    <<: *build_mpionly_definition
