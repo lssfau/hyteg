@@ -30,6 +30,7 @@
 #include "VertexDoFMacroEdge.hpp"
 #include "VertexDoFMacroFace.hpp"
 #include "VertexDoFMacroVertex.hpp"
+#include "polynomial/VertexDoFMacroFacePolynomial.hpp"
 
 namespace hhg {
 
