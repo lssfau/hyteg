@@ -242,3 +242,7 @@ if( HHG_BUILD_WITH_EIGEN )
   waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
   waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 endif()
+
+# Test some basic auxiliary stuff for application layer
+waLBerla_compile_test(FILES FindMaxTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FindMaxTest)
