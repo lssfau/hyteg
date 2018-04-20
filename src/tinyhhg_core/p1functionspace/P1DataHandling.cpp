@@ -34,4 +34,9 @@ std::shared_ptr< FaceP1LocalMatrixMemory > FaceP1LocalMatrixMemoryDataHandling::
   return faceP1LocalMatrixMemory;
 }
 
+std::shared_ptr< FaceP1PolynomialMemory > FaceP1PolynomialMemoryDataHandling::initialize( const Face * const ) const
+{
+  return std::make_shared< FaceP1PolynomialMemory >( );
+}
+
 }

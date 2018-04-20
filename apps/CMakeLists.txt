@@ -22,6 +22,9 @@ waLBerla_add_executable( NAME cg_P1_varcoeff
         FILES cg_P1_varcoeff.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME cg_P1_tensorvarcoeff
+        FILES cg_P1_tensorvarcoeff.cpp
+        DEPENDS tinyhhg_core)
 
 waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME BlockCG         CONFIGURATIONS Release RelWithDbgInfo)
@@ -32,10 +35,6 @@ waLBerla_execute_test(NO_MODULE_LABEL NAME cg_P1_varcoeff  CONFIGURATIONS Releas
 
 waLBerla_add_executable( NAME Chorin
         FILES Chorin.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME stokes_stab_varcoeff
-        FILES stokes_stab_varcoeff.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME dg0_transport
@@ -69,6 +68,16 @@ waLBerla_add_executable( NAME gmg_P2_h_refinement
 waLBerla_add_executable( NAME GeometryBlending
         FILES GeometryBlending.cpp
         DEPENDS tinyhhg_core)
+
+if( HHG_BUILD_WITH_EIGEN )
+waLBerla_add_executable( NAME cg_P1_blending
+        FILES cg_P1_blending.cpp
+        DEPENDS tinyhhg_core)
+
+waLBerla_add_executable( NAME gmg_blending
+        FILES gmg_blending.cpp
+        DEPENDS tinyhhg_core)
+endif()
 
 waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp

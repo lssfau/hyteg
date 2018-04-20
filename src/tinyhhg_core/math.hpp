@@ -27,6 +27,23 @@ inline real_t faceOrientation2D( const Point3D& a, const Point3D& b, const Point
    return std::copysign( 1.0, det2( jac ) );
 }
 
+constexpr uint_t binomialCoefficient(uint_t n, uint_t k)
+{
+  uint_t out = 1;
+
+  if (k > n - k) {
+    k = n - k;
+  }
+
+  for (uint_t i = 0; i < k; ++i)
+  {
+    out *= (n - i);
+    out /= (i + 1);
+  }
+
+  return out;
+}
+
 } // namespace math
 } // namespace hhg
 

@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   std::shared_ptr<P1Function< real_t >> coefficient = std::make_shared<P1Function< real_t >>("coeff", storage, minLevel, maxLevel);
 
   hhg::P1MassOperator M(storage, minLevel, maxLevel);
-  hhg::P1VariableCoefficientLaplaceOperator L(storage, coefficient, minLevel, maxLevel);
+  hhg::P1ScalarCoefficientLaplaceOperator L(storage, coefficient, minLevel, maxLevel);
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   r.enableTiming( timingTree );
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
 //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
 //  auto prec = std::make_shared<PreconditionerType>(L, 30);
 
-  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1VariableCoefficientLaplaceOperator>(storage, minLevel, maxLevel);
+  auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1ScalarCoefficientLaplaceOperator>(storage, minLevel, maxLevel);
   walberla::WcTimer timer;
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
   timer.end();

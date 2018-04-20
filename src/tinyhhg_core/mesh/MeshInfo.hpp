@@ -114,9 +114,9 @@ public:
       id_( id ), coordinates_( coordinates ), dofType_( dofType )
     {}
 
-    const IDType  getID()          const { return id_; }
+    IDType  getID()          const { return id_; }
     const Point3D getCoordinates() const { return coordinates_; }
-    const DoFType getDoFType()     const { return dofType_; }
+    DoFType getDoFType()     const { return dofType_; }
 
   private:
     IDType  id_;
@@ -133,7 +133,7 @@ public:
     {}
 
     const std::array< IDType, 2 > getVertices() const { return vertices_; }
-    const DoFType                 getDoFType()  const { return dofType_; }
+    DoFType                 getDoFType()  const { return dofType_; }
 
   private:
     std::array< IDType, 2 > vertices_;
@@ -149,7 +149,7 @@ public:
     {}
 
     const std::vector< IDType > getVertices() const { return vertices_; }
-    const DoFType               getDoFType()  const { return dofType_; }
+    DoFType               getDoFType()  const { return dofType_; }
 
   private:
     std::vector< IDType > vertices_;
@@ -165,7 +165,7 @@ public:
     {}
 
     const std::vector< IDType > getVertices() const { return vertices_; }
-    const DoFType               getDoFType()  const { return dofType_; }
+    DoFType               getDoFType()  const { return dofType_; }
 
   private:
     std::vector< IDType > vertices_;
@@ -208,6 +208,9 @@ public:
 
   /// Construct a MeshInfo object for a full annulus
   static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, uint_t nTan, uint_t nRad );
+
+  /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
+  static MeshInfo meshUnitSquare( uint_t level );
 
   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };

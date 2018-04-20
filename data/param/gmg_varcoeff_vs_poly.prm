@@ -1,0 +1,13 @@
+Parameters
+{
+  level_h_coarse 0;
+  level_h_fine 11;
+  max_outer_iter 50;
+  max_cg_iter 1000;
+  mg_tolerance 1e-14;
+  coarse_tolerance 1e-14;
+  polynomialOperator true;
+  interpolationLevel 7;
+  maxPolyDegree 5;
+  vtkOutput false;
+}

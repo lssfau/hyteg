@@ -229,3 +229,16 @@ waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS tinyhhg_
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
+
+# Blending
+waLBerla_compile_test(FILES blending/P1StokesBlendingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1StokesBlendingTest1 COMMAND $<TARGET_FILE:P1StokesBlendingTest> )
+waLBerla_execute_test(NAME P1StokesBlendingTest2 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 2 )
+waLBerla_execute_test(NAME P1StokesBlendingTest8 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 8 )
+
+if( HHG_BUILD_WITH_EIGEN )
+  waLBerla_compile_test(FILES blending/P1StokesPolynomialBlendingTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest1 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> )
+  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
+  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
+endif()

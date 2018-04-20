@@ -6,12 +6,23 @@
 
 import numpy as np
 from sympy import *
+import random
 
 x, y = symbols('x y')
 
 def basic_example():
-    k = 1+x
+    k = 1 + 3*x + 4*y + 7*x**2
     u = sin(x)*sinh(y)
+
+    return (k,u)
+
+def poly_5():
+    random.seed(5618947216424)
+    k = 1 + random.random()*x + random.random()*y + random.random()*x**2 + random.random() * x * y + random.random() * y**2
+    k = k + random.random()*x**3 + random.random() * x**2 * y + random.random() * x * y**2 + random.random()*y**3
+    k = k + random.random()*x**4 + random.random() * x**3 * y + random.random() * x**2 * y**2 + random.random()* x * y**3 + random.random() * y**4
+    k = k + random.random()*x**5 + random.random() * x**4 * y + random.random() * x**3 * y**2 + random.random() * x**2 * y**3 + random.random() * x * y**4 + random.random() * y**5
+    u = x**3 * y**2 / (x*y + 1)
 
     return (k,u)
 
@@ -35,7 +46,7 @@ def plume_example():
     return (k,u)
 
 
-k, u = basic_example()
+k, u = poly_5()
 
 def gradient(u):
     return np.array([diff(u,x), diff(u,y)])

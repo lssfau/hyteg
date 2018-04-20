@@ -52,5 +52,18 @@ private:
 
 };
 
+class FaceP1PolynomialMemoryDataHandling : public OnlyInitializeDataHandling< FaceP1PolynomialMemory, Face >
+{
+public:
+
+  FaceP1PolynomialMemoryDataHandling( const uint_t & maxDegree ) : maxDegree_( maxDegree ) {}
+
+  std::shared_ptr< FaceP1PolynomialMemory > initialize( const Face * const face ) const;
+
+private:
+  uint_t maxDegree_;
+
+};
+
 
 }

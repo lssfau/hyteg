@@ -1,0 +1,14 @@
+Parameters
+{
+  meshFilename ../data/meshes/unitsquare_with_circular_hole.msh;
+  level_h_coarse 4;
+  level_h_fine 6;
+  max_outer_iter 50;
+  max_cg_iter 1000;
+  mg_tolerance 1e-14;
+  coarse_tolerance 1e-14;
+  polynomialOperator true;
+  interpolationLevel 6;
+  maxPolyDegree 1;
+  vtkOutput true;
+}

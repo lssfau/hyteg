@@ -9,6 +9,7 @@
 
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
+#include "tinyhhg_core/polynomial/Polynomial2D.hpp"
 
 #include <string>
 
@@ -150,5 +151,77 @@ public:
   }
 
 };
+
+class FaceP1PolynomialMemory
+{
+public:
+
+  struct FacePolynomials {
+    std::shared_ptr<GeneralPolynomial2D> polyS;
+    std::shared_ptr<GeneralPolynomial2D> polySE;
+    std::shared_ptr<GeneralPolynomial2D> polyW;
+    std::shared_ptr<GeneralPolynomial2D> polyC;
+    std::shared_ptr<GeneralPolynomial2D> polyE;
+    std::shared_ptr<GeneralPolynomial2D> polyNW;
+    std::shared_ptr<GeneralPolynomial2D> polyN;
+  };
+
+  std::map<uint_t, FacePolynomials> polynomials_;
+
+  FaceP1PolynomialMemory() {}
+
+  inline FacePolynomials& addDegree(uint_t degree)
+  {
+    if (polynomialDegreeExists(degree)) {
+      WALBERLA_LOG_WARNING("Degree already exists.");
+    }
+
+    FacePolynomials& tmp = polynomials_[degree];
+    tmp.polyS = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polySE = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyW = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyC = std::make_shared<GeneralPolynomial2D>(degree);
+
+    // TODO: only required in asymmetric case
+    tmp.polyE = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyNW = std::make_shared<GeneralPolynomial2D>(degree);
+    tmp.polyN = std::make_shared<GeneralPolynomial2D>(degree);
+    return tmp;
+  }
+
+  bool polynomialDegreeExists(uint_t degree) {
+    return polynomials_.count(degree)>0;
+  }
+
+  GeneralPolynomial2D& getPolynomialS(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyS;
+  }
+
+  GeneralPolynomial2D& getPolynomialSE(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polySE;
+  }
+
+  GeneralPolynomial2D& getPolynomialW(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyW;
+  }
+
+  GeneralPolynomial2D& getPolynomialC(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyC;
+  }
+
+  GeneralPolynomial2D& getPolynomialE(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyE;
+  }
+
+  GeneralPolynomial2D& getPolynomialNW(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyNW;
+  }
+
+  GeneralPolynomial2D& getPolynomialN(uint_t maxDegree) {
+    return *polynomials_[maxDegree].polyN;
+  }
+
+};
+
 
 } // namespace hhg

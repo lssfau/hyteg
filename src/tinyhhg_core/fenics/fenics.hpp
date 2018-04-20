@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 
@@ -38,6 +40,12 @@ class NoAssemble {
                        const real_t * coordinate_dofs,
                        int cell_orientation) const { }
 };
+
+typedef std::function<void(real_t *,
+                      const real_t * const *,
+                      const real_t *,
+                      int cell_orientation)> TabulateTensor;
+
 
 }
 }

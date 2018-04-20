@@ -20,8 +20,7 @@ public:
       div_y(storage, minLevel, maxLevel),
       divT_x(storage, minLevel, maxLevel),
       divT_y(storage, minLevel, maxLevel),
-      pspg(storage, minLevel, maxLevel),
-      coefficient_(coefficient)
+      pspg(storage, minLevel, maxLevel)
   {
   }
 
@@ -49,9 +48,6 @@ public:
   P1DivTxOperator divT_x;
   P1DivTyOperator divT_y;
   P1PSPGOperator pspg;
-
-private:
-  std::shared_ptr<P1Function< real_t >> coefficient_;
 };
 
 }
