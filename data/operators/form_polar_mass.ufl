@@ -1,0 +1,5 @@
+u = TestFunction( testElement )
+v = TrialFunction( trialElement )
+
+x = SpatialCoordinate( triangle )
+a = x[0]*u*v*dx
