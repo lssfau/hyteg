@@ -21,18 +21,18 @@ using walberla::uint_t;
  * \dontinclude tutorials/05_FullAppP1GMG/P1GMG.cpp
  *
  * \brief In this tutorial we will set up a complete app using P1 elements which will perform geometric
- * multigrid to solve the laplace equation.
+ * multigrid to solve the Laplace equation.
  *
  * \section setup Setup MPI
  *
- * At we first we create an walberla Environment which handles mpi init and se the communicator for all
+ * At we first we create a walberla Environment which handles mpi init and set the communicator for all
  * prozesses to WorldComm
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Create Environment
  *
  * \section parameters Set Parameters
  *
- * On way to set the parameters for the simulation is to use a parameter file.
+ * One way to set the parameters for the simulation is to use a parameter file.
  *
  * We need to create a walberla Config and read a parameter file. In this case the file is in the same
  * directiory as the executable.
@@ -47,7 +47,7 @@ using walberla::uint_t;
  *
  * \section storage Primitive Storage
  *
- * In this step we create a fully distributed PrimitiveStorage from a mesh File
+ * In this step we create a fully distributed PrimitiveStorage from a mesh file
  *
  * This creation can be split into more steps for more flexibility like using other load
  * balancing techniques
@@ -65,7 +65,7 @@ using walberla::uint_t;
  * - the smallest level and
  * - the highest level which should be allocated
  *
- * Be aware that he highest level is included
+ * Be aware that the highest level is included
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Function Spaces
  *
@@ -74,18 +74,18 @@ using walberla::uint_t;
  * To set the boundary conditions we create a function using a lamba function. The functions needs to return
  * a real_t and take and hhg::Point3D as an argument.
  *
- * In this case we transfer the cartesian to polar coordinates and use the angle to apply some sinus pattern.
+ * In this case we transfer the Cartesian to polar coordinates and use the angle to apply some sine pattern.
  *
- * The interpolate function is used to evaluate the function on all desired points.
+ * The interpolate function is used to evaluate the function at all desired points.
  * We need to call the function with:
  *
  * - the function which should be evaluated
  * - the desired level
  * - on which points the function should be evaluated
  *
- * In our case we only evaluate the function on dirichlet boundary conditions. Other options would be
+ * In our case we only evaluate the function on Dirichlet boundary conditions. Other options would be
  * for example hhg::Inner for all points no on a boundary or hhg::NeumannBondary for points which are
- * specified as neumann boundaries
+ * specified as Neumann boundaries
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions
  *
@@ -93,12 +93,12 @@ using walberla::uint_t;
  *
  * Now we will setup the solvers.
  *
- * As a coarse grid solver we use a CG solver which works on a P1Function and uses a P1LaplaceOpertor.
- * There are specified as template parameters. In the constructor we need to specify the storage, the min
+ * As a coarse grid solver we use a CG solver which works on a P1Function and uses a P1LaplaceOperator.
+ * They are specified as template parameters. In the constructor we need to specify the storage, the min
  * and the max level.
  *
  * For the geometric multigrid solver we need to specify the function (P1Function), the operator
- * (P1LaplaceOperator) and the coarge grid solver (CoarseSolver) as template arguments.
+ * (P1LaplaceOperator), and the coarge grid solver (CoarseSolver) as template arguments.
  * The storage, the coarse grid solver and the levels are needed as parameters.
  *
  * Furthermore we need to create an instance of the P1LaplaceOperator
@@ -112,11 +112,11 @@ using walberla::uint_t;
  * The parameters for the function call are:
  * - operator
  * - function to work on
- * - the right hand side of the equation
+ * - the right-hand side of the equation
  * - an additional function which will be used as a residual
  * - highest level in the multigrid hierarchy
- * - tolerance for the coarse grid solver
- * - maximal iterations for the coarse grid solver
+ * - tolerance for the coarse-grid solver
+ * - maximal iterations for the coarse-grid solver
  * - on which points to work
  * - cycle type (V or W)
  *
@@ -132,9 +132,9 @@ using walberla::uint_t;
  * \section Calculate Residual
  *
  * To validate the result we calculate the residual by first writing the result of multiplying the
- * laplace operator with the function into the laplaceTimesFunction function.
+ * Laplace operator with the function into the laplaceTimesFunction function.
  *
- * Next we subtract this form the right hand side and calculate the euclidean norm.
+ * Next we subtract this from the right-hand side and calculate the Euclidean norm.
  *
  * We can use the walberla logging functionality to print out the norm of the residual
  *
@@ -144,7 +144,7 @@ using walberla::uint_t;
  *
  * \section output Write VTK Output
  *
- * If set in the parameter file the results are written onto disc in the vtk file format
+ * If set in the parameter file the results are written onto disc in the vtk file format.
  *
  * First we create an VTKOutput object which needs to path to write the files to (".") and a name for the
  * output ("FullAppP1GMG").
