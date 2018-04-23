@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator> Solver;
+  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, false> Solver;
   auto solver = Solver(storage, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Num dofs = "<< npoints);

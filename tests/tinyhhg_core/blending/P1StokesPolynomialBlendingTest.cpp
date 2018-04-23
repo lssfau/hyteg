@@ -14,7 +14,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/TensorUzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/format.hpp"
 
 using walberla::real_t;
@@ -118,7 +118,7 @@ int main( int argc, char* argv[] )
    one.interpolate(ones, maxLevel, hhg::All);
    real_t npoints = one.dot( one, maxLevel );
 
-   typedef hhg::TensorUzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator> Solver;
+   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, true> Solver;
    auto solver = Solver(storage, minLevel, maxLevel);
 
    WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
