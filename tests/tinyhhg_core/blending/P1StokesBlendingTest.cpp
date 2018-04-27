@@ -41,7 +41,7 @@ int main( int argc, char* argv[] )
    const uint_t minLevel = parameters.getParameter<uint_t>("minLevel");
    const uint_t maxLevel = parameters.getParameter<uint_t>("maxLevel");
    const uint_t coarseMaxiter =  parameters.getParameter<uint_t>("coarseMaxiter");
-   const real_t maxOuterIter = parameters.getParameter<real_t>("maxOuterIter");
+   const uint_t maxOuterIter = parameters.getParameter<uint_t>("maxOuterIter");
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

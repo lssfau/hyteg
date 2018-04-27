@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
    const uint_t polyDegree = parameters.getParameter<uint_t>("polyDegree");
    const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
    const uint_t coarseMaxiter =  parameters.getParameter<uint_t>("coarseMaxiter");
-   const real_t maxOuterIter = parameters.getParameter<real_t>("maxOuterIter");
+   const uint_t maxOuterIter = parameters.getParameter<uint_t>("maxOuterIter");
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
