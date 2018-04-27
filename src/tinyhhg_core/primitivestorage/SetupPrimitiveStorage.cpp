@@ -48,6 +48,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     Point3D coordinates( meshInfoVertex.getCoordinates() );
     vertices_[ vertexID.getID() ] = std::make_shared< Vertex >( vertexID, coordinates );
+
+    setMeshBoundaryFlag( vertexID.getID(), meshInfoVertex.getBoundaryFlag() );
   }
 
   // Adding edges to storage
@@ -73,6 +75,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
     edges_[ edgeID.getID() ] = std::make_shared< Edge >( edgeID, vertexID0, vertexID1, dofType, coords);
+
+    setMeshBoundaryFlag( edgeID.getID(), meshInfoEdge.getBoundaryFlag() );
 
     // Adding edge ID as neighbor to SetupVertices
     vertices_[ vertexID0.getID() ]->addEdge( edgeID );
@@ -235,6 +239,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, dofType, edgeOrientation, verticesOnBoundary, edgesOnBoundary, coordinates ) );
 
+    setMeshBoundaryFlag( faceID.getID(), meshInfoFace.getBoundaryFlag() );
+
     // Adding face ID to vertices as neighbors
     vertices_[vertexIDs[0].getID()]->addFace(faceID);
     vertices_[vertexIDs[1].getID()]->addFace(faceID);
@@ -358,6 +364,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
 
     cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
+
+    setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
 
   loadbalancing::greedy( *this );

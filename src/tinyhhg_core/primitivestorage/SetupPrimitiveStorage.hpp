@@ -91,6 +91,8 @@ public:
 
   void setGeometryMap( const PrimitiveID & primitiveID, const std::shared_ptr<GeometryMap>& map) { getPrimitive(primitiveID)->geometryMap_ = map; }
 
+  void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }
+
 private:
 
   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;
