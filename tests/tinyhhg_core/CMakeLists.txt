@@ -244,5 +244,6 @@ if( HHG_BUILD_WITH_EIGEN )
 endif()
 
 # Test some basic auxiliary stuff for application layer
-waLBerla_compile_test(FILES FindMaxTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME FindMaxTest)
+waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
+waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )
