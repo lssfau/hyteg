@@ -99,6 +99,10 @@ waLBerla_add_executable( NAME StokesP2P1
         FILES StokesP2P1.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME PolarLaplacian
+        FILES  polar_laplacian.cpp
+        DEPENDS tinyhhg_core)
+
 
 #add_executable (tinytest_fmg fmg_test.cpp)
 #target_link_libraries (tinytest_fmg tinyhhg ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
