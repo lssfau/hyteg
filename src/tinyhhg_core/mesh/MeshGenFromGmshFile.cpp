@@ -50,7 +50,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     meshFile >> x[1];
     meshFile >> x[2];
 
-    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( x ), Inner );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( x ), Inner, 0 );
   }
 
   WALBERLA_ASSERT_EQUAL( meshInfo.vertices_.size(), numVertices );
@@ -81,35 +81,35 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 
     if (primitiveType == 1) // edge
     {
-      uint_t type;
+      uint_t boundaryFlag;
       std::array< IDType, 2 > edgeVertices;
       meshFile >> ig; // ignore
-      meshFile >> type;
+      meshFile >> boundaryFlag;
       meshFile >> ig; // ignore
       meshFile >> edgeVertices[0];
       meshFile >> edgeVertices[1];
 
-      WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
-      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
+      WALBERLA_ASSERT_LESS( boundaryFlag, BOUNDARY_TYPE_TO_FLAG.size() );
+      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[boundaryFlag];
 
-      parsedEdges[ edgeVertices ] = Edge( edgeVertices, dofType );
+      parsedEdges[ edgeVertices ] = Edge( edgeVertices, dofType, boundaryFlag );
     }
 
     else if (primitiveType == 2) // triangle
     {
-      uint_t type;
+      uint_t boundaryFlag;
       std::vector< IDType > triangleVertices( 3 );
       meshFile >> ig; // ignore
-      meshFile >> type;
+      meshFile >> boundaryFlag;
       meshFile >> ig; // ignore
       meshFile >> triangleVertices[0];
       meshFile >> triangleVertices[1];
       meshFile >> triangleVertices[2];
 
-      WALBERLA_ASSERT_LESS( type, BOUNDARY_TYPE_TO_FLAG.size() );
-      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[type];
+      WALBERLA_ASSERT_LESS( boundaryFlag, BOUNDARY_TYPE_TO_FLAG.size() );
+      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[boundaryFlag];
 
-      parsedFaces[ triangleVertices ] = MeshInfo::Face( triangleVertices, dofType );
+      parsedFaces[ triangleVertices ] = MeshInfo::Face( triangleVertices, dofType, boundaryFlag );
     }
 
     else if (primitiveType == 4) // tetrahedron
@@ -123,7 +123,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> tetrahedronVertices[2];
       meshFile >> tetrahedronVertices[3];
 
-      parsedCells[ tetrahedronVertices ] = Cell( tetrahedronVertices, Inner );
+      parsedCells[ tetrahedronVertices ] = Cell( tetrahedronVertices, Inner, 0 );
     }
 
     else if (primitiveType == 15) // vertex
@@ -159,9 +159,9 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[0], faceCoordinates[1] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[1], faceCoordinates[2] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[2], faceCoordinates[0] }} ), Inner ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[0], faceCoordinates[1] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[1], faceCoordinates[2] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[2], faceCoordinates[0] }} ), Inner, 0 ) );
 
     meshInfo.addFace( meshInfoFace );
   }
@@ -174,17 +174,17 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[1] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[2] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[3] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[2] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[3] }} ), Inner ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[2], cellCoordinates[3] }} ), Inner ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[1] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[2] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[2] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
 
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] }} ), Inner ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), Inner ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), Inner ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), Inner ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] }} ), Inner, 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
 
     meshInfo.cells_[ cellCoordinates ] = meshInfoCell;
 
