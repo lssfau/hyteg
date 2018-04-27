@@ -29,11 +29,11 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  uint_t theLevel = 4;
+  uint_t theLevel = 2;
 
   // Generate mesh around origin
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-  meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CRISS, 1, 1 );
+  meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CROSS, 1, 1 );
 
   // Generate primitives
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -67,8 +67,8 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > func2( "testFunc2", storage, theLevel, theLevel );
   func2.interpolate( testFunc, theLevel );
 
-  xLocMax = 0.25;
-  yLocMax = 0.25;
+  xLocMax = 0.0;
+  yLocMax = 0.0;
   hhg::P1Function< real_t > func3( "testFunc3", storage, theLevel, theLevel );
   func3.interpolate( testFunc, theLevel );
 
