@@ -5,8 +5,10 @@
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
@@ -29,6 +31,9 @@ void showUsage()
              << "  --annulus [full|partial]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
+             << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
+             << " The desired load balancing approach can be steered by:\n\n"
+             << "  --load-balancing [allroot|roundrobin|greedy|parmetis] (default: roundrobin)\n\n"
              << " Use  -v  to print info on mesh to console.\n\n"
              << std::endl;
 }
@@ -49,7 +54,16 @@ int main( int argc, char* argv[] )
    MeshInfo*             meshInfo     = nullptr;
    bool                  beVerbose    = false;
 
-   if( argc < 3 || argc > 4 )
+   typedef enum
+   {
+       ALL_ROOT,
+       ROUND_ROBIN,
+       GREEDY,
+       PARMETIS
+   } LoadBalancingType;
+   LoadBalancingType loadBalancingType = ROUND_ROBIN;
+
+   if( argc < 3 || argc > 6 )
    {
       showUsage();
       WALBERLA_ABORT( "Please provide command-line parameters!" );
@@ -102,7 +116,35 @@ int main( int argc, char* argv[] )
       WALBERLA_ABORT( "Could not understand command-line args!" );
    }
 
-   if( argc == 4 && strcmp( argv[3], "-v" ) == 0 )
+   if ( argc > 4 && argc < 7 && strcmp( argv[3], "--load-balancing" ) == 0 )
+   {
+      if ( strcmp( argv[4], "allroot" ) == 0 )
+      {
+         loadBalancingType = ALL_ROOT;
+      }
+      else if ( strcmp( argv[4], "roundrobin" ) == 0 )
+      {
+         loadBalancingType = ROUND_ROBIN;
+      }
+      else if ( strcmp( argv[4], "greedy" ) == 0 )
+      {
+         loadBalancingType = GREEDY;
+      }
+      else if ( strcmp( argv[4], "parmetis" ) == 0 )
+      {
+#ifdef WALBERLA_BUILD_WITH_PARMETIS
+         loadBalancingType = PARMETIS;
+#else
+         WALBERLA_ABORT( "Framework was not built with ParMetis." );
+#endif
+      }
+      else
+      {
+         WALBERLA_ABORT( "Could not understand command-line args. Possibly invalid load balancing approach." );
+      }
+   }
+
+   if( (argc == 4 || argc == 6) && ( strcmp( argv[3], "-v" ) == 0 || strcmp( argv[5], "-v" ) == 0 ) )
    {
       beVerbose = true;
    }
@@ -175,7 +217,23 @@ int main( int argc, char* argv[] )
    SetupPrimitiveStorage* setupStorage = nullptr;
    setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( *setupStorage );
+   switch ( loadBalancingType )
+   {
+   case ALL_ROOT:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: all on root" );
+      hhg::loadbalancing::allPrimitivesOnRoot( *setupStorage );
+      break;
+   case ROUND_ROBIN:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: round robin" );
+      hhg::loadbalancing::roundRobin( *setupStorage );
+      break;
+   case GREEDY:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: greedy" );
+      hhg::loadbalancing::greedy( *setupStorage );
+      break;
+   default:
+      break;
+   }
 
    if( beVerbose )
    {
@@ -188,12 +246,23 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
+#ifdef WALBERLA_BUILD_WITH_PARMETIS
+   if ( loadBalancingType == PARMETIS )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: parmetis" );
+      hhg::loadbalancing::distributed::parmetis( *storage );
+   }
+#endif
+
+   hhg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: '" << vtkFileName + "_domain_partitioning" );
+
    hhg::VTKOutput                                 vtkOutput( "../output", vtkFileName );
    hhg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
    std::function< real_t( const hhg::Point3D& ) > myFunc = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    someData.interpolate( myFunc, maxLevel );
    vtkOutput.add( &someData );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: '" << vtkFileName << "'\n" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: '" << vtkFileName );
    vtkOutput.write( outLevel );
 
    delete meshInfo;
