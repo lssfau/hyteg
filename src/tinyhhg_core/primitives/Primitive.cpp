@@ -46,6 +46,7 @@ void Primitive::deserialize( walberla::mpi::RecvBuffer & recvBuffer )
 void Primitive::serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) const
 {
   sendBuffer << primitiveID_;
+  sendBuffer << meshBoundaryFlag_;
   sendBuffer << neighborVertices_;
   sendBuffer << neighborEdges_;
   sendBuffer << neighborFaces_;
@@ -56,6 +57,7 @@ void Primitive::serializePrimitive( walberla::mpi::SendBuffer & sendBuffer ) con
 void Primitive::deserializePrimitive( walberla::mpi::RecvBuffer & recvBuffer )
 {
   recvBuffer >> primitiveID_;
+  recvBuffer >> meshBoundaryFlag_;
   recvBuffer >> neighborVertices_;
   recvBuffer >> neighborEdges_;
   recvBuffer >> neighborFaces_;

@@ -5,9 +5,12 @@
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "core/NonCopyable.h"
 #include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
+#include "core/DataTypes.h"
 
 #include "tinyhhg_core/geometry/IdentityMap.hpp"
 
@@ -20,6 +23,7 @@ namespace hhg {
 
 // to removed when moving to walberla namespace
 using walberla::NonCopyable;
+using walberla::uint_t;
 
 namespace internal {
 
@@ -140,6 +144,12 @@ public:
 
   const std::shared_ptr<GeometryMap>& getGeometryMap() const;
 
+  /// Flag that indicates the boundary "set" that the primitive was assigned to during setup.
+  /// The flag might for example originate directly from the \ref MeshInfo or can be set in the \ref SetupPrimitiveStorage.
+  /// However this flag must not be used to test if a \ref Primitive matches a certain boundary condition.
+  /// For this purpose use the \ref BoundaryCondition class.
+  uint_t getMeshBoundaryFlag() const { return meshBoundaryFlag_; }
+
 protected:
 
   /// Only subclasses shall be constructable
@@ -147,11 +157,14 @@ protected:
   Primitive( const Primitive & other ) :
     primitiveID_( other.primitiveID_ ), neighborVertices_( other.neighborVertices_ ),
     neighborEdges_( other.neighborEdges_ ), neighborFaces_( other.neighborFaces_ ),
-    neighborCells_( other.neighborCells_ ), geometryMap_ ( other.geometryMap_ )
+    neighborCells_( other.neighborCells_ ), geometryMap_ ( other.geometryMap_ ),
+    meshBoundaryFlag_( other.meshBoundaryFlag_ )
   {}
 
   /// Only subclasses shall be constructable
-  Primitive( const PrimitiveID & id ) : primitiveID_( id ), geometryMap_( std::make_shared<IdentityMap>() ) {}
+  Primitive( const PrimitiveID & id ) :
+    primitiveID_( id ), meshBoundaryFlag_( 0 ), geometryMap_( std::make_shared<IdentityMap>() )
+  {}
 
   /// Creates Primitive from an MPI buffer
   Primitive( walberla::mpi::RecvBuffer & recvBuffer ) { deserializePrimitive( recvBuffer ); }
@@ -184,6 +197,7 @@ private:
   std::map< uint_t, std::shared_ptr< PrimitiveData > > data_;
 
   PrimitiveID primitiveID_;
+  uint_t      meshBoundaryFlag_;
 
 };
 
