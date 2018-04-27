@@ -14,6 +14,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 
 using walberla::real_t;

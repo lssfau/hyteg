@@ -7,6 +7,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
