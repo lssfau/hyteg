@@ -114,7 +114,7 @@ int main( int argc, char* argv[] )
    c_old->interpolate( initialConcentration, maxLevel );
    c->assign( {1.0}, {c_old.get()}, maxLevel );
 
-   auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
+   auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, false >( storage, minLevel, maxLevel );
 
    hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
    vtkOutput.add( &u->u );

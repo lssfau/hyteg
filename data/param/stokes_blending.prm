@@ -1,0 +1,13 @@
+Parameters
+{
+  meshFileName ../../data/meshes/tri_1el.msh;
+  minLevel 2;
+  maxLevel 4;
+  polyDegree 5;
+  interpolationLevel 4;
+  coarseMaxiter 10;
+  maxOuterIter 50;
+  circleCenterX 0.5;
+  circleCenterY 0.5;
+  circleRadius 0.7071067811865476;
+}
