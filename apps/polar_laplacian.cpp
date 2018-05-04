@@ -26,20 +26,16 @@ int main(int argc, char* argv[])
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-#ifdef HHG_BUILD_WITH_PETSC
-  PETScManager petscManager;
-#endif
-
-  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
+  walberla::shared_ptr<walberla::config::Config> cfg( new walberla::config::Config);
   cfg->readParameterFile( "./polar.prm" );
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
-  size_t minLevel  = parameters.getParameter<size_t>( "minlevel"  );
-  size_t maxLevel  = parameters.getParameter<size_t>( "maxlevel"  );
-  size_t maxCycles = parameters.getParameter<size_t>( "maxCycles" );
+  size_t minLevel  = parameters.getParameter<size_t>( "minlevel"    );
+  size_t maxLevel  = parameters.getParameter<size_t>( "maxlevel"    );
+  size_t maxCycles = parameters.getParameter<size_t>( "maxCycles"   );
   real_t mgTol     = parameters.getParameter<real_t>( "mgTolerance" );
   real_t cgTol     = parameters.getParameter<real_t>( "cgTolerance" );
-  bool   outputVTK = parameters.getParameter<bool  >( "outputVTK" );
+  bool   outputVTK = parameters.getParameter<bool  >( "outputVTK"   );
 
   // Mesh generation
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
