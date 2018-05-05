@@ -5,7 +5,7 @@
 namespace hhg
 {
 
-template<class F, class O>
+template<class F, class O, bool Tensor>
 class UzawaSolver
 {
 public:
@@ -85,6 +85,11 @@ public:
 private:
 
   void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag) {
+     uzawaSmooth(A, x, b, r, level, flag, std::integral_constant<bool,Tensor>());
+  }
+
+  // Block-Laplace variant
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type) {
 
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
@@ -93,6 +98,27 @@ private:
     A.divT_y.apply(x.p, r.v, level, flag, Replace);
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
     A.A.smooth_gs(x.v, r.v, level, flag);
+
+    A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
+    A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
+
+    r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
+
+    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag | DirichletBoundary);
+  }
+
+  // Tensor variant
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::true_type) {
+
+    A.divT_x.apply(x.p, r.u, level, flag, Replace);
+    A.A_uv.apply(x.v, r.u, level, flag, Add);
+    r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
+    A.A_uu.smooth_gs(x.u, r.u, level, flag);
+
+    A.divT_y.apply(x.p, r.v, level, flag, Replace);
+    A.A_vu.apply(x.u, r.v, level, flag, Add);
+    r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
+    A.A_vv.smooth_gs(x.v, r.v, level, flag);
 
     A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
     A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
