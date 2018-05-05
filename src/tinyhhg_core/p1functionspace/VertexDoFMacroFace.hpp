@@ -937,23 +937,65 @@ inline void integrateDG(const uint_t & Level, Face &face,
 
 
 template< typename ValueType >
-inline real_t getMaxValue(const uint_t & Level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId) {
+inline real_t getMaxValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
 
-  uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
   uint_t inner_rowsize = rowsize;
 
-  auto src = face.getData(srcId)->getPointer( Level );
+  auto src = face.getData(srcId)->getPointer( level );
   real_t localMax = std::numeric_limits<real_t>::min();
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-      localMax = std::max(localMax, src[vertexdof::macroface::indexFromVertex( Level,   i, j,
-                                                                                        stencilDirection::VERTEX_C )]);
+      localMax = std::max( localMax,
+                           src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )]);
     }
     --inner_rowsize;
   }
 
   return localMax;
+}
+
+
+template< typename ValueType >
+inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = face.getData(srcId)->getPointer( level );
+  real_t localMax = std::numeric_limits<real_t>::min();
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+      localMax = std::max( localMax,
+                           std::abs( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ));
+    }
+    --inner_rowsize;
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline real_t getMinValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  uint_t inner_rowsize = rowsize;
+
+  auto src = face.getData(srcId)->getPointer( level );
+  real_t localMin = std::numeric_limits<real_t>::max();
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+      localMin = std::min( localMin,
+                           src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
+    }
+    --inner_rowsize;
+  }
+
+  return localMin;
 }
 
 

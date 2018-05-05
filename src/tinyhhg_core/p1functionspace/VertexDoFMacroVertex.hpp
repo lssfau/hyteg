@@ -346,6 +346,28 @@ inline void integrateDG(Vertex &vertex,
   dst[0] = tmp;
 }
 
+
+template< typename ValueType >
+inline real_t getMaxValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+  auto src = vertex.getData( srcId )->getPointer( level );
+  return src[0];
+}
+
+
+template< typename ValueType >
+inline real_t getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+  auto src = vertex.getData( srcId )->getPointer( level );
+  return std::abs( src[0] );
+}
+
+
+template< typename ValueType >
+inline real_t getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+  auto src = vertex.getData( srcId )->getPointer( level );
+  return src[0];
+}
+
+
 #ifdef HHG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<StencilMemory< real_t >, Vertex> &operatorId,
