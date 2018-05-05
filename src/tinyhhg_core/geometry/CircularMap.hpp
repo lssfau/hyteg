@@ -19,7 +19,7 @@ class CircularMap : public GeometryMap
       // Get edge on boundary
       // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
       WALBERLA_ASSERT_EQUAL( face.hasBoundaryEdge(), true );
-      WALBERLA_ASSERT_EQUAL( face.edgesOnBoundary.size(), 1 );
+//      WALBERLA_ASSERT_EQUAL( face.edgesOnBoundary.size(), 1 );
 
       const Edge&   edge   = *storage.getEdge( face.edgesOnBoundary[0] );
       const Vertex& vertex = *storage.getVertex( face.get_vertex_opposite_to_edge( edge.getID() ) );
@@ -78,8 +78,12 @@ class CircularMap : public GeometryMap
       real_t tmp13 = -tmp8 + tmp9 + 1;
       real_t tmp14 = ( tmp13 - tmp3 + tmp6 ) / tmp13;
       real_t tmp15 = tmp10 * x3bar_[1];
-      Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
-      Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
+      if (std::fabs(tmp13) > 1e-14) {
+         Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
+         Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
+      } else {
+         Fx = x;
+      }
    }
 
    void evalDF( const Point3D& x, Matrix2r& DFx ) const

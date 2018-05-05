@@ -34,7 +34,7 @@
 
 namespace hhg {
 
-template< class P1Form, bool Symmetric >
+template< class P1Form, OperatorType OprType >
 class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
@@ -61,10 +61,10 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
    void interpolateStencils( uint_t polyDegree )
    {
-      if(Symmetric) {
-         interpolateStencilsSymmetric( polyDegree );
-      } else {
+      if (OprType == OperatorType::ODD) {
          interpolateStencilsAsymmetric( polyDegree );
+      } else {
+         interpolateStencilsSymmetric( polyDegree );
       }
    }
 
@@ -144,8 +144,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                   centerInterpolator.addInterpolationPoint( ref_x, faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_C )] );
 
-                  horiInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.0}},
-                                                          faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_W )] );
+                  horiInterpolator.addInterpolationPoint( ref_x + Point2D{{0.5 * ref_h, 0.0}},
+                                                          faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_E )] );
 
                   vertInterpolator.addInterpolationPoint( ref_x + Point2D{{0.0, -0.5 * ref_h}},
                                                           faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_S )] );
@@ -155,14 +155,11 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                   if( i == 1 )
                   {
-                     diagInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.5 * ref_h}},
-                                                             faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_NW )] );
-                  }
-
-                  if( i == inner_rowsize - 2 - 1 )
-                  {
-                     horiInterpolator.addInterpolationPoint( ref_x + Point2D{{0.5 * ref_h, 0.0}},
-                                                             faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_E )] );
+                        diagInterpolator.addInterpolationPoint(ref_x + Point2D{{-0.5 * ref_h, 0.5 * ref_h}},
+                                                               faceStencil[vertexdof::stencilIndexFromVertex(
+                                                                   SD::VERTEX_NW)]);
+                        horiInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.0}},
+                                                                faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_W )] );
                   }
 
                   x += d0;
@@ -334,14 +331,10 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
          if (testFlag(face.type, flag))
          {
-            if (Symmetric) {
-               vertexdof::macroface::applyPolynomial<real_t>(
-                   polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(),
-                   updateType);
+            if (OprType == OperatorType::ODD) {
+               vertexdof::macroface::applyPolynomialOdd<real_t>(polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType);
             } else {
-               vertexdof::macroface::applyPolynomialFull<real_t>(
-                   polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(),
-                   updateType);
+               vertexdof::macroface::applyPolynomial<real_t, OprType>(polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType);
             }
          }
       }
@@ -394,12 +387,16 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
          if (testFlag(face.type, flag))
          {
-            if (Symmetric) {
-               vertexdof::macroface::smooth_gs_polynomial<real_t>(
-                   polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
-            } else {
-               vertexdof::macroface::smooth_gs_polynomial_full<real_t>(
-                   polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
+            switch (OprType) {
+               case OperatorType::MASS:
+                  WALBERLA_ABORT("Not implemented");
+                  break;
+               case OperatorType::EVEN:
+                  vertexdof::macroface::smooth_gs_polynomial_even<real_t>(polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
+                  break;
+               case OperatorType::ODD:
+                  WALBERLA_ABORT("Not implemented");
+                  break;
             }
          }
       }
@@ -522,20 +519,20 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
    P1Form form;
 };
 
-typedef P1PolynomialBlendingOperator< P1Form_laplace, true > P1PolynomialBlendingLaplaceOperator;
-typedef P1PolynomialBlendingOperator< P1Form_mass, true > P1PolynomialBlendingMassOperator;
+typedef P1PolynomialBlendingOperator< P1Form_laplace, OperatorType::EVEN > P1PolynomialBlendingLaplaceOperator;
+typedef P1PolynomialBlendingOperator< P1Form_mass, OperatorType::MASS > P1PolynomialBlendingMassOperator;
 
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_11, true > P1PolynomialBlendingEpsilonOperator_11;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_12, false > P1PolynomialBlendingEpsilonOperator_12;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_21, false > P1PolynomialBlendingEpsilonOperator_21;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_22, true > P1PolynomialBlendingEpsilonOperator_22;
+typedef P1PolynomialBlendingOperator< P1Form_epsilon_11, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
+typedef P1PolynomialBlendingOperator< P1Form_epsilon_12, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
+typedef P1PolynomialBlendingOperator< P1Form_epsilon_21, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
+typedef P1PolynomialBlendingOperator< P1Form_epsilon_22, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
 
-typedef P1PolynomialBlendingOperator< P1Form_divT_1, false > P1PolynomialBlendingDivTOperator_1;
-typedef P1PolynomialBlendingOperator< P1Form_divT_2, false > P1PolynomialBlendingDivTOperator_2;
+typedef P1PolynomialBlendingOperator< P1Form_divT_1, OperatorType::ODD > P1PolynomialBlendingDivTOperator_1;
+typedef P1PolynomialBlendingOperator< P1Form_divT_2, OperatorType::ODD > P1PolynomialBlendingDivTOperator_2;
 
-typedef P1PolynomialBlendingOperator< P1Form_div_1, false > P1PolynomialBlendingDivOperator_1;
-typedef P1PolynomialBlendingOperator< P1Form_div_2, false > P1PolynomialBlendingDivOperator_2;
+typedef P1PolynomialBlendingOperator< P1Form_div_1, OperatorType::ODD > P1PolynomialBlendingDivOperator_1;
+typedef P1PolynomialBlendingOperator< P1Form_div_2, OperatorType::ODD > P1PolynomialBlendingDivOperator_2;
 
-typedef P1PolynomialBlendingOperator< P1Form_pspg, true > P1PolynomialBlendingPSPGOperator;
+typedef P1PolynomialBlendingOperator< P1Form_pspg, OperatorType::EVEN > P1PolynomialBlendingPSPGOperator;
 
 } // namespace hhg

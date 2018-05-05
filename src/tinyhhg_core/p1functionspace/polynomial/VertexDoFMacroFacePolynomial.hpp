@@ -2,6 +2,14 @@
 
 #include "core/debug/all.h"
 
+namespace hhg {
+enum class OperatorType {
+  MASS,
+  EVEN,
+  ODD
+};
+}
+
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/levelinfo.hpp"
 #include "tinyhhg_core/macros.hpp"
@@ -18,7 +26,7 @@ using walberla::uint_t;
 using walberla::real_c;
 using indexing::Index;
 
-template<typename ValueType, uint_t PolyDegree>
+template<typename ValueType, OperatorType OprType, uint_t PolyDegree>
 inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
@@ -51,7 +59,9 @@ inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<
    x[1] = j * h;
 
    // Set new Y values
-   evalCenterPoly.setY(x[1]);
+   if (OprType != OperatorType::EVEN) {
+      evalCenterPoly.setY(x[1]);
+   }
    evalHoriPoly.setY(x[1]);
    evalVertPolyS.setY(x[1] - 0.5 * h);
    evalVertPolyN.setY(x[1] + 0.5 * h);
@@ -61,7 +71,9 @@ inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<
    faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX<PolyDegree>(-0.5 * h, h);
    faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-   evalCenterPoly.setStartX<PolyDegree>(0.0, h);
+   if (OprType != OperatorType::EVEN) {
+      evalCenterPoly.setStartX<PolyDegree>(0.0, h);
+   }
    evalVertPolyS.setStartX<PolyDegree>(0.0, h);
    evalVertPolyN.setStartX<PolyDegree>(0.0, h);
 
@@ -78,7 +90,18 @@ inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<
      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval<PolyDegree>();
      faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval<PolyDegree>();
 
-     faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalCenterPoly.incrementEval<PolyDegree>();
+//     faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalCenterPoly.incrementEval<PolyDegree>();
+
+     if (OprType == OperatorType::MASS) {
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalCenterPoly.incrementEval<PolyDegree>();
+     } else if (OprType == OperatorType::EVEN) {
+        faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)]
+                                                                                     -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)]
+                                                                                     -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)]
+                                                                                     -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)]
+                                                                                     -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)]
+                                                                                     -faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)];
+     }
 
      // if (i == 1 && j == 1) {
      //    PointND<real_t, 7> test(faceStencil.data());
@@ -105,10 +128,10 @@ inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<
  }
 }
 
-SPECIALIZE_POLYNOMIAL(void, applyPolynomialTmpl, applyPolynomial)
+SPECIALIZE_OPRTYPE_POLYNOMIAL(void, applyPolynomialTmpl, applyPolynomial)
 
 template<typename ValueType, uint_t PolyDegree>
-inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
+inline void applyPolynomialOddTmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
                                     const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
                                     const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 
@@ -127,7 +150,7 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
    auto polyS = polynomials->getPolynomialS(PolyDegree);
    auto polySE = polynomials->getPolynomialSE(PolyDegree);
    auto polyW = polynomials->getPolynomialW(PolyDegree);
-   auto polyC = polynomials->getPolynomialC(PolyDegree);
+//   auto polyC = polynomials->getPolynomialC(PolyDegree);
    auto polyE = polynomials->getPolynomialE(PolyDegree);
    auto polyNW = polynomials->getPolynomialNW(PolyDegree);
    auto polyN = polynomials->getPolynomialN(PolyDegree);
@@ -135,7 +158,7 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
    Polynomial2DEvaluator evalPolyS(polyS);
    Polynomial2DEvaluator evalPolySE(polySE);
    Polynomial2DEvaluator evalPolyW(polyW);
-   Polynomial2DEvaluator evalPolyC(polyC);
+//   Polynomial2DEvaluator evalPolyC(polyC);
    Polynomial2DEvaluator evalPolyE(polyE);
    Polynomial2DEvaluator evalPolyNW(polyNW);
    Polynomial2DEvaluator evalPolyN(polyN);
@@ -147,7 +170,7 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
       evalPolyS.setY(x[1]);
       evalPolySE.setY(x[1]);
       evalPolyW.setY(x[1]);
-      evalPolyC.setY(x[1]);
+//      evalPolyC.setY(x[1]);
       evalPolyE.setY(x[1]);
       evalPolyNW.setY(x[1]);
       evalPolyN.setY(x[1]);
@@ -155,7 +178,7 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
       evalPolyS.setStartX<PolyDegree>(0.0, h);
       evalPolySE.setStartX<PolyDegree>(0.0, h);
       evalPolyW.setStartX<PolyDegree>(0.0, h);
-      evalPolyC.setStartX<PolyDegree>(0.0, h);
+//      evalPolyC.setStartX<PolyDegree>(0.0, h);
       evalPolyE.setStartX<PolyDegree>(0.0, h);
       evalPolyNW.setStartX<PolyDegree>(0.0, h);
       evalPolyN.setStartX<PolyDegree>(0.0, h);
@@ -170,7 +193,7 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
          faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalPolySE.incrementEval<PolyDegree>();
          faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalPolyNW.incrementEval<PolyDegree>();
 
-         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalPolyC.incrementEval<PolyDegree>();
+//         faceStencil[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalPolyC.incrementEval<PolyDegree>();
 
 //         if (i == 1 && j == 1) {
 //            PointND<real_t, 7> test(faceStencil.data());
@@ -197,12 +220,12 @@ inline void applyPolynomialFullTmpl(uint_t Level, Face &face, const PrimitiveDat
    }
 }
 
-SPECIALIZE_POLYNOMIAL(void, applyPolynomialFullTmpl, applyPolynomialFull)
+SPECIALIZE_POLYNOMIAL(void, applyPolynomialOddTmpl, applyPolynomialOdd)
 
 template<typename ValueType, uint_t PolyDegree>
-inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
-                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
-                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
+inline void smooth_gs_polynomial_even_tmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
+                                           const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
+                                           const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
   uint_t inner_rowsize = rowsize;
@@ -215,12 +238,12 @@ inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveD
   Point2D x;
   real_t h = real_c(1.0) / real_c(rowsize-1);
 
-  auto centerPoly = polynomials->getPolynomialC(PolyDegree);
+//  auto centerPoly = polynomials->getPolynomialC(PolyDegree);
   auto horiPoly = polynomials->getPolynomialW(PolyDegree);
   auto vertPoly = polynomials->getPolynomialS(PolyDegree);
   auto diagPoly = polynomials->getPolynomialSE(PolyDegree);
 
-  Polynomial2DEvaluator evalCenterPoly(centerPoly);
+//  Polynomial2DEvaluator evalCenterPoly(centerPoly);
   Polynomial2DEvaluator evalHoriPoly(horiPoly);
   Polynomial2DEvaluator evalVertPolyS(vertPoly);
   Polynomial2DEvaluator evalVertPolyN(vertPoly);
@@ -233,7 +256,7 @@ inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveD
     x[1] = j * h;
 
     // Set new Y values
-    evalCenterPoly.setY(x[1]);
+//    evalCenterPoly.setY(x[1]);
     evalHoriPoly.setY(x[1]);
     evalVertPolyS.setY(x[1] - 0.5 * h);
     evalVertPolyN.setY(x[1] + 0.5 * h);
@@ -243,7 +266,7 @@ inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveD
     opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalHoriPoly.setStartX<PolyDegree>(-0.5 * h, h);
     opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalHoriPoly.incrementEval<PolyDegree>();
 
-    evalCenterPoly.setStartX<PolyDegree>(0.0, h);
+//    evalCenterPoly.setStartX<PolyDegree>(0.0, h);
     evalVertPolyS.setStartX<PolyDegree>(0.0, h);
     evalVertPolyN.setStartX<PolyDegree>(0.0, h);
 
@@ -261,7 +284,12 @@ inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveD
       opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalDiagPolySE.incrementEval<PolyDegree>();
       opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalDiagPolyNW.incrementEval<PolyDegree>();
 
-      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalCenterPoly.incrementEval<PolyDegree>();
+      opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)]
+                                                                                -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)]
+                                                                                -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)]
+                                                                                -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)]
+                                                                                -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)]
+                                                                                -opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)];
 
       tmp = rhs[vertexdof::macroface::indexFromVertex(Level, i, j, stencilDirection::VERTEX_C)];
 
@@ -276,89 +304,7 @@ inline void smooth_gs_polynomial_tmpl(uint_t Level, Face &face, const PrimitiveD
   }
 }
 
-SPECIALIZE_POLYNOMIAL(void, smooth_gs_polynomial_tmpl, smooth_gs_polynomial)
-
-template<typename ValueType, uint_t PolyDegree>
-inline void smooth_gs_polynomial_full_tmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
-                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId,
-                                      const PrimitiveDataID<FunctionMemory< ValueType >, Face> &rhsId) {
-
-   uint_t rowsize = levelinfo::num_microvertices_per_edge(Level);
-   uint_t inner_rowsize = rowsize;
-
-   auto polynomials = face.getData(polynomialId);
-   auto dst = face.getData(dstId)->getPointer( Level );
-   auto rhs = face.getData(rhsId)->getPointer( Level );
-
-   std::vector<real_t> opr_data(7);
-   Point2D x;
-   real_t h = real_c(1.0) / real_c(rowsize-1);
-
-   auto polyS = polynomials->getPolynomialS(PolyDegree);
-   auto polySE = polynomials->getPolynomialSE(PolyDegree);
-   auto polyW = polynomials->getPolynomialW(PolyDegree);
-   auto polyC = polynomials->getPolynomialC(PolyDegree);
-   auto polyE = polynomials->getPolynomialE(PolyDegree);
-   auto polyNW = polynomials->getPolynomialNW(PolyDegree);
-   auto polyN = polynomials->getPolynomialN(PolyDegree);
-
-   Polynomial2DEvaluator evalPolyS(polyS);
-   Polynomial2DEvaluator evalPolySE(polySE);
-   Polynomial2DEvaluator evalPolyW(polyW);
-   Polynomial2DEvaluator evalPolyC(polyC);
-   Polynomial2DEvaluator evalPolyE(polyE);
-   Polynomial2DEvaluator evalPolyNW(polyNW);
-   Polynomial2DEvaluator evalPolyN(polyN);
-
-   ValueType tmp;
-
-   for (uint_t j = 1; j < rowsize - 2; ++j) {
-      x[1] = j * h;
-
-      // Set new Y values
-      evalPolyS.setY(x[1]);
-      evalPolySE.setY(x[1]);
-      evalPolyW.setY(x[1]);
-      evalPolyC.setY(x[1]);
-      evalPolyE.setY(x[1]);
-      evalPolyNW.setY(x[1]);
-      evalPolyN.setY(x[1]);
-
-      evalPolyS.setStartX<PolyDegree>(0.0, h);
-      evalPolySE.setStartX<PolyDegree>(0.0, h);
-      evalPolyW.setStartX<PolyDegree>(0.0, h);
-      evalPolyC.setStartX<PolyDegree>(0.0, h);
-      evalPolyE.setStartX<PolyDegree>(0.0, h);
-      evalPolyNW.setStartX<PolyDegree>(0.0, h);
-      evalPolyN.setStartX<PolyDegree>(0.0, h);
-
-      for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_W)] = evalPolyW.incrementEval<PolyDegree>();
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_E)] = evalPolyE.incrementEval<PolyDegree>();
-
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_S)] = evalPolyS.incrementEval<PolyDegree>();
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_N)] = evalPolyN.incrementEval<PolyDegree>();
-
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_SE)] = evalPolySE.incrementEval<PolyDegree>();
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_NW)] = evalPolyNW.incrementEval<PolyDegree>();
-
-         opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] = evalPolyC.incrementEval<PolyDegree>();
-
-         tmp = rhs[vertexdof::macroface::indexFromVertex(Level, i, j, stencilDirection::VERTEX_C)];
-
-         //for (auto neighbor : neighbors) {
-         for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-            tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex(Level, i, j, vertexdof::macroface::neighborsWithoutCenter[k])];
-         }
-
-         dst[vertexdof::macroface::indexFromVertex(Level, i, j, stencilDirection::VERTEX_C)] = tmp/opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
-      }
-      --inner_rowsize;
-   }
-}
-
-SPECIALIZE_POLYNOMIAL(void, smooth_gs_polynomial_full_tmpl, smooth_gs_polynomial_full)
+SPECIALIZE_POLYNOMIAL(void, smooth_gs_polynomial_even_tmpl, smooth_gs_polynomial_even)
 
 }// namespace macroface
 }// namespace vertexdof

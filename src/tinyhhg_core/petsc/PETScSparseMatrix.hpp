@@ -27,9 +27,8 @@ public:
     MatCreate(walberla::MPIManager::instance()->comm(),&mat);
     MatSetType(mat,MATMPIAIJ);
     MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
-    // Usually, we have about 7 nz entries in each matrix row, except in macro-vertex rows.
-    // Therefore, we can assume following preallocation for a huge performance gain.
-//    MatMPIAIJSetPreallocation(mat, 20, NULL, 20, NULL);
+    // Roughly overestimate number of non-zero entries for faster assembly of matrix
+    MatMPIAIJSetPreallocation(mat, 100, NULL, 100, NULL);
     MatSetUp(mat);
     setName(name);
     reset();
