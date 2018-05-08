@@ -79,6 +79,8 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "h_min    = " << std::scientific << hmin    );
   WALBERLA_LOG_INFO_ON_ROOT( "epsilon  = " << std::scientific << epsilon );
 
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\n P1Function (DoFType=All)\n" );
+
   real_t measure = 0.0;
 
   // Special value on macro edge
@@ -88,17 +90,17 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > funcEdgeMax( "", storage, theLevel, theLevel );
   funcEdgeMax.interpolate( testFuncMax, theLevel );
   measure = funcEdgeMax.getMaxValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test Case #1 (edge  ): maximum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #1 (edge     ): maximum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
 
   hhg::P1Function< real_t > funcEdgeMin( "", storage, theLevel, theLevel );
   funcEdgeMin.interpolate( testFuncMin, theLevel );
   measure = funcEdgeMin.getMinValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       minumum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minumum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
 
   measure = funcEdgeMin.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       magnitude = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
 
   // Special value on macro face
@@ -107,17 +109,17 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > funcFaceMax( "", storage, theLevel, theLevel );
   funcFaceMax.interpolate( testFuncMax, theLevel );
   measure = funcFaceMax.getMaxValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test Case #2 (face  ): maximum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #2 (face     ): maximum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
 
   hhg::P1Function< real_t > funcFaceMin( "", storage, theLevel, theLevel );
   funcFaceMin.interpolate( testFuncMin, theLevel );
   measure = funcFaceMin.getMinValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       minumum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minumum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
 
   measure = funcFaceMin.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       magnitude = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
 
   // Special value on macro vertex
@@ -126,31 +128,120 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > funcVertMax( "", storage, theLevel, theLevel );
   funcVertMax.interpolate( testFuncMax, theLevel );
   measure = funcVertMax.getMaxValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test Case #3 (vertex): maximum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #3 (vertex   ): maximum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
 
   hhg::P1Function< real_t > funcVertMin( "", storage, theLevel, theLevel );
   funcVertMin.interpolate( testFuncMin, theLevel );
   measure = funcVertMin.getMinValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       minimum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
 
   measure = funcVertMin.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       magnitude = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
 
   // Combined test
   hhg::P1Function< real_t > comboFunc( "", storage, theLevel, theLevel );
   comboFunc.interpolate( testFuncCombo, theLevel );
   measure = comboFunc.getMaxValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test Case #4 (combo ): maximum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #4 (combo    ): maximum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
   measure = comboFunc.getMinValue( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       minimum   = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
   measure = comboFunc.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "                       magnitude = " << std::scientific << measure );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\n P1Function (DoFType=<varying>)\n" );
+
+  // DoFType test #1
+  comboFunc.interpolate( testFuncCombo, theLevel );
+  measure = comboFunc.getMaxValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #5 (combo    ): maximum   = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+  measure = comboFunc.getMinValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
+  measure = comboFunc.getMaxMagnitude( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  // DoFType test #2 (extremum on boundary edge)
+  xLocPos = 0.00;
+  yLocPos = 0.50;
+
+  comboFunc.interpolate( testFuncMax, theLevel );
+  measure = comboFunc.getMaxValue( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #6 (bc edge  ): max outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
+
+  measure = comboFunc.getMaxValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     max inner = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  comboFunc.interpolate( testFuncMin, theLevel );
+  measure = comboFunc.getMinValue( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     min outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
+
+  measure = comboFunc.getMinValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     min inner = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  measure = comboFunc.getMaxMagnitude( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     mag outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  measure = comboFunc.getMaxMagnitude( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     mag outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  // DoFType test #3 (extremum on boundary vertex)
+  xLocPos = 1.00;
+  yLocPos = 1.00;
+
+  comboFunc.interpolate( testFuncMax, theLevel );
+  measure = comboFunc.getMaxValue( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #7 (bc vertex): max outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
+
+  measure = comboFunc.getMaxValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     max inner = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  comboFunc.interpolate( testFuncMin, theLevel );
+  measure = comboFunc.getMinValue( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     min outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
+
+  measure = comboFunc.getMinValue( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     min inner = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  measure = comboFunc.getMaxMagnitude( theLevel, DirichletBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     mag outer = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  measure = comboFunc.getMaxMagnitude( theLevel, Inner );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     mag inner = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  // Test case when DoFType is not present in base mesh
+  comboFunc.interpolate( testFuncCombo, theLevel );
+
+  measure = comboFunc.getMaxValue( theLevel, NeumannBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "Test #8 (Neumann  ): maximum   = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, -std::numeric_limits<real_t>::max() );
+
+  measure = comboFunc.getMinValue( theLevel, NeumannBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, std::numeric_limits<real_t>::max() );
+
+  measure = comboFunc.getMaxMagnitude( theLevel, NeumannBoundary );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
 
   return EXIT_SUCCESS;
 }

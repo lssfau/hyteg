@@ -73,9 +73,9 @@ public:
                                   uint_t level, DoFType flag = All);
 
   // TODO: write more general version(s)
-  inline real_t getMaxValue( uint_t level );
-  inline real_t getMinValue( uint_t level );
-  inline real_t getMaxMagnitude( uint_t level );
+  inline real_t getMaxValue( uint_t level, DoFType flag = All );
+  inline real_t getMinValue( uint_t level, DoFType flag = All );
+  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All );
 
   inline uint_t getNumLocalDoFs ( const uint_t & level ) const;
   inline uint_t getNumGlobalDoFs( const uint_t & level ) const;
@@ -594,23 +594,29 @@ inline void projectMean(VertexDoFFunction<real_t>& pressure, VertexDoFFunction<r
 
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMaxValue(uint_t level)
+inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
 {
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = - std::numeric_limits<real_t>::max();
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    localMax = std::max(localMax, vertexdof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ));
+    if ( testFlag( face.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    localMax = std::max(localMax, vertexdof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ));
+    if ( testFlag( edge.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    localMax = std::max(localMax, vertexdof::macrovertex::getMaxValue< ValueType >( level, vertex, vertexDataID_ ));
+    if ( testFlag( vertex.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macrovertex::getMaxValue< ValueType >( level, vertex, vertexDataID_ ));
+    }
   }
 
   real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
@@ -620,23 +626,29 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue(uint_t level)
 
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude(uint_t level)
+inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
 {
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = real_t(0.0);
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    localMax = std::max(localMax, vertexdof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
+    if ( testFlag( face.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    localMax = std::max(localMax, vertexdof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ));
+    if ( testFlag( edge.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    localMax = std::max(localMax, vertexdof::macrovertex::getMaxMagnitude< ValueType >( level, vertex, vertexDataID_ ));
+    if ( testFlag( vertex.getDoFType(), flag ) ) {
+      localMax = std::max(localMax, vertexdof::macrovertex::getMaxMagnitude< ValueType >( level, vertex, vertexDataID_ ));
+    }
   }
 
   real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
@@ -646,23 +658,29 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude(uint_t level)
 
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMinValue(uint_t level)
+inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
 {
   real_t localMin = std::numeric_limits<real_t>::max();
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    localMin = std::min(localMin, vertexdof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ));
+    if ( testFlag( face.getDoFType(), flag ) ) {
+      localMin = std::min(localMin, vertexdof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    localMin = std::min(localMin, vertexdof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ));
+    if ( testFlag( edge.getDoFType(), flag ) ) {
+      localMin = std::min(localMin, vertexdof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ));
+    }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    localMin = std::min(localMin, vertexdof::macrovertex::getMinValue< ValueType >( level, vertex, vertexDataID_ ));
+    if ( testFlag( vertex.getDoFType(), flag ) ) {
+      localMin = std::min(localMin, vertexdof::macrovertex::getMinValue< ValueType >( level, vertex, vertexDataID_ ));
+    }
   }
 
   real_t globalMin = - walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
