@@ -99,7 +99,7 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
 
-  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All );
+  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
 private:
 
@@ -305,7 +305,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
 
 template< typename ValueType >
-inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
+inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
   real_t localMax = real_t(0.0);
 
@@ -327,7 +327,11 @@ inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFTy
     }
   }
 
-  walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  if( mpiReduce )
+  {
+    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  }
+
   return localMax;
 }
 

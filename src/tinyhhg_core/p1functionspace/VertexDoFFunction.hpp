@@ -75,7 +75,7 @@ public:
   // TODO: write more general version(s)
   inline real_t getMaxValue( uint_t level, DoFType flag = All );
   inline real_t getMinValue( uint_t level, DoFType flag = All );
-  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All );
+  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
   inline uint_t getNumLocalDoFs ( const uint_t & level ) const;
   inline uint_t getNumGlobalDoFs( const uint_t & level ) const;
@@ -626,7 +626,7 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType
 
 
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
+inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
   real_t localMax = real_t(0.0);
 
@@ -651,7 +651,10 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoF
     }
   }
 
-  real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+  real_t globalMax = localMax;
+  if( mpiReduce ) {
+    globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+  }
 
   return globalMax;
 }
