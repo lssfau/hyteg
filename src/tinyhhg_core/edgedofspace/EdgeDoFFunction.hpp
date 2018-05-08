@@ -99,11 +99,11 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
 
+  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All );
+
 private:
 
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
-
-
 
     inline void
     enumerate_impl( uint_t level, uint_t& num );
@@ -301,6 +301,34 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
   this->stopTiming( "Enumerate" );
+}
+
+
+template< typename ValueType >
+inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
+{
+  real_t localMax = real_t(0.0);
+
+  for( auto& it : this->getStorage()->getEdges() )
+  {
+    Edge &edge = *it.second;
+    if ( testFlag( edge.getDoFType(), flag ) )
+    {
+      localMax = std::max( localMax, edgedof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ));
+    }
+  }
+
+  for( auto& it : this->getStorage()->getFaces() )
+  {
+    Face &face = *it.second;
+    if ( testFlag( face.getDoFType(), flag ) )
+    {
+      localMax = std::max( localMax, edgedof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
+    }
+  }
+
+  walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  return localMax;
 }
 
 

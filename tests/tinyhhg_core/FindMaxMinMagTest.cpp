@@ -11,6 +11,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 using walberla::uint_t;
 
@@ -78,6 +79,10 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "level    = " << theLevel );
   WALBERLA_LOG_INFO_ON_ROOT( "h_min    = " << std::scientific << hmin    );
   WALBERLA_LOG_INFO_ON_ROOT( "epsilon  = " << std::scientific << epsilon );
+
+  // =============
+  //  P1Function 
+  // =============
 
   WALBERLA_LOG_INFO_ON_ROOT( "\n\n P1Function (DoFType=All)\n" );
 
@@ -242,6 +247,42 @@ int main( int argc, char* argv[] )
   measure = comboFunc.getMaxMagnitude( theLevel, NeumannBoundary );
   WALBERLA_LOG_INFO_ON_ROOT( "                     magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, 0.0 );
+
+  // =============
+  //  P2Function 
+  // =============
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\n P2Function (DoFType=All)\n" );
+
+  theLevel = 2;
+
+  // Special value on macro edge (vertexdof)
+  xLocPos = 0.25;
+  yLocPos = 0.25;
+
+  hhg::P2Function< real_t > p2func( "", storage, theLevel, theLevel );
+  p2func.interpolate( testFuncMin, theLevel );
+  measure = p2func.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( " Test #9 (edge/vert): magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  // Special value on macro edge (edgedof)
+  xLocPos = 0.125;
+  yLocPos = 0.125;
+
+  p2func.interpolate( testFuncMin, theLevel );
+  measure = p2func.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( " Test #A (edge/edge): magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  // Special value on macro face (edgedof)
+  xLocPos = 0.250;
+  yLocPos = 0.125;
+
+  p2func.interpolate( testFuncMin, theLevel );
+  measure = p2func.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( " Test #B (face/edge): magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
 
   return EXIT_SUCCESS;
 }
