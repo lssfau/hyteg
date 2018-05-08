@@ -943,7 +943,7 @@ inline real_t getMaxValue( const uint_t &level, Face &face, const PrimitiveDataI
   uint_t inner_rowsize = rowsize;
 
   auto src = face.getData(srcId)->getPointer( level );
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = -std::numeric_limits<real_t>::max();
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
@@ -964,7 +964,7 @@ inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveD
   uint_t inner_rowsize = rowsize;
 
   auto src = face.getData(srcId)->getPointer( level );
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = real_t(0.0);
 
   for (uint_t j = 1; j < rowsize - 2; ++j) {
     for (uint_t i = 1; i < inner_rowsize - 2; ++i) {

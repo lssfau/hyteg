@@ -701,7 +701,7 @@ inline real_t getMaxValue( const uint_t & level, Edge &edge, const PrimitiveData
   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = -std::numeric_limits<real_t>::max();
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
     localMax = std::max( localMax, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
@@ -717,7 +717,7 @@ inline real_t getMaxMagnitude( const uint_t & level, Edge &edge, const Primitive
   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = std::numeric_limits<real_t>::min();
+  real_t localMax = real_t(0.0);
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
     localMax = std::max( localMax, std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] ));
