@@ -57,6 +57,8 @@ public:
                   uint_t level,
                   DoFType flag = All);
 
+  inline real_t getMaxMagnitude( const uint_t level, DoFType flag = All );
+
   const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &getVertexDataID() const { return vertexDataID_; }
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &getEdgeDataID() const { return edgeDataID_; }
@@ -300,6 +302,23 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   this->getCommunicator(level)->template endCommunication<Edge, Face>();
 
   this->stopTiming( "projectP1" );
+}
+
+template< typename ValueType >
+real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag ) {
+
+  real_t localMax = real_t(0.0);
+
+  for( auto& it : this->getStorage()->getFaces() ) {
+    Face& face = *it.second;
+    if( testFlag( face.type, flag ) )
+    {
+      localMax = std::max( localMax, DGFace::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
+    }
+  }
+
+  walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  return localMax;
 }
 
 }
