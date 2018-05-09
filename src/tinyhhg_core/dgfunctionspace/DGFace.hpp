@@ -467,6 +467,8 @@ inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveD
     }
     --inner_rowsize;
   }
+
+  return localMax;
 }
 
 
