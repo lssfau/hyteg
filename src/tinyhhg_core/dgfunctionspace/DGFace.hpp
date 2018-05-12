@@ -438,5 +438,39 @@ inline void projectP1(const uint_t & Level, Face &face,
 }
 
 
+template< typename ValueType >
+inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+  size_t inner_rowsize = rowsize;
+
+  auto src = face.getData( srcId )->getPointer( level );
+  real_t localMax = real_t(0.0);
+
+  // gray cells
+  for( size_t j = 1; j < rowsize - 2; ++j ) {
+    for( size_t i = 1; i < inner_rowsize - 3; ++i ) {
+
+      auto cellIndex = BubbleFace::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+      localMax = std::max( localMax, std::abs( src[ cellIndex ] ) );
+    }
+    --inner_rowsize;
+  }
+
+  // blue cells
+  inner_rowsize = rowsize;
+  for( size_t j = 0; j < rowsize - 2; ++j ) {
+    for( size_t i = 0; i < inner_rowsize - 2; ++i ) {
+
+      auto cellIndex = BubbleFace::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+      localMax = std::max( localMax, std::abs( src[ cellIndex ] ) );
+    }
+    --inner_rowsize;
+  }
+
+  return localMax;
+}
+
+
 }//namespace DGFace
 }//namespace hhg

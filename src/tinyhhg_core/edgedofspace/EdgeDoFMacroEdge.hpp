@@ -236,6 +236,23 @@ inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const Pr
 
 }
 
+
+template< typename ValueType >
+inline real_t getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+
+  auto src = edge.getData( srcId )->getPointer( level );
+  real_t localMax = real_t(0.0);
+
+  for( const auto &it: edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    localMax = std::max( localMax, std::abs( src[idx] ));
+  }
+
+  return localMax;
+}
+
+
 #ifdef HHG_BUILD_WITH_PETSC
 template< typename ValueType >
 inline void createVectorFromFunction(const uint_t & Level, Edge &edge,

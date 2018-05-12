@@ -392,6 +392,18 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
+  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
+  {
+    real_t localMax = real_t(0.0);
+    localMax = std::max( localMax, vertexDoFFunction_->getMaxMagnitude( level, flag, false ) );
+    localMax = std::max( localMax, edgeDoFFunction_->getMaxMagnitude( level, flag, false ) );
+
+    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+
+    return localMax;
+  }
+
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
    inline void enumerate_impl( uint_t level, uint_t& num )
