@@ -19,7 +19,7 @@ public:
   /// \param edgeIDs neighbor macro-edge IDs
   /// \param faceIDs neighbor macro-face IDs
   /// \param coordinates absolute coordinates of the four vertices of this macro-cell
-  /// \param cellLocalVertexToFaceLocalVertexMaps Maps for each face of the macro-cell that map the local vertex ID (one of 0, 1, 2) of the face
+  /// \param faceLocalVertexToCellLocalVertexMaps Maps for each face of the macro-cell that map the local vertex ID (one of 0, 1, 2) of the face
   ///                                             to the corresponding local vertex ID (one of 0, 1, 2, 3) of the respective neighboring macro-cell. \n
   ///                                             Refer to the documentation for detailed illustrations of that mapping.
   Cell( const PrimitiveID                & primitiveID,
