@@ -323,7 +323,8 @@ inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFTy
   for( auto& it : this->getStorage()->getEdges() )
   {
     Edge &edge = *it.second;
-    if ( testFlag( edge.getDoFType(), flag ) )
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if ( testFlag( edgeBC, flag ) )
     {
       localMax = std::max( localMax, edgedof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ));
     }
@@ -332,7 +333,8 @@ inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFTy
   for( auto& it : this->getStorage()->getFaces() )
   {
     Face &face = *it.second;
-    if ( testFlag( face.getDoFType(), flag ) )
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if ( testFlag( faceBC, flag ) )
     {
       localMax = std::max( localMax, edgedof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
     }
