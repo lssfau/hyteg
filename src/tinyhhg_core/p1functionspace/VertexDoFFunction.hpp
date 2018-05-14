@@ -18,6 +18,8 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
 
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+
 namespace hhg {
 namespace vertexdof {
 
@@ -27,7 +29,11 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 public:
 
   VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel ) :
-      Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
+    VertexDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+  {}
+
+  VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel, BoundaryCondition boundaryCondition ) :
+      Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel ), boundaryCondition_( boundaryCondition )
   {
     auto cellVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell   > >( minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
     auto faceVertexDoFFunctionMemoryDataHandling   = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face   > >( minLevel, maxLevel, vertexDoFMacroFaceFunctionMemorySize );
@@ -80,6 +86,8 @@ public:
   inline uint_t getNumLocalDoFs ( const uint_t & level ) const;
   inline uint_t getNumGlobalDoFs( const uint_t & level ) const;
 
+  inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
 private:
 
   using Function< VertexDoFFunction< ValueType > >::communicators_;
@@ -90,6 +98,8 @@ private:
   PrimitiveDataID< FunctionMemory< ValueType >, Edge >   edgeDataID_;
   PrimitiveDataID< FunctionMemory< ValueType >, Face >   faceDataID_;
   PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
+
+  BoundaryCondition boundaryCondition_;
 };
 
 template< typename ValueType >
@@ -126,7 +136,7 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
   {
     Vertex & vertex = *it.second;
 
-    if ( testFlag( vertex.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
     }
@@ -138,7 +148,7 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
     }
@@ -151,7 +161,7 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
     }
@@ -194,7 +204,7 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
     {
       Vertex & vertex = *it.second;
 
-      if ( testFlag( vertex.getDoFType(), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
@@ -206,7 +216,7 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
     {
       Edge & edge = *it.second;
 
-      if ( testFlag( edge.getDoFType(), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
@@ -219,7 +229,7 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
     {
       Face & face = *it.second;
 
-      if ( testFlag( face.type, flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
@@ -260,7 +270,7 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   {
     Vertex & vertex = *it.second;
 
-    if ( testFlag( vertex.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macrovertex::add( vertex, scalars, srcVertexIDs, vertexDataID_, level );
     }
@@ -272,7 +282,7 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
     }
@@ -285,7 +295,7 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
@@ -314,7 +324,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   {
     Vertex& vertex = *it.second;
 
-    if ( testFlag( vertex.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
     {
       scalarProduct += vertexdof::macrovertex::dot( vertex, vertexDataID_, rhs.vertexDataID_, level );
     }
@@ -324,7 +334,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   {
     Edge& edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
     }
@@ -334,7 +344,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   {
     Face& face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
     }
@@ -364,7 +374,7 @@ inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFTy
   for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macrovertex::prolongate(vertex, vertexDataID_, sourceLevel);
       }
@@ -375,7 +385,7 @@ inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFTy
   for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroedge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
       }
@@ -387,7 +397,7 @@ inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFTy
   for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroface::prolongate< ValueType >(sourceLevel, face, faceDataID_);
       }
@@ -406,7 +416,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLev
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag))
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macrovertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
     }
@@ -417,7 +427,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLev
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag))
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroedge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
     }
@@ -429,7 +439,7 @@ inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLev
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
-    if (testFlag(face.type, flag))
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       vertexdof::macroface::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
     }
@@ -457,7 +467,7 @@ inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType
   for (auto& it : this->getStorage()->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macrovertex::restrict(vertex, vertexDataID_, sourceLevel);
       }
@@ -471,7 +481,7 @@ inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType
   for (auto& it : this->getStorage()->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroedge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
       }
@@ -484,7 +494,7 @@ inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType
   for (auto& it : this->getStorage()->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
         vertexdof::macroface::restrict< ValueType >(sourceLevel, face, faceDataID_);
       }
@@ -546,7 +556,8 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag)) {
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+    {
       vertexdof::macrovertex::integrateDG< ValueType >(vertex, this->getStorage(), rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level);
     }
   }
@@ -557,7 +568,8 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag)) {
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
       vertexdof::macroedge::integrateDG< ValueType >(level, edge, this->getStorage(), rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_);
     }
   }
@@ -568,7 +580,8 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
       vertexdof::macroface::integrateDG< ValueType >(level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_);
     }
   }

@@ -15,6 +15,7 @@
 #include "EdgeDoFMacroEdge.hpp"
 #include "EdgeDoFPackInfo.hpp"
 
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
 namespace hhg {
 
@@ -49,7 +50,11 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel ) :
-      Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
+    EdgeDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+  {}
+
+  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition ) :
+      Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel ), boundaryCondition_( boundaryCondition )
   {
     std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Vertex >> vertexDataHandling =
         std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Vertex >>(minLevel, maxLevel, edgedof::edgeDoFMacroVertexFunctionMemorySize);
@@ -99,7 +104,11 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
 
+
   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
+
+  inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
 
 private:
 
@@ -111,6 +120,8 @@ private:
     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
     PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
     PrimitiveDataID< FunctionMemory< ValueType >, Face > faceDataID_;
+
+    BoundaryCondition boundaryCondition_;
 };
 
 template< typename ValueType >
@@ -144,7 +155,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<Valu
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
     }
@@ -156,7 +167,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<Valu
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
     }
@@ -183,7 +194,7 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
     }
@@ -195,7 +206,7 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
@@ -222,7 +233,7 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
     }
@@ -234,7 +245,7 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
     }
@@ -254,7 +265,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
   {
     Edge & edge = *it.second;
 
-    if ( testFlag( edge.getDoFType(), flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
     {
       scalarProduct += edgedof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
     }
@@ -264,7 +275,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
   {
     Face & face = *it.second;
 
-    if ( testFlag( face.type, flag ) )
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
     {
       scalarProduct += edgedof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
     }
