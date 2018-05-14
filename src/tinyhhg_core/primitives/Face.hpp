@@ -60,7 +60,6 @@ public:
   bool hasBoundaryVertex() const;
   bool hasBoundaryEdge() const;
 
-  DoFType type;
   real_t area;
   std::array<int, 3> edge_orientation;
   std::vector<PrimitiveID> verticesOnBoundary;
@@ -79,8 +78,6 @@ public:
   const PrimitiveID & getEdgeID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[0]; }
   const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[1]; }
   const PrimitiveID & getEdgeID2() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[2]; }
-
-  const DoFType& getDoFType() const { return type; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
@@ -116,6 +113,8 @@ protected:
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 private:
+
+  DoFType type;
 
   void addCell( const PrimitiveID & cellID ) { neighborCells_.push_back( cellID ); }
 

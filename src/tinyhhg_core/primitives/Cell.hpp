@@ -49,7 +49,6 @@ public:
   }
 
   const std::array< Point3D, 4 > &                    getCoordinates()                             const { return coordinates_; }
-  const DoFType                  &                     getDoFType()                                const { return dofType_; }
   const std::array< std::map< uint_t, uint_t >, 4 > & getFaceLocalVertexToCellLocalVertexMaps()    const { return faceLocalVertexToCellLocalVertexMaps_; }
         uint_t                                        getLocalFaceID( const PrimitiveID & faceID ) const;
 

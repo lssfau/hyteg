@@ -47,9 +47,6 @@ public:
   /// \returns Index of \p face within \ref faces
   uint_t face_index(const PrimitiveID& face) const;
 
-  /// DoF type of vertex
-  DoFType getDoFType() const { return dofType_; }
-
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 

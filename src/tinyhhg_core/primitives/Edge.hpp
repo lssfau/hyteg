@@ -1,5 +1,5 @@
-#ifndef EDGE_HPP
-#define EDGE_HPP
+
+#pragma once
 
 #include "tinyhhg_core/types/pointnd.hpp"
 
@@ -58,7 +58,6 @@ public:
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[0]; }
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 2 ); return neighborVertices_[1]; }
 
-  const DoFType                  & getDoFType()     const { return dofType_; }
   const std::array< Point3D, 2 > & getCoordinates() const { return coordinates_; }
   const Point3D                  & getDirection()   const { return direction_; }
   const real_t                   & getLength()      const { return length_; }
@@ -114,4 +113,3 @@ private:
 
 }
 
-#endif /* EDGE_HPP */
