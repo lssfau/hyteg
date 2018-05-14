@@ -173,7 +173,7 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
   {
     Cell & cell = *it.second;
 
-    if ( testFlag( cell.getDoFType(), flag ) )
+    if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
     {
       vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
     }
@@ -240,7 +240,7 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
     for ( const auto & it : this->getStorage()->getCells() )
     {
       Cell & cell = *it.second;
-      if ( testFlag( cell.getDoFType(), flag ) )
+      if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
       {
         vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
@@ -306,7 +306,7 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   for ( const auto & it : this->getStorage()->getCells() )
   {
     Cell & cell = *it.second;
-    if ( testFlag( cell.getDoFType(), flag ) )
+    if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
     {
       vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
     }
@@ -353,7 +353,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   for ( const auto & it : this->getStorage()->getCells() )
   {
     Cell& cell = *it.second;
-    if ( testFlag( cell.getDoFType(), flag ) )
+    if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
     {
       scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
     }
