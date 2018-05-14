@@ -63,4 +63,11 @@ DoFType BoundaryCondition::getBoundaryType( const uint_t & meshBoundaryFlag ) co
   return boundaryUIDToType_.at( boundaryUID );
 }
 
+bool BoundaryCondition::operator==( const hhg::BoundaryCondition & other ) const
+{
+  return    defaultBC_         == other.defaultBC_
+         && meshFlagToID_      == other.meshFlagToID_
+         && boundaryUIDToType_ == other.boundaryUIDToType_;
+}
+
 }

@@ -57,6 +57,8 @@ public:
   /// Returns the boundary type that is assigned to the passed mesh boundary flag integer.
   DoFType getBoundaryType( const uint_t & meshBoundaryFlag ) const;
 
+  bool operator== ( const BoundaryCondition & other ) const;
+
 private:
 
   DoFType                          defaultBC_;
@@ -64,5 +66,7 @@ private:
   std::map< BoundaryUID, DoFType > boundaryUIDToType_;
 
 };
+
+
 
 } // namespace hhg
