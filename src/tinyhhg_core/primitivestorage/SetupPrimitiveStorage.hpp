@@ -32,7 +32,7 @@ public:
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
-  void toStream( std::ostream & os ) const;
+  void toStream( std::ostream & os, bool verbose = false ) const;
 
   uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
   uint_t getNumberOfEmptyProcesses() const;

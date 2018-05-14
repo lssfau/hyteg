@@ -491,7 +491,7 @@ real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
 }
 
 
-void SetupPrimitiveStorage::toStream( std::ostream & os ) const
+void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
 {
   os << "SetupPrimitiveStorage:\n";
 
@@ -509,69 +509,63 @@ void SetupPrimitiveStorage::toStream( std::ostream & os ) const
      << "   +      max: " << std::setw(10) << getMaxPrimitivesPerRank() << "\n"
      << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "\n";
 
-#ifndef NDEBUG
-  os << "\n";
-  os << "Vertices:   ID | Target Rank | Position  | Neighbor Edges \n"
-     << "---------------------------------------------------------\n";
-  for ( auto it = vertices_.begin(); it != vertices_.end(); it++ )
-  {
-    Point3D coordinates = it->second->getCoordinates();
-    os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << getTargetRank( it->first ) << " | "
-       << coordinates << " | ";
-    for ( const auto & neighborEdgeID : it->second->getHigherDimNeighbors() )
-    {
-      os << neighborEdgeID.getID() << " ";
+  if ( verbose ) {
+    os << "\n";
+    os << "Vertices:   ID | Target Rank | Position  | Neighbor Edges \n"
+       << "---------------------------------------------------------\n";
+    for ( auto it = vertices_.begin(); it != vertices_.end(); it++ ) {
+      Point3D coordinates = it->second->getCoordinates();
+      os << "          " << std::setw( 4 ) << it->first << " | "
+         << std::setw( 11 ) << getTargetRank( it->first ) << " | "
+         << coordinates << " | ";
+      for ( const auto & neighborEdgeID : it->second->getHigherDimNeighbors()) {
+        os << neighborEdgeID.getID() << " ";
+      }
+      os << "\n";
+
     }
     os << "\n";
 
-  }
-  os << "\n";
-
-  os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | DoF Type             | Neighbor Faces \n"
-     << "----------------------------------------------------------------------------------------------\n";
-  for ( auto it = edges_.begin(); it != edges_.end(); it++ )
-  {
-    os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << getTargetRank( it->first ) << " | "
-       << std::setw(10) << it->second->getVertexID0().getID() << " | "
-       << std::setw(10) << it->second->getVertexID1().getID() << " | "
-       << std::setw(20) << it->second->getDoFType() << " | ";
-    for ( const auto & neighborFaceID : it->second->getHigherDimNeighbors() )
-    {
-      os << neighborFaceID.getID() << " ";
+    os << "Edges:      ID | Target Rank | VertexID_0 | VertexID_1 | mesh boundary flag   | Neighbor Faces \n"
+       << "----------------------------------------------------------------------------------------------\n";
+    for ( auto it = edges_.begin(); it != edges_.end(); it++ ) {
+      os << "          " << std::setw( 4 ) << it->first << " | "
+         << std::setw( 11 ) << getTargetRank( it->first ) << " | "
+         << std::setw( 10 ) << it->second->getVertexID0().getID() << " | "
+         << std::setw( 10 ) << it->second->getVertexID1().getID() << " | "
+         << std::setw( 20 ) << it->second->getMeshBoundaryFlag() << " | ";
+      for ( const auto & neighborFaceID : it->second->getHigherDimNeighbors()) {
+        os << neighborFaceID.getID() << " ";
+      }
+      os << "\n";
     }
-        os << "\n";
-  }
-  os << "\n";
+    os << "\n";
 
-  os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
-     << "-------------------------------------------------------------\n";
-  for ( auto it = faces_.begin(); it != faces_.end(); it++ )
-  {
-    os << "          " << std::setw(4) << it->first << " | "
-       << std::setw(11) << getTargetRank( it->first ) << " | "
-       << std::setw(8) << it->second->getEdgeID0().getID() << " | "
-       << std::setw(8) << it->second->getEdgeID1().getID() << " | "
-       << std::setw(8) << it->second->getEdgeID2().getID() << "\n";
-  }
-  os << "\n";
+    os << "Faces:      ID | Target Rank | EdgeID_0 | EdgeID_1 | EdgeID_2\n"
+       << "-------------------------------------------------------------\n";
+    for ( auto it = faces_.begin(); it != faces_.end(); it++ ) {
+      os << "          " << std::setw( 4 ) << it->first << " | "
+         << std::setw( 11 ) << getTargetRank( it->first ) << " | "
+         << std::setw( 8 ) << it->second->getEdgeID0().getID() << " | "
+         << std::setw( 8 ) << it->second->getEdgeID1().getID() << " | "
+         << std::setw( 8 ) << it->second->getEdgeID2().getID() << "\n";
+    }
+    os << "\n";
 
-  if ( cells_.size() > 0 )
-  {
-    os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
-       << "------------------------------------------------------------------------\n";
-    for ( auto it = cells_.begin(); it != cells_.end(); it++ )
-    {
-      os << "          " << std::setw(4) << it->first << " | "
-         << std::setw(11) << getTargetRank( it->first ) << " | "
-         << std::setw(8) << it->second->neighborFaces()[0].getID() << " | "
-         << std::setw(8) << it->second->neighborFaces()[1].getID() << " | "
-         << std::setw(8) << it->second->neighborFaces()[2].getID() << " | "
-         << std::setw(8) << it->second->neighborFaces()[3].getID() << "\n";
+    if ( cells_.size() > 0 ) {
+      os << "Cells:      ID | Target Rank | FaceID_0 | FaceID_1 | FaceID_2 | FaceID_3\n"
+         << "------------------------------------------------------------------------\n";
+      for ( auto it = cells_.begin(); it != cells_.end(); it++ ) {
+        os << "          " << std::setw( 4 ) << it->first << " | "
+           << std::setw( 11 ) << getTargetRank( it->first ) << " | "
+           << std::setw( 8 ) << it->second->neighborFaces()[0].getID() << " | "
+           << std::setw( 8 ) << it->second->neighborFaces()[1].getID() << " | "
+           << std::setw( 8 ) << it->second->neighborFaces()[2].getID() << " | "
+           << std::setw( 8 ) << it->second->neighborFaces()[3].getID() << "\n";
+      }
     }
   }
-#endif
+
 }
 
 
