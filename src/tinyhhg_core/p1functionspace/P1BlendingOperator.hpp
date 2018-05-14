@@ -53,7 +53,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if (testFlag(vertexBC, flag))
       {
         vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
@@ -67,7 +68,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
@@ -80,7 +82,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, form, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
@@ -103,7 +106,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if (testFlag(vertexBC, flag))
       {
         vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
@@ -117,7 +121,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
@@ -130,7 +135,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, form, dst.getFaceDataID(), rhs.getFaceDataID());
       }
@@ -153,7 +159,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if (testFlag(vertexBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Vertex::smooth_jac(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
@@ -168,7 +175,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Edge::smooth_jac(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
@@ -182,7 +190,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Face::smooth_jac(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());

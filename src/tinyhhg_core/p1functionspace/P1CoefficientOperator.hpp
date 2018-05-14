@@ -162,7 +162,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag(vertexBC, flag) )
       {
         vertexdof::macrovertex::applyCoefficient< real_t >(vertex, storage_, vertexLocalMatrixIDs_, src.getVertexDataID(), dst.getVertexDataID(), vertexCoeffIds, level, updateType);
       }
@@ -179,7 +180,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoeffIds, updateType);
       }
@@ -192,7 +194,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         vertexdof::macroface::applyCoefficient< real_t >(level, face, faceLocalMatrixIDs_, src.getFaceDataID(), dst.getFaceDataID(), faceCoeffIds, updateType);
       }
@@ -225,7 +228,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if (testFlag(vertexBC, flag))
       {
         vertexdof::macrovertex::smooth_gs_coefficient(vertex, storage_, vertexLocalMatrixIDs_, dst.getVertexDataID(), rhs.getVertexDataID(), vertexCoeffIds, level);
       }
@@ -239,7 +243,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         vertexdof::macroedge::smooth_gs_coefficient<real_t>(level, edge, storage_, edgeLocalMatrixIDs_, dst.getEdgeDataID(), rhs.getEdgeDataID(), edgeCoeffIds);
       }
@@ -252,7 +257,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         vertexdof::macroface::smooth_gs_coefficient<real_t>(level, face, faceLocalMatrixIDs_, dst.getFaceDataID(), rhs.getFaceDataID(), faceCoeffIds);
       }
@@ -275,7 +281,8 @@ private:
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
 
-      if (testFlag(vertex.getDoFType(), flag))
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if (testFlag(vertexBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Vertex::smooth_jac(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
@@ -290,7 +297,8 @@ private:
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
-      if (testFlag(edge.getDoFType(), flag))
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if (testFlag(edgeBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Edge::smooth_jac(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
@@ -304,7 +312,8 @@ private:
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      if (testFlag(face.type, flag))
+      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if (testFlag(faceBC, flag))
       {
         WALBERLA_ABORT("To be implemented")
 //        P1Face::smooth_jac(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());

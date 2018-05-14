@@ -302,7 +302,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getVertices()) {
          Vertex& vertex = *it.second;
 
-         if (testFlag(vertex.getDoFType(), flag))
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if (testFlag(vertexBC, flag))
          {
             vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
          }
@@ -316,7 +317,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getEdges()) {
          Edge& edge = *it.second;
 
-         if (testFlag(edge.getDoFType(), flag))
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if (testFlag(edgeBC, flag))
          {
             vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
          }
@@ -329,7 +331,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getFaces()) {
          Face& face = *it.second;
 
-         if (testFlag(face.type, flag))
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if (testFlag(faceBC, flag))
          {
             if (OprType == OperatorType::ODD) {
                vertexdof::macroface::applyPolynomialOdd<real_t>(polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType);
@@ -358,7 +361,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getVertices()) {
          Vertex& vertex = *it.second;
 
-         if (testFlag(vertex.getDoFType(), flag))
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if (testFlag(vertexBC, flag))
          {
             vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
          }
@@ -372,7 +376,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getEdges()) {
          Edge& edge = *it.second;
 
-         if (testFlag(edge.getDoFType(), flag))
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if (testFlag(edgeBC, flag))
          {
             vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
          }
@@ -385,7 +390,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for (auto& it : storage_->getFaces()) {
          Face& face = *it.second;
 
-         if (testFlag(face.type, flag))
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if (testFlag(faceBC, flag))
          {
             switch (OprType) {
                case OperatorType::MASS:
@@ -425,7 +431,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             WALBERLA_ABORT( "To be implemented" )
             //        P1Vertex::smooth_jac(vertex, vertexLocalMatrixID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level);
@@ -441,7 +448,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             WALBERLA_ABORT( "To be implemented" )
             //        P1Edge::smooth_jac(level, edge, edgeLocalMatrixID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID());
@@ -456,7 +464,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             WALBERLA_ABORT( "To be implemented" )
             //        P1Face::smooth_jac(level, face, faceLocalMatrixID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID());

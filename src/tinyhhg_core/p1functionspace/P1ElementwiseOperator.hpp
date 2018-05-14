@@ -78,7 +78,8 @@ namespace hhg {
         {
           Vertex& vertex = *it.second;
 
-          if( testFlag( vertex.getDoFType(), flag ) )
+          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+          if( testFlag( vertexBC, flag ) )
             {
               vertexdof::macrovertex::applyElementwise< real_t >( level,
                                                                   vertex,
@@ -99,7 +100,8 @@ namespace hhg {
         {
           Edge& edge = *it.second;
 
-          if( testFlag( edge.getDoFType(), flag ) )
+          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+          if( testFlag( edgeBC, flag ) )
             {
               vertexdof::macroedge::applyElementwise< real_t >( level,
                                                                 edge,
@@ -120,7 +122,8 @@ namespace hhg {
         {
           Face& face = *it.second;
 
-          if( testFlag( face.type, flag ) )
+          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+          if( testFlag( faceBC, flag ) )
             {
               vertexdof::macroface::applyElementwise< real_t >( level, face,
                                                                 computeElementMatrix_,
@@ -162,7 +165,8 @@ namespace hhg {
         {
           Vertex& vertex = *it.second;
 
-          if( testFlag( vertex.getDoFType(), flag ) )
+          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+          if( testFlag( vertexBC, flag ) )
             {
               vertexdof::macrovertex::point_smooth_elementwise< real_t >( level, vertex,
                                                                           storage_,
@@ -184,7 +188,8 @@ namespace hhg {
         {
           Edge& edge = *it.second;
 
-          if( testFlag( edge.getDoFType(), flag ) )
+          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+          if( testFlag( edgeBC, flag ) )
             {
               vertexdof::macroedge::point_smooth_elementwise< real_t >( level, edge,
                                                                         storage_,
@@ -205,7 +210,8 @@ namespace hhg {
         {
           Face& face = *it.second;
 
-          if( testFlag( face.type, flag ) )
+          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+          if( testFlag( faceBC, flag ) )
             {
               vertexdof::macroface::point_smooth_elementwise< real_t >( level, face,
                                                                         computeElementMatrix_,
@@ -251,7 +257,8 @@ namespace hhg {
       {
         Vertex& vertex = *it.second;
 
-        if( testFlag( vertex.getDoFType(), flag ) )
+        const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+        if( testFlag( vertexBC, flag ) )
           {
             vertexdof::macrovertex::point_smooth_elementwise< real_t >( level, vertex,
                                                                         storage_,
@@ -273,7 +280,8 @@ namespace hhg {
         {
           Edge& edge = *it.second;
 
-          if( testFlag( edge.getDoFType(), flag ) )
+          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+          if( testFlag( edgeBC, flag ) )
             {
               vertexdof::macroedge::point_smooth_elementwise< real_t >( level, edge,
                                                                         storage_,
@@ -294,7 +302,8 @@ namespace hhg {
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+        const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
            vertexdof::macroface::point_smooth_elementwise< real_t >( level, face,
                                                                      computeElementMatrix_,
