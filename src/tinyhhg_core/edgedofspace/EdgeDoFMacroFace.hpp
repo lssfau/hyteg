@@ -376,6 +376,41 @@ inline void printFunctionMemory( const uint_t & Level, Face& face, const Primiti
 
 }
 
+
+template< typename ValueType >
+inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  auto src = face.getData( srcId )->getPointer( level );
+  real_t localMax = real_t(0.0);
+
+  for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, std::abs( src[idx] ) );
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, std::abs( src[idx] ) );
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, std::abs( src[idx] ) );
+    }
+  }
+
+  return localMax;
+}
+
+
 #ifdef HHG_BUILD_WITH_PETSC
 
 template< typename ValueType >

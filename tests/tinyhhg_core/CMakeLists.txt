@@ -106,6 +106,10 @@ waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
 waLBerla_compile_test(FILES P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
 
+waLBerla_compile_test(FILES P2ConstantMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
+waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1SmoothingTest )
 
@@ -242,3 +246,8 @@ if( HHG_BUILD_WITH_EIGEN )
   waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
   waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 endif()
+
+# Test some basic auxiliary stuff for application layer
+waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
+waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )

@@ -80,6 +80,8 @@ public:
   const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[1]; }
   const PrimitiveID & getEdgeID2() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[2]; }
 
+  const DoFType& getDoFType() const { return type; }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >

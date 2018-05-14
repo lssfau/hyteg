@@ -1,0 +1,10 @@
+Parameters
+{
+  minLevel 2;
+  maxLevel 3;
+  maxCycles 20;
+  max_cg_iter 10000;
+  mgTolerance 1e-10;
+  cgTolerance 1e-10;
+  outputVTK false;
+}

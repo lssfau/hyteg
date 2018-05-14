@@ -12,6 +12,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_polar_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_polar_laplacian.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -329,5 +330,6 @@ namespace hhg {
   typedef P1ElementwiseOperator< p1_diffusion_cell_integral_0_otherwise  > P1ElementwiseLaplaceOperator;
   typedef P1ElementwiseOperator< p1_mass_cell_integral_0_otherwise       > P1ElementwiseMassOperator;
   typedef P1ElementwiseOperator< p1_polar_mass_cell_integral_0_otherwise > P1ElementwisePolarMassOperator;
+  typedef P1ElementwiseOperator< p1_polar_laplacian_cell_integral_0_otherwise > P1ElementwisePolarLaplaceOperator;
 
 } // namespace hhg
