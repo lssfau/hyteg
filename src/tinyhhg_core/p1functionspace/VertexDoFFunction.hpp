@@ -613,21 +613,24 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    if ( testFlag( face.getDoFType(), flag ) ) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if ( testFlag( faceBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    if ( testFlag( edge.getDoFType(), flag ) ) {
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if ( testFlag( edgeBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    if ( testFlag( vertex.getDoFType(), flag ) ) {
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if ( testFlag( vertexBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macrovertex::getMaxValue< ValueType >( level, vertex, vertexDataID_ ));
     }
   }
@@ -645,21 +648,24 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoF
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    if ( testFlag( face.getDoFType(), flag ) ) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if ( testFlag( faceBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    if ( testFlag( edge.getDoFType(), flag ) ) {
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if ( testFlag( edgeBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    if ( testFlag( vertex.getDoFType(), flag ) ) {
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if ( testFlag( vertexBC, flag ) ) {
       localMax = std::max(localMax, vertexdof::macrovertex::getMaxMagnitude< ValueType >( level, vertex, vertexDataID_ ));
     }
   }
@@ -680,21 +686,24 @@ inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    if ( testFlag( face.getDoFType(), flag ) ) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if ( testFlag( faceBC, flag ) ) {
       localMin = std::min(localMin, vertexdof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getEdges() ) {
     Edge& edge = *it.second;
-    if ( testFlag( edge.getDoFType(), flag ) ) {
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if ( testFlag( edgeBC, flag ) ) {
       localMin = std::min(localMin, vertexdof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ));
     }
   }
 
   for( auto& it : this->getStorage()->getVertices() ) {
     Vertex& vertex = *it.second;
-    if ( testFlag( vertex.getDoFType(), flag ) ) {
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if ( testFlag( vertexBC, flag ) ) {
       localMin = std::min(localMin, vertexdof::macrovertex::getMinValue< ValueType >( level, vertex, vertexDataID_ ));
     }
   }
