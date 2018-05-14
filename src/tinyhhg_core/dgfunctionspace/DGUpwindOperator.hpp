@@ -63,7 +63,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
          Vertex& vertex = *it.second;
 
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertex.getDoFType(), flag ) )
+         if( testFlag( vertexBC, flag ) )
          {
             DGVertex::upwind< real_t >( level,
                                         vertex,
