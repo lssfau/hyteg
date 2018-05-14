@@ -9,6 +9,7 @@
 #include "DGFace.hpp"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
 namespace hhg {
 
@@ -17,9 +18,14 @@ class DGFunction : public Function<DGFunction<ValueType> >
 {
 public:
 
+  DGFunction(const std::string &name, const std::shared_ptr<PrimitiveStorage> &storage, uint_t minLevel, uint_t maxLevel ) :
+    DGFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+  {}
+
   DGFunction(const std::string &name, const std::shared_ptr<PrimitiveStorage> &storage, uint_t minLevel,
-             uint_t maxLevel) :
-    Function<DGFunction<ValueType> >(name, storage, minLevel, maxLevel) {
+             uint_t maxLevel, BoundaryCondition boundaryCondition ) :
+    Function<DGFunction<ValueType> >(name, storage, minLevel, maxLevel), boundaryCondition_( boundaryCondition )
+  {
     auto vertexDGFunctionMemoryDataHandling =
       std::make_shared<VertexDGFunctionMemoryDataHandling<ValueType> >(minLevel, maxLevel);
     auto edgeDGFunctionMemoryDataHandling =
@@ -67,6 +73,8 @@ public:
 
   void projectP1(P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType = Replace);
 
+  inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
 private:
 
   using Function<DGFunction<ValueType> >::communicators_;
@@ -75,7 +83,7 @@ private:
   PrimitiveDataID<FunctionMemory<ValueType>, Edge> edgeDataID_;
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
 
-
+  BoundaryCondition boundaryCondition_;
 
   inline void enumerate_impl(uint_t level, uint_t& num) override;
 
@@ -100,7 +108,9 @@ void DGFunction< ValueType >::add(const std::vector<ValueType> scalars, const st
   for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag))
+    {
       DGFace::add< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
     }
   }
@@ -139,7 +149,8 @@ void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const 
   for (auto &it : this->getStorage()->getVertices()) {
     Vertex &vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag)) {
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if (testFlag(vertexBC, flag)) {
       DGVertex::interpolate< ValueType >(level, vertex, vertexDataID_, srcVertexIDs, expr, this->getStorage());
     }
   }
@@ -149,7 +160,8 @@ void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const 
   for (auto &it : this->getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag)) {
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag)) {
       DGEdge::interpolate< ValueType >(level, edge, edgeDataID_, srcEdgeIDs, expr, this->getStorage());
     }
   }
@@ -160,7 +172,8 @@ void DGFunction< ValueType >::interpolateExtended(std::function<ValueType(const 
   for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag)) {
       DGFace::interpolate< ValueType >(level, face, faceDataID_, srcFaceIDs, expr);
     }
   }
@@ -191,7 +204,8 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   for (auto &it : this->getStorage()->getVertices()) {
     Vertex &vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag)) {
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if (testFlag(vertexBC, flag)) {
       DGVertex::assign< ValueType >(level, vertex, scalars, srcVertexIDs, vertexDataID_);
     }
   }
@@ -201,7 +215,8 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   for (auto &it : this->getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag)) {
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag)) {
       DGEdge::assign< ValueType >(level, edge, scalars, srcEdgeIDs, edgeDataID_);
     }
   }
@@ -212,7 +227,8 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   for (auto &it : this->getStorage()->getFaces()) {
     Face &face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag)) {
       DGFace::assign< ValueType >(level, face, scalars, srcFaceIDs, faceDataID_);
     }
   }
@@ -264,10 +280,12 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   src.getCommunicator(level)->template startCommunication<Face, Edge>();
   src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
 
-  for (auto& it : this->getStorage()->getVertices()) {
+  for (auto& it : this->getStorage()->getVertices())
+  {
     Vertex& vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag))
+    const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if (testFlag(vertexBC, flag))
     {
       DGVertex::projectP1< real_t >(level, vertex, this->getStorage(), src.getVertexDataID(), this->getVertexDataID(), updateType);
     }
@@ -277,10 +295,13 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
 
   src.getCommunicator(level)->template endCommunication<Face, Edge>();
 
-  for (auto& it : this->getStorage()->getEdges()) {
+  for (auto& it : this->getStorage()->getEdges())
+  {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag))
+    const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+    if (testFlag(edgeBC, flag))
     {
       DGEdge::projectP1< real_t >(level, edge, this->getStorage(), src.getEdgeDataID(), this->getEdgeDataID(), updateType);
     }
@@ -293,7 +314,8 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
 
-    if (testFlag(face.type, flag))
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag))
     {
       DGFace::projectP1<real_t>(level, face, this->getStorage(), src.getFaceDataID(), this->getFaceDataID(), updateType);
     }
@@ -311,7 +333,8 @@ real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType fla
 
   for( auto& it : this->getStorage()->getFaces() ) {
     Face& face = *it.second;
-    if( testFlag( face.type, flag ) )
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if( testFlag( faceBC, flag ) )
     {
       localMax = std::max( localMax, DGFace::getMaxMagnitude< ValueType >( level, face, faceDataID_ ));
     }
