@@ -88,6 +88,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     vertexIDsToEdgeIDs[ vertexIDs ] = edgeID;
   }
 
+  // TODO (issue #73): currently the mesh boundary flags are forced to certain values depending on neighboring primitives
+
   for (auto& it : edges_) {
     Edge& edge = *it.second;
 
@@ -97,6 +99,15 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
         vertices_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
       }
 
+    }
+
+
+    if ( edge.getMeshBoundaryFlag() == 2 )
+    {
+      for ( auto itv : edge.neighborVertices() )
+      {
+        vertices_[itv.getID()]->meshBoundaryFlag_ = 2;
+      }
     }
   }
 
@@ -109,6 +120,14 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
         vertices_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
       }
 
+    }
+
+    if ( edge.getMeshBoundaryFlag() == 1 )
+    {
+      for ( auto itv : edge.neighborVertices() )
+      {
+        vertices_[itv.getID()]->meshBoundaryFlag_ = 1;
+      }
     }
   }
 
@@ -257,6 +276,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     vertexIDsToFaceIDs[ neighboringVertexIDs ] = faceID;
   }
 
+  // TODO (issue #73): currently the mesh boundary flags are forced to certain values depending on neighboring primitives
+
   for ( const auto & it : faces_ )
   {
     Face & face = *it.second;
@@ -267,7 +288,14 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       {
         edges_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
       }
+    }
 
+    if ( face.getMeshBoundaryFlag() == 2 )
+    {
+      for ( auto & itv : face.neighborEdges() )
+      {
+        edges_[itv.getID()]->meshBoundaryFlag_ = 2;
+      }
     }
   }
 
@@ -280,6 +308,14 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       for ( auto & itv : face.neighborEdges() )
       {
         edges_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
+      }
+    }
+
+    if ( face.getMeshBoundaryFlag() == 1 )
+    {
+      for ( auto & itv : face.neighborEdges() )
+      {
+        edges_[itv.getID()]->meshBoundaryFlag_ = 1;
       }
     }
   }
