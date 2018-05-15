@@ -64,8 +64,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 )  ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 1 ) ];
 
-    DoFType dofType = meshInfoEdge.getDoFType();
-
     std::array<Point3D, 2> coords;
 
     coords[0] = vertices_[ vertexID0.getID() ]->getCoordinates();
@@ -74,7 +72,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID.getID() ), 0 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID1.getID() ), 1 );
-    edges_[ edgeID.getID() ] = std::make_shared< Edge >( edgeID, vertexID0, vertexID1, dofType, coords);
+    edges_[ edgeID.getID() ] = std::make_shared< Edge >( edgeID, vertexID0, vertexID1, coords);
 
     setMeshBoundaryFlag( edgeID.getID(), meshInfoEdge.getBoundaryFlag() );
 
@@ -93,15 +91,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for (auto& it : edges_) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.dofType_, hhg::NeumannBoundary)) {
-
-      for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
-      }
-
-    }
-
-
     if ( edge.getMeshBoundaryFlag() == 2 )
     {
       for ( auto itv : edge.neighborVertices() )
@@ -113,14 +102,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
   for (auto& it : edges_) {
     Edge& edge = *it.second;
-
-    if (testFlag(edge.dofType_, hhg::DirichletBoundary)) {
-
-      for (auto& itv : edge.neighborVertices()) {
-        vertices_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
-      }
-
-    }
 
     if ( edge.getMeshBoundaryFlag() == 1 )
     {
@@ -156,8 +137,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID2.getID() ), 1 );
-
-    DoFType dofType = meshInfoFace.getDoFType();
 
     // Edge Orientation
     std::array< int, 3 > edgeOrientation;
@@ -238,25 +217,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
       vertexIDs[2] = edge1Vertex0.getID();
     }
 
-    for (uint_t i = 0; i < 3; ++i) {
-      if (testFlag(vertices_[vertexIDs[i].getID()]->dofType_, hhg::Boundary)) {
-        verticesOnBoundary.push_back(vertexIDs[i]);
-      }
-    }
-
-    if (testFlag(edges_[edgeID0.getID()]->dofType_, hhg::Boundary)) {
-      edgesOnBoundary.push_back(edgeID0);
-    }
-
-    if (testFlag(edges_[edgeID1.getID()]->dofType_, hhg::Boundary)) {
-      edgesOnBoundary.push_back(edgeID1);
-    }
-
-    if (testFlag(edges_[edgeID2.getID()]->dofType_, hhg::Boundary)) {
-      edgesOnBoundary.push_back(edgeID2);
-    }
-
-    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, dofType, edgeOrientation, verticesOnBoundary, edgesOnBoundary, coordinates ) );
+    faces_[ faceID.getID() ] = std::shared_ptr< Face >( new Face( faceID, vertexIDs, {{edgeID0, edgeID1, edgeID2}}, edgeOrientation, coordinates ) );
 
     setMeshBoundaryFlag( faceID.getID(), meshInfoFace.getBoundaryFlag() );
 
@@ -282,14 +243,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   {
     Face & face = *it.second;
 
-    if ( testFlag(face.type, hhg::NeumannBoundary ) )
-    {
-      for ( auto & itv : face.neighborEdges() )
-      {
-        edges_[itv.getID()]->dofType_ = hhg::NeumannBoundary;
-      }
-    }
-
     if ( face.getMeshBoundaryFlag() == 2 )
     {
       for ( auto & itv : face.neighborEdges() )
@@ -302,14 +255,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
   for ( const auto & it : faces_ )
   {
     Face & face = *it.second;
-
-    if ( testFlag(face.type, hhg::DirichletBoundary ) )
-    {
-      for ( auto & itv : face.neighborEdges() )
-      {
-        edges_[itv.getID()]->dofType_ = hhg::DirichletBoundary;
-      }
-    }
 
     if ( face.getMeshBoundaryFlag() == 1 )
     {

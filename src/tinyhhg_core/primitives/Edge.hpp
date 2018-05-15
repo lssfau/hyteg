@@ -27,9 +27,8 @@ public:
   Edge( const PrimitiveID & primitiveID,
         const PrimitiveID & vertexID0,
         const PrimitiveID & vertexID1,
-        const DoFType     & dofType,
         const std::array<Point3D, 2>& coords) :
-    Primitive( primitiveID ), dofType_( dofType ), coordinates_(coords)
+    Primitive( primitiveID ), coordinates_(coords)
   {
     neighborVertices_.push_back( vertexID0 );
     neighborVertices_.push_back( vertexID1 );
@@ -50,8 +49,6 @@ public:
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
   bool opposite_face_exists(const PrimitiveID& face) const;
   PrimitiveID get_opposite_face(const PrimitiveID& face) const;
-
-  bool onBoundary() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Edge &edge);
 
@@ -102,7 +99,6 @@ private:
   void addFace( const PrimitiveID & faceID ) { neighborFaces_.push_back( faceID ); }
   void addCell( const PrimitiveID & cellID ) { neighborCells_.push_back( cellID ); }
 
-  DoFType dofType_;
   std::array<Point3D, 2> coordinates_;
   Point3D direction_;
   real_t  length_;

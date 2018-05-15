@@ -16,12 +16,14 @@ class CircularMap : public GeometryMap
    : center_( center )
    , radius_( radius )
    {
-      // Get edge on boundary
-      // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
-      WALBERLA_ASSERT_EQUAL( face.hasBoundaryEdge(), true );
-//      WALBERLA_ASSERT_EQUAL( face.edgesOnBoundary.size(), 1 );
+     // Get edge on boundary
+     // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
+     std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
+     std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                     [ &storage ]( const PrimitiveID & id ){ return !storage.onBoundary( id ); } );
+     WALBERLA_ASSERT_GREATER( neighborEdgesOnBoundary.size(), 0 );
 
-      const Edge&   edge   = *storage.getEdge( face.edgesOnBoundary[0] );
+      const Edge&   edge   = *storage.getEdge( neighborEdgesOnBoundary[0] );
       const Vertex& vertex = *storage.getVertex( face.get_vertex_opposite_to_edge( edge.getID() ) );
 
       Point3D x2, x3;

@@ -98,21 +98,16 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
   WALBERLA_ABORT("Edge::get_opposite_face: Face does not belong to edge");
 }
 
-bool Edge::onBoundary() const {
-  return testFlag(dofType_, hhg::Boundary);
-}
 
 std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "
-            << "type = " << edge.dofType_ << "; "
             << "neighborVertices_[0] = " << edge.neighborVertices_[0].getID() << "; "
             << "neighborVertices_[1] = " << edge.neighborVertices_[1].getID() << "; }";
 }
 
 void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 {
-  sendBuffer << dofType_;
   sendBuffer << coordinates_[0];
   sendBuffer << coordinates_[1];
   sendBuffer << direction_;
@@ -123,7 +118,6 @@ void Edge::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
 
 void Edge::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
 {
-  recvBuffer >> dofType_;
   recvBuffer >> coordinates_[0];
   recvBuffer >> coordinates_[1];
   recvBuffer >> direction_;

@@ -28,13 +28,9 @@ public:
   Face( const PrimitiveID & primitiveID,
         const std::array<PrimitiveID, 3>& vertexIDs,
         const std::array<PrimitiveID, 3>& edgeIDs,
-        const DoFType                   & dofType,
         const std::array< int, 3 >     & edgeOrientation,
-        const std::vector<PrimitiveID>& vertexOnBoundaryIDs,
-        const std::vector<PrimitiveID>& edgeOnBoundaryIDs,
         const std::array< Point3D, 3 > & coordinates ) :
-    Primitive( primitiveID ), type( dofType ), edge_orientation( edgeOrientation ),
-    verticesOnBoundary( vertexOnBoundaryIDs ), edgesOnBoundary( edgeOnBoundaryIDs ), coords( coordinates )
+    Primitive( primitiveID ), edge_orientation( edgeOrientation ), coords( coordinates )
   {
     neighborVertices_.push_back( vertexIDs[0] );
     neighborVertices_.push_back( vertexIDs[1] );
@@ -57,13 +53,9 @@ public:
   PrimitiveID get_vertex_opposite_to_edge(const PrimitiveID& edge) const;
   PrimitiveID get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const;
 
-  bool hasBoundaryVertex() const;
-  bool hasBoundaryEdge() const;
-
   real_t area;
   std::array<int, 3> edge_orientation;
-  std::vector<PrimitiveID> verticesOnBoundary;
-  std::vector<PrimitiveID> edgesOnBoundary;
+
   std::array<Point3D, 3> coords;
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
@@ -113,8 +105,6 @@ protected:
   virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 private:
-
-  DoFType type;
 
   void addCell( const PrimitiveID & cellID ) { neighborCells_.push_back( cellID ); }
 

@@ -70,7 +70,6 @@ private:
 
   std::array< Point3D, 4 > coordinates_;
   std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
-  DoFType dofType_;
 
 };
 
