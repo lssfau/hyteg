@@ -188,7 +188,7 @@ int main( int argc, char* argv[] )
       msg << "VERTEX INFO:\n";
       for( const auto& it : verts )
       {
-         msg << "node " << it.first << ": dofType = " << it.second.getDoFType() << "\n";
+         msg << "node " << it.first << ": mesh boundary flag = " << it.second.getBoundaryFlag() << "\n";
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );

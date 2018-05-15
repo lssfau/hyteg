@@ -108,51 +108,46 @@ public:
   class Vertex
   {
   public:
-    Vertex() : id_( 0 ), coordinates_( Point3D() ), dofType_( Inner ), boundaryFlag_( 0 ) {};
-    Vertex( const IDType & id, const Point3D & coordinates, const DoFType & dofType, const uint_t & boundaryFlag ) :
-      id_( id ), coordinates_( coordinates ), dofType_( dofType ), boundaryFlag_( boundaryFlag )
+    Vertex() : id_( 0 ), coordinates_( Point3D() ), boundaryFlag_( 0 ) {};
+    Vertex( const IDType & id, const Point3D & coordinates, const uint_t & boundaryFlag ) :
+      id_( id ), coordinates_( coordinates ), boundaryFlag_( boundaryFlag )
     {}
 
     IDType  getID()           const { return id_; }
     Point3D getCoordinates()  const { return coordinates_; }
-    DoFType getDoFType()      const { return dofType_; }
     uint_t  getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     IDType  id_;
     Point3D coordinates_;
-    DoFType dofType_;
     uint_t  boundaryFlag_;
   };
 
   class Edge
   {
   public:
-    Edge() : dofType_( Inner ), boundaryFlag_( 0 ) {};
-    Edge( const std::array< IDType, 2 > & vertices, const DoFType & dofType, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), dofType_( dofType ), boundaryFlag_( boundaryFlag )
+    Edge() : boundaryFlag_( 0 ) {};
+    Edge( const std::array< IDType, 2 > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
     std::array< IDType, 2 > getVertices()     const { return vertices_; }
-    DoFType                 getDoFType()      const { return dofType_; }
     uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     std::array< IDType, 2 > vertices_;
-    DoFType                 dofType_;
     uint_t                  boundaryFlag_;
   };
 
   class Face
   {
   public:
-    Face() : dofType_( Inner ), boundaryFlag_( 0 ) {};
-    Face( const std::vector< IDType > & vertices, const DoFType & dofType, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), dofType_( dofType ), boundaryFlag_( boundaryFlag )
+    Face() : boundaryFlag_( 0 ) {};
+    Face( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
     std::vector< IDType > getVertices()     const { return vertices_; }
-    DoFType               getDoFType()      const { return dofType_; }
     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
@@ -164,13 +159,12 @@ public:
   class Cell
   {
   public:
-    Cell() : dofType_( Inner ), boundaryFlag_( 0 ) {};
-    Cell( const std::vector< IDType > & vertices, const DoFType & dofType, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), dofType_( dofType ), boundaryFlag_( boundaryFlag )
+    Cell() : boundaryFlag_( 0 ) {};
+    Cell( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
     std::vector< IDType > getVertices()     const { return vertices_; }
-    DoFType               getDoFType()      const { return dofType_; }
     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
   private:

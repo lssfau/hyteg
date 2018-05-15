@@ -13,7 +13,6 @@ namespace hhg {
 MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
   MeshInfo meshInfo;
-  const std::array< DoFType, 3 > BOUNDARY_TYPE_TO_FLAG = {{ Inner, DirichletBoundary, NeumannBoundary }}; // double-braces to silence warning
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "[Mesh] Opening mesh file: " << meshFileName );
 
@@ -50,7 +49,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     meshFile >> x[1];
     meshFile >> x[2];
 
-    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( x ), Inner, 0 );
+    meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( x ), 0 );
   }
 
   WALBERLA_ASSERT_EQUAL( meshInfo.vertices_.size(), numVertices );
@@ -89,10 +88,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> edgeVertices[0];
       meshFile >> edgeVertices[1];
 
-      WALBERLA_ASSERT_LESS( boundaryFlag, BOUNDARY_TYPE_TO_FLAG.size() );
-      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[boundaryFlag];
-
-      parsedEdges[ edgeVertices ] = Edge( edgeVertices, dofType, boundaryFlag );
+      parsedEdges[ edgeVertices ] = Edge( edgeVertices, boundaryFlag );
     }
 
     else if (primitiveType == 2) // triangle
@@ -106,10 +102,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> triangleVertices[1];
       meshFile >> triangleVertices[2];
 
-      WALBERLA_ASSERT_LESS( boundaryFlag, BOUNDARY_TYPE_TO_FLAG.size() );
-      DoFType dofType = BOUNDARY_TYPE_TO_FLAG[boundaryFlag];
-
-      parsedFaces[ triangleVertices ] = MeshInfo::Face( triangleVertices, dofType, boundaryFlag );
+      parsedFaces[ triangleVertices ] = MeshInfo::Face( triangleVertices, boundaryFlag );
     }
 
     else if (primitiveType == 4) // tetrahedron
@@ -123,7 +116,7 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
       meshFile >> tetrahedronVertices[2];
       meshFile >> tetrahedronVertices[3];
 
-      parsedCells[ tetrahedronVertices ] = Cell( tetrahedronVertices, Inner, 0 );
+      parsedCells[ tetrahedronVertices ] = Cell( tetrahedronVertices, 0 );
     }
 
     else if (primitiveType == 15) // vertex
@@ -159,9 +152,9 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( faceCoordinates.size(), 3, "[Mesh] Only triangle faces supported." );
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[0], faceCoordinates[1] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[1], faceCoordinates[2] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[2], faceCoordinates[0] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[0], faceCoordinates[1] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[1], faceCoordinates[2] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ faceCoordinates[2], faceCoordinates[0] }} ), 0 ) );
 
     meshInfo.addFace( meshInfoFace );
   }
@@ -174,17 +167,17 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
     // If the corresponding edge was not already added, add an edge of type Inner
     WALBERLA_ASSERT_EQUAL( cellCoordinates.size(), 4, "[Mesh] Only tetrahedron cells supported." );
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[1] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[2] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[3] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[2] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[3] }} ), Inner, 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[1] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[2] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[0], cellCoordinates[3] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[2] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[1], cellCoordinates[3] }} ), 0 ) );
+    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
 
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] }} ), Inner, 0 ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), Inner, 0 ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
-    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), Inner, 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[2] }} ), 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
+    meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
 
     meshInfo.cells_[ cellCoordinates ] = meshInfoCell;
 
