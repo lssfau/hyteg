@@ -24,7 +24,7 @@ namespace hhg {
 using walberla::uint_t;
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
-  primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), hasGlobalCells_( setupStorage.getNumberOfCells() )
+  primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
 {
   if ( setupStorage.getNumberOfPrimitives() < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
   {
