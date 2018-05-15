@@ -152,7 +152,6 @@ public:
 
   private:
     std::vector< IDType > vertices_;
-    DoFType               dofType_;
     uint_t                boundaryFlag_;
   };
 
@@ -169,7 +168,6 @@ public:
 
   private:
     std::vector< IDType > vertices_;
-    DoFType               dofType_;
     uint_t                boundaryFlag_;
   };
 
