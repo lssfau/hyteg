@@ -93,6 +93,10 @@ public:
 
   void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }
 
+  /// Returns true, if the primitive lies on the boundary.
+  /// Currently, primitives of the highest dimension (cells in 3D, faces in 2D) can also "lie on the boundary".
+  bool onBoundary( const PrimitiveID & primitiveID ) const;
+
 private:
 
   typedef std::map< uint_t, std::vector< PrimitiveID::IDType > > RankToSetupPrimitivesMap;

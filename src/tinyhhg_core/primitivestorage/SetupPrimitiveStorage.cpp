@@ -589,4 +589,60 @@ PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
   return newID;
 }
 
+bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID ) const
+{
+  WALBERLA_ASSERT( primitiveExists( primitiveID ) );
+
+  if ( getNumberOfCells() == 0 )
+  {
+    // 2D
+    if ( edgeExists( primitiveID ) )
+    {
+      const auto edge = getEdge( primitiveID );
+      WALBERLA_ASSERT_GREATER( edge->getNumNeighborFaces(), 0 );
+      WALBERLA_ASSERT_LESS_EQUAL( edge->getNumNeighborFaces(), 2 );
+      return edge->getNumNeighborFaces() == 1;
+    }
+    else
+    {
+      const auto primitive = getPrimitive( primitiveID );
+      std::vector< PrimitiveID > neighborEdges;
+      primitive->getNeighborEdges( neighborEdges );
+      for ( auto it : neighborEdges )
+      {
+        if ( onBoundary( it ) )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+  else
+  {
+    // 3D
+    if ( faceExists( primitiveID ) )
+    {
+      const auto face = getFace( primitiveID );
+      WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
+      WALBERLA_ASSERT_LESS_EQUAL( face->getNumNeighborCells(), 2 );
+      return face->getNumNeighborCells() == 1;
+    }
+    else
+    {
+      const auto primitive = getPrimitive( primitiveID );
+      std::vector< PrimitiveID > neighborFaces;
+      primitive->getNeighborFaces( neighborFaces );
+      for ( auto it : neighborFaces )
+      {
+        if ( onBoundary( it ) )
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+}
+
 }
