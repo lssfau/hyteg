@@ -281,10 +281,10 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
 
     PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID2, vertexID0 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID3 = findCachedPrimitiveID( {{ vertexID0, vertexID3 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID4 = findCachedPrimitiveID( {{ vertexID1, vertexID3 }}, vertexIDsToEdgeIDs );
     PrimitiveID edgeID5 = findCachedPrimitiveID( {{ vertexID2, vertexID3 }}, vertexIDsToEdgeIDs );
 
     PrimitiveID faceID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1, vertexID2 }}, vertexIDsToFaceIDs );

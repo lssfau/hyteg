@@ -97,15 +97,15 @@ int main(int argc, char* argv[])
   level2FirstInner[ sd::VERTEX_NW ]  =  9;
   level2FirstInner[ sd::VERTEX_SE ]  =  2;
 
-  level2FirstInner[ sd::VERTEX_BC ]  = 20;
-  level2FirstInner[ sd::VERTEX_BW ]  = 19;
-  level2FirstInner[ sd::VERTEX_BS ]  = 16;
-  level2FirstInner[ sd::VERTEX_BSW ] = 15;
+  level2FirstInner[ sd::VERTEX_TC ]  = 20;
+  level2FirstInner[ sd::VERTEX_TW ]  = 19;
+  level2FirstInner[ sd::VERTEX_TS ]  = 16;
+  level2FirstInner[ sd::VERTEX_TSE ] = 15;
 
-  level2FirstInner[ sd::VERTEX_FC ]  = 25;
-  level2FirstInner[ sd::VERTEX_FE ]  = 26;
-  level2FirstInner[ sd::VERTEX_FN ]  = 29;
-  level2FirstInner[ sd::VERTEX_FNE ] = 30;
+  level2FirstInner[ sd::VERTEX_BC ]  = 25;
+  level2FirstInner[ sd::VERTEX_BE ]  = 26;
+  level2FirstInner[ sd::VERTEX_BN ]  = 29;
+  level2FirstInner[ sd::VERTEX_BNW ] = 30;
 
   hhg::testNeighborhood2( hhg::indexing::Index( 1, 1, 1 ), level2FirstInner );
 
@@ -120,15 +120,15 @@ int main(int argc, char* argv[])
   level2SecondInner[ sd::VERTEX_NW ]  = 10;
   level2SecondInner[ sd::VERTEX_SE ]  =  3;
 
-  level2SecondInner[ sd::VERTEX_BC ]  = 21;
-  level2SecondInner[ sd::VERTEX_BW ]  = 20;
-  level2SecondInner[ sd::VERTEX_BS ]  = 17;
-  level2SecondInner[ sd::VERTEX_BSW ] = 16;
+  level2SecondInner[ sd::VERTEX_TC ]  = 21;
+  level2SecondInner[ sd::VERTEX_TW ]  = 20;
+  level2SecondInner[ sd::VERTEX_TS ]  = 17;
+  level2SecondInner[ sd::VERTEX_TSE ] = 16;
 
-  level2SecondInner[ sd::VERTEX_FC ]  = 26;
-  level2SecondInner[ sd::VERTEX_FE ]  = 27;
-  level2SecondInner[ sd::VERTEX_FN ]  = 30;
-  level2SecondInner[ sd::VERTEX_FNE ] = 31;
+  level2SecondInner[ sd::VERTEX_BC ]  = 26;
+  level2SecondInner[ sd::VERTEX_BE ]  = 27;
+  level2SecondInner[ sd::VERTEX_BN ]  = 30;
+  level2SecondInner[ sd::VERTEX_BNW ] = 31;
 
   hhg::testNeighborhood2( hhg::indexing::Index( 2, 1, 1 ), level2SecondInner );
 
@@ -143,15 +143,15 @@ int main(int argc, char* argv[])
   level3FirstInner[ sd::VERTEX_NW ]  = 17;
   level3FirstInner[ sd::VERTEX_SE ]  =  2;
 
-  level3FirstInner[ sd::VERTEX_BC ]  = 54;
-  level3FirstInner[ sd::VERTEX_BW ]  = 53;
-  level3FirstInner[ sd::VERTEX_BS ]  = 46;
-  level3FirstInner[ sd::VERTEX_BSW ] = 45;
+  level3FirstInner[ sd::VERTEX_TC ]  = 54;
+  level3FirstInner[ sd::VERTEX_TW ]  = 53;
+  level3FirstInner[ sd::VERTEX_TS ]  = 46;
+  level3FirstInner[ sd::VERTEX_TSE ] = 45;
 
-  level3FirstInner[ sd::VERTEX_FC ]  = 81;
-  level3FirstInner[ sd::VERTEX_FE ]  = 82;
-  level3FirstInner[ sd::VERTEX_FN ]  = 89;
-  level3FirstInner[ sd::VERTEX_FNE ] = 90;
+  level3FirstInner[ sd::VERTEX_BC ]  = 81;
+  level3FirstInner[ sd::VERTEX_BE ]  = 82;
+  level3FirstInner[ sd::VERTEX_BN ]  = 89;
+  level3FirstInner[ sd::VERTEX_BNW ] = 90;
 
   hhg::testNeighborhood3( hhg::indexing::Index( 1, 1, 1 ), level3FirstInner );
 

@@ -349,12 +349,12 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const Pr
 
   if ( receiver->cell_index( sender ) == 0 )
   {
-    neighborDirection = stencilDirection::VERTEX_BC;
+    neighborDirection = stencilDirection::VERTEX_TC;
   }
   else
   {
     WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender ), 1 );
-    neighborDirection = stencilDirection::VERTEX_FNE;
+    neighborDirection = stencilDirection::VERTEX_BNW;
   }
 
   for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
@@ -384,12 +384,12 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
 
   if ( receiver->cell_index( sender->getID() ) == 0 )
   {
-    neighborDirection = stencilDirection::VERTEX_BC;
+    neighborDirection = stencilDirection::VERTEX_TC;
   }
   else
   {
     WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender->getID() ), 1 );
-    neighborDirection = stencilDirection::VERTEX_FNE;
+    neighborDirection = stencilDirection::VERTEX_BNW;
   }
 
   auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );

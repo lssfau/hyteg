@@ -46,16 +46,16 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
   case CellType::BLUE_UP:
     return std::array< Index, 4 >( {{
       Index( cellX + 1, cellY    , cellZ     ),
-      Index( cellX + 1, cellY    , cellZ + 1 ),
-      Index( cellX    , cellY    , cellZ + 1 ),
-      Index( cellX + 1, cellY + 1, cellZ     )
+      Index( cellX + 1, cellY + 1, cellZ     ),
+      Index( cellX    , cellY + 1, cellZ     ),
+      Index( cellX + 1, cellY    , cellZ + 1 )
     }} );
   case CellType::GREEN_UP:
     return std::array< Index, 4 >( {{
       Index( cellX + 1, cellY    , cellZ     ),
-      Index( cellX    , cellY    , cellZ + 1 ),
-      Index( cellX + 1, cellY + 1, cellZ     ),
-      Index( cellX    , cellY + 1, cellZ     )
+      Index( cellX    , cellY + 1, cellZ     ),
+      Index( cellX + 1, cellY    , cellZ + 1 ),
+      Index( cellX    , cellY    , cellZ + 1 )
     }} );
   case CellType::WHITE_DOWN:
     return std::array< Index, 4 >( {{
@@ -66,16 +66,16 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
     }} );
   case CellType::BLUE_DOWN:
     return std::array< Index, 4 >( {{
-      Index( cellX + 1, cellY + 1, cellZ     ),
+      Index( cellX + 1, cellY    , cellZ + 1 ),
       Index( cellX    , cellY + 1, cellZ + 1 ),
-      Index( cellX    , cellY + 1, cellZ     ),
-      Index( cellX    , cellY    , cellZ + 1 )
+      Index( cellX    , cellY    , cellZ + 1 ),
+      Index( cellX    , cellY + 1, cellZ     )
     }} );
   case CellType::GREEN_DOWN:
     return std::array< Index, 4 >( {{
-      Index( cellX    , cellY    , cellZ + 1 ),
-      Index( cellX + 1, cellY    , cellZ + 1 ),
+      Index( cellX    , cellY + 1, cellZ     ),
       Index( cellX + 1, cellY + 1, cellZ     ),
+      Index( cellX + 1, cellY    , cellZ + 1 ),
       Index( cellX    , cellY + 1, cellZ + 1 )
     }} );
   default:

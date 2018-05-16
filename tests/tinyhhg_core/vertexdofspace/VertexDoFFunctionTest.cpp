@@ -87,7 +87,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     {
       auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
       operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
-      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC ) ] = 2.0;
+      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC ) ] = 2.0;
     }
 
     src->interpolate( ones, level );

@@ -110,46 +110,47 @@ namespace CellVertexDoF {
 typedef stencilDirection sd;
 
 const std::array< std::array< stencilDirection, 4 >, 4 > whiteUpCellsAtVertex = {{
-                                                                           { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_BS }, // below
-                                                                           { sd::VERTEX_C, sd::VERTEX_FC, sd::VERTEX_FE, sd::VERTEX_FN }, // top front
-                                                                           { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BW, sd::VERTEX_NW }, // top back west
-                                                                           { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_E, sd::VERTEX_N }, // top back east
-                                                                           }};
+                                                                                 { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN }, // below
+                                                                                 { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS }, // top front
+                                                                                 { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW }, // top back west
+                                                                                 { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC }, // top back east
+                                                                                 }};
 
 const std::array< std::array< stencilDirection, 4 >, 4 > whiteDownCellsAtVertex = {{
-                                                                             { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_S, sd::VERTEX_FC }, // below front west
-                                                                             { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_FE, sd::VERTEX_SE }, // below front east
-                                                                             { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BW, sd::VERTEX_BS }, // below back
-                                                                             { sd::VERTEX_C, sd::VERTEX_FN, sd::VERTEX_N, sd::VERTEX_NW }, // top
-                                                                             }};
+                                                                                   { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_S }, // below front west
+                                                                                   { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_SE, sd::VERTEX_BE }, // below front east
+                                                                                   { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_NW, sd::VERTEX_BN }, // below back
+                                                                                   { sd::VERTEX_C, sd::VERTEX_TS, sd::VERTEX_TC, sd::VERTEX_TW }, // top
+                                                                                   }};
 
 const std::array< std::array< stencilDirection, 4 >, 4 > blueUpCellsAtVertex = {{
-                                                                          { sd::VERTEX_C, sd::VERTEX_S,  sd::VERTEX_BS, sd::VERTEX_BSW  }, // below
-                                                                          { sd::VERTEX_C, sd::VERTEX_W,  sd::VERTEX_FC, sd::VERTEX_FN  }, // top front west
-                                                                          { sd::VERTEX_C, sd::VERTEX_E,  sd::VERTEX_FE, sd::VERTEX_FNE }, // top front east
-                                                                          { sd::VERTEX_C, sd::VERTEX_BW, sd::VERTEX_BC, sd::VERTEX_N   }, // top back
-                                                                          }};
+                                                                                { sd::VERTEX_C, sd::VERTEX_BC,  sd::VERTEX_BN, sd::VERTEX_BNW  }, // below
+                                                                                { sd::VERTEX_C, sd::VERTEX_W,  sd::VERTEX_S, sd::VERTEX_TS  }, // top front west
+                                                                                { sd::VERTEX_C, sd::VERTEX_E,  sd::VERTEX_SE, sd::VERTEX_TSE }, // top front east
+                                                                                { sd::VERTEX_C, sd::VERTEX_NW, sd::VERTEX_N, sd::VERTEX_TC   }, // top back
+                                                                                }};
 
 const std::array< std::array< stencilDirection, 4 >, 4 > blueDownCellsAtVertex = {{
-                                                                            { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_FC, sd::VERTEX_FE }, // below front
-                                                                            { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BW, sd::VERTEX_BSW }, // below back west
-                                                                            { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BS, sd::VERTEX_BC }, // below back east
-                                                                            { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_FN, sd::VERTEX_FNE }, // top
-                                                                            }};
+                                                                                  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_S, sd::VERTEX_SE }, // below front
+                                                                                  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_BNW }, // below back west
+                                                                                  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BN, sd::VERTEX_N }, // below back east
+                                                                                  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TS, sd::VERTEX_TSE }, // top
+                                                                                  }};
 
 const std::array< std::array< stencilDirection, 4 >, 4 > greenUpCellsAtVertex = {{
-                                                                           { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_S, sd::VERTEX_BSW }, // below west
-                                                                           { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_SE, sd::VERTEX_BS }, // below east
-                                                                           { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_NW, sd::VERTEX_BW }, // top back
-                                                                           { sd::VERTEX_C, sd::VERTEX_FE, sd::VERTEX_FN, sd::VERTEX_FNE }, // top front
-                                                                           }};
+                                                                                 { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_BNW }, // below west
+                                                                                 { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BE, sd::VERTEX_BN }, // below east
+                                                                                 { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TW, sd::VERTEX_NW }, // top back
+                                                                                 { sd::VERTEX_C, sd::VERTEX_SE, sd::VERTEX_TS, sd::VERTEX_TSE }, // top front
+                                                                                 }};
 
 const std::array< std::array< stencilDirection, 4 >, 4 > greenDownCellsAtVertex = {{
-                                                                             { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_FE }, // below front
-                                                                             { sd::VERTEX_C, sd::VERTEX_BS, sd::VERTEX_BSW, sd::VERTEX_BW }, // below back
-                                                                             { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_FNE, sd::VERTEX_N }, // top east
-                                                                             { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_FN, sd::VERTEX_NW }, // top west
-                                                                             }};
+                                                                                   { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_SE }, // below front
+                                                                                   { sd::VERTEX_C, sd::VERTEX_BN, sd::VERTEX_BNW, sd::VERTEX_NW }, // below back
+                                                                                   { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_TSE, sd::VERTEX_TC }, // top east
+                                                                                   { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_TS, sd::VERTEX_TW }, // top west
+                                                                                   }};
+
 
 const std::array< std::array< stencilDirection, 4 >, 24 > allCellsAtVertex = {{
                                                                         whiteUpCellsAtVertex[0], whiteUpCellsAtVertex[1], whiteUpCellsAtVertex[2], whiteUpCellsAtVertex[3],
