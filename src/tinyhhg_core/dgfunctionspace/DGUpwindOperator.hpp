@@ -62,7 +62,8 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             DGVertex::upwind< real_t >( level,
                                         vertex,
@@ -86,7 +87,8 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             DGEdge::upwind< real_t >( level,
                                       edge,
@@ -107,7 +109,8 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             DGFace::upwind< real_t >( level,
                                       face,

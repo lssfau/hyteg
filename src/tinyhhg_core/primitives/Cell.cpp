@@ -9,7 +9,7 @@ Cell::Cell( const PrimitiveID & primitiveID,
             const std::vector< PrimitiveID > & faceIDs,
             const std::array< Point3D, 4 >   & coordinates,
             const std::array< std::map< uint_t, uint_t >, 4 > & cellLocalVertexToFaceLocalVertexMaps ) :
-  Primitive( primitiveID ), coordinates_( coordinates ), faceLocalVertexToCellLocalVertexMaps_( cellLocalVertexToFaceLocalVertexMaps ), dofType_( DoFType::Inner )
+  Primitive( primitiveID ), coordinates_( coordinates ), faceLocalVertexToCellLocalVertexMaps_( cellLocalVertexToFaceLocalVertexMaps )
 {
   WALBERLA_ASSERT_EQUAL( vertexIDs.size(), 4, "Only tetrahedron cells are supported (number of vertices mismatches)." );
   WALBERLA_ASSERT_EQUAL( edgeIDs.size(),   6, "Only tetrahedron cells are supported (number of edges mismatches)." );

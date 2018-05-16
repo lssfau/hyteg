@@ -102,7 +102,8 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P
   for (auto& it : opr.getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
-    if (testFlag(vertex.getDoFType(), flag))
+    const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+    if (testFlag(vertexBC, flag))
     {
       saveVertexOperator(level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat);
     }
@@ -111,7 +112,8 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P
   for (auto& it : opr.getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag))
+    const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag))
     {
       saveEdgeOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
     }
@@ -120,7 +122,8 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P
   for (auto& it : opr.getStorage()->getFaces()) {
     Face& face = *it.second;
 
-    if (testFlag(face.type, flag))
+    const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag))
     {
       saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
     }

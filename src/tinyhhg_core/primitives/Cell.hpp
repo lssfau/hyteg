@@ -19,7 +19,7 @@ public:
   /// \param edgeIDs neighbor macro-edge IDs
   /// \param faceIDs neighbor macro-face IDs
   /// \param coordinates absolute coordinates of the four vertices of this macro-cell
-  /// \param cellLocalVertexToFaceLocalVertexMaps Maps for each face of the macro-cell that map the local vertex ID (one of 0, 1, 2) of the face
+  /// \param faceLocalVertexToCellLocalVertexMaps Maps for each face of the macro-cell that map the local vertex ID (one of 0, 1, 2) of the face
   ///                                             to the corresponding local vertex ID (one of 0, 1, 2, 3) of the respective neighboring macro-cell. \n
   ///                                             Refer to the documentation for detailed illustrations of that mapping.
   Cell( const PrimitiveID                & primitiveID,
@@ -49,7 +49,6 @@ public:
   }
 
   const std::array< Point3D, 4 > &                    getCoordinates()                             const { return coordinates_; }
-  const DoFType                  &                     getDoFType()                                const { return dofType_; }
   const std::array< std::map< uint_t, uint_t >, 4 > & getFaceLocalVertexToCellLocalVertexMaps()    const { return faceLocalVertexToCellLocalVertexMaps_; }
         uint_t                                        getLocalFaceID( const PrimitiveID & faceID ) const;
 
@@ -71,7 +70,6 @@ private:
 
   std::array< Point3D, 4 > coordinates_;
   std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps_;
-  DoFType dofType_;
 
 };
 

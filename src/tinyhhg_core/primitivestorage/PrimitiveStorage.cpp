@@ -24,7 +24,7 @@ namespace hhg {
 using walberla::uint_t;
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
-  primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), hasGlobalCells_( setupStorage.getNumberOfCells() )
+  primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
 {
   if ( setupStorage.getNumberOfPrimitives() < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
   {
@@ -1198,6 +1198,28 @@ void PrimitiveStorage::checkConsistency()
     WALBERLA_CHECK( !primitiveExistsInNeighborhood( id ), "Primitive that exists in neighborhood: " << id.getID() );
   }
 
+  // 11. If the mesh is 2D, we require that there are no cells
+  if ( !hasGlobalCells() )
+  {
+    WALBERLA_CHECK_EQUAL( getNumberOfLocalCells(), 0, "Inconsistency regarding the number of cell primitives." );
+  }
+
+  // 12. If the mesh is 3D, we require that each vertex, edge and face has at least one neighboring cell.
+  if ( hasGlobalCells() )
+  {
+    for ( auto it : getVertices() )
+    {
+      WALBERLA_CHECK_GREATER( it.second->getNumNeighborCells(), 0 );
+    }
+    for ( auto it : getEdges() )
+    {
+      WALBERLA_CHECK_GREATER( it.second->getNumNeighborCells(), 0 );
+    }
+    for ( auto it : getFaces() )
+    {
+      WALBERLA_CHECK_GREATER( it.second->getNumNeighborCells(), 0 );
+    }
+  }
 }
 
 

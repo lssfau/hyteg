@@ -32,7 +32,7 @@ public:
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
 
-  void toStream( std::ostream & os ) const;
+  void toStream( std::ostream & os, bool verbose = false ) const;
 
   uint_t getNumberOfProcesses() const { return numberOfProcesses_; }
   uint_t getNumberOfEmptyProcesses() const;
@@ -90,6 +90,12 @@ public:
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
 
   void setGeometryMap( const PrimitiveID & primitiveID, const std::shared_ptr<GeometryMap>& map) { getPrimitive(primitiveID)->geometryMap_ = map; }
+
+  void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }
+
+  /// Returns true, if the primitive lies on the boundary.
+  /// Currently, primitives of the highest dimension (cells in 3D, faces in 2D) can also "lie on the boundary".
+  bool onBoundary( const PrimitiveID & primitiveID ) const;
 
 private:
 

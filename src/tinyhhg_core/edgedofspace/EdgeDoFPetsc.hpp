@@ -23,7 +23,8 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
   for (auto &it : function.getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag)) {
+    const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag)) {
       edgedof::macroedge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
     }
   }
@@ -31,7 +32,8 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
   for (auto &it : function.getStorage()->getFaces()) {
     Face &face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag)) {
       edgedof::macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
@@ -48,7 +50,8 @@ inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
   for (auto &it : function.getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag)) {
+    const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag)) {
       edgedof::macroedge::createFunctionFromVector<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
     }
   }
@@ -59,7 +62,8 @@ inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
   for (auto &it : function.getStorage()->getFaces()) {
     Face &face = *it.second;
 
-    if (testFlag(face.type, flag)) {
+    const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag)) {
       edgedof::macroface::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
@@ -70,7 +74,8 @@ inline void applyDirichletBC(EdgeDoFFunction<PetscInt> &numerator, std::vector<P
   for (auto &it : numerator.getStorage()->getEdges()) {
     Edge &edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), DirichletBoundary)) {
+    const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, DirichletBoundary)) {
       edgedof::macroedge::applyDirichletBC(level, edge, mat, numerator.getEdgeDataID());
     }
   }
@@ -165,7 +170,8 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, E
   for (auto& it : opr.getStorage()->getEdges()) {
     Edge& edge = *it.second;
 
-    if (testFlag(edge.getDoFType(), flag))
+    const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if (testFlag(edgeBC, flag))
     {
       saveEdgeOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
     }
@@ -174,7 +180,8 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, E
   for (auto& it : opr.getStorage()->getFaces()) {
     Face& face = *it.second;
 
-    if (testFlag(face.type, flag))
+    const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, flag))
     {
       saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
     }

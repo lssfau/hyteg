@@ -29,7 +29,7 @@ void MeshInfo::addEdge( const Edge & edge )
 
   if (edges_.count( sortedVertexIDs ) == 0)
   {
-    edges_[ sortedVertexIDs ] = Edge( sortedVertexIDs, edge.getDoFType() );
+    edges_[ sortedVertexIDs ] = Edge( sortedVertexIDs, edge.getBoundaryFlag() );
   }
 }
 
@@ -44,7 +44,7 @@ void MeshInfo::addFace( const Face & face )
 
   if ( faces_.count( sortedVertexIDs ) == 0 )
   {
-    faces_[ sortedVertexIDs ] = Face( sortedVertexIDs, face.getDoFType() );
+    faces_[ sortedVertexIDs ] = Face( sortedVertexIDs, face.getBoundaryFlag() );
   }
 
 }

@@ -95,9 +95,8 @@ using walberla::real_t;
   \endhtmlonly
 */
 ///
-/// \note The inline mesh generators currently set all vertex and edge primitives on the domain boundary to
-///       **DoFType DirichletBoundary** and those inside the domain, and of course all face primitives, to
-///       **DoFType Inner**.
+/// \note The inline mesh generators currently set all vertex and edge primitives' boundary flags on the domain boundary to
+///       1 and those inside the domain, and of course all face primitives, to 0
 class MeshInfo
 {
 public:
@@ -109,67 +108,67 @@ public:
   class Vertex
   {
   public:
-    Vertex() : id_( 0 ), coordinates_( Point3D() ), dofType_( Inner ) {};
-    Vertex( const IDType & id, const Point3D & coordinates, const DoFType & dofType ) :
-      id_( id ), coordinates_( coordinates ), dofType_( dofType )
+    Vertex() : id_( 0 ), coordinates_( Point3D() ), boundaryFlag_( 0 ) {};
+    Vertex( const IDType & id, const Point3D & coordinates, const uint_t & boundaryFlag ) :
+      id_( id ), coordinates_( coordinates ), boundaryFlag_( boundaryFlag )
     {}
 
-    IDType  getID()          const { return id_; }
-    const Point3D getCoordinates() const { return coordinates_; }
-    DoFType getDoFType()     const { return dofType_; }
+    IDType  getID()           const { return id_; }
+    Point3D getCoordinates()  const { return coordinates_; }
+    uint_t  getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     IDType  id_;
     Point3D coordinates_;
-    DoFType dofType_;
+    uint_t  boundaryFlag_;
   };
 
   class Edge
   {
   public:
-    Edge() : dofType_( Inner ) {};
-    Edge( const std::array< IDType, 2 > & vertices, const DoFType & dofType ) :
-      vertices_( vertices ), dofType_( dofType )
+    Edge() : boundaryFlag_( 0 ) {};
+    Edge( const std::array< IDType, 2 > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
-    const std::array< IDType, 2 > getVertices() const { return vertices_; }
-    DoFType                 getDoFType()  const { return dofType_; }
+    std::array< IDType, 2 > getVertices()     const { return vertices_; }
+    uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     std::array< IDType, 2 > vertices_;
-    DoFType                 dofType_;
+    uint_t                  boundaryFlag_;
   };
 
   class Face
   {
   public:
-    Face() : dofType_( Inner ) {};
-    Face( const std::vector< IDType > & vertices, const DoFType & dofType ) :
-      vertices_( vertices ), dofType_( dofType )
+    Face() : boundaryFlag_( 0 ) {};
+    Face( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
-    const std::vector< IDType > getVertices() const { return vertices_; }
-    DoFType               getDoFType()  const { return dofType_; }
+    std::vector< IDType > getVertices()     const { return vertices_; }
+    uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     std::vector< IDType > vertices_;
-    DoFType               dofType_;
+    uint_t                boundaryFlag_;
   };
 
   class Cell
   {
   public:
-    Cell() : dofType_( Inner ) {};
-    Cell( const std::vector< IDType > & vertices, const DoFType & dofType ) :
-      vertices_( vertices ), dofType_( dofType )
+    Cell() : boundaryFlag_( 0 ) {};
+    Cell( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
+      vertices_( vertices ), boundaryFlag_( boundaryFlag )
     {}
 
-    const std::vector< IDType > getVertices() const { return vertices_; }
-    DoFType               getDoFType()  const { return dofType_; }
+    std::vector< IDType > getVertices()     const { return vertices_; }
+    uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
   private:
     std::vector< IDType > vertices_;
-    DoFType               dofType_;
+    uint_t                boundaryFlag_;
   };
 
 

@@ -34,20 +34,20 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
   auto splitCellCriss = [ rectMap ]( uint_t i, uint_t j, MeshInfo &meshInfo )
     {
       // lower triangle
-      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j ), rectMap( i, j+1 ) }, Inner ) );
+      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j ), rectMap( i, j+1 ) }, 0 ) );
 
       // upper triangle
-      meshInfo.addFace( Face( { rectMap( i+1, j ), rectMap( i+1, j+1 ), rectMap( i, j+1 ) }, Inner ) );
+      meshInfo.addFace( Face( { rectMap( i+1, j ), rectMap( i+1, j+1 ), rectMap( i, j+1 ) }, 0 ) );
     };
 
   // split cell in cross-wise fashion
   auto splitCellCross = [ rectMap ]( uint_t i, uint_t j, MeshInfo &meshInfo )
     {
       // lower triangle
-      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j ), rectMap( i+1, j+1 ) }, Inner ) );
+      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j ), rectMap( i+1, j+1 ) }, 0 ) );
 
       // upper triangle
-      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j+1 ), rectMap( i, j+1 ) }, Inner ) );
+      meshInfo.addFace( Face( { rectMap( i, j ), rectMap( i+1, j+1 ), rectMap( i, j+1 ) }, 0 ) );
     };
 
   MeshInfo meshInfo;
@@ -83,7 +83,7 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
           id = rectMap(i,j);
           node[0] = llx + (real_t)i * hx;
           node[1] = lly + (real_t)j * hy;
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), Inner );
+          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
         }
     }
 
@@ -93,13 +93,13 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
       id = rectMap(i,0);
       node[0] = llx + (real_t)i * hx;
       node[1] = lly;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
 
       // nodes on upper boundary
       id = rectMap(i,ny);
       node[0] = llx + (real_t)i * hx;
       node[1] = ury;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
     }
 
   for ( uint_t j = 1; j < ny; ++j )
@@ -108,32 +108,32 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
       id = rectMap(0,j);
       node[0] = llx;
       node[1] = lly + (real_t)j * hy;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
 
       // nodes on upper boundary
       id = rectMap(nx,j);
       node[0] = urx;
       node[1] = lly + (real_t)j * hy;
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
     }
 
   // four corners
   id = rectMap(0,0);
   node[0] = llx;
   node[1] = lly;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
   id = rectMap(nx,0);
   node[0] = urx;
   node[1] = lly;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
   id = rectMap(nx,ny);
   node[0] = urx;
   node[1] = ury;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
   id = rectMap(0,ny);
   node[0] = llx;
   node[1] = ury;
-  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+  meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
 
   // --------------------
   //  generate triangles
@@ -178,12 +178,12 @@ MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRi
                 // add new central vertex
                 midx = llx + ( (real_t)i + 0.5 ) * hx;
                 midy = lly + ( (real_t)j + 0.5 ) * hy;
-                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, 0.0 } ), Inner );
+                meshInfo.vertices_[idx] = MeshInfo::Vertex( idx, Point3D( { midx, midy, 0.0 } ), 0 );
 
-                meshInfo.addFace( Face( { rectMap(  i ,  j  ), idx, rectMap( i+1,  j  ) }, Inner ) );
-                meshInfo.addFace( Face( { rectMap( i+1,  j  ), idx, rectMap( i+1, j+1 ) }, Inner ) );
-                meshInfo.addFace( Face( { rectMap( i+1, j+1 ), idx, rectMap(  i , j+1 ) }, Inner ) );
-                meshInfo.addFace( Face( { rectMap(  i , j+1 ), idx, rectMap(  i ,  j  ) }, Inner ) );
+                meshInfo.addFace( Face( { rectMap(  i ,  j  ), idx, rectMap( i+1,  j  ) }, 0 ) );
+                meshInfo.addFace( Face( { rectMap( i+1,  j  ), idx, rectMap( i+1, j+1 ) }, 0 ) );
+                meshInfo.addFace( Face( { rectMap( i+1, j+1 ), idx, rectMap(  i , j+1 ) }, 0 ) );
+                meshInfo.addFace( Face( { rectMap(  i , j+1 ), idx, rectMap(  i ,  j  ) }, 0 ) );
 
                 ++idx;
               }
@@ -237,7 +237,7 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
 
   IDType id = 0;
   int32_t i, j;
-  DoFType dofType;
+  uint_t boundaryFlag;
   std::array<real_t,3> node;
   node[2] = (real_t)0.0;
   std::map< std::array<int32_t,2>, IDType > indices2id;
@@ -247,10 +247,10 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
     {
       for ( i = j%2; i <= 2*nx - j%2; i += 2 )
         {
-          dofType = ( i == 0 || i == 2*nx || j == 0 || j == 2*ny ) ? DirichletBoundary : Inner;
+          boundaryFlag = ( i == 0 || i == 2*nx || j == 0 || j == 2*ny ) ? 1 : 0;
           node[0] = llx + (real_t)i * hx;
           node[1] = lly + (real_t)j * hy;
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), dofType );
+          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), boundaryFlag );
           indices2id.insert( { {i,j}, id } );
           ++id;
         }
@@ -279,13 +279,13 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
           iNode[0] = getIDX(  i ,  j  );
           iNode[1] = getIDX( i+2,  j  );
           iNode[2] = getIDX( i+1, j+1 );
-          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
           // from top: downward face
           iNode[0] = getIDX(  i , 2*ny-( j ) );
           iNode[1] = getIDX( i+2, 2*ny-( j ) );
           iNode[2] = getIDX( i+1, 2*ny-(j+1) );
-          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
           if( j > 0 )
             {
@@ -293,13 +293,13 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
               iNode[0] = getIDX(  i ,  j  );
               iNode[1] = getIDX( i+2,  j  );
               iNode[2] = getIDX( i+1, j-1 );
-              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
               // from top: upward face
               iNode[0] = getIDX(  i , 2*ny-( j ) );
               iNode[1] = getIDX( i+2, 2*ny-( j ) );
               iNode[2] = getIDX( i+1, 2*ny-(j-1) );
-              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
             }
         }
     }
@@ -313,13 +313,13 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
           iNode[0] = getIDX(  i ,  j  );
           iNode[1] = getIDX( i+1, j+1 );
           iNode[2] = getIDX(  i , j+2 );
-          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
           // from right: leftward face
           iNode[0] = getIDX( 2*nx-( i ),  j  );
           iNode[1] = getIDX( 2*nx-(i+1), j+1 );
           iNode[2] = getIDX( 2*nx-( i ), j+2 );
-          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+          meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
           if( i > 0 )
             {
@@ -327,13 +327,13 @@ MeshInfo MeshInfo::meshRectangleDiamond( const Point2D lowerLeft, const Point2D 
               iNode[0] = getIDX(  i ,  j  );
               iNode[1] = getIDX( i-1, j+1 );
               iNode[2] = getIDX(  i , j+2 );
-              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
 
               // from right: rightward face
               iNode[0] = getIDX( 2*nx-( i ),  j  );
               iNode[1] = getIDX( 2*nx-(i-1), j+1 );
               iNode[2] = getIDX( 2*nx-( i ), j+2 );
-              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, Inner ) );
+              meshInfo.addFace( Face( { iNode[0], iNode[1], iNode[2] }, 0 ) );
             }
         }
     }
@@ -351,7 +351,7 @@ void MeshInfo:: deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D
   MeshInfo::FaceContainer faces = this->getFaces();
   MeshInfo::VertexContainer verts = this->getVertices();
 
-  DoFType edgeType = Inner;
+  uint_t edgeBoundaryFlag = 0;
   Point3D vertexA, vertexB;
 
   real_t llX = lowerLeft[0];
@@ -397,18 +397,18 @@ void MeshInfo:: deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D
       // its vertices are
       vertexA = verts.find( fNode[0] )->second.getCoordinates();
       vertexB = verts.find( fNode[1] )->second.getCoordinates();
-      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
-      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeType ) );
+      edgeBoundaryFlag = edgeOnBoundary( vertexA, vertexB ) ? 1 : 0;
+      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeBoundaryFlag ) );
 
       vertexA = verts.find( fNode[0] )->second.getCoordinates();
       vertexB = verts.find( fNode[2] )->second.getCoordinates();
-      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
-      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeType ) );
+      edgeBoundaryFlag = edgeOnBoundary( vertexA, vertexB ) ? 1 : 0;
+      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeBoundaryFlag ) );
 
       vertexA = verts.find( fNode[1] )->second.getCoordinates();
       vertexB = verts.find( fNode[2] )->second.getCoordinates();
-      edgeType = edgeOnBoundary( vertexA, vertexB ) ? DirichletBoundary : Inner;
-      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeType ) );
+      edgeBoundaryFlag = edgeOnBoundary( vertexA, vertexB ) ? 1 : 0;
+      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeBoundaryFlag ) );
     }
 }
 

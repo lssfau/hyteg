@@ -43,9 +43,13 @@ int main(int argc, char* argv[])
    {
       Face& face = *it->second;
 
-      if( face.hasBoundaryEdge() )
+      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
+      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                      [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } );
+
+      if( neighborEdgesOnBoundary.size() > 0 )
       {
-         Edge& edge = *setupStorage.getEdge( face.edgesOnBoundary[0] );
+         Edge& edge = *setupStorage.getEdge( neighborEdgesOnBoundary[0] );
 
          if( ( edge.getCoordinates()[0] - circleCenter ).norm() < 0.4 )
          {

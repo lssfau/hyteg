@@ -18,11 +18,16 @@ template < typename ValueType >
 class P2Function : public Function< P2Function< ValueType > >
 {
  public:
-   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+
+    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel ) :
+      P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+    {}
+
+   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, BoundaryCondition boundaryCondition )
    : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
    , vertexDoFFunction_(
-         std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel ) )
-   , edgeDoFFunction_( std::make_shared< EdgeDoFFunction< ValueType > >( name + "_EdgeDoF", storage, minLevel, maxLevel ) )
+         std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+   , edgeDoFFunction_( std::make_shared< EdgeDoFFunction< ValueType > >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
    {
       for( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -107,6 +112,8 @@ class P2Function : public Function< P2Function< ValueType > >
                                  const uint_t&                                     level,
                                  const DoFType&                                    flag = All )
    {
+      // Note: 'this' is the dst function - therefore we test this' boundary conditions
+
       this->startTiming( "Prolongate P1 -> P2" );
 
       p1Function->getCommunicator( level )->template startCommunication< Vertex, Edge >();
@@ -116,7 +123,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::prolongateP1ToP2< ValueType >( level,
                                                             vertex,
@@ -132,7 +140,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::prolongateP1ToP2< ValueType >( level,
                                                           edge,
@@ -148,7 +157,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::prolongateP1ToP2< ValueType >( level,
                                                           face,
@@ -186,7 +196,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = p1Function->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictP2ToP1< ValueType >( level,
                                                           vertex,
@@ -206,7 +217,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = p1Function->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrictP2ToP1< ValueType >( level,
                                                         edge,
@@ -223,7 +235,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = p1Function->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrictP2ToP1< ValueType >( level,
                                                         face,
@@ -242,7 +255,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrictInjection< ValueType >(
                 sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
@@ -253,7 +267,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrictInjection< ValueType >(
                 sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
@@ -264,7 +279,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictInjection< ValueType >(
                 sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
@@ -307,7 +323,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::prolongate< ValueType >(
                 sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
@@ -318,7 +335,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::prolongate< ValueType >(
                 sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
@@ -329,7 +347,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::prolongate< ValueType >(
                 sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
@@ -346,7 +365,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrict< ValueType >(
                 sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
@@ -361,7 +381,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             P2::macroface::postRestrict< ValueType >(
                 sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
@@ -372,7 +393,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrict< ValueType >(
                 sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
@@ -384,7 +406,8 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictInjection< ValueType >(
                 sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
@@ -403,6 +426,12 @@ class P2Function : public Function< P2Function< ValueType > >
     return localMax;
   }
 
+  inline BoundaryCondition getBoundaryCondition() const
+  {
+     WALBERLA_ASSERT_EQUAL( vertexDoFFunction_->getBoundaryCondition(), edgeDoFFunction_->getBoundaryCondition(),
+                            "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" );
+     return vertexDoFFunction_->getBoundaryCondition();
+  }
 
  private:
    using Function< P2Function< ValueType > >::communicators_;

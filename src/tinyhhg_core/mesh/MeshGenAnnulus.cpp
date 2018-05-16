@@ -31,17 +31,17 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax,
   // map vertex coordinates to cartesian domain
   Point3D node;
   node[2] = 0.0;
-  DoFType dofType;
+  uint_t boundaryFlag;
   real_t rho, phi;
   for ( size_t id = 0; id < meshInfo.vertices_.size(); ++id )
     {
       node = meshInfo.vertices_[id].getCoordinates();
-      dofType = meshInfo.vertices_[id].getDoFType();
+      boundaryFlag = meshInfo.vertices_[id].getBoundaryFlag();
       rho = node[0];
       phi = node[1];
       node[0] = rho*std::cos(phi);
       node[1] = rho*std::sin(phi);
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), dofType );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), boundaryFlag );
     }
 
   return meshInfo;
@@ -76,7 +76,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
       // inner boundary
       node[0] = rhoMin * std::cos( (real_t)i * deltaPhi );
       node[1] = rhoMin * std::sin( (real_t)i * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
       indices2id.insert( { {i,0}, id } );
       ++id;
 
@@ -85,7 +85,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
         {
           node[0] = (rhoMin + (real_t)j * deltaRho) * std::cos( (real_t)i * deltaPhi );
           node[1] = (rhoMin + (real_t)j * deltaRho) * std::sin( (real_t)i * deltaPhi );
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), Inner );
+          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
           indices2id.insert( { {i,j}, id } );
           ++id;
         }
@@ -93,7 +93,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
       // outer boundary
       node[0] = rhoMax * std::cos( (real_t)i * deltaPhi );
       node[1] = rhoMax * std::sin( (real_t)i * deltaPhi );
-      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), DirichletBoundary );
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 1 );
       indices2id.insert( { {i,nRad}, id } );
       ++id;
     }
@@ -121,13 +121,13 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
           midRho = rhoMin + ( (real_t)j + 0.5 ) * deltaRho;
           node[0] = midRho * std::cos( midPhi );
           node[1] = midRho * std::sin( midPhi );
-          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), Inner );
+          meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), 0 );
 
           // add four sub-triangles of cell
-          meshInfo.addFace( Face( { getIDX( ( i )     ,  j  ), id, getIDX( (i+1)%nTan,  j  ) }, Inner ) );
-          meshInfo.addFace( Face( { getIDX( (i+1)%nTan,  j  ), id, getIDX( (i+1)%nTan, j+1 ) }, Inner ) );
-          meshInfo.addFace( Face( { getIDX( (i+1)%nTan, j+1 ), id, getIDX( ( i )     , j+1 ) }, Inner ) );
-          meshInfo.addFace( Face( { getIDX( ( i )     , j+1 ), id, getIDX( ( i )     ,  j  ) }, Inner ) );
+          meshInfo.addFace( Face( { getIDX( ( i )     ,  j  ), id, getIDX( (i+1)%nTan,  j  ) }, 0 ) );
+          meshInfo.addFace( Face( { getIDX( (i+1)%nTan,  j  ), id, getIDX( (i+1)%nTan, j+1 ) }, 0 ) );
+          meshInfo.addFace( Face( { getIDX( (i+1)%nTan, j+1 ), id, getIDX( ( i )     , j+1 ) }, 0 ) );
+          meshInfo.addFace( Face( { getIDX( ( i )     , j+1 ), id, getIDX( ( i )     ,  j  ) }, 0 ) );
           ++id;
         }
     }
@@ -146,7 +146,7 @@ void MeshInfo:: deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol )
   MeshInfo::FaceContainer faces = this->getFaces();
   MeshInfo::VertexContainer verts = this->getVertices();
 
-  DoFType edgeType = Inner;
+  uint_t edgeBoundaryFlag = 0;
   Point3D node1, node2;
   real_t radius1, radius2;
 
@@ -156,51 +156,51 @@ void MeshInfo:: deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol )
       std::vector<IDType> fNode = it.second.getVertices();
 
       // determine their position w.r.t. the boundary
-      std::vector<DoFType> dT( 3 );
-      dT[0] = verts.find( fNode[0] )->second.getDoFType();
-      dT[1] = verts.find( fNode[1] )->second.getDoFType();
-      dT[2] = verts.find( fNode[2] )->second.getDoFType();
+      std::vector< uint_t > meshBoundaryFlags( 3 );
+      meshBoundaryFlags[0] = verts.find( fNode[0] )->second.getBoundaryFlag();
+      meshBoundaryFlags[1] = verts.find( fNode[1] )->second.getBoundaryFlag();
+      meshBoundaryFlags[2] = verts.find( fNode[2] )->second.getBoundaryFlag();
 
       // set the three edges of triangle, edge is on boundary, if both
       // its vertices are
-      edgeType = Inner;
-      if( dT[0] == DirichletBoundary && dT[1] == DirichletBoundary )
+      edgeBoundaryFlag = 0;
+      if( meshBoundaryFlags[0] == 1 && meshBoundaryFlags[1] == 1 )
         {
           radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
           radius2 = verts.find( fNode[1] )->second.getCoordinates().norm();
           if( (radius1 < minTol && radius2 < minTol) ||
               (radius1 > maxTol && radius2 < maxTol) )
             {
-              edgeType = DirichletBoundary;
+              edgeBoundaryFlag = 1;
             }
         }
-      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeType ) );
+      this->addEdge( Edge( { fNode[0], fNode[1] }, edgeBoundaryFlag ) );
 
-      edgeType = Inner;
-      if( dT[0] == DirichletBoundary && dT[2] == DirichletBoundary )
+      edgeBoundaryFlag = 0;
+      if( meshBoundaryFlags[0] == 1 && meshBoundaryFlags[2] == 1 )
         {
           radius1 = verts.find( fNode[0] )->second.getCoordinates().norm();
           radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
           if( (radius1 < minTol && radius2 < minTol) ||
               (radius1 > maxTol && radius2 < maxTol) )
             {
-              edgeType = DirichletBoundary;
+              edgeBoundaryFlag = 1;
             }
         }
-      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeType ) );
+      this->addEdge( Edge( { fNode[0], fNode[2] }, edgeBoundaryFlag ) );
 
-      edgeType = Inner;
-      if( dT[1] == DirichletBoundary && dT[2] == DirichletBoundary )
+      edgeBoundaryFlag = 0;
+      if( meshBoundaryFlags[1] == 1 && meshBoundaryFlags[2] == 1 )
         {
           radius1 = verts.find( fNode[1] )->second.getCoordinates().norm();
           radius2 = verts.find( fNode[2] )->second.getCoordinates().norm();
           if( (radius1 < minTol && radius2 < minTol) ||
               (radius1 > maxTol && radius2 < maxTol) )
             {
-              edgeType = DirichletBoundary;
+              edgeBoundaryFlag = 1;
             }
         }
-      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeType ) );
+      this->addEdge( Edge( { fNode[1], fNode[2] }, edgeBoundaryFlag ) );
     }
 }
 

@@ -90,6 +90,7 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
     // parallel cell data
     pvtu_file << "    <PCellData>\n";
     pvtu_file << "      <PDataArray type=\"UInt32\" Name=\"rank\"/>\n";
+    pvtu_file << "      <PDataArray type=\"UInt32\" Name=\"meshBoundaryFlag\"/>\n";
     pvtu_file << "    </PCellData>\n";
 
     // assemble files
@@ -215,9 +216,16 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
 
   vtu_file << "        <CellData>\n";
   vtu_file << "          <DataArray type=\"UInt32\" Name=\"rank\">\n";
-  for ( uint_t primitive = 1; primitive <= numLocalPrimitives; primitive++ )
+  for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
   {
     vtu_file << "            " << rank << "\n";
+  }
+  vtu_file << "          </DataArray>\n";
+
+  vtu_file << "          <DataArray type=\"UInt32\" Name=\"meshBoundaryFlag\">\n";
+  for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+  {
+    vtu_file << "            " << storage->getPrimitive( primitiveIDs[primitive] )->getMeshBoundaryFlag() << "\n";
   }
   vtu_file << "          </DataArray>\n";
   vtu_file << "        </CellData>\n";

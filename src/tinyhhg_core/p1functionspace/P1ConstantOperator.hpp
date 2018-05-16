@@ -376,7 +376,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             vertexdof::macrovertex::apply< real_t >(
                 vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType );
@@ -392,7 +393,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             vertexdof::macroedge::apply< real_t >(
                 level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
@@ -410,7 +412,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             vertexdof::macroface::apply< real_t >(
                 level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
@@ -422,7 +425,9 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       for( const auto& it : storage_->getCells() )
       {
         Cell& cell = *it.second;
-        if ( testFlag( cell.getDoFType(), flag ) )
+
+        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+        if ( testFlag( cellBC, flag ) )
         {
           vertexdof::macrocell::apply< real_t >(
           level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
@@ -445,7 +450,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             vertexdof::macrovertex::smooth_gs< real_t >( vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
          }
@@ -460,7 +466,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             vertexdof::macroedge::smooth_gs< real_t >( level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID() );
          }
@@ -474,7 +481,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
          }
@@ -498,7 +506,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             vertexdof::macrovertex::smooth_sor(
                 vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level, relax );
@@ -514,7 +523,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             vertexdof::macroedge::smooth_sor< real_t >(
                 level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax );
@@ -529,7 +539,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             vertexdof::macroface::smooth_sor< real_t >(
                 level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
@@ -558,7 +569,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( vertex.getDoFType(), flag ) )
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if( testFlag( vertexBC, flag ) )
          {
             vertexdof::macrovertex::smooth_jac(
                 vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level );
@@ -574,7 +586,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Edge& edge = *it.second;
 
-         if( testFlag( edge.getDoFType(), flag ) )
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if( testFlag( edgeBC, flag ) )
          {
             vertexdof::macroedge::smooth_jac< real_t >(
                 level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID() );
@@ -589,7 +602,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
          Face& face = *it.second;
 
-         if( testFlag( face.type, flag ) )
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if( testFlag( faceBC, flag ) )
          {
             vertexdof::macroface::smooth_jac< real_t >(
                 level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID() );
