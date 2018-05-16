@@ -61,10 +61,10 @@ static void testVertexDoFStencilAssembly()
       WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_W )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_E )] );
       WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_N )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_S )] );
       WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_NW )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_SE )] );
-      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BC )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_FC )] );
-      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BW )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_FE )] );
-      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BS )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_FN )] );
-      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BSW )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_FNE )] );
+      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_TC )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BC )] );
+      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_TW )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BE )] );
+      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_TS )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BN )] );
+      WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_TSE )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BNW )] );
     }
   }
 }

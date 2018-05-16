@@ -17,15 +17,15 @@ enum class stencilDirection : uint_t {
   VERTEX_W,
   VERTEX_SW,
 
-  VERTEX_BC,
-  VERTEX_BW,
-  VERTEX_BS,
-  VERTEX_BSW,
+  VERTEX_TC,
+  VERTEX_TW,
+  VERTEX_TS,
+  VERTEX_TSE,
 
-  VERTEX_FC,
-  VERTEX_FE,
-  VERTEX_FN,
-  VERTEX_FNE,
+  VERTEX_BC,
+  VERTEX_BE,
+  VERTEX_BN,
+  VERTEX_BNW,
 
   CELL_BLUE_C,
   CELL_BLUE_S,

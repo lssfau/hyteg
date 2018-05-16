@@ -241,45 +241,45 @@ inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID< Stenc
 
         if ( face.getNumNeighborCells() == 1 )
         {
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC )]
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BS )]
+                                                                      stencilDirection::VERTEX_TC )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BSW )]
+                                                                      stencilDirection::VERTEX_TS )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BSW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BW )]
+                                                                      stencilDirection::VERTEX_TSE )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BW )];
+                                                                      stencilDirection::VERTEX_TW )];
         }
         else if ( face.getNumNeighborCells() == 2 )
         {
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TC )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TS )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TSE )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TW )];
             tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
                                                                       stencilDirection::VERTEX_BC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BS )]
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BN )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BSW )]
+                                                                      stencilDirection::VERTEX_BN )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BNW )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BSW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BW )]
+                                                                      stencilDirection::VERTEX_BNW )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BE )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FC )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FN )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FN )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FNE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FNE )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FE )];
+                                                                      stencilDirection::VERTEX_BE )];
         }
 
         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
@@ -311,45 +311,45 @@ inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID< Stenc
 
         if ( face.getNumNeighborCells() == 1 )
         {
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC )]
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BS )]
+                                                                      stencilDirection::VERTEX_TC )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BSW )]
+                                                                      stencilDirection::VERTEX_TS )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BSW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BW )]
+                                                                      stencilDirection::VERTEX_TSE )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BW )];
+                                                                      stencilDirection::VERTEX_TW )];
         }
         else if ( face.getNumNeighborCells() == 2 )
         {
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TC )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TS )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TSE )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
+                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                                      stencilDirection::VERTEX_TW )];
             tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
                                                                       stencilDirection::VERTEX_BC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BS )]
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BN )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BSW )]
+                                                                      stencilDirection::VERTEX_BN )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BNW )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BSW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BW )]
+                                                                      stencilDirection::VERTEX_BNW )];
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BE )]
                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FC )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FN )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FN )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FNE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FNE )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_FE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_FE )];
+                                                                      stencilDirection::VERTEX_BE )];
         }
 
         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
