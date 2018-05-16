@@ -147,7 +147,7 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 1
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
   cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
 
   edgeLocalVertices.insert( edge1->neighborVertices().at( 0 ).getID() );
@@ -160,8 +160,8 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 2
 
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
   cellLocalVertices.insert( cell->neighborVertices().at( 2 ).getID() );
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
 
   edgeLocalVertices.insert( edge2->neighborVertices().at( 0 ).getID() );
   edgeLocalVertices.insert( edge2->neighborVertices().at( 1 ).getID() );
@@ -173,7 +173,7 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 3
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
   cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
 
   edgeLocalVertices.insert( edge3->neighborVertices().at( 0 ).getID() );
@@ -186,7 +186,7 @@ static void testPrimitiveRelativeOrdering()
 
   // Cell-local edge 4
 
-  cellLocalVertices.insert( cell->neighborVertices().at( 0 ).getID() );
+  cellLocalVertices.insert( cell->neighborVertices().at( 1 ).getID() );
   cellLocalVertices.insert( cell->neighborVertices().at( 3 ).getID() );
 
   edgeLocalVertices.insert( edge4->neighborVertices().at( 0 ).getID() );
