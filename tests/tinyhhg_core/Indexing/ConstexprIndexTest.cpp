@@ -1,66 +1,61 @@
 
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
-#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
-#include "tinyhhg_core/bubblefunctionspace/BubbleEdgeIndex.hpp"
-#include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
+#include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
 typedef size_t uint_t;
+using namespace hhg;
 
 constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
   uint_t sum = 0;
-  for(uint_t i = 0; i < hhg::vertexdof::macroface::neighborsWithCenter.size(); ++i)
+  for(uint_t i = 0; i < vertexdof::macroface::neighborsWithCenter.size(); ++i)
   {
-    sum += hhg::vertexdof::macroface::indexFromVertex( 3, x, y,
-                                                            hhg::vertexdof::macroface::neighborsWithCenter[i] );
+    sum += vertexdof::macroface::indexFromVertex( 3, x, y,
+                                                  vertexdof::macroface::neighborsWithCenter[i] );
   }
   return sum;
 }
 
 constexpr size_t sumIndicesEdge(const uint_t x){
   uint_t sum = 0;
-  for(uint_t i = 0; i < hhg::vertexdof::macroedge::neighborsWithCenter.size(); ++i)
+  for(uint_t i = 0; i < vertexdof::macroedge::neighborsWithCenter.size(); ++i)
   {
-    sum += hhg::vertexdof::macroedge::indexFromVertex( 3, x, hhg::vertexdof::macroedge::neighborsWithCenter[i] );
+    sum += vertexdof::macroedge::indexFromVertex( 3, x, vertexdof::macroedge::neighborsWithCenter[i] );
   }
   return sum;
 }
 
 constexpr size_t sumBubbleFaceIndices(const uint_t x, const uint_t y){
-  using namespace hhg::BubbleFace;
   uint_t sum = 0;
-  for(uint_t i = 0; i < neighbors.size(); ++i)
+  for(uint_t i = 0; i < facedof::macroface::neighbors.size(); ++i)
   {
-    sum += indexFaceFromVertex( 3, x, y, neighbors[i] );
+    sum += facedof::macroface::indexFaceFromVertex( 3, x, y, facedof::macroface::neighbors[i] );
   }
   return sum;
 }
 
 constexpr size_t sumBubbleEdgeIndices(const uint_t x){
-  using namespace hhg::BubbleEdge;
   uint_t sum = 0;
-  for(uint_t i = 0; i < neighbors.size(); ++i)
+  for(uint_t i = 0; i < facedof::macroedge::neighbors.size(); ++i)
   {
-    sum += indexFaceFromVertex( 3, x, neighbors[i]);
+    sum += facedof::macroedge::indexFaceFromVertex( 3, x, facedof::macroedge::neighbors[i]);
   }
   return sum;
 }
 
 constexpr size_t sumGrayDGFaceIndices(const uint_t x, const uint_t y){
-  using namespace hhg::DGFace;
   uint_t sum = 0;
-  for(uint_t i = 0; i < grayDGfaceneighbors.size(); ++i)
+  for(uint_t i = 0; i < facedof::macroface::grayFaceNeighbors.size(); ++i)
   {
-    sum += indexDGFaceFromGrayDGface( 3, x, y, grayDGfaceneighbors[i] );
+    sum += facedof::macroface::indexFaceFromGrayFace( 3, x, y, facedof::macroface::grayFaceNeighbors[i] );
   }
   return sum;
 }
 
 constexpr size_t sumBlueDGFaceIndices(const uint_t x, const uint_t y){
-  using namespace hhg::DGFace;
   uint_t sum = 0;
-  for(uint_t i = 0; i < blueDGfaceneighbors.size(); ++i)
+  for(uint_t i = 0; i < facedof::macroface::blueFaceNeighbors.size(); ++i)
   {
-    sum += indexDGFaceFromBlueDGface( 3, x, y, blueDGfaceneighbors[i] );
+    sum += facedof::macroface::indexFaceFromBlueFace( 3, x, y, facedof::macroface::blueFaceNeighbors[i] );
   }
   return sum;
 }
@@ -68,23 +63,27 @@ constexpr size_t sumBlueDGFaceIndices(const uint_t x, const uint_t y){
 int main() {
   std::vector<size_t> refOneOne = {10, 1, 2, 11, 18, 17, 9};
 
-  static_assert( hhg::BubbleFace::indexFaceFromVertex( 3, 1, 1, hhg::stencilDirection::CELL_GRAY_SE ) == 1, "BubbleFace Index failed");
+  static_assert( facedof::macroface::indexFaceFromVertex( 3, 1, 1, stencilDirection::CELL_GRAY_SE ) == 1,
+                 "facedof::macroface::indexFaceFromVertex() failed");
   static_assert(sumBubbleFaceIndices(4,2)==194,"BubbleEdge sum failed");
 
-  static_assert( hhg::BubbleEdge::indexFaceFromVertex( 3, 4, hhg::stencilDirection::CELL_GRAY_SE ) == 8, "BubbleEdge Index failed");
+  static_assert( facedof::macroedge::indexFaceFromVertex( 3, 4, stencilDirection::CELL_GRAY_SE ) == 8,
+                 "facedof::macroedge::indexFaceFromVertex() failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
 
-  static_assert( hhg::vertexdof::macroedge::indexFromVertex( 3, 4, hhg::stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");
+  static_assert( vertexdof::macroedge::indexFromVertex( 3, 4, stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");
   static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
   static_assert(
-  hhg::vertexdof::macroface::indexFromVertex( 3, 1, 1, hhg::stencilDirection::VERTEX_C ) == 10, "P1Face Index failed");
+  vertexdof::macroface::indexFromVertex( 3, 1, 1, stencilDirection::VERTEX_C ) == 10, "P1Face Index failed");
   static_assert(sumIndicesFace(1, 1)==68,"P1Face Index sum failed");
 
-  static_assert( hhg::DGFace::indexDGFaceFromGrayDGface( 3, 2, 3, hhg::stencilDirection::CELL_BLUE_S ) == 51, "DGFace Index failed");
+  static_assert( facedof::macroface::indexFaceFromGrayFace( 3, 2, 3, stencilDirection::CELL_BLUE_S ) == 51,
+                 "facedof::macroface::indexFaceFromGrayFace() failed");
   static_assert(sumGrayDGFaceIndices(2, 4)==175,"P1Face Index sum failed");
 
-  static_assert( hhg::DGFace::indexDGFaceFromBlueDGface( 3, 5, 0, hhg::stencilDirection::CELL_GRAY_N ) == 13, "DGFace Index failed");
+  static_assert( facedof::macroface::indexFaceFromBlueFace( 3, 5, 0, stencilDirection::CELL_GRAY_N ) == 13,
+                 "facedof::macroface::indexFaceFromBlueFace() failed");
   static_assert(sumBlueDGFaceIndices(6, 0)==27,"P1Face Index sum failed");
 
 }
