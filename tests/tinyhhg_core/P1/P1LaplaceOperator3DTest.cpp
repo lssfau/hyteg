@@ -67,7 +67,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   hhg::P1Function< real_t > oneFunction( "oneFunction", storage, level, level );
 
   oneFunction.interpolate( one, level, DoFType::All );
-  const real_t numPoints  = oneFunction.dot( oneFunction, level, DoFType::Inner );
+  const real_t numPoints  = oneFunction.dotGlobal( oneFunction, level, DoFType::Inner );
 
   VTKOutput vtkOutput( "../../output", "P1LaplaceOperatorTest3D" );
   vtkOutput.set3D();
@@ -87,7 +87,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
     laplaceOperator3D.apply( u, result, level, DoFType::Inner );
 
     err.assign( { 1.0, -1.0 }, { &result, &resultExact }, level, DoFType::All );
-    const real_t discrL2Err = std::sqrt( err.dot( err, level, DoFType::Inner ) / numPoints );
+    const real_t discrL2Err = std::sqrt( err.dotGlobal( err, level, DoFType::Inner ) / numPoints );
 
     return discrL2Err;
   };

@@ -47,7 +47,7 @@ int main( int argc, char* argv[] )
    solver.solve( L, u, f, r, level, 1e-3, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
 
    L.apply( u, r, level, hhg::Inner | hhg::NeumannBoundary );
-   real_t final_residuum = std::sqrt( r.dot( r, level, hhg::Inner ) ) /
+   real_t final_residuum = std::sqrt( r.dotGlobal( r, level, hhg::Inner ) ) /
                            real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, level ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )

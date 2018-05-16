@@ -68,11 +68,12 @@ public:
     p.add(scalars, functions_p, level, flag);
   }
 
-  walberla::real_t dot(P2P1TaylorHoodFunction<ValueType>& rhs, size_t level, DoFType flag = All)
+  walberla::real_t dotGlobal(P2P1TaylorHoodFunction<ValueType>& rhs, size_t level, DoFType flag = All)
   {
-    walberla::real_t sum = u.dot(rhs.u, level, flag);
-    sum += v.dot(rhs.v, level, flag);
-    sum += p.dot(rhs.p, level, flag);
+    walberla::real_t sum = u.dotLocal(rhs.u, level, flag);
+    sum += v.dotLocal(rhs.v, level, flag);
+    sum += p.dotLocal(rhs.p, level, flag | DirichletBoundary);
+    walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
     return sum;
   }
 

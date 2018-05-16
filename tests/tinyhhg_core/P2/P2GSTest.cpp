@@ -65,7 +65,7 @@ int main( int argc, char* argv[] )
    /// calculate residuum and check
    L.apply( u, residuumFunction, level, hhg::Inner );
    residuumFunction.add( {-1}, {&rightHandSide}, level, hhg::Inner );
-   residuum = std::sqrt( residuumFunction.dot( residuumFunction, level, hhg::Inner ) );
+   residuum = std::sqrt( residuumFunction.dotGlobal( residuumFunction, level, hhg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "residual: = " << residuum );
    WALBERLA_DEBUG_SECTION() { WALBERLA_CHECK_GREATER( 0.2, residuum ); }
    else { WALBERLA_CHECK_GREATER( 1e-14, residuum ); }
@@ -73,8 +73,8 @@ int main( int argc, char* argv[] )
    /// calculate and print error
    error.assign( {1.0, -1.0}, {&u, &u_exact}, level );
    npoints_helper.interpolate( ones, level );
-   real_t npoints      = npoints_helper.dot( npoints_helper, level );
-   real_t discr_l2_err = std::sqrt( error.dot( error, level ) / npoints );
+   real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
+   real_t discr_l2_err = std::sqrt( error.dotGlobal( error, level ) / npoints );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
    //  walberla::WcTimingTree tt = timingTree->getReduced();

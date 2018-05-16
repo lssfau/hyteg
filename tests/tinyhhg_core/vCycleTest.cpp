@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
    x_exact.interpolate( zeros, maxLevel );
 
    tmp.interpolate( ones, maxLevel );
-   real_t npoints = tmp.dot( tmp, maxLevel );
+   real_t npoints = tmp.dotGlobal( tmp, maxLevel );
 
    auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
@@ -170,11 +170,11 @@ int main( int argc, char* argv[] )
    A.apply( x, ax, maxLevel, hhg::Inner );
    r.assign( {1.0, -1.0}, {&b, &ax}, maxLevel, hhg::Inner );
 
-   real_t begin_res   = std::sqrt( r.dot( r, maxLevel, hhg::Inner ) );
+   real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
    err.assign( {1.0, -1.0}, {&x, &x_exact}, maxLevel );
-   real_t discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
+   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    WALBERLA_LOG_INFO_ON_ROOT(
        hhg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
@@ -207,10 +207,10 @@ int main( int argc, char* argv[] )
       auto end = walberla::timing::getWcTime();
       A.apply( x, ax, maxLevel, hhg::Inner );
       r.assign( {1.0, -1.0}, {&b, &ax}, maxLevel, hhg::Inner );
-      real_t abs_res = std::sqrt( r.dot( r, maxLevel, hhg::Inner ) );
+      real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
       err.assign( {1.0, -1.0}, {&x, &x_exact}, maxLevel );
-      discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
+      discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
                                               i + 1,

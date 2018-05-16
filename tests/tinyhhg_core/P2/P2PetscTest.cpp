@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   hhg::P2ConstantLaplaceOperator L(storage, level, level);
   L.apply(ones, dst, level, hhg::All, hhg::Replace);
 
-  real_t sqSum = dst.dot(dst, level, hhg::All);
+  real_t sqSum = dst.dotGlobal(dst, level, hhg::All);
 
   // Check if row sum is zero
   WALBERLA_CHECK_LESS( sqSum, 1e-14 );

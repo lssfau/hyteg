@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
             hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
 
             r->assign( {1.0, -1.0}, {f.get(), r.get()}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            real_t residuum = std::sqrt( r->dot( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
+            real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
             WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum );
          }
       }

@@ -144,7 +144,7 @@ static void testP2BasicFunctions()
    // Dot
 
    timer["Dot"].start();
-   const real_t scalarProduct = y.dot( x, maxLevel, DoFType::All );
+   const real_t scalarProduct = y.dotGlobal( x, maxLevel, DoFType::All );
    timer["Dot"].end();
 
    uint_t totalPointsOnFace = levelinfo::num_microvertices_per_face( maxLevel ) + levelinfo::num_microedges_per_face( maxLevel );

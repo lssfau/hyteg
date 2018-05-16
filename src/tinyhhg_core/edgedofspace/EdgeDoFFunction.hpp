@@ -107,7 +107,7 @@ public:
                       DoFType flag = All);
 
   inline real_t
-  dot( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+  dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
@@ -300,10 +300,9 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
 }
 
 template< typename ValueType >
-inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   if ( isDummy() ) { return real_c(0); }
-  this->startTiming( "Dot" );
   real_t scalarProduct =  0.0 ;
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -326,8 +325,6 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
     }
   }
 
-  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 

@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
    real_t                         setupTime = end - start;
 
    npoints_helper.interpolate( ones, maxLevel );
-   real_t npoints = npoints_helper.dot( npoints_helper, maxLevel );
+   real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
    typedef hhg::CGSolver< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator > CoarseSolver;
    typedef P2toP2QuadraticRestriction                                                 RestrictionOperator;
@@ -142,11 +142,11 @@ int main( int argc, char* argv[] )
    L.apply( u, Lu, maxLevel, hhg::Inner );
    r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
 
-   real_t begin_res   = std::sqrt( r.dot( r, maxLevel, hhg::Inner ) );
+   real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
    err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
-   real_t discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
+   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -169,10 +169,10 @@ int main( int argc, char* argv[] )
 
       L.apply( u, Lu, maxLevel, hhg::Inner );
       r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
-      real_t abs_res = std::sqrt( r.dot( r, maxLevel, hhg::Inner ) );
+      real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
       err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
-      discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
+      discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
       WALBERLA_LOG_INFO_ON_ROOT( hhg::format(

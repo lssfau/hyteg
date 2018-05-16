@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
    std::function<real_t(const hhg::Point3D&)> zeros  = [](const hhg::Point3D&) { return 0.0; };
 
    helper->interpolate(ones, level);
-   real_t npoints = helper->dot(*helper, level);
+   real_t npoints = helper->dotGlobal(*helper, level);
 
    std::function<real_t(const hhg::Point3D&)> tmp_x = [&](const hhg::Point3D& x_) {
      return x_[0];
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
    err->assign({1.0, -1.0}, {u.get(), u_exact.get()}, level, hhg::All);
 
 
-   real_t discr_l2_err = std::sqrt(err->dot(*err, level) / npoints);
+   real_t discr_l2_err = std::sqrt(err->dotGlobal(*err, level) / npoints);
    WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
    VTKOutput vtkOutput("../output", "cg_P1_blending");
