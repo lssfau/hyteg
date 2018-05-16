@@ -27,6 +27,7 @@ int main( int argc, char* argv[] )
   const std::string meshFile        = "../../data/meshes/3D/tet_1el.msh";
   const real_t      tolerance       = 1e-16;
   const uint_t      maxIterations   = 10000;
+  const bool        writeVTK        = false;
 
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
@@ -86,6 +87,17 @@ int main( int argc, char* argv[] )
 
   WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
 
+  VTKOutput vtkOutput( "../../output", "P1CGConvergenceTest" );
+  vtkOutput.set3D();
+  vtkOutput.add( &u );
+  vtkOutput.add( &err );
+
+  if ( writeVTK )
+  {
+    vtkOutput.write( higherLevel, 0 );
+    vtkOutput.write( lowerLevel, 0 );
+  }
+
   solver.solve( laplaceOperator3D, u, f, res, lowerLevel,  tolerance, maxIterations, hhg::Inner, true );
   solver.solve( laplaceOperator3D, u, f, res, higherLevel, tolerance, maxIterations, hhg::Inner, true );
 
@@ -93,6 +105,12 @@ int main( int argc, char* argv[] )
   err.assign( {1.0, -1.0}, {&u, &uExact}, higherLevel );
   laplaceOperator3D.apply( u, res, lowerLevel,  DoFType::Inner );
   laplaceOperator3D.apply( u, res, higherLevel, DoFType::Inner );
+
+  if ( writeVTK )
+  {
+    vtkOutput.write( higherLevel, 1 );
+    vtkOutput.write( lowerLevel, 1 );
+  }
 
   const real_t discrL2ErrLowerLevel  = std::sqrt( err.dot( err, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
   const real_t discrL2ErrHigherLevel = std::sqrt( err.dot( err, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
@@ -103,12 +121,12 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
   WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );
 
-  WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.0e-17 );
-  WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 1.7e-17 );
+  WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.1e-17 );
+  WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 1.8e-17 );
 
   // L2 err higher level ~ 0.25 * L2 err lower level
-  WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 1.21e-06 );
-  WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 2.8e-07 );
+  WALBERLA_CHECK_LESS( discrL2ErrLowerLevel,  3.8e-06 );
+  WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 8.6e-07 );
 
   return 0;
 }

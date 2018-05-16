@@ -49,12 +49,12 @@ static void testVertexDofMacroCellIndexing()
   level2Center[ sd::VERTEX_TC ]  = 29;
   level2Center[ sd::VERTEX_TW ]  = 28;
   level2Center[ sd::VERTEX_TS ]  = 26;
-  level2Center[ sd::VERTEX_TSE ] = 25;
+  level2Center[ sd::VERTEX_TSE ] = 27;
 
   level2Center[ sd::VERTEX_BC ]  = 6;
   level2Center[ sd::VERTEX_BE ]  = 7;
   level2Center[ sd::VERTEX_BN ]  = 10;
-  level2Center[ sd::VERTEX_BNW ] = 11;
+  level2Center[ sd::VERTEX_BNW ] = 9;
 
   testNeighborhood2( Index( 1, 1, 1 ), level2Center );
 
@@ -72,37 +72,37 @@ static void testVertexDofMacroCellIndexing()
   level3FirstInner[ sd::VERTEX_TC ]  = 89;
   level3FirstInner[ sd::VERTEX_TW ]  = 88;
   level3FirstInner[ sd::VERTEX_TS ]  = 82;
-  level3FirstInner[ sd::VERTEX_TSE ] = 81;
+  level3FirstInner[ sd::VERTEX_TSE ] = 83;
 
   level3FirstInner[ sd::VERTEX_BC ]  = 10;
   level3FirstInner[ sd::VERTEX_BE ]  = 11;
   level3FirstInner[ sd::VERTEX_BN ]  = 18;
-  level3FirstInner[ sd::VERTEX_BNW ] = 19;
+  level3FirstInner[ sd::VERTEX_BNW ] = 17;
 
   testNeighborhood3( Index( 1, 1, 1 ), level3FirstInner );
 
   std::map< sd, uint_t > level3TopInner;
 
-  level3TopInner[ sd::VERTEX_C ]   = 76;
-  level3TopInner[ sd::VERTEX_E ]   = 77;
-  level3TopInner[ sd::VERTEX_W ]   = 75;
-  level3TopInner[ sd::VERTEX_N ]   = 79;
-  level3TopInner[ sd::VERTEX_S ]   = 72;
+  level3TopInner[ sd::VERTEX_C ]   = 150;
+  level3TopInner[ sd::VERTEX_E ]   = 151;
+  level3TopInner[ sd::VERTEX_W ]   = 149;
+  level3TopInner[ sd::VERTEX_N ]   = 153;
+  level3TopInner[ sd::VERTEX_S ]   = 146;
 
-  level3TopInner[ sd::VERTEX_NW ]  = 78;
-  level3TopInner[ sd::VERTEX_SE ]  = 73;
+  level3TopInner[ sd::VERTEX_NW ]  = 152;
+  level3TopInner[ sd::VERTEX_SE ]  = 147;
 
-  level3TopInner[ sd::VERTEX_TC ]  = 107;
-  level3TopInner[ sd::VERTEX_TW ]  = 106;
-  level3TopInner[ sd::VERTEX_TS ]  = 104;
-  level3TopInner[ sd::VERTEX_TSE ] = 103;
+  level3TopInner[ sd::VERTEX_TC ]  = 159;
+  level3TopInner[ sd::VERTEX_TW ]  = 158;
+  level3TopInner[ sd::VERTEX_TS ]  = 156;
+  level3TopInner[ sd::VERTEX_TSE ] = 157;
 
-  level3TopInner[ sd::VERTEX_BC ]  = 36;
-  level3TopInner[ sd::VERTEX_BE ]  = 37;
-  level3TopInner[ sd::VERTEX_BN ]  = 40;
-  level3TopInner[ sd::VERTEX_BNW ] = 41;
+  level3TopInner[ sd::VERTEX_BC ]  = 136;
+  level3TopInner[ sd::VERTEX_BE ]  = 137;
+  level3TopInner[ sd::VERTEX_BN ]  = 140;
+  level3TopInner[ sd::VERTEX_BNW ] = 139;
 
-  testNeighborhood3( Index( 1, 5, 1 ), level3TopInner );
+  testNeighborhood3( Index( 1, 1, 5 ), level3TopInner );
 }
 
 }

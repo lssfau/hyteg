@@ -372,7 +372,7 @@ inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x,
     case sD::VERTEX_TS:
       return index( level, x, y - 1, z + 1 );
     case sD::VERTEX_TSE:
-      return index( level, x - 1, y - 1, z + 1 );
+      return index( level, x + 1, y - 1, z + 1 );
     case sD::VERTEX_BC:
       return index( level, x, y, z - 1 );
     case sD::VERTEX_BN:
@@ -380,7 +380,7 @@ inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x,
     case sD::VERTEX_BE:
       return index( level, x + 1, y, z - 1 );
     case sD::VERTEX_BNW:
-      return index( level, x + 1, y + 1, z - 1 );
+      return index( level, x - 1, y + 1, z - 1 );
     default:
       return std::numeric_limits< uint_t >::max();
   }
@@ -466,7 +466,7 @@ inline indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirec
     case sD::VERTEX_TS:
       return indexing::IndexIncrement( 0, -1, 1 );
     case sD::VERTEX_TSE:
-      return indexing::IndexIncrement( -1, -1, 1 );
+      return indexing::IndexIncrement( 1, -1, 1 );
     case sD::VERTEX_BC:
       return indexing::IndexIncrement( 0, 0, -1 );
     case sD::VERTEX_BN:
@@ -474,7 +474,7 @@ inline indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirec
     case sD::VERTEX_BE:
       return indexing::IndexIncrement( 1, 0, -1 );
     case sD::VERTEX_BNW:
-      return indexing::IndexIncrement( 1, 1, -1 );
+      return indexing::IndexIncrement( -1, 1, -1 );
     default:
       WALBERLA_ASSERT( false, "Invalid stencil direction" );
       return indexing::IndexIncrement( std::numeric_limits< int >::max(),
