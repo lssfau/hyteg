@@ -73,7 +73,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    err.assign( {1.0, -1.0}, {&x, &x_exact}, Level );
 
-   real_t discr_l2_err = std::sqrt( err.dot( err, Level ) / (real_t) num );
+   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, Level ) / (real_t) num );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
