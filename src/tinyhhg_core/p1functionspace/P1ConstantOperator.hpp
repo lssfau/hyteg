@@ -136,7 +136,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
  private:
    void assembleStencils()
    {
-      using namespace P1Elements;
+      using namespace P1Elements::FaceVertexDoF;
       typedef stencilDirection sD;
 
       Matrix3r local_stiffness_gray;
@@ -152,16 +152,16 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             compute_local_stiffness( face, level, local_stiffness_gray, fenics::GRAY );
             compute_local_stiffness( face, level, local_stiffness_blue, fenics::BLUE );
 
-            for( uint_t i = 0; i < FaceVertexDoF::P1GrayElements.size(); ++i )
+            for( uint_t i = 0; i < P1GrayElements.size(); ++i )
             {
                assembleP1LocalStencil(
-                   FaceVertexDoF::P1GrayStencilMaps[i], FaceVertexDoF::P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
+                   P1GrayStencilMaps[i], P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
             }
 
-            for( uint_t i = 0; i < FaceVertexDoF::P1BlueElements.size(); ++i )
+            for( uint_t i = 0; i < P1BlueElements.size(); ++i )
             {
                assembleP1LocalStencil(
-                   FaceVertexDoF::P1BlueStencilMaps[i], FaceVertexDoF::P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
+                   P1BlueStencilMaps[i], P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
             }
 
             if( Lumped )
@@ -196,15 +196,15 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
             size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
 
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSW ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ),
                                     {{end_id, start_id, opposite_id}},
                                     local_stiffness_gray,
                                     edge_stencil );
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementS ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ),
                                     {{opposite_id, end_id, start_id}},
                                     local_stiffness_blue,
                                     edge_stencil );
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSE ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ),
                                     {{start_id, opposite_id, end_id}},
                                     local_stiffness_gray,
                                     edge_stencil );
@@ -220,15 +220,15 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
                size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
 
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNE ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ),
                                        {{start_id, end_id, opposite_id}},
                                        local_stiffness_gray,
                                        edge_stencil );
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementN ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ),
                                        {{opposite_id, start_id, end_id}},
                                        local_stiffness_blue,
                                        edge_stencil );
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNW ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ),
                                        {{end_id, opposite_id, start_id}},
                                        local_stiffness_gray,
                                        edge_stencil );

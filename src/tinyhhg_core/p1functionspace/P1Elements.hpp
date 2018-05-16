@@ -16,6 +16,7 @@ using walberla::real_t;
 using walberla::real_c;
 
 namespace P1Elements {
+namespace FaceVertexDoF {
 
 // Fenics P1 DoF ordering
 // 2       1---0
@@ -30,8 +31,6 @@ typedef stencilDirection SD;
 typedef std::array<SD, ElementSize> P1Element;
 typedef std::array<uint_t, ElementSize> DoFMap;
 typedef std::array<uint_t, ElementSize> StencilMap;
-
-namespace FaceVertexDoF {
 
 const P1Element elementSW = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S}};
 const P1Element elementS = {{SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE}};
@@ -90,7 +89,6 @@ static const std::array<DoFMap, 3> P1BlueDoFMaps =
          {{1, 2, 0}},
          {{2, 0, 1}}
      }};
-}
 
 inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
 {
@@ -99,11 +97,17 @@ inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
 
 template<typename StencilMemory>
 inline void assembleP1LocalStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix3r &localMatrix,
-                            StencilMemory &stencil, double coeffWeight = 1.0) {
+                                   StencilMemory &stencil, double coeffWeight = 1.0) {
   for (uint_t j = 0; j < 3; ++j) {
     stencil[stencilMap[j]] += coeffWeight * localMatrix(dofMap[0], dofMap[j]);
   }
 }
+
+}
+
+
+
+
 
 namespace CellVertexDoF {
 

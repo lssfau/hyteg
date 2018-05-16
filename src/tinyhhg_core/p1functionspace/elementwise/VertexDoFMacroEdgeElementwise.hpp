@@ -54,7 +54,7 @@ namespace hhg {
                                                std::vector<real_t>& edgeStencil )
       {
 
-        using namespace P1Elements;
+        using namespace P1Elements::FaceVertexDoF;
 
         typedef std::array< stencilDirection, 3 > Element;
         Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
