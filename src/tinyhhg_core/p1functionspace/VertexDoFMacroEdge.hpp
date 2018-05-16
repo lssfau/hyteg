@@ -5,7 +5,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
-#include "tinyhhg_core/dgfunctionspace/DGEdgeIndex.hpp"
+#include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 
@@ -636,33 +636,33 @@ inline void integrateDG(const uint_t & level, Edge &edge,
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
 
-    tmp = weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_GRAY_SW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i,
-                                                                                                                                                                                 sD::VERTEX_C )]
-                                                                                                                                    + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )] )
-                                                                                                                      + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                                                                                                                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ));
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_BLUE_SE )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                                                                                                                                     rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ) +
-                                                                                                      0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
-                                                                                                                    rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ));
-    tmp += weightedFaceArea0 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_GRAY_SE )] *
-           ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ) +
-             0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )] ));
+    tmp = weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_SW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i,
+                                                                                                                                                                        sD::VERTEX_C )]
+                                                                                                                           + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )] )
+                                                                                                             + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
+                                                                                                                             rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ));
+    tmp += weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_BLUE_SE )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
+                                                                                                                            rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_S )] ) +
+                                                                                                              0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] +
+                                                                                                                            rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ));
+    tmp += weightedFaceArea0 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_SE )] *
+      ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_SE )] ) +
+        0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )] ));
 
     if (edge.getNumNeighborFaces() == 2) {
 
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_GRAY_NW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                                       + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )])
-                                                                                                                         + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )]));
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_BLUE_NW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                                       + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )])
-                                                                                                                         + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )]));
-      tmp += weightedFaceArea1 * rhs[DGEdge::indexDGFaceFromVertex( level, i, sD::CELL_GRAY_NE )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                                       + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )])
-                                                                                                                         + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
-                                                                                                                   + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )]));
+      tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_NW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                              + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W )])
+                                                                                                                + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                                + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )]));
+      tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_BLUE_NW )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                              + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_NW )])
+                                                                                                                + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                                + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )]));
+      tmp += weightedFaceArea1 * rhs[facedof::macroedge::indexFaceFromVertex( level, i, sD::CELL_GRAY_NE )] * ( 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                              + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_N )])
+                                                                                                                + 0.5 * 0.5 * ( rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )]
+                                                                                                                                + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )]));
     }
 
     dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = tmp;

@@ -63,11 +63,11 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       } else {
         WALBERLA_CHECK(false, "vertex not on Edge");
       }
-      uint_t index = BubbleEdge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_SE );
+      uint_t index = facedof::macroedge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_SE );
       WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
       WALBERLA_CHECK_EQUAL(edgeData[index],
                            vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
-      index = BubbleEdge::indexFaceFromVertex(maxLevel,
+      index = facedof::macroedge::indexFaceFromVertex(maxLevel,
                                      pos == 0 ? pos + 1 : pos,
                                      stencilDirection::CELL_BLUE_SE );
       WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
@@ -75,11 +75,11 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
                            vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2 + 1]);
       numberOfChecks += 2;
       if(edge.getNumNeighborFaces() == 2){
-        index = BubbleEdge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_NE );
+        index = facedof::macroedge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_NE );
         WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
         WALBERLA_CHECK_EQUAL(edgeData[index],
                              vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2]);
-        index = BubbleEdge::indexFaceFromVertex(maxLevel,
+        index = facedof::macroedge::indexFaceFromVertex(maxLevel,
                                        pos == 0 ? pos + 1 : pos,
                                        stencilDirection::CELL_BLUE_NW );
         WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
@@ -116,11 +116,11 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
           WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_NE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_NE)], faceData[*it]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);
@@ -135,10 +135,10 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
                                              maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_NW)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_NW)], faceData[*it]);
           numberOfChecks++;
         } else{
           WALBERLA_CHECK(false);

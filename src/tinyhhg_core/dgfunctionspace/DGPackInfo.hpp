@@ -2,8 +2,6 @@
 
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "DGEdgeIndex.hpp"
-
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
 namespace hhg{
@@ -78,9 +76,9 @@ void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver)
   }
-  buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)];
+  buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)];
   if(receiver->getNumNeighborFaces() == 2){
-    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)];
+    buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)];
   }
 
 }
@@ -98,9 +96,9 @@ void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender << " is not in Edge: " << receiver)
   }
-  edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)] = vertexData[ sender->face_index(receiver->neighborFaces()[0]) * 2];
+  edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)] = vertexData[ sender->face_index(receiver->neighborFaces()[0]) * 2];
   if(receiver->getNumNeighborFaces() == 2){
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)] = vertexData[ sender->face_index(receiver->neighborFaces()[1]) * 2];
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)] = vertexData[ sender->face_index(receiver->neighborFaces()[1]) * 2];
   }
 }
 
@@ -117,9 +115,9 @@ void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Primit
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender)
   }
-  buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_SE)];
+  buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_SE)];
   if(sender-> getNumNeighborFaces() == 2){
-    buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_NW)];
+    buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_NW)];
   }
 }
 
@@ -144,10 +142,10 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, V
   }
   ValueType *vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
   vertexData[ receiver->face_index(sender->neighborFaces()[0]) * 2 + 1] =
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_SE)];;
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_SE)];;
   if(sender->getNumNeighborFaces() == 2){
     vertexData[ receiver->face_index(sender->neighborFaces()[1]) * 2 + 1] =
-      edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_NW)];
+      edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_NW)];
   }
 }
 
@@ -168,7 +166,7 @@ void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Primitiv
   }
   for (uint_t i = 0; i < vPerEdge - 1; ++i)
   {
-    buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellGray)];
+    buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,i,dirCellGray)];
   }
 }
 
@@ -206,7 +204,7 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
                                                   receiver->edge_orientation[edgeIndexOnFace],
                                                   CELL_GRAY, level_);
       it != facedof::macroface::indexIterator(); ++it){
-    faceData[*it] = edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellGray)];
+    faceData[*it] = edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,dirCellGray)];
     pos++;
   }
 }
@@ -242,7 +240,7 @@ void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
   //unpack Blue Cell
   for (uint_t i = 1; i < vPerEdge - 1; ++i)
   {
-    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellBlue)];
+    buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,i,dirCellBlue)];
   }
 }
 
@@ -269,7 +267,7 @@ void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edg
                                                   level_);
       it != facedof::macroface::indexIterator(); ++it)
   {
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellBlue)] = faceData[*it];
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,dirCellBlue)] = faceData[*it];
     pos++;
   }
 }
