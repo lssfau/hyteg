@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   real_t setupTime = end - start;
 
   npoints_helper_p2.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper_p2.dot(npoints_helper_p2, maxLevel);
+  real_t npoints = npoints_helper_p2.dotGlobal(npoints_helper_p2, maxLevel);
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
@@ -101,11 +101,11 @@ int main(int argc, char* argv[])
   L_p2.apply(u_p2, Lu_p2, maxLevel, hhg::Inner);
   r_p2.assign({1.0, -1.0}, {&f_p2, &Lu_p2}, maxLevel, hhg::Inner);
 
-  real_t begin_res = std::sqrt(r_p2.dot(r_p2, maxLevel, hhg::Inner));
+  real_t begin_res = std::sqrt(r_p2.dotGlobal(r_p2, maxLevel, hhg::Inner));
   real_t abs_res_old = begin_res;
 
   err_p2.assign({1.0, -1.0}, {&u_p2, &u_exact_p2}, maxLevel);
-  real_t discr_l2_err = std::sqrt(err_p2.dot(err_p2, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err_p2.dotGlobal(err_p2, maxLevel) / npoints);
 
   //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,0))
@@ -153,10 +153,10 @@ int main(int argc, char* argv[])
 
     L_p2.apply(u_p2, Lu_p2, maxLevel, hhg::Inner);
     r_p2.assign({1.0, -1.0}, { &f_p2, &Lu_p2 }, maxLevel, hhg::Inner);
-    real_t abs_res = std::sqrt(r_p2.dot(r_p2, maxLevel, hhg::Inner));
+    real_t abs_res = std::sqrt(r_p2.dotGlobal(r_p2, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;
     err_p2.assign({1.0, -1.0}, { &u_p2, &u_exact_p2 }, maxLevel);
-    discr_l2_err = std::sqrt(err_p2.dot(err_p2, maxLevel) / npoints);
+    discr_l2_err = std::sqrt(err_p2.dotGlobal(err_p2, maxLevel) / npoints);
 
     //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err,end - start))

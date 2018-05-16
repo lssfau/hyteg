@@ -44,7 +44,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
     {
       vecOfOnes.interpolate( ones, lvl, All );
       massOp.apply( vecOfOnes, aux, lvl, All );
-      real_t measure = vecOfOnes.dot( aux, lvl );
+      real_t measure = vecOfOnes.dotGlobal( aux, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": measure = " << std::scientific << measure );
       WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
     }

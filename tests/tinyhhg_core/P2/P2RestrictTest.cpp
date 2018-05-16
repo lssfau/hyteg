@@ -227,7 +227,7 @@ static void testP2InterpolateAndRestrict() {
 
   error.assign({1.0, -1.0}, {&x, &y}, sourceLevel - 3, hhg::All);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(error.dot(error,sourceLevel - 3,hhg::All),0.);
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,sourceLevel - 3,hhg::All),0.);
 }
 
 }/// namespace hhg

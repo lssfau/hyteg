@@ -60,7 +60,8 @@ public:
 
   inline void add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
-  inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
+  inline real_t dotLocal ( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+  inline real_t dotGlobal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
   inline void prolongate(uint_t sourceLevel, DoFType flag = All);
 
@@ -314,10 +315,23 @@ inline void VertexDoFFunction< ValueType >::add(const std::vector<ValueType> sca
   this->stopTiming( "Add" );
 }
 
+
 template< typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
+inline real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level,
+                                                         DoFType flag )
 {
   this->startTiming( "Dot" );
+  real_t scalarProduct = dotLocal( rhs, level, flag );
+  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+  this->stopTiming( "Dot" );
+  return scalarProduct;
+}
+
+
+template< typename ValueType >
+inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level,
+                                                        DoFType flag )
+{
   real_t scalarProduct = 0.0;
 
   for ( const auto & it : this->getStorage()->getVertices() )
@@ -359,9 +373,6 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
     }
   }
 
-  walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-
-  this->stopTiming( "Dot" );
   return scalarProduct;
 }
 
@@ -599,8 +610,8 @@ inline void projectMean(VertexDoFFunction<real_t>& pressure, VertexDoFFunction<r
 
   tmp.interpolate(ones, level);
 
-  real_t numGlobalVertices = tmp.dot(tmp, level, hhg::All);
-  real_t mean = pressure.dot(tmp, level, hhg::All);
+  real_t numGlobalVertices = tmp.dotGlobal(tmp, level, hhg::All);
+  real_t mean = pressure.dotGlobal(tmp, level, hhg::All);
 
   pressure.assign({1.0, -mean/numGlobalVertices}, {&pressure, &tmp}, level, hhg::All);
 }

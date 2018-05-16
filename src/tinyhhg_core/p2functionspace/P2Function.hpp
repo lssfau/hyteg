@@ -100,11 +100,20 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_->add( scalars, edgeDoFFunctions, level, flag );
    }
 
-   inline real_t dot( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+   inline real_t dotGlobal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+   {
+      this->startTiming( "Dot" );
+      real_t sum = dotLocal( rhs, level, flag );
+      walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+      this->stopTiming( "Dot" );
+      return sum;
+   }
+
+   inline real_t dotLocal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
    {
       real_t sum = real_c( 0 );
-      sum += vertexDoFFunction_->dot( *rhs.vertexDoFFunction_, level, flag );
-      sum += edgeDoFFunction_->dot( *rhs.edgeDoFFunction_, level, flag );
+      sum += vertexDoFFunction_->dotLocal( *rhs.vertexDoFFunction_, level, flag );
+      sum += edgeDoFFunction_->dotLocal( *rhs.edgeDoFFunction_, level, flag );
       return sum;
    }
 

@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 
   // compute initial residual and its norm
   lap.apply( u, res, maxLevel, hhg::Inner );
-  real_t res0 = std::sqrt( res.dot( res, maxLevel, hhg::Inner ) );
+  real_t res0 = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
   real_t resCycle = 0.0;
   bool mgConverged = false;
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
     solver.solve( lap, u, rhs, res, maxLevel, cgTol, 100, hhg::Inner, GMGSolver::CycleType::VCYCLE, true );
     lap.apply( u, res, maxLevel, hhg::Inner );
     // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hhg::Inner );
-    resCycle = std::sqrt( res.dot( res, maxLevel, hhg::Inner ) );
+    resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
     if( resCycle < mgTol ) {
       mgConverged = true;
       break;
@@ -157,17 +157,17 @@ int main(int argc, char* argv[])
   hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, maxLevel, maxLevel );
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
   npoints_helper.interpolate( ones, maxLevel );
-  real_t npoints = npoints_helper.dot( npoints_helper, maxLevel, hhg::All );
+  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::All );
 
   error.assign( {1.0, -1.0}, { &u_exact, &u }, maxLevel, hhg::All );
   // mass.apply( error, tmp, maxLevel, hhg::All );
-  // real_t errNorm = std::sqrt( error.dot( tmp, maxLevel, hhg::All ) );
-  real_t errNorm = std::sqrt( error.dot( error, maxLevel, hhg::All ) / npoints );
+  // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hhg::All ) );
+  real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) / npoints );
   real_t maxNorm = error.getMaxMagnitude( maxLevel );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: maxLevel = " << maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dot( npoints_helper, maxLevel, hhg::Inner ) );
+  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::Inner ) );
 
   // output data for visualisation
   if( outputVTK ) {

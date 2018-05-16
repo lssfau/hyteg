@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
 
   r->interpolate(ones, maxLevel);
-  uint_t npoints = (uint_t) r->dot(*r, maxLevel);
+  uint_t npoints = (uint_t) r->dotGlobal(*r, maxLevel);
   r->interpolate(zero, maxLevel);
 
   u->u.interpolate(rand, maxLevel, hhg::Inner);
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
 
-  real_t begin_res = std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+  real_t begin_res = std::sqrt(r->dotGlobal(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
   real_t abs_res_old = begin_res;
   real_t rel_res = 1.0;
 
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
     r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    real_t abs_res = std::sqrt(r->dot(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+    real_t abs_res = std::sqrt(r->dotGlobal(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
     rel_res = abs_res / begin_res;
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
     totalTime += end-start;

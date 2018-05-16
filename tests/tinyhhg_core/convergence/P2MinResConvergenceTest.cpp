@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
 
   npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
+  real_t npoints = npoints_helper.dotGlobal(npoints_helper, maxLevel);
 
-  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << std::scientific << discr_l2_err);
   WALBERLA_CHECK_LESS( discr_l2_err, 2e-8 );

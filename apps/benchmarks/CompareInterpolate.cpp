@@ -172,28 +172,28 @@ int main( int argc, char** argv )
    interpolateStdFunction< real_t, level >( *face, x->getFaceDataID(), exactFunc );
    timer.end();
    LIKWID_MARKER_STOP( "std::function" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "std::function: " << timer.last() << " " << x->dot( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "std::function: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
 
    LIKWID_MARKER_START( "Template" );
    timer.reset();
    interpolateTemplate< real_t, level >( *face, x->getFaceDataID(), exact );
    timer.end();
    LIKWID_MARKER_STOP( "Template" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Template: " << timer.last() << " " << x->dot( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Template: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
 
    LIKWID_MARKER_START( "without Function" );
    timer.reset();
    interpolateWithoutFunction< real_t, level >( *face, x->getFaceDataID() );
    timer.end();
    LIKWID_MARKER_STOP( "without Function" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Without Function: " << timer.last() << " " << x->dot( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Without Function: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
 
    LIKWID_MARKER_START( "Functor" );
    timer.reset();
    interpolateFunctor< real_t, level >( *face, x->getFaceDataID(), derivedFunctor() );
    timer.end();
    LIKWID_MARKER_STOP( "Functor" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Functor: " << timer.last() << " " << x->dot( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Functor: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
 
    LIKWID_MARKER_CLOSE;
 }

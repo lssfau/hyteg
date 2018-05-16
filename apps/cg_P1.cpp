@@ -90,9 +90,9 @@ int main( int argc, char* argv[] )
    err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
-   real_t npoints = npoints_helper.dot( npoints_helper, maxLevel );
+   real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-   real_t discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
+   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //  auto face0data = *storage->beginFaces().operator*().second->getData(u.getFaceDataID());
 

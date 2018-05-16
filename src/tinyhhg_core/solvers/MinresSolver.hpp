@@ -57,7 +57,7 @@ public:
     prec->apply(*p_v, *p_z, level, flag);
 
     real_t gamma_old = 1.0;
-    real_t gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
+    real_t gamma_new = std::sqrt(p_z->dotGlobal(*p_v, level, flag));
 
     real_t res_start = gamma_new;
 
@@ -83,14 +83,14 @@ public:
     for(size_t i = 0; i < maxiter; ++i) {
       p_z->assign({real_t(1) / gamma_new}, {p_z}, level, flag);
       A.apply(*p_z, *p_vp, level, flag);
-      real_t delta = p_vp->dot(*p_z, level, flag);
+      real_t delta = p_vp->dotGlobal(*p_z, level, flag);
 
       p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
 
       prec->apply(*p_vp, *p_zp, level, flag);
 
       gamma_old = gamma_new;
-      gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
+      gamma_new = std::sqrt(p_zp->dotGlobal(*p_vp, level, flag));
 
       real_t alpha0 = c_new * delta - c_old * s_new * gamma_old;
       real_t alpha1 = std::sqrt(alpha0 * alpha0 + gamma_new * gamma_new);

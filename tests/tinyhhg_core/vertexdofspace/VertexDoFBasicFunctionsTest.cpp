@@ -74,7 +74,7 @@ static void testP2BasicFunctions()
   // Dot
 
   timer["Dot"].start();
-  const real_t scalarProduct = y->dot( *x, maxLevel, DoFType::All );
+  const real_t scalarProduct = y->dotGlobal( *x, maxLevel, DoFType::All );
   timer["Dot"].end();
 
   WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microvertices_per_face( maxLevel ) * 48 * 2 ) );

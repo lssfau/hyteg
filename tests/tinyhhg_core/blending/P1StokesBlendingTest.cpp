@@ -123,14 +123,14 @@ int main( int argc, char* argv[] )
    one.interpolate(ones, maxLevel, hhg::DirichletBoundary);
    L.div_x.apply(u_exact.u, tmp2.p, maxLevel, hhg::DirichletBoundary, Replace);
    L.div_y.apply(u_exact.v, tmp2.p, maxLevel, hhg::DirichletBoundary, Add);
-   real_t corr = one.dot(tmp2.p, maxLevel, hhg::DirichletBoundary);
+   real_t corr = one.dotGlobal(tmp2.p, maxLevel, hhg::DirichletBoundary);
    M.apply(one, tmp2.p, maxLevel, hhg::DirichletBoundary, Replace);
-   real_t volume = one.dot(tmp2.p, maxLevel, hhg::DirichletBoundary);
+   real_t volume = one.dotGlobal(tmp2.p, maxLevel, hhg::DirichletBoundary);
    tmp2.p.assign({corr/volume}, {&one}, maxLevel, hhg::DirichletBoundary);
    M.apply(tmp2.p, f.p, maxLevel, hhg::DirichletBoundary);
 
    one.interpolate(ones, maxLevel, hhg::All);
-   real_t npoints = one.dot( one, maxLevel );
+   real_t npoints = one.dotGlobal( one, maxLevel );
 
    typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, true> Solver;
    auto solver = Solver(storage, minLevel, maxLevel);
@@ -140,7 +140,7 @@ int main( int argc, char* argv[] )
 
    L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
    r.assign({1.0, -1.0}, { &f, &r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-   real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+   real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
    real_t abs_res_old = begin_res;
    real_t rel_res = 1.0;
 
@@ -161,7 +161,7 @@ int main( int argc, char* argv[] )
       L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
       r.assign({1.0, -1.0}, { &f, &r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-      real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+      real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
       rel_res = abs_res / begin_res;
       WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
       solveTime += end-start;
@@ -191,8 +191,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT("Dofs: " << 3 * npoints);
 
    err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
-   real_t discr_u_l2_err = std::sqrt( (err.u.dot( err.u, maxLevel ) + err.v.dot( err.v, maxLevel )) / (2*npoints) );
-   real_t discr_p_l2_err = std::sqrt( (err.p.dot( err.p, maxLevel )) / (npoints) );
+   real_t discr_u_l2_err = std::sqrt( (err.u.dotGlobal( err.u, maxLevel ) + err.v.dotGlobal( err.v, maxLevel )) / (2*npoints) );
+   real_t discr_p_l2_err = std::sqrt( (err.p.dotGlobal( err.p, maxLevel )) / (npoints) );
 
    WALBERLA_LOG_INFO_ON_ROOT("velocity_err = " << std::scientific << discr_u_l2_err);
    WALBERLA_LOG_INFO_ON_ROOT("pressure_err = " << std::scientific << discr_p_l2_err);

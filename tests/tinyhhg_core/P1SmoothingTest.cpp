@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 
       difference.assign( {1.0}, {&zeros}, lvl );
       difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
-      value = sqrt( difference.dot( difference, lvl, All ) );
+      value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": JAC value = " << std::scientific << value );
       WALBERLA_CHECK_FLOAT_EQUAL( value, 0.0 );
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
       difference.assign( {1.0}, {&zeros}, lvl );
       difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
-      value = sqrt( difference.dot( difference, lvl, All ) );
+      value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": GS value = " << std::scientific << value );
       WALBERLA_CHECK_FLOAT_EQUAL( value, 0.0 );
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
       difference.assign( {1.0}, {&zeros}, lvl );
       difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
-      value = sqrt( difference.dot( difference, lvl, All ) );
+      value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": SOR value = " << std::scientific << value );
       WALBERLA_CHECK_FLOAT_EQUAL( value, 0.0 );
