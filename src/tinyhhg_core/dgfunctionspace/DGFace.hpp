@@ -1,8 +1,10 @@
 
 #pragma once
 
-#include "DGFaceIndex.hpp"
-#include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
+// #include "DGFaceIndex.hpp"
+// #include "tinyhhg_core/bubblefunctionspace/BubbleFaceIndex.hpp"
+
+#include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
 namespace hhg {
 namespace DGFace {
@@ -18,7 +20,7 @@ inline void enumerate(const uint_t & Level, Face &face,
   uint_t inner_rowsize = grayRowsize - 2;
   for(uint_t col = 1; col < grayRowsize - 2; ++col){
     for(uint_t row = 1; row < inner_rowsize; ++row){
-      dst[indexDGFaceFromVertex( Level, col, row, stencilDirection::CELL_GRAY_NE )] = num;
+      dst[ facedof::macroface::indexFaceFromVertex( Level, col, row, stencilDirection::CELL_GRAY_NE ) ] = num;
       ++num;
     }
     --inner_rowsize;
@@ -28,7 +30,7 @@ inline void enumerate(const uint_t & Level, Face &face,
   inner_rowsize = blueRowsize;
   for(uint_t col = 0; col < blueRowsize; ++col){
     for(uint_t row = 0; row < inner_rowsize; ++row){
-      dst[indexDGFaceFromGrayDGface( Level, col, row, stencilDirection::CELL_BLUE_E )] = num;
+      dst[ facedof::macroface::indexFaceFromGrayFace( Level, col, row, stencilDirection::CELL_BLUE_E ) ] = num;
       ++num;
     }
     --inner_rowsize;
@@ -70,11 +72,11 @@ inline void interpolate(const uint_t & Level, Face &face,
     for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
+        srcVector[k] = srcPtr[k][ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ];
       }
 
       face.getGeometryMap()->evalF(x, xBlend);
-      faceMemory[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = expr( xBlend, srcVector);
+      faceMemory[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ] = expr( xBlend, srcVector);
       x += d0;
     }
     --inner_rowsize;
@@ -89,11 +91,11 @@ inline void interpolate(const uint_t & Level, Face &face,
 
     for (size_t i = 0; i < inner_rowsize - 2; ++i) {
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
+        srcVector[k] = srcPtr[k][ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ];
       }
 
       face.getGeometryMap()->evalF(x, xBlend);
-      faceMemory[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = expr( xBlend, srcVector);
+      faceMemory[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ] = expr( xBlend, srcVector );
       x += d0;
     }
     --inner_rowsize;
@@ -116,7 +118,7 @@ inline void add( const uint_t & Level, Face &face,
   for (size_t j = 1; j < rowsize - 2; ++j) {
     for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
-      auto cellIndex = BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C );
+      auto cellIndex = facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C );
 
       ValueType tmp = 0.0;
 
@@ -136,7 +138,7 @@ inline void add( const uint_t & Level, Face &face,
   for (size_t j = 0; j < rowsize - 2; ++j) {
     for (size_t i = 0; i < inner_rowsize - 2; ++i) {
 
-      auto cellIndex = BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C );
+      auto cellIndex = facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C );
 
       ValueType tmp = 0.0;
 
@@ -170,7 +172,7 @@ inline void assign( const uint_t & Level, Face &face,
   for (size_t j = 1; j < rowsize - 2; ++j) {
     for (size_t i = 1; i < inner_rowsize - 3; ++i) {
 
-      auto cellIndex = BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C );
+      auto cellIndex = facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C );
 
       ValueType tmp = scalars[0]*srcPtr[0][cellIndex];
 
@@ -190,7 +192,7 @@ inline void assign( const uint_t & Level, Face &face,
   for (size_t j = 0; j < rowsize - 2; ++j) {
     for (size_t i = 0; i < inner_rowsize - 2; ++i) {
 
-      auto cellIndex = BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C );
+      auto cellIndex = facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C );
 
       ValueType tmp = scalars[0]*srcPtr[0][cellIndex];
 
@@ -281,33 +283,33 @@ inline void upwind(const uint_t & Level, Face &face,
       un_2 = d2Length * u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
+        c_up_0 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ];
       }
       else {
-        c_up_0 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_S )];
+        c_up_0 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_BLUE_S ) ];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
+        c_up_1 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ];
       }
       else {
-        c_up_1 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_E )];
+        c_up_1 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_BLUE_E ) ];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )];
+        c_up_2 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ];
       }
       else {
-        c_up_2 = src[indexDGFaceFromGrayDGface( Level, i, j, stencilDirection::CELL_BLUE_W )];
+        c_up_2 = src[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_BLUE_W ) ];
       }
 
       tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType == Replace) {
-        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = tmp;
+        dst[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ] = tmp;
       } else if (updateType == Add) {
-        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] += tmp;
+        dst[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ] += tmp;
       }
     }
     --inner_rowsize;
@@ -325,7 +327,7 @@ inline void upwind(const uint_t & Level, Face &face,
     for (size_t i = 0; i  < inner_rowsize - 2; ++i)
     {
       // evalate velocities
-      u_0[0] = 0.5 * ( u[indexFromVertex( Level, i, j + 1, stencilDirection::VERTEX_C )] + u[indexFromVertex(
+      u_0[0] = 0.5 * ( u[ indexFromVertex( Level, i, j + 1, stencilDirection::VERTEX_C )] + u[indexFromVertex(
       Level, i + 1, j + 1, stencilDirection::VERTEX_C )]);
       u_0[1] = 0.5 * ( v[indexFromVertex( Level, i, j + 1, stencilDirection::VERTEX_C )] + v[indexFromVertex(
       Level, i + 1, j + 1, stencilDirection::VERTEX_C )]);
@@ -345,33 +347,33 @@ inline void upwind(const uint_t & Level, Face &face,
       un_2 = d2Length * u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
+        c_up_0 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ];
       }
       else {
-        c_up_0 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_N )];
+        c_up_0 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_GRAY_N ) ];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
+        c_up_1 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ];
       }
       else {
-        c_up_1 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_W )];
+        c_up_1 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_GRAY_W ) ];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )];
+        c_up_2 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ];
       }
       else {
-        c_up_2 = src[indexDGFaceFromBlueDGface( Level, i, j, stencilDirection::CELL_GRAY_E )];
+        c_up_2 = src[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_GRAY_E ) ];
       }
 
       tmp = un_0 * c_up_0 + un_1 * c_up_1 + un_2 * c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType == Replace) {
-        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = tmp;
+        dst[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ] = tmp;
       } else if (updateType == Add) {
-        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] += tmp;
+        dst[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ] += tmp;
       }
     }
     --inner_rowsize;
@@ -407,9 +409,9 @@ inline void projectP1(const uint_t & Level, Face &face,
       Level, i, j + 1, stencilDirection::VERTEX_C )]);
 
       if (updateType == Replace) {
-        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] = tmp;
+        dst[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ] = tmp;
       } else if (updateType == Add) {
-        dst[BubbleFace::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C )] += tmp;
+        dst[ facedof::macroface::indexFaceFromGrayFace( Level, i, j, stencilDirection::CELL_GRAY_C ) ] += tmp;
       }
     }
     --inner_rowsize;
@@ -427,9 +429,9 @@ inline void projectP1(const uint_t & Level, Face &face,
       Level, i + 1, j, stencilDirection::VERTEX_C )]);
 
       if (updateType == Replace) {
-        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] = tmp;
+        dst[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ] = tmp;
       } else if (updateType == Add) {
-        dst[BubbleFace::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C )] += tmp;
+        dst[ facedof::macroface::indexFaceFromBlueFace( Level, i, j, stencilDirection::CELL_BLUE_C ) ] += tmp;
       }
     }
     --inner_rowsize;
@@ -451,7 +453,7 @@ inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveD
   for( size_t j = 1; j < rowsize - 2; ++j ) {
     for( size_t i = 1; i < inner_rowsize - 3; ++i ) {
 
-      auto cellIndex = BubbleFace::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+      auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
       localMax = std::max( localMax, std::abs( src[ cellIndex ] ) );
     }
     --inner_rowsize;
@@ -462,7 +464,7 @@ inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveD
   for( size_t j = 0; j < rowsize - 2; ++j ) {
     for( size_t i = 0; i < inner_rowsize - 2; ++i ) {
 
-      auto cellIndex = BubbleFace::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+      auto cellIndex = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
       localMax = std::max( localMax, std::abs( src[ cellIndex ] ) );
     }
     --inner_rowsize;

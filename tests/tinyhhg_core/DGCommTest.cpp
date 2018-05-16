@@ -109,11 +109,11 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       uint_t faceIdOnEdge = edge->face_index(face.getID());
 //////////////////// GRAY CELL //////////////////////
       idxCounter = 0;
-      auto it = BubbleFace::indexIterator(face.edge_index(edge->getID()),
-                                          face.edge_orientation[face.edge_index(edge->getID())],
-                                          BubbleFace::CELL_GRAY,
-                                          maxLevel);
-      for(; it != BubbleFace::indexIterator(); ++it){
+      auto it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
+                                                  face.edge_orientation[face.edge_index(edge->getID())],
+                                                  facedof::macroface::CELL_GRAY,
+                                                  maxLevel);
+      for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
           WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it]);
@@ -129,11 +129,11 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       }
 //////////////////// BLUE CELL //////////////////////
       idxCounter = 0;
-      it = BubbleFace::indexIterator(face.edge_index(edge->getID()),
-                                     face.edge_orientation[face.edge_index(edge->getID())],
-                                     BubbleFace::CELL_BLUE,
-                                     maxLevel);
-      for(; it != BubbleFace::indexIterator(); ++it){
+      it = facedof::macroface::indexIterator(face.edge_index(edge->getID()),
+                                             face.edge_orientation[face.edge_index(edge->getID())],
+                                             facedof::macroface::CELL_BLUE,
+                                             maxLevel);
+      for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[BubbleEdge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
           numberOfChecks++;
