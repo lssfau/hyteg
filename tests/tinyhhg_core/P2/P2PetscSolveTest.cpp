@@ -84,10 +84,10 @@ int main(int argc, char* argv[])
   err.assign({1.0, -1.0}, {&x, &x_exact}, level);
   err.assign({1.0, -1.0}, {&x, &x_exact}, level + 1);
 
-  real_t discr_l2_err_1 = std::sqrt(err.dot(err, level) / (real_t)num_1);
-  real_t discr_l2_err_2 = std::sqrt(err.dot(err, level + 1) / (real_t)num_2);
-  real_t residuum_l2_1 = std::sqrt(residuum.dot(residuum, level) / (real_t)num_1);
-  real_t residuum_l2_2 = std::sqrt(residuum.dot(residuum, level + 1) / (real_t)num_2);
+  real_t discr_l2_err_1 = std::sqrt(err.dotGlobal(err, level) / (real_t)num_1);
+  real_t discr_l2_err_2 = std::sqrt(err.dotGlobal(err, level + 1) / (real_t)num_2);
+  real_t residuum_l2_1 = std::sqrt(residuum.dotGlobal(residuum, level) / (real_t)num_1);
+  real_t residuum_l2_2 = std::sqrt(residuum.dotGlobal(residuum, level + 1) / (real_t)num_2);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error 1 = " << discr_l2_err_1);
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error 2 = " << discr_l2_err_2);
