@@ -3,6 +3,7 @@
 
 #include "core/Abort.h"
 
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
@@ -10,6 +11,7 @@
 #include "tinyhhg_core/levelinfo.hpp"
 
 #include <cassert>
+#include <set>
 
 namespace hhg {
 namespace vertexdof {
@@ -430,6 +432,70 @@ public:
     CellBorderIterator( levelinfo::num_microvertices_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
   {}
 };
+
+
+/// Returns the local face indices of the cell if the index is located on a face of the cell.
+/// Note that an index can be located on multiple faces (e.g. if it lies on an edge).
+/// If it is not located on any face, the returned set is empty.
+inline std::set< uint_t > isOnCellFace( const indexing::Index & index, const uint_t & level )
+{
+  std::set< uint_t > cellFaceIndices;
+  const auto dstIndex = toDistanceIndex( index, {{0, 1, 2, 3}}, levelinfo::num_microvertices_per_edge( level ) );
+  const uint_t maxDist = levelinfo::num_microvertices_per_edge( level ) - 1;
+  if ( dstIndex.d0() == maxDist )
+    cellFaceIndices.insert( 3 ); // face with vertices 1, 2, 3
+  if ( dstIndex.d1() == maxDist )
+    cellFaceIndices.insert( 2 ); // face with vertices 0, 2, 3
+  if ( dstIndex.d2() == maxDist )
+    cellFaceIndices.insert( 1 ); // face with vertices 0, 1, 3
+  if ( dstIndex.d3() == maxDist )
+    cellFaceIndices.insert( 0 ); // face with vertices 0, 1, 2
+  return cellFaceIndices;
+  
+}
+
+
+/// Returns the local edge indices of the cell if the index is located on an edge of the cell.
+/// Note that an index can be located on multiple edges (e.g. if it lies on a vertex).
+/// If it is not located on any edge, the returned set is empty.
+inline std::set< uint_t > isOnCellEdge( const indexing::Index & index, const uint_t & level )
+{
+  std::set< uint_t > cellEdgeIndices;
+  const auto onFaces = isOnCellFace( index, level );
+  if ( onFaces.size() <= 1 ) // index on edge <=> index on >= 2 faces
+    return cellEdgeIndices;
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 1 ) == 1 )
+    cellEdgeIndices.insert( 0 );
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 2 ) == 1 )
+    cellEdgeIndices.insert( 1 );
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 2 );
+  if ( onFaces.count( 1 ) == 1 && onFaces.count( 2 ) == 1 )
+    cellEdgeIndices.insert( 3 );
+  if ( onFaces.count( 1 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 4 );
+  if ( onFaces.count( 2 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 5 );
+  return cellEdgeIndices;
+}
+
+
+/// Returns a set with the vertex index of the cell if the index is located on a vertex of the cell 
+/// and empty set otherwise.
+inline std::set< uint_t > isOnCellVertex( const indexing::Index & index, const uint_t & level )
+{
+  std::set< uint_t > cellVertexIndices;
+  const auto dstIndex = toDistanceIndex( index, {{0, 1, 2, 3}}, levelinfo::num_microvertices_per_edge( level ) );
+  if ( dstIndex.d0() == 0 )
+    cellVertexIndices.insert( 0 );
+  if ( dstIndex.d1() == 0 )
+    cellVertexIndices.insert( 1 );
+  if ( dstIndex.d2() == 0 )
+    cellVertexIndices.insert( 2 );
+  if ( dstIndex.d3() == 0 )
+    cellVertexIndices.insert( 3 );
+  return cellVertexIndices;
+}
 
 } // namespace macrocell
 
