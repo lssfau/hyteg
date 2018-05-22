@@ -175,7 +175,7 @@ void smoothGaussSeidl( const uint_t&                                            
    for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
-      if( !vertexdof::isVertexOnBoundary( level, it ) )
+      if( !vertexdof::macroface::isVertexOnBoundary( level, it ) )
       {
          tmpVertex = rhsVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )];
          /// vertex to vertex
@@ -243,7 +243,7 @@ void smoothGaussSeidl( const uint_t&                                            
          }
       }
       ////////// WRITE DATA /////////
-      if( !vertexdof::isVertexOnBoundary( level, it ) )
+      if( !vertexdof::macroface::isVertexOnBoundary( level, it ) )
       {
          dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
              tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
