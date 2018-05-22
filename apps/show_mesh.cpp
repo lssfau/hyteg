@@ -188,7 +188,7 @@ int main( int argc, char* argv[] )
       msg << "VERTEX INFO:\n";
       for( const auto& it : verts )
       {
-         msg << "node " << it.first << ": mesh boundary flag = " << it.second.getBoundaryFlag() << "\n";
+         msg << "node " << it.first << ": mesh boundary flag = " << it.second.getBoundaryFlag() << " | pos = " << it.second.getCoordinates() << "\n";
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );
@@ -198,7 +198,7 @@ int main( int argc, char* argv[] )
       for( const auto& it : edges )
       {
          std::array< MeshInfo::IDType, 2 > node = it.second.getVertices();
-         msg << node[0] << " <--> " << node[1] << std::endl;
+         msg << node[0] << " <--> " << node[1] << " : mesh boundary flag = " << it.second.getBoundaryFlag() << std::endl;
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );
@@ -208,7 +208,7 @@ int main( int argc, char* argv[] )
       for( const auto& it : faces )
       {
          std::vector< MeshInfo::IDType > node = it.second.getVertices();
-         msg << node[0] << " <--> " << node[1] << " <--> " << node[2] << std::endl;
+         msg << node[0] << " <--> " << node[1] << " <--> " << node[2] << " : mesh boundary flag = " << it.second.getBoundaryFlag() << std::endl;
       }
       WALBERLA_LOG_INFO_ON_ROOT( msg.str() );
       msg.str( "" );
