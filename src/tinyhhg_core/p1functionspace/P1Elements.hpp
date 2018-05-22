@@ -278,7 +278,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
 /// Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
 /// Also works for indices on the boundary of a macro-cell.
 /// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
-/// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can alos be located on the macro-cell's boundary)
+/// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
 /// \param cell the surrounding macro-cell
 /// \param level the hierarchy level
 /// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
@@ -339,7 +339,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
       {
         macroCellStencilEntries[ stencilDir ] = real_c( 0 );
       }
-      macroCellStencilEntries[ stencilDir ] += localStiffnessMatrix( 0, localID );
+      macroCellStencilEntries[ stencilDir ] += real_c( localStiffnessMatrix( 0, localID ) );
     }
   }
   return macroCellStencilEntries;
@@ -347,10 +347,12 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
 
 
 template< typename UFCOperator >
-inline std::array< real_t, 15 /* is 15 enough? */ > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
-                                                                            const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
 {
   // TODO: check if index in the face's interior
+
+  std::map< stencilDirection, real_t > faceStencil;
 
   for ( const auto & macroCellID : face.neighborCells() )
   {
@@ -374,7 +376,7 @@ inline std::array< real_t, 15 /* is 15 enough? */ > assembleP1LocalStencil( cons
     WALBERLA_ASSERT_EQUAL( missingDirection.size(), 1 );
     const uint_t basisZDirection = *missingDirection.begin();
     const std::array< uint_t, 4 > indexingBasis = { basisCenter, basisXDirection, basisYDirection, basisZDirection };
-    const auto indexInMacroCell = indexing::basisConversion( microVertexIndex, { 0, 1, 2, 3 }, indexingBasis, level );
+    const auto indexInMacroCell = indexing::basisConversion( microVertexIndex, indexingBasis, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
     WALBERLA_DEBUG_SECTION()
     {
@@ -383,33 +385,74 @@ inline std::array< real_t, 15 /* is 15 enough? */ > assembleP1LocalStencil( cons
       WALBERLA_ASSERT_EQUAL( *debugLocalFaces.begin(), localFaceID );
     }
 
-    // 2. find neighboring micro-cells
-    const auto cellsAtFace = [ localFaceID ]
-    {
-        WALBERLA_ASSERT_GREATER_EQUAL( localFaceID, 0, "Invalid local face ID." );
-        WALBERLA_ASSERT_LESS_EQUAL   ( localFaceID, 3, "Invalid local face ID." );
-        switch ( localFaceID )
-        {
-          case 0:
-            return allCellsAtFace0;
-          case 1:
-            return allCellsAtFace1;
-          case 2:
-            return allCellsAtFace2;
-          case 3:
-            return allCellsAtFace3;
-          default:
-            return allCellsAtFace0;
-        }
-    }();
-
-    // 3. calculate stiffness matrix for each micro-cell and store contributions
+    // 2. calculate stiffness matrix for each micro-cell and store contributions
     const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      WALBERLA_LOG_DEVEL( "[P1Elements] [Cell: " << face.cell_index( macroCellID ) << "] Stencil entry on level " << level << ", direction " << stencilDirectionToStr.at( it.first ) << ": " << it.second );
+    }
 
-    // 4. TODO: translate coordinates / stencil directions back to face-local coordinate system
 
+    // 3. translate coordinates / stencil directions back to face-local coordinate system
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      const auto cellLocalDir  = it.first;
+      const auto stencilWeight = it.second;
+
+      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+      const auto faceLocalIndexInDir = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, indexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
+      WALBERLA_ASSERT_LESS_EQUAL( faceLocalIndexInDir.z(), 1 );
+      const auto indexOnGhostLayer = faceLocalIndexInDir.z() == 1;
+      const auto localCellID = face.cell_index( macroCellID );
+      WALBERLA_ASSERT_LESS_EQUAL( localCellID, 1 );
+      const auto faceLocalStencilDirection = [ microVertexIndex, faceLocalIndexInDir, indexOnGhostLayer, localCellID ]
+      {
+        const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
+        const auto yOffset = static_cast< int >( faceLocalIndexInDir.y() ) - static_cast< int >( microVertexIndex.y() );
+        stencilDirection projectedDirection;
+        if ( xOffset == 0 && yOffset == 0 )
+          projectedDirection = stencilDirection::VERTEX_C;
+        else if ( xOffset ==  1 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_NE;
+        else if ( xOffset ==  0 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_N;
+        else if ( xOffset == -1 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_NW;
+        else if ( xOffset ==  1 && yOffset ==  0 )
+          projectedDirection = stencilDirection::VERTEX_E;
+        else if ( xOffset == -1 && yOffset ==  0 )
+          projectedDirection = stencilDirection::VERTEX_W;
+        else if ( xOffset ==  1 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_SE;
+        else if ( xOffset ==  0 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_S;
+        else if ( xOffset == -1 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_SW;
+        else
+          WALBERLA_ASSERT( "Invalid offsets" );
+
+        if ( indexOnGhostLayer )
+        {
+          // deciding here that the stencil direction for the first cell at a face is top
+          if ( localCellID == 0 )
+            return makeVertexDirectionTop( projectedDirection );
+          else
+            return makeVertexDirectionBottom( projectedDirection );
+        }
+        else
+        {
+          return projectedDirection;
+        }
+      }();
+
+      if ( faceStencil.count( faceLocalStencilDirection ) == 0 )
+      {
+        faceStencil[ faceLocalStencilDirection ] = real_c( 0 );
+      }
+      faceStencil[ faceLocalStencilDirection ] += stencilWeight;
+    }
   }
-
+  return faceStencil;
 }
 
 /// Assembles the (constant) P1 stencil for one macro-cell using the local stiffness matrix calculated by the passed fenics UFC generator.

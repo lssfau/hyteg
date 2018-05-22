@@ -28,18 +28,54 @@ static void testVertexDoFStencilAssembly()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 12;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
 
   p1_tet_diffusion_cell_integral_0_otherwise ufcOperator;
 
-  std::array< std::array< real_t, 15 >, maxLevel + 1 > stencilOnLevel;
-
-  for ( uint_t level = minLevel; level <= maxLevel; level++ )
+  for ( const auto & it : storage->getFaces() )
   {
-    for ( const auto & cell : storage->getCells())
+    const auto face = *it.second;
+    if ( face.getNumNeighborCells() == 2 )
+    {
+      std::array< std::map< stencilDirection, real_t >, maxLevel + 1 > macroFaceStencilOnLevel;
+
+      for ( uint_t level = minLevel; level <= maxLevel; level++ ) {
+        std::map< stencilDirection, real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, face, indexing::Index( 1, 1, 0 ),
+                                                                                                                                                        level, ufcOperator );
+        macroFaceStencilOnLevel[level] = stencil;
+        real_t rowSum = real_c( 0 );
+
+        for ( const auto itStencil : stencil ) {
+          const auto direction = itStencil.first;
+          const auto weight = itStencil.second;
+          rowSum += weight;
+          WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", direction " << stencilDirectionToStr.at( direction ) << ": " << weight );
+
+          if ( level > minLevel ) {
+            // Checking if stencil weight scale with h
+            WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroFaceStencilOnLevel[level - 1][direction] )
+          }
+        }
+
+        // Checking system matrix row sum
+        WALBERLA_CHECK_FLOAT_EQUAL( rowSum, 0.0 );
+
+        // Checking stencil weight symmetry
+        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_W], stencil[sd::VERTEX_E] );
+        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_N], stencil[sd::VERTEX_S] );
+        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_NW], stencil[sd::VERTEX_SE] );
+      }
+    }
+  }
+
+  for ( const auto & cell : storage->getCells() )
+  {
+    std::array< std::array< real_t, 15 >, maxLevel + 1 > macroCellStencilOnLevel;
+
+    for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
       std::array< real_t, 15 > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( *cell.second, level, ufcOperator );
-      stencilOnLevel[ level ] = stencil;
+      macroCellStencilOnLevel[ level ] = stencil;
       real_t rowSum = real_c( 0 );
 
       for ( uint_t stencilIdx = 0; stencilIdx < 15; stencilIdx++ )
@@ -50,7 +86,7 @@ static void testVertexDoFStencilAssembly()
         if ( level > minLevel )
         {
           // Checking if stencil weight scale with h
-          WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * stencil[ stencilIdx ], stencilOnLevel[ level - 1 ][ stencilIdx ] )
+          WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * stencil[ stencilIdx ], macroCellStencilOnLevel[ level - 1 ][ stencilIdx ] )
         }
       }
 
