@@ -2,6 +2,8 @@
 
 #include "core/DataTypes.h"
 
+#include <map>
+
 using walberla::uint_t;
 
 namespace hhg {
@@ -98,15 +100,25 @@ std::make_pair( stencilDirection::VERTEX_NW,   "VERTEX_NW" ),
 std::make_pair( stencilDirection::VERTEX_W,    "VERTEX_W" ),
 std::make_pair( stencilDirection::VERTEX_SW,   "VERTEX_SW" ),
 
-std::make_pair( stencilDirection::VERTEX_TC,   "VERTEX_TC" ),
-std::make_pair( stencilDirection::VERTEX_TW,   "VERTEX_TW" ),
-std::make_pair( stencilDirection::VERTEX_TS,   "VERTEX_TS" ),
-std::make_pair( stencilDirection::VERTEX_TSE,  "VERTEX_TSE" ),
+std::make_pair( stencilDirection::VERTEX_TC,    "VERTEX_TC" ),
+std::make_pair( stencilDirection::VERTEX_TS,    "VERTEX_TS" ),
+std::make_pair( stencilDirection::VERTEX_TSE,   "VERTEX_TSE" ),
+std::make_pair( stencilDirection::VERTEX_TE,    "VERTEX_TE" ),
+std::make_pair( stencilDirection::VERTEX_TNE,   "VERTEX_TNE" ),
+std::make_pair( stencilDirection::VERTEX_TN,    "VERTEX_TN" ),
+std::make_pair( stencilDirection::VERTEX_TNW,   "VERTEX_TNW" ),
+std::make_pair( stencilDirection::VERTEX_TW,    "VERTEX_TW" ),
+std::make_pair( stencilDirection::VERTEX_TSW,   "VERTEX_TSW" ),
 
-std::make_pair( stencilDirection::VERTEX_BC,   "VERTEX_BC" ),
-std::make_pair( stencilDirection::VERTEX_BE,   "VERTEX_BE" ),
-std::make_pair( stencilDirection::VERTEX_BN,   "VERTEX_BN" ),
-std::make_pair( stencilDirection::VERTEX_BNW,  "VERTEX_BNW" ),
+std::make_pair( stencilDirection::VERTEX_BC,    "VERTEX_BC" ),
+std::make_pair( stencilDirection::VERTEX_BS,    "VERTEX_BS" ),
+std::make_pair( stencilDirection::VERTEX_BSE,   "VERTEX_BSE" ),
+std::make_pair( stencilDirection::VERTEX_BE,    "VERTEX_BE" ),
+std::make_pair( stencilDirection::VERTEX_BNE,   "VERTEX_BNE" ),
+std::make_pair( stencilDirection::VERTEX_BN,    "VERTEX_BN" ),
+std::make_pair( stencilDirection::VERTEX_BNW,   "VERTEX_BNW" ),
+std::make_pair( stencilDirection::VERTEX_BW,    "VERTEX_BW" ),
+std::make_pair( stencilDirection::VERTEX_BSW,   "VERTEX_BSW" ),
 
 std::make_pair( stencilDirection::CELL_BLUE_C, "CELL_BLUE_C" ),
 std::make_pair( stencilDirection::CELL_BLUE_S, "CELL_BLUE_S" ),
