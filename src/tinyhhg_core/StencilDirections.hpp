@@ -18,14 +18,24 @@ enum class stencilDirection : uint_t {
   VERTEX_SW,
 
   VERTEX_TC,
-  VERTEX_TW,
   VERTEX_TS,
   VERTEX_TSE,
+  VERTEX_TE,
+  VERTEX_TNE,
+  VERTEX_TN,
+  VERTEX_TNW,
+  VERTEX_TW,
+  VERTEX_TSW,
 
   VERTEX_BC,
+  VERTEX_BS,
+  VERTEX_BSE,
   VERTEX_BE,
+  VERTEX_BNE,
   VERTEX_BN,
   VERTEX_BNW,
+  VERTEX_BW,
+  VERTEX_BSW,
 
   CELL_BLUE_C,
   CELL_BLUE_S,
@@ -74,6 +84,47 @@ enum class stencilDirection : uint_t {
   EDGE_DI_SE,
 
 };
+
+
+
+inline bool isVertex( const stencilDirection & dir )
+{
+  switch ( dir )
+  {
+    case stencilDirection::VERTEX_C:
+    case stencilDirection::VERTEX_S:
+    case stencilDirection::VERTEX_SE:
+    case stencilDirection::VERTEX_E:
+    case stencilDirection::VERTEX_NE:
+    case stencilDirection::VERTEX_N:
+    case stencilDirection::VERTEX_NW:
+    case stencilDirection::VERTEX_W:
+    case stencilDirection::VERTEX_SW:
+    
+    case stencilDirection::VERTEX_TC:
+    case stencilDirection::VERTEX_TS:
+    case stencilDirection::VERTEX_TSE:
+    case stencilDirection::VERTEX_TE:
+    case stencilDirection::VERTEX_TNE:
+    case stencilDirection::VERTEX_TN:
+    case stencilDirection::VERTEX_TNW:
+    case stencilDirection::VERTEX_TW:
+    case stencilDirection::VERTEX_TSW:
+
+    case stencilDirection::VERTEX_BC:
+    case stencilDirection::VERTEX_BS:
+    case stencilDirection::VERTEX_BSE:
+    case stencilDirection::VERTEX_BE:
+    case stencilDirection::VERTEX_BNE:
+    case stencilDirection::VERTEX_BN:
+    case stencilDirection::VERTEX_BNW:
+    case stencilDirection::VERTEX_BW:
+    case stencilDirection::VERTEX_BSW:
+      return true;
+    default:
+      return false;
+  }
+}
 
 inline bool isHorizontalEdge( const stencilDirection & dir )
 {
@@ -131,6 +182,82 @@ inline bool isVerticalEdge( const stencilDirection & dir )
   default:
     return false;
     break;
+  }
+}
+
+inline stencilDirection makeVertexDirectionTop( const stencilDirection & dir )
+{
+  WALBERLA_ASSERT( isVertex( dir ) );
+  switch ( dir )
+  {
+    case stencilDirection::VERTEX_C:
+    case stencilDirection::VERTEX_BC:
+      return stencilDirection::VERTEX_TC;
+    case stencilDirection::VERTEX_S:
+    case stencilDirection::VERTEX_BS:
+      return stencilDirection::VERTEX_TS;
+    case stencilDirection::VERTEX_SE:
+    case stencilDirection::VERTEX_BSE:
+      return stencilDirection::VERTEX_TSE;
+    case stencilDirection::VERTEX_E:
+    case stencilDirection::VERTEX_BE:
+      return stencilDirection::VERTEX_TE;
+    case stencilDirection::VERTEX_NE:
+    case stencilDirection::VERTEX_BNE:
+      return stencilDirection::VERTEX_TNE;
+    case stencilDirection::VERTEX_N:
+    case stencilDirection::VERTEX_BN:
+      return stencilDirection::VERTEX_TN;
+    case stencilDirection::VERTEX_NW:
+    case stencilDirection::VERTEX_BNW:
+      return stencilDirection::VERTEX_TNW;
+    case stencilDirection::VERTEX_W:
+    case stencilDirection::VERTEX_BW:
+      return stencilDirection::VERTEX_TW;
+    case stencilDirection::VERTEX_SW:
+    case stencilDirection::VERTEX_BSW:
+      return stencilDirection::VERTEX_TSW;
+
+    default:
+      return dir;
+  }
+}
+
+inline stencilDirection makeVertexDirectionBottom( const stencilDirection & dir )
+{
+  WALBERLA_ASSERT( isVertex( dir ) );
+  switch ( dir )
+  {
+    case stencilDirection::VERTEX_C:
+    case stencilDirection::VERTEX_TC:
+      return stencilDirection::VERTEX_BC;
+    case stencilDirection::VERTEX_S:
+    case stencilDirection::VERTEX_TS:
+      return stencilDirection::VERTEX_BS;
+    case stencilDirection::VERTEX_SE:
+    case stencilDirection::VERTEX_TSE:
+      return stencilDirection::VERTEX_BSE;
+    case stencilDirection::VERTEX_E:
+    case stencilDirection::VERTEX_TE:
+      return stencilDirection::VERTEX_BE;
+    case stencilDirection::VERTEX_NE:
+    case stencilDirection::VERTEX_TNE:
+      return stencilDirection::VERTEX_BNE;
+    case stencilDirection::VERTEX_N:
+    case stencilDirection::VERTEX_TN:
+      return stencilDirection::VERTEX_BN;
+    case stencilDirection::VERTEX_NW:
+    case stencilDirection::VERTEX_TNW:
+      return stencilDirection::VERTEX_BNW;
+    case stencilDirection::VERTEX_W:
+    case stencilDirection::VERTEX_TW:
+      return stencilDirection::VERTEX_BW;
+    case stencilDirection::VERTEX_SW:
+    case stencilDirection::VERTEX_TSW:
+      return stencilDirection::VERTEX_BSW;
+
+    default:
+      return dir;
   }
 }
 
