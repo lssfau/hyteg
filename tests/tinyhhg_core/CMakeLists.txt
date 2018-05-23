@@ -158,6 +158,9 @@ endif()
 
 ## Other ##
 
+waLBerla_compile_test(FILES P1LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
+
 waLBerla_compile_test(FILES P2FunctionTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
