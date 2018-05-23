@@ -356,6 +356,8 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 
   for ( const auto & macroCellID : face.neighborCells() )
   {
+    WALBERLA_LOG_DEVEL( "[P1Elements][Face] PrimitiveID: " << face.getID() << " | cell neighbor: " << face.cell_index( macroCellID ) );
+
     const auto macroCell = storage->getCell( macroCellID );
 
     // 1. translate coordinate to macro-cell
@@ -368,6 +370,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
     const uint_t basisCenter     = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 0 );
     const uint_t basisXDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 1 );
     const uint_t basisYDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 2 );
+    WALBERLA_LOG_DEVEL( "[P1Elements][Face] cell local vertices: (x, y, z) = (" << basisCenter << ", " << basisXDirection << ", " << basisYDirection << ")" );
     // find out the missing Z direction
     const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
     const std::set< uint_t > allDirectionsButZ = { basisCenter, basisXDirection, basisYDirection };
@@ -387,10 +390,13 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 
     // 2. calculate stiffness matrix for each micro-cell and store contributions
     const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+
+#if 0
     for ( const auto it : cellLocalStencilWeights )
     {
       WALBERLA_LOG_DEVEL( "[P1Elements] [Cell: " << face.cell_index( macroCellID ) << "] Stencil entry on level " << level << ", direction " << stencilDirectionToStr.at( it.first ) << ": " << it.second );
     }
+#endif
 
 
     // 3. translate coordinates / stencil directions back to face-local coordinate system
@@ -405,7 +411,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
       const auto indexOnGhostLayer = faceLocalIndexInDir.z() == 1;
       const auto localCellID = face.cell_index( macroCellID );
       WALBERLA_ASSERT_LESS_EQUAL( localCellID, 1 );
-      const auto faceLocalStencilDirection = [ microVertexIndex, faceLocalIndexInDir, indexOnGhostLayer, localCellID ]
+      const auto faceLocalStencilDirection = [ &face, microVertexIndex, faceLocalIndexInDir, indexOnGhostLayer, localCellID ]
       {
         const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
         const auto yOffset = static_cast< int >( faceLocalIndexInDir.y() ) - static_cast< int >( microVertexIndex.y() );
@@ -437,7 +443,10 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
           if ( localCellID == 0 )
             return makeVertexDirectionTop( projectedDirection );
           else
+          {
+            WALBERLA_ASSERT_EQUAL( face.getNumNeighborCells(), 2 );
             return makeVertexDirectionBottom( projectedDirection );
+          }
         }
         else
         {
@@ -450,8 +459,19 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
         faceStencil[ faceLocalStencilDirection ] = real_c( 0 );
       }
       faceStencil[ faceLocalStencilDirection ] += stencilWeight;
+
+      WALBERLA_LOG_DEVEL( "[P1Elements][Face] Stencil entry on level " << level << ", direction " << std::setw(10) << stencilDirectionToStr.at( faceLocalStencilDirection ) << ": " << stencilWeight );
     }
   }
+
+  WALBERLA_LOG_DEVEL( "[P1Elements][Face] complete stencil" );
+  real_t sum = real_c( 0 );
+  for ( const auto it : faceStencil )
+  {
+    WALBERLA_LOG_DEVEL( "[P1Elements][Face] Stencil entry on level " << level << ", direction " << std::setw(10) << stencilDirectionToStr.at( it.first ) << ": " << it.second );
+    sum += it.second;
+  }
+  WALBERLA_LOG_DEVEL( "[P1Elements][Face] sum = " << sum );
   return faceStencil;
 }
 
@@ -462,9 +482,9 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 ///               which implements the member tabulate_tensor() that calculates the local stiffness matrix
 /// \return an array of stencil weights - the stencil weights are sorted according to the stencil index functions
 template< typename UFCOperator >
-inline std::array< real_t, 15 > assembleP1LocalStencil( const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+inline std::array< real_t, 27 > assembleP1LocalStencil( const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
 {
-  std::array< real_t, 15 > localStencil;
+  std::array< real_t, 27 > localStencil;
   localStencil.fill( real_c( 0 ) );
 
   const auto stencilMap = calculateStencilInMacroCell( indexing::Index( 1, 1, 1 ), cell, level, ufcGen );
