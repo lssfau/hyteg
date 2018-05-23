@@ -24,10 +24,11 @@ int main( int argc, char* argv[] )
 
   const uint_t      lowerLevel       = 4;
   const uint_t      higherLevel     = lowerLevel + 1;
-  const std::string meshFile        = "../../data/meshes/3D/tet_1el.msh";
+  const std::string meshFile        = "../../data/meshes/3D/pyramid_2el.msh";
   const real_t      tolerance       = 1e-16;
   const uint_t      maxIterations   = 10000;
   const bool        writeVTK        = false;
+  const bool        enableChecks    = true;
 
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
@@ -121,12 +122,15 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
   WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );
 
-  WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.1e-17 );
-  WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 1.8e-17 );
+  if ( enableChecks )
+  {
+    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.1e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 2.0e-17 );
 
-  // L2 err higher level ~ 0.25 * L2 err lower level
-  WALBERLA_CHECK_LESS( discrL2ErrLowerLevel,  3.8e-06 );
-  WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 8.6e-07 );
+    // L2 err higher level ~ 0.25 * L2 err lower level
+    WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 6.1e-05 );
+    WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 1.4e-05 );
+  }
 
   return 0;
 }
