@@ -143,7 +143,11 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
 // Stencil access functions
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
+inline
+#ifdef NDEBUG
+constexpr
+#endif
+uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
 {
   typedef stencilDirection sD;
 
@@ -170,16 +174,31 @@ inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & x,
   case sD::VERTEX_TS:
     return index( level, x, y - 1, 0 );
   case sD::VERTEX_TSE:
+    return index( level, x + 1, y - 1, 0 );
+  case sD::VERTEX_TSW:
     return index( level, x - 1, y - 1, 0 );
+  case sD::VERTEX_TNW:
+    return index( level, x - 1, y + 1, 0 );
   case sD::VERTEX_BC:
-    return index( level, x - 1, y - 1, 1 );
-  case sD::VERTEX_BN:
-    return index( level, x - 1, y, 1 );
-  case sD::VERTEX_BE:
-    return index( level, x, y - 1, 1 );
-  case sD::VERTEX_BNW:
     return index( level, x, y, 1 );
+  case sD::VERTEX_BN:
+    return index( level, x, y + 1, 1 );
+  case sD::VERTEX_BS:
+    return index( level, x, y - 1, 1 );
+  case sD::VERTEX_BE:
+    return index( level, x + 1, y, 1 );
+  case sD::VERTEX_BW:
+    return index( level, x - 1, y, 1 );
+  case sD::VERTEX_BSW:
+    return index( level, x - 1, y - 1, 1 );
+  case sD::VERTEX_BSE:
+    return index( level, x + 1, y - 1, 1 );
+  case sD::VERTEX_BNW:
+    return index( level, x - 1, y + 1, 1 );
   default:
+#ifndef NDEBUG
+    WALBERLA_ASSERT( false, "Vertexdof / macro-face indexing not implemented for direction: " << stencilDirectionToStr[dir] );
+#endif
     return std::numeric_limits< uint_t >::max();
   }
 }
@@ -290,6 +309,29 @@ inline constexpr uint_t indexFromBlueFace( const uint_t & level, const uint_t & 
     return std::numeric_limits< uint_t >::max();
   }
 }
+
+constexpr std::array<stencilDirection, 13> neighborsWithOneNeighborCellWithCenter = {{
+  hhg::stencilDirection::VERTEX_C,
+  hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+  hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+  hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+  hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
+  hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+  hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
+}};
+
+constexpr std::array<stencilDirection, 19> neighborsWithTwoNeighborCellsWithCenter = {{
+  hhg::stencilDirection::VERTEX_C,
+  hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+  hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+  hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+  hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
+  hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+  hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
+  hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+  hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSE,
+  hhg::stencilDirection::VERTEX_BSW, hhg::stencilDirection::VERTEX_BNW,
+}};
 
 constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
                                                                        hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
@@ -579,22 +621,46 @@ constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
       return 5;
     case sD::VERTEX_N:
       return 6;
-    case sD::VERTEX_TC:
+    case sD::VERTEX_NE:
       return 7;
-    case sD::VERTEX_TW:
+    case sD::VERTEX_SW:
       return 8;
     case sD::VERTEX_TS:
       return 9;
     case sD::VERTEX_TSE:
       return 10;
-    case sD::VERTEX_BC:
+    case sD::VERTEX_TW:
       return 11;
-    case sD::VERTEX_BN:
+    case sD::VERTEX_TC:
       return 12;
-    case sD::VERTEX_BE:
+    case sD::VERTEX_TE:
       return 13;
-    case sD::VERTEX_BNW:
+    case sD::VERTEX_TNW:
       return 14;
+    case sD::VERTEX_TN:
+      return 15;
+    case sD::VERTEX_TNE:
+      return 16;
+    case sD::VERTEX_TSW:
+      return 17;
+    case sD::VERTEX_BS:
+      return 18;
+    case sD::VERTEX_BSE:
+      return 19;
+    case sD::VERTEX_BW:
+      return 20;
+    case sD::VERTEX_BC:
+      return 21;
+    case sD::VERTEX_BE:
+      return 22;
+    case sD::VERTEX_BNW:
+      return 23;
+    case sD::VERTEX_BN:
+      return 24;
+    case sD::VERTEX_BNE:
+      return 25;
+    case sD::VERTEX_BSW:
+      return 26;
     default:
       return std::numeric_limits<size_t>::max();
   }
