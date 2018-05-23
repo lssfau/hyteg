@@ -28,7 +28,7 @@ static void testVertexDoFStencilAssembly()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 12;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
 
   p1_tet_diffusion_cell_integral_0_otherwise ufcOperator;
 
@@ -70,15 +70,15 @@ static void testVertexDoFStencilAssembly()
 
   for ( const auto & cell : storage->getCells() )
   {
-    std::array< std::array< real_t, 15 >, maxLevel + 1 > macroCellStencilOnLevel;
+    std::array< std::array< real_t, 27 >, maxLevel + 1 > macroCellStencilOnLevel;
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      std::array< real_t, 15 > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( *cell.second, level, ufcOperator );
+      std::array< real_t, 27 > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( *cell.second, level, ufcOperator );
       macroCellStencilOnLevel[ level ] = stencil;
       real_t rowSum = real_c( 0 );
 
-      for ( uint_t stencilIdx = 0; stencilIdx < 15; stencilIdx++ )
+      for ( uint_t stencilIdx = 0; stencilIdx < 27; stencilIdx++ )
       {
         rowSum += stencil[stencilIdx];
         // WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", idx " << stencilIdx << ": " << stencil[stencilIdx] );
