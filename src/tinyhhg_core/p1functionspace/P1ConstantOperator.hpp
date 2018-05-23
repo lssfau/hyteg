@@ -330,6 +330,43 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       for( uint_t level = minLevel_; level <= maxLevel_; level++ )
       {
+         for ( const auto & it : storage_->getFaces() )
+         {
+            auto face = it.second;
+            auto stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
+            auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
+
+            if ( face->getNumNeighborCells() == 1 )
+            {
+              for ( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+              {
+                if ( stencil.count( stencilDir ) == 0 )
+                {
+                  stencil[stencilDir] = real_c( 0 );
+                }
+              }
+            }
+            else
+            {
+              for ( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+              {
+                if ( stencil.count( stencilDir ) == 0 )
+                {
+                  stencil[stencilDir] = real_c( 0 );
+                }
+              }
+            }
+
+            for ( const auto stencilIt : stencil )
+            {
+               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
+            }
+         }
+
          for ( const auto & it : storage_->getCells() )
          {
             auto cell          = it.second;
@@ -338,8 +375,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             UFCOperator ufcOperator;
 
             auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( *cell, level, ufcOperator );
-
-            WALBERLA_ASSERT_EQUAL( stencil.size(), stencilSize );
 
             for ( uint_t stencilEntryIdx = 0; stencilEntryIdx < stencilSize; stencilEntryIdx++ )
             {
