@@ -45,6 +45,7 @@ public:
 
   uint_t vertex_index(const PrimitiveID& vertex) const;
   uint_t face_index(const PrimitiveID& face) const;
+  uint_t cell_index(const PrimitiveID& cell) const;
 
   PrimitiveID get_opposite_vertex(const PrimitiveID& vertex) const;
   bool opposite_face_exists(const PrimitiveID& face) const;
