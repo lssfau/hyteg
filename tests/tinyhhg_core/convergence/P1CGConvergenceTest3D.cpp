@@ -25,7 +25,7 @@ int main( int argc, char* argv[] )
   const uint_t      lowerLevel       = 4;
   const uint_t      higherLevel     = lowerLevel + 1;
   const std::string meshFile        = "../../data/meshes/3D/pyramid_2el.msh";
-  const real_t      tolerance       = 1e-16;
+  const real_t      tolerance       = 1e-17;
   const uint_t      maxIterations   = 10000;
   const bool        writeVTK        = false;
   const bool        enableChecks    = true;
@@ -128,8 +128,8 @@ int main( int argc, char* argv[] )
     WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 2.0e-17 );
 
     // L2 err higher level ~ 0.25 * L2 err lower level
-    WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 6.1e-05 );
-    WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 1.4e-05 );
+    WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.7e-04 );
+    WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 1.2e-04 );
   }
 
   return 0;
