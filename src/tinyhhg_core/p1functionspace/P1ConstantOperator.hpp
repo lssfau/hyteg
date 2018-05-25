@@ -395,6 +395,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       src.getCommunicator( level )->communicate< Edge, Face >();
       src.getCommunicator( level )->communicate< Face, Cell >();
 
+      src.getCommunicator( level )->communicate< Cell, Face >();
+      src.getCommunicator( level )->communicate< Face, Edge >();
+      src.getCommunicator( level )->communicate< Edge, Vertex >();
+
       // start pulling vertex halos
       src.getCommunicator( level )->startCommunication< Edge, Vertex >();
 
