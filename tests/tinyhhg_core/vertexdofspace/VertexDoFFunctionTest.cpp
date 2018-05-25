@@ -127,8 +127,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     for ( const auto & it : storage->getEdges() )
     {
       StencilMemory< real_t > * edgeStencil = it.second->getData( op->getEdgeStencilID() );
-      WALBERLA_CHECK_EQUAL( edgeStencil->getSize( level ), 3 + 2 * it.second->getNumNeighborFaces() );
-      for ( uint_t i = 0; i < 3 + 2 * it.second->getNumNeighborFaces(); i++ ) edgeStencil->getPointer( level )[ i ] = 1.0;
+      WALBERLA_CHECK_EQUAL( edgeStencil->getSize( level ), 3 + 2 * it.second->getNumNeighborFaces() + it.second->getNumNeighborCells() );
+      for ( uint_t i = 0; i < 3 + 2 * it.second->getNumNeighborFaces() + it.second->getNumNeighborCells(); i++ ) edgeStencil->getPointer( level )[ i ] = 1.0;
     }
     for ( const auto & it : storage->getFaces() )
     {
@@ -162,7 +162,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       auto edgeDst = it.second->getData( dst->getEdgeDataID() )->getPointer( level );
       for ( const auto & idxIt : vertexdof::macroedge::Iterator( level, 1 ) )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[vertexdof::macroedge::indexFromVertex( level, idxIt.x(), stencilDirection::VERTEX_C )], real_c( 3 + 2 * it.second->getNumNeighborFaces() ) );
+        WALBERLA_CHECK_FLOAT_EQUAL( edgeDst[vertexdof::macroedge::indexFromVertex( level, idxIt.x(), stencilDirection::VERTEX_C )], real_c( 3 + 2 * it.second->getNumNeighborFaces() + it.second->getNumNeighborCells() ) );
       }
     }
     for ( const auto & it : storage->getFaces() )
