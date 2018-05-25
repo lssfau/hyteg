@@ -24,7 +24,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   // 2. laplace(u) = 0, if u linear
 
   const bool   writeVTK   = false;
-  const real_t errorLimit = 2.0e-13;
+  const real_t errorLimit = 2.2e-13;
 
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
