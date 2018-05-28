@@ -93,9 +93,16 @@ public:
 
   void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }
 
+  /// Sets the mesh boundary flag of the primitives to a specified value if they are located on the boundary of the domain
+  /// \param meshBoundaryFlagOnBoundary the flag the primitives are set to if they are located on the boundary
+  /// \param meshBoundaryFlagInner the flag the primitives are set to if they are not located on the boundary
+  /// \param highestDimensionAlwaysInner if true, cells in 3D meshes and faces in 2D meshes are treated as inner primitives
+  void setMeshBoundaryFlagsOnBoundary( const uint_t & meshBoundaryFlagOnBoundary, const uint_t & meshBoundaryFlagInner, const bool & highestDimensionAlwaysInner );
+
   /// Returns true, if the primitive lies on the boundary.
-  /// Currently, primitives of the highest dimension (cells in 3D, faces in 2D) can also "lie on the boundary".
-  bool onBoundary( const PrimitiveID & primitiveID ) const;
+  /// \param primitiveID the ID of the primitive to be tested
+  /// \param highestDimensionAlwaysInner if true, this method always returns false if the targeted primitive is of highest dimension (cells for 3D, faces for 2D meshes)
+  bool onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner = false ) const;
 
 private:
 

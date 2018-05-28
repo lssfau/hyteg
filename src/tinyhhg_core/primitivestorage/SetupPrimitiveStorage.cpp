@@ -534,13 +534,27 @@ PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
   return newID;
 }
 
-bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID ) const
+void SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary( const uint_t & meshBoundaryFlagOnBoundary, const uint_t & meshBoundaryFlagInner, const bool & highestDimensionAlwaysInner )
+{
+  PrimitiveMap primitives;
+  getSetupPrimitives( primitives );
+  for ( auto & primitive : primitives )
+  {
+    primitive.second->meshBoundaryFlag_ = onBoundary( primitive.first, highestDimensionAlwaysInner ) ? meshBoundaryFlagOnBoundary : meshBoundaryFlagInner;
+  }
+}
+
+bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner ) const
 {
   WALBERLA_ASSERT( primitiveExists( primitiveID ) );
 
   if ( getNumberOfCells() == 0 )
   {
     // 2D
+    if ( highestDimensionAlwaysInner && faceExists( primitiveID ) )
+    {
+      return false;
+    }
     if ( edgeExists( primitiveID ) )
     {
       const auto edge = getEdge( primitiveID );
@@ -566,6 +580,10 @@ bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID ) const
   else
   {
     // 3D
+    if ( highestDimensionAlwaysInner && cellExists( primitiveID ) )
+    {
+      return false;
+    }
     if ( faceExists( primitiveID ) )
     {
       const auto face = getFace( primitiveID );
