@@ -16,15 +16,6 @@ constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
   return sum;
 }
 
-constexpr size_t sumIndicesEdge(const uint_t x){
-  uint_t sum = 0;
-  for(uint_t i = 0; i < hhg::vertexdof::macroedge::neighborsWithCenter.size(); ++i)
-  {
-    sum += hhg::vertexdof::macroedge::indexFromVertex( 3, x, hhg::vertexdof::macroedge::neighborsWithCenter[i] );
-  }
-  return sum;
-}
-
 constexpr size_t sumBubbleFaceIndices(const uint_t x, const uint_t y){
   using namespace hhg::BubbleFace;
   uint_t sum = 0;
@@ -73,9 +64,6 @@ int main() {
 
   static_assert( hhg::BubbleEdge::indexFaceFromVertex( 3, 4, hhg::stencilDirection::CELL_GRAY_SE ) == 8, "BubbleEdge Index failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
-
-  static_assert( hhg::vertexdof::macroedge::indexFromVertex( 3, 4, hhg::stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");
-  static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
   static_assert(
   hhg::vertexdof::macroface::indexFromVertex( 3, 1, 1, hhg::stencilDirection::VERTEX_C ) == 10, "P1Face Index failed");
