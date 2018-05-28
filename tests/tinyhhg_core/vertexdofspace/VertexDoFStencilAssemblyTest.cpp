@@ -28,9 +28,80 @@ static void testVertexDoFStencilAssembly()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 12;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_2el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
 
   p1_tet_diffusion_cell_integral_0_otherwise ufcOperator;
+
+  for ( const auto & it : storage->getEdges() )
+  {
+    const auto edge = *it.second;
+
+    if ( !storage->onBoundary( it.first ) )
+    {
+      std::array< std::vector< real_t >, maxLevel + 1 > macroEdgeStencilOnLevel;
+
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+        std::vector< real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, edge, indexing::Index( 1, 0, 0 ), level,
+                                                                                                                                         ufcOperator );
+        macroEdgeStencilOnLevel[level] = stencil;
+        real_t rowSum = real_c( 0 );
+
+        // test weights on edge
+        for ( auto dir : std::vector< sd >( { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_E } ))
+        {
+          const uint_t index = vertexdof::macroedge::stencilIndexOnEdge( dir );
+          const real_t weight = stencil[index];
+          WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", on edge " << stencilDirectionToStr.at( dir ) << ": " << weight );
+          rowSum += weight;
+          if ( level > minLevel )
+          {
+            // Checking if stencil weight scale with h
+            WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroEdgeStencilOnLevel[level - 1][index] )
+          }
+        }
+
+        // test weights on neighbor faces
+        for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
+        {
+          for ( auto dir : std::vector< sd >( { sd::VERTEX_W, sd::VERTEX_E } ))
+          {
+            const uint_t index = vertexdof::macroedge::stencilIndexOnNeighborFace( dir, neighborFace );
+            const real_t weight = stencil[index];
+            WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", on face " << neighborFace << " " << stencilDirectionToStr.at( dir ) << ": " << weight );
+            rowSum += weight;
+            if ( level > minLevel )
+            {
+              // Checking if stencil weight scale with h
+              WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroEdgeStencilOnLevel[level - 1][index] )
+            }
+          }
+        }
+
+        // test weights on neighbor cells
+        for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
+        {
+          const uint_t index = vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces());
+          const real_t weight = stencil[index];
+          WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", on cell " << neighborCell << ": " << weight );
+          rowSum += weight;
+          if ( level > minLevel )
+          {
+            // Checking if stencil weight scale with h
+            WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroEdgeStencilOnLevel[level - 1][index] )
+          }
+        }
+
+        // Checking system matrix row sum
+        WALBERLA_LOG_INFO( "Row sum = " << rowSum );
+        WALBERLA_CHECK_FLOAT_EQUAL( rowSum, 0.0 );
+
+        // Checking stencil weight symmetry
+        WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::macroedge::stencilIndexOnEdge( sd::VERTEX_W )], stencil[vertexdof::macroedge::stencilIndexOnEdge( sd::VERTEX_E )] );
+        WALBERLA_LOG_INFO_ON_ROOT( "" );
+      }
+    }
+  }
 
   for ( const auto & it : storage->getFaces() )
   {
