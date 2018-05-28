@@ -161,6 +161,11 @@ public:
 
   ///@}
 
+  /// Returns true, if the primitive lies on the boundary.
+  /// \param primitiveID the ID of the primitive to be tested
+  /// \param highestDimensionAlwaysInner if true, this method always returns false if the targeted primitive is of highest dimension (cells for 3D, faces for 2D meshes)
+  bool onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner = false ) const;
+
   /// Returns the rank of the process the primitive is located on.
   /// Returns the local MPI rank if it is a local primitive.
   /// Returns the correct rank if the primitive lies in the direct neighborhood.
