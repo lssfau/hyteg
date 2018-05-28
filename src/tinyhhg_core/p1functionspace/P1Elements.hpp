@@ -231,6 +231,9 @@ const std::array< std::array< stencilDirection, 4 >, 12 > allCellsAtFace3 = {{
   { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_TS, sd::VERTEX_TW },
 }};
 
+const std::array< std::array< std::array< stencilDirection, 4 >, 12 >, 4 > allCellsAtFace = {{
+  allCellsAtFace0, allCellsAtFace1, allCellsAtFace2, allCellsAtFace3
+}};
 
 inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( const indexing::Index & microVertexIndex, const uint_t & level )
 {
@@ -254,19 +257,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     const auto localFaceID = *onCellFaces.begin();
     WALBERLA_ASSERT_GREATER_EQUAL( localFaceID, 0 );
     WALBERLA_ASSERT_LESS_EQUAL   ( localFaceID, 3 );
-    switch( localFaceID )
-    {
-      case 0:
-        return returnType( allCellsAtFace0.begin(), allCellsAtFace0.end() );
-      case 1:
-        return returnType( allCellsAtFace1.begin(), allCellsAtFace1.end() );
-      case 2:
-        return returnType( allCellsAtFace2.begin(), allCellsAtFace2.end() );
-      case 3:
-        return returnType( allCellsAtFace3.begin(), allCellsAtFace3.end() );
-      default:
-        return returnType( allCellsAtFace0.begin(), allCellsAtFace0.end() );
-    }
+    return returnType( allCellsAtFace[ localFaceID ].begin(), allCellsAtFace[ localFaceID ].end() );
   }
   else
   {
@@ -350,7 +341,10 @@ template< typename UFCOperator >
 inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
                                                                     const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
 {
-  // TODO: check if index in the face's interior
+  // check if index lies in the face's interior
+  WALBERLA_CHECK_EQUAL( microVertexIndex.z(), 0, "[P1 face stencil assembly] z-coordinate on face must be zero" );
+  WALBERLA_CHECK_GREATER( microVertexIndex.x() + microVertexIndex.y(), 0 );
+  WALBERLA_CHECK_LESS( microVertexIndex.x() + microVertexIndex.y(), levelinfo::num_microvertices_per_edge( level ) );
 
   std::map< stencilDirection, real_t > faceStencil;
 
@@ -435,7 +429,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
         else if ( xOffset == -1 && yOffset == -1 )
           projectedDirection = stencilDirection::VERTEX_SW;
         else
-          WALBERLA_ASSERT( "Invalid offsets" );
+          WALBERLA_ASSERT( false, "Invalid offsets" );
 
         if ( indexOnGhostLayer )
         {
