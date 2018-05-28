@@ -8,6 +8,7 @@
 #include <tinyhhg_core/math.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
+#include <core/debug/CheckFunctions.h>
 
 #include <array>
 #include <vector>
