@@ -324,6 +324,28 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
                                                   vertices_.at( vertexID2.getID() )->getCoordinates(),
                                                   vertices_.at( vertexID3.getID() )->getCoordinates() }};
 
+    std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
+
+    // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
+
+    edgeLocalVertexToCellLocalVertexMaps[0][ edges_.at( edgeID0.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[0][ edges_.at( edgeID0.getID() )->vertex_index( vertexID1 ) ] = 1;
+
+    edgeLocalVertexToCellLocalVertexMaps[1][ edges_.at( edgeID1.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[1][ edges_.at( edgeID1.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    edgeLocalVertexToCellLocalVertexMaps[2][ edges_.at( edgeID2.getID() )->vertex_index( vertexID1 ) ] = 1;
+    edgeLocalVertexToCellLocalVertexMaps[2][ edges_.at( edgeID2.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    edgeLocalVertexToCellLocalVertexMaps[3][ edges_.at( edgeID3.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[3][ edges_.at( edgeID3.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    edgeLocalVertexToCellLocalVertexMaps[4][ edges_.at( edgeID4.getID() )->vertex_index( vertexID1 ) ] = 1;
+    edgeLocalVertexToCellLocalVertexMaps[4][ edges_.at( edgeID4.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    edgeLocalVertexToCellLocalVertexMaps[5][ edges_.at( edgeID5.getID() )->vertex_index( vertexID2 ) ] = 2;
+    edgeLocalVertexToCellLocalVertexMaps[5][ edges_.at( edgeID5.getID() )->vertex_index( vertexID3 ) ] = 3;
+
     std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
 
     // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
@@ -344,7 +366,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID2 ) ] = 2;
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
 
-    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, edgeLocalVertexToCellLocalVertexMaps, faceLocalVertexToCellLocalVertexMaps );
 
     setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
