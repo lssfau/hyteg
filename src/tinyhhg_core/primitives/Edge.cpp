@@ -50,7 +50,7 @@ uint_t Edge::cell_index(const PrimitiveID& cell) const
 {
   WALBERLA_ASSERT_GREATER_EQUAL(getNumNeighborCells(), 1);
 
-  for ( uint_t localCellID = 0; localCellID < getNumNeighborFaces(); localCellID++ )
+  for ( uint_t localCellID = 0; localCellID < getNumNeighborCells(); localCellID++ )
   {
     if ( cell.getID() == neighborCells_[ localCellID ].getID() )
     {
