@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
   const bool        enableChecks    = true;
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 

@@ -29,7 +29,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   const real_t errorLimit = 2.2e-13;
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
