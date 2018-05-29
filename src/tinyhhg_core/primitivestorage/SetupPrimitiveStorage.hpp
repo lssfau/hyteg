@@ -119,6 +119,12 @@ private:
   /// Returns the average number of primitives per rank
   real_t getAvgPrimitivesPerRank() const;
 
+  /// Returns the number of primitives that lie on the boundary
+  uint_t getNumVerticesOnBoundary() const;
+  uint_t getNumEdgesOnBoundary() const;
+  uint_t getNumFacesOnBoundary() const;
+  uint_t getNumCellsOnBoundary() const;
+
   uint_t numberOfProcesses_;
 
   VertexMap vertices_;

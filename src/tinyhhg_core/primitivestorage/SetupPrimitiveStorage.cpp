@@ -457,6 +457,29 @@ real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
   return real_t( getNumberOfPrimitives() ) / real_t( numberOfProcesses_ );
 }
 
+uint_t SetupPrimitiveStorage::getNumVerticesOnBoundary() const
+{
+  return std::count_if( vertices_.begin(), vertices_.end(),
+                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Vertex > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+}
+
+uint_t SetupPrimitiveStorage::getNumEdgesOnBoundary() const
+{
+  return std::count_if( edges_.begin(), edges_.end(),
+                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Edge > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+}
+
+uint_t SetupPrimitiveStorage::getNumFacesOnBoundary() const
+{
+  return std::count_if( faces_.begin(), faces_.end(),
+                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Face > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+}
+
+uint_t SetupPrimitiveStorage::getNumCellsOnBoundary() const
+{
+  return std::count_if( cells_.begin(), cells_.end(),
+                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Cell > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+}
 
 void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
 {
@@ -466,10 +489,10 @@ void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
   os << " - Processes (empty)  : " << std::setw(10) << getNumberOfEmptyProcesses() << "\n";
 
   os << " - Number of...\n"
-     << "   +  Vertices: " << std::setw(10) << vertices_.size() << "\n"
-     << "   +     Edges: " << std::setw(10) << edges_.size() << "\n"
-     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n"
-     << "   +     Cells: " << std::setw(10) << cells_.size() << "\n";
+     << "   +  Vertices: " << std::setw(10) << vertices_.size() << " | " << getNumVerticesOnBoundary() << "/" << vertices_.size() << " on boundary\n"
+     << "   +     Edges: " << std::setw(10) << edges_.size() << " | " << getNumEdgesOnBoundary() << "/" << edges_.size() << " on boundary\n"
+     << "   +     Faces: " << std::setw(10) << faces_.size() << " | " << getNumFacesOnBoundary() << "/" << faces_.size() << " on boundary\n"
+     << "   +     Cells: " << std::setw(10) << cells_.size() << " | " << getNumCellsOnBoundary() << "/" << cells_.size() << " on boundary\n";
 
   os << " - Primitives per process...\n"
      << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
