@@ -497,7 +497,7 @@ void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
   os << " - Primitives per process...\n"
      << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
      << "   +      max: " << std::setw(10) << getMaxPrimitivesPerRank() << "\n"
-     << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "\n";
+     << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "";
 
   if ( verbose ) {
     os << "\n";
