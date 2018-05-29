@@ -330,6 +330,21 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       for( uint_t level = minLevel_; level <= maxLevel_; level++ )
       {
+         for ( const auto & it : storage_->getVertices() )
+         {
+            auto vertex = it.second;
+            auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
+            auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+            WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
+            for ( uint_t i = 0; i < stencilSize; i++ )
+            {
+               stencilMemory[i] = stencil[i];
+            }
+         }
+
          for ( const auto & it : storage_->getEdges() )
          {
             auto edge = it.second;
