@@ -459,26 +459,30 @@ real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
 
 uint_t SetupPrimitiveStorage::getNumVerticesOnBoundary() const
 {
-  return std::count_if( vertices_.begin(), vertices_.end(),
-                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Vertex > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+  return uint_c( std::count_if( vertices_.begin(), vertices_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Vertex > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
 }
 
 uint_t SetupPrimitiveStorage::getNumEdgesOnBoundary() const
 {
-  return std::count_if( edges_.begin(), edges_.end(),
-                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Edge > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+  return uint_c( std::count_if( edges_.begin(), edges_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Edge > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
 }
 
 uint_t SetupPrimitiveStorage::getNumFacesOnBoundary() const
 {
-  return std::count_if( faces_.begin(), faces_.end(),
-                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Face > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+  return uint_c( std::count_if( faces_.begin(), faces_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Face > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
 }
 
 uint_t SetupPrimitiveStorage::getNumCellsOnBoundary() const
 {
-  return std::count_if( cells_.begin(), cells_.end(),
-                        [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Cell > > & mapEntry ){ return onBoundary( PrimitiveID( mapEntry.first ), true ); } );
+  return uint_c( std::count_if( cells_.begin(), cells_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Cell > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
 }
 
 void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
