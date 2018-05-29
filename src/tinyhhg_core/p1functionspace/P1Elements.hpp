@@ -240,13 +240,32 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
 {
   typedef std::vector< std::array< stencilDirection, 4 > > returnType;
 
+  WALBERLA_ASSERT_LESS( microVertexIndex.x() + microVertexIndex.y() + microVertexIndex.z(), levelinfo::num_microvertices_per_edge( level ) );
+
   const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
   const auto onCellEdges    = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
   const auto onCellFaces    = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
 
   if ( onCellVertices.size() > 0 )
   {
-    WALBERLA_ABORT( "Stencil assembly (3D) on macro-vertices not implemented" );
+    WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
+    WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 3 );
+    WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 3 );
+    const auto localVertexID = *onCellVertices.begin();
+    const auto singleMicroCell = [ localVertexID, level ]{
+      switch ( localVertexID )
+      {
+        case 0:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC } );
+        case 1:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW } );
+        case 2:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS } );
+        default:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN } );
+      }
+    }();
+    return returnType( { singleMicroCell } );
   }
   else if ( onCellEdges.size() > 0 )
   {
@@ -352,6 +371,80 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
     }
   }
   return macroCellStencilEntries;
+}
+
+
+template< typename UFCOperator >
+inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Vertex & vertex,
+                                                     const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  WALBERLA_CHECK_EQUAL( microVertexIndex, indexing::Index( 0, 0, 0 ), "[P1 vertex stencil assembly] micro-vertex index must be (0, 0, 0)" );
+
+  const uint_t stencilSize = vertexDoFMacroVertexStencilMemorySize( level, vertex );
+  std::vector< real_t > stencil( stencilSize, real_c( 0 ) );
+
+  for ( const auto & macroCellID : vertex.neighborCells() )
+  {
+    WALBERLA_LOG_DEVEL( "[P1Elements][Vertex] PrimitiveID: " << vertex.getID() << " | cell neighbor: " << vertex.cell_index( macroCellID ));
+
+    const auto macroCell = storage->getCell( macroCellID );
+
+    // 1. translate coordinate to macro-cell
+    const uint_t localVertexID = macroCell->getLocalVertexID( vertex.getID() );
+    WALBERLA_ASSERT_LESS_EQUAL( localVertexID, 3 );
+    const indexing::Index indexInMacroCell = [ localVertexID, level ]{
+        switch ( localVertexID )
+        {
+          case 0:
+            return indexing::Index( 0, 0, 0 );
+          case 1:
+            return indexing::Index( levelinfo::num_microvertices_per_edge( level ) - 1, 0, 0 );
+          case 2:
+            return indexing::Index( 0, levelinfo::num_microvertices_per_edge( level ) - 1, 0 );
+          default:
+            return indexing::Index( 0, 0, levelinfo::num_microvertices_per_edge( level ) - 1 );
+        }
+    }();
+
+    WALBERLA_DEBUG_SECTION()
+    {
+      const auto debugLocalVertices = vertexdof::macrocell::isOnCellVertex( indexInMacroCell, level );
+      const auto debugLocalEdges = vertexdof::macrocell::isOnCellEdge( indexInMacroCell, level );
+      const auto debugLocalFaces = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+      WALBERLA_ASSERT_EQUAL( debugLocalVertices.size(), 1 );
+      WALBERLA_ASSERT_EQUAL( debugLocalEdges.size(), 3 );
+      WALBERLA_ASSERT_EQUAL( debugLocalFaces.size(), 3 );
+      WALBERLA_ASSERT_EQUAL( *debugLocalVertices.begin(), localVertexID );
+    }
+
+    // 2. calculate stiffness matrix for each micro-cell and store contributions
+    const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+
+    // 3. translate coordinates / stencil directions back to vertex-local coordinate system
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      const auto cellLocalDir  = it.first;
+      const auto stencilWeight = it.second;
+      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+      WALBERLA_LOG_DEVEL( "[P1Elements][Vertex] cellLocalIndexInDir " << cellLocalIndexInDir );
+      const auto onLocalEdgesDir = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+      if ( onLocalEdgesDir.size() == 1 )
+      {
+        const auto cellLocalEdgeID = *onLocalEdgesDir.begin();
+        const auto edgePrimitiveID = macroCell->neighborEdges()[cellLocalEdgeID];
+        const auto vertexLocalEdgeID = vertex.edge_index( edgePrimitiveID );
+        stencil[ vertexLocalEdgeID + 1 ] += stencilWeight;
+      }
+      else
+      {
+        WALBERLA_ASSERT_EQUAL( onLocalEdgesDir.size(), 3 );
+        WALBERLA_ASSERT_EQUAL( cellLocalDir, sd::VERTEX_C );
+        stencil[ 0 ] += stencilWeight;
+      }
+    }
+  }
+
+  return stencil;
 }
 
 
