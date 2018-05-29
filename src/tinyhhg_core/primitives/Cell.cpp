@@ -61,4 +61,17 @@ uint_t Cell::getLocalEdgeID( const PrimitiveID & edgeID ) const
   return std::numeric_limits< uint_t >::max();
 }
 
+uint_t Cell::getLocalVertexID( const PrimitiveID & vertexID ) const
+{
+  WALBERLA_ASSERT( neighborPrimitiveExists( vertexID ) );
+  for ( uint_t localVertexID = 0; localVertexID < getNumNeighborVertices(); localVertexID++ )
+  {
+    if ( neighborVertices_[ localVertexID ] == vertexID )
+    {
+      return localVertexID;
+    }
+  }
+  return std::numeric_limits< uint_t >::max();
+}
+
 }

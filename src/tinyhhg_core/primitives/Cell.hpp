@@ -55,8 +55,10 @@ public:
   const std::array< Point3D, 4 > &                    getCoordinates()                             const { return coordinates_; }
   const std::array< std::map< uint_t, uint_t >, 6 > & getEdgeLocalVertexToCellLocalVertexMaps()    const { return edgeLocalVertexToCellLocalVertexMaps_; }
   const std::array< std::map< uint_t, uint_t >, 4 > & getFaceLocalVertexToCellLocalVertexMaps()    const { return faceLocalVertexToCellLocalVertexMaps_; }
-        uint_t                                        getLocalFaceID( const PrimitiveID & faceID ) const;
-        uint_t                                        getLocalEdgeID( const PrimitiveID & edgeID ) const;
+        uint_t                                        getLocalVertexID( const PrimitiveID & vertexID ) const;
+        uint_t                                        getLocalEdgeID  ( const PrimitiveID & edgeID )   const;
+        uint_t                                        getLocalFaceID  ( const PrimitiveID & faceID )   const;
+
 
 protected:
 
