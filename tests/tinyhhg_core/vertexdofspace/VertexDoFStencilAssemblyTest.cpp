@@ -28,9 +28,43 @@ static void testVertexDoFStencilAssembly()
   const uint_t minLevel = 2;
   const uint_t maxLevel = 12;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_4el.msh" );
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
 
   p1_tet_diffusion_cell_integral_0_otherwise ufcOperator;
+
+  for ( const auto & it : storage->getVertices() )
+  {
+    const auto vertex = *it.second;
+
+    if ( !storage->onBoundary( it.first ))
+    {
+      std::array< std::vector< real_t >, maxLevel + 1 > macroVertexStencilOnLevel;
+
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+        std::vector< real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, vertex, indexing::Index( 0, 0, 0 ), level,
+                                                                                                                                         ufcOperator );
+        macroVertexStencilOnLevel[level] = stencil;
+        real_t rowSum = real_c( 0 );
+
+        for ( uint_t stencilIdx = 0; stencilIdx < stencil.size(); stencilIdx++ )
+        {
+          rowSum += stencil[stencilIdx];
+          WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", idx " << stencilIdx << ": " << stencil[stencilIdx] );
+
+          if ( level > minLevel )
+          {
+            // Checking if stencil weight scale with h
+            WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * stencil[ stencilIdx ], macroVertexStencilOnLevel[ level - 1 ][ stencilIdx ] )
+          }
+        }
+
+        // Checking system matrix row sum
+        WALBERLA_LOG_DEVEL( "Vertex row sum: " << rowSum << "\n" );
+        WALBERLA_CHECK_FLOAT_EQUAL( rowSum, 0.0 );
+      }
+    }
+  }
 
   for ( const auto & it : storage->getEdges() )
   {
@@ -174,6 +208,7 @@ static void testVertexDoFStencilAssembly()
       WALBERLA_CHECK_FLOAT_EQUAL( stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_TSE )], stencil[vertexdof::stencilIndexFromVertex( sd::VERTEX_BNW )] );
     }
   }
+
 }
 
 } // namespace hhg

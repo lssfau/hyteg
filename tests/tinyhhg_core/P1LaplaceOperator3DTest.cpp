@@ -6,6 +6,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -26,7 +28,10 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   const bool   writeVTK   = false;
   const real_t errorLimit = 2.2e-13;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
+  const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+  SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+  const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   WALBERLA_CHECK( storage->hasGlobalCells() );
 
@@ -125,6 +130,7 @@ int main( int argc, char* argv[] )
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
 
   return 0;
 }
