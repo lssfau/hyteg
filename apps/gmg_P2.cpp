@@ -11,6 +11,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -88,10 +89,14 @@ int main(int argc, char* argv[])
   npoints_helper_p2.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper_p2.dot(npoints_helper_p2, maxLevel);
 
+  typedef P1toP1LinearRestriction RestrictionOperator;
   typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator> CoarseSolver;
+
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
-  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator, CoarseSolver> LaplaceSover;
-  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
+  RestrictionOperator restrictionOperator;
+
+  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator> LaplaceSover;
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, restrictionOperator, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","Time"));

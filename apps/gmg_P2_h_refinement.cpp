@@ -10,6 +10,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/format.hpp"
@@ -83,9 +84,11 @@ int main(int argc, char* argv[]) {
   real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
 
   typedef hhg::CGSolver<hhg::P2Function<real_t>, hhg::P2ConstantLaplaceOperator> CoarseSolver;
+  typedef P2toP2QuadraticRestriction RestrictionOperator;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
-  typedef GMultigridSolver<hhg::P2Function<real_t>, hhg::P2ConstantLaplaceOperator, CoarseSolver> LaplaceSover;
-  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxLevel);
+  RestrictionOperator restrictionOperator;
+  typedef GMultigridSolver<hhg::P2Function<real_t>, hhg::P2ConstantLaplaceOperator, CoarseSolver, RestrictionOperator> LaplaceSover;
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, restrictionOperator, minLevel, maxLevel);
 
   if (parameters.getParameter<bool>("useExactWeights")) {
     WALBERLA_LOG_INFO("WARNING: works only on tri_1el mesh");

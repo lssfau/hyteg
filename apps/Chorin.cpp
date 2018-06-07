@@ -1,4 +1,5 @@
 #include <boost/core/null_deleter.hpp>
+#include <tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp>
 
 #include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
@@ -121,9 +122,13 @@ int main( int argc, char* argv[] )
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
    typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CoarseSolver;
+   typedef P1toP1LinearRestriction RestrictionOperator;
+
    auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver > LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, minLevel, maxLevel );
+   RestrictionOperator restrictionOperator;
+
+   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator > LaplaceSover;
+   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, minLevel, maxLevel );
 
    u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
    v.interpolate( bc_y, maxLevel, hhg::DirichletBoundary );

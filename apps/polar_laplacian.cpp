@@ -5,6 +5,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
@@ -107,8 +108,11 @@ int main(int argc, char* argv[])
   typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator> CoarseSolver;
   std::shared_ptr<CoarseSolver> coarseSolver = std::make_shared<CoarseSolver>( storage, minLevel, minLevel );
 
-  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator, CoarseSolver> GMGSolver;
-  GMGSolver solver( storage, coarseSolver, minLevel, maxLevel );
+  typedef P1toP1LinearRestriction RestrictionOperator;
+  RestrictionOperator restrictionOperator;
+
+  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator, CoarseSolver, RestrictionOperator> GMGSolver;
+  GMGSolver solver( storage, coarseSolver, restrictionOperator, minLevel, maxLevel );
 
   // Prep residual
   hhg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );

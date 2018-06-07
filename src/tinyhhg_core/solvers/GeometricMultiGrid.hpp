@@ -3,7 +3,7 @@
 namespace hhg
 {
 
-template<class F, class O, class CoarseSolver>
+template<class F, class O, class CoarseSolver, class RestrictionOperator>
 class GMultigridSolver
 {
 public:
@@ -14,8 +14,13 @@ public:
     WCYCLE
   };
 
-  GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage, const std::shared_ptr<CoarseSolver>& coarseSolver, uint_t minLevel, uint_t maxLevel, uint_t nuPre = 3, uint_t nuPost = 3)
+  GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage,
+                   const std::shared_ptr<CoarseSolver>& coarseSolver,
+                   const RestrictionOperator & restrictionOperator,
+                   uint_t minLevel, uint_t maxLevel,
+                   uint_t nuPre = 3, uint_t nuPost = 3)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(coarseSolver),
+      restrictionOperator_( restrictionOperator ),
       ax_("gmg_ax", storage, minLevel, maxLevel), tmp_("gmg_tmp", storage, minLevel, maxLevel),
       nuPre_(nuPre), nuPost_(nuPost)
   {
@@ -45,7 +50,8 @@ public:
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
 
       // restrict
-      r.restrict(level, flag);
+      restrictionOperator_( r, level, flag );
+
       b.assign({1.0}, { &r }, level - 1, flag);
 
       x.interpolate(zero_, level-1);
@@ -79,6 +85,8 @@ private:
   uint_t maxLevel_;
 
   std::shared_ptr<CoarseSolver> coarseSolver_;
+  RestrictionOperator restrictionOperator_;
+
   F ax_;
   F tmp_;
 

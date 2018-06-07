@@ -1,3 +1,4 @@
+#include <tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp>
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
@@ -53,10 +54,12 @@ int main( int argc, char* argv[] )
   M.apply( npoints_helper, f, maxLevel, hhg::All );
 
   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CGSolver;
+  typedef hhg::P1toP1LinearRestriction RestrictionOperator;
 
+  RestrictionOperator restrictionOperator;
   auto coarseGridSolver = std::make_shared< CGSolver >( storage, minLevel, minLevel );
-  auto gmgSolver = hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CGSolver >(
-    storage, coarseGridSolver, minLevel, maxLevel, 3, 3 );
+  auto gmgSolver = hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CGSolver, RestrictionOperator >(
+    storage, coarseGridSolver, restrictionOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );
   const real_t npoints = npoints_helper.dot( npoints_helper, maxLevel );
