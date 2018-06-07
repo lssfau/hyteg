@@ -5,7 +5,7 @@
 namespace hhg
 {
 
-template<class F, class O, bool Tensor>
+template<class F, class O, class RestrictionOperator, bool Tensor>
 class UzawaSolver
 {
 public:
@@ -16,7 +16,8 @@ public:
     WCYCLE
   };
 
-  UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
+  UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage,
+              uint_t minLevel, uint_t maxLevel)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, minLevel),
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
   {
@@ -33,7 +34,8 @@ public:
   {
   }
 
-  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, RestrictionOperator restrictionOperator, uint_t level, real_t tolerance,
+             size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
   {
 
     if (level == minLevel_) {
@@ -52,7 +54,11 @@ public:
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
 
       // restrict
-      r.restrict(level, flag);
+      restrictionOperator( r.u, level, flag );
+      restrictionOperator( r.v, level, flag );
+      restrictionOperator( r.p, level, flag | DirichletBoundary );
+
+
       b.assign({1.0}, { &r }, level - 1, flag);
 //      hhg::projectMean(b.p, ax_.p, level-1);
 
@@ -61,9 +67,9 @@ public:
       // solve on coarser level
       nuPre_ += nuAdd_;
       nuPost_ += nuAdd_;
-      solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      solve(A, x, b, r, restrictionOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       if (cycleType == CycleType::WCYCLE) {
-        solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+        solve(A, x, b, r, restrictionOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       }
       nuPre_ -= nuAdd_;
       nuPost_ -= nuAdd_;
@@ -136,6 +142,7 @@ private:
   uint_t maxLevel_;
 
   MinResSolver<F, O> coarseSolver_;
+
   F ax_;
   F tmp_;
 

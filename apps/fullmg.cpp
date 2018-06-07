@@ -1,3 +1,4 @@
+#include <tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp>
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/math/Utility.h"
@@ -67,6 +68,8 @@ int main( int argc, char* argv[] )
    hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1MassOperator    M( storage, minLevel, maxLevel );
 
+   hhg::P1toP1LinearRestriction restrictionOperator;
+
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    r.enableTiming( timingTree );
    b.enableTiming( timingTree );
@@ -117,7 +120,7 @@ int main( int argc, char* argv[] )
          r.assign( {1.0, -1.0}, {&b, &ax}, level, hhg::Inner );
 
          // restrict
-         r.restrict( level, hhg::Inner );
+         restrictionOperator( r, level, hhg::Inner );
          b.assign( {1.0}, {&r}, level - 1, hhg::Inner );
 
          x.interpolate( zero, level - 1 );

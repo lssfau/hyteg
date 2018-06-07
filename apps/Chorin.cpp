@@ -174,7 +174,7 @@ int main( int argc, char* argv[] )
       div_x.apply( u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Replace );
       div_y.apply( v, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Add );
 
-      p_rhs.restrict( maxLevel, hhg::Inner | hhg::DirichletBoundary );
+      restrictionOperator( p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary );
 
       if( !neumann )
       {
