@@ -76,13 +76,13 @@ public:
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
   template< typename SenderType, typename ReceiverType >
-  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->startCommunication< SenderType, ReceiverType >(); }
+  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->template startCommunication< SenderType, ReceiverType >(); }
 
   template< typename SenderType, typename ReceiverType >
-  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->endCommunication< SenderType, ReceiverType >(); }
+  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->template endCommunication< SenderType, ReceiverType >(); }
 
   template< typename SenderType, typename ReceiverType >
-  inline void communicate( const uint_t & level ) const { communicators_.at( level )->communicate< SenderType, ReceiverType >(); }
+  inline void communicate( const uint_t & level ) const { communicators_.at( level )->template communicate< SenderType, ReceiverType >(); }
 
   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
   {
