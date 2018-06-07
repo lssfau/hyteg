@@ -236,6 +236,13 @@ const std::array< std::array< std::array< stencilDirection, 4 >, 12 >, 4 > allCe
   allCellsAtFace0, allCellsAtFace1, allCellsAtFace2, allCellsAtFace3
 }};
 
+
+/// \brief Returns the neighboring elements (== micro-cells) of a given micro-vertex index
+///
+/// \param microVertexIndex the micro-vertex index
+/// \param level the multigrid level
+/// \return a vector filled with 4-tuples (std::array) of stencil directions from that micro-vertex index that construct a micro-cell each (therefore always contains VERTEX_C)
+///
 inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( const indexing::Index & microVertexIndex, const uint_t & level )
 {
   typedef std::vector< std::array< stencilDirection, 4 > > returnType;
@@ -303,13 +310,18 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
 };
 
 
-/// Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
-/// Also works for indices on the boundary of a macro-cell.
+/// \brief Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
+///
+/// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
 /// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
+/// Note that only the weights for the stencil that lie in the specified macro-cell are returned.
+///
 /// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
 /// \param cell the surrounding macro-cell
 /// \param level the hierarchy level
 /// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a (variable sized) map from stencil directions to stencil weights
+///
 template< typename UFCOperator >
 inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const indexing::Index & microVertexIndex, const Cell & cell,
                                                                          const uint_t & level, const UFCOperator & ufcGen )
@@ -374,6 +386,16 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
 }
 
 
+/// \brief Assembles the local P1 operator stencil on a macro-vertex
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param vertex the macro-vertex
+/// \param microVertexIndex the micro-vertex index on the macro-vertex (currently this must be (0, 0, 0))
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a vector containing the stencil weights for the micro-vertex on that macro-vertex,
+///         stencil[0] is the center weight, stencil[neighborID + 1] is the weight for the neighbor with neighborID
+///
 template< typename UFCOperator >
 inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Vertex & vertex,
                                                      const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
@@ -448,6 +470,16 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 }
 
 
+/// \brief Assembles the local P1 operator stencil on a macro-edge
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param edge the macro-edge
+/// \param microVertexIndex the micro-vertex index on the macro-edge (the y and z coordinate must be 0)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a vector containing the stencil weights for the micro-vertex on that macro-edge,
+///         weights are sorted according to the vertexdof-macro-edge stencil index function
+///
 template< typename UFCOperator >
 inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Edge & edge,
                                                      const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
@@ -573,6 +605,17 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 };
 
 
+/// \brief Assembles the local P1 operator stencil on a macro-face
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param face the macro-face
+/// \param microVertexIndex the micro-vertex index on the macro-face (z coordinate must be 0)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-face,
+///         it maps the 13 or 19 (== 7 on face + 6 on ghost face 0 + 6 on ghost face 1) stencil directions to the stencil weights
+///         refer to the documentation to better understand that mapping
+///
 template< typename UFCOperator >
 inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
                                                                     const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
@@ -705,28 +748,30 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
   return faceStencil;
 }
 
-/// Assembles the (constant) P1 stencil for one macro-cell using the local stiffness matrix calculated by the passed fenics UFC generator.
-/// \param cell the macro-cell for which the stencil shall be assembled
-/// \param level the HHG refinement level
-/// \param ufcGen a cell_integral subclass from the generated output of the fenics library
-///               which implements the member tabulate_tensor() that calculates the local stiffness matrix
-/// \return an array of stencil weights - the stencil weights are sorted according to the stencil index functions
+/// \brief Assembles the local P1 operator stencil on a macro-cell
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param face the macro-cell
+/// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
+///
 template< typename UFCOperator >
-inline std::array< real_t, 27 > assembleP1LocalStencil( const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
 {
-  std::array< real_t, 27 > localStencil;
-  localStencil.fill( real_c( 0 ) );
-
-  const auto stencilMap = calculateStencilInMacroCell( indexing::Index( 1, 1, 1 ), cell, level, ufcGen );
-  for ( const auto stencilEntry : stencilMap )
+  WALBERLA_UNUSED( storage );
+  WALBERLA_DEBUG_SECTION()
   {
-    const auto dir    = stencilEntry.first;
-    const auto weight = stencilEntry.second;
-    const uint_t stencilIndex = vertexdof::stencilIndexFromVertex( dir );
-    localStencil[ stencilIndex ] = weight;
+    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
   }
-
-  return localStencil;
+  return calculateStencilInMacroCell( microVertexIndex, cell, level, ufcGen );
 }
 
 }

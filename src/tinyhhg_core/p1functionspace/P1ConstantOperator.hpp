@@ -404,11 +404,12 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
             UFCOperator ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( *cell, level, ufcOperator );
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
-            for ( uint_t stencilEntryIdx = 0; stencilEntryIdx < stencilSize; stencilEntryIdx++ )
+            for ( const auto stencilIt : stencil )
             {
-               stencilMemory[ stencilEntryIdx ] = stencil[ stencilEntryIdx ];
+               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
             }
          }
       }
