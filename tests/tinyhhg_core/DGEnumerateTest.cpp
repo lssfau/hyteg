@@ -6,7 +6,6 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
-#include "tinyhhg_core/dgfunctionspace/DGFaceIndex.hpp"
 
 using namespace hhg;
 
@@ -71,7 +70,7 @@ int main (int argc, char ** argv )
     for(uint_t i = 1; i < (rowsize -1 ); ++i){
       for(uint_t j = 1; j < ( inner_rowsize - 1 ); ++j){
         WALBERLA_CHECK_EQUAL(
-          faceData[DGFace::indexDGFaceFromVertex( maxLevel, i, j, stencilDirection::CELL_GRAY_NE )],
+          faceData[ facedof::macroface::indexFaceFromVertex( maxLevel, i, j, stencilDirection::CELL_GRAY_NE ) ],
           check);
         sum += check;
         ++check;
@@ -82,7 +81,7 @@ int main (int argc, char ** argv )
     for(uint_t i = 0; i < rowsize ; ++i){
       for(uint_t j = 0; j <  inner_rowsize ; ++j){
         WALBERLA_CHECK_EQUAL(
-          faceData[DGFace::indexDGFaceFromGrayDGface( maxLevel, i, j, stencilDirection::CELL_BLUE_E )],
+          faceData[ facedof::macroface::indexFaceFromGrayFace( maxLevel, i, j, stencilDirection::CELL_BLUE_E ) ],
           check);
         sum += check;
         ++check;
