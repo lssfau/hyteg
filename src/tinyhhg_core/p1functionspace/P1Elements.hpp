@@ -407,8 +407,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 
   for ( const auto & macroCellID : vertex.neighborCells() )
   {
-    WALBERLA_LOG_DEVEL( "[P1Elements][Vertex] PrimitiveID: " << vertex.getID() << " | cell neighbor: " << vertex.cell_index( macroCellID ));
-
     const auto macroCell = storage->getCell( macroCellID );
 
     // 1. translate coordinate to macro-cell
@@ -448,7 +446,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       const auto cellLocalDir  = it.first;
       const auto stencilWeight = it.second;
       const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-      WALBERLA_LOG_DEVEL( "[P1Elements][Vertex] cellLocalIndexInDir " << cellLocalIndexInDir );
       const auto onLocalEdgesDir = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
       if ( onLocalEdgesDir.size() == 1 )
       {
@@ -495,8 +492,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 
   for ( const auto & macroCellID : edge.neighborCells() )
   {
-    WALBERLA_LOG_DEVEL( "[P1Elements][Edge] PrimitiveID: " << edge.getID() << " | cell neighbor: " << edge.cell_index( macroCellID ) );
-
     const auto macroCell = storage->getCell( macroCellID );
 
     // 1. translate coordinate to macro-cell
@@ -508,7 +503,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
     WALBERLA_ASSERT_EQUAL( macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].size(), 2 );
     const uint_t basisCenter     = macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].at( 0 );
     const uint_t basisXDirection = macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].at( 1 );
-    WALBERLA_LOG_DEVEL( "[P1Elements][Edge] cell local vertices: (x, y) = (" << basisCenter << ", " << basisXDirection << ")" );
     // find out the missing Z direction
     const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
     const std::set< uint_t > allDirectionsButYZ = { basisCenter, basisXDirection };
@@ -545,7 +539,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       std::set_intersection( onLocalFacesCenter.begin(), onLocalFacesCenter.end(),
                              onLocalFacesDir.begin(), onLocalFacesDir.end(),
                              std::back_inserter( intersectingFaces ));
-      WALBERLA_LOG_DEVEL( "[P1Elements][Edge] cell local index in dir: " << cellLocalIndexInDir );
 
       if ( intersectingFaces.size() >= 2 )
       {
@@ -558,7 +551,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
         WALBERLA_ASSERT_LESS_EQUAL   ( dirDIfference, 1 );
         const stencilDirection dirOnEdge = dirDIfference == 0 ? sd::VERTEX_C : (dirDIfference == 1 ? sd::VERTEX_E : sd::VERTEX_W);
         stencil[ vertexdof::macroedge::stencilIndexOnEdge( dirOnEdge ) ] += stencilWeight;
-        WALBERLA_LOG_DEVEL( "[P1Elements][Edge] Stencil entry on level " << level << ", on edge, direction " << stencilDirectionToStr[ dirOnEdge ] << ": " << stencilWeight );
       }
       else if ( intersectingFaces.size() == 1 )
       {
@@ -590,13 +582,11 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
             }
         }();
         stencil[ vertexdof::macroedge::stencilIndexOnNeighborFace( faceLocalStencilDirection, edge.face_index( facePrimitiveID ) ) ] += stencilWeight;
-        WALBERLA_LOG_DEVEL( "[P1Elements][Edge] Stencil entry on level " << level << ", on face, direction " << stencilDirectionToStr[ faceLocalStencilDirection ] << ": " << stencilWeight );
       }
       else if ( intersectingFaces.size() == 0 )
       {
         // in macro-cell
         stencil[ vertexdof::macroedge::stencilIndexOnNeighborCell( edge.cell_index( macroCellID ), edge.getNumNeighborFaces() ) ] += stencilWeight;
-        WALBERLA_LOG_DEVEL( "[P1Elements][Edge] Stencil entry on level " << level << ", in cell (only direction): " << stencilWeight );
       }
     }
   }
@@ -629,8 +619,6 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 
   for ( const auto & macroCellID : face.neighborCells() )
   {
-    WALBERLA_LOG_DEVEL( "[P1Elements][Face] PrimitiveID: " << face.getID() << " | cell neighbor: " << face.cell_index( macroCellID ) );
-
     const auto macroCell = storage->getCell( macroCellID );
 
     // 1. translate coordinate to macro-cell
@@ -643,7 +631,6 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
     const uint_t basisCenter     = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 0 );
     const uint_t basisXDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 1 );
     const uint_t basisYDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 2 );
-    WALBERLA_LOG_DEVEL( "[P1Elements][Face] cell local vertices: (x, y, z) = (" << basisCenter << ", " << basisXDirection << ", " << basisYDirection << ")" );
     // find out the missing Z direction
     const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
     const std::set< uint_t > allDirectionsButZ = { basisCenter, basisXDirection, basisYDirection };
@@ -663,14 +650,6 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 
     // 2. calculate stiffness matrix for each micro-cell and store contributions
     const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
-
-#if 0
-    for ( const auto it : cellLocalStencilWeights )
-    {
-      WALBERLA_LOG_DEVEL( "[P1Elements] [Cell: " << face.cell_index( macroCellID ) << "] Stencil entry on level " << level << ", direction " << stencilDirectionToStr.at( it.first ) << ": " << it.second );
-    }
-#endif
-
 
     // 3. translate coordinates / stencil directions back to face-local coordinate system
     for ( const auto it : cellLocalStencilWeights )
@@ -732,19 +711,8 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
         faceStencil[ faceLocalStencilDirection ] = real_c( 0 );
       }
       faceStencil[ faceLocalStencilDirection ] += stencilWeight;
-
-      WALBERLA_LOG_DEVEL( "[P1Elements][Face] Stencil entry on level " << level << ", direction " << std::setw(10) << stencilDirectionToStr.at( faceLocalStencilDirection ) << ": " << stencilWeight );
     }
   }
-
-  WALBERLA_LOG_DEVEL( "[P1Elements][Face] complete stencil" );
-  real_t sum = real_c( 0 );
-  for ( const auto it : faceStencil )
-  {
-    WALBERLA_LOG_DEVEL( "[P1Elements][Face] Stencil entry on level " << level << ", direction " << std::setw(10) << stencilDirectionToStr.at( it.first ) << ": " << it.second );
-    sum += it.second;
-  }
-  WALBERLA_LOG_DEVEL( "[P1Elements][Face] sum = " << sum );
   return faceStencil;
 }
 
