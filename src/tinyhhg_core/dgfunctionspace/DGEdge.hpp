@@ -1,5 +1,4 @@
 #pragma once
-#include "DGEdgeIndex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {
@@ -18,7 +17,7 @@ inline void enumerate(const uint_t & Level, Edge &edge,
   }
   for(auto dir : dirs) {
     for (uint_t i = 1; i < (hhg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
-      dst[indexDGFaceFromVertex( Level, i, dir )] = num;
+      dst[facedof::macroedge::indexFaceFromVertex( Level, i, dir )] = num;
       ++num;
     }
   }
@@ -102,30 +101,30 @@ inline void upwind(const uint_t & Level, Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
+        c_up_0 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
+        c_up_0 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
+        c_up_1 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_SE )];
+        c_up_1 = src[facedof::macroedge::indexFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_SE )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
+        c_up_2 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_SE )];
+        c_up_2 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_SE )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -189,30 +188,30 @@ inline void upwind(const uint_t & Level, Edge &edge,
       un_2 = d2Length*u_2.dot(n_2);
 
       if (un_0 >= 0) {
-        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
+        c_up_0 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_0 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
+        c_up_0 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
       }
 
       if (un_1 >= 0) {
-        c_up_1 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
+        c_up_1 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_1 = src[indexDGFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_NW )];
+        c_up_1 = src[facedof::macroedge::indexFaceFromVertex( Level, i + 1, stencilDirection::CELL_BLUE_NW )];
       }
 
       if (un_2 >= 0) {
-        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
+        c_up_2 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       } else {
-        c_up_2 = src[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_NW )];
+        c_up_2 = src[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_BLUE_NW )];
       }
 
       tmp = un_0*c_up_0 + un_1*c_up_1 + un_2*c_up_2;
       tmp *= faceAreaInv;
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }
@@ -258,11 +257,11 @@ inline void interpolate(const uint_t & Level, Edge &edge,
   for (size_t i = 1; i < rowsize - 2; ++i) {
 
     for (size_t k = 0; k < srcPtr.size(); ++k) {
-      srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
+      srcVector[k] = srcPtr[k][facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )];
     }
 
     face0->getGeometryMap()->evalF(x, xBlend);
-    edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( xBlend, srcVector);
+    edgeMemory[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = expr( xBlend, srcVector);
     x += dx;
   }
 
@@ -279,16 +278,15 @@ inline void interpolate(const uint_t & Level, Edge &edge,
     for (size_t i = 1; i < rowsize - 2; ++i) {
 
       for (size_t k = 0; k < srcPtr.size(); ++k) {
-        srcVector[k] = srcPtr[k][DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
+        srcVector[k] = srcPtr[k][facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )];
       }
 
       face1->getGeometryMap()->evalF(x, xBlend);
-      edgeMemory[DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( xBlend, srcVector);
+      edgeMemory[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = expr( xBlend, srcVector);
       x += dx;
     }
   }
 }
-
 
 
 template< typename ValueType >
@@ -303,7 +301,7 @@ inline void assign(const uint_t & Level, Edge &edge,
 
   // gray south cells
   for (size_t i = 1; i < rowsize - 2; ++i) {
-    uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
+    uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
     ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer( Level )[cellIndex];
     for (uint_t k = 1; k < srcIds.size(); ++k) {
       tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( Level )[cellIndex];
@@ -313,7 +311,7 @@ inline void assign(const uint_t & Level, Edge &edge,
 
   if(edge.getNumNeighborFaces() == 2) {
     for (size_t i = 1; i < rowsize - 2; ++i) {
-      uint_t cellIndex = DGEdge::indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
+      uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
       ValueType tmp = scalars[0]*edge.getData(srcIds[0])->getPointer(Level)[cellIndex];
       for (uint_t k = 1; k < srcIds.size(); ++k) {
         tmp += scalars[k]*edge.getData(srcIds[k])->getPointer(Level)[cellIndex];
@@ -345,9 +343,9 @@ inline void projectP1(const uint_t & Level, Edge &edge,
                    + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_SE )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE )] += tmp;
       }
     }
   }
@@ -361,13 +359,114 @@ inline void projectP1(const uint_t & Level, Edge &edge,
                    + src[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_N )]);
 
       if (updateType==Replace) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] = tmp;
       } else if (updateType==Add) {
-        dst[indexDGFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
+        dst[facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE )] += tmp;
       }
     }
   }
 
+}
+
+
+inline void printFunctionMemory( Edge& edge, const PrimitiveDataID< FunctionMemory< real_t >, Edge >& memoryId, uint_t level )
+{
+   using namespace std;
+   using namespace facedof::macroedge;
+   typedef stencilDirection sD;
+
+   uint_t  v_perEdge = hhg::levelinfo::num_microvertices_per_edge( level );
+   real_t* edgeData  = edge.getData( memoryId )->getPointer( level );
+   cout << setfill( '=' ) << setw( 100 ) << std::left << "" << endl;
+   cout << edge << " South Face ID: " << edge.neighborFaces()[0].getID(); // edge->neighborFaces()[0]->getID().getID();
+   if( edge.getNumHigherDimNeighbors() == 2 )
+   {
+      cout << " North Face ID: " << edge.neighborFaces()[1].getID();
+   }
+   cout << setprecision( 6 ) << endl;
+   if( edge.getNumHigherDimNeighbors() == 2 )
+   {
+      for( size_t i = 0; i < v_perEdge - 2; ++i )
+      {
+         cout << setw( 8 ) << setfill( '-' ) << "x"; //edgeData[edge_index(level, i, VERTEX_N)];
+      }
+      //cout << edgeData[edge_index(level, v_perEdge - 2, VERTEX_N)] << endl << setfill(' ');
+      cout << "x" << endl << setfill( ' ' );
+      for( size_t i = 0; i < v_perEdge - 2; ++i )
+      {
+         cout << "|  \\    ";
+      }
+      cout << "|  \\" << endl;
+      for( size_t i = 0; i < v_perEdge - 2; ++i )
+      {
+         cout << "|" << setw( 3 ) << edgeData[indexFaceFromVertex( level, i, sD::CELL_GRAY_NE )];
+         cout << "\\" << setw( 3 ) << edgeData[indexFaceFromVertex( level, i + 1, sD::CELL_BLUE_NW )];
+      }
+      cout << "|" << setw( 3 ) << edgeData[indexFaceFromVertex( level, v_perEdge - 1, sD::CELL_GRAY_NW )] << "\\" << endl;
+      for( size_t i = 0; i < v_perEdge - 2; ++i )
+      {
+         cout << "|    \\  ";
+      }
+      cout << "|    \\" << endl;
+   }
+   //middle vertex
+   for( size_t i = 0; i < v_perEdge - 1; ++i )
+   {
+      cout << setw( 8 ) << setfill( '-' );
+      cout << "x"; //edgeData[edge_index(level, i, VERTEX_C)];
+   }
+   //cout << edgeData[edge_index(level, v_perEdge - 1, VERTEX_C)] << endl;
+   cout << "x" << endl;
+   //fill
+   cout << "   \\    |";
+   for( size_t i = 0; i < v_perEdge - 2; ++i )
+   {
+      cout << "  \\    |";
+   }
+   cout << endl;
+   //cell South
+   cout << "    \\" << setfill( ' ' ) << setw( 3 ) << edgeData[indexFaceFromVertex( level, 0u, sD::CELL_GRAY_SE )] << "|";
+   for( size_t i = 0; i < v_perEdge - 2; ++i )
+   {
+      cout << setw( 3 ) << edgeData[indexFaceFromVertex( level, i + 1u, sD::CELL_BLUE_SE )];
+      cout << "\\" << setw( 3 ) << edgeData[indexFaceFromVertex( level, i + 1u, sD::CELL_GRAY_SE )] << "|";
+   }
+   cout << "\n     \\  |";
+   for( size_t i = 0; i < v_perEdge - 2; ++i )
+   {
+      cout << "    \\  |";
+   }
+
+   //vertex South
+   cout << "\n        ";
+   for( size_t i = 0; i < v_perEdge - 2; ++i )
+   {
+      cout << setw( 8 ) << setfill( '-' );
+      //cout << edgeData[edge_index(level, i, VERTEX_SE)];
+      cout << "x";
+   }
+   //cout << edgeData[edge_index(level, v_perEdge - 2, VERTEX_SE)] << std::endl;
+   cout << "x" << std::endl;
+   cout << setfill( '=' ) << setw( 100 ) << "" << setfill( ' ' ) << std::endl;
+}
+
+inline void
+    printFunctionMemory( Vertex& vertex, const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& memoryId, uint_t level )
+{
+   real_t* vertexData = vertex.getData( memoryId )->getPointer( level );
+
+   std::cout << std::string( 10, '*' );
+   std::cout << " Vertex ID: " << vertex.getID().getID();
+   std::cout << " Center: " << vertexData[0];
+   std::cout << " Memory ID: " << memoryId;
+   std::cout << " " << std::string( 10, '*' ) << std::endl;
+   std::cout << "Face ID: |"
+             << " Cell " << std::endl;
+   for( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+   {
+      std::cout << std::left << std::setw( 9 ) << vertex.neighborFaces()[i].getID() << "|" << vertexData[1 + i] << std::endl;
+   }
+   std::cout << std::string( 100, '*' ) << std::endl;
 }
 
 

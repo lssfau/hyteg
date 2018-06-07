@@ -1,4 +1,5 @@
-#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "VTKWriter.hpp"
 #include "levelinfo.hpp"
 #include "tinyhhg_core/format.hpp"
@@ -579,12 +580,12 @@ void VTKOutput::writeDGDoFs( std::ostream & output, const uint_t & level ) const
       {
         for ( size_t i = 0; i < inner_rowsize - 2; ++i )
         {
-          idx = BubbleFace::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+          idx = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
           output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
-          idx = BubbleFace::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+          idx = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
           output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
         }
-        idx = BubbleFace::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
+        idx = facedof::macroface::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
         output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
         --inner_rowsize;
       }

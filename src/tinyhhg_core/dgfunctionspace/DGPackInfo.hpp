@@ -2,12 +2,13 @@
 
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "DGEdgeIndex.hpp"
-#include "DGFaceIndex.hpp"
+#include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
 namespace hhg{
 
 using walberla::uint_t;
+using facedof::macroface::CELL_BLUE;
+using facedof::macroface::CELL_GRAY;
 
 template< typename ValueType >
 class DGPackInfo : public communication::DoFSpacePackInfo< ValueType > {
@@ -75,9 +76,9 @@ void DGPackInfo< ValueType >::unpackEdgeFromVertex(Edge *receiver, const Primiti
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender.getID() << " is not in Edge: " << receiver)
   }
-  buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)];
+  buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)];
   if(receiver->getNumNeighborFaces() == 2){
-    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)];
+    buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)];
   }
 
 }
@@ -95,9 +96,9 @@ void DGPackInfo< ValueType >::communicateLocalVertexToEdge(const Vertex *sender,
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << sender << " is not in Edge: " << receiver)
   }
-  edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)] = vertexData[ sender->face_index(receiver->neighborFaces()[0]) * 2];
+  edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_SE)] = vertexData[ sender->face_index(receiver->neighborFaces()[0]) * 2];
   if(receiver->getNumNeighborFaces() == 2){
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)] = vertexData[ sender->face_index(receiver->neighborFaces()[1]) * 2];
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_GRAY_NE)] = vertexData[ sender->face_index(receiver->neighborFaces()[1]) * 2];
   }
 }
 
@@ -114,9 +115,9 @@ void DGPackInfo< ValueType >::packEdgeForVertex(const Edge *sender, const Primit
   } else {
     WALBERLA_LOG_WARNING("Vertex with ID: " << receiver.getID() << " is not in Edge: " << sender)
   }
-  buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_SE)];
+  buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_SE)];
   if(sender-> getNumNeighborFaces() == 2){
-    buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_NW)];
+    buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,sD::CELL_BLUE_NW)];
   }
 }
 
@@ -141,10 +142,10 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToVertex(const Edge *sender, V
   }
   ValueType *vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
   vertexData[ receiver->face_index(sender->neighborFaces()[0]) * 2 + 1] =
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_SE)];;
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_SE)];;
   if(sender->getNumNeighborFaces() == 2){
     vertexData[ receiver->face_index(sender->neighborFaces()[1]) * 2 + 1] =
-      edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_NW)];
+      edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,stencilDirection::CELL_BLUE_NW)];
   }
 }
 
@@ -165,19 +166,18 @@ void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Primitiv
   }
   for (uint_t i = 0; i < vPerEdge - 1; ++i)
   {
-    buffer << edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellGray)];
+    buffer << edgeData[facedof::macroedge::indexFaceFromVertex(level_,i,dirCellGray)];
   }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
-  using namespace BubbleFace;
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
-  for(auto it = indexIterator(edgeIndexOnFace,
-                              receiver->edge_orientation[edgeIndexOnFace],
-                              CELL_GRAY, level_);
-      it != indexIterator();
+  for(auto it = facedof::macroface::indexIterator(edgeIndexOnFace,
+                                                  receiver->edge_orientation[edgeIndexOnFace],
+                                                  CELL_GRAY, level_);
+      it != facedof::macroface::indexIterator();
       ++it){
     buffer >> faceData[*it];
   }
@@ -185,7 +185,6 @@ void DGPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Primitive
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const {
-  using namespace BubbleFace;
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = sender->face_index(receiver->getID());
@@ -201,23 +200,23 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
     dirCellGray = stencilDirection::CELL_GRAY_NE;
   }
   uint_t pos = 0;
-  for(auto it = indexIterator(edgeIndexOnFace,
-                              receiver->edge_orientation[edgeIndexOnFace],
-                              CELL_GRAY, level_); it != indexIterator(); ++it){
-    faceData[*it] = edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellGray)];
+  for(auto it = facedof::macroface::indexIterator(edgeIndexOnFace,
+                                                  receiver->edge_orientation[edgeIndexOnFace],
+                                                  CELL_GRAY, level_);
+      it != facedof::macroface::indexIterator(); ++it){
+    faceData[*it] = edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,dirCellGray)];
     pos++;
   }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const {
-  using namespace BubbleFace;
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
-  for(auto it = indexIterator(edgeIndexOnFace,
-                              sender->edge_orientation[edgeIndexOnFace],
-                              CELL_BLUE, level_);
-      it != indexIterator();
+  for(auto it = facedof::macroface::indexIterator(edgeIndexOnFace,
+                                                  sender->edge_orientation[edgeIndexOnFace],
+                                                  CELL_BLUE, level_);
+      it != facedof::macroface::indexIterator();
       ++it){
     buffer << faceData[*it];
   }
@@ -241,13 +240,12 @@ void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
   //unpack Blue Cell
   for (uint_t i = 1; i < vPerEdge - 1; ++i)
   {
-    buffer >> edgeData[BubbleEdge::indexFaceFromVertex(level_,i,dirCellBlue)];
+    buffer >> edgeData[facedof::macroedge::indexFaceFromVertex(level_,i,dirCellBlue)];
   }
 }
 
 template< typename ValueType >
 void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const {
-  using namespace hhg::BubbleFace;
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   const uint_t faceIdOnEdge = receiver->face_index(sender->getID());
@@ -263,12 +261,13 @@ void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edg
   {
     dirCellBlue = stencilDirection::CELL_BLUE_NW;
   }
-  for(auto it = BubbleFace::indexIterator(edgeIndexOnFace,
-                                          sender->edge_orientation[edgeIndexOnFace],
-                                          CELL_BLUE,
-                                          level_); it != indexIterator(); ++it)
+  for(auto it = facedof::macroface::indexIterator(edgeIndexOnFace,
+                                                  sender->edge_orientation[edgeIndexOnFace],
+                                                  CELL_BLUE,
+                                                  level_);
+      it != facedof::macroface::indexIterator(); ++it)
   {
-    edgeData[BubbleEdge::indexFaceFromVertex(level_,pos,dirCellBlue)] = faceData[*it];
+    edgeData[facedof::macroedge::indexFaceFromVertex(level_,pos,dirCellBlue)] = faceData[*it];
     pos++;
   }
 }
