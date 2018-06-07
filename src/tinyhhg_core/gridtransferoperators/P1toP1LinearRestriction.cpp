@@ -6,6 +6,7 @@ namespace hhg {
 void P1toP1LinearRestriction::restrictMacroVertex( const real_t *src, real_t *dst, const uint_t & sourceLevel,
                                                    const uint_t & numNeighborEdges ) const
 {
+  WALBERLA_UNUSED( sourceLevel );
   dst[0] = src[0];
 
   for (uint_t i = 0; i < numNeighborEdges; ++i) {
@@ -56,6 +57,7 @@ void P1toP1LinearRestriction::restrictMacroEdge( const real_t *src, real_t *dst,
 void P1toP1LinearRestriction::restrictMacroFace( const real_t *src, real_t *dst, const uint_t & sourceLevel,
                                                  const uint_t & numNeighborCells ) const
 {
+  WALBERLA_UNUSED( numNeighborCells );
   uint_t N_c = levelinfo::num_microvertices_per_edge( sourceLevel - 1 );
   uint_t N_c_i = N_c;
 
