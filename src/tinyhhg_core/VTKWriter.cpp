@@ -756,21 +756,21 @@ void VTKOutput::syncAllFunctions( const uint_t & level ) const
 {
   for ( const auto & function : p1Functions_ )
   {
-    function->getCommunicator( level )->template communicate< Vertex, Edge >();
-    function->getCommunicator( level )->template communicate< Edge,   Face >();
-    function->getCommunicator( level )->template communicate< Face,   Cell >();
+    function->communicate< Vertex, Edge >( level );
+    function->communicate< Edge,   Face >( level );
+    function->communicate< Face,   Cell >( level );
   }
 
   for ( const auto & function : edgeDoFFunctions_ )
   {
-    function->getCommunicator( level )->template communicate< Vertex, Edge >();
-    function->getCommunicator( level )->template communicate< Edge,   Face >();
+    function->communicate< Vertex, Edge >( level );
+    function->communicate< Edge,   Face >( level );
   }
 
   for ( const auto & function : dgFunctions_ )
   {
-    function->getCommunicator( level )->template communicate< Vertex, Edge >();
-    function->getCommunicator( level )->template communicate< Edge,   Face >();
+    function->communicate< Vertex, Edge >( level );
+    function->communicate< Edge,   Face >( level );
   }
 }
 

@@ -32,30 +32,30 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
                     UpdateType            updateType = Replace )
    {
       // start pulling edge halos
-      src.getCommunicator( level )->startCommunication< Face, Edge >();
+      src.startCommunication< Face, Edge >( level );
 
       // end pulling edge halos
-      src.getCommunicator( level )->endCommunication< Face, Edge >();
+      src.endCommunication< Face, Edge >( level );
 
       // start pulling vertex halos
-      src.getCommunicator( level )->startCommunication< Edge, Vertex >();
+      src.startCommunication< Edge, Vertex >( level );
 
       // end pulling vertex halos
-      src.getCommunicator( level )->endCommunication< Edge, Vertex >();
+      src.endCommunication< Edge, Vertex >( level );
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->getCommunicator( level )->template startCommunication< Edge, Vertex >();
+         velocityComponent->template startCommunication< Edge, Vertex >( level );
       }
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->getCommunicator( level )->template startCommunication< Face, Edge >();
+         velocityComponent->template startCommunication< Face, Edge >( level );
       }
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->getCommunicator( level )->template endCommunication< Edge, Vertex >();
+         velocityComponent->template endCommunication< Edge, Vertex >( level );
       }
 
       for( auto& it : storage_->getVertices() )
@@ -76,11 +76,11 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
          }
       }
 
-      dst.getCommunicator( level )->startCommunication< Vertex, Edge >();
+      dst.startCommunication< Vertex, Edge >( level );
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->getCommunicator( level )->template endCommunication< Face, Edge >();
+         velocityComponent->template endCommunication< Face, Edge >( level );
       }
 
       for( auto& it : storage_->getEdges() )
@@ -101,9 +101,9 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
          }
       }
 
-      dst.getCommunicator( level )->endCommunication< Vertex, Edge >();
+      dst.endCommunication< Vertex, Edge >( level );
 
-      dst.getCommunicator( level )->startCommunication< Edge, Face >();
+      dst.startCommunication< Edge, Face >( level );
 
       for( auto& it : storage_->getFaces() )
       {
@@ -123,7 +123,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
          }
       }
 
-      dst.getCommunicator( level )->endCommunication< Edge, Face >();
+      dst.endCommunication< Edge, Face >( level );
    }
 
  private:

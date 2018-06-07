@@ -43,12 +43,12 @@ private:
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     // start pulling vertex halos
-    src.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    src.startCommunication<Edge, Vertex>( level );
 
     // start pulling edge halos
-    src.getCommunicator(level)->startCommunication<Face, Edge>();
+    src.startCommunication<Face, Edge>( level );
 
-    src.getCommunicator(level)->endCommunication<Edge, Vertex>();
+    src.endCommunication<Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -60,10 +60,10 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+    dst.startCommunication<Vertex, Edge>( level );
 
     // end pulling edge halos
-    src.getCommunicator(level)->endCommunication<Face, Edge>();
+    src.endCommunication<Face, Edge>( level );
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -75,9 +75,9 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+    dst.endCommunication<Vertex, Edge>( level );
 
-    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+    dst.startCommunication<Edge, Face>( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -89,19 +89,19 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+    dst.endCommunication<Edge, Face>( level );
   }
 
   void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
   {
     // start pulling vertex halos
-    dst.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    dst.startCommunication<Edge, Vertex>( level );
 
     // start pulling edge halos
-    dst.getCommunicator(level)->startCommunication<Face, Edge>();
+    dst.startCommunication<Face, Edge>( level );
 
     // end pulling vertex halos
-    dst.getCommunicator(level)->endCommunication<Edge, Vertex>();
+    dst.endCommunication<Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -113,10 +113,10 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+    dst.startCommunication<Vertex, Edge>( level );
 
     // end pulling edge halos
-    dst.getCommunicator(level)->endCommunication<Face, Edge>();
+    dst.endCommunication<Face, Edge>( level );
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -128,9 +128,9 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+    dst.endCommunication<Vertex, Edge>( level );
 
-    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+    dst.startCommunication<Edge, Face>( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -142,19 +142,19 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+    dst.endCommunication<Edge, Face>( level );
   }
 
   void smooth_jac_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, P1Function< real_t >& tmp, size_t level, DoFType flag)
   {
     // start pulling vertex halos
-    tmp.getCommunicator(level)->startCommunication<Edge, Vertex>();
+    tmp.startCommunication<Edge, Vertex>( level );
 
     // start pulling edge halos
-    tmp.getCommunicator(level)->startCommunication<Face, Edge>();
+    tmp.startCommunication<Face, Edge>( level );
 
     // end pulling vertex halos
-    tmp.getCommunicator(level)->endCommunication<Edge, Vertex>();
+    tmp.endCommunication<Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -167,10 +167,10 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->startCommunication<Vertex, Edge>();
+    dst.startCommunication<Vertex, Edge>( level );
 
     // end pulling edge halos
-    tmp.getCommunicator(level)->endCommunication<Face, Edge>();
+    tmp.endCommunication<Face, Edge>( level );
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -183,9 +183,9 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Vertex, Edge>();
+    dst.endCommunication<Vertex, Edge>( level );
 
-    dst.getCommunicator(level)->startCommunication<Edge, Face>();
+    dst.startCommunication<Edge, Face>( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -198,7 +198,7 @@ private:
       }
     }
 
-    dst.getCommunicator(level)->endCommunication<Edge, Face>();
+    dst.endCommunication<Edge, Face>( level );
   }
 
 #ifdef HHG_BUILD_WITH_PETSC

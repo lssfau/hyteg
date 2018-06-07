@@ -88,6 +88,23 @@ public:
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
+  template< typename SenderType, typename ReceiverType >
+  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->startCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->endCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void communicate( const uint_t & level ) const { communicators_.at( level )->communicate< SenderType, ReceiverType >(); }
+
+  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
+  {
+    for ( auto & communicator : communicators_ )
+    {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+    }
+  }
+
 private:
 
   using Function< VertexDoFFunction< ValueType > >::communicators_;
@@ -542,16 +559,16 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
 {
   this->startTiming( "integrateDG" );
 
-  rhsP1.getCommunicator(level)->template startCommunication<Edge, Vertex>();
-  rhsP1.getCommunicator(level)->template startCommunication<Face, Edge>();
+  rhsP1.startCommunication<Edge, Vertex>( level );
+  rhsP1.startCommunication<Face, Edge>( level );
 
-  rhs.getCommunicator(level)->template startCommunication<Face, Edge>();
-  rhs.getCommunicator(level)->template endCommunication<Face, Edge>();
+  rhs.startCommunication<Face, Edge>( level );
+  rhs.endCommunication<Face, Edge>( level );
 
-  rhs.getCommunicator(level)->template startCommunication<Edge, Vertex>();
-  rhs.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+  rhs.startCommunication<Edge, Vertex>( level );
+  rhs.endCommunication<Edge, Vertex>( level );
 
-  rhsP1.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+  rhsP1.endCommunication<Edge, Vertex>( level );
 
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
@@ -563,7 +580,7 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
-  rhsP1.getCommunicator(level)->template endCommunication<Face, Edge>();
+  rhsP1.endCommunication<Face, Edge>( level );
 
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;

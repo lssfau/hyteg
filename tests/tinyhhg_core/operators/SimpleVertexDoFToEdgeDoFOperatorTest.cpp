@@ -52,13 +52,11 @@ static void testOperator() {
 
   vertexToEdgeOperator.apply(*vertexDof, *edgeDof, level, hhg::All);
 
-  auto edgeDoFcommunicator = edgeDof->getCommunicator( level );
-
   // Pull all halos
-  edgeDoFcommunicator->communicate< Edge, Face >();
-  edgeDoFcommunicator->communicate< Face, Edge >();
-  edgeDoFcommunicator->communicate< Edge, Vertex >();
-  edgeDoFcommunicator->communicate< Vertex, Edge >();
+  edgeDof->communicate< Edge, Face >( level );
+  edgeDof->communicate< Face, Edge >( level );
+  edgeDof->communicate< Edge, Vertex >( level );
+  edgeDof->communicate< Vertex, Edge >( level );
 
 
 

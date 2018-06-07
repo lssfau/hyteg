@@ -116,8 +116,8 @@ class P2Function : public Function< P2Function< ValueType > >
 
       this->startTiming( "Prolongate P1 -> P2" );
 
-      p1Function->getCommunicator( level )->template startCommunication< Vertex, Edge >();
-      p1Function->getCommunicator( level )->template startCommunication< Edge, Face >();
+      p1Function->template startCommunication< Vertex, Edge >( level );
+      p1Function->template startCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getVertices() )
       {
@@ -134,7 +134,7 @@ class P2Function : public Function< P2Function< ValueType > >
          }
       }
 
-      p1Function->getCommunicator( level )->template endCommunication< Vertex, Edge >();
+      p1Function->template endCommunication< Vertex, Edge >( level );
 
       for( const auto& it : this->getStorage()->getEdges() )
       {
@@ -151,7 +151,7 @@ class P2Function : public Function< P2Function< ValueType > >
          }
       }
 
-      p1Function->getCommunicator( level )->template endCommunication< Edge, Face >();
+      p1Function->template endCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -177,20 +177,20 @@ class P2Function : public Function< P2Function< ValueType > >
    {
       this->startTiming( "Restrict P2 -> P1" );
 
-      vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Vertex >();
-      edgeDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Vertex >();
+      vertexDoFFunction_->template startCommunication< Edge, Vertex >( level );
+      edgeDoFFunction_->template startCommunication< Edge, Vertex >( level );
 
-      vertexDoFFunction_->getCommunicator( level )->template startCommunication< Vertex, Edge >();
-      edgeDoFFunction_->getCommunicator( level )->template startCommunication< Vertex, Edge >();
+      vertexDoFFunction_->template startCommunication< Vertex, Edge >( level );
+      edgeDoFFunction_->template startCommunication< Vertex, Edge >( level );
 
-      vertexDoFFunction_->getCommunicator( level )->template startCommunication< Face, Edge >();
-      edgeDoFFunction_->getCommunicator( level )->template startCommunication< Face, Edge >();
+      vertexDoFFunction_->template startCommunication< Face, Edge >( level );
+      edgeDoFFunction_->template startCommunication< Face, Edge >( level );
 
-      vertexDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Face >();
-      edgeDoFFunction_->getCommunicator( level )->template startCommunication< Edge, Face >();
+      vertexDoFFunction_->template startCommunication< Edge, Face >( level );
+      edgeDoFFunction_->template startCommunication< Edge, Face >( level );
 
-      vertexDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Vertex >();
-      edgeDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Vertex >();
+      vertexDoFFunction_->template endCommunication< Edge, Vertex >( level );
+      edgeDoFFunction_->template endCommunication< Edge, Vertex >( level );
 
       for( const auto& it : this->getStorage()->getVertices() )
       {
@@ -207,11 +207,11 @@ class P2Function : public Function< P2Function< ValueType > >
          }
       }
 
-      vertexDoFFunction_->getCommunicator( level )->template endCommunication< Vertex, Edge >();
-      edgeDoFFunction_->getCommunicator( level )->template endCommunication< Vertex, Edge >();
+      vertexDoFFunction_->template endCommunication< Vertex, Edge >( level );
+      edgeDoFFunction_->template endCommunication< Vertex, Edge >( level );
 
-      vertexDoFFunction_->getCommunicator( level )->template endCommunication< Face, Edge >();
-      edgeDoFFunction_->getCommunicator( level )->template endCommunication< Face, Edge >();
+      vertexDoFFunction_->template endCommunication< Face, Edge >( level );
+      edgeDoFFunction_->template endCommunication< Face, Edge >( level );
 
       for( const auto& it : this->getStorage()->getEdges() )
       {
@@ -228,8 +228,8 @@ class P2Function : public Function< P2Function< ValueType > >
          }
       }
 
-      vertexDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Face >();
-      edgeDoFFunction_->getCommunicator( level )->template endCommunication< Edge, Face >();
+      vertexDoFFunction_->template endCommunication< Edge, Face >( level );
+      edgeDoFFunction_->template endCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -313,11 +313,11 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void prolongate( uint_t sourceLevel, DoFType flag = All )
    {
-      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex, Edge >();
-      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge, Face >();
+      edgeDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
+      edgeDoFFunction_->template communicate< Edge, Face >( sourceLevel );
 
-      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex, Edge >();
-      vertexDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge, Face >();
+      vertexDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
+      vertexDoFFunction_->template communicate< Edge, Face >( sourceLevel );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -358,8 +358,8 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void restrict( uint_t sourceLevel, DoFType flag = All )
    {
-      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Vertex, Edge >();
-      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Edge, Face >();
+      edgeDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
+      edgeDoFFunction_->template communicate< Edge, Face >( sourceLevel );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -374,7 +374,7 @@ class P2Function : public Function< P2Function< ValueType > >
       }
 
       /// sync the vertex dofs which contain the missing edge dofs
-      edgeDoFFunction_->getCommunicator( sourceLevel )->template communicate< Face, Edge >();
+      edgeDoFFunction_->template communicate< Face, Edge >( sourceLevel );
 
       /// remove the temporary updates
       for( const auto& it : this->getStorage()->getFaces() )

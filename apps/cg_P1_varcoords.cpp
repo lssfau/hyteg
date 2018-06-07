@@ -98,18 +98,18 @@ int main( int argc, char* argv[] )
    // make sure that all coordinates are synchronized over all primitives and levels
    for( uint_t level = minLevel; level <= maxLevel; ++level )
    {
-      coordX->getCommunicator( level )->startCommunication< Edge, Vertex >();
-      coordX->getCommunicator( level )->startCommunication< Face, Edge >();
-      coordY->getCommunicator( level )->startCommunication< Edge, Vertex >();
-      coordY->getCommunicator( level )->startCommunication< Face, Edge >();
+      coordX->startCommunication< Edge, Vertex >( level );
+      coordX->startCommunication< Face, Edge >( level );
+      coordY->startCommunication< Edge, Vertex >( level );
+      coordY->startCommunication< Face, Edge >( level );
    }
 
    for( uint_t level = minLevel; level <= maxLevel; ++level )
    {
-      coordX->getCommunicator( level )->endCommunication< Edge, Vertex >();
-      coordX->getCommunicator( level )->endCommunication< Face, Edge >();
-      coordY->getCommunicator( level )->endCommunication< Edge, Vertex >();
-      coordY->getCommunicator( level )->endCommunication< Face, Edge >();
+      coordX->endCommunication< Edge, Vertex >( level );
+      coordX->endCommunication< Face, Edge >( level );
+      coordY->endCommunication< Edge, Vertex >( level );
+      coordY->endCommunication< Face, Edge >( level );
    }
 
    u.interpolate( exact, maxLevel, hhg::DirichletBoundary );

@@ -16,10 +16,10 @@ namespace hhg
 
   template< typename funcType >
   void syncFunctionBetweenPrimitives( const funcType *function, uint_t level ) {
-    function->getCommunicator( level )->template communicate< Vertex, Edge   >();
-    function->getCommunicator( level )->template communicate< Edge,   Vertex >();
-    function->getCommunicator( level )->template communicate< Edge,   Face   >();
-    function->getCommunicator( level )->template communicate< Face,   Edge   >();
+    function->template communicate< Vertex, Edge   >( level );
+    function->template communicate< Edge,   Vertex >( level );
+    function->template communicate< Edge,   Face   >( level );
+    function->template communicate< Face,   Edge   >( level );
   }
 
 } // namespace hhg

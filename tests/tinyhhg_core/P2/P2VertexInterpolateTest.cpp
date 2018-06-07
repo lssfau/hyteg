@@ -31,10 +31,10 @@ int main( int argc, char* argv[] )
    u.interpolate( testExpression, level, hhg::All );
 
    // Sync interpolated function values
-   u.getEdgeDoFFunction()->getCommunicator( level )->template communicate< Vertex, Edge >();
-   u.getEdgeDoFFunction()->getCommunicator( level )->template communicate< Edge, Face >();
-   u.getEdgeDoFFunction()->getCommunicator( level )->template communicate< Face, Edge >();
-   u.getEdgeDoFFunction()->getCommunicator( level )->template communicate< Edge, Vertex >();
+   u.getEdgeDoFFunction()->communicate< Vertex, Edge >( level );
+   u.getEdgeDoFFunction()->communicate< Edge, Face >( level );
+   u.getEdgeDoFFunction()->communicate< Face, Edge >( level );
+   u.getEdgeDoFFunction()->communicate< Edge, Vertex >( level );
 
    // We assume that the bottom left vertex has following connectivity
    //

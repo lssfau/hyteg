@@ -53,8 +53,8 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   }
 
   // Communicating macro-face data to the macro-cell
-  x->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-  x->getCommunicator( level )->template communicate< Face, Cell >();
+  x->setLocalCommunicationMode( localCommunicationMode );
+  x->communicate< Face, Cell >( level );
 
   // Macro-cell DoFs are 1.0 at the borders now
   for ( const auto & f : storage->getCells() )
@@ -74,9 +74,9 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
   x->interpolate( expr, level );
 
-  x->getCommunicator( level )->template communicate< Vertex, Edge >();
-  x->getCommunicator( level )->template communicate< Edge, Face >();
-  x->getCommunicator( level )->template communicate< Face, Cell >();
+  x->communicate< Vertex, Edge >( level );
+  x->communicate< Edge, Face >( level );
+  x->communicate< Face, Cell >( level );
 
   for ( const auto & f : storage->getCells() )
   {

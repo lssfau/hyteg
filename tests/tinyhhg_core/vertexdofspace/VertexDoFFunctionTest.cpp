@@ -30,24 +30,24 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   auto y = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "y", storage, level, level );
   auto z = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "z", storage, level, level );
 
-  x->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-  y->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+  x->setLocalCommunicationMode( localCommunicationMode );
+  y->setLocalCommunicationMode( localCommunicationMode );
 
   std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
   std::function< real_t( const hhg::Point3D & ) > ones = []( const hhg::Point3D &    ) -> real_t { return 1.0; };
 
   x->interpolate( expr, level );
 
-  x->getCommunicator( level )->template communicate< Vertex, Edge >();
-  x->getCommunicator( level )->template communicate< Edge, Face >();
-  x->getCommunicator( level )->template communicate< Face, Cell >();
+  x->communicate< Vertex, Edge >( level );
+  x->communicate< Edge, Face >( level );
+  x->communicate< Face, Cell >( level );
 
   y->assign( { 7.0 }, { x.get() }, level );
   y->add( { 6.0 }, { x.get() }, level );
 
-  y->getCommunicator( level )->template communicate< Vertex, Edge >();
-  y->getCommunicator( level )->template communicate< Edge, Face >();
-  y->getCommunicator( level )->template communicate< Face, Cell >();
+  y->communicate< Vertex, Edge >( level );
+  y->communicate< Edge, Face >( level );
+  y->communicate< Face, Cell >( level );
 
   for ( const auto & cellIt : storage->getCells() )
   {
@@ -80,8 +80,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
     auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
 
-    src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-    dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+    src->setLocalCommunicationMode( localCommunicationMode );
+    dst->setLocalCommunicationMode( localCommunicationMode );
 
     for ( const auto & cellIt : storage->getCells() )
     {
@@ -91,9 +91,9 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     }
 
     src->interpolate( ones, level );
-    src->getCommunicator( level )->template communicate< Vertex, Edge >();
-    src->getCommunicator( level )->template communicate< Edge, Face >();
-    src->getCommunicator( level )->template communicate< Face, Cell >();
+    src->communicate< Vertex, Edge >( level );
+    src->communicate< Edge, Face >( level );
+    src->communicate< Face, Cell >( level );
 
     for ( const auto & cellIt : storage->getCells() )
     {
@@ -146,8 +146,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
     auto dst = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "dst", storage, level, level );
 
-    src->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
-    dst->getCommunicator( level )->setLocalCommunicationMode( localCommunicationMode );
+    src->setLocalCommunicationMode( localCommunicationMode );
+    dst->setLocalCommunicationMode( localCommunicationMode );
 
     src->interpolate( ones, level );
     op->apply( *src, *dst, level, DoFType::All );

@@ -75,6 +75,23 @@ public:
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
+  template< typename SenderType, typename ReceiverType >
+  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->startCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->endCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void communicate( const uint_t & level ) const { communicators_.at( level )->communicate< SenderType, ReceiverType >(); }
+
+  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
+  {
+    for ( auto & communicator : communicators_ )
+    {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+    }
+  }
+
 private:
 
   using Function<DGFunction<ValueType> >::communicators_;
@@ -276,9 +293,9 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
 {
   this->startTiming( "projectP1" );
 
-  src.getCommunicator(level)->template startCommunication<Edge, Vertex>();
-  src.getCommunicator(level)->template startCommunication<Face, Edge>();
-  src.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+  src.startCommunication<Edge, Vertex>( level );
+  src.startCommunication<Face, Edge>( level );
+  src.endCommunication<Edge, Vertex>( level );
 
   for (auto& it : this->getStorage()->getVertices())
   {
@@ -291,9 +308,9 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
     }
   }
 
-  this->getCommunicator(level)->template startCommunication<Vertex, Edge>();
+  startCommunication<Vertex, Edge>( level );
 
-  src.getCommunicator(level)->template endCommunication<Face, Edge>();
+  src.endCommunication<Face, Edge>( level );
 
   for (auto& it : this->getStorage()->getEdges())
   {
@@ -307,9 +324,9 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
     }
   }
 
-  this->getCommunicator(level)->template endCommunication<Vertex, Edge>();
+  endCommunication<Vertex, Edge>( level );
 
-  this->getCommunicator(level)->template startCommunication<Edge, Face>();
+  startCommunication<Edge, Face>( level );
 
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
@@ -321,7 +338,7 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
     }
   }
 
-  this->getCommunicator(level)->template endCommunication<Edge, Face>();
+  endCommunication<Edge, Face>( level );
 
   this->stopTiming( "projectP1" );
 }
