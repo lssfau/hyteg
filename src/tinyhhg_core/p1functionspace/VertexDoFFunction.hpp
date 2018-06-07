@@ -562,11 +562,11 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   rhsP1.startCommunication<Edge, Vertex>( level );
   rhsP1.startCommunication<Face, Edge>( level );
 
-  rhs.startCommunication<Face, Edge>( level );
-  rhs.endCommunication<Face, Edge>( level );
+  rhs.template startCommunication<Face, Edge>( level );
+  rhs.template endCommunication<Face, Edge>( level );
 
-  rhs.startCommunication<Edge, Vertex>( level );
-  rhs.endCommunication<Edge, Vertex>( level );
+  rhs.template startCommunication<Edge, Vertex>( level );
+  rhs.template endCommunication<Edge, Vertex>( level );
 
   rhsP1.endCommunication<Edge, Vertex>( level );
 
