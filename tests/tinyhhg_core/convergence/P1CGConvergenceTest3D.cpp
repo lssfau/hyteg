@@ -6,6 +6,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -22,14 +24,18 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const uint_t      lowerLevel       = 4;
+  const uint_t      lowerLevel       = 3;
   const uint_t      higherLevel     = lowerLevel + 1;
-  const std::string meshFile        = "../../data/meshes/3D/tet_1el.msh";
-  const real_t      tolerance       = 1e-16;
+  const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
+  const real_t      tolerance       = 1e-17;
   const uint_t      maxIterations   = 10000;
   const bool        writeVTK        = false;
+  const bool        enableChecks    = true;
 
-  auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
+  const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+  const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   WALBERLA_CHECK( storage->hasGlobalCells() );
 
@@ -121,12 +127,15 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
   WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );
 
-  WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 3.1e-17 );
-  WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 1.8e-17 );
+  if ( enableChecks )
+  {
+    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 5.9e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.7e-17 );
 
-  // L2 err higher level ~ 0.25 * L2 err lower level
-  WALBERLA_CHECK_LESS( discrL2ErrLowerLevel,  3.8e-06 );
-  WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 8.6e-07 );
+    // L2 err higher level ~ 0.25 * L2 err lower level
+    WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.4e-04 );
+    WALBERLA_CHECK_LESS( discrL2ErrHigherLevel, 1.0e-04 );
+  }
 
   return 0;
 }

@@ -324,6 +324,28 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
                                                   vertices_.at( vertexID2.getID() )->getCoordinates(),
                                                   vertices_.at( vertexID3.getID() )->getCoordinates() }};
 
+    std::array< std::map< uint_t, uint_t >, 6 > edgeLocalVertexToCellLocalVertexMaps;
+
+    // edgeLocalVertexToCellLocalVertexMaps[ cellLocalEdgeID ][ edgeLocalVertexID ] = cellLocalVertexID;
+
+    edgeLocalVertexToCellLocalVertexMaps[0][ edges_.at( edgeID0.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[0][ edges_.at( edgeID0.getID() )->vertex_index( vertexID1 ) ] = 1;
+
+    edgeLocalVertexToCellLocalVertexMaps[1][ edges_.at( edgeID1.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[1][ edges_.at( edgeID1.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    edgeLocalVertexToCellLocalVertexMaps[2][ edges_.at( edgeID2.getID() )->vertex_index( vertexID1 ) ] = 1;
+    edgeLocalVertexToCellLocalVertexMaps[2][ edges_.at( edgeID2.getID() )->vertex_index( vertexID2 ) ] = 2;
+
+    edgeLocalVertexToCellLocalVertexMaps[3][ edges_.at( edgeID3.getID() )->vertex_index( vertexID0 ) ] = 0;
+    edgeLocalVertexToCellLocalVertexMaps[3][ edges_.at( edgeID3.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    edgeLocalVertexToCellLocalVertexMaps[4][ edges_.at( edgeID4.getID() )->vertex_index( vertexID1 ) ] = 1;
+    edgeLocalVertexToCellLocalVertexMaps[4][ edges_.at( edgeID4.getID() )->vertex_index( vertexID3 ) ] = 3;
+
+    edgeLocalVertexToCellLocalVertexMaps[5][ edges_.at( edgeID5.getID() )->vertex_index( vertexID2 ) ] = 2;
+    edgeLocalVertexToCellLocalVertexMaps[5][ edges_.at( edgeID5.getID() )->vertex_index( vertexID3 ) ] = 3;
+
     std::array< std::map< uint_t, uint_t >, 4 > faceLocalVertexToCellLocalVertexMaps;
 
     // faceLocalVertexToCellLocalVertexMaps[ cellLocalFaceID ][ faceLocalVertexID ] = cellLocalVertexID;
@@ -344,7 +366,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID2 ) ] = 2;
     faceLocalVertexToCellLocalVertexMaps[3][ faces_.at( faceID3.getID() )->vertex_index( vertexID3 ) ] = 3;
 
-    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, faceLocalVertexToCellLocalVertexMaps );
+    cells_[ cellID.getID() ] = std::make_shared< Cell >( cellID, cellVertices, cellEdges, cellFaces, cellCoordinates, edgeLocalVertexToCellLocalVertexMaps, faceLocalVertexToCellLocalVertexMaps );
 
     setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
@@ -435,6 +457,33 @@ real_t SetupPrimitiveStorage::getAvgPrimitivesPerRank() const
   return real_t( getNumberOfPrimitives() ) / real_t( numberOfProcesses_ );
 }
 
+uint_t SetupPrimitiveStorage::getNumVerticesOnBoundary() const
+{
+  return uint_c( std::count_if( vertices_.begin(), vertices_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Vertex > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
+}
+
+uint_t SetupPrimitiveStorage::getNumEdgesOnBoundary() const
+{
+  return uint_c( std::count_if( edges_.begin(), edges_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Edge > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
+}
+
+uint_t SetupPrimitiveStorage::getNumFacesOnBoundary() const
+{
+  return uint_c( std::count_if( faces_.begin(), faces_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Face > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
+}
+
+uint_t SetupPrimitiveStorage::getNumCellsOnBoundary() const
+{
+  return uint_c( std::count_if( cells_.begin(), cells_.end(),
+                                [this]( const std::pair< PrimitiveID::IDType, std::shared_ptr< Cell > > & mapEntry )
+                                { return onBoundary( PrimitiveID( mapEntry.first ), true ); } ) );
+}
 
 void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
 {
@@ -444,15 +493,15 @@ void SetupPrimitiveStorage::toStream( std::ostream & os, bool verbose ) const
   os << " - Processes (empty)  : " << std::setw(10) << getNumberOfEmptyProcesses() << "\n";
 
   os << " - Number of...\n"
-     << "   +  Vertices: " << std::setw(10) << vertices_.size() << "\n"
-     << "   +     Edges: " << std::setw(10) << edges_.size() << "\n"
-     << "   +     Faces: " << std::setw(10) << faces_.size() << "\n"
-     << "   +     Cells: " << std::setw(10) << cells_.size() << "\n";
+     << "   +  Vertices: " << std::setw(10) << vertices_.size() << " | " << getNumVerticesOnBoundary() << "/" << vertices_.size() << " on boundary\n"
+     << "   +     Edges: " << std::setw(10) << edges_.size() << " | " << getNumEdgesOnBoundary() << "/" << edges_.size() << " on boundary\n"
+     << "   +     Faces: " << std::setw(10) << faces_.size() << " | " << getNumFacesOnBoundary() << "/" << faces_.size() << " on boundary\n"
+     << "   +     Cells: " << std::setw(10) << cells_.size() << " | " << getNumCellsOnBoundary() << "/" << cells_.size() << " on boundary\n";
 
   os << " - Primitives per process...\n"
      << "   +      min: " << std::setw(10) << getMinPrimitivesPerRank() << "\n"
      << "   +      max: " << std::setw(10) << getMaxPrimitivesPerRank() << "\n"
-     << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "\n";
+     << "   +      avg: " << std::setw(10) << getAvgPrimitivesPerRank() << "";
 
   if ( verbose ) {
     os << "\n";
@@ -534,13 +583,27 @@ PrimitiveID SetupPrimitiveStorage::generatePrimitiveID() const
   return newID;
 }
 
-bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID ) const
+void SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary( const uint_t & meshBoundaryFlagOnBoundary, const uint_t & meshBoundaryFlagInner, const bool & highestDimensionAlwaysInner )
+{
+  PrimitiveMap primitives;
+  getSetupPrimitives( primitives );
+  for ( auto & primitive : primitives )
+  {
+    primitive.second->meshBoundaryFlag_ = onBoundary( primitive.first, highestDimensionAlwaysInner ) ? meshBoundaryFlagOnBoundary : meshBoundaryFlagInner;
+  }
+}
+
+bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner ) const
 {
   WALBERLA_ASSERT( primitiveExists( primitiveID ) );
 
   if ( getNumberOfCells() == 0 )
   {
     // 2D
+    if ( highestDimensionAlwaysInner && faceExists( primitiveID ) )
+    {
+      return false;
+    }
     if ( edgeExists( primitiveID ) )
     {
       const auto edge = getEdge( primitiveID );
@@ -566,6 +629,10 @@ bool SetupPrimitiveStorage::onBoundary( const PrimitiveID & primitiveID ) const
   else
   {
     // 3D
+    if ( highestDimensionAlwaysInner && cellExists( primitiveID ) )
+    {
+      return false;
+    }
     if ( faceExists( primitiveID ) )
     {
       const auto face = getFace( primitiveID );

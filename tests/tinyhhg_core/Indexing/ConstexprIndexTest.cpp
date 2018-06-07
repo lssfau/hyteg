@@ -15,15 +15,6 @@ constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
   return sum;
 }
 
-constexpr size_t sumIndicesEdge(const uint_t x){
-  uint_t sum = 0;
-  for(uint_t i = 0; i < vertexdof::macroedge::neighborsWithCenter.size(); ++i)
-  {
-    sum += vertexdof::macroedge::indexFromVertex( 3, x, vertexdof::macroedge::neighborsWithCenter[i] );
-  }
-  return sum;
-}
-
 constexpr size_t sumBubbleFaceIndices(const uint_t x, const uint_t y){
   uint_t sum = 0;
   for(uint_t i = 0; i < facedof::macroface::neighbors.size(); ++i)
@@ -70,9 +61,6 @@ int main() {
   static_assert( facedof::macroedge::indexFaceFromVertex( 3, 4, stencilDirection::CELL_GRAY_SE ) == 8,
                  "facedof::macroedge::indexFaceFromVertex() failed");
   static_assert(sumBubbleEdgeIndices(4)==87,"BubbleEdge sum failed");
-
-  static_assert( vertexdof::macroedge::indexFromVertex( 3, 4, stencilDirection::VERTEX_SE ) == 13, "P1Edge Index failed");
-  static_assert(sumIndicesEdge(3)==71,"P1Edge Index sum failed");
 
   static_assert(
   vertexdof::macroface::indexFromVertex( 3, 1, 1, stencilDirection::VERTEX_C ) == 10, "P1Face Index failed");

@@ -46,6 +46,22 @@ uint_t Edge::face_index(const PrimitiveID& face) const
   return std::numeric_limits<std::size_t>::max();
 }
 
+uint_t Edge::cell_index(const PrimitiveID& cell) const
+{
+  WALBERLA_ASSERT_GREATER_EQUAL(getNumNeighborCells(), 1);
+
+  for ( uint_t localCellID = 0; localCellID < getNumNeighborCells(); localCellID++ )
+  {
+    if ( cell.getID() == neighborCells_[ localCellID ].getID() )
+    {
+      return localCellID;
+    }
+  }
+
+  WALBERLA_ASSERT(false, "Edge::cell_index: Cell does not belong to edge");
+  return std::numeric_limits<std::size_t>::max();
+}
+
 PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 {
   WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 2);

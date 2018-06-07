@@ -8,6 +8,7 @@
 #include <tinyhhg_core/math.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
+#include <core/debug/CheckFunctions.h>
 
 #include <array>
 #include <vector>
@@ -70,6 +71,9 @@ public:
   const PrimitiveID & getEdgeID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[0]; }
   const PrimitiveID & getEdgeID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[1]; }
   const PrimitiveID & getEdgeID2() const { WALBERLA_ASSERT_EQUAL( getNumNeighborEdges(), 3 ); return neighborEdges_[2]; }
+
+  const PrimitiveID & getCellID0() const { WALBERLA_CHECK_GREATER( getNumNeighborCells(), 0 ); return neighborCells_[0]; }
+  const PrimitiveID & getCellID1() const { WALBERLA_CHECK_GREATER( getNumNeighborCells(), 1 ); return neighborCells_[1]; }
 
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned

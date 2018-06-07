@@ -216,70 +216,47 @@ inline void apply(const uint_t & Level, Face &face, const PrimitiveDataID< Stenc
   if( update == Replace ) {
     for (uint_t j = 1; j < rowsize - 2; ++j) {
       for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
-        tmp = opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] * src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+        if ( face.getNumNeighborCells() == 0 ) {
+          tmp = opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] * src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-        //strangely the intel compiler cant handle this if it is a loop
-        static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+          //strangely the intel compiler cant handle this if it is a loop
+          static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[0] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[0] )];
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[0] )];
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[1] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[1] )];
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[1] )];
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[2] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[2] )];
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[2] )];
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[3] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[3] )];
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[3] )];
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[4] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[4] )];
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[4] )];
           tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[5] )]
-              * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                    vertexdof::macroface::neighborsWithoutCenter[5] )];
-
-        if ( face.getNumNeighborCells() == 1 )
+                 * src[vertexdof::macroface::indexFromVertex( Level, i, j,
+                                                              vertexdof::macroface::neighborsWithoutCenter[5] )];
+        }
+        else if ( face.getNumNeighborCells() == 1 )
         {
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TSE )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TW )];
+          tmp = real_c(0);
+          for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+          {
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )]
+                   * src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+          }
         }
         else if ( face.getNumNeighborCells() == 2 )
         {
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TS )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TS )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TSE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TSE )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TW )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_TW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BC )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BC )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BN )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BN )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BNW )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BNW )];
-            tmp += opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_BE )]
-                * src[vertexdof::macroface::indexFromVertex( Level, i, j,
-                                                                      stencilDirection::VERTEX_BE )];
+          tmp = real_c(0);
+          for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+          {
+            tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )]
+                   * src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+          }
         }
 
         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );

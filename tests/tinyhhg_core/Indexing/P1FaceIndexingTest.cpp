@@ -100,12 +100,12 @@ int main(int argc, char* argv[])
   level2FirstInner[ sd::VERTEX_TC ]  = 20;
   level2FirstInner[ sd::VERTEX_TW ]  = 19;
   level2FirstInner[ sd::VERTEX_TS ]  = 16;
-  level2FirstInner[ sd::VERTEX_TSE ] = 15;
+  level2FirstInner[ sd::VERTEX_TSE ] = 17;
 
-  level2FirstInner[ sd::VERTEX_BC ]  = 25;
-  level2FirstInner[ sd::VERTEX_BE ]  = 26;
-  level2FirstInner[ sd::VERTEX_BN ]  = 29;
-  level2FirstInner[ sd::VERTEX_BNW ] = 30;
+  level2FirstInner[ sd::VERTEX_BC ]  = 30;
+  level2FirstInner[ sd::VERTEX_BE ]  = 31;
+  level2FirstInner[ sd::VERTEX_BN ]  = 33;
+  level2FirstInner[ sd::VERTEX_BNW ] = 32;
 
   hhg::testNeighborhood2( hhg::indexing::Index( 1, 1, 1 ), level2FirstInner );
 
@@ -123,12 +123,12 @@ int main(int argc, char* argv[])
   level2SecondInner[ sd::VERTEX_TC ]  = 21;
   level2SecondInner[ sd::VERTEX_TW ]  = 20;
   level2SecondInner[ sd::VERTEX_TS ]  = 17;
-  level2SecondInner[ sd::VERTEX_TSE ] = 16;
+  level2SecondInner[ sd::VERTEX_TSE ] = 18;
 
-  level2SecondInner[ sd::VERTEX_BC ]  = 26;
-  level2SecondInner[ sd::VERTEX_BE ]  = 27;
-  level2SecondInner[ sd::VERTEX_BN ]  = 30;
-  level2SecondInner[ sd::VERTEX_BNW ] = 31;
+  level2SecondInner[ sd::VERTEX_BC ]  = 31;
+  level2SecondInner[ sd::VERTEX_BE ]  = 32;
+  level2SecondInner[ sd::VERTEX_BN ]  = 34;
+  level2SecondInner[ sd::VERTEX_BNW ] = 33;
 
   hhg::testNeighborhood2( hhg::indexing::Index( 2, 1, 1 ), level2SecondInner );
 
@@ -146,12 +146,12 @@ int main(int argc, char* argv[])
   level3FirstInner[ sd::VERTEX_TC ]  = 54;
   level3FirstInner[ sd::VERTEX_TW ]  = 53;
   level3FirstInner[ sd::VERTEX_TS ]  = 46;
-  level3FirstInner[ sd::VERTEX_TSE ] = 45;
+  level3FirstInner[ sd::VERTEX_TSE ] = 47;
 
-  level3FirstInner[ sd::VERTEX_BC ]  = 81;
-  level3FirstInner[ sd::VERTEX_BE ]  = 82;
-  level3FirstInner[ sd::VERTEX_BN ]  = 89;
-  level3FirstInner[ sd::VERTEX_BNW ] = 90;
+  level3FirstInner[ sd::VERTEX_BC ]  = 90;
+  level3FirstInner[ sd::VERTEX_BE ]  = 91;
+  level3FirstInner[ sd::VERTEX_BN ]  = 97;
+  level3FirstInner[ sd::VERTEX_BNW ] = 96;
 
   hhg::testNeighborhood3( hhg::indexing::Index( 1, 1, 1 ), level3FirstInner );
 

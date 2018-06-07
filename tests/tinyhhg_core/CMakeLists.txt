@@ -25,6 +25,9 @@ walberla_execute_test(NAME P2MinResConvergenceTest)
 waLBerla_compile_test(FILES Indexing/CommonIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME CommonIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/IndexBasisConversionTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME IndexBasisConversionTest)
+
 waLBerla_compile_test(FILES Indexing/P1EdgeIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1EdgeIndexingTest)
 
@@ -154,6 +157,9 @@ if( HHG_BUILD_WITH_PETSC )
 endif()
 
 ## Other ##
+
+waLBerla_compile_test(FILES P1LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
 
 waLBerla_compile_test(FILES P2FunctionTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2FunctionTest)

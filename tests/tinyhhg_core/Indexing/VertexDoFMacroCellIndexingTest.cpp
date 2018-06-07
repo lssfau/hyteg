@@ -4,6 +4,7 @@
 
 #include "core/mpi/all.h"
 #include "core/debug/CheckFunctions.h"
+#include "core/logging/Logging.h"
 
 namespace hhg {
 
@@ -103,6 +104,31 @@ static void testVertexDofMacroCellIndexing()
   level3TopInner[ sd::VERTEX_BNW ] = 139;
 
   testNeighborhood3( Index( 1, 1, 5 ), level3TopInner );
+
+  // checking the index at vertex/edge/face functions
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 0, 0, 0 ), 2 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 0, 0, 0 ), 3 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 0, 0, 0 ), 4 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 8, 0, 0 ), 3 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 7, 0, 0 ), 3 ).size(), 2 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 0, 7, 0 ), 3 ).size(), 2 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellFace( indexing::Index( 1, 1, 1 ), 3 ).size(), 0 );
+
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 0, 0, 0 ), 2 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 0, 0, 0 ), 3 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 0, 0, 0 ), 4 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 8, 0, 0 ), 3 ).size(), 3 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 7, 0, 0 ), 3 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 0, 7, 0 ), 3 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellEdge( indexing::Index( 1, 1, 1 ), 3 ).size(), 0 );
+
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 0, 0, 0 ), 2 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 0, 0, 0 ), 3 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 0, 0, 0 ), 4 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 8, 0, 0 ), 3 ).size(), 1 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 7, 0, 0 ), 3 ).size(), 0 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 0, 7, 0 ), 3 ).size(), 0 );
+  WALBERLA_CHECK_EQUAL( vertexdof::macrocell::isOnCellVertex( indexing::Index( 1, 1, 1 ), 3 ).size(), 0 );
 }
 
 }

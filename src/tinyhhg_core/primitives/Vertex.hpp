@@ -47,6 +47,11 @@ public:
   /// \returns Index of \p face within \ref faces
   uint_t face_index(const PrimitiveID& face) const;
 
+  /// Returns the index of \p cell within \ref cells
+  /// \param cells Cell
+  /// \returns Index of \p cell within \ref cells
+  uint_t cell_index(const PrimitiveID& cell) const;
+
   /// Method overload for string formatting
   friend std::ostream &operator<<(std::ostream &os, const Vertex &vertex);
 

@@ -197,30 +197,10 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
     {
       const Cell & cell = *it.second;
 
-      std::vector< PrimitiveID > neighborVertices;
-      cell.getNeighborVertices( neighborVertices );
-      WALBERLA_ASSERT_EQUAL( neighborVertices.size(), 4 );
-
-      WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[0] ) || storage->vertexExistsInNeighborhood( neighborVertices[0] ) );
-      WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[1] ) || storage->vertexExistsInNeighborhood( neighborVertices[1] ) );
-      WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[2] ) || storage->vertexExistsInNeighborhood( neighborVertices[2] ) );
-      WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertices[3] ) || storage->vertexExistsInNeighborhood( neighborVertices[3] ) );
-
-      Point3D xBlend;
-      const Point3D x0 = storage->getVertex( neighborVertices[0] )->getCoordinates();
-      const Point3D x1 = storage->getVertex( neighborVertices[1] )->getCoordinates();
-      const Point3D x2 = storage->getVertex( neighborVertices[2] )->getCoordinates();
-      const Point3D x3 = storage->getVertex( neighborVertices[3] )->getCoordinates();
-
-      const uint_t numIntervals = levelinfo::num_microvertices_per_edge( level ) - 1;
-
-      const Point3D dx = ( x1 - x0 ) / real_c( numIntervals );
-      const Point3D dy = ( x2 - x0 ) / real_c( numIntervals );
-      const Point3D dz = ( x3 - x0 ) / real_c( numIntervals );
-
       for ( const auto & idxIt : vertexdof::macrocell::Iterator( level, 0 ) )
       {
-        const Point3D vtkPoint = real_c( idxIt.dep() ) * dz + real_c( idxIt.row() ) * dy + real_c( idxIt.col() ) * dx;
+        const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, idxIt );
+        Point3D xBlend;
         cell.getGeometryMap()->evalF( vtkPoint, xBlend );
         output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
       }
@@ -372,83 +352,65 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
     return xOffset + yOffset + zOffset;
   };
 
-  const uint_t numberOfCells = levelinfo::num_microcells_per_cell( level );
+  const uint_t numberOfVertices = levelinfo::num_microvertices_per_cell( level );
+  const uint_t numberOfCells    = levelinfo::num_microcells_per_cell( level );
 
-  uint_t cellCounter = 0;
-
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) ) )
+  for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
   {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ))) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
-  }
 
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
-  {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
-  }
 
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
-  {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
-  }
 
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 ) )
-  {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 )) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
-  }
 
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
-  {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
-  }
 
-  for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 ) )
-  {
-    const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
+    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+      const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
 
-    for ( const auto & spanningVertexIndex : spanningVertexIndices )
-    {
-      output << calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
+        output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+      }
+      output << "\n";
     }
-    output << "\n";
-    cellCounter++;
   }
-
-  WALBERLA_ASSERT_EQUAL( cellCounter, numberOfCells );
 
   output << "\n</DataArray>\n";
   output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";

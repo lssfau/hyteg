@@ -215,31 +215,67 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
   {
     buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
+
+  // To pack DoFs on face ghost-layers, we use an iterator with a width reduced by 1
+  // Top ghost-layer is sent if there are any neighboring cells
+  if ( sender->getNumNeighborCells() > 0 )
+  {
+    for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+    {
+      buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
+    }
+
+    // Bottom ghost-layer is only sent if there is a second neighboring cell
+    if ( sender->getNumNeighborCells() == 2 )
+    {
+      for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+      {
+        buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
+      }
+    }
+  }
+
 }
 
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
 {
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
-  uint_t v_perEdge = levelinfo::num_microvertices_per_edge(level_);
-  uint_t edgeIdOnFace = receiver->face_index(sender);
-  stencilDirection dir;
-  //the first face is the south face and the second the north face
-  if(edgeIdOnFace == 0)
+  const uint_t faceIDOnEdge = receiver->face_index( sender );
+  const auto storage = storage_.lock();
+  WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
+  WALBERLA_CHECK( storage->faceExistsLocally( sender ) || storage->faceExistsInNeighborhood( sender ) );
+  const auto senderFace = storage->getFace( sender );
+
+  for (uint_t i = 0; i < vertexdof::macroedge::neighborFaceGhostLayerSize( level_ ); ++i)
   {
-    dir = stencilDirection::VERTEX_SE;
+    buffer >> edgeData[ vertexdof::macroedge::indexOnNeighborFace( level_, i, faceIDOnEdge ) ];
   }
-  else if(edgeIdOnFace == 1)
+
+  // Unpacking the DoFs from the face ghost-layers (located in the interior of a macro-cell) now.
+  if ( senderFace->getNumNeighborCells() > 0 )
   {
-    dir = stencilDirection::VERTEX_N;
-  }
-  for (uint_t i = 0; i < v_perEdge -1; ++i)
-  {
-    buffer >> edgeData[ vertexdof::macroedge::indexFromVertex( level_, i, dir ) ];
+    const auto topCellPrimitiveID = senderFace->getCellID0();
+    const auto localTopCellIDOnEdge = receiver->cell_index( topCellPrimitiveID );
+    for (uint_t i = 0; i < vertexdof::macroedge::neighborCellGhostLayerSize( level_ ); ++i)
+    {
+      buffer >> edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, i, localTopCellIDOnEdge, receiver->getNumNeighborFaces() ) ];
+    }
+
+    if ( senderFace->getNumNeighborCells() == 2 )
+    {
+      const auto bottomCellPrimitiveID = senderFace->getCellID1();
+      const auto localBottomCellIDOnEdge = receiver->cell_index( bottomCellPrimitiveID );
+      for (uint_t i = 0; i < vertexdof::macroedge::neighborCellGhostLayerSize( level_ ); ++i)
+      {
+        buffer >> edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, i, localBottomCellIDOnEdge, receiver->getNumNeighborFaces() ) ];
+      }
+    }
   }
 }
 
@@ -249,23 +285,39 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
-  stencilDirection dir;
   uint_t edgeIdOnFace = sender->edge_index(receiver->getID());
-  //the first face is the south face and the second the north face
-  if(faceIdOnEdge == 0)
-  {
-    dir = stencilDirection::VERTEX_SE;
-  }
-  else if(faceIdOnEdge == 1)
-  {
-    dir = stencilDirection::VERTEX_N;
-  }
-  uint_t idx = 0;
   indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
+  uint_t idx = 0;
   for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
   {
-    edgeData[ vertexdof::macroedge::indexFromVertex( level_, idx, dir ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    edgeData[ vertexdof::macroedge::indexOnNeighborFace( level_, idx, faceIdOnEdge ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
     idx++;
+  }
+
+  // To pack DoFs on face ghost-layers, we use an iterator with a width reduced by 1
+  // Top ghost-layer is sent if there are any neighboring cells
+  if ( sender->getNumNeighborCells() > 0 )
+  {
+    const auto topCellPrimitiveID = sender->getCellID0();
+    const auto localTopCellIDOnEdge = receiver->cell_index( topCellPrimitiveID );
+    idx = 0;
+    for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+    {
+      edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localTopCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
+      idx++;
+    }
+    // Bottom ghost-layer is only sent if there is a second neighboring cell
+    if ( sender->getNumNeighborCells() == 2 )
+    {
+      const auto bottomCellPrimitiveID = sender->getCellID1();
+      const auto localBottomCellIDOnEdge = receiver->cell_index( bottomCellPrimitiveID );
+      idx = 0;
+      for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+      {
+        edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localBottomCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
+        idx++;
+      }
+    }
   }
 }
 
@@ -354,7 +406,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const Pr
   else
   {
     WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender ), 1 );
-    neighborDirection = stencilDirection::VERTEX_BNW;
+    neighborDirection = stencilDirection::VERTEX_BC;
   }
 
   for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
@@ -389,7 +441,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
   else
   {
     WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender->getID() ), 1 );
-    neighborDirection = stencilDirection::VERTEX_BNW;
+    neighborDirection = stencilDirection::VERTEX_BC;
   }
 
   auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );

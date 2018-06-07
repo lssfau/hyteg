@@ -6,6 +6,7 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 
@@ -14,8 +15,10 @@ namespace hhg {
 
 using walberla::real_t;
 using walberla::real_c;
+using walberla::uint_t;
 
 namespace P1Elements {
+namespace FaceVertexDoF {
 
 // Fenics P1 DoF ordering
 // 2       1---0
@@ -30,8 +33,6 @@ typedef stencilDirection SD;
 typedef std::array<SD, ElementSize> P1Element;
 typedef std::array<uint_t, ElementSize> DoFMap;
 typedef std::array<uint_t, ElementSize> StencilMap;
-
-namespace FaceVertexDoF {
 
 const P1Element elementSW = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S}};
 const P1Element elementS = {{SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE}};
@@ -90,7 +91,6 @@ static const std::array<DoFMap, 3> P1BlueDoFMaps =
          {{1, 2, 0}},
          {{2, 0, 1}}
      }};
-}
 
 inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
 {
@@ -99,52 +99,58 @@ inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
 
 template<typename StencilMemory>
 inline void assembleP1LocalStencil(const StencilMap &stencilMap, const DoFMap &dofMap, const Matrix3r &localMatrix,
-                            StencilMemory &stencil, double coeffWeight = 1.0) {
+                                   StencilMemory &stencil, double coeffWeight = 1.0) {
   for (uint_t j = 0; j < 3; ++j) {
     stencil[stencilMap[j]] += coeffWeight * localMatrix(dofMap[0], dofMap[j]);
   }
 }
 
+}
+
+
+
+
+
 namespace CellVertexDoF {
 
 typedef stencilDirection sd;
 
-const std::array< std::array< stencilDirection, 4 >, 4 > whiteUpCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > whiteUpCellsAtInnerVertex = {{
                                                                                  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN }, // below
                                                                                  { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS }, // top front
                                                                                  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW }, // top back west
                                                                                  { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC }, // top back east
                                                                                  }};
 
-const std::array< std::array< stencilDirection, 4 >, 4 > whiteDownCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > whiteDownCellsAtInnerVertex = {{
                                                                                    { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_S }, // below front west
                                                                                    { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_SE, sd::VERTEX_BE }, // below front east
                                                                                    { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_NW, sd::VERTEX_BN }, // below back
                                                                                    { sd::VERTEX_C, sd::VERTEX_TS, sd::VERTEX_TC, sd::VERTEX_TW }, // top
                                                                                    }};
 
-const std::array< std::array< stencilDirection, 4 >, 4 > blueUpCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > blueUpCellsAtInnerVertex = {{
                                                                                 { sd::VERTEX_C, sd::VERTEX_BC,  sd::VERTEX_BN, sd::VERTEX_BNW  }, // below
                                                                                 { sd::VERTEX_C, sd::VERTEX_W,  sd::VERTEX_S, sd::VERTEX_TS  }, // top front west
                                                                                 { sd::VERTEX_C, sd::VERTEX_E,  sd::VERTEX_SE, sd::VERTEX_TSE }, // top front east
                                                                                 { sd::VERTEX_C, sd::VERTEX_NW, sd::VERTEX_N, sd::VERTEX_TC   }, // top back
                                                                                 }};
 
-const std::array< std::array< stencilDirection, 4 >, 4 > blueDownCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > blueDownCellsAtInnerVertex = {{
                                                                                   { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_S, sd::VERTEX_SE }, // below front
                                                                                   { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_BNW }, // below back west
                                                                                   { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BN, sd::VERTEX_N }, // below back east
                                                                                   { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TS, sd::VERTEX_TSE }, // top
                                                                                   }};
 
-const std::array< std::array< stencilDirection, 4 >, 4 > greenUpCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > greenUpCellsAtInnerVertex = {{
                                                                                  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_BNW }, // below west
                                                                                  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BE, sd::VERTEX_BN }, // below east
                                                                                  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TW, sd::VERTEX_NW }, // top back
                                                                                  { sd::VERTEX_C, sd::VERTEX_SE, sd::VERTEX_TS, sd::VERTEX_TSE }, // top front
                                                                                  }};
 
-const std::array< std::array< stencilDirection, 4 >, 4 > greenDownCellsAtVertex = {{
+const std::array< std::array< stencilDirection, 4 >, 4 > greenDownCellsAtInnerVertex = {{
                                                                                    { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_SE }, // below front
                                                                                    { sd::VERTEX_C, sd::VERTEX_BN, sd::VERTEX_BNW, sd::VERTEX_NW }, // below back
                                                                                    { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_TSE, sd::VERTEX_TC }, // top east
@@ -152,54 +158,200 @@ const std::array< std::array< stencilDirection, 4 >, 4 > greenDownCellsAtVertex 
                                                                                    }};
 
 
-const std::array< std::array< stencilDirection, 4 >, 24 > allCellsAtVertex = {{
-                                                                        whiteUpCellsAtVertex[0], whiteUpCellsAtVertex[1], whiteUpCellsAtVertex[2], whiteUpCellsAtVertex[3],
-                                                                        whiteDownCellsAtVertex[0], whiteDownCellsAtVertex[1], whiteDownCellsAtVertex[2], whiteDownCellsAtVertex[3],
-                                                                        blueUpCellsAtVertex[0], blueUpCellsAtVertex[1], blueUpCellsAtVertex[2], blueUpCellsAtVertex[3],
-                                                                        blueDownCellsAtVertex[0], blueDownCellsAtVertex[1], blueDownCellsAtVertex[2], blueDownCellsAtVertex[3],
-                                                                        greenUpCellsAtVertex[0], greenUpCellsAtVertex[1], greenUpCellsAtVertex[2], greenUpCellsAtVertex[3],
-                                                                        greenDownCellsAtVertex[0], greenDownCellsAtVertex[1], greenDownCellsAtVertex[2], greenDownCellsAtVertex[3]
+const std::array< std::array< stencilDirection, 4 >, 24 > allCellsAtInnerVertex = {{
+                                                                        whiteUpCellsAtInnerVertex[0], whiteUpCellsAtInnerVertex[1], whiteUpCellsAtInnerVertex[2], whiteUpCellsAtInnerVertex[3],
+                                                                        whiteDownCellsAtInnerVertex[0], whiteDownCellsAtInnerVertex[1], whiteDownCellsAtInnerVertex[2], whiteDownCellsAtInnerVertex[3],
+                                                                        blueUpCellsAtInnerVertex[0], blueUpCellsAtInnerVertex[1], blueUpCellsAtInnerVertex[2], blueUpCellsAtInnerVertex[3],
+                                                                        blueDownCellsAtInnerVertex[0], blueDownCellsAtInnerVertex[1], blueDownCellsAtInnerVertex[2], blueDownCellsAtInnerVertex[3],
+                                                                        greenUpCellsAtInnerVertex[0], greenUpCellsAtInnerVertex[1], greenUpCellsAtInnerVertex[2], greenUpCellsAtInnerVertex[3],
+                                                                        greenDownCellsAtInnerVertex[0], greenDownCellsAtInnerVertex[1], greenDownCellsAtInnerVertex[2], greenDownCellsAtInnerVertex[3]
                                                                         }};
 
 
-/// Assembles the (constant) P1 stencil for one macro-cell using the local stiffness matrix calculated by the passed fenics UFC generator.
-/// \param cell the macro-cell for which the stencil shall be assembled
-/// \param level the HHG refinement level
-/// \param ufcGen a cell_integral subclass from the generated output of the fenics library
-///               which implements the member tabulate_tensor() that calculates the local stiffness matrix
-/// \return an array of stencil weights - the stencil weights are sorted according to the stencil index functions
-template< typename UFCOperator >
-inline std::array< real_t, 15 > assembleP1LocalStencil( const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
-{
-  std::array< real_t, 15 > localStencil;
-  localStencil.fill( real_c( 0 ) );
+const std::array< std::array< stencilDirection, 4 >, 12 > allCellsAtFace0 = {{
+  // no cells with bottom direction
+  { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW },
+  { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC },
+  { sd::VERTEX_C, sd::VERTEX_TS, sd::VERTEX_TC, sd::VERTEX_TW },
+  { sd::VERTEX_C, sd::VERTEX_W,  sd::VERTEX_S, sd::VERTEX_TS  },
+  { sd::VERTEX_C, sd::VERTEX_E,  sd::VERTEX_SE, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_NW, sd::VERTEX_N, sd::VERTEX_TC   },
+  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TS, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TW, sd::VERTEX_NW },
+  { sd::VERTEX_C, sd::VERTEX_SE, sd::VERTEX_TS, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_TSE, sd::VERTEX_TC },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_TS, sd::VERTEX_TW }
+}};
 
-  // 1. Going over all neighboring cells of a reference micro-vertex
+const std::array< std::array< stencilDirection, 4 >, 12 > allCellsAtFace1 = {{
+  // no cells with south direction
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW },
+  { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC },
+  { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_NW, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_BC,  sd::VERTEX_BN, sd::VERTEX_BNW  },
+  { sd::VERTEX_C, sd::VERTEX_NW, sd::VERTEX_N, sd::VERTEX_TC   },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_BNW },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BN, sd::VERTEX_N },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_BNW },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BE, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TW, sd::VERTEX_NW },
+  { sd::VERTEX_C, sd::VERTEX_BN, sd::VERTEX_BNW, sd::VERTEX_NW }
+}};
+
+const std::array< std::array< stencilDirection, 4 >, 12 > allCellsAtFace2 = {{
+  // no cells with west direction
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS },
+  { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_SE, sd::VERTEX_BE },
+  { sd::VERTEX_C, sd::VERTEX_E,  sd::VERTEX_SE, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_S, sd::VERTEX_SE },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BN, sd::VERTEX_N },
+  { sd::VERTEX_C, sd::VERTEX_TC, sd::VERTEX_TS, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_BE, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_SE, sd::VERTEX_TS, sd::VERTEX_TSE },
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_SE },
+  { sd::VERTEX_C, sd::VERTEX_E, sd::VERTEX_TSE, sd::VERTEX_TC }
+}};
+
+const std::array< std::array< stencilDirection, 4 >, 12 > allCellsAtFace3 = {{
+  // no cells in {N, E, TC, TSE}
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN },
+  { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_S },
+  { sd::VERTEX_C, sd::VERTEX_BC,  sd::VERTEX_BN, sd::VERTEX_BNW  },
+  { sd::VERTEX_C, sd::VERTEX_W,  sd::VERTEX_S, sd::VERTEX_TS  },
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_S, sd::VERTEX_SE },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_BNW },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_BC, sd::VERTEX_BNW },
+  { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_SE },
+  { sd::VERTEX_C, sd::VERTEX_BN, sd::VERTEX_BNW, sd::VERTEX_NW },
+  { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_TS, sd::VERTEX_TW },
+}};
+
+const std::array< std::array< std::array< stencilDirection, 4 >, 12 >, 4 > allCellsAtFace = {{
+  allCellsAtFace0, allCellsAtFace1, allCellsAtFace2, allCellsAtFace3
+}};
+
+
+/// \brief Returns the neighboring elements (== micro-cells) of a given micro-vertex index
+///
+/// \param microVertexIndex the micro-vertex index
+/// \param level the multigrid level
+/// \return a vector filled with 4-tuples (std::array) of stencil directions from that micro-vertex index that construct a micro-cell each (therefore always contains VERTEX_C)
+///
+inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( const indexing::Index & microVertexIndex, const uint_t & level )
+{
+  typedef std::vector< std::array< stencilDirection, 4 > > returnType;
+
+  WALBERLA_ASSERT_LESS( microVertexIndex.x() + microVertexIndex.y() + microVertexIndex.z(), levelinfo::num_microvertices_per_edge( level ) );
+
+  const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+  const auto onCellEdges    = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+  const auto onCellFaces    = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+
+  if ( onCellVertices.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
+    WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 3 );
+    WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 3 );
+    const auto localVertexID = *onCellVertices.begin();
+    const auto singleMicroCell = [ localVertexID, level ]{
+      switch ( localVertexID )
+      {
+        case 0:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_N, sd::VERTEX_E, sd::VERTEX_TC } );
+        case 1:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_W, sd::VERTEX_NW, sd::VERTEX_TW } );
+        case 2:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_S, sd::VERTEX_SE, sd::VERTEX_TS } );
+        default:
+          return std::array< stencilDirection , 4>( { sd::VERTEX_C, sd::VERTEX_BC, sd::VERTEX_BE, sd::VERTEX_BN } );
+      }
+    }();
+    return returnType( { singleMicroCell } );
+  }
+  else if ( onCellEdges.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
+    const auto localEdgeID = *onCellEdges.begin();
+    WALBERLA_ASSERT_GREATER_EQUAL( localEdgeID, 0 );
+    WALBERLA_ASSERT_LESS_EQUAL( localEdgeID, 6 );
+
+    WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
+    const std::vector< uint_t > onCellFacesVector( onCellFaces.begin(), onCellFaces.end() );
+
+    auto allCellsAtFace0 = allCellsAtFace[ onCellFacesVector[0] ];
+    auto allCellsAtFace1 = allCellsAtFace[ onCellFacesVector[1] ];
+    std::sort( allCellsAtFace0.begin(), allCellsAtFace0.end() );
+    std::sort( allCellsAtFace1.begin(), allCellsAtFace1.end() );
+
+    returnType allCellsAtEdge;
+    std::set_intersection( allCellsAtFace0.begin(), allCellsAtFace0.end(),
+                           allCellsAtFace1.begin(), allCellsAtFace1.end(),
+                           std::back_inserter( allCellsAtEdge ) );
+    return allCellsAtEdge;
+  }
+  else if ( onCellFaces.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
+    const auto localFaceID = *onCellFaces.begin();
+    WALBERLA_ASSERT_GREATER_EQUAL( localFaceID, 0 );
+    WALBERLA_ASSERT_LESS_EQUAL   ( localFaceID, 3 );
+    return returnType( allCellsAtFace[ localFaceID ].begin(), allCellsAtFace[ localFaceID ].end() );
+  }
+  else
+  {
+    return returnType( allCellsAtInnerVertex.begin(), allCellsAtInnerVertex.end() );
+  }
+};
+
+
+/// \brief Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
+///
+/// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
+/// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
+/// Note that only the weights for the stencil that lie in the specified macro-cell are returned.
+///
+/// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
+/// \param cell the surrounding macro-cell
+/// \param level the hierarchy level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a (variable sized) map from stencil directions to stencil weights
+///
+template< typename UFCOperator >
+inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const indexing::Index & microVertexIndex, const Cell & cell,
+                                                                         const uint_t & level, const UFCOperator & ufcGen )
+{
+  std::map< stencilDirection, real_t > macroCellStencilEntries;
+
+  const auto neighboringElements = getNeighboringElements( microVertexIndex, level );
+
+  // 1. Going over all neighboring cells of a micro-vertex
   //    A neighboring cell is defined by a 4-tuple of (different) stencil directions with one of them being VERTEX_C.
   //    VERTEX_C represents the reference micro-vertex.
-  for ( const auto & cellAtVertex : allCellsAtVertex )
+  for ( const auto & cellAtVertex : neighboringElements )
   {
+    WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
+
     // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex
-    //    The reference micro-vertex is chosen so that its logical coordinates are ( 1, 1, 1 ).
-    //    This is because we do not need to use negative coordinates during the calculations and it works for all levels >= 2.
     std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
-    for ( uint_t localID = 0; localID < 4; localID++ )
-    {
-      logicalOffsetsFromCenter[ localID ] = indexing::Index( 1, 1, 1 ) + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[ localID ] );
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
     }
 
     // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
     std::array< Point3D, 4 > geometricCoordinates;
-    for ( uint_t localID = 0; localID < 4; localID++ )
-    {
-      geometricCoordinates[ localID ] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[ localID ] );
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
     }
 
     std::array< Point3D, 4 > geometricOffsetsFromCenter;
-    for ( uint_t localID = 0; localID < 4; localID++ )
-    {
-      WALBERLA_ASSERT_EQUAL( cellAtVertex[ 0 ], sd::VERTEX_C );
-      geometricOffsetsFromCenter[ localID ] = geometricCoordinates[ localID ] - geometricCoordinates[ 0 ];
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
     }
 
     // 4. Computing the local stiffness matrix
@@ -208,11 +360,9 @@ inline std::array< real_t, 15 > assembleP1LocalStencil( const Cell & cell, const
 
     // Flattening the offset array to be able to pass it to the fenics routines.
     double geometricOffsetsArray[12];
-    for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ )
-    {
-      for ( uint_t coordinate = 0; coordinate < 3; coordinate++ )
-      {
-        geometricOffsetsArray[ cellVertex * 3 + coordinate ] = geometricOffsetsFromCenter[ cellVertex ][ coordinate ];
+    for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
+      for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
+        geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
       }
     }
 
@@ -224,16 +374,372 @@ inline std::array< real_t, 15 > assembleP1LocalStencil( const Cell & cell, const
     //    we always only need the first row of the local stiffness matrix.
     for ( uint_t localID = 0; localID < 4; localID++ )
     {
-      const sd     stencilDir   = cellAtVertex[ localID ];
-      const uint_t stencilIndex = vertexdof::stencilIndexFromVertex( stencilDir );
+      const stencilDirection stencilDir = cellAtVertex[ localID ];
+      if ( macroCellStencilEntries.count( stencilDir ) == 0 )
+      {
+        macroCellStencilEntries[ stencilDir ] = real_c( 0 );
+      }
+      macroCellStencilEntries[ stencilDir ] += real_c( localStiffnessMatrix( 0, localID ) );
+    }
+  }
+  return macroCellStencilEntries;
+}
 
-      WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
 
-      localStencil[ stencilIndex ] += localStiffnessMatrix( 0, localID );
+/// \brief Assembles the local P1 operator stencil on a macro-vertex
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param vertex the macro-vertex
+/// \param microVertexIndex the micro-vertex index on the macro-vertex (currently this must be (0, 0, 0))
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a vector containing the stencil weights for the micro-vertex on that macro-vertex,
+///         stencil[0] is the center weight, stencil[neighborID + 1] is the weight for the neighbor with neighborID
+///
+template< typename UFCOperator >
+inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Vertex & vertex,
+                                                     const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  WALBERLA_CHECK_EQUAL( microVertexIndex, indexing::Index( 0, 0, 0 ), "[P1 vertex stencil assembly] micro-vertex index must be (0, 0, 0)" );
+
+  const uint_t stencilSize = vertexDoFMacroVertexStencilMemorySize( level, vertex );
+  std::vector< real_t > stencil( stencilSize, real_c( 0 ) );
+
+  for ( const auto & macroCellID : vertex.neighborCells() )
+  {
+    const auto macroCell = storage->getCell( macroCellID );
+
+    // 1. translate coordinate to macro-cell
+    const uint_t localVertexID = macroCell->getLocalVertexID( vertex.getID() );
+    WALBERLA_ASSERT_LESS_EQUAL( localVertexID, 3 );
+    const indexing::Index indexInMacroCell = [ localVertexID, level ]{
+        switch ( localVertexID )
+        {
+          case 0:
+            return indexing::Index( 0, 0, 0 );
+          case 1:
+            return indexing::Index( levelinfo::num_microvertices_per_edge( level ) - 1, 0, 0 );
+          case 2:
+            return indexing::Index( 0, levelinfo::num_microvertices_per_edge( level ) - 1, 0 );
+          default:
+            return indexing::Index( 0, 0, levelinfo::num_microvertices_per_edge( level ) - 1 );
+        }
+    }();
+
+    WALBERLA_DEBUG_SECTION()
+    {
+      const auto debugLocalVertices = vertexdof::macrocell::isOnCellVertex( indexInMacroCell, level );
+      const auto debugLocalEdges = vertexdof::macrocell::isOnCellEdge( indexInMacroCell, level );
+      const auto debugLocalFaces = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+      WALBERLA_ASSERT_EQUAL( debugLocalVertices.size(), 1 );
+      WALBERLA_ASSERT_EQUAL( debugLocalEdges.size(), 3 );
+      WALBERLA_ASSERT_EQUAL( debugLocalFaces.size(), 3 );
+      WALBERLA_ASSERT_EQUAL( *debugLocalVertices.begin(), localVertexID );
+    }
+
+    // 2. calculate stiffness matrix for each micro-cell and store contributions
+    const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+
+    // 3. translate coordinates / stencil directions back to vertex-local coordinate system
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      const auto cellLocalDir  = it.first;
+      const auto stencilWeight = it.second;
+      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+      const auto onLocalEdgesDir = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+      if ( onLocalEdgesDir.size() == 1 )
+      {
+        const auto cellLocalEdgeID = *onLocalEdgesDir.begin();
+        const auto edgePrimitiveID = macroCell->neighborEdges()[cellLocalEdgeID];
+        const auto vertexLocalEdgeID = vertex.edge_index( edgePrimitiveID );
+        stencil[ vertexLocalEdgeID + 1 ] += stencilWeight;
+      }
+      else
+      {
+        WALBERLA_ASSERT_EQUAL( onLocalEdgesDir.size(), 3 );
+        WALBERLA_ASSERT_EQUAL( cellLocalDir, sd::VERTEX_C );
+        stencil[ 0 ] += stencilWeight;
+      }
     }
   }
 
-  return localStencil;
+  return stencil;
+}
+
+
+/// \brief Assembles the local P1 operator stencil on a macro-edge
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param edge the macro-edge
+/// \param microVertexIndex the micro-vertex index on the macro-edge (the y and z coordinate must be 0)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a vector containing the stencil weights for the micro-vertex on that macro-edge,
+///         weights are sorted according to the vertexdof-macro-edge stencil index function
+///
+template< typename UFCOperator >
+inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Edge & edge,
+                                                     const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  // check if index lies in the edges's interior
+  WALBERLA_CHECK_EQUAL( microVertexIndex.y(), 0, "[P1 edge stencil assembly] y-coordinate on edge must be zero" );
+  WALBERLA_CHECK_EQUAL( microVertexIndex.z(), 0, "[P1 edge stencil assembly] z-coordinate on edge must be zero" );
+  WALBERLA_CHECK_GREATER( microVertexIndex.x(), 0 );
+  WALBERLA_CHECK_LESS( microVertexIndex.x(), levelinfo::num_microvertices_per_edge( level ) );
+
+  const uint_t stencilSize = vertexDoFMacroEdgeStencilMemorySize( level, edge );
+  std::vector< real_t > stencil( stencilSize, real_c( 0 ) );
+
+  for ( const auto & macroCellID : edge.neighborCells() )
+  {
+    const auto macroCell = storage->getCell( macroCellID );
+
+    // 1. translate coordinate to macro-cell
+
+    // find out the local ID of the edge in the cell
+    const uint_t localEdgeID = macroCell->getLocalEdgeID( edge.getID() );
+
+    // Find out the coordinate system basis of the index on the macro-cell.
+    WALBERLA_ASSERT_EQUAL( macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].size(), 2 );
+    const uint_t basisCenter     = macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].at( 0 );
+    const uint_t basisXDirection = macroCell->getEdgeLocalVertexToCellLocalVertexMaps()[ localEdgeID ].at( 1 );
+    // find out the missing Z direction
+    const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
+    const std::set< uint_t > allDirectionsButYZ = { basisCenter, basisXDirection };
+    std::vector< uint_t > missingDirections;
+    std::set_difference( allDirections.begin(), allDirections.end(), allDirectionsButYZ.begin(), allDirectionsButYZ.end(), std::inserter(missingDirections, missingDirections.begin()) );
+    WALBERLA_ASSERT_EQUAL( missingDirections.size(), 2 );
+    const uint_t basisYDirection = missingDirections[0];
+    const uint_t basisZDirection = missingDirections[1];
+    const std::array< uint_t, 4 > indexingBasis = { basisCenter, basisXDirection, basisYDirection, basisZDirection };
+    const auto indexInMacroCell = indexing::basisConversion( microVertexIndex, indexingBasis, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
+
+    WALBERLA_DEBUG_SECTION()
+    {
+      const auto debugLocalEdges = vertexdof::macrocell::isOnCellEdge( indexInMacroCell, level );
+      const auto debugLocalFaces = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+      WALBERLA_ASSERT_EQUAL( debugLocalEdges.size(), 1 );
+      WALBERLA_ASSERT_EQUAL( debugLocalFaces.size(), 2 );
+      WALBERLA_ASSERT_EQUAL( *debugLocalEdges.begin(), localEdgeID );
+    }
+
+    // 2. calculate stiffness matrix for each micro-cell and store contributions
+    const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+
+    // 3. translate coordinates / stencil directions back to edge-local coordinate system
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      const auto cellLocalDir  = it.first;
+      const auto stencilWeight = it.second;
+
+      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+      const auto onLocalFacesCenter = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+      const auto onLocalFacesDir    = vertexdof::macrocell::isOnCellFace( cellLocalIndexInDir, level );
+      std::vector< uint_t > intersectingFaces;
+      std::set_intersection( onLocalFacesCenter.begin(), onLocalFacesCenter.end(),
+                             onLocalFacesDir.begin(), onLocalFacesDir.end(),
+                             std::back_inserter( intersectingFaces ));
+
+      if ( intersectingFaces.size() >= 2 )
+      {
+        // on edge
+        const auto edgeLocalIndexInDir = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, indexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
+        WALBERLA_ASSERT_EQUAL( edgeLocalIndexInDir.y(), 0 );
+        WALBERLA_ASSERT_EQUAL( edgeLocalIndexInDir.z(), 0 );
+        const int dirDIfference = edgeLocalIndexInDir.x() - microVertexIndex.x();
+        WALBERLA_ASSERT_GREATER_EQUAL( dirDIfference, -1 );
+        WALBERLA_ASSERT_LESS_EQUAL   ( dirDIfference, 1 );
+        const stencilDirection dirOnEdge = dirDIfference == 0 ? sd::VERTEX_C : (dirDIfference == 1 ? sd::VERTEX_E : sd::VERTEX_W);
+        stencil[ vertexdof::macroedge::stencilIndexOnEdge( dirOnEdge ) ] += stencilWeight;
+      }
+      else if ( intersectingFaces.size() == 1 )
+      {
+        // on neighbor face
+        const auto localFaceIDInCell = *intersectingFaces.begin();
+        const auto facePrimitiveID = macroCell->neighborFaces()[localFaceIDInCell];
+        // To get the correct indexing basis, we check which one results in a zero entry in the z coordinate.
+        const auto firstTestIndexingBasis  = indexingBasis;
+        const auto secondTestIndexingBasis = std::array< uint_t, 4 >({ indexingBasis[0], indexingBasis[1], indexingBasis[3], indexingBasis[2] });
+        const auto edgeLocalIndexInDirFirst  = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, firstTestIndexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
+        const auto edgeLocalIndexInDirSecond = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, secondTestIndexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
+        WALBERLA_ASSERT_UNEQUAL( edgeLocalIndexInDirFirst.z(), edgeLocalIndexInDirSecond.z() );
+        WALBERLA_ASSERT( edgeLocalIndexInDirFirst.z() == 0 || edgeLocalIndexInDirSecond.z() == 0 );
+        const auto faceLocalIndexInDir = edgeLocalIndexInDirFirst.z() == 0 ? edgeLocalIndexInDirFirst : edgeLocalIndexInDirSecond;
+        WALBERLA_ASSERT_EQUAL( faceLocalIndexInDir.y(), 1 );
+        const auto faceLocalStencilDirection = [ microVertexIndex, faceLocalIndexInDir ]
+        {
+            const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
+            stencilDirection projectedDirection;
+            switch ( xOffset )
+            {
+              case 0:
+                return sd::VERTEX_E;
+              case -1:
+                return sd::VERTEX_W;
+              default:
+              WALBERLA_ASSERT( false, "[P1Elements][Edge] Invalid offsets" );
+                return sd::VERTEX_C;
+            }
+        }();
+        stencil[ vertexdof::macroedge::stencilIndexOnNeighborFace( faceLocalStencilDirection, edge.face_index( facePrimitiveID ) ) ] += stencilWeight;
+      }
+      else if ( intersectingFaces.size() == 0 )
+      {
+        // in macro-cell
+        stencil[ vertexdof::macroedge::stencilIndexOnNeighborCell( edge.cell_index( macroCellID ), edge.getNumNeighborFaces() ) ] += stencilWeight;
+      }
+    }
+  }
+  return stencil;
+
+};
+
+
+/// \brief Assembles the local P1 operator stencil on a macro-face
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param face the macro-face
+/// \param microVertexIndex the micro-vertex index on the macro-face (z coordinate must be 0)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-face,
+///         it maps the 13 or 19 (== 7 on face + 6 on ghost face 0 + 6 on ghost face 1) stencil directions to the stencil weights
+///         refer to the documentation to better understand that mapping
+///
+template< typename UFCOperator >
+inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  // check if index lies in the face's interior
+  WALBERLA_CHECK_EQUAL( microVertexIndex.z(), 0, "[P1 face stencil assembly] z-coordinate on face must be zero" );
+  WALBERLA_CHECK_GREATER( microVertexIndex.x() + microVertexIndex.y(), 0 );
+  WALBERLA_CHECK_LESS( microVertexIndex.x() + microVertexIndex.y(), levelinfo::num_microvertices_per_edge( level ) );
+
+  std::map< stencilDirection, real_t > faceStencil;
+
+  for ( const auto & macroCellID : face.neighborCells() )
+  {
+    const auto macroCell = storage->getCell( macroCellID );
+
+    // 1. translate coordinate to macro-cell
+    
+    // find out the local ID of the face in the cell
+    const uint_t localFaceID = macroCell->getLocalFaceID( face.getID() );
+    
+    // find out the coordinate system basis of the index on the macro-cell
+    WALBERLA_ASSERT_EQUAL( macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].size(), 3 );
+    const uint_t basisCenter     = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 0 );
+    const uint_t basisXDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 1 );
+    const uint_t basisYDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 2 );
+    // find out the missing Z direction
+    const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
+    const std::set< uint_t > allDirectionsButZ = { basisCenter, basisXDirection, basisYDirection };
+    std::set< uint_t > missingDirection;
+    std::set_difference( allDirections.begin(), allDirections.end(), allDirectionsButZ.begin(), allDirectionsButZ.end(), std::inserter(missingDirection, missingDirection.begin()) );
+    WALBERLA_ASSERT_EQUAL( missingDirection.size(), 1 );
+    const uint_t basisZDirection = *missingDirection.begin();
+    const std::array< uint_t, 4 > indexingBasis = { basisCenter, basisXDirection, basisYDirection, basisZDirection };
+    const auto indexInMacroCell = indexing::basisConversion( microVertexIndex, indexingBasis, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
+
+    WALBERLA_DEBUG_SECTION()
+    {
+      const auto debugLocalFaces = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
+      WALBERLA_ASSERT_EQUAL( debugLocalFaces.size(), 1 );
+      WALBERLA_ASSERT_EQUAL( *debugLocalFaces.begin(), localFaceID );
+    }
+
+    // 2. calculate stiffness matrix for each micro-cell and store contributions
+    const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
+
+    // 3. translate coordinates / stencil directions back to face-local coordinate system
+    for ( const auto it : cellLocalStencilWeights )
+    {
+      const auto cellLocalDir  = it.first;
+      const auto stencilWeight = it.second;
+
+      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
+      const auto faceLocalIndexInDir = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, indexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
+      WALBERLA_ASSERT_LESS_EQUAL( faceLocalIndexInDir.z(), 1 );
+      const auto indexOnGhostLayer = faceLocalIndexInDir.z() == 1;
+      const auto localCellID = face.cell_index( macroCellID );
+      WALBERLA_ASSERT_LESS_EQUAL( localCellID, 1 );
+      const auto faceLocalStencilDirection = [ &face, microVertexIndex, faceLocalIndexInDir, indexOnGhostLayer, localCellID ]
+      {
+        const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
+        const auto yOffset = static_cast< int >( faceLocalIndexInDir.y() ) - static_cast< int >( microVertexIndex.y() );
+        stencilDirection projectedDirection;
+        if ( xOffset == 0 && yOffset == 0 )
+          projectedDirection = stencilDirection::VERTEX_C;
+        else if ( xOffset ==  1 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_NE;
+        else if ( xOffset ==  0 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_N;
+        else if ( xOffset == -1 && yOffset ==  1 )
+          projectedDirection = stencilDirection::VERTEX_NW;
+        else if ( xOffset ==  1 && yOffset ==  0 )
+          projectedDirection = stencilDirection::VERTEX_E;
+        else if ( xOffset == -1 && yOffset ==  0 )
+          projectedDirection = stencilDirection::VERTEX_W;
+        else if ( xOffset ==  1 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_SE;
+        else if ( xOffset ==  0 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_S;
+        else if ( xOffset == -1 && yOffset == -1 )
+          projectedDirection = stencilDirection::VERTEX_SW;
+        else
+          WALBERLA_ASSERT( false, "Invalid offsets" );
+
+        if ( indexOnGhostLayer )
+        {
+          // deciding here that the stencil direction for the first cell at a face is top
+          if ( localCellID == 0 )
+            return makeVertexDirectionTop( projectedDirection );
+          else
+          {
+            WALBERLA_ASSERT_EQUAL( face.getNumNeighborCells(), 2 );
+            return makeVertexDirectionBottom( projectedDirection );
+          }
+        }
+        else
+        {
+          return projectedDirection;
+        }
+      }();
+
+      if ( faceStencil.count( faceLocalStencilDirection ) == 0 )
+      {
+        faceStencil[ faceLocalStencilDirection ] = real_c( 0 );
+      }
+      faceStencil[ faceLocalStencilDirection ] += stencilWeight;
+    }
+  }
+  return faceStencil;
+}
+
+/// \brief Assembles the local P1 operator stencil on a macro-cell
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param face the macro-cell
+/// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
+///
+template< typename UFCOperator >
+inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  WALBERLA_UNUSED( storage );
+  WALBERLA_DEBUG_SECTION()
+  {
+    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
+  }
+  return calculateStencilInMacroCell( microVertexIndex, cell, level, ufcGen );
 }
 
 }

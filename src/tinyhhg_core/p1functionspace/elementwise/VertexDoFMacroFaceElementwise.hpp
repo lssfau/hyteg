@@ -21,7 +21,7 @@ namespace hhg {
       using indexing::Index;
 
 
-      inline void fillLocalCoords( const uint_t & Level, uint_t i, uint_t j, const P1Elements::P1Element& element,
+      inline void fillLocalCoords( const uint_t & Level, uint_t i, uint_t j, const P1Elements::FaceVertexDoF::P1Element& element,
                                    const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
 
         localCoords[0] = coords[0][vertexdof::macroface::indexFromVertex( Level, i, j, element[0] )];
@@ -38,41 +38,41 @@ namespace hhg {
                                                std::vector<real_t>& faceStencil )
       {
 
-        using namespace P1Elements;
+        using namespace P1Elements::FaceVertexDoF;
 
         real_t localCoords[6];
         Matrix3r localStiffness;
 
         std::fill( faceStencil.begin(), faceStencil.end(), walberla::real_c(0.0) );
  
-        for( uint_t k = 0; k < FaceVertexDoF::P1GrayElements.size(); ++k ) {
+        for( uint_t k = 0; k < P1GrayElements.size(); ++k ) {
 
           // fill local coords
-          localCoords[0] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][0] )];
-          localCoords[1] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][0] )];
-          localCoords[2] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][1] )];
-          localCoords[3] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][1] )];
-          localCoords[4] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][2] )];
-          localCoords[5] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1GrayElements[k][2] )];
+          localCoords[0] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][0] )];
+          localCoords[1] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][0] )];
+          localCoords[2] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][1] )];
+          localCoords[3] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][1] )];
+          localCoords[4] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][2] )];
+          localCoords[5] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1GrayElements[k][2] )];
 
           // compute stencil contributions
           computeElementMatrix( localStiffness, localCoords );
-          assembleP1LocalStencil( FaceVertexDoF::P1GrayStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil );
+          assembleP1LocalStencil( P1GrayStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil );
         }
 
-        for (uint_t k = 0; k < FaceVertexDoF::P1BlueElements.size(); ++k) {
+        for (uint_t k = 0; k < P1BlueElements.size(); ++k) {
 
           // fill local coords
-          localCoords[0] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][0] )];
-          localCoords[1] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][0] )];
-          localCoords[2] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][1] )];
-          localCoords[3] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][1] )];
-          localCoords[4] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][2] )];
-          localCoords[5] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, FaceVertexDoF::P1BlueElements[k][2] )];
+          localCoords[0] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][0] )];
+          localCoords[1] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][0] )];
+          localCoords[2] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][1] )];
+          localCoords[3] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][1] )];
+          localCoords[4] = globalCoords[0][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][2] )];
+          localCoords[5] = globalCoords[1][vertexdof::macroface::indexFromVertex( level, i, j, P1BlueElements[k][2] )];
 
           // compute stencil contributions
           computeElementMatrix( localStiffness, localCoords );
-          assembleP1LocalStencil( FaceVertexDoF::P1BlueStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil );
+          assembleP1LocalStencil( P1BlueStencilMaps[k], {{0,1,2}}, localStiffness, faceStencil );
         }
 
 #ifdef DEBUG_ELEMENTWISE
@@ -93,7 +93,7 @@ namespace hhg {
                                     std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
                                     UpdateType update ) {
 
-        using namespace P1Elements;
+        using namespace P1Elements::FaceVertexDoF;
         typedef stencilDirection SD;
 
         uint_t rowsize = levelinfo::num_microvertices_per_edge(level);

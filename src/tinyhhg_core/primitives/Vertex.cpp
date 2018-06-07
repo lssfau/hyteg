@@ -24,6 +24,12 @@ uint_t Vertex::face_index(const PrimitiveID& face) const
   return uint_c((it - neighborFaces().begin()));
 }
 
+uint_t Vertex::cell_index(const PrimitiveID& cell) const
+{
+  auto it = std::find(neighborCells().begin(), neighborCells().end(), cell);
+  return uint_c((it - neighborCells().begin()));
+}
+
 std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
 {
   return os << "Vertex { id = " << vertex.getID().getID() << "; "

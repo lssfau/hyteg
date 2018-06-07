@@ -136,7 +136,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
  private:
    void assembleStencils()
    {
-      using namespace P1Elements;
+      using namespace P1Elements::FaceVertexDoF;
       typedef stencilDirection sD;
 
       Matrix3r local_stiffness_gray;
@@ -152,16 +152,16 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             compute_local_stiffness( face, level, local_stiffness_gray, fenics::GRAY );
             compute_local_stiffness( face, level, local_stiffness_blue, fenics::BLUE );
 
-            for( uint_t i = 0; i < FaceVertexDoF::P1GrayElements.size(); ++i )
+            for( uint_t i = 0; i < P1GrayElements.size(); ++i )
             {
                assembleP1LocalStencil(
-                   FaceVertexDoF::P1GrayStencilMaps[i], FaceVertexDoF::P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
+                   P1GrayStencilMaps[i], P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
             }
 
-            for( uint_t i = 0; i < FaceVertexDoF::P1BlueElements.size(); ++i )
+            for( uint_t i = 0; i < P1BlueElements.size(); ++i )
             {
                assembleP1LocalStencil(
-                   FaceVertexDoF::P1BlueStencilMaps[i], FaceVertexDoF::P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
+                   P1BlueStencilMaps[i], P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
             }
 
             if( Lumped )
@@ -196,15 +196,15 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
             size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
 
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSW ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ),
                                     {{end_id, start_id, opposite_id}},
                                     local_stiffness_gray,
                                     edge_stencil );
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementS ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementS ),
                                     {{opposite_id, end_id, start_id}},
                                     local_stiffness_blue,
                                     edge_stencil );
-            assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementSE ),
+            assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSE ),
                                     {{start_id, opposite_id, end_id}},
                                     local_stiffness_gray,
                                     edge_stencil );
@@ -220,15 +220,15 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
                size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
 
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNE ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ),
                                        {{start_id, end_id, opposite_id}},
                                        local_stiffness_gray,
                                        edge_stencil );
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementN ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ),
                                        {{opposite_id, start_id, end_id}},
                                        local_stiffness_blue,
                                        edge_stencil );
-               assembleP1LocalStencil( convertStencilDirectionsToIndices( FaceVertexDoF::elementNW ),
+               assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ),
                                        {{end_id, opposite_id, start_id}},
                                        local_stiffness_gray,
                                        edge_stencil );
@@ -330,6 +330,73 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       for( uint_t level = minLevel_; level <= maxLevel_; level++ )
       {
+         for ( const auto & it : storage_->getVertices() )
+         {
+            auto vertex = it.second;
+            auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
+            auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+            WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
+            for ( uint_t i = 0; i < stencilSize; i++ )
+            {
+               stencilMemory[i] = stencil[i];
+            }
+         }
+
+         for ( const auto & it : storage_->getEdges() )
+         {
+            auto edge = it.second;
+            auto stencilSize   = edge->getData( getEdgeStencilID() )->getSize( level );
+            auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
+            WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
+            for ( uint_t i = 0; i < stencilSize; i++ )
+            {
+               stencilMemory[i] = stencil[i];
+            }
+         }
+
+         for ( const auto & it : storage_->getFaces() )
+         {
+            auto face = it.second;
+            auto stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
+            auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
+            UFCOperator ufcOperator;
+
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
+
+            if ( face->getNumNeighborCells() == 1 )
+            {
+              for ( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+              {
+                if ( stencil.count( stencilDir ) == 0 )
+                {
+                  stencil[stencilDir] = real_c( 0 );
+                }
+              }
+            }
+            else
+            {
+              for ( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+              {
+                if ( stencil.count( stencilDir ) == 0 )
+                {
+                  stencil[stencilDir] = real_c( 0 );
+                }
+              }
+            }
+
+            for ( const auto stencilIt : stencil )
+            {
+               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
+            }
+         }
+
          for ( const auto & it : storage_->getCells() )
          {
             auto cell          = it.second;
@@ -337,13 +404,12 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
             UFCOperator ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( *cell, level, ufcOperator );
+            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
-            WALBERLA_ASSERT_EQUAL( stencil.size(), stencilSize );
-
-            for ( uint_t stencilEntryIdx = 0; stencilEntryIdx < stencilSize; stencilEntryIdx++ )
+            for ( const auto stencilIt : stencil )
             {
-               stencilMemory[ stencilEntryIdx ] = stencil[ stencilEntryIdx ];
+               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
             }
          }
       }
@@ -359,6 +425,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       src.getCommunicator( level )->communicate< Vertex, Edge >();
       src.getCommunicator( level )->communicate< Edge, Face >();
       src.getCommunicator( level )->communicate< Face, Cell >();
+
+      src.getCommunicator( level )->communicate< Cell, Face >();
+      src.getCommunicator( level )->communicate< Face, Edge >();
+      src.getCommunicator( level )->communicate< Edge, Vertex >();
 
       // start pulling vertex halos
       src.getCommunicator( level )->startCommunication< Edge, Vertex >();

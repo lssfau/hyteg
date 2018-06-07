@@ -23,20 +23,20 @@ static void testVertexDoFFunctionMemorySize()
       WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ),  9 );
       WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 17 );
     }
-    else if ( edge.getNumNeighborFaces() == 2 )
+    else if ( edge.getNumNeighborFaces() == 2 && edge.getNumNeighborCells() == 1 )
     {
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 13 );
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 25 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 16 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 32 );
     }
-    else if ( edge.getNumNeighborFaces() == 3 )
+    else if ( edge.getNumNeighborFaces() == 3 && edge.getNumNeighborCells() == 3 )
     {
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 17 );
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 33 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 26 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 54 );
     }
-    else if ( edge.getNumNeighborFaces() == 4 )
+    else if ( edge.getNumNeighborFaces() == 4 && edge.getNumNeighborCells() == 4 )
     {
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 21 );
-      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 41 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 2, edge ), 33 );
+      WALBERLA_CHECK_EQUAL( vertexDoFMacroEdgeFunctionMemorySize( 3, edge ), 69 );
     }
   }
 
