@@ -3,7 +3,7 @@
 namespace hhg
 {
 
-template<class F, class O, class CoarseSolver, class RestrictionOperator>
+template< class F, class O, class CoarseSolver, class RestrictionOperator, class ProlongationOperator >
 class GMultigridSolver
 {
 public:
@@ -17,10 +17,12 @@ public:
   GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage,
                    const std::shared_ptr<CoarseSolver>& coarseSolver,
                    const RestrictionOperator & restrictionOperator,
+                   const ProlongationOperator & prolongationOperator,
                    uint_t minLevel, uint_t maxLevel,
                    uint_t nuPre = 3, uint_t nuPost = 3)
     : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(coarseSolver),
       restrictionOperator_( restrictionOperator ),
+      prolongationOperator_( prolongationOperator ),
       ax_("gmg_ax", storage, minLevel, maxLevel), tmp_("gmg_tmp", storage, minLevel, maxLevel),
       nuPre_(nuPre), nuPost_(nuPost)
   {
@@ -64,7 +66,7 @@ public:
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
-      x.prolongate(level-1, flag);
+      prolongationOperator_( x, level-1, flag );
       x.add({1.0}, { &tmp_ }, level, flag);
 
       // post-smooth
@@ -86,6 +88,7 @@ private:
 
   std::shared_ptr<CoarseSolver> coarseSolver_;
   RestrictionOperator restrictionOperator_;
+  ProlongationOperator prolongationOperator_;
 
   F ax_;
   F tmp_;
