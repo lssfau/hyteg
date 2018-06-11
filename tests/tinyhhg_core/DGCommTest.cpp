@@ -24,7 +24,7 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
   //const uint_t maxLevel = 4;
   hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
   if(bufferComm) {
-    x.getCommunicator(maxLevel).get()->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+    x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
 
   size_t num = 1;

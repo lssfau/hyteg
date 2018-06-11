@@ -22,9 +22,9 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 void
 EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
 
-  src.getCommunicator(level)->startCommunication<Face, Edge>();
-  src.getCommunicator(level)->startCommunication<Edge, Face>();
-  src.getCommunicator(level)->endCommunication<Face, Edge>();
+  src.startCommunication<Face, Edge>( level );
+  src.startCommunication<Edge, Face>( level );
+  src.endCommunication<Face, Edge>( level );
 
   for (auto& it : storage_->getEdges())
   {
@@ -37,7 +37,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
     }
   }
 
-  src.getCommunicator(level)->endCommunication<Edge, Face>();
+  src.endCommunication<Edge, Face>( level );
 
   for (auto& it : storage_->getFaces())
   {

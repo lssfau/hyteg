@@ -92,11 +92,11 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
 
   ///the order of communication is crucial here.
   ///first the vertex dofs on the macro vertex need to be communicated to the edge since they are needed on the edge and the face
-  src.getCommunicator(level)->communicate<Vertex, Edge>();
+  src.communicate<Vertex, Edge>( level );
   ///secondly the vertex dofs on the macro edge are communicated to the face passing on the vertex dof from the macro vertex
-  src.getCommunicator(level)->communicate<Edge, Face>();
+  src.communicate<Edge, Face>( level );
   ///lastly the vertex dofs on the macro face are communicated to the edge which also contain vertex dofs which are located on neighboring edges
-  src.getCommunicator(level)->startCommunication<Face, Edge>();
+  src.startCommunication<Face, Edge>( level );
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -108,7 +108,7 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     }
   }
 
-  src.getCommunicator(level)->endCommunication<Face, Edge>();
+  src.endCommunication<Face, Edge>( level );
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;

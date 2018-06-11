@@ -11,6 +11,8 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -86,10 +88,16 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t >              Lu( "Lu", storage, minLevel, maxLevel );
 
    typedef hhg::P1BlendingStokesOperator SolveOperator;
+   typedef hhg::P1toP1LinearRestriction RestrictionOperator;
+   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+
    auto start = walberla::timing::getWcTime();
    SolveOperator L( storage, minLevel, maxLevel );
    auto end = walberla::timing::getWcTime();
    real_t setupTime = end-start;
+
+   RestrictionOperator restrictionOperator;
+   ProlongationOperator prolongationOperator;
 
    P1BlendingMassOperator M(storage, minLevel, maxLevel);
 
@@ -132,7 +140,7 @@ int main( int argc, char* argv[] )
    one.interpolate(ones, maxLevel, hhg::All);
    real_t npoints = one.dot( one, maxLevel );
 
-   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, true> Solver;
+   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, RestrictionOperator, ProlongationOperator, true> Solver;
    auto solver = Solver(storage, minLevel, maxLevel);
 
    WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
@@ -153,7 +161,8 @@ int main( int argc, char* argv[] )
    uint_t outer;
    for (outer = 0; outer < maxOuterIter; ++outer) {
       start = walberla::timing::getWcTime();
-      solver.solve(L, u, f, r, maxLevel, 1e-6, coarseMaxiter, hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
+      solver.solve(L, u, f, r, restrictionOperator, prolongationOperator, maxLevel, 1e-6, coarseMaxiter,
+                   hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
       end = walberla::timing::getWcTime();
       hhg::vertexdof::projectMean(u.p, tmp.p, maxLevel);
 

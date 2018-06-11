@@ -1,3 +1,4 @@
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/math/Utility.h"
@@ -7,6 +8,9 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -67,6 +71,10 @@ int main( int argc, char* argv[] )
    hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1MassOperator    M( storage, minLevel, maxLevel );
 
+   hhg::P1toP1LinearRestriction restrictionOperator;
+   hhg::P1toP1LinearProlongation prolongationOperator;
+   hhg::P1toP1QuadraticProlongation quadraticProlongationOperator;
+
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    r.enableTiming( timingTree );
    b.enableTiming( timingTree );
@@ -117,7 +125,7 @@ int main( int argc, char* argv[] )
          r.assign( {1.0, -1.0}, {&b, &ax}, level, hhg::Inner );
 
          // restrict
-         r.restrict( level, hhg::Inner );
+         restrictionOperator( r, level, hhg::Inner );
          b.assign( {1.0}, {&r}, level - 1, hhg::Inner );
 
          x.interpolate( zero, level - 1 );
@@ -126,7 +134,7 @@ int main( int argc, char* argv[] )
 
          // prolongate
          tmp.assign( {1.0}, {&x}, level, hhg::Inner );
-         x.prolongate( level - 1, hhg::Inner );
+         prolongationOperator( x, level - 1, hhg::Inner );
          x.add( {1.0}, {&tmp}, level, hhg::Inner );
 
          // post-smooth
@@ -185,7 +193,7 @@ int main( int argc, char* argv[] )
       }
       if( ll < maxLevel )
       {
-         x.prolongateQuadratic( ll, hhg::Inner );
+         quadraticProlongationOperator( x, ll, hhg::Inner );
       }
    }
    LIKWID_MARKER_STOP( "Compute" );

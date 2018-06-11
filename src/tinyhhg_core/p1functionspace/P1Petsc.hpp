@@ -54,8 +54,8 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
     }
   }
 
-  function.getCommunicator(level)->template startCommunication<Vertex, Edge>();
-  function.getCommunicator(level)->template endCommunication<Vertex, Edge>();
+  function.startCommunication<Vertex, Edge>( level );
+  function.endCommunication<Vertex, Edge>( level );
 
   for (auto &it : function.getStorage()->getEdges()) {
     Edge &edge = *it.second;
@@ -66,8 +66,8 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
     }
   }
 
-  function.getCommunicator(level)->template startCommunication<Edge, Face>();
-  function.getCommunicator(level)->template endCommunication<Edge, Face>();
+  function.startCommunication<Edge, Face>( level );
+  function.endCommunication<Edge, Face>( level );
 
   for (auto &it : function.getStorage()->getFaces()) {
     Face &face = *it.second;

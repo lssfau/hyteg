@@ -1,5 +1,6 @@
 #include <boost/core/null_deleter.hpp>
 
+
 #include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
@@ -8,6 +9,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -121,9 +124,15 @@ int main( int argc, char* argv[] )
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
    typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CoarseSolver;
+   typedef P1toP1LinearRestriction RestrictionOperator;
+   typedef P1toP1LinearProlongation ProlongationOperator;
+
    auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver > LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, minLevel, maxLevel );
+   RestrictionOperator restrictionOperator;
+   ProlongationOperator prolongationOperator;
+
+   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
+   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
    v.interpolate( bc_y, maxLevel, hhg::DirichletBoundary );
@@ -169,7 +178,7 @@ int main( int argc, char* argv[] )
       div_x.apply( u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Replace );
       div_y.apply( v, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Add );
 
-      p_rhs.restrict( maxLevel, hhg::Inner | hhg::DirichletBoundary );
+      restrictionOperator( p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary );
 
       if( !neumann )
       {
@@ -195,7 +204,7 @@ int main( int argc, char* argv[] )
          hhg::vertexdof::projectMean( p, tmp, maxLevel - 1 );
       }
 
-      p.prolongate( maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
+      prolongationOperator( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
 
       // Correct u
       divT_x.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );

@@ -100,10 +100,10 @@ static void testP2Smooth() {
 
 
 
-    x->getVertexDoFFunction()->getCommunicator(level)->startCommunication<Face, Edge>();
-    x->getVertexDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
-    x->getEdgeDoFFunction()->getCommunicator(level)->startCommunication<Face, Edge>();
-    x->getEdgeDoFFunction()->getCommunicator(level)->endCommunication<Face, Edge>();
+    x->getVertexDoFFunction()->startCommunication<Face, Edge>( level );
+    x->getVertexDoFFunction()->endCommunication<Face, Edge>( level );
+    x->getEdgeDoFFunction()->startCommunication<Face, Edge>( level );
+    x->getEdgeDoFFunction()->endCommunication<Face, Edge>( level );
 
 
 
@@ -256,9 +256,9 @@ static void testP2JacobiSmooth() {
     vertexdof::macrovertex::interpolate(*vertex,x->getVertexDoFFunction()->getVertexDataID(),{},onesExtended,level);
   }
 
-  x->getVertexDoFFunction()->getCommunicator(level)->communicate<Vertex, Edge>();
-  x->getVertexDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
-  x->getEdgeDoFFunction()->getCommunicator(level)->communicate<Edge, Face>();
+  x->getVertexDoFFunction()->communicate<Vertex, Edge>( level );
+  x->getVertexDoFFunction()->communicate<Edge, Face>( level );
+  x->getEdgeDoFFunction()->communicate<Edge, Face>( level );
 
   for (auto faceIt : storage->getFaces()) {
     Face* face = faceIt.second.get();
@@ -322,8 +322,8 @@ static void testP2JacobiSmooth() {
 
 
 
-    x->getVertexDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
-    x->getEdgeDoFFunction()->getCommunicator(level)->communicate<Face, Edge>();
+    x->getVertexDoFFunction()->communicate<Face, Edge>( level );
+    x->getEdgeDoFFunction()->communicate<Face, Edge>( level );
 
 
 

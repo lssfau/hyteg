@@ -13,6 +13,9 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -196,8 +199,17 @@ int main(int argc, char* argv[])
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
-  typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver> LaplaceSover;
-  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, minLevel, maxMemoryLevel, 2, 2);
+
+  typedef hhg::P1toP1LinearRestriction RestrictionOperator;
+  typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+  typedef hhg::P1toP1QuadraticProlongation QuadraticProlongationOperator;
+
+  RestrictionOperator restrictionOperator;
+  ProlongationOperator prolongationOperator;
+  QuadraticProlongationOperator quadraticProlongationOperator;
+
+  typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
+  LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
@@ -214,7 +226,7 @@ int main(int argc, char* argv[])
   real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
 
   // Estimating discretization error
-  u.prolongateQuadratic(maxLevel, hhg::Inner);
+  quadraticProlongationOperator( u, maxLevel, hhg::Inner);
   r.interpolate(zeros, maxMemoryLevel, hhg::All);
 //  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //  tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
@@ -239,7 +251,7 @@ int main(int argc, char* argv[])
 
     start = walberla::timing::getWcTime();
     // Estimating discretization error
-    u.prolongateQuadratic(maxLevel, hhg::Inner);
+    quadraticProlongationOperator( u, maxLevel, hhg::Inner);
     r.interpolate(zeros, maxMemoryLevel, hhg::All);
 //    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //    tmp.interpolate(zeros, maxMemoryLevel, hhg::All);

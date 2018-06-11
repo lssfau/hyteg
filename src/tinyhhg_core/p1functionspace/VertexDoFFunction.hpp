@@ -62,12 +62,6 @@ public:
 
   inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
-  inline void prolongate(uint_t sourceLevel, DoFType flag = All);
-
-  inline void prolongateQuadratic(uint_t sourceLevel, DoFType flag = All);
-
-  inline void restrict(uint_t sourceLevel, DoFType flag = All);
-
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   /// Interpolates a given expression to a VertexDoFFunction
@@ -87,6 +81,23 @@ public:
   inline uint_t getNumGlobalDoFs( const uint_t & level ) const;
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->template startCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->template endCommunication< SenderType, ReceiverType >(); }
+
+  template< typename SenderType, typename ReceiverType >
+  inline void communicate( const uint_t & level ) const { communicators_.at( level )->template communicate< SenderType, ReceiverType >(); }
+
+  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
+  {
+    for ( auto & communicator : communicators_ )
+    {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+    }
+  }
 
 private:
 
@@ -365,144 +376,7 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   return scalarProduct;
 }
 
-template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongate(size_t sourceLevel, DoFType flag)
-{
-  this->startTiming( "Prolongate" );
-  const size_t destinationLevel = sourceLevel + 1;
 
-  for (auto& it : this->getStorage()->getVertices()) {
-      Vertex& vertex = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macrovertex::prolongate(vertex, vertexDataID_, sourceLevel);
-      }
-  }
-
-  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
-
-  for (auto& it : this->getStorage()->getEdges()) {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macroedge::prolongate< ValueType >(sourceLevel, edge, edgeDataID_);
-      }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
-  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
-
-  for (auto& it : this->getStorage()->getFaces()) {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macroface::prolongate< ValueType >(sourceLevel, face, faceDataID_);
-      }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
-  this->stopTiming( "Prolongate" );
-}
-
-template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLevel, DoFType flag)
-{
-  this->startTiming( "Prolongate Quadratic" );
-  const size_t destinationLevel = sourceLevel + 1;
-
-  for (auto& it : this->getStorage()->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macrovertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
-    }
-  }
-
-  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
-
-  for (auto& it : this->getStorage()->getEdges()) {
-    Edge& edge = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macroedge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
-    }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
-  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
-
-  for (auto& it : this->getStorage()->getFaces()) {
-    Face& face = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macroface::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
-    }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
-  this->stopTiming( "Prolongate Quadratic" );
-}
-
-template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::restrict(size_t sourceLevel, DoFType flag)
-{
-  this->startTiming( "Restrict" );
-  const size_t destinationLevel = sourceLevel - 1;
-
-  // start pulling vertex halos
-  communicators_[sourceLevel]->template startCommunication<Edge, Vertex>();
-
-  // start pulling edge halos
-  communicators_[sourceLevel]->template startCommunication<Face, Edge>();
-
-  // end pulling vertex halos
-  communicators_[sourceLevel]->template endCommunication<Edge, Vertex>();
-
-  for (auto& it : this->getStorage()->getVertices()) {
-      Vertex& vertex = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macrovertex::restrict(vertex, vertexDataID_, sourceLevel);
-      }
-  }
-
-  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
-
-  // end pulling edge halos
-  communicators_[sourceLevel]->template endCommunication<Face, Edge>();
-
-  for (auto& it : this->getStorage()->getEdges()) {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macroedge::restrict< ValueType >(sourceLevel, edge, edgeDataID_);
-      }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
-
-  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
-
-  for (auto& it : this->getStorage()->getFaces()) {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
-        vertexdof::macroface::restrict< ValueType >(sourceLevel, face, faceDataID_);
-      }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
-  this->stopTiming( "Restrict" );
-}
 
 template< typename ValueType >
 inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
@@ -542,16 +416,16 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
 {
   this->startTiming( "integrateDG" );
 
-  rhsP1.getCommunicator(level)->template startCommunication<Edge, Vertex>();
-  rhsP1.getCommunicator(level)->template startCommunication<Face, Edge>();
+  rhsP1.startCommunication<Edge, Vertex>( level );
+  rhsP1.startCommunication<Face, Edge>( level );
 
-  rhs.getCommunicator(level)->template startCommunication<Face, Edge>();
-  rhs.getCommunicator(level)->template endCommunication<Face, Edge>();
+  rhs.template startCommunication<Face, Edge>( level );
+  rhs.template endCommunication<Face, Edge>( level );
 
-  rhs.getCommunicator(level)->template startCommunication<Edge, Vertex>();
-  rhs.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+  rhs.template startCommunication<Edge, Vertex>( level );
+  rhs.template endCommunication<Edge, Vertex>( level );
 
-  rhsP1.getCommunicator(level)->template endCommunication<Edge, Vertex>();
+  rhsP1.endCommunication<Edge, Vertex>( level );
 
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
@@ -563,7 +437,7 @@ inline void VertexDoFFunction< ValueType >::integrateDG(DGFunction< ValueType >&
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
-  rhsP1.getCommunicator(level)->template endCommunication<Face, Edge>();
+  rhsP1.endCommunication<Face, Edge>( level );
 
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;

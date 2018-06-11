@@ -8,6 +8,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 
@@ -98,7 +100,9 @@ using walberla::uint_t;
  * and the max level.
  *
  * For the geometric multigrid solver we need to specify the function (P1Function), the operator
- * (P1LaplaceOperator), and the coarge grid solver (CoarseSolver) as template arguments.
+ * (P1LaplaceOperator), the restriction operator (P1toP1LinearRestriction), the prolongation operator
+ * (P1toP1LinearProlongation) and the coarse grid solver (CoarseSolver)
+ * as template arguments.
  * The storage, the coarse grid solver and the levels are needed as parameters.
  *
  * Furthermore we need to create an instance of the P1LaplaceOperator
@@ -211,11 +215,16 @@ int main( int argc, char** argv )
    /// [Boundary Conditions]
 
    /// [Solvers]
+   typedef P1toP1LinearRestriction RestrictionOperator;
+   typedef P1toP1LinearProlongation ProlongationOperator;
    typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CoarseSolver;
+
+   RestrictionOperator restrictionOperator;
+   ProlongationOperator prolongationOperator;
    auto coarseSolver = std::make_shared< CoarseSolver >( storage, minLevel, maxLevel );
 
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver > GMG;
-   GMG multiGridSolver( storage, coarseSolver, minLevel, maxLevel );
+   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMG;
+   GMG multiGridSolver( storage, coarseSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    hhg::P1LaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
    /// [Solvers]

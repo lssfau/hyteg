@@ -115,7 +115,7 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
 {
   using namespace EdgeDoFToVertexDoF;
   ///there might be room for optimization in the communication. i.e. splitting communicate into start and end to overlap comm and calc
-  src.getCommunicator(level)->communicate<Edge, Face>();
+  src.communicate<Edge, Face>( level );
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -128,7 +128,7 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
   }
 
 
-  src.getCommunicator(level)->communicate<Face, Edge>();
+  src.communicate<Face, Edge>( level );
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
@@ -140,7 +140,7 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
     }
   }
 
-  src.getCommunicator(level)->communicate<Edge, Vertex>();
+  src.communicate<Edge, Vertex>( level );
 
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;

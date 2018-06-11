@@ -7,6 +7,9 @@ waLBerla_execute_test(NAME P1CGConvergenceTest)
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest3D.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest3D)
 
+waLBerla_compile_test(FILES convergence/P1GMGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1GMGConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 

@@ -18,7 +18,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   hhg::EdgeDoFFunction< uint_t > x("x", storage, Level, Level);
   if(bufferComm) {
-    x.getCommunicator(Level).get()->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
+    x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
 
   size_t num = 0;
