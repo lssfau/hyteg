@@ -5,7 +5,7 @@
 namespace hhg
 {
 
-template<class F, class O, class RestrictionOperator, class ProlongationOperator, bool Tensor>
+template<class F, class O, class CoarseGridSolver, class RestrictionOperator, class ProlongationOperator, bool Tensor>
 class UzawaSolver
 {
 public:
@@ -17,16 +17,21 @@ public:
   };
 
   UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage,
-              uint_t minLevel, uint_t maxLevel)
-    : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(storage, minLevel, minLevel),
+              const CoarseGridSolver & coarseGridSolver,
+              const RestrictionOperator & restrictionOperator,
+              const ProlongationOperator & prolongationOperator,
+              const uint_t & minLevel,
+              const uint_t & maxLevel,
+              const uint_t & numberOfPreSmoothingSteps,
+              const uint_t & numberOfPostSmoothingSteps,
+              const uint_t & smoothingStepIncrement )
+    : coarseGridSolver_( coarseGridSolver ), restrictionOperator_( restrictionOperator ),
+      prolongationOperator_( prolongationOperator ),
+      minLevel_(minLevel), maxLevel_(maxLevel),
+      nuPre_( numberOfPreSmoothingSteps ), nuPost_( numberOfPostSmoothingSteps ),
+      nuAdd_( smoothingStepIncrement ),
       ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
   {
-    // TODO: remove hardcoded parameters
-    nuPre_ = 2;
-    nuPost_ = 2;
-
-    nuAdd_ = 2;
-
     zero_ = [](const hhg::Point3D&) { return 0.0; };
   }
 
@@ -34,13 +39,12 @@ public:
   {
   }
 
-  void solve(O& A, F& x, F& b, F& r, RestrictionOperator restrictionOperator, ProlongationOperator prolongationOperator,
-             uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE,
-             bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter,
+             DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
   {
 
     if (level == minLevel_) {
-      coarseSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, false);
+      coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, false);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
@@ -55,9 +59,9 @@ public:
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
 
       // restrict
-      restrictionOperator( r.u, level, flag );
-      restrictionOperator( r.v, level, flag );
-      restrictionOperator( r.p, level, flag | DirichletBoundary );
+      restrictionOperator_( r.u, level, flag );
+      restrictionOperator_( r.v, level, flag );
+      restrictionOperator_( r.p, level, flag | DirichletBoundary );
 
 
       b.assign({1.0}, { &r }, level - 1, flag);
@@ -68,18 +72,18 @@ public:
       // solve on coarser level
       nuPre_ += nuAdd_;
       nuPost_ += nuAdd_;
-      solve(A, x, b, r, restrictionOperator, prolongationOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       if (cycleType == CycleType::WCYCLE) {
-        solve(A, x, b, r, restrictionOperator, prolongationOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+        solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       }
       nuPre_ -= nuAdd_;
       nuPost_ -= nuAdd_;
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
-      prolongationOperator(x.u, level-1, flag);
-      prolongationOperator(x.v, level-1, flag);
-      prolongationOperator(x.p, level-1, flag | DoFType::DirichletBoundary );
+      prolongationOperator_(x.u, level-1, flag);
+      prolongationOperator_(x.v, level-1, flag);
+      prolongationOperator_(x.p, level-1, flag | DoFType::DirichletBoundary );
       x.add({1.0}, { &tmp_ }, level, flag);
 
       // post-smooth
@@ -144,7 +148,9 @@ private:
   uint_t minLevel_;
   uint_t maxLevel_;
 
-  MinResSolver<F, O> coarseSolver_;
+  CoarseGridSolver coarseGridSolver_;
+  RestrictionOperator restrictionOperator_;
+  ProlongationOperator prolongationOperator_;
 
   F ax_;
   F tmp_;

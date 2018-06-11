@@ -99,8 +99,10 @@ int main( int argc, char* argv[] )
 
    typedef hhg::P1toP1LinearRestriction RestrictionOperator;
    typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+   typedef hhg::MinResSolver< P1StokesFunction< real_t >, P1StokesOperator > CoarseGridSolver;
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
+   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
@@ -122,7 +124,8 @@ int main( int argc, char* argv[] )
    c_old->interpolate( initialConcentration, maxLevel );
    c->assign( {1.0}, {c_old.get()}, maxLevel );
 
-   auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, RestrictionOperator, ProlongationOperator, false >( storage, minLevel, maxLevel );
+   auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, CoarseGridSolver,
+   RestrictionOperator, ProlongationOperator, false >( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
    hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
    vtkOutput.add( &u->u );
@@ -147,7 +150,7 @@ int main( int argc, char* argv[] )
 
          for( uint_t outer = 0; outer < 2; ++outer )
          {
-            solver.solve( L, *u, *f, *r, restrictionOperator, prolongationOperator, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary );
+            solver.solve( L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary );
             hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
 
             L.apply( *u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary );

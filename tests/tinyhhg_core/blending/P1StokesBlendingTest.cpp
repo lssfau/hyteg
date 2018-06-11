@@ -90,6 +90,7 @@ int main( int argc, char* argv[] )
    typedef hhg::P1BlendingStokesOperator SolveOperator;
    typedef hhg::P1toP1LinearRestriction RestrictionOperator;
    typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+   typedef hhg::MinResSolver< P1StokesFunction< real_t >, SolveOperator > CoarseGridSolver;
 
    auto start = walberla::timing::getWcTime();
    SolveOperator L( storage, minLevel, maxLevel );
@@ -98,6 +99,7 @@ int main( int argc, char* argv[] )
 
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
+   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
 
    P1BlendingMassOperator M(storage, minLevel, maxLevel);
 
@@ -140,8 +142,8 @@ int main( int argc, char* argv[] )
    one.interpolate(ones, maxLevel, hhg::All);
    real_t npoints = one.dot( one, maxLevel );
 
-   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, RestrictionOperator, ProlongationOperator, true> Solver;
-   auto solver = Solver(storage, minLevel, maxLevel);
+   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, CoarseGridSolver, RestrictionOperator, ProlongationOperator, true> Solver;
+   auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
    WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
@@ -161,7 +163,7 @@ int main( int argc, char* argv[] )
    uint_t outer;
    for (outer = 0; outer < maxOuterIter; ++outer) {
       start = walberla::timing::getWcTime();
-      solver.solve(L, u, f, r, restrictionOperator, prolongationOperator, maxLevel, 1e-6, coarseMaxiter,
+      solver.solve(L, u, f, r, maxLevel, 1e-6, coarseMaxiter,
                    hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
       end = walberla::timing::getWcTime();
       hhg::vertexdof::projectMean(u.p, tmp.p, maxLevel);
