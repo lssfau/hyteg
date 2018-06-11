@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
 
 namespace hhg {
 namespace petsc {
@@ -34,15 +35,15 @@ inline void applyDirichletBC(P1StokesFunction<PetscInt> &numerator, std::vector<
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, P1StokesFunction< PetscInt > & src, P1StokesFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
 {
-  createMatrix(opr.A, src.u, dst.u, level, flag);
-  createMatrix(opr.divT_x, src.p, dst.u, level, flag);
+  createMatrix(opr.A, src.u, dst.u, mat, level, flag);
+  createMatrix(opr.divT_x, src.p, dst.u, mat, level, flag);
 
-  createMatrix(opr.A, src.v, dst.v, level, flag);
-  createMatrix(opr.divT_y, src.p, dst.v, level, flag);
+  createMatrix(opr.A, src.v, dst.v, mat, level, flag);
+  createMatrix(opr.divT_y, src.p, dst.v, mat, level, flag);
 
-  createMatrix(opr.div_x, src.u, dst.p, level, flag | DirichletBoundary);
-  createMatrix(opr.div_y, src.v, dst.p, level, flag | DirichletBoundary);
-  createMatrix(opr.pspg, src.p, dst.p, level, flag | DirichletBoundary);
+  createMatrix(opr.div_x, src.u, dst.p, mat, level, flag | DirichletBoundary);
+  createMatrix(opr.div_y, src.v, dst.p, mat, level, flag | DirichletBoundary);
+  createMatrix(opr.pspg, src.p, dst.p, mat, level, flag | DirichletBoundary);
 
 }
 
