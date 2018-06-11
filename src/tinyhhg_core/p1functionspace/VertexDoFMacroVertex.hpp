@@ -283,32 +283,6 @@ inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<StencilMemory< Valu
 }
 
 template< typename ValueType >
-inline void prolongate(Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &memoryId, size_t sourceLevel) {
-  vertex.getData(memoryId)->getPointer(sourceLevel + 1)[0] =
-      vertex.getData(memoryId)->getPointer(sourceLevel)[0];
-}
-
-template< typename ValueType >
-inline void prolongateQuadratic(Vertex &vertex,
-                                const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &memoryId,
-                                size_t level) {
-  prolongate(vertex, memoryId, level);
-}
-
-template< typename ValueType >
-inline void restrict(Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &memoryId, size_t level) {
-  auto vertex_data_f = vertex.getData(memoryId)->getPointer( level );
-  auto vertex_data_c = vertex.getData(memoryId)->getPointer( level - 1 );
-
-  vertex_data_c[0] = vertex_data_f[0];
-
-  for (uint_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
-    vertex_data_c[0] += 0.5*vertex_data_f[i+1];
-    i += 1;
-  }
-}
-
-template< typename ValueType >
 inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &dstId, uint_t &num) {
   auto dst = vertex.getData(dstId)->getPointer( level );
   dst[0] = static_cast< ValueType >( num++ );
