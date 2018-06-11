@@ -5,7 +5,7 @@
 namespace hhg
 {
 
-template<class F, class O, class RestrictionOperator, bool Tensor>
+template<class F, class O, class RestrictionOperator, class ProlongationOperator, bool Tensor>
 class UzawaSolver
 {
 public:
@@ -34,8 +34,9 @@ public:
   {
   }
 
-  void solve(O& A, F& x, F& b, F& r, RestrictionOperator restrictionOperator, uint_t level, real_t tolerance,
-             size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
+  void solve(O& A, F& x, F& b, F& r, RestrictionOperator restrictionOperator, ProlongationOperator prolongationOperator,
+             uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE,
+             bool printInfo = false)
   {
 
     if (level == minLevel_) {
@@ -67,16 +68,18 @@ public:
       // solve on coarser level
       nuPre_ += nuAdd_;
       nuPost_ += nuAdd_;
-      solve(A, x, b, r, restrictionOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      solve(A, x, b, r, restrictionOperator, prolongationOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       if (cycleType == CycleType::WCYCLE) {
-        solve(A, x, b, r, restrictionOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+        solve(A, x, b, r, restrictionOperator, prolongationOperator, level-1, tolerance, maxiter, flag, cycleType, printInfo);
       }
       nuPre_ -= nuAdd_;
       nuPost_ -= nuAdd_;
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
-      x.prolongate(level-1, flag);
+      prolongationOperator(x.u, level-1, flag);
+      prolongationOperator(x.v, level-1, flag);
+      prolongationOperator(x.p, level-1, flag | DoFType::DirichletBoundary );
       x.add({1.0}, { &tmp_ }, level, flag);
 
       // post-smooth

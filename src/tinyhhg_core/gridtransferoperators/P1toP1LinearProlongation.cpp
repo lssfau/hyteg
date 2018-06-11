@@ -3,7 +3,7 @@
 
 namespace hhg {
 
-void P1toP1LinearProlongation::prolongateMacroVertex( const real_t *src, real_t *dst, const uint_t & sourceLevel ) const
+void P1toP1LinearProlongation::prolongateMacroVertex( const real_t *src, real_t *dst, const uint_t & ) const
 {
   dst[0] = src[0];
 }

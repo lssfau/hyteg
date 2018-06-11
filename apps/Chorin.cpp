@@ -204,7 +204,7 @@ int main( int argc, char* argv[] )
          hhg::vertexdof::projectMean( p, tmp, maxLevel - 1 );
       }
 
-      p.prolongate( maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
+      prolongationOperator( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
 
       // Correct u
       divT_x.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );

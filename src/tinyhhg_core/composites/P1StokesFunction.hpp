@@ -69,13 +69,6 @@ public:
     return sum;
   }
 
-  void prolongate(size_t level, DoFType flag = All)
-  {
-    u.prolongate(level, flag);
-    v.prolongate(level, flag);
-    p.prolongate(level, flag | DirichletBoundary);
-  }
-
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree )
   {
     u.enableTiming(timingTree);

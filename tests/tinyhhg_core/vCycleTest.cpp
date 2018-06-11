@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
@@ -25,11 +26,12 @@ enum class CycleType
    WCYCLE
 };
 
-template < class O, class F, class CSolver, class RestrictionOperator >
+template < class O, class F, class CSolver, class RestrictionOperator, class ProlongationOperator >
 void cscycle( size_t    level,
               size_t    minLevel,
               CSolver&  csolver,
               RestrictionOperator restrictionOperator,
+              ProlongationOperator prolongationOperator,
               O&        A,
               F&        x,
               F&        ax,
@@ -64,19 +66,19 @@ void cscycle( size_t    level,
 
       x.interpolate( zero, level - 1 );
 
-      cscycle( level - 1, minLevel, csolver, restrictionOperator,
+      cscycle( level - 1, minLevel, csolver, restrictionOperator, prolongationOperator,
                A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType );
 
       if( cycleType == CycleType::WCYCLE )
       {
          cscycle(
-             level - 1, minLevel, csolver, restrictionOperator,
+             level - 1, minLevel, csolver, restrictionOperator, prolongationOperator,
              A, x, ax, b, r, tmp, coarse_tolerance, coarse_maxiter, nu_pre, nu_post, cycleType );
       }
 
       // prolongate
       tmp.assign( {1.0}, {&x}, level, hhg::Inner );
-      x.prolongate( level - 1, hhg::Inner );
+      prolongationOperator( x, level - 1, hhg::Inner );
       x.add( {1.0}, {&tmp}, level, hhg::Inner );
 
       // post-smooth
@@ -140,6 +142,7 @@ int main( int argc, char* argv[] )
 
    hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1toP1LinearRestriction restrictionOperator;
+   hhg::P1toP1LinearProlongation prolongationOperator;
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    std::function< real_t( const hhg::Point3D& ) > zeros = []( const hhg::Point3D& ) { return 0.0; };
@@ -189,6 +192,7 @@ int main( int argc, char* argv[] )
                minLevel,
                csolver,
                restrictionOperator,
+               prolongationOperator,
                A,
                x,
                ax,
