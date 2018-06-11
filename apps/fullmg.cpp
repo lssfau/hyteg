@@ -10,6 +10,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -72,6 +73,7 @@ int main( int argc, char* argv[] )
 
    hhg::P1toP1LinearRestriction restrictionOperator;
    hhg::P1toP1LinearProlongation prolongationOperator;
+   hhg::P1toP1QuadraticProlongation quadraticProlongationOperator;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    r.enableTiming( timingTree );
@@ -191,7 +193,7 @@ int main( int argc, char* argv[] )
       }
       if( ll < maxLevel )
       {
-         x.prolongateQuadratic( ll, hhg::Inner );
+         quadraticProlongationOperator( x, ll, hhg::Inner );
       }
    }
    LIKWID_MARKER_STOP( "Compute" );

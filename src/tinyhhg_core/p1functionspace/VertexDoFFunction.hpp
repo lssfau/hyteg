@@ -62,8 +62,6 @@ public:
 
   inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
 
-  inline void prolongateQuadratic(uint_t sourceLevel, DoFType flag = All);
-
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   /// Interpolates a given expression to a VertexDoFFunction
@@ -378,48 +376,6 @@ inline real_t VertexDoFFunction< ValueType >::dot(VertexDoFFunction< ValueType >
   return scalarProduct;
 }
 
-
-template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::prolongateQuadratic(size_t sourceLevel, DoFType flag)
-{
-  this->startTiming( "Prolongate Quadratic" );
-  const size_t destinationLevel = sourceLevel + 1;
-
-  for (auto& it : this->getStorage()->getVertices()) {
-    Vertex& vertex = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macrovertex::prolongateQuadratic(vertex, vertexDataID_, sourceLevel);
-    }
-  }
-
-  communicators_[destinationLevel]->template startCommunication<Vertex, Edge>();
-
-  for (auto& it : this->getStorage()->getEdges()) {
-    Edge& edge = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macroedge::prolongateQuadratic< ValueType >(sourceLevel, edge, edgeDataID_);
-    }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Vertex, Edge>();
-  communicators_[destinationLevel]->template startCommunication<Edge, Face>();
-
-  for (auto& it : this->getStorage()->getFaces()) {
-    Face& face = *it.second;
-
-    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-    {
-      vertexdof::macroface::prolongateQuadratic< ValueType >(sourceLevel, face, faceDataID_);
-    }
-  }
-
-  communicators_[destinationLevel]->template endCommunication<Edge, Face>();
-  this->stopTiming( "Prolongate Quadratic" );
-}
 
 
 template< typename ValueType >
