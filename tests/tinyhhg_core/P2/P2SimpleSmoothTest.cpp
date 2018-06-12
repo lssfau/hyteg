@@ -13,7 +13,7 @@ namespace hhg {
 /// this test uses stencil weights which results in all values being one after the smoothing step so we can check easily
 static void testP2Smooth()
 {
-   const uint_t level = 12;
+   const uint_t level = 3;
 
    MeshInfo mesh = MeshInfo::fromGmshFile( "../../data/meshes/quad_2el.msh" );
 
