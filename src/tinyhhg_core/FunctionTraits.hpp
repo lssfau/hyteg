@@ -12,6 +12,19 @@ namespace hhg {
 //
 // See also: https://stackoverflow.com/a/6006629
 
+
+/////////////////////
+// Tag dispatching //
+/////////////////////
+
+struct VertexDoFFunctionTag {};
+typedef VertexDoFFunctionTag P1FunctionTag;
+struct EdgeDoFFunctionTag {};
+struct P2FunctionTag {};
+struct P1StokesFunctionTag {};
+struct P2P1TaylorHoodFunctionTag {};
+
+
 //////////////////////////
 // Forward declarations //
 //////////////////////////
@@ -34,6 +47,12 @@ class DGFunction;
 template< typename VType >
 class P2Function;
 
+template< typename VType >
+class P1StokesFunction;
+
+template< typename VType >
+class P2P1TaylorHoodFunction;
+
 
 ///////////////////////////////////////////////////////////////////
 // Function trait defining the value type of the derived classes //
@@ -48,6 +67,7 @@ template< typename VType >
 struct FunctionTrait< vertexdof::VertexDoFFunction< VType > >
 {
   typedef VType ValueType;
+  typedef VertexDoFFunctionTag Tag;
 
   static std::string getTypeName() { return "P1Function / VertexDoFFunction"; }
 };
@@ -57,6 +77,7 @@ template< typename VType >
 struct FunctionTrait< EdgeDoFFunction< VType > >
 {
   typedef VType ValueType;
+  typedef EdgeDoFFunctionTag Tag;
 
   static std::string getTypeName() { return "EdgeDoFFunction"; }
 };
@@ -75,8 +96,29 @@ template< typename VType >
 struct FunctionTrait< P2Function< VType > >
 {
   typedef VType ValueType;
+  typedef P2FunctionTag Tag;
 
   static std::string getTypeName() { return "P2Function"; }
+};
+
+/// P1Stokes specialization
+template< typename VType >
+struct FunctionTrait< P1StokesFunction< VType > >
+{
+    typedef VType ValueType;
+    typedef P1StokesFunctionTag Tag;
+
+    static std::string getTypeName() { return "P1StokesFunction"; }
+};
+
+/// P2P1TaylorHood specialization
+template< typename VType >
+struct FunctionTrait< P2P1TaylorHoodFunction< VType > >
+{
+    typedef VType ValueType;
+    typedef P2P1TaylorHoodFunctionTag Tag;
+
+    static std::string getTypeName() { return "P2P1TaylorHoodFunction"; }
 };
 
 }
