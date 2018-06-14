@@ -1,11 +1,13 @@
 #pragma once
 
 #include "MinresSolver.hpp"
+#include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 
 namespace hhg
 {
 
-template<class F, class O, class CoarseGridSolver, class RestrictionOperator, class ProlongationOperator, bool Tensor>
+template<class F, class O, class CoarseGridSolver, class RestrictionOperator,
+         class ProlongationOperator, bool Tensor >
 class UzawaSolver
 {
 public:
@@ -59,10 +61,7 @@ public:
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
 
       // restrict
-      restrictionOperator_( r.u, level, flag );
-      restrictionOperator_( r.v, level, flag );
-      restrictionOperator_( r.p, level, flag | DirichletBoundary );
-
+      restrictionOperator_( r, level, flag );
 
       b.assign({1.0}, { &r }, level - 1, flag);
 //      hhg::projectMean(b.p, ax_.p, level-1);
@@ -81,9 +80,7 @@ public:
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
-      prolongationOperator_(x.u, level-1, flag);
-      prolongationOperator_(x.v, level-1, flag);
-      prolongationOperator_(x.p, level-1, flag | DoFType::DirichletBoundary );
+      prolongationOperator_(x, level-1, flag);
       x.add({1.0}, { &tmp_ }, level, flag);
 
       // post-smooth
@@ -97,13 +94,14 @@ public:
 
 private:
 
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag) {
-     uzawaSmooth(A, x, b, r, level, flag, std::integral_constant<bool,Tensor>());
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag)
+  {
+     uzawaSmooth(A, x, b, r, level, flag, std::integral_constant<bool,Tensor>(), std::integral_constant< bool, has_pspg_block< O >::value >() );
   }
 
   // Block-Laplace variant
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type) {
-
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::true_type /* PSPG */ )
+  {
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
     A.A.smooth_gs(x.u, r.u, level, flag);
@@ -121,8 +119,8 @@ private:
   }
 
   // Tensor variant
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::true_type) {
-
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::true_type /* tensor */, std::true_type /* PSPG */ )
+  {
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     A.A_uv.apply(x.v, r.u, level, flag, Add);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
@@ -139,6 +137,23 @@ private:
     r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
 
     A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag | DirichletBoundary);
+  }
+
+  // Block-Laplace variant without stabilization
+  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::false_type /* PSPG */ )
+  {
+    A.divT_x.apply(x.p, r.u, level, flag, Replace);
+    r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
+    A.A.smooth_gs(x.u, r.u, level, flag);
+
+    A.divT_y.apply(x.p, r.v, level, flag, Replace);
+    r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
+    A.A.smooth_gs(x.v, r.v, level, flag);
+
+    A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
+    A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
+
+    x.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
   }
 
   uint_t nuPre_;
