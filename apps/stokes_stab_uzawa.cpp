@@ -10,8 +10,8 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 
 using walberla::real_t;
@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
 
-  hhg::P1toP1LinearRestriction restrictionOperator;
-  hhg::P1toP1LinearProlongation prolongationOperator;
+  hhg::P1P1StokesToP1P1StokesRestriction restrictionOperator;
+  hhg::P1P1StokesToP1P1StokesProlongation prolongationOperator;
 
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
   typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator > CoarseGridSolver;
-  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, CoarseGridSolver, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation, false> Solver;
+  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, CoarseGridSolver,
+                           hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, false> Solver;
 
   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
   auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);

@@ -11,8 +11,8 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1HelperFunctions.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -97,8 +97,8 @@ int main( int argc, char* argv[] )
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
    hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
 
-   typedef hhg::P1toP1LinearRestriction RestrictionOperator;
-   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
+   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
    typedef hhg::MinResSolver< P1StokesFunction< real_t >, P1StokesOperator > CoarseGridSolver;
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
