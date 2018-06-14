@@ -1,0 +1,10 @@
+Parameters
+{
+    meshFile ../data/meshes/bfs_126el.msh;
+    minLevel 2;
+    maxLevel 5;
+    numMGCycles 5;
+    discretization P1P1;
+    solver uzawa;
+    coarseGridSolver petsc;
+}
