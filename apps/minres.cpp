@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
   u_exact.interpolate(exact, maxLevel);
 
   typedef hhg::JacobiPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
-  auto prec = std::make_shared<PreconditionerType>(storage, minLevel, maxLevel, L, 10);
+  auto prec = PreconditionerType(storage, minLevel, maxLevel, L, 10);
   auto solver = hhg::MinResSolver<hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType>(storage, minLevel, maxLevel, prec);
   solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
 

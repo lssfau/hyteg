@@ -8,8 +8,6 @@ public:
 
     StokesBlockDiagonalApplyPreconditioner(O1 velocityOpr, O2 pressureOpr, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
       : velocityOpr_(velocityOpr), pressureOpr_(pressureOpr),
-        velocityCG(storage, minLevel, maxLevel),
-        pressureCG(storage, minLevel, maxLevel),
         r("r", storage, minLevel, maxLevel)
   {}
 

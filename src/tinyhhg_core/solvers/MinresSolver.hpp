@@ -10,7 +10,7 @@ class MinResSolver
 {
 public:
 
-  MinResSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, std::shared_ptr<Preconditioner> prec_ = std::make_shared<Preconditioner>())
+  MinResSolver(const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel, Preconditioner prec_ = Preconditioner())
     : prec(prec_)
   {
     p_vm = new F("vm", storage, minLevel, maxLevel);
@@ -27,6 +27,7 @@ public:
 
   ~MinResSolver()
   {
+#if 0
     delete p_vm;
     delete p_v;
     delete p_vp;
@@ -37,6 +38,7 @@ public:
     delete p_wm;
     delete p_w;
     delete p_wp;
+#endif
   }
 
   void init(size_t level, DoFType flag)
@@ -54,7 +56,7 @@ public:
     A.apply(x, r, level, flag);
     p_v->assign({1.0, -1.0}, {&b, &r}, level, flag);
 
-    prec->apply(*p_v, *p_z, level, flag);
+    prec.apply(*p_v, *p_z, level, flag);
 
     real_t gamma_old = 1.0;
     real_t gamma_new = std::sqrt(p_z->dot(*p_v, level, flag));
@@ -87,7 +89,7 @@ public:
 
       p_vp->assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag);
 
-      prec->apply(*p_vp, *p_zp, level, flag);
+      prec.apply(*p_vp, *p_zp, level, flag);
 
       gamma_old = gamma_new;
       gamma_new = std::sqrt(p_zp->dot(*p_vp, level, flag));
@@ -152,7 +154,7 @@ private:
 
   F* p_tmp;
 
-  std::shared_ptr<Preconditioner> prec;
+  Preconditioner prec;
 };
 
 }
