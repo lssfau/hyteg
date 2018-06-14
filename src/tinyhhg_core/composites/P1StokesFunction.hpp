@@ -11,6 +11,8 @@ class P1StokesFunction
 {
 public:
 
+  typedef P1Function< ValueType > VelocityFunction_T;
+  typedef P1Function< ValueType > PressureFunction_T;
   typedef typename FunctionTrait< P1StokesFunction< ValueType > >::Tag Tag;
 
     P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
