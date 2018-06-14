@@ -567,10 +567,10 @@ void SetupPrimitiveStorage::getSetupPrimitives( PrimitiveMap & setupPrimitiveMap
 {
   setupPrimitiveMap.clear();
 
-  setupPrimitiveMap.insert( beginVertices(), endVertices() );
-  setupPrimitiveMap.insert( beginEdges(), endEdges() );
-  setupPrimitiveMap.insert( beginFaces(), endFaces() );
-  setupPrimitiveMap.insert( beginCells(), endCells() );
+  setupPrimitiveMap.insert( vertices_.begin(), vertices_.end() );
+  setupPrimitiveMap.insert( edges_.begin(),    edges_.end() );
+  setupPrimitiveMap.insert( faces_.begin(),    faces_.end() );
+  setupPrimitiveMap.insert( cells_.begin(),    cells_.end() );
 
   WALBERLA_ASSERT_EQUAL( setupPrimitiveMap.size(), vertices_.size() + edges_.size() + faces_.size() + cells_.size() );
 }
