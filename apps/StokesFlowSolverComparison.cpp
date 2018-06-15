@@ -97,16 +97,17 @@ public:
                  const uint_t                                           &,
                  const uint_t                                           &,
                  const std::function< real_t ( const hhg::Point3D & ) > &)
-    {
-      WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
-    }
+    {}
 
     void solve( Operator_T &,
                 Function_T< real_t > &,
                 Function_T< real_t > &,
                 Function_T< real_t > &,
                 size_t, real_t, size_t,
-                DoFType, bool) {}
+                DoFType, bool)
+    {
+             WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
+    }
 #endif
 
 };
