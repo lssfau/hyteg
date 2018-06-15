@@ -61,6 +61,7 @@ const static std::map< std::string, SolverType > strToSolverType =
 template< template< typename ValueType > class Function_T, typename Operator_T  >
 class PetscSolver
 {
+#ifdef HHG_BUILD_WITH_PETSC
 public:
     PetscSolver( const std::shared_ptr< hhg::PrimitiveStorage >         & storage,
                  const uint_t                                           & minLevel,
@@ -76,25 +77,37 @@ public:
                 Function_T< real_t > & b,
                 Function_T< real_t > & r,
                 size_t level, real_t tolerance, size_t maxiter,
-                DoFType flag = All, bool printInfo = false )
-    {
-#ifdef HHG_BUILD_WITH_PETSC
-      PETScManager petscManager;
-      b.u.interpolate( velocityBCInflow_, level, hhg::DirichletBoundary );
-      uint_t num = 0;
-      const uint_t localSize = numerator_->enumerate( level, num);
-      PETScLUSolver<real_t, Function_T, Operator_T > solver( numerator_, localSize, num );
-      solver.solve( A, x, b, r, level, tolerance, maxiter, flag, printInfo );
-#else
-      WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
-#endif
+                DoFType flag = All, bool printInfo = false ) {
+
+       PETScManager petscManager;
+       b.u.interpolate(velocityBCInflow_, level, hhg::DirichletBoundary);
+       uint_t num = 0;
+       const uint_t localSize = numerator_->enumerate(level, num);
+       PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, num);
+       solver.solve(A, x, b, r, level, tolerance, maxiter, flag, printInfo);
     }
 
 private:
+   std::shared_ptr< Function_T< PetscInt > > numerator_;
+   std::shared_ptr< PrimitiveStorage > storage_;
+   std::function< real_t ( const hhg::Point3D & ) > velocityBCInflow_;
+#else
+public:
+    PetscSolver( const std::shared_ptr< hhg::PrimitiveStorage >         &,
+                 const uint_t                                           &,
+                 const uint_t                                           &,
+                 const std::function< real_t ( const hhg::Point3D & ) > &)
+    {
+      WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
+    }
 
-    std::shared_ptr< Function_T< PetscInt > > numerator_;
-    std::shared_ptr< PrimitiveStorage > storage_;
-    std::function< real_t ( const hhg::Point3D & ) > velocityBCInflow_;
+    void solve( Operator_T &,
+                Function_T< real_t > &,
+                Function_T< real_t > &,
+                Function_T< real_t > &,
+                size_t, real_t, size_t,
+                DoFType, bool) {}
+#endif
 
 };
 
@@ -238,7 +251,7 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  real_t currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel );
+  real_t currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   real_t lastResidualL2    = currentResidualL2;
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial residual: " << currentResidualL2 );
 
@@ -293,7 +306,7 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel );
+            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
           }
           vtkOutput.write( maxLevel, numMGCycles );
           break;
@@ -320,12 +333,16 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel );
+            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
           }
           vtkOutput.write( maxLevel, numMGCycles );
           break;
         }
-
+        case UZAWA:
+        {
+           ///this should never be reached but is needed to avoid compiler warnings
+           WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid coarse grid solver type!" );
+        }
       }
 
     }
@@ -333,7 +350,7 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel );
+  currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Final residual:   " << currentResidualL2 );
 
 
