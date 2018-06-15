@@ -4,7 +4,13 @@ Parameters
     minLevel 2;
     maxLevel 5;
     numMGCycles 5;
+
+    /// possible values: P1P1, TaylorHood
     discretization P1P1;
+
+    /// possible values: minres, petsc, uzawa
     solver uzawa;
-    coarseGridSolver petsc;
+
+    /// possible values: minres, petsc
+    coarseGridSolver minres;
 }
