@@ -1,16 +1,20 @@
 Parameters
 {
-    meshFile ../data/meshes/bfs_126el.msh;
+
+    /// possible values:
+    /// bfs_coarse, bfs_fine
+    /// porous_coarse, porous_fine
+    meshType bfs_fine;
     minLevel 2;
     maxLevel 5;
     numMGCycles 5;
 
     /// possible values: P1P1, TaylorHood
-    discretization P1P1;
+    discretization TaylorHood;
 
     /// possible values: minres, petsc, uzawa
     solver uzawa;
 
     /// possible values: minres, petsc
-    coarseGridSolver minres;
+    coarseGridSolver petsc;
 }

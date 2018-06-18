@@ -1,6 +1,7 @@
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
+#include "core/timing/Timer.h"
 
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
@@ -24,6 +25,7 @@
 #include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "tinyhhg_core/types/pointnd.hpp"
 
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
@@ -112,7 +114,12 @@ public:
 
 };
 
-void setRightBFSBoundary( SetupPrimitiveStorage & setupStorage )
+void setAllBoundariesDirichlet( SetupPrimitiveStorage & setupStorage )
+{
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+}
+
+void setRightBFSBoundaryNeumann( SetupPrimitiveStorage & setupStorage )
 {
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -138,54 +145,32 @@ void setRightBFSBoundary( SetupPrimitiveStorage & setupStorage )
 
 
 template< template< typename ValueType > class StokesFunction_T, class StokesOperator_T, class RestrictionOperator_T, class ProlongationOperator_T >
-void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & maxLevel,
+void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & maxLevel,
           const SolverType & solverType, const SolverType & coarseGridSolver, const uint_t & numMGCycles,
-          const real_t targetResidual, const uint_t & maxIterations )
+          const real_t targetResidual, const uint_t & maxIterations,
+          const std::function< void( SetupPrimitiveStorage & ) > setBCFlags,
+          const std::function< real_t( const Point3D & ) > setVelocityBC )
 {
   typedef typename StokesFunction_T< real_t >::Tag StokesFunctionTag_T;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   timingTree->start( "Complete app" );
 
-  hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFile );
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Setting up storage..." );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-#if 0
-  // porous bcs
-  std::function< real_t( const hhg::Point3D& ) > bc_x = []( const hhg::Point3D& x ) {
-      if( x[0] < 1e-8 )
-      {
-        return 4.0 * x[1] * (1.0 - x[1]);
-      } else
-      {
-        return 0.0;
-      }
-  };
-#else
-  // bfs bcs
-
-  setRightBFSBoundary( setupStorage );
-
-  std::function< real_t( const hhg::Point3D& ) > bc_x = []( const hhg::Point3D& x ) {
-      if( x[0] < 1e-8 )
-      {
-        return 16.0 * ( x[1] - 0.5 ) * ( 1.0 - x[1] );
-      } else
-      {
-        return 0.0;
-      }
-  };
-#endif
-
+  setBCFlags( setupStorage );
 
   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Load balancing with ParMetis..." );
   hhg::loadbalancing::distributed::parmetis( *storage );
 #endif
 
-  hhg::writeDomainPartitioningVTK( storage, "../output", "stokes_porous_taylor_hood_domain" );
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Writing domain partitioning..." );
+  hhg::writeDomainPartitioningVTK( storage, "../output", "StokesFlowSolverComparison_domain" );
 
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Allocating functions..." );
   StokesFunction_T< real_t > r( "r", storage, minLevel, maxLevel );
   StokesFunction_T< real_t > f( "f", storage, minLevel, maxLevel );
   StokesFunction_T< real_t > u( "u", storage, minLevel, maxLevel );
@@ -216,14 +201,14 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
   // PETSc
 
   typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;
-  PetscSolver_T petscSolver( storage, minLevel, maxLevel, bc_x );
+  PetscSolver_T petscSolver( storage, minLevel, maxLevel, setVelocityBC );
 
 
   /////////////////////////
   // Boundary conditions //
   /////////////////////////
 
-  u.u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
+  u.u.interpolate( setVelocityBC, maxLevel, hhg::DirichletBoundary );
   u.v.interpolate( zero, maxLevel, hhg::DirichletBoundary );
 
 
@@ -231,7 +216,7 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
   // VTK //
   /////////
 
-  hhg::VTKOutput vtkOutput( "../output", "stokes_porous_taylor_hood" );
+  hhg::VTKOutput vtkOutput( "../output", "StokesFlowSolverComparison" );
 
   vtkOutput.add( &r.u );
   vtkOutput.add( &r.v );
@@ -268,52 +253,66 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
     {
 #ifdef HHG_BUILD_WITH_PETSC
       vtkOutput.write( maxLevel, 0 );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with PETSc..." );
       petscSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
       vtkOutput.write( maxLevel, 1 );
 #else
-      WALBERLA_ABORT( "HHG was not built with PETSc. Cannot invoke PETSC solver" );
+      WALBERLA_ABORT( "[StokesFlowSolverComparison] HHG was not built with PETSc. Cannot invoke PETSC solver" );
 #endif
       break;
     }
     case MIN_RES:
     {
       vtkOutput.write( maxLevel, 0 );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with MinRes..." );
       minResSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
       vtkOutput.write( maxLevel, 1 );
       break;
     }
     case UZAWA:
     {
+
       switch ( coarseGridSolver )
       {
         case MIN_RES:
         {
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with multigrid (Uzawa + MinRes on coarse grid)..." )
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
+
           RestrictionOperator_T restrictionOperator;
           ProlongationOperator_T prolongationOperator;
           typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, MinResSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
 
           auto solver = UzawaSolver_T( storage, minResSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
+          walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
           {
             vtkOutput.write( maxLevel, mgIteration );
 
-            if ( mgIteration > 0 )
-            {
-              WALBERLA_LOG_INFO_ON_ROOT( "MG convergence rate res_it_" << mgIteration << " / res_it_" << mgIteration-1 << " = " << currentResidualL2 / lastResidualL2 );
-            }
-            WALBERLA_LOG_INFO_ON_ROOT( "After " << mgIteration << " iterations, current residual (L2): " << currentResidualL2 )
+            timer.start();
             solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, true );
+            timer.end();
+
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+
+            WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] " << std::setw(9) << mgIteration << " | "
+                                                                       << std::setw(13) << std::scientific << currentResidualL2 << " | "
+                                                                       << std::setw(16) << std::scientific << currentResidualL2 / lastResidualL2 << " | "
+                                                                       << std::setw(7) << std::fixed << std::setprecision(3) << timer.last() )
           }
           vtkOutput.write( maxLevel, numMGCycles );
           break;
         }
         case PETSC:
         {
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with multigrid (Uzawa + PETSc on coarse grid)..." )
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
+          WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
           RestrictionOperator_T restrictionOperator;
           ProlongationOperator_T prolongationOperator;
@@ -321,20 +320,24 @@ void run( const std::string & meshFile, const uint_t & minLevel, const uint_t & 
 
           auto solver = UzawaSolver_T( storage, petscSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
+          walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
           {
             vtkOutput.write( maxLevel, mgIteration );
 
-            if ( mgIteration > 0 )
-            {
-              WALBERLA_LOG_INFO_ON_ROOT( "MG convergence rate res_it_" << mgIteration << " / res_it_" << mgIteration-1 << " = " << currentResidualL2 / lastResidualL2 );
-            }
-            WALBERLA_LOG_INFO_ON_ROOT( "After " << mgIteration << " iterations, current residual (L2): " << currentResidualL2 )
+            timer.start();
             solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, true );
+            timer.end();
+
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+
+            WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] " << std::setw(9) << mgIteration << " | "
+                                                                       << std::setw(13) << std::scientific << currentResidualL2 << " | "
+                                                                       << std::setw(16) << std::scientific << currentResidualL2 / lastResidualL2 << " | "
+                                                                       << std::setw(7) << std::fixed << std::setprecision(3) << timer.last() << "s" )
           }
           vtkOutput.write( maxLevel, numMGCycles );
           break;
@@ -364,6 +367,8 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+  walberla::logging::Logging::printHeaderOnStream();
+
   std::vector<std::string> args( argv, argv + argc );
 
   const std::string defaultParameterFile = "../data/param/StokesFlowSolverComparison.prm";
@@ -371,12 +376,12 @@ int main( int argc, char* argv[] )
   std::string parameterFile;
   if ( args.size() <= 1 )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "No parameter file given, falling back to " << defaultParameterFile );
+    WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] No parameter file given, falling back to " << defaultParameterFile );
     parameterFile = defaultParameterFile;
   }
   else
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "Using parameter file " << args[1] );
+    WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Using parameter file " << args[1] );
     parameterFile = args[1];
   }
   walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
@@ -386,7 +391,7 @@ int main( int argc, char* argv[] )
 
   const uint_t      minLevel   = parameters.getParameter< uint_t >( "minLevel" );
   const uint_t      maxLevel   = parameters.getParameter< uint_t >( "maxLevel" );
-  const std::string meshFile   = parameters.getParameter< std::string >( "meshFile" );
+  const std::string meshType   = parameters.getParameter< std::string >( "meshType" );
   const uint_t maxIterations   = parameters.getParameter< uint_t >( "maxIterations", 10000 );
   const real_t targetResidual  = parameters.getParameter< real_t >( "targetResidual", 1e-15 );
   const uint_t numMGCycles                   = parameters.getParameter< uint_t >( "numMGCycles" );
@@ -397,6 +402,8 @@ int main( int argc, char* argv[] )
   ///////////////////////////////////
   // Check and evaluate parameters //
   ///////////////////////////////////
+
+  // Solver type
 
   if ( strToSolverType.count( solverTypeString ) == 0 )
   {
@@ -414,20 +421,122 @@ int main( int argc, char* argv[] )
   const SolverType coarseGridSolver           = strToSolverType.at( coarseGridSolverString );
   const DiscretizationType discretizationType = strToDiscretizationType.at( discretizationTypeString );
 
+  // Mesh
+
+  const MeshInfo meshInfo = [ meshType ]()
+  {
+    if ( meshType == "square_crisscross" )
+    {
+      return MeshInfo::meshRectangle( hhg::Point2D({0, 0}), hhg::Point2D({1, 1}), MeshInfo::CRISSCROSS, 5, 5 );
+    }
+    else if ( meshType == "porous_coarse" )
+    {
+      return MeshInfo::fromGmshFile( "../data/meshes/porous_coarse.msh" );
+    }
+    else if ( meshType == "bfs_coarse" )
+    {
+      return MeshInfo::fromGmshFile( "../data/meshes/bfs_12el.msh" );
+    }
+    else if ( meshType == "bfs_fine" )
+    {
+      return MeshInfo::fromGmshFile( "../data/meshes/bfs_126el.msh" );
+    }
+    else
+    {
+      WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid mesh type!" );
+      return MeshInfo::emptyMeshInfo();
+    }
+  }();
+
+  // Boundaries
+
+  const auto setMeshBoundaryFlags = [ meshType ]() -> std::function< void( SetupPrimitiveStorage & ) >
+  {
+      if ( meshType == "bfs_coarse" || meshType == "bfs_fine" )
+      {
+        return setRightBFSBoundaryNeumann;
+      }
+      else
+      {
+        return setAllBoundariesDirichlet;
+      }
+  }();
+
+  const auto setVelocityBC = [ meshType ]() -> std::function< real_t( const Point3D & ) >
+  {
+    if ( meshType == "porous_coarse" || meshType == "porous_fine" )
+    {
+      auto f = []( const hhg::Point3D & x ) -> real_t
+      {
+          if ( x[0] < 1e-8 )
+          {
+            return 4.0 * x[1] * ( 1.0 - x[1] );
+          }
+          else
+          {
+            return 0.0;
+          }
+      };
+      return f;
+    }
+    else if ( meshType == "bfs_coarse" || meshType == "bfs_fine"  )
+    {
+      auto f = []( const hhg::Point3D & x ) -> real_t
+      {
+          if( x[0] < 1e-8 )
+          {
+            return real_c( 16.0 * ( x[1] - 0.5 ) * ( 1.0 - x[1] ) );
+          }
+          else
+          {
+            return real_c( 0 );
+          }
+      };
+      return f;
+    }
+    else
+    {
+      auto f = []( const hhg::Point3D & ) -> real_t
+      {
+          return 0.0;
+      };
+      return f;
+    }
+  }();
+
+  std::stringstream parameterOverview;
+  parameterOverview <<       "[StokesFlowSolverComparison] Parameter overview:\n"
+                             "                             - meshType:           " << meshType << "\n"
+                             "                             - discretization:     " << discretizationTypeString << "\n"
+                             "                             - solver:             " << solverTypeString << "\n";
+
+  if ( solverType == UZAWA )
+  {
+    parameterOverview <<     "                             - coarsest level:     " << minLevel << "\n"
+                             "                             - finest level:       " << maxLevel << "\n"
+                             "                             - coarse grid solver: " << coarseGridSolverString << "\n"
+                             "                             - num MG cycles:      " << numMGCycles << "";
+  }
+  else
+  {
+    parameterOverview <<     "                             - level:              " << maxLevel << "\n"
+                             "                             - max. iterations:    " << maxIterations << "\n"
+                             "                             - tolerance:          " << targetResidual << "";
+  }
+  WALBERLA_LOG_INFO_ON_ROOT( parameterOverview.str() );
 
   switch ( discretizationType )
   {
-#if 1
     case P1P1:
       run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation >(
-        meshFile, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations );
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations, setMeshBoundaryFlags, setVelocityBC );
       break;
-#endif
     case TaylorHood:
       run< P2P1TaylorHoodFunction, P2P1TaylorHoodStokesOperator, hhg::P2P1StokesToP2P1StokesRestriction, hhg::P2P1StokesToP2P1StokesProlongation >(
-      meshFile, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations );
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations, setMeshBoundaryFlags, setVelocityBC );
       break;
   }
 
+  walberla::logging::Logging::printFooterOnStream();
   return EXIT_SUCCESS;
 }
