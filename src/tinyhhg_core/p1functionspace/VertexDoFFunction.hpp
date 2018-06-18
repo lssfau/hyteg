@@ -308,7 +308,7 @@ inline void VertexDoFFunction< ValueType >::add(const ValueType & scalar, const 
     }
   }
 
-  this->startTiming( "Add" );
+  this->stopTiming( "Add" );
 }
 
 template< typename ValueType >
