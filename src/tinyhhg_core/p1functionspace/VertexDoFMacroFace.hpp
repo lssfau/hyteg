@@ -80,7 +80,7 @@ inline void interpolate(const uint_t & Level,
                             Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
 {
   ValueType * faceData = face.getData( faceMemoryId )->getPointer( Level );
 

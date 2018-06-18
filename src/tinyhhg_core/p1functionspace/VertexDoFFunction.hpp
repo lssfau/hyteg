@@ -65,10 +65,10 @@ public:
   inline void integrateDG(DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag);
 
   /// Interpolates a given expression to a VertexDoFFunction
-  inline void interpolate(std::function< ValueType( const Point3D & ) >& expr,
+  inline void interpolate( const std::function< ValueType( const Point3D & ) >& expr,
                           uint_t level, DoFType flag = All);
 
-  inline void interpolateExtended(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+  inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                                   const std::vector<VertexDoFFunction*> srcFunctions,
                                   uint_t level, DoFType flag = All);
 
@@ -111,7 +111,7 @@ private:
 };
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+inline void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                         uint_t level, DoFType flag)
 {
   std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
@@ -121,7 +121,7 @@ inline void VertexDoFFunction< ValueType >::interpolate(std::function< ValueType
 }
 
 template< typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
+inline void VertexDoFFunction< ValueType >::interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector<ValueType>& ) >& expr,
                                                                 const std::vector<VertexDoFFunction*> srcFunctions,
                                                                 uint_t level, DoFType flag)
 {
