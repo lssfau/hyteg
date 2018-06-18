@@ -140,6 +140,26 @@ inline void assign( const uint_t & Level, Face &face,
   }
 }
 
+template< typename ValueType >
+inline void add(const uint_t & level,
+                const Face & face,
+                const ValueType & scalar,
+                const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+{
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+  uint_t inner_rowsize = rowsize;
+
+  ValueType* dstPtr = face.getData(dstId)->getPointer( level );
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      dstPtr[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] += scalar;
+    }
+    --inner_rowsize;
+  }
+}
+
 
 template< typename ValueType >
 inline void add(const uint_t & Level, Face &face,

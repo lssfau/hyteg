@@ -121,6 +121,20 @@ inline void assign( const uint_t & level, Edge &edge,
 
 
 template< typename ValueType >
+inline void add(const uint_t & level,
+                const Edge & edge,
+                const ValueType & scalar,
+                const PrimitiveDataID<FunctionMemory< ValueType >, Edge> & dstId )
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  for (size_t i = 1; i < rowsize - 1; ++i)
+  {
+    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] += scalar;
+  }
+}
+
+template< typename ValueType >
 inline void add( const uint_t & level, Edge &edge,
                 const std::vector<ValueType> &scalars,
                 const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,

@@ -48,6 +48,16 @@ inline void assign(Vertex &vertex,
 }
 
 template< typename ValueType >
+inline void add(const Vertex & vertex,
+                const ValueType & scalar,
+                const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> & dstId,
+                const uint_t & level)
+{
+  vertex.getData(dstId)->getPointer( level )[0] += scalar;
+}
+
+
+template< typename ValueType >
 inline void add(Vertex &vertex,
                 const std::vector<ValueType> &scalars,
                 const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,

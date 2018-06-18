@@ -58,6 +58,7 @@ public:
 
   inline void assign(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
+  inline void add(const ValueType & scalar, const uint_t & level, DoFType flag = All);
   inline void add(const std::vector<ValueType> scalars, const std::vector<VertexDoFFunction< ValueType >*> functions, uint_t level, DoFType flag = All);
 
   inline real_t dot(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All);
@@ -254,6 +255,60 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
       }
     }
   this->stopTiming( "Assign" );
+}
+
+template< typename ValueType >
+inline void VertexDoFFunction< ValueType >::add(const ValueType & scalar, const uint_t & level, DoFType flag)
+{
+  this->startTiming( "Add" );
+
+  for ( const auto & it : this->getStorage()->getVertices() )
+  {
+    Vertex & vertex = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macrovertex::add< ValueType >( vertex, scalar, vertexDataID_, level );
+    }
+  }
+
+  communicators_[level]->template startCommunication< Vertex, Edge >();
+
+  for ( const auto & it : this->getStorage()->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macroedge::add< ValueType >( level, edge, scalar, edgeDataID_ );
+    }
+  }
+
+  communicators_[level]->template endCommunication< Vertex, Edge >();
+  communicators_[level]->template startCommunication< Edge, Face >();
+
+  for ( const auto & it : this->getStorage()->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macroface::add< ValueType >( level, face, scalar, faceDataID_ );
+    }
+  }
+
+  communicators_[level]->template endCommunication< Edge, Face >();
+
+  for ( const auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+    if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
+    {
+      vertexdof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
+    }
+  }
+
+  this->startTiming( "Add" );
 }
 
 template< typename ValueType >
