@@ -4,16 +4,17 @@ Parameters
     /// possible values:
     /// bfs_coarse, bfs_fine
     /// porous_coarse, porous_fine
-    meshType bfs_fine;
+    /// square_crisscross
+    meshType square_crisscross;
     minLevel 2;
-    maxLevel 5;
+    maxLevel 3;
     numMGCycles 5;
 
     /// possible values: P1P1, TaylorHood
     discretization TaylorHood;
 
     /// possible values: minres, petsc, uzawa
-    solver uzawa;
+    solver petsc;
 
     /// possible values: minres, petsc
     coarseGridSolver petsc;

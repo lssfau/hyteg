@@ -68,8 +68,9 @@ public:
     PetscSolver( const std::shared_ptr< hhg::PrimitiveStorage >         & storage,
                  const uint_t                                           & minLevel,
                  const uint_t                                           & maxLevel,
-                 const std::function< real_t ( const hhg::Point3D & ) > & velocityBCInflow ) :
-      storage_( storage ), velocityBCInflow_( velocityBCInflow )
+                 const std::function< real_t ( const hhg::Point3D & ) > & velocityUBC,
+                 const std::function< real_t ( const hhg::Point3D & ) > & velocityVBC) :
+      storage_( storage ), velocityUBC_( velocityUBC ), velocityVBC_( velocityVBC )
     {
       numerator_ = std::make_shared< Function_T< PetscInt > >( "numerator", storage, minLevel, maxLevel );
     }
@@ -82,7 +83,8 @@ public:
                 DoFType flag = All, bool printInfo = false ) {
 
        PETScManager petscManager;
-       b.u.interpolate(velocityBCInflow_, level, hhg::DirichletBoundary);
+       b.u.interpolate(velocityUBC_, level, hhg::DirichletBoundary);
+       b.v.interpolate(velocityVBC_, level, hhg::DirichletBoundary);
        uint_t num = 0;
        const uint_t localSize = numerator_->enumerate(level, num);
        PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, num);
@@ -92,12 +94,14 @@ public:
 private:
    std::shared_ptr< Function_T< PetscInt > > numerator_;
    std::shared_ptr< PrimitiveStorage > storage_;
-   std::function< real_t ( const hhg::Point3D & ) > velocityBCInflow_;
+   std::function< real_t ( const hhg::Point3D & ) > velocityUBC_;
+   std::function< real_t ( const hhg::Point3D & ) > velocityVBC_;
 #else
 public:
     PetscSolver( const std::shared_ptr< hhg::PrimitiveStorage >         &,
                  const uint_t                                           &,
                  const uint_t                                           &,
+                 const std::function< real_t ( const hhg::Point3D & ) > &,
                  const std::function< real_t ( const hhg::Point3D & ) > &)
     {}
 
@@ -149,7 +153,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           const SolverType & solverType, const SolverType & coarseGridSolver, const uint_t & numMGCycles,
           const real_t targetResidual, const uint_t & maxIterations,
           const std::function< void( SetupPrimitiveStorage & ) > setBCFlags,
-          const std::function< real_t( const Point3D & ) > setVelocityBC )
+          const std::function< real_t( const Point3D & ) > setUVelocityBC,
+          const std::function< real_t( const Point3D & ) > setVVelocityBC)
 {
   typedef typename StokesFunction_T< real_t >::Tag StokesFunctionTag_T;
 
@@ -201,15 +206,15 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // PETSc
 
   typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;
-  PetscSolver_T petscSolver( storage, minLevel, maxLevel, setVelocityBC );
+  PetscSolver_T petscSolver( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
 
 
   /////////////////////////
   // Boundary conditions //
   /////////////////////////
 
-  u.u.interpolate( setVelocityBC, maxLevel, hhg::DirichletBoundary );
-  u.v.interpolate( zero, maxLevel, hhg::DirichletBoundary );
+  u.u.interpolate( setUVelocityBC, maxLevel, hhg::DirichletBoundary );
+  u.v.interpolate( setVVelocityBC, maxLevel, hhg::DirichletBoundary );
 
 
   /////////
@@ -387,7 +392,6 @@ int main( int argc, char* argv[] )
   walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
   cfg->readParameterFile( parameterFile.c_str() );
   walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
-  parameters.listParameters();
 
   const uint_t      minLevel   = parameters.getParameter< uint_t >( "minLevel" );
   const uint_t      maxLevel   = parameters.getParameter< uint_t >( "maxLevel" );
@@ -450,6 +454,8 @@ int main( int argc, char* argv[] )
 
   // Boundaries
 
+  const std::function< real_t( const hhg::Point3D& ) > zero  = []( const hhg::Point3D& ) { return 0.0; };
+
   const auto setMeshBoundaryFlags = [ meshType ]() -> std::function< void( SetupPrimitiveStorage & ) >
   {
       if ( meshType == "bfs_coarse" || meshType == "bfs_fine" )
@@ -462,7 +468,7 @@ int main( int argc, char* argv[] )
       }
   }();
 
-  const auto setVelocityBC = [ meshType ]() -> std::function< real_t( const Point3D & ) >
+  const auto setUVelocityBC = [ meshType, zero ]() -> std::function< real_t( const Point3D & ) >
   {
     if ( meshType == "porous_coarse" || meshType == "porous_fine" )
     {
@@ -494,14 +500,41 @@ int main( int argc, char* argv[] )
       };
       return f;
     }
-    else
+    else if ( meshType == "square_crisscross" )
     {
-      auto f = []( const hhg::Point3D & ) -> real_t
+      auto f = []( const hhg::Point3D & x ) -> real_t
       {
-          return 0.0;
+        return real_c( std::sin( walberla::math::PI * x[0] ) * std::sin( walberla::math::PI * x[1] ));
       };
       return f;
     }
+    else
+    {
+      WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid mesh type!" );
+      return zero;
+    }
+  }();
+
+  const auto setVVelocityBC = [ meshType, zero ]() -> std::function< real_t( const Point3D & ) >
+  {
+      if (    meshType == "porous_coarse" || meshType == "porous_fine"
+           || meshType == "bfs_coarse"    || meshType == "bfs_fine" )
+      {
+        return zero;
+      }
+      else if ( meshType == "square_crisscross" )
+      {
+        auto f = []( const hhg::Point3D & x ) -> real_t
+        {
+            return real_c( std::cos( walberla::math::PI * x[0] ) * std::cos( walberla::math::PI * x[1] ));
+        };
+        return f;
+      }
+      else
+      {
+        WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid mesh type!" );
+        return zero;
+      }
   }();
 
   std::stringstream parameterOverview;
@@ -529,11 +562,13 @@ int main( int argc, char* argv[] )
   {
     case P1P1:
       run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation >(
-        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations, setMeshBoundaryFlags, setVelocityBC );
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations,
+        setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC );
       break;
     case TaylorHood:
       run< P2P1TaylorHoodFunction, P2P1TaylorHoodStokesOperator, hhg::P2P1StokesToP2P1StokesRestriction, hhg::P2P1StokesToP2P1StokesProlongation >(
-        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations, setMeshBoundaryFlags, setVelocityBC );
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, targetResidual, maxIterations,
+        setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC );
       break;
   }
 
