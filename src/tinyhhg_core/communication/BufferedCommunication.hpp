@@ -192,13 +192,15 @@ void BufferedCommunicator::startCommunication()
 
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
 
-  const std::string      timerString            =   "Communication (setup)";
+  const std::string      timerStringSetup    =   "Communication (setup                   )";
+  const std::string      timerStringDirect   =   "Communication (direct                  )";
+  const std::string      timerStringBuffered =   "Communication (buffered / pack         )";
 
-  startTimer( timerString );
+  startTimer( timerStringSetup );
 
   if ( packInfos_.empty() )
   {
-    stopTimer( timerString );
+    stopTimer( timerStringSetup );
     return;
   }
 
@@ -350,16 +352,20 @@ void BufferedCommunicator::startCommunication()
 
   } // setup
 
+  stopTimer( timerStringSetup );
+
+  // Buffered communication
+  startTimer( timerStringBuffered );
+  bufferSystem->startCommunication();
+  stopTimer( timerStringBuffered );
+
   // Local communication
+  startTimer( timerStringDirect );
   for ( auto & directCommunicationFunction : directCommunicationFunctions_[ communicationDirection ] )
   {
     directCommunicationFunction();
   }
-
-  // Buffered communication
-  bufferSystem->startCommunication();
-
-  stopTimer( timerString );
+  stopTimer( timerStringDirect );
 }
 
 template < typename SenderType, typename ReceiverType >
@@ -368,7 +374,7 @@ void BufferedCommunicator::endCommunication()
   staticAssertCommunicationDirections< SenderType, ReceiverType >();
 
   const CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
-  const std::string            timerString            =   "Communication (wait )";
+  const std::string            timerString            =   "Communication (buffered / wait + unpack)";
 
   startTimer( timerString );
 
