@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 
@@ -48,6 +49,11 @@ public:
   P1BlendingDivTOperator_1 divT_x;
   P1BlendingDivTOperator_2 divT_y;
   P1PSPGOperator pspg;
+};
+
+template<>
+struct has_pspg_block< P1BlendingStokesOperator > {
+    static const bool value = true;
 };
 
 }

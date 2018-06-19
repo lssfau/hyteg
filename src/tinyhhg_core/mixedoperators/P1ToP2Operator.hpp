@@ -129,7 +129,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   void apply_impl(P1Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
     vertexToVertex.apply(src, *dst.getVertexDoFFunction(), level, flag, updateType);
-    vertexToEdge.apply(src, *dst.getEdgeDoFFunction(), level, flag, Add);
+    vertexToEdge.apply(src, *dst.getEdgeDoFFunction(), level, flag, updateType);
   }
 
   void smooth_gs_impl(P1Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)

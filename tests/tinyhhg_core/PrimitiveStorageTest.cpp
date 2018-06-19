@@ -35,49 +35,49 @@ static void testPrimitiveStorage()
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking that all primitives have been loadbalanced as expected, checking neighborhood on SetupStorage" );
 
-  for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++ )
+  for ( auto it : setupStorage.getVertices() )
   {
-    if ( setupStorage.getTargetRank( it->first ) == rank )
+    if ( setupStorage.getTargetRank( it.first ) == rank )
     {
-      WALBERLA_CHECK( storage->vertexExistsLocally( it->first ) );
+      WALBERLA_CHECK( storage->vertexExistsLocally( it.first ) );
     }
     else
     {
-      WALBERLA_CHECK( !storage->vertexExistsLocally( it->first ) );
+      WALBERLA_CHECK( !storage->vertexExistsLocally( it.first ) );
     }
 
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 0 );
-    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
+    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
 
-  for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
+  for ( auto it : setupStorage.getEdges() )
   {
-    if ( setupStorage.getTargetRank( it->first ) == rank )
+    if ( setupStorage.getTargetRank( it.first ) == rank )
     {
-      WALBERLA_CHECK( storage->edgeExistsLocally( it->first ) );
+      WALBERLA_CHECK( storage->edgeExistsLocally( it.first ) );
     }
     else
     {
-      WALBERLA_CHECK( !storage->edgeExistsLocally( it->first ) );
+      WALBERLA_CHECK( !storage->edgeExistsLocally( it.first ) );
     }
 
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 2 );
-    WALBERLA_CHECK_GREATER( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
+    WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
 
-  for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
+  for ( auto it : setupStorage.getFaces() )
   {
-    if ( setupStorage.getTargetRank( it->first ) == rank )
+    if ( setupStorage.getTargetRank( it.first ) == rank )
     {
-      WALBERLA_CHECK( storage->faceExistsLocally( it->first ) );
+      WALBERLA_CHECK( storage->faceExistsLocally( it.first ) );
     }
     else
     {
-      WALBERLA_CHECK( !storage->faceExistsLocally( it->first ) );
+      WALBERLA_CHECK( !storage->faceExistsLocally( it.first ) );
     }
 
-    WALBERLA_CHECK_EQUAL( it->second->getNumLowerDimNeighbors(), 3 );
-    WALBERLA_CHECK_EQUAL( it->second->getNumHigherDimNeighbors(), 0 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 3 );
+    WALBERLA_CHECK_EQUAL( it.second->getNumHigherDimNeighbors(), 0 );
   }
 
   WALBERLA_LOG_PROGRESS_ON_ROOT( "Checking neighborhood on distributed storage" );
