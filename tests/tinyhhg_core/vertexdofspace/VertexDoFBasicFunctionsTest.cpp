@@ -61,6 +61,8 @@ static void testVertexDoFBasicFunctions()
    y.assign( {{3.0, 2.0}}, {{&x, &y}}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 10 ) );

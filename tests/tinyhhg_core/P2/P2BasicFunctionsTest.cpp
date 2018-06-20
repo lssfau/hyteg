@@ -87,6 +87,9 @@ static void testP2BasicFunctions()
    z.assign( {1.0, -1.0}, {&z, &z}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
+
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row() )],
@@ -149,6 +152,7 @@ static void testP2BasicFunctions()
    z.interpolate( zeros, maxLevel, DoFType::All );
 
    z.assign( {1.0, -1.0}, {&x, &y}, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
    x.add( {-1.0}, {&y}, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )

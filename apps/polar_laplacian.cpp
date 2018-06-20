@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
   hhg::loadbalancing::roundRobin( setupStorage );
 
   // WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
-  
+
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
 
@@ -100,8 +100,8 @@ int main(int argc, char* argv[])
       microCoordX.interpolate( compX, lvl );
       microCoordY.interpolate( compY, lvl );
 
-      syncFunctionBetweenPrimitives( &microCoordX, lvl );
-      syncFunctionBetweenPrimitives( &microCoordY, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordX, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordY, lvl );
     }
   hhg::P1ElementwisePolarLaplaceOperator lap( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
 

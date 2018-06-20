@@ -214,8 +214,6 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
       }
     }
 
-    communicators_[level]->template startCommunication< Vertex, Edge >();
-
     for ( const auto & it : this->getStorage()->getEdges() )
     {
       Edge & edge = *it.second;
@@ -226,9 +224,6 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
       }
     }
 
-    communicators_[level]->template endCommunication< Vertex, Edge >();
-    communicators_[level]->template startCommunication< Edge, Face >();
-
     for ( const auto & it : this->getStorage()->getFaces() )
     {
       Face & face = *it.second;
@@ -238,8 +233,6 @@ inline void VertexDoFFunction< ValueType >::assign(const std::vector<ValueType> 
         vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
     }
-
-    communicators_[level]->template endCommunication<Edge, Face>();
 
     for ( const auto & it : this->getStorage()->getCells() )
     {

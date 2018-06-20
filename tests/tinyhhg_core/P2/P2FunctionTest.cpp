@@ -73,6 +73,8 @@ static void testP2Function()
    y.assign( {3.0}, {&x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
       WALBERLA_CHECK_FLOAT_EQUAL(
