@@ -314,6 +314,9 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   switch( solverType )
   {
+    case EMPTY:
+      WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid solver type!" );
+      break;
     case PETSC:
     {
 #ifdef HHG_BUILD_WITH_PETSC
@@ -505,8 +508,6 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
         }
       }
     }
-    case EMPTY:
-      WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid solver type!" );
   }
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
