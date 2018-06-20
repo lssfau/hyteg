@@ -153,8 +153,6 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
     }
   }
 
-  communicators_[level]->template startCommunication<Vertex, Edge>();
-
   for ( const auto & it : this->getStorage()->getEdges() )
   {
     Edge & edge = *it.second;
@@ -165,9 +163,6 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
     }
   }
 
-  communicators_[level]->template endCommunication<Vertex, Edge>();
-  communicators_[level]->template startCommunication<Edge, Face>();
-
   for ( auto& it : this->getStorage()->getFaces() )
   {
     Face & face = *it.second;
@@ -177,8 +172,6 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(std::function< V
       vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
     }
   }
-
-  communicators_[level]->template endCommunication<Edge, Face>();
 
   for ( const auto & it : this->getStorage()->getCells() )
   {

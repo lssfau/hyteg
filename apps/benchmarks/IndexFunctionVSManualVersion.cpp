@@ -62,7 +62,7 @@ int main( int argc, char** argv )
    auto                   src  = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
    auto                   dst1 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
    auto                   dst2 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
-   hhg::P1LaplaceOperator M( storage, level, level );
+   hhg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 

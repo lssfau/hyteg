@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1MassOperator    M( storage, minLevel, maxLevel );
 
    hhg::P1toP1LinearRestriction restrictionOperator;
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
       M.apply( tmp, b, ll, hhg::Inner );
    }
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >( storage, minLevel, minLevel );
+   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
    std::function< void( size_t ) > cscycle;
 

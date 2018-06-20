@@ -430,18 +430,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       src.communicate< Face, Edge >( level );
       src.communicate< Edge, Vertex >( level );
 
-      // start pulling vertex halos
-      src.startCommunication< Edge, Vertex >( level );
-
-      // start pulling edge halos
-      src.startCommunication< Face, Edge >( level );
-
-      // start pulling face halos
-      src.startCommunication< Cell, Face >( level );
-
-      // end pulling vertex halos
-      src.endCommunication< Edge, Vertex >( level );
-
       for( const auto& it : storage_->getVertices() )
       {
          Vertex& vertex = *it.second;
@@ -453,11 +441,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType );
          }
       }
-
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      src.endCommunication< Face, Edge >( level );
 
       for( const auto& it : storage_->getEdges() )
       {
@@ -471,13 +454,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
-      // end pulling face halos
-      src.endCommunication< Cell, Face >( level );
-
       for( const auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -489,8 +465,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
          }
       }
-
-      dst.endCommunication< Edge, Face >( level );
 
       for( const auto& it : storage_->getCells() )
       {
@@ -713,7 +687,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
 typedef P1ConstantOperator< fenics::NoAssemble > P1ZeroOperator;
 
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1LaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1ConstantLaplaceOperator;
 typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
 
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;

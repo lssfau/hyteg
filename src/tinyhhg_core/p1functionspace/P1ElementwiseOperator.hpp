@@ -70,9 +70,11 @@ namespace hhg {
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 > faceCoordIDs{
         {coords_[0]->getFaceDataID(), coords_[1]->getFaceDataID()}};
 
-      src.startCommunication< Edge, Vertex >( level );
-      src.startCommunication< Face, Edge >( level );
-      src.endCommunication< Edge, Vertex >( level );
+      src.communicate< Vertex, Edge>( level );
+      src.communicate< Edge, Face>( level );
+      src.communicate< Face, Edge>( level );
+      src.communicate< Edge, Vertex>( level );
+
 
       for( auto& it : storage_->getVertices() )
         {
@@ -92,9 +94,7 @@ namespace hhg {
             }
         }
 
-      dst.startCommunication< Vertex, Edge >( level );
 
-      src.endCommunication< Face, Edge >( level );
 
       for( auto& it : storage_->getEdges() )
         {
@@ -114,10 +114,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
         {
           Face& face = *it.second;
@@ -133,7 +129,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Edge, Face >( level );
     }
 
     void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )

@@ -45,6 +45,8 @@ private:
     // start pulling vertex halos
     src.startCommunication<Edge, Vertex>( level );
 
+    src.communicate< Edge, Face >( level );
+
     // start pulling edge halos
     src.startCommunication<Face, Edge>( level );
 
@@ -60,9 +62,6 @@ private:
       }
     }
 
-    dst.startCommunication<Vertex, Edge>( level );
-
-    // end pulling edge halos
     src.endCommunication<Face, Edge>( level );
 
     for (auto& it : storage_->getEdges()) {
@@ -75,10 +74,6 @@ private:
       }
     }
 
-    dst.endCommunication<Vertex, Edge>( level );
-
-    dst.startCommunication<Edge, Face>( level );
-
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
@@ -89,7 +84,6 @@ private:
       }
     }
 
-    dst.endCommunication<Edge, Face>( level );
   }
 
   void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)

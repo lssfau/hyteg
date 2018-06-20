@@ -30,8 +30,8 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
       microCoordX.interpolate( compX, lvl );
       microCoordY.interpolate( compY, lvl );
 
-      syncFunctionBetweenPrimitives( &microCoordX, lvl );
-      syncFunctionBetweenPrimitives( &microCoordY, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordX, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordY, lvl );
     }
 
   P1ElementwisePolarMassOperator massOp( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );

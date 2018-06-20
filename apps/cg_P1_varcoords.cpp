@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
    ( *coords )[1] = coordY.get();
 
    //  hhg::P1MassOperator M(storage, minLevel, maxLevel);
-   hhg::P1LaplaceOperator            Ltest( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator            Ltest( storage, minLevel, maxLevel );
    hhg::P1ElementwiseLaplaceOperator L( storage, *coords, minLevel, maxLevel );
    hhg::P1ElementwiseMassOperator    M( storage, *coords, minLevel, maxLevel );
 

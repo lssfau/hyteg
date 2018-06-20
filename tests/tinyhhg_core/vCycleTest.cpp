@@ -140,7 +140,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1toP1LinearRestriction restrictionOperator;
    hhg::P1toP1LinearProlongation prolongationOperator;
 
@@ -158,7 +158,7 @@ int main( int argc, char* argv[] )
    tmp.interpolate( ones, maxLevel );
    real_t npoints = tmp.dot( tmp, maxLevel );
 
-   auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >( storage, minLevel, minLevel );
+   auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = {}" << uint_c( npoints ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
