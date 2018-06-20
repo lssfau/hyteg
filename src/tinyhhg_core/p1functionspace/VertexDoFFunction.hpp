@@ -366,27 +366,15 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t&
     vertexdof::macrovertex::enumerate(level, vertex, vertexDataID_, num);
   }
 
-  communicators_[level]->template startCommunication<Vertex, Edge>();
-  communicators_[level]->template endCommunication<Vertex, Edge>();
-
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
     vertexdof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
   }
 
-  communicators_[level]->template startCommunication<Edge, Face>();
-  communicators_[level]->template endCommunication<Edge, Face>();
-
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
     vertexdof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
   }
-
-  communicators_[level]->template startCommunication<Face, Edge>();
-  communicators_[level]->template endCommunication<Face, Edge>();
-
-  communicators_[level]->template startCommunication<Edge, Vertex>();
-  communicators_[level]->template endCommunication<Edge, Vertex>();
   this->stopTiming( "Enumerate" );
 }
 
