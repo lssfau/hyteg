@@ -154,6 +154,7 @@ static void testP2BasicFunctions()
    z.assign( {1.0, -1.0}, {&x, &y}, maxLevel );
    hhg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
    x.add( {-1.0}, {&y}, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {

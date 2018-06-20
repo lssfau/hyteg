@@ -97,6 +97,7 @@ static void testP2Function()
    timer["Add"].start();
    y.add( {{4.0, 3.0}}, {{&x, &x}}, maxLevel, DoFType::All );
    timer["Add"].end();
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
