@@ -2,6 +2,7 @@
 
 #include "MinresSolver.hpp"
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg
 {
@@ -45,7 +46,8 @@ public:
              DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
   {
 
-    if (level == minLevel_) {
+    if (level == minLevel_)
+    {
       coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, false);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
@@ -64,7 +66,7 @@ public:
       restrictionOperator_( r, level, flag );
 
       b.assign({1.0}, { &r }, level - 1, flag);
-//      hhg::projectMean(b.p, ax_.p, level-1);
+      vertexdof::projectMean(b.p, ax_.p, level-1);
 
       x.interpolate(zero_, level-1);
 
