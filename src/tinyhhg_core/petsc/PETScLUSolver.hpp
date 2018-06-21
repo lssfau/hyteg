@@ -4,6 +4,7 @@
 
 #include "PETScVector.hpp"
 #include "PETScSparseMatrix.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 #ifdef HHG_BUILD_WITH_PETSC
 
@@ -23,7 +24,10 @@ public:
   PETScLUSolver(std::shared_ptr<FunctionType<PetscInt>> &numerator, uint_t localSize, uint_t globalSize)
       :num(numerator), Amat(localSize, globalSize), xVec(localSize), bVec(localSize)
   {
-    KSPCreate(PETSC_COMM_WORLD, &ksp);
+     for(uint_t i = num->getMinLevel(); i <= num->getMaxLevel(); ++i){
+        hhg:communication::syncFunctionBetweenPrimitives(*num, i);
+     }
+     KSPCreate(PETSC_COMM_WORLD, &ksp);
   }
 
   ~PETScLUSolver(){
