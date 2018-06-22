@@ -1,5 +1,4 @@
-#include <tinyhhg_core/communication/Syncing.hpp>
-
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
@@ -8,6 +7,7 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 
@@ -100,7 +100,7 @@ static void testP2Smooth()
       x->interpolate( ones, level );
       rhs->interpolate( ones, level );
 
-      hhg::communication::syncFunctionBetweenPrimitives( ( *x ), level );
+      hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
       P2::face::smoothGSvertexDoF( level,
                                    *face,
@@ -254,8 +254,8 @@ static void testP2JacobiSmooth()
    tmp->interpolate( ones, level );
    rhs->interpolate( ones, level );
 
-   hhg::communication::syncFunctionBetweenPrimitives( ( *tmp ), level );
-   hhg::communication::syncFunctionBetweenPrimitives( ( *rhs ), level );
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *tmp ), level );
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *rhs ), level );
 
    for( auto e : storage->getEdges() )
    {
@@ -269,7 +269,7 @@ static void testP2JacobiSmooth()
       vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction()->getVertexDataID(), {}, onesExtended, level );
    }
 
-   hhg::communication::syncFunctionBetweenPrimitives( ( *x ), level );
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
    for( auto faceIt : storage->getFaces() )
    {

@@ -1,5 +1,5 @@
 #include <core/debug/all.h>
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 using namespace hhg;
 

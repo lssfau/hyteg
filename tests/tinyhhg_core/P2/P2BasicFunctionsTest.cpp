@@ -1,13 +1,20 @@
+#include <vector>
+#include <functional>
 
-
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "tinyhhg_core/communication/Syncing.hpp"
+
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
+
+using walberla::real_t;
 
 namespace hhg {
 
@@ -70,8 +77,8 @@ static void testP2BasicFunctions()
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
    }
 
-   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -87,8 +94,8 @@ static void testP2BasicFunctions()
    z.assign( {1.0, -1.0}, {&z, &z}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -152,9 +159,9 @@ static void testP2BasicFunctions()
    z.interpolate( zeros, maxLevel, DoFType::All );
 
    z.assign( {1.0, -1.0}, {&x, &y}, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( z, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
    x.add( {-1.0}, {&y}, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {

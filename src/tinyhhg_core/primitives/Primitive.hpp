@@ -4,7 +4,7 @@
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 #include "core/NonCopyable.h"
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
 #include "core/mpi/SendBuffer.h"

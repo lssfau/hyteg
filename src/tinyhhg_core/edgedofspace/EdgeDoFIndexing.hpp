@@ -4,7 +4,7 @@
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 #include <cassert>
 

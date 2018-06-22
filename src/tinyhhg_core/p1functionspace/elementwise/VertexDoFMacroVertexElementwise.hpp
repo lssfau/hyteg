@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"

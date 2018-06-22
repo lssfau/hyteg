@@ -3,8 +3,8 @@
 #include "core/Environment.h"
 #include "core/math/Utility.h"
 
-#include "tinyhhg_core/format.hpp"
-#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/Format.hpp"
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"

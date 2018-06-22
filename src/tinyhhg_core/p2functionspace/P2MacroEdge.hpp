@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 
 namespace hhg {

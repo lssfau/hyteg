@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"

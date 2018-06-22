@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

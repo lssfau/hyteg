@@ -1,5 +1,3 @@
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -9,6 +7,7 @@
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 namespace hhg {
 
@@ -48,7 +47,7 @@ static void testP2Function()
    x.interpolate( expr, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -73,7 +72,7 @@ static void testP2Function()
    y.assign( {3.0}, {&x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -97,7 +96,7 @@ static void testP2Function()
    timer["Add"].start();
    y.add( {{4.0, 3.0}}, {{&x, &x}}, maxLevel, DoFType::All );
    timer["Add"].end();
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {

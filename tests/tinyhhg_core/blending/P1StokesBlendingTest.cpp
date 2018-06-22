@@ -8,7 +8,7 @@
 #include "tinyhhg_core/composites/P1CoefficientStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"

@@ -2,7 +2,7 @@
 #include "Edge.hpp"
 #include "Vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
-#include "tinyhhg_core/math.hpp"
+#include "tinyhhg_core/Math.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
