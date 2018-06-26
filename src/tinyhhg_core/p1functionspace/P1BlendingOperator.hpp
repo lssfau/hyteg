@@ -42,15 +42,10 @@ public:
 private:
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
-    // start pulling vertex halos
-    src.startCommunication<Edge, Vertex>( level );
-
-    src.communicate< Edge, Face >( level );
-
-    // start pulling edge halos
-    src.startCommunication<Face, Edge>( level );
-
-    src.endCommunication<Edge, Vertex>( level );
+    src.communicate< Vertex, Edge>( level );
+    src.communicate< Edge, Face>( level );
+    src.communicate< Face, Edge>( level );
+    src.communicate< Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -61,8 +56,6 @@ private:
         vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
-
-    src.endCommunication<Face, Edge>( level );
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
