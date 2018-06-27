@@ -11,6 +11,9 @@ class P2P1StokesToP2P1StokesRestriction
 {
 public:
 
+    typedef P2toP2QuadraticRestriction VelocityRestriction_T;
+    typedef P1toP1LinearRestriction    PressureRestriction_T;
+
     void operator() ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag )
     {
       quadraticRestrictionOperator_( function.u, sourceLevel, flag );

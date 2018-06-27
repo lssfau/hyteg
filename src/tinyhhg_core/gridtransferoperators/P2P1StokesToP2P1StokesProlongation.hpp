@@ -11,6 +11,9 @@ class P2P1StokesToP2P1StokesProlongation
 {
 public:
 
+    typedef P2toP2QuadraticProlongation VelocityProlongation_T;
+    typedef P1toP1LinearProlongation    PressureProlongation_T;
+
     void operator() ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag )
     {
       quadraticProlongationOperator_( function.u, sourceLevel, flag );

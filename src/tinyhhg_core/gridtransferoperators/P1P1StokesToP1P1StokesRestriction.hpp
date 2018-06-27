@@ -10,6 +10,9 @@ class P1P1StokesToP1P1StokesRestriction
 {
 public:
 
+    typedef P1toP1LinearRestriction VelocityRestriction_T;
+    typedef P1toP1LinearRestriction PressureRestriction_T;
+
     void operator() ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag )
     {
       restrictionOperator_( function.u, sourceLevel, flag );
