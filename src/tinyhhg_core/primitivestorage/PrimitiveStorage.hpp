@@ -3,7 +3,7 @@
 
 #include "core/logging/Logging.h"
 #include "core/timing/TimingTree.h"
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/primitives/Vertex.hpp"

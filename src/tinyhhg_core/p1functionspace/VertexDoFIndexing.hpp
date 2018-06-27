@@ -8,7 +8,7 @@
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 #include <cassert>
 #include <set>

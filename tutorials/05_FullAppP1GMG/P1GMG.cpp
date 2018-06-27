@@ -217,16 +217,16 @@ int main( int argc, char** argv )
    /// [Solvers]
    typedef P1toP1LinearRestriction RestrictionOperator;
    typedef P1toP1LinearProlongation ProlongationOperator;
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CoarseSolver;
+   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
 
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
    auto coarseSolver = std::make_shared< CoarseSolver >( storage, minLevel, maxLevel );
 
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMG;
+   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMG;
    GMG multiGridSolver( storage, coarseSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
    /// [Solvers]
 
    /// [Multigrid]

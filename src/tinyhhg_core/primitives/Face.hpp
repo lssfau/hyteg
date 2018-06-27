@@ -5,7 +5,7 @@
 #include <tinyhhg_core/types/flags.hpp>
 #include <tinyhhg_core/primitives/Primitive.hpp>
 #include <tinyhhg_core/primitivestorage/PrimitiveStorage.hpp>
-#include <tinyhhg_core/math.hpp>
+#include <tinyhhg_core/Math.hpp>
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 #include <core/debug/CheckFunctions.h>

@@ -55,7 +55,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
    hhg::P1MassOperator    M( storage, minLevel, maxLevel );
-   hhg::P1LaplaceOperator L( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
       return ( 1.0L / 2.0L ) * sin( 2 * x[0] ) * sinh( x[1] );
@@ -71,17 +71,17 @@ int main( int argc, char* argv[] )
    M.apply( npoints_helper, f, maxLevel, hhg::All );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   typedef hhg::PETScPreconditioner< real_t, hhg::P1Function, hhg::P1LaplaceOperator > PreconditionerType;
+   typedef hhg::PETScPreconditioner< real_t, hhg::P1Function, hhg::P1ConstantLaplaceOperator > PreconditionerType;
    std::shared_ptr< hhg::P1Function< PetscInt > >                                      numerator =
        std::make_shared< hhg::P1Function< PetscInt > >( "numerator", storage, maxLevel, maxLevel );
    uint_t globalSize = 0;
    uint_t localSize  = numerator->enumerate( maxLevel, globalSize );
    auto   prec       = std::make_shared< PreconditionerType >( L, numerator, localSize, globalSize );
 #else
-   typedef hhg::GaussSeidelPreconditioner< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > PreconditionerType;
+   typedef hhg::GaussSeidelPreconditioner< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > PreconditionerType;
    auto prec = std::make_shared< PreconditionerType >( L, 30 );
 #endif
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, PreconditionerType >(
+   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, PreconditionerType >(
        storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), prec );
    walberla::WcTimer timer;
    solver.solve( L, u, f, r, maxLevel, tolerance, maxiter, hhg::Inner, true );

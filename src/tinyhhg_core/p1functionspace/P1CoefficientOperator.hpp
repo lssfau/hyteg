@@ -135,29 +135,30 @@ private:
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Face>> faceCoeffIds;
 
-    for (auto coefficient : coefficients_) {
+    for (const auto &coefficient : coefficients_) {
       vertexCoeffIds.push_back(coefficient->getVertexDataID());
       edgeCoeffIds.push_back(coefficient->getEdgeDataID());
       faceCoeffIds.push_back(coefficient->getFaceDataID());
     }
 
-    // start pulling vertex halos
-    src.startCommunication<Edge, Vertex>( level );
-    for (auto coefficient : coefficients_) {
-      coefficient->startCommunication<Edge, Vertex>( level );
+     src.communicate< Vertex, Edge >( level );
+     src.communicate< Edge, Face >( level );
+     src.communicate< Face, Cell >( level );
+
+     src.communicate< Cell, Face >( level );
+     src.communicate< Face, Edge >( level );
+     src.communicate< Edge, Vertex >( level );
+
+    for (const auto &coefficient : coefficients_) {
+       coefficient->communicate< Vertex, Edge >( level );
+       coefficient->communicate< Edge, Face >( level );
+       coefficient->communicate< Face, Cell >( level );
+
+       coefficient->communicate< Cell, Face >( level );
+       coefficient->communicate< Face, Edge >( level );
+       coefficient->communicate< Edge, Vertex >( level );
     }
 
-    // start pulling edge halos
-    src.startCommunication<Face, Edge>( level );
-    for (auto coefficient : coefficients_) {
-      coefficient->startCommunication<Face, Edge>( level );
-    }
-
-    // end pulling vertex halos
-    for (auto coefficient : coefficients_) {
-      coefficient->endCommunication<Edge, Vertex>( level );
-    }
-    src.endCommunication<Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -169,14 +170,6 @@ private:
       }
     }
 
-    dst.startCommunication<Vertex, Edge>( level );
-
-    // end pulling edge halos
-    for (auto coefficient : coefficients_) {
-      coefficient->endCommunication<Face, Edge>( level );
-    }
-    src.endCommunication<Face, Edge>( level );
-
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
@@ -186,10 +179,6 @@ private:
         vertexdof::macroedge::applyCoefficient< real_t >(level, edge, storage_, edgeLocalMatrixIDs_, src.getEdgeDataID(), dst.getEdgeDataID(), edgeCoeffIds, updateType);
       }
     }
-
-    dst.endCommunication<Vertex, Edge>( level );
-
-    dst.startCommunication<Edge, Face>( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -201,7 +190,6 @@ private:
       }
     }
 
-    dst.endCommunication<Edge, Face>( level );
   }
 
   void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)

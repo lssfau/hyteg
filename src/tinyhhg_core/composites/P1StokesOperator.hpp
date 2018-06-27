@@ -33,7 +33,7 @@ public:
     pspg.apply(src.p, dst.p, level, flag | DirichletBoundary, Add);
   }
 
-  P1LaplaceOperator A;
+  P1ConstantLaplaceOperator A;
   P1DivxOperator div_x;
   P1DivyOperator div_y;
   P1DivTxOperator divT_x;

@@ -20,7 +20,7 @@
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

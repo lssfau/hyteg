@@ -3,7 +3,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {

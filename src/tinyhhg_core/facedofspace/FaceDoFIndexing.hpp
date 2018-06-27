@@ -4,7 +4,7 @@
 #include <iterator>
 
 #include "tinyhhg_core/StencilDirections.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 namespace hhg {
   namespace facedof {

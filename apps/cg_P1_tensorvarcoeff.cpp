@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate(rhs, maxLevel);
   M.apply(npoints_helper, f, maxLevel, hhg::All);
 
-//  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1LaplaceOperator> PreconditionerType;
+//  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator> PreconditionerType;
 //  auto prec = std::make_shared<PreconditionerType>(L, 30);
 
   auto solver = hhg::CGSolver<hhg::P1Function< real_t >, hhg::P1TensorCoefficientLaplaceOperator>(storage, minLevel, maxLevel);

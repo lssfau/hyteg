@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
    hhg::P1MassOperator    M( storage, level, level );
-   hhg::P1LaplaceOperator L( storage, level, level );
+   hhg::P1ConstantLaplaceOperator L( storage, level, level );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
       return ( 1.0L / 2.0L ) * sin( 2 * x[0] ) * sinh( x[1] );
@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( rhs, level );
    M.apply( npoints_helper, f, level, hhg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >( storage, level, level );
+   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, level, level );
 
    solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, true );
 

@@ -42,13 +42,10 @@ public:
 private:
   void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
-    // start pulling vertex halos
-    src.startCommunication<Edge, Vertex>( level );
-
-    // start pulling edge halos
-    src.startCommunication<Face, Edge>( level );
-
-    src.endCommunication<Edge, Vertex>( level );
+    src.communicate< Vertex, Edge>( level );
+    src.communicate< Edge, Face>( level );
+    src.communicate< Face, Edge>( level );
+    src.communicate< Edge, Vertex>( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -60,11 +57,6 @@ private:
       }
     }
 
-    dst.startCommunication<Vertex, Edge>( level );
-
-    // end pulling edge halos
-    src.endCommunication<Face, Edge>( level );
-
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
 
@@ -74,10 +66,6 @@ private:
         vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
-
-    dst.endCommunication<Vertex, Edge>( level );
-
-    dst.startCommunication<Edge, Face>( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -89,7 +77,6 @@ private:
       }
     }
 
-    dst.endCommunication<Edge, Face>( level );
   }
 
   void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
