@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   walberla::shared_ptr<walberla::config::Config> cfg( new walberla::config::Config);
-  cfg->readParameterFile( "./polar.prm" );
+  cfg->readParameterFile( "../data/param/polar.prm" );
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
   size_t minLevel  = parameters.getParameter<size_t>( "minlevel"    );
