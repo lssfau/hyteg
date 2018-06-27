@@ -30,6 +30,7 @@ public:
               const uint_t & smoothingStepIncrement )
     : coarseGridSolver_( coarseGridSolver ), restrictionOperator_( restrictionOperator ),
       prolongationOperator_( prolongationOperator ),
+      pressureMass_( storage, minLevel, maxLevel ),
       minLevel_(minLevel), maxLevel_(maxLevel),
       nuPre_( numberOfPreSmoothingSteps ), nuPost_( numberOfPostSmoothingSteps ),
       nuAdd_( smoothingStepIncrement ),
@@ -48,7 +49,7 @@ public:
 
     if (level == minLevel_)
     {
-      coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, false);
+      coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, true);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
@@ -155,7 +156,8 @@ private:
     A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
     A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
 
-    x.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
+    pressureMass_.apply(r.p, ax_.p, level, flag | DirichletBoundary);
+    x.p.add( {1.0}, {&ax_.p}, level, flag | DirichletBoundary );
   }
 
   uint_t nuPre_;
@@ -168,6 +170,8 @@ private:
   CoarseGridSolver coarseGridSolver_;
   RestrictionOperator restrictionOperator_;
   ProlongationOperator prolongationOperator_;
+
+  P1LumpedInvMassOperator pressureMass_;
 
   F ax_;
   F tmp_;
