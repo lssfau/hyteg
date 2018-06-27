@@ -20,7 +20,9 @@
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/solvers/EmptySolver.hpp"
-#include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalApplyPreconditioner.hpp"
+#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
@@ -158,6 +160,7 @@ void setRightBFSBoundaryNeumann( SetupPrimitiveStorage & setupStorage )
 }
 
 
+
 template< template< typename ValueType > class StokesFunction_T, class StokesOperator_T, class RestrictionOperator_T, class ProlongationOperator_T, class VelocityMassMatrix_T >
 void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & maxLevel,
           const SolverType & solverType, const SolverType & coarseGridSolver, const uint_t & numMGCycles,
@@ -220,27 +223,44 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // Setting up solvers //
   ////////////////////////
 
-  // Empty
+  // Velocity block solver
+  typedef hhg::CGSolver< typename StokesFunction_T< real_t >::VelocityFunction_T, typename StokesOperator_T::VelocityOperator_T > VelocityCGSolver_T;
+  typedef hhg::GMultigridSolver< typename StokesFunction_T< real_t >::VelocityFunction_T,
+                                 typename StokesOperator_T::VelocityOperator_T,
+                                 VelocityCGSolver_T,
+                                 typename RestrictionOperator_T::VelocityRestriction_T,
+                                 typename ProlongationOperator_T::VelocityProlongation_T > VelocityGMGSolver_T;
+  typename RestrictionOperator_T::VelocityRestriction_T   velocityRestriction;
+  typename ProlongationOperator_T::VelocityProlongation_T velocityProlongation;
+  auto velocityCGSolver = std::make_shared< VelocityCGSolver_T >( storage, minLevel, maxLevel );
+  VelocityGMGSolver_T velocityGMGSolver( storage, velocityCGSolver, velocityRestriction, velocityProlongation, minLevel, maxLevel, preSmooth, postSmooth );
 
+  // Empty
   typedef EmptySolver< StokesFunction_T< real_t >, StokesOperator_T > EmptySolver_T;
   EmptySolver_T emptySolver;
 
-  // MinRes
-
-  typedef hhg::StokesBlockDiagonalApplyPreconditioner< StokesFunction_T< real_t >,
-                                                       hhg::IdentityPreconditioner< typename StokesFunction_T< real_t >::VelocityFunction_T > ,
-                                                       hhg::P1LumpedInvMassOperator > Preconditioner;
-  hhg::IdentityPreconditioner< typename StokesFunction_T< real_t >::VelocityFunction_T > identity;
+  // MinRes (preconditioned)
+  typedef hhg::StokesBlockDiagonalPreconditioner< StokesFunction_T< real_t >,
+                                                  typename StokesOperator_T::VelocityOperator_T,
+                                                  VelocityGMGSolver_T,
+                                                  hhg::P1LumpedInvMassOperator > Preconditioner_T;
   hhg::P1LumpedInvMassOperator lumpedInvMassOperator( storage, minLevel, maxLevel );
-  Preconditioner preconditioner( identity, lumpedInvMassOperator, storage, minLevel, maxLevel );
-  typedef hhg::MinResSolver< StokesFunction_T< real_t >, StokesOperator_T, Preconditioner > MinResSolver_T;
-  auto minResSolver = MinResSolver_T( storage, minLevel, maxLevel, preconditioner );
+  Preconditioner_T preconditioner( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, numMGCycles );
+  typedef hhg::MinResSolver< StokesFunction_T< real_t >, StokesOperator_T, Preconditioner_T > PreconditionedMinResSolver_T;
+  auto preconditionedMinResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, preconditioner );
+
+  // MinRes (only pressure preconditioner)
+  Preconditioner_T preconditionerOnlyPressure( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, 0 );
+  typedef hhg::MinResSolver< StokesFunction_T< real_t >, StokesOperator_T, Preconditioner_T > MinResSolver_T;
+  auto minResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, preconditionerOnlyPressure );
 
   // PETSc
-
   typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;
   PetscSolver_T petscSolver( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
 
+  // Laplace solver
+  typedef hhg::CGSolver< typename StokesFunction_T< real_t >::VelocityFunction_T, typename StokesOperator_T::VelocityOperator_T > LaplaceSolver_T;
+  LaplaceSolver_T laplaceSolver( storage, minLevel, maxLevel );
 
   /////////////////////////
   // Boundary conditions //
@@ -345,7 +365,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
     {
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with MinRes..." );
-      minResSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      preconditionedMinResSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
 
       if ( rescalePressure )
       {
@@ -355,7 +375,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       if ( compareWithAnalyticalSolution )
       {
-        error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+        error.assign( { 1.0, -1.0 }, { &u, &exactSolution }, maxLevel, DoFType::All );
       }
 
       vtkOutput.write( maxLevel, 1 );
@@ -363,7 +383,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
     }
     case UZAWA:
     {
-
+      WALBERLA_LOG_WARNING_ON_ROOT( "### Uzawa solvers (for any discretization) are not working correctly! ###" );
       switch ( coarseGridSolver )
       {
         case EMPTY:
@@ -501,7 +521,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           vtkOutput.write( maxLevel, numMGCycles );
           break;
         }
-        case UZAWA:
+        default:
         {
            ///this should never be reached but is needed to avoid compiler warnings
            WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid coarse grid solver type!" );
@@ -523,8 +543,9 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   }
 
   timingTree->stop( "Complete app" );
+  const auto tt = timingTree->getReduced();
   if ( printTimer )
-    WALBERLA_LOG_INFO_ON_ROOT( *timingTree );
+    WALBERLA_LOG_INFO_ON_ROOT( tt );
 }
 
 int main( int argc, char* argv[] )
@@ -567,7 +588,7 @@ int main( int argc, char* argv[] )
   const std::string coarseGridSolverString   = parameters.getParameter< std::string >( "coarseGridSolver" );
   const bool rescalePressure = parameters.getParameter< bool >( "rescalePressure" );
   const bool printTimer = parameters.getParameter< bool >( "printTimer" );
-  const std::string squareDomainSolutionType = "colliding_flow";
+  const std::string squareDomainSolutionType = parameters.getParameter< std::string >( "squareDomainReference" );
 
   ///////////////////////////////////
   // Check and evaluate parameters //
@@ -593,11 +614,13 @@ int main( int argc, char* argv[] )
 
   // Mesh
 
-  const MeshInfo meshInfo = [ meshType ]()
+  const MeshInfo meshInfo = [ meshType, squareDomainSolutionType ]()
   {
     if ( meshType == "square" )
     {
-      return MeshInfo::meshRectangle( hhg::Point2D({-1, -1}), hhg::Point2D({1, 1}), MeshInfo::CRISS, 1, 1 );
+      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
+                                      hhg::Point2D({1, 1}),
+                                      MeshInfo::CRISSCROSS, 1, 1 );
     }
     else if ( meshType == "porous_coarse" )
     {
