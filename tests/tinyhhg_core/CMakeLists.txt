@@ -101,19 +101,35 @@ waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
-## FE Operators ##
-waLBerla_compile_test(FILES P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
+#################### P1 ####################
+
+waLBerla_compile_test(FILES P1/P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1MassOperatorTest )
 waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_compile_test(FILES P1/P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
 
-waLBerla_compile_test(FILES P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_compile_test(FILES P1/P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
 
-waLBerla_compile_test(FILES P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_compile_test(FILES P1/P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1SmoothingTest )
+
+waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
+
+waLBerla_compile_test(FILES P1/P1InterpolateTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1InterpolateTest)
+
+waLBerla_compile_test(FILES P1/P1CommTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1CommTest)
+
+waLBerla_compile_test(FILES P1/P1DataHandlingTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1DataHandlingTest)
+
+
+############################################
 
 ## P2 ##
 
@@ -165,20 +181,11 @@ endif()
 
 ## Other ##
 
-waLBerla_compile_test(FILES P1LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
-
-waLBerla_compile_test(FILES P1InterpolateTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1InterpolateTest)
-
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME DGInterpolateTest)
 
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
-
-waLBerla_compile_test(FILES P1CommTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1CommTest)
 
 waLBerla_compile_test(FILES DGCommTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME DGCommTest)
@@ -207,9 +214,6 @@ waLBerla_compile_test(FILES BufferedCommunicationTest.cpp DEPENDS tinyhhg_core c
 waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:BufferedCommunicationTest> )
 waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3 )
 waLBerla_execute_test(NAME BufferedCommunicationTest8 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 8 )
-
-waLBerla_compile_test(FILES P1DataHandlingTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1DataHandlingTest)
 
 waLBerla_compile_test(FILES PrimitiveMigrationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME PrimitiveMigrationTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> )
