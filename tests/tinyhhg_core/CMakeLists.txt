@@ -11,7 +11,7 @@ waLBerla_compile_test(FILES convergence/P1GMGConvergenceTest.cpp DEPENDS tinyhhg
 waLBerla_execute_test(NAME P1GMGConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1StokesBlockCGTest.cpp)
+waLBerla_execute_test(NAME P1StokesBlockCGTest)
 
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)

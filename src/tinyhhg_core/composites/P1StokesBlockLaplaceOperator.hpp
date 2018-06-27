@@ -27,5 +27,3 @@ class P1StokesBlockLaplaceOperator
 };
 
 } // namespace hhg
-
-#endif //TINYHHG_P1BLOCKLAPLACEOPERATOR_HPP

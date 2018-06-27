@@ -16,7 +16,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    WALBERLA_LOG_INFO_ON_ROOT( "TinyHHG CG Test\n" );
 
-   std::string meshFileName = "../data/meshes/quad_4el.msh";
+   std::string meshFileName = "../../data/meshes/quad_4el.msh";
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -65,6 +65,8 @@ int main( int argc, char* argv[] )
    real_t discr_l2_err = std::sqrt( err.dot( err, maxLevel ) / npoints );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
+
+   WALBERLA_CHECK_LESS( discr_l2_err, 4e-17)
 
    //  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
    return 0;
