@@ -11,6 +11,8 @@ class P1StokesOperator
 {
 public:
 
+    typedef P1LaplaceOperator VelocityOperator_T;
+
   P1StokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : A(storage, minLevel, maxLevel),
       div_x(storage, minLevel, maxLevel),

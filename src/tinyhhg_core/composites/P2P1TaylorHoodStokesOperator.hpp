@@ -10,6 +10,9 @@ namespace hhg {
 class P2P1TaylorHoodStokesOperator
 {
  public:
+
+   typedef P2ConstantLaplaceOperator VelocityOperator_T;
+
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : A( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
