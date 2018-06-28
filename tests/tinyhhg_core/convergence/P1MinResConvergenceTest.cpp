@@ -14,7 +14,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../data/meshes/quad_4el.msh";
+   std::string meshFileName = "../../data/meshes/quad_4el.msh";
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
    u_exact.interpolate( exact, maxLevel );
 
    typedef hhg::JacobiPreconditioner< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > PreconditionerType;
-   auto prec   = std::make_shared< PreconditionerType >( storage, minLevel, maxLevel, L, 10 );
+   auto prec   = PreconditionerType( storage, minLevel, maxLevel, L, 10 );
    auto solver = hhg::MinResSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, PreconditionerType >(
        storage, minLevel, maxLevel, prec );
    solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
