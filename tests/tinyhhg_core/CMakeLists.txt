@@ -22,6 +22,12 @@ waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
 waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P1MinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1MinResConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P1StokesMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1StokesMinResConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 

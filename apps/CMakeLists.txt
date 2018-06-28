@@ -1,11 +1,3 @@
-waLBerla_add_executable( NAME minres
-        FILES minres.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME stokes_stab
-        FILES stokes_stab.cpp
-        DEPENDS tinyhhg_core)
-
 waLBerla_add_executable( NAME stokes_flow_through_porous_med
         FILES stokes_flow_through_porous_med.cpp
         DEPENDS tinyhhg_core)
@@ -14,8 +6,6 @@ waLBerla_add_executable( NAME fullmg
         FILES fullmg.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_execute_test(NO_MODULE_LABEL NAME minres          CONFIGURATIONS Release RelWithDbgInfo)
-waLBerla_execute_test(NO_MODULE_LABEL NAME stokes_stab     CONFIGURATIONS Release RelWithDbgInfo)
 waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Release RelWithDbgInfo)
 
 waLBerla_add_executable( NAME Chorin

@@ -1,3 +1,6 @@
+#include <cmath>
+
+#include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -15,7 +18,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../data/meshes/bfs_12el_neumann.msh";
+   std::string meshFileName = "../../data/meshes/quad_4el_neumann.msh";
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -51,7 +54,15 @@ int main( int argc, char* argv[] )
    u.v.interpolate( zero, maxLevel, hhg::DirichletBoundary );
 
    auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
-   solver.solve( L, u, f, r, maxLevel, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
+   solver.solve( L, u, f, r, maxLevel, 1e-5, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
+
+   L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+   //r.assign({1.0, -1.0}, { &f, &r }, maxLevel, hhg::Inner);
+   //uint_t dofNum = hhg::numberOfGlobalDoFs< hhg::P1StokesFunction >( storage, maxLevel);
+   real_t final_residuum = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum)
 
    //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
