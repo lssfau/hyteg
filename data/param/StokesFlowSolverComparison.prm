@@ -1,0 +1,38 @@
+Parameters
+{
+    /// possible values:
+    /// bfs_coarse, bfs_fine
+    /// porous_coarse, porous_fine
+    /// square
+    meshType square;
+    minLevel 2;
+    maxLevel 3;
+
+    /// either number of overall V-Cycles / smoothing steps for Uzawa
+    /// or number of V-Cycles / smoothing steps for the preconditioned MinRes regarding the A-block
+    numMGCycles 2;
+    preSmooth 2;
+    postSmooth 2;
+
+    /// pre- and post-smoothing step increase per level for Uzawa
+    incrementSmooth 2;
+
+    minResMaxIterations 10000;
+    minResTargetResidual 1e-17;
+
+    /// possible values: colliding_flow, poiseuille_flow, <anyother>
+    squareDomainReference poiseuille_flow;
+
+    /// possible values: P1P1, TaylorHood
+    discretization TaylorHood;
+
+    /// possible values: minres, petsc, uzawa
+    solver minres;
+
+    /// possible values: minres, petsc, empty
+    coarseGridSolver minres;
+
+    rescalePressure false;
+    printTimer true;
+
+}

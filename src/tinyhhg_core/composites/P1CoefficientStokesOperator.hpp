@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 
@@ -48,6 +49,11 @@ public:
   P1DivTxOperator divT_x;
   P1DivTyOperator divT_y;
   P1PSPGOperator pspg;
+};
+
+template<>
+struct has_pspg_block< P1CoefficientStokesOperator > {
+    static const bool value = true;
 };
 
 }

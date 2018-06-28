@@ -15,6 +15,8 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -57,9 +59,9 @@ int main( int argc, char* argv[] )
        {parameters.getParameter< real_t >( "circleCenterX" ), parameters.getParameter< real_t >( "circleCenterY" ), 0}};
    real_t circleRadius = parameters.getParameter< real_t >( "circleRadius" );
 
-   for( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it )
+   for( auto it : setupStorage.getFaces() )
    {
-      Face& face = *it->second;
+      Face& face = *(it.second);
 
       std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
       std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(), [&setupStorage]( const PrimitiveID& id ) {
@@ -95,8 +97,10 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    typedef hhg::P1BlendingStokesOperator SolveOperator;
-   typedef hhg::P1toP1LinearRestriction  RestrictionOperator;
-   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+
+   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
+   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
+   typedef hhg::MinResSolver< P1StokesFunction< real_t >, SolveOperator > CoarseGridSolver;
 
    auto          start = walberla::timing::getWcTime();
    SolveOperator L( storage, minLevel, maxLevel );
@@ -105,6 +109,7 @@ int main( int argc, char* argv[] )
 
    RestrictionOperator  restrictionOperator;
    ProlongationOperator prolongationOperator;
+   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
 
    P1BlendingMassOperator M( storage, minLevel, maxLevel );
 
@@ -174,9 +179,8 @@ int main( int argc, char* argv[] )
    communication::syncFunctionBetweenPrimitives( one, maxLevel);
    real_t npoints = one.dot( one, maxLevel );
 
-   typedef hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, SolveOperator, RestrictionOperator, ProlongationOperator, true >
-        Solver;
-   auto solver = Solver( storage, minLevel, maxLevel );
+   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, CoarseGridSolver, RestrictionOperator, ProlongationOperator, true> Solver;
+   auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting Uzawa cycles" );
    WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%6s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "Time" ) );
@@ -198,18 +202,10 @@ int main( int argc, char* argv[] )
    for( outer = 0; outer < maxOuterIter; ++outer )
    {
       start = walberla::timing::getWcTime();
-      solver.solve( L,
-                    u,
-                    f,
-                    r,
-                    restrictionOperator,
-                    prolongationOperator,
-                    maxLevel,
-                    1e-6,
-                    coarseMaxiter,
-                    hhg::Inner | hhg::NeumannBoundary,
-                    Solver::CycleType::VCYCLE,
-                    true );
+
+      solver.solve(L, u, f, r, maxLevel, 1e-6, coarseMaxiter,
+                   hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
+
       end = walberla::timing::getWcTime();
       hhg::vertexdof::projectMean( u.p, tmp.p, maxLevel );
 

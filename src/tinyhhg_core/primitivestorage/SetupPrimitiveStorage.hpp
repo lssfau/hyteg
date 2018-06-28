@@ -62,29 +62,17 @@ public:
   uint_t getNumberOfFaces     () const { return faces_.size();    }
   uint_t getNumberOfCells     () const { return cells_.size();    }
 
-  VertexMap::iterator beginVertices() { return vertices_.begin(); }
-  VertexMap::iterator endVertices()   { return vertices_.end(); }
+  /// Returns a reference to a map of \ref Vertex instances
+  const VertexMap & getVertices() const { return vertices_; }
 
-  EdgeMap::iterator beginEdges()      { return edges_.begin(); }
-  EdgeMap::iterator endEdges()        { return edges_.end(); }
+  /// Returns a reference to a map of \ref Edge instances
+  const EdgeMap   & getEdges()    const { return edges_;    }
 
-  FaceMap::iterator beginFaces()      { return faces_.begin(); }
-  FaceMap::iterator endFaces()        { return faces_.end(); }
+  /// Returns a reference to a map of \ref Face instances
+  const FaceMap   & getFaces()    const { return faces_;    }
 
-  CellMap::iterator beginCells()      { return cells_.begin(); }
-  CellMap::iterator endCells()        { return cells_.end(); }
-
-  VertexMap::const_iterator beginVertices() const { return vertices_.begin(); }
-  VertexMap::const_iterator endVertices()   const { return vertices_.end(); }
-
-  EdgeMap::const_iterator beginEdges()      const { return edges_.begin(); }
-  EdgeMap::const_iterator endEdges()        const { return edges_.end(); }
-
-  FaceMap::const_iterator beginFaces()      const { return faces_.begin(); }
-  FaceMap::const_iterator endFaces()        const { return faces_.end(); }
-
-  CellMap::const_iterator beginCells()      const { return cells_.begin(); }
-  CellMap::const_iterator endCells()        const { return cells_.end(); }
+  /// Returns a reference to a map of \ref Cell instances
+  const CellMap   & getCells()    const { return cells_;    }
 
   void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }

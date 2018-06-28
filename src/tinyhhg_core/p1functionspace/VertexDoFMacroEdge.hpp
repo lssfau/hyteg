@@ -71,7 +71,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & level, Edge &edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
 {
   ValueType * edgeData = edge.getData( edgeMemoryId )->getPointer( level );
 
@@ -119,6 +119,20 @@ inline void assign( const uint_t & level, Edge &edge,
   }
 }
 
+
+template< typename ValueType >
+inline void add(const uint_t & level,
+                const Edge & edge,
+                const ValueType & scalar,
+                const PrimitiveDataID<FunctionMemory< ValueType >, Edge> & dstId )
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  for (size_t i = 1; i < rowsize - 1; ++i)
+  {
+    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] += scalar;
+  }
+}
 
 template< typename ValueType >
 inline void add( const uint_t & level, Edge &edge,

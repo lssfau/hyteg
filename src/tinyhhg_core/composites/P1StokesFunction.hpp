@@ -11,7 +11,11 @@ class P1StokesFunction
 {
 public:
 
-  P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
+  typedef P1Function< ValueType > VelocityFunction_T;
+  typedef P1Function< ValueType > PressureFunction_T;
+  typedef typename FunctionTrait< P1StokesFunction< ValueType > >::Tag Tag;
+
+    P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : u(_name+"_u", storage, minLevel, maxLevel),
       v(_name+"_v", storage, minLevel, maxLevel),
       p(_name+"_p", storage, minLevel, maxLevel)
@@ -76,6 +80,14 @@ public:
     p.enableTiming(timingTree);
   }
 
+  uint_t enumerate( uint_t level, uint_t& num )
+  {
+    uint_t counter = 0;
+    counter += u.enumerate( level, num );
+    counter += v.enumerate( level, num );
+    counter += p.enumerate( level, num );
+    return counter;
+  }
 
   P1Function< ValueType > u;
   P1Function< ValueType > v;

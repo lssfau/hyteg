@@ -72,6 +72,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                        uint_t                                               level,
                        DoFType                                              flag = All );
 
+   inline void add( const ValueType & scalar,
+                    const uint_t &    level,
+                    DoFType           flag = All );
+
    inline void add( const std::vector< ValueType >                       scalars,
                     const std::vector< VertexDoFFunction< ValueType >* > functions,
                     uint_t                                               level,
@@ -82,20 +86,17 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    inline void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
-   inline void interpolate( std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
 
-   inline void interpolateExtended( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                                    const std::vector< VertexDoFFunction* >                                        srcFunctions,
-                                    uint_t                                                                         level,
-                                    DoFType                                                                        flag = All );
+   inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                                    const std::vector< VertexDoFFunction* >                                              srcFunctions,
+                                    uint_t                                                                               level,
+                                    DoFType                                                                              flag = All );
 
    // TODO: write more general version(s)
    inline real_t getMaxValue( uint_t level, DoFType flag = All );
    inline real_t getMinValue( uint_t level, DoFType flag = All );
    inline real_t getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
-
-   inline uint_t getNumLocalDoFs( const uint_t& level ) const;
-   inline uint_t getNumGlobalDoFs( const uint_t& level ) const;
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
@@ -139,9 +140,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    BoundaryCondition boundaryCondition_;
 };
 
+
 template < typename ValueType >
 inline void
-    VertexDoFFunction< ValueType >::interpolate( std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag )
+    VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag )
 {
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
@@ -150,7 +152,7 @@ inline void
 
 template < typename ValueType >
 inline void VertexDoFFunction< ValueType >::interpolateExtended(
-    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+    const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                        srcFunctions,
     uint_t                                                                         level,
     DoFType                                                                        flag )
@@ -272,6 +274,53 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
       }
    }
    this->stopTiming( "Assign" );
+}
+
+template< typename ValueType >
+inline void VertexDoFFunction< ValueType >::add(const ValueType & scalar, const uint_t & level, DoFType flag)
+{
+  this->startTiming( "Add" );
+
+  for ( const auto & it : this->getStorage()->getVertices() )
+  {
+    Vertex & vertex = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macrovertex::add< ValueType >( vertex, scalar, vertexDataID_, level );
+    }
+  }
+
+  for ( const auto & it : this->getStorage()->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macroedge::add< ValueType >( level, edge, scalar, edgeDataID_ );
+    }
+  }
+
+  for ( const auto & it : this->getStorage()->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
+      vertexdof::macroface::add< ValueType >( level, face, scalar, faceDataID_ );
+    }
+  }
+
+  for ( const auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+    if ( testFlag(  boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag  ) )
+    {
+      vertexdof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
+    }
+  }
+
+  this->stopTiming( "Add" );
 }
 
 template < typename ValueType >
@@ -622,26 +671,6 @@ inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType
    return globalMin;
 }
 
-template < typename ValueType >
-inline uint_t VertexDoFFunction< ValueType >::getNumLocalDoFs( const uint_t& level ) const
-{
-   const uint_t numDoFsOnSingleVertex = 1;
-   const uint_t numDoFsOnSingleEdge   = levelinfo::num_microvertices_per_edge( level ) - 2;
-   const uint_t numDoFsOnSingleFace =
-       levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
-   const uint_t numDoFsOnSingleCell =
-       levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - 4 );
-   return numDoFsOnSingleVertex * this->getStorage()->getNumberOfLocalVertices() +
-          numDoFsOnSingleEdge * this->getStorage()->getNumberOfLocalEdges() +
-          numDoFsOnSingleFace * this->getStorage()->getNumberOfLocalFaces() +
-          numDoFsOnSingleCell * this->getStorage()->getNumberOfLocalCells();
-}
-
-template < typename ValueType >
-inline uint_t VertexDoFFunction< ValueType >::getNumGlobalDoFs( const uint_t& level ) const
-{
-   return walberla::mpi::allReduce( getNumLocalDoFs( level ), walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-}
 
 } // namespace vertexdof
 } // namespace hhg

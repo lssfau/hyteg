@@ -469,6 +469,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for( auto& it : storage_->getVertices() )
       {
          Vertex& vertex = *it.second;
+
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
@@ -480,6 +481,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
+
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if( testFlag( edgeBC, flag ) )
          {
@@ -491,6 +493,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
+
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
