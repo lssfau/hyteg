@@ -40,6 +40,12 @@ waLBerla_execute_test(NAME P2JacobiConvergenceTest)
 waLBerla_compile_test(FILES convergence/P2MinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 walberla_execute_test(NAME P2MinResConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2GMGHRefinementConvergenceTest.cpp DEPENDS tinyhhg_core core)
+walberla_execute_test(NAME P2GMGHRefinementConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P2GMGPRefinementConvergenceTest.cpp DEPENDS tinyhhg_core core)
+walberla_execute_test(NAME P2GMGPRefinementConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 
