@@ -646,7 +646,7 @@ int main( int argc, char* argv[] )
   {
     if ( meshType == "square" )
     {
-      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || "poiseuille_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
+      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
                                       hhg::Point2D({1, 1}),
                                       MeshInfo::CRISSCROSS, 1, 1 );
     }
