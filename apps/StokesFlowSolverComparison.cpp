@@ -130,6 +130,10 @@ public:
 };
 
 
+void keepMeshBoundaries( SetupPrimitiveStorage & )
+{
+}
+
 void setAllBoundariesDirichlet( SetupPrimitiveStorage & setupStorage )
 {
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -654,6 +658,10 @@ int main( int argc, char* argv[] )
     {
       return MeshInfo::fromGmshFile( "../data/meshes/porous_coarse.msh" );
     }
+    else if ( meshType == "porous_fine" )
+    {
+      return MeshInfo::fromGmshFile( "../data/meshes/porous_fine.msh" );
+    }
     else if ( meshType == "bfs_coarse" )
     {
       return MeshInfo::fromGmshFile( "../data/meshes/bfs_12el.msh" );
@@ -682,6 +690,10 @@ int main( int argc, char* argv[] )
       else if ( meshType == "square" && squareDomainSolutionType == "poiseuille_flow" )
       {
         return setRightBFSBoundaryNeumannPoiseuille;
+      }
+      else if ( meshType == "porous_coarse" || meshType == "porous_fine" )
+      {
+        return keepMeshBoundaries;
       }
       else
       {
