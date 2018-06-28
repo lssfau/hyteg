@@ -49,7 +49,7 @@ public:
 
     if (level == minLevel_)
     {
-      coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, true);
+      coarseGridSolver_.solve(A, x, b, r, level, 1e-16, maxiter, flag, printInfo);
 //      uzawaSmooth(A, x, b, r, level, flag);
     }
     else {
