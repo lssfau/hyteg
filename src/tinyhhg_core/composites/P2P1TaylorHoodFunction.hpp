@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/FunctionTraits.hpp"
 
 namespace hhg
 {
@@ -10,6 +11,10 @@ template <typename ValueType>
 class P2P1TaylorHoodFunction
 {
 public:
+
+  typedef P2Function< ValueType > VelocityFunction_T;
+  typedef P1Function< ValueType > PressureFunction_T;
+  typedef typename FunctionTrait< P2P1TaylorHoodFunction< ValueType > >::Tag Tag;
 
   P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : u(_name+"_u", storage, minLevel, maxLevel),
@@ -27,9 +32,9 @@ public:
 
   void assign(const std::vector<walberla::real_t> scalars, const std::vector<P2P1TaylorHoodFunction<ValueType>*> functions, size_t level, DoFType flag = All)
   {
-    std::vector< P2Function< ValueType > * > functions_u;
-    std::vector< P2Function< ValueType > * > functions_v;
-    std::vector< P1Function< ValueType > * > functions_p;
+    std::vector< VelocityFunction_T * > functions_u;
+    std::vector< VelocityFunction_T * > functions_v;
+    std::vector< PressureFunction_T * > functions_p;
 
     for (auto& function : functions)
     {
@@ -45,9 +50,9 @@ public:
 
   void add(const std::vector<walberla::real_t> scalars, const std::vector<P2P1TaylorHoodFunction<ValueType>*> functions, size_t level, DoFType flag = All)
   {
-    std::vector< P2Function< ValueType > * > functions_u;
-    std::vector< P2Function< ValueType > * > functions_v;
-    std::vector< P1Function< ValueType > * > functions_p;
+    std::vector< VelocityFunction_T * > functions_u;
+    std::vector< VelocityFunction_T * > functions_v;
+    std::vector< PressureFunction_T * > functions_p;
 
     for (auto& function : functions)
     {
@@ -100,9 +105,9 @@ public:
   }
 
 
-  P2Function< ValueType > u;
-  P2Function< ValueType > v;
-  P1Function< ValueType > p;
+  VelocityFunction_T u;
+  VelocityFunction_T v;
+  PressureFunction_T p;
 };
 
 }

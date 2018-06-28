@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hhg
@@ -9,6 +10,8 @@ namespace hhg
 class P1StokesOperator
 {
 public:
+
+  typedef P1ConstantLaplaceOperator VelocityOperator_T;
 
   P1StokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : A(storage, minLevel, maxLevel),
@@ -39,6 +42,11 @@ public:
   P1DivTxOperator divT_x;
   P1DivTyOperator divT_y;
   P1PSPGOperator pspg;
+};
+
+template<>
+struct has_pspg_block< P1StokesOperator > {
+    static const bool value = true;
 };
 
 }

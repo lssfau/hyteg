@@ -10,8 +10,8 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 
 using walberla::real_t;
@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
 
-  hhg::P1toP1LinearRestriction restrictionOperator;
-  hhg::P1toP1LinearProlongation prolongationOperator;
+  hhg::P1P1StokesToP1P1StokesRestriction restrictionOperator;
+  hhg::P1P1StokesToP1P1StokesProlongation prolongationOperator;
 
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
@@ -78,8 +78,12 @@ int main(int argc, char* argv[])
   L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation, false> Solver;
-  auto solver = Solver(storage, minLevel, maxLevel);
+  typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator > CoarseGridSolver;
+  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, CoarseGridSolver,
+                           hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, false> Solver;
+
+  CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
+  auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
   WALBERLA_LOG_INFO_ON_ROOT("Num dofs = "<< npoints);
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
@@ -98,7 +102,7 @@ int main(int argc, char* argv[])
   uint_t outer;
   for (outer = 0; outer < maxOuterIter; ++outer) {
     auto start = walberla::timing::getWcTime();
-    solver.solve(L, *u, *f, *r, restrictionOperator, prolongationOperator, maxLevel,
+    solver.solve(L, *u, *f, *r, maxLevel,
                  1e-6, coarseMaxiter, hhg::Inner | hhg::NeumannBoundary,
                  Solver::CycleType::VCYCLE, true);
     auto end = walberla::timing::getWcTime();

@@ -1,40 +1,50 @@
 #pragma once
 
-#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hhg {
 
-template<class F, class O1, class O2>
-class StokesBlockDiagonalPreconditioner {
+template< class F, class O1, class VelocityBlockSolver_T, class PressureBlockPreconditioner_T >
+class StokesBlockDiagonalPreconditioner
+{
 public:
 
-  StokesBlockDiagonalPreconditioner(O1& velocityOpr, O2& pressureOpr, const std::shared_ptr<PrimitiveStorage> & storage, size_t minLevel, size_t maxLevel)
-      : velocityOpr_(velocityOpr), pressureOpr_(pressureOpr),
-        velocityCG(storage, minLevel, maxLevel),
-        pressureCG(storage, minLevel, maxLevel),
-        r("r", storage, minLevel, maxLevel)
+  StokesBlockDiagonalPreconditioner(O1& velocityOpr,
+                                    VelocityBlockSolver_T velocityBlockSolver,
+                                    PressureBlockPreconditioner_T pressureBlockPreconditioner,
+                                    const std::shared_ptr<PrimitiveStorage> & storage,
+                                    uint_t minLevel, uint_t maxLevel, uint_t numVcycles)
+      : velocityOpr_(velocityOpr),
+        velocityBlockSolver_( velocityBlockSolver ),
+        pressureBlockPreconditioner_( pressureBlockPreconditioner ),
+        r("r", storage, minLevel, maxLevel),
+        numVcycles_( numVcycles )
   {}
 
   // y = M^{-1} * x
   void apply(F &x, F &y, uint_t level, DoFType flag) {
 
     y.assign({1.0}, {&x}, level, flag);
+    for ( uint_t vcycles = 0; vcycles < numVcycles_; vcycles++ )
+    {
+      velocityBlockSolver_.solve(velocityOpr_, y.u, x.u, r.u, level, 1e-16, 10000, flag);
+      velocityBlockSolver_.solve(velocityOpr_, y.v, x.v, r.v, level, 1e-16, 10000, flag);
+    }
 
-    velocityCG.solve(velocityOpr_.A, y.u, x.u, r.u, level, 1e-3, 100, flag, false);
-    velocityCG.solve(velocityOpr_.A, y.v, x.v, r.v, level, 1e-3, 100, flag, false);
-    pressureCG.solve(pressureOpr_, y.p, x.p, r.p, level, 1e-3, 100, flag | hhg::DirichletBoundary, false);
-
-
+    pressureBlockPreconditioner_.apply( x.p, y.p, level, flag | DirichletBoundary, Replace );
   }
 
 private:
+
   O1& velocityOpr_;
-  O2& pressureOpr_;
 
   F r;
+  uint_t numVcycles_;
 
-  CGSolver<decltype(F::u), decltype(O1::A)> velocityCG;
-  CGSolver<decltype(F::u), O2> pressureCG;
+  VelocityBlockSolver_T         velocityBlockSolver_;
+  PressureBlockPreconditioner_T pressureBlockPreconditioner_;
 };
 
 }

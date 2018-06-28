@@ -88,12 +88,12 @@ public:
   /// Interpolates a given expression to a EdgeDoFFunction
 
   inline void
-  interpolate(std::function< ValueType( const Point3D & ) >& expr,
+  interpolate( const std::function< ValueType( const Point3D & ) >& expr,
                           uint_t level, DoFType flag = All);
 
   inline void
-  interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                      const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+  interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                       const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                       uint_t level,
                       DoFType flag = All);
 
@@ -141,7 +141,7 @@ private:
 };
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
+inline void EdgeDoFFunction< ValueType >::interpolate(const std::function< ValueType( const Point3D& ) >& expr,
                                                       uint_t level, DoFType flag)
 {
   std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
@@ -151,7 +151,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate(std::function< ValueType( 
 }
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolateExtended(std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+inline void EdgeDoFFunction< ValueType >::interpolateExtended(const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
                                                               const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                                                               uint_t level,
                                                               DoFType flag)

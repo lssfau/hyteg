@@ -18,7 +18,7 @@ template< typename ValueType >
 inline void interpolate(Vertex &vertex,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &vertexMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
-                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr,
+                        const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr,
                         uint_t level) {
   FunctionMemory< ValueType > *vertexMemory = vertex.getData(vertexMemoryId);
   std::vector<ValueType> srcVector(srcIds.size());
@@ -46,6 +46,16 @@ inline void assign(Vertex &vertex,
 
   vertex.getData(dstId)->getPointer( level )[0] = tmp;
 }
+
+template< typename ValueType >
+inline void add(const Vertex & vertex,
+                const ValueType & scalar,
+                const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> & dstId,
+                const uint_t & level)
+{
+  vertex.getData(dstId)->getPointer( level )[0] += scalar;
+}
+
 
 template< typename ValueType >
 inline void add(Vertex &vertex,

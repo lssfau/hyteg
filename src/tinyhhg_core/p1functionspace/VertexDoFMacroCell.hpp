@@ -97,6 +97,22 @@ inline void assign( const uint_t & level,
 template< typename ValueType >
 inline void add( const uint_t & level,
                  const Cell & cell,
+                 const ValueType & scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    dst[ idx ] += scalar;
+  }
+}
+
+
+template< typename ValueType >
+inline void add( const uint_t & level,
+                 const Cell & cell,
                  const std::vector< ValueType > & scalars,
                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )

@@ -11,6 +11,8 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
+#include "tinyhhg_core/FunctionTraits.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg {
@@ -62,9 +64,13 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   }
 
   z->interpolate( ones, level );
-  const real_t zScalarProduct = z->dot( *z, level );
+  real_t zScalarProduct = z->dot( *z, level );
   WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Test only works with 1 process currently." )
-  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( z->getNumLocalDoFs( level ) ) );
+  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( numberOfLocalDoFs< P1FunctionTag >( *storage, level ) ) );
+
+  z->add( real_c( 1 ), level, All );
+  zScalarProduct = z->dot( *z, level );
+  WALBERLA_CHECK_FLOAT_EQUAL( zScalarProduct, real_c( 4 * numberOfLocalDoFs< P1FunctionTag >( *storage, level ) ) );
 
   // *****************
   // Apply

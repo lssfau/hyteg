@@ -35,35 +35,35 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
                                   "                   - number of processes:  " << std::setw(10) << walberla::mpi::MPIManager::instance()->numProcesses() );
   }
 
-  for ( auto it = setupStorage.beginVertices(); it != setupStorage.endVertices(); it++  )
+  for ( auto it : setupStorage.getVertices()  )
   {
-    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
     {
-      vertices_[ it->first ] = std::make_shared< Vertex >( *it->second );
+      vertices_[ it.first ] = std::make_shared< Vertex >( *(it.second) );
     }
   }
 
-  for ( auto it = setupStorage.beginEdges(); it != setupStorage.endEdges(); it++ )
+  for ( auto it : setupStorage.getEdges() )
   {
-    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it.first ) )
     {
-      edges_[ it->first ] = std::make_shared< Edge >( *it->second );
+      edges_[ it.first ] = std::make_shared< Edge >( *(it.second) );
     }
   }
 
-  for ( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); it++ )
+  for ( auto it : setupStorage.getFaces() )
   {
-    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it.first ) )
     {
-      faces_[ it->first ] = std::make_shared< Face >( *it->second );
+      faces_[ it.first ] = std::make_shared< Face >( *(it.second) );
     }
   }
 
-  for ( auto it = setupStorage.beginCells(); it != setupStorage.endCells(); it++ )
+  for ( auto it : setupStorage.getCells() )
   {
-    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it->first ) )
+    if ( uint_c( walberla::mpi::MPIManager::instance()->rank() )  == setupStorage.getTargetRank( it.first ) )
     {
-      cells_[ it->first ] = std::make_shared< Cell >( *it->second );
+      cells_[ it.first ] = std::make_shared< Cell >( *(it.second) );
     }
   }
 
