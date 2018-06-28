@@ -5,19 +5,19 @@ Parameters
     /// bfs_coarse, bfs_fine
     /// porous_coarse, porous_fine
     /// square
-    meshType bfs_coarse;
+    meshType square;
     minLevel 2;
     maxLevel 3;
-    numMGCycles 5;
-    preSmooth 3;
-    postSmooth 3;
+    numMGCycles 2;
+    preSmooth 2;
+    postSmooth 2;
     incrementSmooth 2;
 
     minResMaxIterations 10000;
-    minResTargetResidual 1e-5;
+    minResTargetResidual 1e-17;
 
-    /// possible values: colliding_flow, <anyother>
-    squareDomainReference colliding_flow;
+    /// possible values: colliding_flow, poiseuille_flow, <anyother>
+    squareDomainReference poiseuille_flow;
 
     /// possible values: P1P1, TaylorHood
     discretization TaylorHood;
@@ -28,7 +28,7 @@ Parameters
     /// possible values: minres, petsc, empty
     coarseGridSolver minres;
 
-    rescalePressure true;
+    rescalePressure false;
     printTimer true;
 
 }

@@ -135,7 +135,7 @@ void setAllBoundariesDirichlet( SetupPrimitiveStorage & setupStorage )
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 }
 
-void setRightBFSBoundaryNeumann( SetupPrimitiveStorage & setupStorage )
+void setRightBFSBoundaryNeumannPoiseuille( SetupPrimitiveStorage & setupStorage )
 {
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -143,7 +143,35 @@ void setRightBFSBoundaryNeumann( SetupPrimitiveStorage & setupStorage )
 
   for ( const auto & it : setupStorage.getVertices() )
   {
-    if ( std::fabs( it.second->getCoordinates()[0] - 2.0 ) < eps )
+    if ( std::fabs( it.second->getCoordinates()[0] - 1.0 ) < eps
+         && it.second->getCoordinates()[1] > -1.0 + eps
+         && it.second->getCoordinates()[1] <  1.0 - eps )
+    {
+      setupStorage.setMeshBoundaryFlag( it.first, 2 );
+    }
+  }
+
+  for ( const auto & it : setupStorage.getEdges() )
+  {
+    const auto edgeCoordinates = it.second->getCoordinates();
+    if ( std::fabs( edgeCoordinates[0][0] - 1.0 ) < eps && std::fabs( edgeCoordinates[1][0] - 1.0 ) < eps )
+    {
+      setupStorage.setMeshBoundaryFlag( it.first, 2 );
+    }
+  }
+}
+
+void setRightBFSBoundaryNeumannBFS( SetupPrimitiveStorage & setupStorage )
+{
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+  const real_t eps = 0.001;
+
+  for ( const auto & it : setupStorage.getVertices() )
+  {
+    if (    std::fabs( it.second->getCoordinates()[0] - 2.0 ) < eps
+         && it.second->getCoordinates()[1] > eps
+         && it.second->getCoordinates()[1] < 1.0 - eps )
     {
       setupStorage.setMeshBoundaryFlag( it.first, 2 );
     }
@@ -404,7 +432,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             vtkOutput.write( maxLevel, mgIteration );
 
             timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, true );
+            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
             timer.end();
 
             if ( rescalePressure )
@@ -449,7 +477,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             vtkOutput.write( maxLevel, mgIteration );
 
             timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, true );
+            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
             timer.end();
 
             if ( rescalePressure )
@@ -494,7 +522,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             vtkOutput.write( maxLevel, mgIteration );
 
             timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, true );
+            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
             timer.end();
 
             if ( rescalePressure )
@@ -618,7 +646,7 @@ int main( int argc, char* argv[] )
   {
     if ( meshType == "square" )
     {
-      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
+      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || "poiseuille_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
                                       hhg::Point2D({1, 1}),
                                       MeshInfo::CRISSCROSS, 1, 1 );
     }
@@ -645,11 +673,15 @@ int main( int argc, char* argv[] )
 
   const std::function< real_t( const hhg::Point3D& ) > zero  = []( const hhg::Point3D& ) { return 0.0; };
 
-  const auto setMeshBoundaryFlags = [ meshType ]() -> std::function< void( SetupPrimitiveStorage & ) >
+  const auto setMeshBoundaryFlags = [ meshType, squareDomainSolutionType ]() -> std::function< void( SetupPrimitiveStorage & ) >
   {
       if ( meshType == "bfs_coarse" || meshType == "bfs_fine" )
       {
-        return setRightBFSBoundaryNeumann;
+        return setRightBFSBoundaryNeumannBFS;
+      }
+      else if ( meshType == "square" && squareDomainSolutionType == "poiseuille_flow" )
+      {
+        return setRightBFSBoundaryNeumannPoiseuille;
       }
       else
       {
@@ -700,6 +732,20 @@ int main( int argc, char* argv[] )
             return real_c( 20 ) * x[0] * x[1] * x[1] * x[1];
         };
       }
+      else if ( squareDomainSolutionType == "poiseuille_flow" )
+      {
+        return []( const hhg::Point3D & x ) -> real_t
+        {
+            if( x[0] < -1.0 + 1e-8 )
+            {
+              return real_c( 1 - x[1] * x[1] );
+            }
+            else
+            {
+              return real_c( 0 );
+            }
+        };
+      }
       else
       {
         return []( const hhg::Point3D & x ) -> real_t
@@ -731,6 +777,10 @@ int main( int argc, char* argv[] )
               return real_c( 5 ) *std::pow( x[0], real_c(4) ) - real_c( 5 ) *std::pow( x[1], real_c(4) );
           };
         }
+        else if ( squareDomainSolutionType == "poiseuille_flow" )
+        {
+          return zero;
+        }
         else
         {
           return []( const hhg::Point3D & x ) -> real_t
@@ -758,7 +808,7 @@ int main( int argc, char* argv[] )
       }
       else if ( meshType == "square" )
       {
-        if ( squareDomainSolutionType == "colliding_flow" )
+        if ( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" )
         {
           return zero;
         }
@@ -788,7 +838,7 @@ int main( int argc, char* argv[] )
       }
       else if ( meshType == "square" )
       {
-        if ( squareDomainSolutionType == "colliding_flow" )
+        if ( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" )
         {
           return zero;
         }
@@ -811,7 +861,20 @@ int main( int argc, char* argv[] )
 
   // Analytical solution
 
-  const auto solutionU = setUVelocityBC;
+  const auto solutionU = [ meshType, squareDomainSolutionType, setUVelocityBC ]() -> std::function< real_t( const Point3D & ) >
+  {
+    if ( meshType == "square" && squareDomainSolutionType == "poiseuille_flow" )
+    {
+      return []( const hhg::Point3D & x ) -> real_t
+      {
+        return real_c( 1 - x[1] * x[1] );
+      };
+    }
+    else
+    {
+      return setUVelocityBC;
+    }
+  }();
   const auto solutionV = setVVelocityBC;
   const auto solutionP = [ meshType, zero, squareDomainSolutionType, rescalePressure ]() -> std::function< real_t( const Point3D & ) >
   {
@@ -827,6 +890,13 @@ int main( int argc, char* argv[] )
           return [ rescalePressure ]( const hhg::Point3D & x ) -> real_t
           {
               return real_c( 60 ) * x[0] * x[0] * x[1] - real_c(20) * x[1] * x[1] * x[1] + (rescalePressure ? real_c(40) : real_c(0));
+          };
+        }
+        else if ( squareDomainSolutionType == "poiseuille_flow" )
+        {
+          return []( const hhg::Point3D & x ) -> real_t
+          {
+              return real_c( -2.0 * x[0] );
           };
         }
         else
@@ -849,26 +919,29 @@ int main( int argc, char* argv[] )
 
   std::stringstream parameterOverview;
   parameterOverview <<       "[StokesFlowSolverComparison] Parameter overview:\n"
-                             "                             - meshType:            " << meshType << "\n"
-                             "                             - discretization:      " << discretizationTypeString << "\n"
-                             "                             - solver:              " << solverTypeString << "\n"
-                             "                             - analytical solution: " << (compareWithAnalyticalSolution ? "available" : "not available") << "\n"
-                             "                             - solution type      : " << (compareWithAnalyticalSolution ? squareDomainSolutionType : "-") << "\n"
-                             "                             - timer output:        " << (printTimer ? "enabled" : "disabled") << "\n"
-                             "                             - rescale pressure:    " << (rescalePressure ? "enabled" : "disabled") << "\n";
+                             "                             - meshType:                    " << meshType << "\n"
+                             "                             - discretization:              " << discretizationTypeString << "\n"
+                             "                             - solver:                      " << solverTypeString << "\n"
+                             "                             - analytical solution:         " << (compareWithAnalyticalSolution ? "available" : "not available") << "\n"
+                             "                             - solution type:               " << (compareWithAnalyticalSolution ? squareDomainSolutionType : "-") << "\n"
+                             "                             - timer output:                " << (printTimer ? "enabled" : "disabled") << "\n"
+                             "                             - rescale pressure:            " << (rescalePressure ? "enabled" : "disabled") << "\n";
 
   if ( solverType == UZAWA )
   {
-    parameterOverview <<     "                             - coarsest level:      " << minLevel << "\n"
-                             "                             - finest level:        " << maxLevel << "\n"
-                             "                             - coarse grid solver:  " << coarseGridSolverString << "\n"
-                             "                             - num MG cycles:       " << numMGCycles << "";
+    parameterOverview <<     "                             - coarsest level:              " << minLevel << "\n"
+                             "                             - finest level:                " << maxLevel << "\n"
+                             "                             - coarse grid solver:          " << coarseGridSolverString << "\n"
+                             "                             - num MG cycles:               " << numMGCycles << "\n"
+                             "                             - pre- / post-smoothing steps: " << "( " << preSmooth << ", " << postSmooth << " )";
   }
-  else
+  else if ( solverType == MIN_RES )
   {
-    parameterOverview <<     "                             - level:               " << maxLevel << "\n"
-                             "                             - max. iterations:     " << maxIterations << "\n"
-                             "                             - tolerance:           " << targetResidual << "";
+    parameterOverview <<     "                             - level:                       " << maxLevel << "\n"
+                             "                             - max. iterations:             " << maxIterations << "\n"
+                             "                             - tolerance:                   " << targetResidual << "\n"
+                             "                             - A-block V-Cycles:            " << numMGCycles << "\n"
+                             "                             - pre- / post-smoothing steps: " << "( " << preSmooth << ", " << postSmooth << " )";
   }
   WALBERLA_LOG_INFO_ON_ROOT( parameterOverview.str() );
 
