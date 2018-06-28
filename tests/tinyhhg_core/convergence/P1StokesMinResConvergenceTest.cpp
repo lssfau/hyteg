@@ -3,6 +3,7 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
@@ -11,6 +12,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 
+using walberla::real_c;
 using walberla::real_t;
 
 int main( int argc, char* argv[] )
@@ -56,14 +58,13 @@ int main( int argc, char* argv[] )
    auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
    solver.solve( L, u, f, r, maxLevel, 1e-5, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
 
-   L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-   //r.assign({1.0, -1.0}, { &f, &r }, maxLevel, hhg::Inner);
-   //uint_t dofNum = hhg::numberOfGlobalDoFs< hhg::P1StokesFunction >( storage, maxLevel);
-   real_t final_residuum = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+   real_t final_residuum = std::sqrt( r.dot( r, maxLevel, hhg::Inner ) ) /
+                           real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum)
-
+   WALBERLA_CHECK_LESS( final_residuum, 8e-07 );
    //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
 }

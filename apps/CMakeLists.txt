@@ -10,8 +10,6 @@ waLBerla_add_executable( NAME fullmg
         FILES fullmg.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_execute_test(NO_MODULE_LABEL NAME fullmg          CONFIGURATIONS Release RelWithDbgInfo)
-
 waLBerla_add_executable( NAME Chorin
         FILES Chorin.cpp
         DEPENDS tinyhhg_core)
@@ -68,10 +66,6 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
 
 waLBerla_add_executable( NAME show_mesh
         FILES show_mesh.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME StokesP2P1
-        FILES StokesP2P1.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME PolarLaplacian

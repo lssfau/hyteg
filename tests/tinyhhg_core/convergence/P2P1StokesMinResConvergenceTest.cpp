@@ -1,11 +1,12 @@
+#include "tinyhhg_core/FunctionProperties.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
-#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
 
@@ -21,7 +22,7 @@ int main( int argc, char* argv[] )
 
    hhg::loadbalancing::roundRobin( setupStorage );
 
-   size_t level   = 4;
+   size_t level   = 2;
    size_t maxiter = 10000;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
@@ -43,21 +44,14 @@ int main( int argc, char* argv[] )
 
    auto solver =
        hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator >( storage, level, level );
-   solver.solve( L, u, f, r, level, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
+   solver.solve( L, u, f, r, level, 1e-3, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
 
-   //  PETScManager petscManager;
-   //  f.u.interpolate(bc_x, level, hhg::DirichletBoundary);
-   //  auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction<PetscInt>>("numerator", storage, level, level);
-   //  uint_t num = 0;
-   //  uint_t localSize = numerator->enumerate(level, num);
-   //  PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localSize, num);
-   //  solver.solve(L, u, f, r, level, 1e-12, maxiter, hhg::Inner | hhg::NeumannBoundary, true);
+   L.apply( u, r, level, hhg::Inner | hhg::NeumannBoundary );
+   real_t final_residuum = std::sqrt( r.dot( r, level, hhg::Inner ) ) /
+                           real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, level ) );
 
-   VTKOutput vtkOutput( "../output", "StokesP2P1" );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.p );
-   vtkOutput.write( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
+   WALBERLA_CHECK_LESS( final_residuum, 5e-05 );
    return EXIT_SUCCESS;
 }
