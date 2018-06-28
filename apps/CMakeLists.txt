@@ -26,23 +26,9 @@ waLBerla_add_executable( NAME geophysics_plume
         FILES geophysics_plume.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME cg_P2
-        FILES cg_P2.cpp
-        DEPENDS tinyhhg_core)
-
 waLBerla_add_executable( NAME GeometryBlending
         FILES GeometryBlending.cpp
         DEPENDS tinyhhg_core)
-
-if( HHG_BUILD_WITH_EIGEN )
-waLBerla_add_executable( NAME cg_P1_blending
-        FILES cg_P1_blending.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME gmg_blending
-        FILES gmg_blending.cpp
-        DEPENDS tinyhhg_core)
-endif()
 
 waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp
@@ -64,9 +50,12 @@ waLBerla_add_executable( NAME PolarLaplacian
         FILES  polar_laplacian.cpp
         DEPENDS tinyhhg_core)
 
+if( HHG_BUILD_WITH_EIGEN )
+    waLBerla_add_executable( NAME cg_P1_blending
+            FILES cg_P1_blending.cpp
+            DEPENDS tinyhhg_core)
 
-#add_executable (tinytest_fmg fmg_test.cpp)
-#target_link_libraries (tinytest_fmg tinyhhg ${MPI_CXX_LIBRARIES} ${LIKWID_LIB})
-#
-#add_executable (tinytest_chorin chorin_test.cpp)
-#target_link_libraries (tinytest_chorin tinyhhg ${MPI_CXX_LIBRARIES})
+    waLBerla_add_executable( NAME gmg_blending
+            FILES gmg_blending.cpp
+            DEPENDS tinyhhg_core)
+endif()
