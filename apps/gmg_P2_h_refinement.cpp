@@ -14,7 +14,7 @@
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/misc/ExactStencilWeights.hpp"
 

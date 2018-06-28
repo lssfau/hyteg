@@ -23,7 +23,7 @@ public:
     A.apply(src.p, dst.p, level, flag, updateType);
   }
 
-  P1LaplaceOperator A;
+  P1ConstantLaplaceOperator A;
 };
 
 }

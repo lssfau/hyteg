@@ -51,12 +51,12 @@ int main(int argc, char **argv)
       microCoordX.interpolate( compX, lvl );
       microCoordY.interpolate( compY, lvl );
 
-      syncFunctionBetweenPrimitives( &microCoordX, lvl );
-      syncFunctionBetweenPrimitives( &microCoordY, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordX, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordY, lvl );
     }
 
   // setup two Laplacians
-  P1LaplaceOperator lapOpCO( storage, minLevel, maxLevel );
+  P1ConstantLaplaceOperator lapOpCO( storage, minLevel, maxLevel );
   P1ElementwiseLaplaceOperator lapOpEL( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
 
   // setup auxilliary P1Functions

@@ -1,6 +1,6 @@
 #include "core/Environment.h"
 
-#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"

@@ -2,6 +2,7 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
 
@@ -27,6 +28,7 @@ int main (int argc, char ** argv )
 
   size_t num = 1;
   x.enumerate(maxLevel,num);
+  hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
   uint_t numberOfChecks = 0;
   uint_t totalExpectedChecks = (3 * hhg::levelinfo::num_microvertices_per_edge(maxLevel)

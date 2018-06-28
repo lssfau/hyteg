@@ -430,18 +430,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       src.communicate< Face, Edge >( level );
       src.communicate< Edge, Vertex >( level );
 
-      // start pulling vertex halos
-      src.startCommunication< Edge, Vertex >( level );
-
-      // start pulling edge halos
-      src.startCommunication< Face, Edge >( level );
-
-      // start pulling face halos
-      src.startCommunication< Cell, Face >( level );
-
-      // end pulling vertex halos
-      src.endCommunication< Edge, Vertex >( level );
-
       for( const auto& it : storage_->getVertices() )
       {
          Vertex& vertex = *it.second;
@@ -453,11 +441,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), level, updateType );
          }
       }
-
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      src.endCommunication< Face, Edge >( level );
 
       for( const auto& it : storage_->getEdges() )
       {
@@ -471,13 +454,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
-      // end pulling face halos
-      src.endCommunication< Cell, Face >( level );
-
       for( const auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -489,8 +465,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
          }
       }
-
-      dst.endCommunication< Edge, Face >( level );
 
       for( const auto& it : storage_->getCells() )
       {
@@ -507,14 +481,13 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )
    {
-      // start pulling vertex halos
-      dst.startCommunication< Edge, Vertex >( level );
+      dst.communicate< Vertex, Edge >( level );
+      dst.communicate< Edge, Face >( level );
+      dst.communicate< Face, Cell >( level );
 
-      // start pulling edge halos
-      dst.startCommunication< Face, Edge >( level );
-
-      // end pulling vertex halos
-      dst.endCommunication< Edge, Vertex >( level );
+      dst.communicate< Cell, Face >( level );
+      dst.communicate< Face, Edge >( level );
+      dst.communicate< Edge, Vertex >( level );
 
       for( auto& it : storage_->getVertices() )
       {
@@ -527,11 +500,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      dst.endCommunication< Face, Edge >( level );
-
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -543,10 +511,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -557,20 +521,18 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
          }
       }
-
-      dst.endCommunication< Edge, Face >( level );
    }
 
    void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag )
    {
-      // start pulling vertex halos
-      dst.startCommunication< Edge, Vertex >( level );
 
-      // start pulling edge halos
-      dst.startCommunication< Face, Edge >( level );
+      dst.communicate< Vertex, Edge >( level );
+      dst.communicate< Edge, Face >( level );
+      dst.communicate< Face, Cell >( level );
 
-      // end pulling vertex halos
-      dst.endCommunication< Edge, Vertex >( level );
+      dst.communicate< Cell, Face >( level );
+      dst.communicate< Face, Edge >( level );
+      dst.communicate< Edge, Vertex >( level );
 
       for( auto& it : storage_->getVertices() )
       {
@@ -584,11 +546,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      dst.endCommunication< Face, Edge >( level );
-
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -600,10 +557,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax );
          }
       }
-
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
 
       for( auto& it : storage_->getFaces() )
       {
@@ -617,7 +570,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.endCommunication< Edge, Face >( level );
    }
 
    void smooth_jac_impl( P1Function< real_t >& dst,
@@ -626,14 +578,13 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                          size_t                level,
                          DoFType               flag )
    {
-      // start pulling vertex halos
-      tmp.startCommunication< Edge, Vertex >( level );
+      tmp.communicate< Vertex, Edge >( level );
+      tmp.communicate< Edge, Face >( level );
+      tmp.communicate< Face, Cell >( level );
 
-      // start pulling edge halos
-      tmp.startCommunication< Face, Edge >( level );
-
-      // end pulling vertex halos
-      tmp.endCommunication< Edge, Vertex >( level );
+      tmp.communicate< Cell, Face >( level );
+      tmp.communicate< Face, Edge >( level );
+      tmp.communicate< Edge, Vertex >( level );
 
       for( auto& it : storage_->getVertices() )
       {
@@ -647,11 +598,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      tmp.endCommunication< Face, Edge >( level );
-
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -664,10 +610,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -679,8 +621,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID() );
          }
       }
-
-      dst.endCommunication< Edge, Face >( level );
    }
 
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
@@ -713,7 +653,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
 typedef P1ConstantOperator< fenics::NoAssemble > P1ZeroOperator;
 
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1LaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1ConstantLaplaceOperator;
 typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
 
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;

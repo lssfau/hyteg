@@ -1,7 +1,7 @@
 
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "core/debug/Debug.h"
 #include "core/DataTypes.h"

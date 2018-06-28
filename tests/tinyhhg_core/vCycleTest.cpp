@@ -3,8 +3,8 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 
-#include "tinyhhg_core/format.hpp"
-#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/Format.hpp"
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
@@ -140,7 +140,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1toP1LinearRestriction restrictionOperator;
    hhg::P1toP1LinearProlongation prolongationOperator;
 
@@ -158,7 +158,7 @@ int main( int argc, char* argv[] )
    tmp.interpolate( ones, maxLevel );
    real_t npoints = tmp.dot( tmp, maxLevel );
 
-   auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >( storage, minLevel, minLevel );
+   auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = {}" << uint_c( npoints ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );

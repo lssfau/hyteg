@@ -3,7 +3,7 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 
 namespace hhg {
 

@@ -106,8 +106,8 @@ int main( int argc, char* argv[] )
    auto u_dg_old = std::make_shared< hhg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
    auto v_dg_old = std::make_shared< hhg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
-   hhg::P1LaplaceOperator Ascaled( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );
 
    // Scale Laplace operator with viscosity
    Ascaled.scale( viscosity );
@@ -123,7 +123,7 @@ int main( int argc, char* argv[] )
         std::shared_ptr< hhg::P1Function< real_t > >( &v, boost::null_deleter() )}};
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CoarseSolver;
+   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
    typedef P1toP1LinearRestriction RestrictionOperator;
    typedef P1toP1LinearProlongation ProlongationOperator;
 
@@ -131,7 +131,7 @@ int main( int argc, char* argv[] )
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
 
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
+   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
    LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );

@@ -291,13 +291,10 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
    {
       checkForMissingPolynomial(level, polyDegree_);
 
-      // start pulling vertex halos
-      src.startCommunication<Edge, Vertex>( level );
-
-      // start pulling edge halos
-      src.startCommunication<Face, Edge>( level );
-
-      src.endCommunication<Edge, Vertex>( level );
+      src.communicate< Vertex, Edge >( level );
+      src.communicate< Edge, Face >( level );
+      src.communicate< Face, Edge >( level );
+      src.communicate< Edge, Vertex >( level );
 
       for (auto& it : storage_->getVertices()) {
          Vertex& vertex = *it.second;
@@ -309,11 +306,6 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          }
       }
 
-      dst.startCommunication<Vertex, Edge>( level );
-
-      // end pulling edge halos
-      src.endCommunication<Face, Edge>( level );
-
       for (auto& it : storage_->getEdges()) {
          Edge& edge = *it.second;
 
@@ -323,10 +315,6 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
             vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
          }
       }
-
-      dst.endCommunication<Vertex, Edge>( level );
-
-      dst.startCommunication<Edge, Face>( level );
 
       for (auto& it : storage_->getFaces()) {
          Face& face = *it.second;
@@ -341,8 +329,6 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
             }
          }
       }
-
-      dst.endCommunication<Edge, Face>( level );
    }
 
    void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )

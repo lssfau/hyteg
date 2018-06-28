@@ -11,7 +11,7 @@ class P1StokesOperator
 {
 public:
 
-    typedef P1LaplaceOperator VelocityOperator_T;
+  typedef P1ConstantLaplaceOperator VelocityOperator_T;
 
   P1StokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : A(storage, minLevel, maxLevel),
@@ -36,7 +36,7 @@ public:
     pspg.apply(src.p, dst.p, level, flag | DirichletBoundary, Add);
   }
 
-  P1LaplaceOperator A;
+  P1ConstantLaplaceOperator A;
   P1DivxOperator div_x;
   P1DivyOperator div_y;
   P1DivTxOperator divT_x;

@@ -16,7 +16,7 @@
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("Setting up stiffness operator");
   auto start = walberla::timing::getWcTime();
-  hhg::P1LaplaceOperator L_p1(storage, minLevel, maxLevel);
+  hhg::P1ConstantLaplaceOperator L_p1(storage, minLevel, maxLevel);
   hhg::P2ConstantLaplaceOperator L_p2(storage, maxLevel, maxLevel);
   auto end = walberla::timing::getWcTime();
   real_t setupTime = end - start;
@@ -92,13 +92,13 @@ int main(int argc, char* argv[])
 
   typedef P1toP1LinearRestriction RestrictionOperator;
   typedef P1toP1LinearProlongation ProlongationOperator;
-  typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator> CoarseSolver;
+  typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1ConstantLaplaceOperator> CoarseSolver;
 
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
   RestrictionOperator restrictionOperator;
   ProlongationOperator prolongationOperator;
 
-  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1LaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator> LaplaceSover;
+  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator> LaplaceSover;
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");

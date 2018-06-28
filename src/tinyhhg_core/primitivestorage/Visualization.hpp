@@ -6,7 +6,7 @@
 #include "core/debug/CheckFunctions.h"
 
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 namespace hhg {
 

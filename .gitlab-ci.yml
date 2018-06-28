@@ -148,6 +148,21 @@ stages:
       - apt-get update
       - apt-get install libeigen3-dev
 
+.build_eigen_template: &build_eigen_petsc_definition
+   <<: *build_definition
+   variables:
+      WALBERLA_BUILD_WITH_MPI: "ON"
+      WALBERLA_BUILD_WITH_OPENMP: "OFF"
+      OMP_NUM_THREADS: "4"
+      OMP_WAIT_POLICY: "PASSIVE"
+      CMAKE_BUILD_TYPE: "Release"
+      HHG_BUILD_WITH_EIGEN: "ON"
+      HHG_BUILD_WITH_PETSC: "ON"
+   before_script:
+      - apt-get update
+      - apt-get install libeigen3-dev
+
+
 ###############################################################################
 ##                                                                           ##
 ##    Linux builds                                                           ##
@@ -293,6 +308,12 @@ clang_4.0_eigen:
 clang_5.0_mpionly:
    <<: *build_mpionly_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   tags:
+      - docker
+
+clang_6.0_mpionly:
+   <<: *build_mpionly_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
    tags:
       - docker
 

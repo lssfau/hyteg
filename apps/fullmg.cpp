@@ -3,8 +3,8 @@
 #include "core/Environment.h"
 #include "core/math/Utility.h"
 
-#include "tinyhhg_core/format.hpp"
-#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/Format.hpp"
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
-   hhg::P1LaplaceOperator A( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hhg::P1MassOperator    M( storage, minLevel, maxLevel );
 
    hhg::P1toP1LinearRestriction restrictionOperator;
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
       M.apply( tmp, b, ll, hhg::Inner );
    }
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator >( storage, minLevel, minLevel );
+   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
    std::function< void( size_t ) > cscycle;
 
