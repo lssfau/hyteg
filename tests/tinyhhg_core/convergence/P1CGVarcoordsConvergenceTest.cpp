@@ -4,13 +4,13 @@
 #include "core/timing/Timer.h"
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ElementwiseOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
@@ -25,7 +25,7 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   std::string meshFileName = "../data/meshes/quad_4el.msh";
+   std::string meshFileName = "../../data/meshes/quad_2el.msh";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -33,7 +33,7 @@ int main( int argc, char* argv[] )
    hhg::loadbalancing::roundRobin( setupStorage );
 
    size_t minLevel = 2;
-   size_t maxLevel = 6;
+   size_t maxLevel = 4;
    size_t maxiter  = 10000;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
    ( *coords )[1] = coordY.get();
 
    //  hhg::P1MassOperator M(storage, minLevel, maxLevel);
-   hhg::P1ConstantLaplaceOperator            Ltest( storage, minLevel, maxLevel );
+   hhg::P1ConstantLaplaceOperator    Ltest( storage, minLevel, maxLevel );
    hhg::P1ElementwiseLaplaceOperator L( storage, *coords, minLevel, maxLevel );
    hhg::P1ElementwiseMassOperator    M( storage, *coords, minLevel, maxLevel );
 
@@ -81,11 +81,11 @@ int main( int argc, char* argv[] )
 
    std::function< real_t( const hhg::Point3D& ) > exact = [&map_x, &map_y]( const hhg::Point3D& x ) {
       Point3D xt{{{map_x( x ), map_y( x ), 0.0}}};
-      return ( 1.0L / 2.0L ) * sin( 2 * xt[0] ) * sinh( xt[1] );
+      return ( 1.0 / 2.0 ) * sin( 2 * xt[0] ) * sinh( xt[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > rhs = [&map_x, &map_y]( const hhg::Point3D& x ) {
       Point3D xt{{{map_x( x ), map_y( x ), 0.0}}};
-      return ( 3.0L / 2.0L ) * sin( 2 * xt[0] ) * sinh( xt[1] );
+      return ( 3.0 / 2.0 ) * sin( 2 * xt[0] ) * sinh( xt[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 
@@ -98,15 +98,15 @@ int main( int argc, char* argv[] )
    // make sure that all coordinates are synchronized over all primitives and levels
    for( uint_t level = minLevel; level <= maxLevel; ++level )
    {
-      coordX->communicate< Vertex, Edge>( level );
-      coordX->communicate< Edge, Face>( level );
-      coordX->communicate< Face, Edge>( level );
-      coordX->communicate< Edge, Vertex>( level );
+      coordX->communicate< Vertex, Edge >( level );
+      coordX->communicate< Edge, Face >( level );
+      coordX->communicate< Face, Edge >( level );
+      coordX->communicate< Edge, Vertex >( level );
 
-      coordY->communicate< Vertex, Edge>( level );
-      coordY->communicate< Edge, Face>( level );
-      coordY->communicate< Face, Edge>( level );
-      coordY->communicate< Edge, Vertex>( level );
+      coordY->communicate< Vertex, Edge >( level );
+      coordY->communicate< Edge, Face >( level );
+      coordY->communicate< Face, Edge >( level );
+      coordY->communicate< Edge, Vertex >( level );
    }
 
    u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
@@ -133,6 +133,9 @@ int main( int argc, char* argv[] )
 
    walberla::WcTimingTree tt = timingTree->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );
+
+   /// a higher level would significantly decrase the error but also the runtime
+   WALBERLA_CHECK_LESS( discr_l2_err, 3e-04 );
 
    return EXIT_SUCCESS;
 }
