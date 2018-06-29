@@ -50,6 +50,12 @@ waLBerla_add_executable( NAME PolarLaplacian
         FILES  polar_laplacian.cpp
         DEPENDS tinyhhg_core)
 
+if( HHG_BUILD_WITH_PETSC )
+waLBerla_add_executable( NAME PetscMatVecMult
+        FILES benchmarks/PetscMatVecMult.cpp
+        DEPENDS tinyhhg_core core)
+endif()
+
 if( HHG_BUILD_WITH_EIGEN )
     waLBerla_add_executable( NAME cg_P1_blending
             FILES cg_P1_blending.cpp
