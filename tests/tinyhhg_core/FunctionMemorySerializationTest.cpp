@@ -37,7 +37,7 @@ static void testFunctionMemorySerialization()
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
   P1Function< real_t > x("x", storage, minLevel, maxLevel);
-  P1LaplaceOperator A(storage, minLevel, maxLevel);
+  P1ConstantLaplaceOperator A(storage, minLevel, maxLevel);
 
   VTKOutput vtkOutputBefore( "../../output/", "function_memory_serialization_test_data_before_migration" );
   vtkOutputBefore.add( &x );

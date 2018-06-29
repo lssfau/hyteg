@@ -70,9 +70,11 @@ namespace hhg {
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 > faceCoordIDs{
         {coords_[0]->getFaceDataID(), coords_[1]->getFaceDataID()}};
 
-      src.startCommunication< Edge, Vertex >( level );
-      src.startCommunication< Face, Edge >( level );
-      src.endCommunication< Edge, Vertex >( level );
+      src.communicate< Vertex, Edge>( level );
+      src.communicate< Edge, Face>( level );
+      src.communicate< Face, Edge>( level );
+      src.communicate< Edge, Vertex>( level );
+
 
       for( auto& it : storage_->getVertices() )
         {
@@ -92,9 +94,7 @@ namespace hhg {
             }
         }
 
-      dst.startCommunication< Vertex, Edge >( level );
 
-      src.endCommunication< Face, Edge >( level );
 
       for( auto& it : storage_->getEdges() )
         {
@@ -114,10 +114,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
         {
           Face& face = *it.second;
@@ -133,7 +129,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Edge, Face >( level );
     }
 
     void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )
@@ -152,14 +147,13 @@ namespace hhg {
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 > faceCoordIDs{
         { coords_[0]->getFaceDataID(), coords_[1]->getFaceDataID() }};
 
-      // start pulling vertex halos
-      dst.startCommunication< Edge, Vertex >( level );
+      dst.communicate< Vertex, Edge >( level );
+      dst.communicate< Edge, Face >( level );
+      dst.communicate< Face, Cell >( level );
 
-      // start pulling edge halos
-      dst.startCommunication< Face, Edge >( level );
-
-      // end pulling vertex halos
-      dst.endCommunication< Edge, Vertex >( level );
+      dst.communicate< Cell, Face >( level );
+      dst.communicate< Face, Edge >( level );
+      dst.communicate< Edge, Vertex >( level );
 
       for( auto& it : storage_->getVertices() )
         {
@@ -179,11 +173,6 @@ namespace hhg {
             }
         }
 
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      dst.endCommunication< Face, Edge >( level );
-
       for( auto& it : storage_->getEdges() )
         {
           Edge& edge = *it.second;
@@ -202,10 +191,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
         {
           Face& face = *it.second;
@@ -221,8 +206,6 @@ namespace hhg {
                                                                         faceCoordIDs, relax );
             }
         }
-
-      dst.endCommunication< Edge, Face >( level );
     }
 
 
@@ -233,7 +216,15 @@ namespace hhg {
                           DoFType               flag )
     {
 
-      // no weighting currently
+      src.communicate< Vertex, Edge >( level );
+      src.communicate< Edge, Face >( level );
+      src.communicate< Face, Cell >( level );
+
+      src.communicate< Cell, Face >( level );
+      src.communicate< Face, Edge >( level );
+      src.communicate< Edge, Vertex >( level );
+
+       // no weighting currently
       real_t relax(1.0);
 
       // extract handles to primitive coordinates
@@ -243,15 +234,6 @@ namespace hhg {
         { coords_[0]->getEdgeDataID(), coords_[1]->getEdgeDataID() }};
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 > faceCoordIDs{
         { coords_[0]->getFaceDataID(), coords_[1]->getFaceDataID() }};
-
-      // start pulling vertex halos
-      src.startCommunication< Edge, Vertex >( level );
-
-      // start pulling edge halos
-      src.startCommunication< Face, Edge >( level );
-
-      // end pulling vertex halos
-      src.endCommunication< Edge, Vertex >( level );
 
       for( auto& it : storage_->getVertices() )
       {
@@ -271,11 +253,6 @@ namespace hhg {
           }
       }
 
-      dst.startCommunication< Vertex, Edge >( level );
-
-      // end pulling edge halos
-      src.endCommunication< Face, Edge >( level );
-
       for( auto& it : storage_->getEdges() )
         {
           Edge& edge = *it.second;
@@ -294,10 +271,6 @@ namespace hhg {
             }
         }
 
-      dst.endCommunication< Vertex, Edge >( level );
-
-      dst.startCommunication< Edge, Face >( level );
-
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -313,8 +286,6 @@ namespace hhg {
                                                                      faceCoordIDs, relax );
          }
       }
-
-      dst.endCommunication< Edge, Face >( level );
     }
 
 #ifdef HHG_BUILD_WITH_PETSC

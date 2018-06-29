@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< hhg::P1Function< PetscInt > > numerator =
        std::make_shared< hhg::P1Function< PetscInt > >( "numerator", storage, Level, Level );
 
-   hhg::P1LaplaceOperator A( storage, Level, Level );
+   hhg::P1ConstantLaplaceOperator A( storage, Level, Level );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
       return xx[0] * xx[0] - xx[1] * xx[1] + 10;
@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
    uint_t dofsOnRank = numerator->enumerate( Level, num );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( num ) )
 
-   PETScLUSolver< real_t, hhg::P1Function, hhg::P1LaplaceOperator > solver( numerator, dofsOnRank, num );
+   PETScLUSolver< real_t, hhg::P1Function, hhg::P1ConstantLaplaceOperator > solver( numerator, dofsOnRank, num );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving System" )
    walberla::WcTimer timer;

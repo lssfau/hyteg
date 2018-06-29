@@ -4,7 +4,7 @@
 #include "core/math/KahanSummation.h"
 
 #include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
@@ -80,7 +80,7 @@ inline void interpolate(const uint_t & Level,
                             Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
 {
   ValueType * faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -135,6 +135,26 @@ inline void assign( const uint_t & Level, Face &face,
                                                                                     stencilDirection::VERTEX_C )];
       }
       dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
+    }
+    --inner_rowsize;
+  }
+}
+
+template< typename ValueType >
+inline void add(const uint_t & level,
+                const Face & face,
+                const ValueType & scalar,
+                const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
+{
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+  uint_t inner_rowsize = rowsize;
+
+  ValueType* dstPtr = face.getData(dstId)->getPointer( level );
+
+  for (uint_t j = 1; j < rowsize - 2; ++j) {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+
+      dstPtr[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] += scalar;
     }
     --inner_rowsize;
   }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 
 #include "core/Abort.h"

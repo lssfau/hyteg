@@ -8,7 +8,7 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

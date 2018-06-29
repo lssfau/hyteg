@@ -1,12 +1,13 @@
+#include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "tinyhhg_core/likwidwrapper.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 
@@ -99,7 +100,7 @@ static void testP2Smooth()
       x->interpolate( ones, level );
       rhs->interpolate( ones, level );
 
-      LIKWID_MARKER_START( "P2FaceSmoothGSVertexDoF" );
+      hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
       P2::face::smoothGSvertexDoF( level,
                                    *face,
@@ -109,15 +110,6 @@ static void testP2Smooth()
                                    x->getEdgeDoFFunction()->getFaceDataID(),
                                    rhs->getVertexDoFFunction()->getFaceDataID() );
 
-      LIKWID_MARKER_STOP( "P2FaceSmoothGSVertexDoF" );
-
-      x->getVertexDoFFunction()->startCommunication< Face, Edge >( level );
-      x->getVertexDoFFunction()->endCommunication< Face, Edge >( level );
-      x->getEdgeDoFFunction()->startCommunication< Face, Edge >( level );
-      x->getEdgeDoFFunction()->endCommunication< Face, Edge >( level );
-
-      LIKWID_MARKER_START( "P2FaceSmoothGSEdgeDoF" );
-
       P2::face::smoothGSedgeDoF( level,
                                  *face,
                                  p2operator.getVertexToEdgeOpr().getFaceStencilID(),
@@ -125,8 +117,6 @@ static void testP2Smooth()
                                  p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
                                  x->getEdgeDoFFunction()->getFaceDataID(),
                                  rhs->getEdgeDoFFunction()->getFaceDataID() );
-
-      LIKWID_MARKER_STOP( "P2FaceSmoothGSEdgeDoF" );
 
       real_t* edgeDoFData   = face->getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
       real_t* vertexDoFData = face->getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
@@ -264,6 +254,9 @@ static void testP2JacobiSmooth()
    tmp->interpolate( ones, level );
    rhs->interpolate( ones, level );
 
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *tmp ), level );
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *rhs ), level );
+
    for( auto e : storage->getEdges() )
    {
       Edge* edge = e.second.get();
@@ -276,9 +269,7 @@ static void testP2JacobiSmooth()
       vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction()->getVertexDataID(), {}, onesExtended, level );
    }
 
-   x->getVertexDoFFunction()->communicate< Vertex, Edge >( level );
-   x->getVertexDoFFunction()->communicate< Edge, Face >( level );
-   x->getEdgeDoFFunction()->communicate< Edge, Face >( level );
+   hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
    for( auto faceIt : storage->getFaces() )
    {
@@ -347,9 +338,6 @@ static void testP2JacobiSmooth()
                                             p2operator.getEdgeToVertexOpr().getFaceStencilID(),
                                             tmp->getEdgeDoFFunction()->getFaceDataID(),
                                             rhs->getVertexDoFFunction()->getFaceDataID() );
-
-      x->getVertexDoFFunction()->communicate< Face, Edge >( level );
-      x->getEdgeDoFFunction()->communicate< Face, Edge >( level );
 
       P2::macroface::smoothJacobiEdgeDoF( level,
                                           *face,
@@ -471,19 +459,13 @@ static void testP2JacobiSmooth()
 
 int main( int argc, char* argv[] )
 {
-   LIKWID_MARKER_INIT;
-
    walberla::debug::enterTestMode();
 
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   LIKWID_MARKER_THREADINIT;
-
    hhg::testP2Smooth();
    hhg::testP2JacobiSmooth();
-
-   LIKWID_MARKER_CLOSE;
 
    return EXIT_SUCCESS;
 }

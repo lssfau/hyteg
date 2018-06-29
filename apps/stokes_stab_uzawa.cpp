@@ -1,5 +1,5 @@
 
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"

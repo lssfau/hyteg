@@ -20,7 +20,7 @@
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
-#include "tinyhhg_core/format.hpp"
+#include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -67,9 +67,9 @@ int main(int argc, char* argv[])
   Point3D circleCenter{{0.5, 0.5, 0}};
   real_t circleRadius = 0.25;
 
-  for( auto it = setupStorage.beginFaces(); it != setupStorage.endFaces(); ++it )
+  for( const auto & it : setupStorage.getFaces() )
   {
-     Face& face = *it->second;
+     Face& face = *(it.second);
 
      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),

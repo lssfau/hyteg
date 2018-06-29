@@ -7,6 +7,8 @@
 
 using walberla::real_t;
 using walberla::uint_t;
+using walberla::math::PI;
+
 using namespace hhg;
 
 void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
@@ -28,11 +30,11 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
       microCoordX.interpolate( compX, lvl );
       microCoordY.interpolate( compY, lvl );
 
-      syncFunctionBetweenPrimitives( &microCoordX, lvl );
-      syncFunctionBetweenPrimitives( &microCoordY, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordX, lvl );
+      communication::syncFunctionBetweenPrimitives( microCoordY, lvl );
     }
 
-  P1ElementwiseMassOperator massOp( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
+  P1ElementwisePolarMassOperator massOp( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
 
   P1Function< real_t > aux( "aux", storage, minLevel, maxLevel );
   P1Function< real_t > vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
@@ -56,21 +58,21 @@ int main(int argc, char **argv)
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  // Test with rectangle
-  WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE" );
-  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, 0.0} ), Point2D( {2.0, 1.0} ),
-                                               MeshInfo::CRISS, 1, 1 );
+  // Test with rectangle 1
+  WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE 1 (full annulus)" );
+  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.0} ), Point2D( {3.0, 2*PI} ),
+                                               MeshInfo::CRISSCROSS, 1, 1 );
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  checkArea( storage, 2.0 );
+  checkArea( storage, 8.0*PI );
 
-  // Test with backward facing step
-  WALBERLA_LOG_INFO_ON_ROOT( "Testing with BFS" );
-  meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
-  SetupPrimitiveStorage setupStorageBFS( meshInfo,
-                                         uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  std::shared_ptr<PrimitiveStorage> storageBFS = std::make_shared<PrimitiveStorage>( setupStorageBFS );
-  checkArea( storageBFS, 1.75 );
+  // Test with rectangle 2
+  WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE 2 (partial annulus)" );
+  meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.3*PI} ), Point2D( {3.0, 0.55*PI} ),
+                                               MeshInfo::CRISSCROSS, 1, 1 );
+  SetupPrimitiveStorage setupStorage2(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  std::shared_ptr<PrimitiveStorage> storage2 = std::make_shared<PrimitiveStorage>(setupStorage2);
+  checkArea( storage2, PI );
 
   return EXIT_SUCCESS;
 }

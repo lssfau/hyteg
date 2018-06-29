@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "core/debug/CheckFunctions.h"
 
 using namespace hhg;

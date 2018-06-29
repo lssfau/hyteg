@@ -5,7 +5,7 @@
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 namespace hhg{
 namespace VertexDoFToEdgeDoF{

@@ -5,7 +5,7 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/primitives/Cell.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
@@ -90,6 +90,22 @@ inline void assign( const uint_t & level,
       tmp += scalars[k] * srcPtr[k][ idx ];
     }
     dst[ idx ] = tmp;
+  }
+}
+
+
+template< typename ValueType >
+inline void add( const uint_t & level,
+                 const Cell & cell,
+                 const ValueType & scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    dst[ idx ] += scalar;
   }
 }
 

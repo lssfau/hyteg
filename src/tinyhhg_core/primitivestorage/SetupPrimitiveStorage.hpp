@@ -3,7 +3,7 @@
 
 #include "core/debug/Debug.h"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/primitiveid.hpp"
+#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
 #include "tinyhhg_core/primitives/Vertex.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"

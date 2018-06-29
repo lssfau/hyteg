@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
   hhg::P1MassOperator    M( storage, minLevel, maxLevel );
-  hhg::P1LaplaceOperator L( storage, minLevel, maxLevel );
+  hhg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 
   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
       return ( 1.0L / 2.0L ) * sin( 2 * x[0] ) * sinh( x[1] );
@@ -55,7 +55,7 @@ int main( int argc, char* argv[] )
   npoints_helper.interpolate( rhs, maxLevel );
   M.apply( npoints_helper, f, maxLevel, hhg::All );
 
-  typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator > CGSolver;
+  typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CGSolver;
   typedef hhg::P1toP1LinearRestriction RestrictionOperator;
   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
 
@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
   RestrictionOperator restrictionOperator;
   ProlongationOperator prolongationOperator;
 
-  auto gmgSolver = hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1LaplaceOperator, CGSolver, RestrictionOperator, ProlongationOperator >(
+  auto gmgSolver = hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CGSolver, RestrictionOperator, ProlongationOperator >(
     storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );

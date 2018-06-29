@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 namespace hhg
 {

@@ -4,7 +4,7 @@
 
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/levelinfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
@@ -22,7 +22,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge & edge,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                        std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+                        const std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
 

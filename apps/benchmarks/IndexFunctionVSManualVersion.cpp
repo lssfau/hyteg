@@ -1,7 +1,7 @@
 #include "core/Environment.h"
 
 #include "tinyhhg_core/indexing/Optimization.hpp"
-#include "tinyhhg_core/likwidwrapper.hpp"
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
@@ -62,7 +62,7 @@ int main( int argc, char** argv )
    auto                   src  = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
    auto                   dst1 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
    auto                   dst2 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
-   hhg::P1LaplaceOperator M( storage, level, level );
+   hhg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 

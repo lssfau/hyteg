@@ -4,7 +4,7 @@
 #include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "core/mpi/MPITextFile.h"
 
-#include "levelinfo.hpp"
+#include "Levelinfo.hpp"
 #include "Function.hpp"
 #include "p1functionspace/P1Function.hpp"
 
