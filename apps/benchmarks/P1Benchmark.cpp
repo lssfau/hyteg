@@ -66,9 +66,18 @@ int main( int argc, char** argv )
        level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );
    timer.end();
    LIKWID_MARKER_STOP( "apply" );
-   WALBERLA_LOG_INFO_ON_ROOT( "time with walberla timer: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply time: " << timer.last() );
 
    real_t check1 = vertexdof::macroface::dot< real_t >( level, *face, dst->getFaceDataID(), dst->getFaceDataID() );
+
+   LIKWID_MARKER_START( "assign" );
+   timer.reset();
+   vertexdof::macroface::assign< real_t >(
+         level, *face, {13}, {src->getFaceDataID()}, dst->getFaceDataID() );
+   timer.end();
+   LIKWID_MARKER_STOP( "assign" );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign timer: " << timer.last() );
+
 
    real_t* opr_data = face->getData(M.getFaceStencilID())->getPointer( level );
    real_t* srcPtr = face->getData(src->getFaceDataID())->getPointer( level );

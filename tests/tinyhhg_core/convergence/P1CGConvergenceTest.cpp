@@ -25,7 +25,7 @@ int main( int argc, char* argv[] )
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->getTimingTree() = timingTree;
+   storage->setTimingTree(timingTree);
 
    hhg::P1Function< real_t > r( "r", storage, level, level );
    hhg::P1Function< real_t > f( "f", storage, level, level );
@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
 
    auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, level, level );
 
-   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, true );
+   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, false );
 
    err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
    npoints_helper.interpolate( ones, level );

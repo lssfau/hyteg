@@ -34,8 +34,8 @@ waLBerla_add_executable( NAME CompareInterpolate
         FILES benchmarks/CompareInterpolate.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME ApplyBenchmark
-        FILES benchmarks/ApplyBenchmark.cpp
+waLBerla_add_executable( NAME P1Benchmark
+        FILES benchmarks/P1Benchmark.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME IndexFunctionVSManualVersion

@@ -229,9 +229,13 @@ public:
   void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
 
-  inline std::shared_ptr< walberla::WcTimingTree >& getTimingTree(){
+  inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const{
     return timingTree_;
   }
+
+   inline void  setTimingTree(const std::shared_ptr< walberla::WcTimingTree >& timingTree){
+      timingTree_ = timingTree;
+   }
 
 private:
 
