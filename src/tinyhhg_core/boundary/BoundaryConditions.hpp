@@ -32,6 +32,7 @@ public:
   ///              other | Domain
   ///
   static BoundaryCondition create012BC();
+  static BoundaryCondition createAllInnerBC();
 
   /// Creates a \ref BoundaryCondition.
   /// \param defaultBC BC that is set to all mesh boundary flags that are not explicitly registered

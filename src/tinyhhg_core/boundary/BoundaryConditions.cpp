@@ -12,6 +12,12 @@ BoundaryCondition BoundaryCondition::create012BC()
   return bc;
 }
 
+BoundaryCondition BoundaryCondition::createAllInnerBC()
+{
+  BoundaryCondition bc( hhg::Inner );
+  return bc;
+}
+
 BoundaryUID BoundaryCondition::createDirichletBC( const std::string & name, const uint_t & meshBoundaryFlag )
 {
   std::vector< uint_t > meshBoundaryFlags = { meshBoundaryFlag };
