@@ -18,7 +18,7 @@ public:
     {
       quadraticProlongationOperator_( function.u, sourceLevel, flag );
       quadraticProlongationOperator_( function.v, sourceLevel, flag );
-      linearProlongationOperator_   ( function.p, sourceLevel, flag | DirichletBoundary );
+      linearProlongationOperator_   ( function.p, sourceLevel, flag );
     }
 
 private:

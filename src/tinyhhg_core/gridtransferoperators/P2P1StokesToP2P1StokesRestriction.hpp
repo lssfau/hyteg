@@ -18,7 +18,7 @@ public:
     {
       quadraticRestrictionOperator_( function.u, sourceLevel, flag );
       quadraticRestrictionOperator_( function.v, sourceLevel, flag );
-      linearRestrictionOperator_   ( function.p, sourceLevel, flag | DirichletBoundary );
+      linearRestrictionOperator_   ( function.p, sourceLevel, flag );
     }
 
 private:

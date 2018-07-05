@@ -31,9 +31,9 @@ public:
     A.apply(src.v, dst.v, level, flag, Replace);
     divT_y.apply(src.p, dst.v, level, flag, Add);
 
-    div_x.apply(src.u, dst.p, level, flag | DirichletBoundary, Replace);
-    div_y.apply(src.v, dst.p, level, flag | DirichletBoundary, Add);
-    pspg.apply(src.p, dst.p, level, flag | DirichletBoundary, Add);
+    div_x.apply(src.u, dst.p, level, flag, Replace);
+    div_y.apply(src.v, dst.p, level, flag, Add);
+    pspg.apply(src.p, dst.p, level, flag, Add);
   }
 
   P1ConstantLaplaceOperator A;
