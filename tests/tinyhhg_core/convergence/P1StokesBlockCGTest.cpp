@@ -44,11 +44,9 @@ int main( int argc, char* argv[] )
 
    u.u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
    u.v.interpolate( exact, maxLevel, hhg::DirichletBoundary );
-   u.p.interpolate( exact, maxLevel, hhg::DirichletBoundary );
 
    u_exact.u.interpolate( exact, maxLevel );
    u_exact.v.interpolate( exact, maxLevel );
-   u_exact.p.interpolate( exact, maxLevel );
 
    auto solver =
        hhg::CGSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
