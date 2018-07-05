@@ -113,12 +113,12 @@ private:
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
     A.A.smooth_gs(x.v, r.v, level, flag);
 
-    A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
-    A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
+    A.div_x.apply(x.u, r.p, level, flag, Replace);
+    A.div_y.apply(x.v, r.p, level, flag, Add);
 
-    r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
+    r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag);
 
-    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag | DirichletBoundary);
+    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag);
   }
 
   // Tensor variant
@@ -134,12 +134,12 @@ private:
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
     A.A_vv.smooth_gs(x.v, r.v, level, flag);
 
-    A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
-    A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
+    A.div_x.apply(x.u, r.p, level, flag, Replace);
+    A.div_y.apply(x.v, r.p, level, flag, Add);
 
-    r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag | DirichletBoundary);
+    r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag);
 
-    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag | DirichletBoundary);
+    A.pspg.smooth_sor(x.p, r.p, 0.3, level, flag);
   }
 
   // Block-Laplace variant without stabilization
@@ -153,11 +153,11 @@ private:
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
     A.A.smooth_gs(x.v, r.v, level, flag);
 
-    A.div_x.apply(x.u, r.p, level, flag | DirichletBoundary, Replace);
-    A.div_y.apply(x.v, r.p, level, flag | DirichletBoundary, Add);
+    A.div_x.apply(x.u, r.p, level, flag, Replace);
+    A.div_y.apply(x.v, r.p, level, flag, Add);
 
-    pressureMass_.apply(r.p, ax_.p, level, flag | DirichletBoundary);
-    x.p.add( {1.0}, {&ax_.p}, level, flag | DirichletBoundary );
+    pressureMass_.apply(r.p, ax_.p, level, flag);
+    x.p.add( {1.0}, {&ax_.p}, level, flag);
   }
 
   uint_t nuPre_;
