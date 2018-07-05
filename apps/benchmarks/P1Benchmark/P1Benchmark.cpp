@@ -27,29 +27,56 @@ void kernel( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStenci
              fd_p1FaceSrc[ctr_1 + ctr_2 * ( ( 1 << level ) + 2 ) - ( ctr_2 * ( ctr_2 + 1 ) / 2 )] * fd_p1FaceStencil[3];
       }
 }
-
+/*
+ * This benchmark meassures the time for several vertexDof/P1 functions on a macro face
+ */
 int main( int argc, char** argv )
 {
    LIKWID_MARKER_INIT;
 
-   walberla::debug::enterTestMode();
-   walberla::mpi::Environment MPIenv( argc, argv );
+   walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+   walberla::logging::Logging::instance()->setStreamLogLevel( walberla::logging::Logging::DETAIL );
+
+   //auto cfg = env.config();
+   auto cfg = std::make_shared<walberla::config::Config>();
+   if( env.config() == nullptr ) {
+      auto defaultFile = "./P1Benchmark.prm";
+      WALBERLA_LOG_PROGRESS_ON_ROOT("No Parameter file given loading default parameter file: " << defaultFile);
+      cfg->readParameterFile( defaultFile );
+   } else {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+
+   const uint_t level = mainConf.getParameter< uint_t >( "level" );
+
+   WALBERLA_LOG_INFO("level: " << level);
 
    LIKWID_MARKER_THREADINIT;
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   MeshInfo                            meshInfo = MeshInfo::meshUnitSquare( 0 );
+   SetupPrimitiveStorage               setupStorage( meshInfo, 1 );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-   const size_t level = 10;
 
    auto src = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
    auto dst = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
 
-   hhg::P1MassOperator M( storage, level, level );
+   hhg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
+
+   real_t* stencilPtr = face->getData( M.getFaceStencilID() )->getPointer( level );
+
+   for( uint_t i = 0; i < face->getData( M.getFaceStencilID() )->getSize( level ); ++i )
+   {
+      stencilPtr[i] = 1. / real_c( i % 10 + 2 );
+   }
+
+   for( uint_t i = 0; i < face->getData( M.getFaceStencilID() )->getSize( level ); ++i )
+   {
+      WALBERLA_LOG_DETAIL_ON_ROOT( i << ": " << stencilPtr[i] );
+   }
 
    std::function< real_t( const hhg::Point3D& ) > exactFunc = [&]( const hhg::Point3D& point ) {
       return sqrt( point[0] * point[0] + point[1] * point[1] );
@@ -66,34 +93,32 @@ int main( int argc, char** argv )
        level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );
    timer.end();
    LIKWID_MARKER_STOP( "apply" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply time: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply runtime: " << timer.last() );
 
    real_t check1 = vertexdof::macroface::dot< real_t >( level, *face, dst->getFaceDataID(), dst->getFaceDataID() );
 
    LIKWID_MARKER_START( "assign" );
    timer.reset();
-   vertexdof::macroface::assign< real_t >(
-         level, *face, {13}, {src->getFaceDataID()}, dst->getFaceDataID() );
+   vertexdof::macroface::assign< real_t >( level, *face, {13}, {src->getFaceDataID()}, dst->getFaceDataID() );
    timer.end();
    LIKWID_MARKER_STOP( "assign" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign timer: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign runtime: " << timer.last() );
 
-
-   real_t* opr_data = face->getData(M.getFaceStencilID())->getPointer( level );
-   real_t* srcPtr = face->getData(src->getFaceDataID())->getPointer( level );
-   real_t* dstPtr = face->getData(dst->getFaceDataID())->getPointer( level );
+   real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
+   real_t* srcPtr   = face->getData( src->getFaceDataID() )->getPointer( level );
+   real_t* dstPtr   = face->getData( dst->getFaceDataID() )->getPointer( level );
 
    LIKWID_MARKER_START( "apply_gen" );
    timer.reset();
-   kernel(dstPtr,srcPtr,opr_data,level);
+   kernel( dstPtr, srcPtr, opr_data, level );
    timer.end();
    LIKWID_MARKER_STOP( "apply_gen" );
-   WALBERLA_LOG_INFO_ON_ROOT( "time with walberla timer: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply_gen runtime: " << timer.last() );
 
    /// do something with the result to prevent the compiler from removing all the computations
    real_t check2 = vertexdof::macroface::dot< real_t >( level, *face, dst->getFaceDataID(), dst->getFaceDataID() );
-   WALBERLA_LOG_INFO_ON_ROOT(check2);
-   WALBERLA_CHECK_FLOAT_EQUAL( check1 , check2 );
+   WALBERLA_LOG_INFO_ON_ROOT( check2 );
+   WALBERLA_CHECK_FLOAT_EQUAL( check1, check2 );
 
    LIKWID_MARKER_CLOSE;
 }
