@@ -29,6 +29,7 @@ def main():
     apply = re.search('apply runtime: (\d*.\d*)', s)
     assign = re.search('assign runtime: (\d*.\d*)', s)
     apply_gen = re.search('apply_gen runtime: (\d*.\d*)', s)
+    interpolate = re.search('interpolate runtime: (\d*.\d*)', s)
     l = re.search('level: (\d*.\d*)', s)
 
     json_body = [
@@ -37,13 +38,14 @@ def main():
             'tags': {
                 'host'     : os.uname()[1],
                 'project'  : 'terraneo',
-                #'image'    : os.environ["DOCKER_IMAGE_NAME"],
+                'image'    : os.environ["DOCKER_IMAGE_NAME"],
                 'benchmark': 'P1Benchmark',
                 'Level'    : int(l.group(1)),
             },
             'time': int(time.time()),
             'fields': {'apply_runtime': float(apply.group(1)),
                        'assign_runtime': float(assign.group(1)),
+                       'interpolate_runtime': float(interpolate.group(1)),
                        'apply_gen_runtime': float(apply_gen.group(1))}
         }
     ]

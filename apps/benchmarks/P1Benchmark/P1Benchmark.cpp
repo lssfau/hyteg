@@ -81,11 +81,21 @@ int main( int argc, char** argv )
    std::function< real_t( const hhg::Point3D& ) > exactFunc = [&]( const hhg::Point3D& point ) {
       return sqrt( point[0] * point[0] + point[1] * point[1] );
    };
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > exactExtended =
+         [&exactFunc]( const hhg::Point3D& x, const std::vector< real_t >& ) { return exactFunc( x ); };
 
    //P1Function< real_t > x("x", storage, level, level);
    src->interpolate( exactFunc, level );
 
    walberla::WcTimer timer;
+
+   LIKWID_MARKER_START( "interpolate" );
+   timer.reset();
+   vertexdof::macroface::interpolate< real_t >(
+         level, *face, src->getFaceDataID(), {}, exactExtended );
+   timer.end();
+   LIKWID_MARKER_STOP( "interpolate" );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate runtime: " << timer.last() );
 
    LIKWID_MARKER_START( "apply" );
    timer.reset();
