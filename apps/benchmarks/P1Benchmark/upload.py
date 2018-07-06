@@ -21,8 +21,8 @@ def main():
     client = InfluxDBClient('i10grafana.informatik.uni-erlangen.de', 8086,
                             'terraneo', write_user_pw, 'terraneo')
 
-    #repo = Repo(search_parent_directories=True)
-    #commit = repo.head.commit
+    repo = Repo(search_parent_directories=True)
+    commit = repo.head.commit
 
     with open("P1BenchmarkOutput.txt") as f:
         s = f.read()
@@ -34,13 +34,13 @@ def main():
 
     json_body = [
         {
-            'measurement': 'terraneo_benchmark',
+            'measurement': 'P1_Benchmark',
             'tags': {
                 'host'     : os.uname()[1],
                 'project'  : 'terraneo',
                 'image'    : os.environ["DOCKER_IMAGE_NAME"],
-                'benchmark': 'P1Benchmark',
                 'Level'    : int(l.group(1)),
+                'commit:'  : commit,
             },
             'time': int(time.time()),
             'fields': {'apply_runtime': float(apply.group(1)),
@@ -49,10 +49,6 @@ def main():
                        'apply_gen_runtime': float(apply_gen.group(1))}
         }
     ]
-    print(float(apply.group(1)))
-    print(float(assign.group(1)))
-    print(float(apply_gen.group(1)))
-    print(int(l.group(1)))
     client.write_points(json_body, time_precision='s')
 
 

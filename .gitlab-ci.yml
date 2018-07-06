@@ -494,16 +494,17 @@ msvc-14.1_MpiOnly_Dbg:
       - likwid-setFrequencies -t 0
       - likwid-setFrequencies -g performance
       - likwid-setFrequencies -f 3.3 # set frequency to 3.3
-      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark | tee P1BenchmarkOutput.txt
+      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=10 | tee P1BenchmarkOutput.txt
+      - python3 upload.py
+      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=12 | tee P1BenchmarkOutput.txt
+      - python3 upload.py
+      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=14 | tee P1BenchmarkOutput.txt
       - python3 upload.py
    # only:
    #    variables:
    #       - $ENABLE_BENCHMARKS
    tags:
       - docker-benchmark
-   artifacts:
-      paths:
-         - $CI_PROJECT_DIR/build/apps/benchmarks/P1Benchmark/P1BenchmarkOutput.txt
 
 benchmark_intel17:
    <<: *benchmark_definition
