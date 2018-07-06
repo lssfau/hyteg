@@ -40,7 +40,7 @@ def main():
                 'project'  : 'terraneo',
                 'image'    : os.environ["DOCKER_IMAGE_NAME"],
                 'Level'    : int(l.group(1)),
-                'commit:'  : commit,
+                'commit'  : commit,
             },
             'time': int(time.time()),
             'fields': {'apply_runtime': float(apply.group(1)),
