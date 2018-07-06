@@ -39,19 +39,18 @@ def main():
                 'project'  : 'terraneo',
                 #'image'    : os.environ["DOCKER_IMAGE_NAME"],
                 'benchmark': 'P1Benchmark',
-                'level'    : l.group(1),
+                'Level'    : int(l.group(1)),
             },
             'time': int(time.time()),
             'fields': {'apply_runtime': float(apply.group(1)),
                        'assign_runtime': float(assign.group(1)),
-                       'apply_gen_runtime': float(apply_gen.group(1)),
-                       'level'  : float(l.group(1))}
+                       'apply_gen_runtime': float(apply_gen.group(1))}
         }
     ]
     print(float(apply.group(1)))
     print(float(assign.group(1)))
     print(float(apply_gen.group(1)))
-    print(float(l.group(1)))
+    print(int(l.group(1)))
     client.write_points(json_body, time_precision='s')
 
 

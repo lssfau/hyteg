@@ -467,3 +467,52 @@ msvc-14.1_MpiOnly_Dbg:
       WALBERLA_BUILD_WITH_MPI: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
       WALBERLA_DOUBLE_ACCURACY: "ON"
+
+###############################################################################
+##                                                                           ##
+##    Benchmarks                                                             ##
+##                                                                           ##
+###############################################################################
+
+.benchmark_template: &benchmark_definition
+   script:
+      - apt-get update --fix-missing
+      - apt-get install -y python3-influxdb python3-git
+      - $CXX --version
+      - cmake --version
+      - ccache --version
+      - mpirun --version
+      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
+      - export CCACHE_BASEDIR=$CI_PROJECT_DIR
+      - mkdir $CI_PROJECT_DIR/build
+      - cd $CI_PROJECT_DIR/build
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=ON -DWALBERLA_BUILD_WITH_LTO=ON
+      - cmake . -LAH
+      - cd apps/benchmarks/P1Benchmark
+      - make -j 20
+      - export PATH=$PATH:/usr/local/likwid/bin
+      - likwid-setFrequencies -t 0
+      - likwid-setFrequencies -g performance
+      - likwid-setFrequencies -f 3.3 # set frequency to 3.3
+      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark | tee P1BenchmarkOutput.txt
+      - python3 upload.py
+   # only:
+   #    variables:
+   #       - $ENABLE_BENCHMARKS
+   tags:
+      - docker-benchmark
+   artifacts:
+      paths:
+         - $CI_PROJECT_DIR/build/apps/benchmarks/P1Benchmark/P1BenchmarkOutput.txt
+
+benchmark_intel17:
+   <<: *benchmark_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+
+benchmark_gcc7:
+   <<: *benchmark_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+
+benchmark_clang6:
+   <<: *benchmark_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
