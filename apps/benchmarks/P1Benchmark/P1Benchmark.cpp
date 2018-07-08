@@ -9,7 +9,7 @@ using walberla::real_c;
 using walberla::real_t;
 using namespace hhg;
 
-void kernel( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStencil, int64_t level )
+void kernel( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStencil, uint_t level )
 {
    for( int ctr_2 = 1; ctr_2 < ( 1 << level ) - 1; ctr_2 += 1 )
       for( int ctr_1 = 1; ctr_1 < -ctr_2 + ( 1 << level ); ctr_1 += 1 )
