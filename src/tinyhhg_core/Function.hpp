@@ -30,6 +30,7 @@ public:
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
       communicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
+      additiveCommunicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
     }
     if(storage->getTimingTree()){
       enableTiming(storage->getTimingTree());
@@ -57,6 +58,10 @@ public:
     {
       communicator.second->enableTiming( timingTree_ );
     }
+    for ( auto & communicator : additiveCommunicators_ )
+    {
+      communicator.second->enableTiming( timingTree_ );
+    }
   }
 
 protected:
@@ -70,6 +75,7 @@ protected:
   const uint_t maxLevel_;
 
   std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
+  std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > additiveCommunicators_;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
