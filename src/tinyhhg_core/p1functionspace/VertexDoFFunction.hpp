@@ -12,6 +12,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
@@ -39,6 +40,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       BoundaryCondition                          boundaryCondition )
    : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
    , boundaryCondition_( boundaryCondition )
+   , boundaryTypeToSkipDuringAdditiveCommunication_( DoFType::DirichletBoundary )
    {
       auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
           minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
@@ -59,6 +61,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       {
          communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
              level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+         additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
+             level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage(),
+             boundaryCondition_, boundaryTypeToSkipDuringAdditiveCommunication_ ) );
+
       }
    }
 
@@ -86,6 +92,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    inline void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
+   inline void interpolate( const ValueType & constant, uint_t level, DoFType flag = All );
+
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
 
    inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
@@ -118,17 +126,99 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       communicators_.at( level )->template communicate< SenderType, ReceiverType >();
    }
 
-   inline void
-       setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
+   template < typename SenderType, typename ReceiverType >
+   inline void startAdditiveCommunication( const uint_t& level )
+   {
+      interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+      additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   inline void endAdditiveCommunication( const uint_t& level )
+   {
+      additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t& level )
+   {
+      interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+      additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
+   }
+
+   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
    {
       for( auto& communicator : communicators_ )
       {
          communicator.second->setLocalCommunicationMode( localCommunicationMode );
       }
+      for( auto& communicator : additiveCommunicators_ )
+      {
+        communicator.second->setLocalCommunicationMode( localCommunicationMode );
+      }
    }
 
  private:
+
+   template< typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType & constant, uint_t level, DoFType flag = All )
+   {
+     this->startTiming( "Interpolate" );
+
+     if ( std::is_same< PrimitiveType, Vertex >::value )
+     {
+       for( const auto& it : this->getStorage()->getVertices() )
+       {
+         Vertex& vertex = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+         {
+           vertexdof::macrovertex::interpolate( level, vertex, vertexDataID_, constant );
+         }
+       }
+     }
+     else if ( std::is_same< PrimitiveType, Edge >::value  )
+     {
+       for( const auto& it : this->getStorage()->getEdges() )
+       {
+         Edge& edge = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+           vertexdof::macroedge::interpolate( level, edge, edgeDataID_, constant );
+         }
+       }
+     }
+     else if ( std::is_same< PrimitiveType, Face >::value )
+     {
+       for( const auto& it : this->getStorage()->getFaces() )
+       {
+         Face& face = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+           vertexdof::macroface::interpolate( level, face, faceDataID_, constant );
+         }
+       }
+     }
+     else if ( std::is_same< PrimitiveType, Cell >::value )
+     {
+       for( const auto& it : this->getStorage()->getCells() )
+       {
+         Cell& cell = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+           vertexdof::macrocell::interpolate( level, cell, cellDataID_, constant );
+         }
+       }
+     }
+
+     this->stopTiming( "Interpolate" );
+   }
+
    using Function< VertexDoFFunction< ValueType > >::communicators_;
+   using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
    inline void enumerate_impl( uint_t level, uint_t& num );
 
@@ -138,8 +228,22 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
+
+   DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 };
 
+template < typename ValueType >
+inline void VertexDoFFunction< ValueType >::interpolate( const ValueType & constant, uint_t level, DoFType flag )
+{
+   this->startTiming( "Interpolate" );
+
+   interpolateByPrimitiveType< Vertex >( constant, level, flag );
+   interpolateByPrimitiveType< Edge   >( constant, level, flag );
+   interpolateByPrimitiveType< Face   >( constant, level, flag );
+   interpolateByPrimitiveType< Cell   >( constant, level, flag );
+
+   this->stopTiming( "Interpolate" );
+}
 
 template < typename ValueType >
 inline void
