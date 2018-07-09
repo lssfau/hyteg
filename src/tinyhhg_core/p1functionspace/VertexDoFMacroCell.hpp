@@ -35,6 +35,22 @@ template< typename ValueType >
 inline void interpolate( const uint_t & level,
                          const Cell & cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
+                         const ValueType & scalar )
+{
+  ValueType * cellData = cell.getData( cellMemoryId )->getPointer( level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    cellData[ idx ] = scalar;
+  }
+}
+
+
+template< typename ValueType >
+inline void interpolate( const uint_t & level,
+                         const Cell & cell,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                          const std::function< ValueType( const hhg::Point3D &, const std::vector< ValueType > & )> & expr)
 {

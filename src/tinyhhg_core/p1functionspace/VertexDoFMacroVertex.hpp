@@ -15,6 +15,16 @@ namespace vertexdof {
 namespace macrovertex {
 
 template< typename ValueType >
+inline void interpolate( const uint_t & level, const Vertex & vertex,
+                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &vertexMemoryId,
+                         const ValueType & scalar )
+{
+  auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer(level);
+  vertexMemory[0] = scalar;
+}
+
+
+template< typename ValueType >
 inline void interpolate(Vertex &vertex,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &vertexMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,

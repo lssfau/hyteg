@@ -69,6 +69,19 @@ inline void assembleLocalStencil(uint_t level, uint_t pos, const Matrix3r& local
 
 template< typename ValueType >
 inline void interpolate(const uint_t & level, Edge &edge,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,
+                        const ValueType & scalar )
+{
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  auto edgeData =  edge.getData(edgeMemoryId)->getPointer( level );
+  for (size_t i = 1; i < rowsize - 1; ++i)
+  {
+    edgeData[i] = scalar;
+  }
+}
+
+template< typename ValueType >
+inline void interpolate(const uint_t & level, Edge &edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
                             const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
