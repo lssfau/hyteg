@@ -77,6 +77,21 @@ inline ValueType assembleLocalDG( const uint_t & Level, uint_t i, uint_t j, cons
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level,
+                        Face &face,
+                        const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
+                        const ValueType & scalar )
+{
+  ValueType * faceData = face.getData( faceMemoryId )->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
+  {
+    const uint_t idx  = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
+    faceData[ idx ] = scalar;
+  }
+}
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level,
                             Face &face,
                             const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
