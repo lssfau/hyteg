@@ -126,6 +126,21 @@ public:
   inline       PrimitiveType* getPrimitiveGenerically( const PrimitiveID & id )       { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
   ///@}
 
+  /// Returns a vector of all locally existing primitives
+  std::vector< PrimitiveID > getPrimitiveIDs() const;
+
+  /// Returns a vector of all locally existing vertices
+  std::vector< PrimitiveID >  getVertexIDs() const;
+
+  /// Returns a vector of all locally existing edges
+  std::vector< PrimitiveID >  getEdgeIDs() const;
+
+  /// Returns a vector of all locally existing faces
+  std::vector< PrimitiveID >  getFaceIDs() const;
+
+  /// Returns a vector of all locally existing cells
+  std::vector< PrimitiveID >  getCellIDs() const;
+
   /// Fills the passed vector with the IDs of the locally existing primitives
   void getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const;
 
