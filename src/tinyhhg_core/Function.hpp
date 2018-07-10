@@ -79,7 +79,7 @@ protected:
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
-  void startTiming( const std::string & timerString )
+  void startTiming( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
@@ -89,7 +89,7 @@ protected:
     }
   }
 
-  void stopTiming ( const std::string & timerString )
+  void stopTiming ( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
