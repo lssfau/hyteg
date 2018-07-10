@@ -92,6 +92,27 @@ inline Index operator+( const IndexIncrement & lhs, Index rhs )
   return rhs;
 }
 
+inline Index operator*( Index lhs, const uint_t & scalar )
+{
+  lhs.x() *= scalar;
+  lhs.y() *= scalar;
+  lhs.z() *= scalar;
+  return lhs;
+}
+
+inline Index operator*( const uint_t & scalar, Index rhs )
+{
+  rhs.x() *= scalar;
+  rhs.y() *= scalar;
+  rhs.z() *= scalar;
+  return rhs;
+}
+
+inline IndexIncrement operator-( const Index & lhs, const Index & rhs )
+{
+  return IndexIncrement( (int) lhs.x() - (int) rhs.x(), (int) lhs.y() - (int) rhs.y(), (int) lhs.z() - (int) rhs.z() );
+}
+
 inline bool operator==( const Index & lhs, const Index & rhs )
 {
   return lhs.x() == rhs.x() && lhs.y() == rhs.y() && lhs.z() == rhs.z();
