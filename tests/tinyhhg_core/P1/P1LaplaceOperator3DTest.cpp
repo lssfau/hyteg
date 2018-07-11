@@ -38,7 +38,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   if ( writeVTK )
     writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
 
-  P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > laplaceOperator3D( storage, level, level );
+  P1ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
   {
