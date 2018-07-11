@@ -506,6 +506,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Vertex, Edge >( level );
+
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -517,6 +519,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Edge, Face >( level );
+
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -527,6 +531,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
          }
       }
+
+      dst.communicate< Face, Cell >( level );
 
       for( auto& it : storage_->getCells() )
       {
