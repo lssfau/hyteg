@@ -13,3 +13,4 @@ if( HHG_BUILD_WITH_PETSC )
 endif()
 
 add_subdirectory(P1Benchmark)
+add_subdirectory(P1CGBenchmark)
