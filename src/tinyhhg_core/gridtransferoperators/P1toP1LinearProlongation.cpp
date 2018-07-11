@@ -97,7 +97,6 @@ void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& functio
     const auto cell = cellIt.second;
     const auto srcData     = cell->getData( function.getCellDataID() )->getPointer( sourceLevel );
           auto dstData     = cell->getData( function.getCellDataID() )->getPointer( destinationLevel );
-    const auto dstDataSize = cell->getData( function.getCellDataID() )->getSize   ( destinationLevel );
 
     // Clear complete cell (incl. ghost-layer) on dst level
     for ( const auto & dstIdx : vertexdof::macrocell::Iterator( destinationLevel ) )
