@@ -201,8 +201,8 @@ endif()
 
 ## convergence ##
 
-waLBerla_compile_test(FILES convergence/GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME GSConvergenceTest)
+waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2GSConvergenceTest)
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscTest.cpp DEPENDS tinyhhg_core core)
