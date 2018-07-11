@@ -419,6 +419,27 @@ constexpr std::array<stencilDirection, 19> neighborsWithTwoNeighborCellsWithCent
   hhg::stencilDirection::VERTEX_BSW, hhg::stencilDirection::VERTEX_BNW,
 }};
 
+constexpr std::array<stencilDirection, 12> neighborsWithOneNeighborCellWithoutCenter = {{
+                                                                                     hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                                     hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                                     hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                                     hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
+                                                                                     hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+                                                                                     hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW
+                                                                                     }};
+
+constexpr std::array<stencilDirection, 18> neighborsWithTwoNeighborCellsWithoutCenter = {{
+                                                                                      hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
+                                                                                      hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
+                                                                                      hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
+                                                                                      hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
+                                                                                      hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+                                                                                      hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
+                                                                                      hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
+                                                                                      hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSE,
+                                                                                      hhg::stencilDirection::VERTEX_BSW, hhg::stencilDirection::VERTEX_BNW
+                                                                                      }};
+
 constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
                                                                        hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
                                                                        hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,

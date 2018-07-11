@@ -240,6 +240,47 @@ inline void apply( const uint_t & level,
 }
 
 
+template< typename ValueType >
+inline void smooth_gs( const uint_t & level,
+                       Cell & cell,
+                       const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId )
+{
+  typedef stencilDirection sd;
+
+  const ValueType * operatorData = cell.getData( operatorId )->getPointer( level );
+  const ValueType * rhs          = cell.getData( rhsId )->getPointer( level );
+        ValueType * dst          = cell.getData( dstId )->getPointer( level );
+
+  ValueType tmp;
+
+  const auto inverseCenterWeight = 1.0 / operatorData[ vertexdof::stencilIndexFromVertex( sd::VERTEX_C ) ];
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t x = it.x();
+    const uint_t y = it.y();
+    const uint_t z = it.z();
+
+    const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
+
+    tmp = rhs[ centerIdx ];
+
+    for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+    {
+      const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+      const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
+      tmp -= operatorData[ stencilIdx ] * dst[ idx ];
+    }
+
+    dst[ centerIdx ] = tmp * inverseCenterWeight;
+  }
+}
+
+
+
+
 } // namespace macrocell
 } // namespace vertexdof
 } // namespace hhg
