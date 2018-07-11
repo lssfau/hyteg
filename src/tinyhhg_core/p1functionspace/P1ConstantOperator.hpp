@@ -569,6 +569,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Vertex, Edge >( level );
+
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -580,6 +582,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax );
          }
       }
+
+      dst.communicate< Edge, Face >( level );
 
       for( auto& it : storage_->getFaces() )
       {
