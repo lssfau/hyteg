@@ -25,7 +25,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
-  SetupPrimitiveStorage setupStorage( meshInfo, walberla::mpi::MPIManager::instance()->numProcesses() );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
