@@ -84,7 +84,7 @@ static real_t calculateInverseFactorToScaleNeighborhoodContribution(
   return invFactorDueToNeighborhood;
 }
 
-void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
+void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& ) const
 {
   const uint_t destinationLevel = sourceLevel + 1;
 
