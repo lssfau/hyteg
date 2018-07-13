@@ -12,6 +12,7 @@
 
 #include <cassert>
 #include <set>
+#include <vector>
 
 namespace hhg {
 namespace vertexdof {
