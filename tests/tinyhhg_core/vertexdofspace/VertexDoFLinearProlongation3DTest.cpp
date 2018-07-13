@@ -1,10 +1,15 @@
+
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 #include "core/math/Random.h"
 
+#include "tinyhhg_core/FunctionProperties.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -19,14 +24,11 @@ using walberla::uint_t;
 
 using namespace hhg;
 
-void testLaplace3D( const std::string & meshFile, const uint_t & level )
+void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel )
 {
-  // Tests (on multiple meshes) if the 3D Laplace operator has the following properties:
-  // 1. laplace(u) = 0, if u = const.
-  // 2. laplace(u) = 0, if u linear
 
   const bool   writeVTK   = false;
-  const real_t errorLimit = 2.2e-13;
+  const real_t errorLimit = 1e-15;
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -38,7 +40,6 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   if ( writeVTK )
     writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
 
-  P1ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
   {
@@ -50,6 +51,12 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
       return 1.0;
   };
 
+  std::function< real_t( const hhg::Point3D& ) > constant = []( const hhg::Point3D & ) -> real_t
+  {
+      return 42.0;
+  };
+
+
   std::function< real_t( const hhg::Point3D& ) > linearInX = []( const hhg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0];
@@ -60,60 +67,70 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
       return real_c(42) * p[0] + p[1] + real_c(1337) * p[2];
   };
 
-  hhg::P1Function< real_t > u          ( "u",           storage, level, level );
-  hhg::P1Function< real_t > resultExact( "u_exact",     storage, level, level );
-  hhg::P1Function< real_t > result     ( "result",      storage, level, level );
-  hhg::P1Function< real_t > err        ( "err",         storage, level, level );
-  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, level, level );
-
-  oneFunction.interpolate( one, level, DoFType::All );
-  const real_t numPoints  = oneFunction.dot( oneFunction, level, DoFType::Inner );
+  hhg::vertexdof::VertexDoFFunction< real_t > u          ( "u",           storage, lowerLevel, lowerLevel + 1 );
+  hhg::vertexdof::VertexDoFFunction< real_t > resultExact( "u_exact",     storage, lowerLevel, lowerLevel + 1 );
+  hhg::vertexdof::VertexDoFFunction< real_t > err        ( "err",         storage, lowerLevel, lowerLevel + 1 );
+  hhg::vertexdof::VertexDoFFunction< real_t > oneFunction( "oneFunction", storage, lowerLevel, lowerLevel + 1 );
 
   VTKOutput vtkOutput( "../../output", "P1LaplaceOperatorTest3D" );
   vtkOutput.set3D();
   vtkOutput.add( &u );
-  vtkOutput.add( &result );
   vtkOutput.add( &resultExact );
   vtkOutput.add( &err );
 
-  auto testLaplaceResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction,
-                                std::function< real_t( const hhg::Point3D& ) > resultExactFunction ) -> real_t
+  auto testProlongationResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction ) -> real_t
   {
-    u.interpolate( uFunction, level, DoFType::All );
-    result.interpolate( resultExactFunction, level, DoFType::DirichletBoundary );
-    resultExact.interpolate( resultExactFunction, level, DoFType::All );
-    err.interpolate( zero, level, DoFType::All );
+      u.interpolate( uFunction, lowerLevel, All );
+      resultExact.interpolate( uFunction, lowerLevel + 1, Inner | NeumannBoundary );
 
-    laplaceOperator3D.apply( u, result, level, DoFType::Inner );
+      P1toP1LinearProlongation prolongationOperator;
+      prolongationOperator( u, lowerLevel, Inner | NeumannBoundary );
 
-    err.assign( { 1.0, -1.0 }, { &result, &resultExact }, level, DoFType::All );
-    const real_t discrL2Err = std::sqrt( err.dot( err, level, DoFType::Inner ) / numPoints );
-
-    return discrL2Err;
+      err.assign( { 1.0, -1.0 }, { &u, &resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
+      const real_t discrErr = err.dot( err, lowerLevel + 1, Inner | NeumannBoundary );
+      return discrErr;
   };
+
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 0 );
 
   // 1. u = const
   // ------------
   //   a) u = 0
-  const real_t errorUZero = testLaplaceResult( zero, zero );
+  const real_t errorUZero = testProlongationResult( zero );
   WALBERLA_LOG_INFO_ON_ROOT( "u = 0: L2 error: " << errorUZero );
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 1 );
   WALBERLA_CHECK_LESS( errorUZero, errorLimit );
 
   //   b) u = 1
-  const real_t errorUOne  = testLaplaceResult( one, zero );
+  const real_t errorUOne  = testProlongationResult( one );
   WALBERLA_LOG_INFO_ON_ROOT( "u = 1: L2 error: " << errorUOne );
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 2 );
   WALBERLA_CHECK_LESS( errorUOne, errorLimit );
+
+  //   c) u = some other constant
+  const real_t errorUConstant  = testProlongationResult( constant );
+  WALBERLA_LOG_INFO_ON_ROOT( "u = const: L2 error: " << errorUConstant );
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 3 );
+  WALBERLA_CHECK_LESS( errorUConstant, errorLimit );
 
   // 2. u linear
   // -----------
   //   a) u linear in x
-  const real_t errorULinearInX   = testLaplaceResult( linearInX, zero );
+  const real_t errorULinearInX   = testProlongationResult( linearInX );
   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x: L2 error: " << errorULinearInX );
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 4 );
   WALBERLA_CHECK_LESS( errorULinearInX, errorLimit );
 
   //   b) u linear in x, y and z
-  const real_t errorULinearInXYZ = testLaplaceResult( linearInXYZ, zero );
+  const real_t errorULinearInXYZ = testProlongationResult( linearInXYZ );
   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x, y and z: L2 error: " << errorULinearInXYZ );
+  if ( writeVTK )
+    vtkOutput.write( lowerLevel + 1, 5 );
   WALBERLA_CHECK_LESS( errorULinearInXYZ, errorLimit );
 
 }
@@ -124,13 +141,11 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
 
   return 0;
 }

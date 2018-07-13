@@ -502,23 +502,49 @@ inline void smooth_gs(const uint_t & Level, Face &face, const PrimitiveDataID<St
   auto dst = face.getData(dstId)->getPointer( Level );
   auto rhs = face.getData(rhsId)->getPointer( Level );
 
+  const auto invCenterWeight = 1.0 / opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+
   ValueType tmp;
 
-  for (uint_t j = 1; j < rowsize - 2; ++j) {
-    for (uint_t i = 1; i < inner_rowsize - 2; ++i) {
+  for (uint_t j = 1; j < rowsize - 2; ++j)
+  {
+    for (uint_t i = 1; i < inner_rowsize - 2; ++i)
+    {
 
-      tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+      tmp = rhs[ vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C ) ];
 
-      //for (auto neighbor : neighbors) {
-      for(uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k){
-        tmp -= opr_data[vertexdof::stencilIndexFromVertex(vertexdof::macroface::neighborsWithoutCenter[k])]*dst[vertexdof::macroface::indexFromVertex(
-         Level, i, j, vertexdof::macroface::neighborsWithoutCenter[k] )];
+      if ( face.getNumNeighborCells() == 0 )
+      {
+        for ( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
+        {
+          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )]
+                 * dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+        }
+      }
+      else if ( face.getNumNeighborCells() == 1 )
+      {
+        for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+        {
+          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )]
+                 * dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+        }
+      }
+      else if ( face.getNumNeighborCells() == 2 )
+      {
+        for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+        {
+          tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )]
+                 * dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+        }
       }
 
-      dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp / opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C)];
+      WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
+
+      dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp * invCenterWeight;
     }
     --inner_rowsize;
   }
+
 }
 
 

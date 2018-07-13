@@ -11,6 +11,7 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -35,7 +36,7 @@ namespace hhg {
 
 using walberla::real_t;
 
-template < class UFCOperator, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
+template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
 class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
@@ -56,18 +57,23 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       storage->addEdgeData( edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil" );
       storage->addVertexData( vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil" );
 
-      // Only assemble stencils if UFCOperator is specified
-      if( !std::is_same< UFCOperator, fenics::NoAssemble >::value )
+      if ( storage_->hasGlobalCells() )
       {
-         if ( storage_->hasGlobalCells() )
-         {
-            assembleStencils3D();
-         }
-         else
-         {
-            assembleStencils();
-         }
+        const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
+        WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
+        if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+        {
+          assembleStencils3D();
+        }
       }
+      else
+      {
+        if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+        {
+          assembleStencils();
+        }
+      }
+
    }
 
    ~P1ConstantOperator() {}
@@ -335,7 +341,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto vertex = it.second;
             auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
             auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
-            UFCOperator ufcOperator;
+            UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
@@ -350,7 +356,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto edge = it.second;
             auto stencilSize   = edge->getData( getEdgeStencilID() )->getSize( level );
             auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
-            UFCOperator ufcOperator;
+            UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
@@ -365,7 +371,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto face = it.second;
             auto stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
             auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
-            UFCOperator ufcOperator;
+            UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
 
@@ -402,7 +408,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto cell          = it.second;
             auto stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
             auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
-            UFCOperator ufcOperator;
+            UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
@@ -500,6 +506,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Vertex, Edge >( level );
+
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -511,6 +519,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Edge, Face >( level );
+
       for( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
@@ -520,6 +530,19 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          {
             vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
          }
+      }
+
+      dst.communicate< Face, Cell >( level );
+
+      for( auto& it : storage_->getCells() )
+      {
+        Cell& cell = *it.second;
+
+        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+        if( testFlag( cellBC, flag ) )
+        {
+          vertexdof::macrocell::smooth_gs< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID() );
+        }
       }
    }
 
@@ -546,6 +569,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Vertex, Edge >( level );
+
       for( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
@@ -557,6 +582,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax );
          }
       }
+
+      dst.communicate< Edge, Face >( level );
 
       for( auto& it : storage_->getFaces() )
       {
@@ -632,7 +659,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       real_t coords[6];
       fenics::compute_micro_coords( face, level, coords, element_type );
-      UFCOperator gen;
+      UFCOperator2D gen;
       gen.tabulate_tensor( local_stiffness.data(), NULL, coords, 0 );
 
       if( Diagonal )
@@ -651,10 +678,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    }
 };
 
-typedef P1ConstantOperator< fenics::NoAssemble > P1ZeroOperator;
+typedef P1ConstantOperator< fenics::NoAssemble, fenics::NoAssemble > P1ZeroOperator;
 
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise >       P1ConstantLaplaceOperator;
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, true > P1DiagonalLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1ConstantLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly, true >       P1DiagonalLaplaceOperator;
 
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_1_otherwise > P1ConstantEpsilonOperator_12;
@@ -668,7 +695,7 @@ typedef P1ConstantOperator< p1_divt_cell_integral_0_otherwise > P1DivTxOperator;
 typedef P1ConstantOperator< p1_divt_cell_integral_1_otherwise > P1DivTyOperator;
 
 typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise >                    P1MassOperator;
-typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, false, true, true > P1LumpedInvMassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, fenics::UndefinedAssembly, false, true, true > P1LumpedInvMassOperator;
 
 typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise > P1PSPGOperator;
 

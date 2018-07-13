@@ -173,6 +173,8 @@ namespace hhg {
             }
         }
 
+      dst.communicate< Vertex, Edge >( level );
+
       for( auto& it : storage_->getEdges() )
         {
           Edge& edge = *it.second;
@@ -190,6 +192,8 @@ namespace hhg {
                                                                         relax );
             }
         }
+
+      dst.communicate< Edge, Face >( level );
 
       for( auto& it : storage_->getFaces() )
         {

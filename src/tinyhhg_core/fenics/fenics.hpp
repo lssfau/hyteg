@@ -33,12 +33,22 @@ inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6
   coords[5] = orientation*d2[1];
 }
 
+/// Use this UFCOperator to assemble the zero-matrix.
 class NoAssemble {
  public:
   void tabulate_tensor(real_t * A,
                        const real_t * const * w,
                        const real_t * coordinate_dofs,
                        int cell_orientation) const { }
+};
+
+/// Use this UFCOperator to indicate that no assembly is defined at all.
+class UndefinedAssembly {
+public:
+    void tabulate_tensor(real_t * A,
+                         const real_t * const * w,
+                         const real_t * coordinate_dofs,
+                         int cell_orientation) const { WALBERLA_ABORT( "Assembly undefined." ); }
 };
 
 typedef std::function<void(real_t *,

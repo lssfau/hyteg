@@ -4,11 +4,14 @@ waLBerla_link_files_to_builddir(*.msh)
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P1CGConvergenceTest3D.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1CGConvergenceTest3D)
+waLBerla_compile_test(FILES convergence/P1CG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1CG3DConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1GMGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1GMGConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P1GMG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1GMG3DConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1StokesBlockCGTest)
@@ -21,6 +24,9 @@ waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1GSConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1MinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1MinResConvergenceTest)
@@ -101,6 +107,9 @@ waLBerla_execute_test(NAME VertexDoFStencilAssemblyTest)
 
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFAdditiveCommunicationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME VertexDoFAdditiveCommunicationTest)
+
+waLBerla_compile_test(FILES vertexdofspace/VertexDoFLinearProlongation3DTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME VertexDoFLinearProlongation3DTest)
 
 ## EdgeDoFSpace ##
 
@@ -198,8 +207,8 @@ endif()
 
 ## convergence ##
 
-waLBerla_compile_test(FILES convergence/GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME GSConvergenceTest)
+waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2GSConvergenceTest)
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscTest.cpp DEPENDS tinyhhg_core core)

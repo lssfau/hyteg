@@ -41,7 +41,7 @@ int main( int argc, char* argv[] )
 
   writeDomainPartitioningVTK( storage, "../../output", "P1_CG_3D_convergence_partitioning" );
 
-  P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > laplaceOperator3D( storage, lowerLevel, higherLevel );
+  P1ConstantLaplaceOperator laplaceOperator3D( storage, lowerLevel, higherLevel );
 
   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D & p ) -> real_t
   {
@@ -84,7 +84,7 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, higherLevel, DoFType::All );
   oneFunction.interpolate( one, higherLevel, DoFType::All );
 
-  auto solver = hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantOperator< p1_tet_diffusion_cell_integral_0_otherwise > >( storage, lowerLevel, higherLevel );
+  auto solver = hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator >( storage, lowerLevel, higherLevel );
 
   WALBERLA_CHECK_LESS( lowerLevel, higherLevel );
 

@@ -4,7 +4,9 @@
 #include "core/DataTypes.h"
 #include "core/Abort.h"
 
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
 namespace hhg {
 namespace celldof {
@@ -26,6 +28,28 @@ const std::array< CellType, 6 > allCellTypes = {{ CellType::WHITE_UP, CellType::
                                                   CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN }};
 
 namespace macrocell {
+
+inline uint_t numCellsPerRowByType( const uint_t & level, const CellType & cellType )
+{
+  switch ( cellType )
+  {
+    case CellType::WHITE_UP:
+      return levelinfo::num_microedges_per_edge( level );
+    case CellType::BLUE_UP:
+      return levelinfo::num_microedges_per_edge( level ) - 1;
+    case CellType::GREEN_UP:
+      return levelinfo::num_microedges_per_edge( level ) - 1;
+    case CellType::WHITE_DOWN:
+      return levelinfo::num_microedges_per_edge( level ) - 2;
+    case CellType::BLUE_DOWN:
+      return levelinfo::num_microedges_per_edge( level ) - 1;
+    case CellType::GREEN_DOWN:
+      return levelinfo::num_microedges_per_edge( level ) - 1;
+    default:
+      WALBERLA_ABORT( "Invalid cell type" );
+      return 0;
+  }
+}
 
 /// Returns an array of the four logical micro-vertex-indices that span the micro-cell of the given indices and cell type.
 inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & microCellIndex, const CellType & microCellType )
@@ -79,11 +103,21 @@ inline std::array< Index, 4 > getMicroVerticesFromMicroCell( const Index & micro
       Index( cellX    , cellY + 1, cellZ + 1 )
     }} );
   default:
-    WALBERLA_ABORT( "Not implement for this cell type." );
+    WALBERLA_ABORT( "Not implemented for this cell type." );
     break;
   }
   return std::array< Index, 4 >();
 }
+
+// Iterators
+
+class Iterator : public indexing::CellIterator
+{
+public:
+    Iterator( const uint_t & level, const CellType & cellType, const uint_t & offsetToCenter = 0 ) :
+      CellIterator( numCellsPerRowByType( level, cellType ), offsetToCenter )
+    {}
+};
 
 }
 }
