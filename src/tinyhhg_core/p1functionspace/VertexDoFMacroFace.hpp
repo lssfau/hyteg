@@ -85,27 +85,27 @@ inline ValueType assembleLocalDG( const uint_t&                            Level
    return tmp;
 }
 
-template< typename ValueType >
-inline void interpolate(const uint_t & Level,
-                        Face &face,
-                        const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
-                        const ValueType & scalar )
+template < typename ValueType >
+inline void interpolate( const uint_t&                                               Level,
+                         Face&                                                       face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
+                         const ValueType&                                            scalar )
 {
-  ValueType * faceData = face.getData( faceMemoryId )->getPointer( Level );
+   ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
-  for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
-  {
-    const uint_t idx  = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
-    faceData[ idx ] = scalar;
-  }
+   for( const auto& it : vertexdof::macroface::Iterator( Level, 1 ) )
+   {
+      const uint_t idx = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
+      faceData[idx]    = scalar;
+   }
 }
 
-template< typename ValueType >
-inline void interpolate(const uint_t & Level,
-                            Face &face,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+template < typename ValueType >
+inline void interpolate( const uint_t&                                                                             Level,
+                         Face&                                                                                     face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                               faceMemoryId,
+                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                srcIds,
+                         const std::function< ValueType( const hhg::Point3D&, const std::vector< ValueType >& ) >& expr )
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -563,6 +563,8 @@ inline void smooth_gs( const uint_t&                                            
    auto dst      = face.getData( dstId )->getPointer( Level );
    auto rhs      = face.getData( rhsId )->getPointer( Level );
 
+   const auto invCenterWeight = 1.0 / opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+
    ValueType tmp;
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
@@ -571,15 +573,32 @@ inline void smooth_gs( const uint_t&                                            
       {
          tmp = rhs[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
 
-         //for (auto neighbor : neighbors) {
-         for( uint_t k = 0; k < vertexdof::macroface::neighborsWithoutCenter.size(); ++k )
+         if( face.getNumNeighborCells() == 0 )
          {
-            tmp -= opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[k] )] *
-                   dst[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[k] )];
+            for( const auto direction : vertexdof::macroface::neighborsWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         } else if( face.getNumNeighborCells() == 1 )
+         {
+            for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
+         } else if( face.getNumNeighborCells() == 2 )
+         {
+            for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+            {
+               tmp -= opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                      dst[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+            }
          }
 
-         dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =
-             tmp / opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
+
+         dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp * invCenterWeight;
       }
       --inner_rowsize;
    }

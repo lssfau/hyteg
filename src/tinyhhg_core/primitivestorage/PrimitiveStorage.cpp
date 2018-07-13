@@ -430,6 +430,41 @@ Cell* PrimitiveStorage::getCell( const PrimitiveID & id )
   }
 }
 
+std::vector< PrimitiveID > PrimitiveStorage::getPrimitiveIDs() const
+{
+  std::vector< PrimitiveID > ids;
+  getPrimitiveIDs( ids );
+  return ids;
+}
+
+std::vector< PrimitiveID >  PrimitiveStorage::getVertexIDs() const
+{
+  std::vector< PrimitiveID > ids;
+  getVertexIDs( ids );
+  return ids;
+}
+
+std::vector< PrimitiveID >  PrimitiveStorage::getEdgeIDs() const
+{
+  std::vector< PrimitiveID > ids;
+  getEdgeIDs( ids );
+  return ids;
+}
+
+std::vector< PrimitiveID >  PrimitiveStorage::getFaceIDs() const
+{
+  std::vector< PrimitiveID > ids;
+  getFaceIDs( ids );
+  return ids;
+}
+
+std::vector< PrimitiveID >  PrimitiveStorage::getCellIDs() const
+{
+  std::vector< PrimitiveID > ids;
+  getCellIDs( ids );
+  return ids;
+}
+
 void PrimitiveStorage::getPrimitiveIDs ( std::vector< PrimitiveID > & primitiveIDs ) const
 {
   primitiveIDs.clear();

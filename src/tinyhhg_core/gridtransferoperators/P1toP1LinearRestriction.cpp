@@ -3,6 +3,187 @@
 
 namespace hhg {
 
+void P1toP1LinearRestriction::restrict2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
+{
+  const uint_t destinationLevel  = sourceLevel - 1;
+  const auto   storage           = function.getStorage();
+  const auto   boundaryCondition = function.getBoundaryCondition();
+
+  function.communicate< Vertex, Edge >( sourceLevel );
+  function.communicate< Edge, Face >( sourceLevel );
+  function.communicate< Face, Edge >( sourceLevel );
+  function.communicate< Edge, Vertex >( sourceLevel );
+
+  for( const auto& it : storage->getVertices() )
+  {
+    const Vertex& vertex  = *it.second;
+    const auto    srcData = vertex.getData( function.getVertexDataID() )->getPointer( sourceLevel );
+    auto          dstData = vertex.getData( function.getVertexDataID() )->getPointer( destinationLevel );
+
+    if( testFlag( boundaryCondition.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+    {
+      restrictMacroVertex( srcData, dstData, sourceLevel, vertex.getNumNeighborEdges() );
+    }
+  }
+
+  for( const auto& it : storage->getEdges() )
+  {
+    const Edge& edge    = *it.second;
+    const auto  srcData = edge.getData( function.getEdgeDataID() )->getPointer( sourceLevel );
+    auto        dstData = edge.getData( function.getEdgeDataID() )->getPointer( destinationLevel );
+
+    if( testFlag( boundaryCondition.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
+      restrictMacroEdge( srcData, dstData, sourceLevel, edge.getNumNeighborFaces() );
+    }
+  }
+
+  for( const auto& it : storage->getFaces() )
+  {
+    const Face& face    = *it.second;
+    const auto  srcData = face.getData( function.getFaceDataID() )->getPointer( sourceLevel );
+    auto        dstData = face.getData( function.getFaceDataID() )->getPointer( destinationLevel );
+
+    if( testFlag( boundaryCondition.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
+      restrictMacroFace( srcData, dstData, sourceLevel, 0 );
+    }
+  }
+}
+
+static real_t calculateInverseFactorToScaleNeighborhoodContribution(
+  const std::array< real_t, 4 > & invNumNeighborsOfVertex,
+  const std::array< real_t, 6 > & invNumNeighborsOfEdge,
+  const std::array< real_t, 4 > invNumNeighborsOfFace,
+  const indexing::Index & index,
+  const uint_t & level )
+{
+  const auto stencilLeafOnCellVertices = vertexdof::macrocell::isOnCellVertex( index, level );
+  const auto stencilLeafOnCellEdges    = vertexdof::macrocell::isOnCellEdge  ( index, level );
+  const auto stencilLeafOnCellFaces    = vertexdof::macrocell::isOnCellFace  ( index, level );
+
+  real_t invFactorDueToNeighborhood = real_c( 1 );
+
+  if ( stencilLeafOnCellVertices.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( stencilLeafOnCellVertices.size(), 1 );
+    const auto localVertexID = *stencilLeafOnCellVertices.begin();
+    invFactorDueToNeighborhood = invNumNeighborsOfVertex[ localVertexID ];
+  }
+  else if ( stencilLeafOnCellEdges.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( stencilLeafOnCellEdges.size(), 1 );
+    const auto localEdgeID = *stencilLeafOnCellEdges.begin();
+    invFactorDueToNeighborhood = invNumNeighborsOfEdge[ localEdgeID ];
+  }
+  else if ( stencilLeafOnCellFaces.size() > 0 )
+  {
+    WALBERLA_ASSERT_EQUAL( stencilLeafOnCellFaces.size(), 1 );
+    const auto localFaceID = *stencilLeafOnCellFaces.begin();
+    invFactorDueToNeighborhood = invNumNeighborsOfFace[ localFaceID ];
+  }
+
+  return invFactorDueToNeighborhood;
+}
+
+void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& ) const
+{
+  const uint_t destinationLevel = sourceLevel - 1;
+
+  function.communicate< Vertex, Edge >  ( sourceLevel );
+  function.communicate< Edge,   Face >  ( sourceLevel );
+  function.communicate< Face,   Cell >  ( sourceLevel );
+
+  for ( const auto & cellIt : function.getStorage()->getCells() )
+  {
+    const auto cell = cellIt.second;
+    const auto srcData     = cell->getData( function.getCellDataID() )->getPointer( sourceLevel );
+          auto dstData     = cell->getData( function.getCellDataID() )->getPointer( destinationLevel );
+
+    // Calculate inverse number of neighboring cells for each neighboring macro-primitive.
+    std::array< real_t, 4 > invNumNeighborsOfVertex;
+    std::array< real_t, 6 > invNumNeighborsOfEdge;
+    std::array< real_t, 4 > invNumNeighborsOfFace;
+    for ( const auto & neighborVertexID : cell->neighborVertices() )
+    {
+      invNumNeighborsOfVertex[ cell->getLocalVertexID( neighborVertexID ) ] = real_c( 1 ) / real_c( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells() );
+    }
+    for ( const auto & neighborEdgeID : cell->neighborEdges() )
+    {
+      invNumNeighborsOfEdge[ cell->getLocalEdgeID( neighborEdgeID ) ] = real_c( 1 ) / real_c( function.getStorage()->getEdge( neighborEdgeID )->getNumNeighborCells() );
+    }
+    for ( const auto & neighborFaceID : cell->neighborFaces() )
+    {
+      invNumNeighborsOfFace[ cell->getLocalFaceID( neighborFaceID ) ] = real_c( 1 ) / real_c( function.getStorage()->getFace( neighborFaceID )->getNumNeighborCells() );
+    }
+
+    for ( const auto & dstIdx : vertexdof::macrocell::Iterator( destinationLevel ) )
+    {
+      const auto srcIdx = dstIdx * 2;
+      const auto arrayIdxDst       = vertexdof::macrocell::index( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z() );
+      const auto arrayIdxSrcCenter = vertexdof::macrocell::index( sourceLevel,      srcIdx.x(), srcIdx.y(), srcIdx.z() );
+
+      const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( dstIdx, destinationLevel );
+      const auto onCellEdges    = vertexdof::macrocell::isOnCellEdge  ( dstIdx, destinationLevel );
+      const auto onCellFaces    = vertexdof::macrocell::isOnCellFace  ( dstIdx, destinationLevel );
+
+      // add center with weight one and scale depending on location of dst unknown
+      const auto invFactorToScaleContributionCenter = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
+                                                                                                             dstIdx, destinationLevel );
+
+      dstData[ arrayIdxDst ] = invFactorToScaleContributionCenter * srcData[ arrayIdxSrcCenter ];
+
+      // add leaves with weight .5 and scale depending on location of dst unknown
+      if ( onCellVertices.size() > 0 )
+      {
+        WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
+        const auto localVertexID = *onCellVertices.begin();
+
+        for ( const auto & dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
+        {
+          const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
+          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContributionCenter * srcData[ arrayIdxSrcDir ];
+        }
+      }
+      else if ( onCellEdges.size() > 0 )
+      {
+        WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
+        const auto localEdgeID = *onCellEdges.begin();
+
+        for ( const auto & dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
+        {
+          const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
+          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContributionCenter * srcData[ arrayIdxSrcDir ];
+        }
+      }
+      else if ( onCellFaces.size() > 0 )
+      {
+        WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
+        const auto localFaceID = *onCellFaces.begin();
+
+        for ( const auto & dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
+        {
+          const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
+          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContributionCenter * srcData[ arrayIdxSrcDir ];
+        }
+      }
+      else
+      {
+        for ( const auto & dir : vertexdof::macrocell::neighborsWithoutCenter )
+        {
+          const auto arrayIdxSrcDir = vertexdof::macrocell::indexFromVertex( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z(), dir );
+          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContributionCenter * srcData[ arrayIdxSrcDir ];
+        }
+      }
+    }
+  }
+
+  function.communicateAdditively< Cell, Vertex >( destinationLevel );
+  function.communicateAdditively< Cell, Edge >( destinationLevel );
+  function.communicateAdditively< Cell, Face >( destinationLevel );
+}
+
+
 void P1toP1LinearRestriction::restrictMacroVertex( const real_t *src, real_t *dst, const uint_t & sourceLevel,
                                                    const uint_t & numNeighborEdges ) const
 {

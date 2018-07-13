@@ -357,7 +357,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
 
   for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
   {
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ))) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::WHITE_UP ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -366,7 +366,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::BLUE_UP ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -375,7 +375,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::GREEN_UP ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -384,7 +384,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 2 )) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::WHITE_DOWN ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -393,7 +393,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::BLUE_DOWN ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -402,7 +402,7 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : indexing::CellIterator( levelinfo::num_microedges_per_edge( level ) - 1 )) {
+    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::GREEN_DOWN ) ) {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {

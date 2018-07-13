@@ -92,7 +92,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    inline void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
-   inline void interpolate( const ValueType & constant, uint_t level, DoFType flag = All );
+   inline void interpolate( const ValueType & constant, uint_t level, DoFType flag = All ) const;
 
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
 
@@ -127,20 +127,20 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level )
+   inline void startAdditiveCommunication( const uint_t& level ) const
    {
       interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void endAdditiveCommunication( const uint_t& level )
+   inline void endAdditiveCommunication( const uint_t& level ) const
    {
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level )
+   inline void communicateAdditively( const uint_t& level ) const
    {
       interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
@@ -161,7 +161,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
  private:
 
    template< typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType & constant, uint_t level, DoFType flag = All )
+   void interpolateByPrimitiveType( const ValueType & constant, uint_t level, DoFType flag = All ) const
    {
      this->startTiming( "Interpolate" );
 
@@ -233,7 +233,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 };
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolate( const ValueType & constant, uint_t level, DoFType flag )
+inline void VertexDoFFunction< ValueType >::interpolate( const ValueType & constant, uint_t level, DoFType flag ) const
 {
    this->startTiming( "Interpolate" );
 
