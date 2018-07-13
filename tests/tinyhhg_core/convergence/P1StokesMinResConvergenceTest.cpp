@@ -64,7 +64,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
-   WALBERLA_CHECK_LESS( final_residuum, 8e-07 );
+   WALBERLA_CHECK_LESS( final_residuum, 8.1e-07 );
    //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
 }

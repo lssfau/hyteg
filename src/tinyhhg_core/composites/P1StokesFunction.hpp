@@ -18,7 +18,7 @@ public:
     P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : u(_name+"_u", storage, minLevel, maxLevel),
       v(_name+"_v", storage, minLevel, maxLevel),
-      p(_name+"_p", storage, minLevel, maxLevel)
+      p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {
   }
 
@@ -26,7 +26,7 @@ public:
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
-    p.interpolate(expr, level, flag | DirichletBoundary);
+    p.interpolate(expr, level, flag);
   }
 
   void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
@@ -44,7 +44,7 @@ public:
 
     u.assign(scalars, functions_u, level, flag);
     v.assign(scalars, functions_v, level, flag);
-    p.assign(scalars, functions_p, level, flag | DirichletBoundary);
+    p.assign(scalars, functions_p, level, flag);
   }
 
   void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
@@ -62,14 +62,14 @@ public:
 
     u.add(scalars, functions_u, level, flag);
     v.add(scalars, functions_v, level, flag);
-    p.add(scalars, functions_p, level, flag | DirichletBoundary);
+    p.add(scalars, functions_p, level, flag);
   }
 
   walberla::real_t dot(P1StokesFunction<ValueType>& rhs, size_t level, DoFType flag = All)
   {
     walberla::real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
-    sum += p.dot(rhs.p, level, flag | DirichletBoundary);
+    sum += p.dot(rhs.p, level, flag);
     return sum;
   }
 

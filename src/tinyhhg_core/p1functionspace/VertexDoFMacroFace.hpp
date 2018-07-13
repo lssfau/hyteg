@@ -85,12 +85,27 @@ inline ValueType assembleLocalDG( const uint_t&                            Level
    return tmp;
 }
 
-template < typename ValueType >
-inline void interpolate( const uint_t&                                                                             Level,
-                         Face&                                                                                     face,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                               faceMemoryId,
-                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                srcIds,
-                         const std::function< ValueType( const hhg::Point3D&, const std::vector< ValueType >& ) >& expr )
+template< typename ValueType >
+inline void interpolate(const uint_t & Level,
+                        Face &face,
+                        const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
+                        const ValueType & scalar )
+{
+  ValueType * faceData = face.getData( faceMemoryId )->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macroface::Iterator( Level, 1 ) )
+  {
+    const uint_t idx  = vertexdof::macroface::indexFromVertex( Level, it.x(), it.y(), stencilDirection::VERTEX_C );
+    faceData[ idx ] = scalar;
+  }
+}
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level,
+                            Face &face,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
+                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 

@@ -26,6 +26,10 @@ inline DoFType operator&(DoFType a, DoFType b){
   return DoFType(static_cast<size_t>(a) & static_cast<size_t>(b));
 }
 
+inline DoFType operator^(DoFType a, DoFType b){
+  return DoFType(static_cast<size_t>(a) ^ static_cast<size_t>(b));
+}
+
 inline std::ostream& operator<<(std::ostream &os, const DoFType type){
   switch(type) {
     case NeumannBoundary   :
