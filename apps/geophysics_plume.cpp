@@ -1,6 +1,7 @@
 #include <boost/core/null_deleter.hpp>
 #include <core/Environment.h>
 #include <core/timing/Timer.h>
+#include <tinyhhg_core/FunctionProperties.hpp>
 
 #include "tinyhhg_core/MeshQuality.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -30,13 +31,13 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::DETAIL );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
    timingTree->start( "Global" );
 
-   std::string meshFileName = "../data/meshes/annulus_coarse.msh";
+   std::string meshFileName = "../data/meshes/annulus_fine.msh";
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -44,7 +45,7 @@ int main( int argc, char* argv[] )
    hhg::loadbalancing::roundRobin( setupStorage );
 
    const uint_t minLevel      = 2;
-   const uint_t maxLevel      = 4;
+   const uint_t maxLevel      = 6;
    const uint_t solverMaxiter = 100;
 
    std::function< real_t( const hhg::Point3D& ) > initialConcentration = []( const hhg::Point3D& x ) {
@@ -126,6 +127,21 @@ int main( int argc, char* argv[] )
 
    auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, CoarseGridSolver,
    RestrictionOperator, ProlongationOperator, false >( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
+   WALBERLA_LOG_DETAIL_ON_ROOT("Total number of faces: " << storage->getNumberOfLocalFaces());
+
+   uint_t totalGlobalDofsStokes = 0;
+   uint_t totalGlobalDofsTemp = 0;
+   for(uint_t lvl = minLevel; lvl <= maxLevel; ++lvl) {
+      uint_t tmpDofStokes = numberOfGlobalDoFs<hhg::P1StokesFunctionTag>(*storage, lvl);
+      uint_t tmpDofTemp = numberOfGlobalDoFs<hhg::DGFunctionTag>(*storage, lvl);
+      WALBERLA_LOG_DETAIL_ON_ROOT("Stokes DoFs on level " << lvl << " : " << tmpDofStokes);
+      WALBERLA_LOG_DETAIL_ON_ROOT("Temperature DoFs on level " << lvl << " : " << tmpDofTemp);
+      totalGlobalDofsStokes += tmpDofStokes;
+      totalGlobalDofsTemp += tmpDofTemp;
+   }
+   WALBERLA_LOG_DETAIL_ON_ROOT("Total Stokes DoFs on all level :" << totalGlobalDofsStokes);
+   WALBERLA_LOG_DETAIL_ON_ROOT("Total Temperature DoFs on all level :" << totalGlobalDofsTemp);
+   WALBERLA_LOG_DETAIL_ON_ROOT("Total DoFs on all level :" << (totalGlobalDofsTemp + totalGlobalDofsStokes));
 
    hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
    vtkOutput.add( &u->u );

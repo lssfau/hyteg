@@ -30,18 +30,6 @@ waLBerla_add_executable( NAME GeometryBlending
         FILES GeometryBlending.cpp
         DEPENDS tinyhhg_core)
 
-waLBerla_add_executable( NAME CompareInterpolate
-        FILES benchmarks/CompareInterpolate.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME ApplyBenchmark
-        FILES benchmarks/ApplyBenchmark.cpp
-        DEPENDS tinyhhg_core)
-
-waLBerla_add_executable( NAME IndexFunctionVSManualVersion
-        FILES benchmarks/IndexFunctionVSManualVersion.cpp
-        DEPENDS tinyhhg_core)
-
 waLBerla_add_executable( NAME show_mesh
         FILES show_mesh.cpp
         DEPENDS tinyhhg_core)
@@ -59,3 +47,5 @@ if( HHG_BUILD_WITH_EIGEN )
             FILES gmg_blending.cpp
             DEPENDS tinyhhg_core)
 endif()
+
+add_subdirectory(benchmarks)

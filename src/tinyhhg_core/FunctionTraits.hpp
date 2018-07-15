@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <string>
 
 namespace hhg {
 
@@ -20,6 +21,7 @@ namespace hhg {
 struct VertexDoFFunctionTag {};
 typedef VertexDoFFunctionTag P1FunctionTag;
 struct EdgeDoFFunctionTag {};
+struct DGFunctionTag {};
 struct P2FunctionTag {};
 struct P1StokesFunctionTag {};
 struct P2P1TaylorHoodFunctionTag {};
