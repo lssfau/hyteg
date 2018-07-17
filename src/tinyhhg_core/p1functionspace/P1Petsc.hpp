@@ -1,8 +1,11 @@
 #pragma once
 
+#include <tinyhhg_core/p1functionspace/P1Function.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFFunction.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
-#include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
+#include <tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp>
 
 namespace hhg {
 namespace petsc {
@@ -36,6 +39,15 @@ inline void createVectorFromFunction(P1Function<PetscScalar> &function,
     const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag)) {
       vertexdof::macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+    }
+  }
+
+  for (auto &it : function.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag)) {
+      vertexdof::macrocell::createVectorFromFunction<PetscScalar>(level, cell, function.getCellDataID(), numerator.getCellDataID(), vec);
     }
   }
 }
@@ -77,6 +89,18 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
       vertexdof::macroface::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
+
+  function.startCommunication<Face, Cell>( level );
+  function.endCommunication<Face, Cell>( level );
+
+  for (auto &it : function.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if ( testFlag(cellBC, flag)) {
+      vertexdof::macrocell::createFunctionFromVector<PetscScalar>(level, cell, function.getCellDataID(), numerator.getCellDataID(), vec);
+    }
+  }
 }
 
 inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
@@ -95,6 +119,15 @@ inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscI
     const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if (testFlag(edgeBC, DirichletBoundary)) {
       vertexdof::macroedge::applyDirichletBC(level, edge, mat, numerator.getEdgeDataID());
+    }
+  }
+
+  for (auto &it : numerator.getStorage()->getFaces()) {
+    Face &face = *it.second;
+
+    const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, DirichletBoundary)) {
+      vertexdof::macroface::applyDirichletBC(level, face, mat, numerator.getFaceDataID());
     }
   }
 
@@ -130,6 +163,16 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Func
     if (testFlag(faceBC, flag))
     {
       vertexdof::macroface::saveOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+    }
+  }
+
+  for (auto& it : opr.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag))
+    {
+      vertexdof::macrocell::saveOperator(level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat);
     }
   }
 }

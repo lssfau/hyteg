@@ -722,18 +722,18 @@ inline void saveOperator( const uint_t & level, Edge &edge, const PrimitiveDataI
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
     }
 
-    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF ) {
-      srcint = src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
-      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
+    for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
+    {
+      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_W )];
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] ,INSERT_VALUES);
+      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_E )];
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] ,INSERT_VALUES);
     }
 
-    if (edge.getNumNeighborFaces() == 2) {
-      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF ) {
-        srcint = src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
-        //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
-      }
+    for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
+    {
+      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCell, edge.getNumNeighborFaces() )];
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() ) ] ,INSERT_VALUES);
     }
   }
 }
