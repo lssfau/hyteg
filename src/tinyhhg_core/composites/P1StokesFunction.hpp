@@ -18,6 +18,7 @@ public:
     P1StokesFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
     : u(_name+"_u", storage, minLevel, maxLevel),
       v(_name+"_v", storage, minLevel, maxLevel),
+      w( storage->hasGlobalCells() ? P1Function< ValueType >( _name+"_w", storage, minLevel, maxLevel ) :  P1Function< ValueType >( _name+"_w_dummy", storage )),
       p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {
   }
@@ -26,6 +27,7 @@ public:
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
+    w.interpolate(expr, level, flag);
     p.interpolate(expr, level, flag);
   }
 
@@ -33,17 +35,20 @@ public:
   {
     std::vector< P1Function< ValueType > * > functions_u;
     std::vector< P1Function< ValueType > * > functions_v;
+    std::vector< P1Function< ValueType > * > functions_w;
     std::vector< P1Function< ValueType > * > functions_p;
 
     for (auto& function : functions)
     {
       functions_u.push_back(&function->u);
       functions_v.push_back(&function->v);
+      functions_w.push_back(&function->w);
       functions_p.push_back(&function->p);
     }
 
     u.assign(scalars, functions_u, level, flag);
     v.assign(scalars, functions_v, level, flag);
+    w.assign(scalars, functions_w, level, flag);
     p.assign(scalars, functions_p, level, flag);
   }
 
@@ -51,17 +56,20 @@ public:
   {
     std::vector< P1Function< ValueType > * > functions_u;
     std::vector< P1Function< ValueType > * > functions_v;
+    std::vector< P1Function< ValueType > * > functions_w;
     std::vector< P1Function< ValueType > * > functions_p;
 
     for (auto& function : functions)
     {
       functions_u.push_back(&function->u);
       functions_v.push_back(&function->v);
+      functions_w.push_back(&function->w);
       functions_p.push_back(&function->p);
     }
 
     u.add(scalars, functions_u, level, flag);
     v.add(scalars, functions_v, level, flag);
+    w.add(scalars, functions_w, level, flag);
     p.add(scalars, functions_p, level, flag);
   }
 
@@ -69,6 +77,7 @@ public:
   {
     walberla::real_t sum = u.dot(rhs.u, level, flag);
     sum += v.dot(rhs.v, level, flag);
+    sum += w.dot(rhs.w, level, flag);
     sum += p.dot(rhs.p, level, flag);
     return sum;
   }
@@ -77,6 +86,7 @@ public:
   {
     u.enableTiming(timingTree);
     v.enableTiming(timingTree);
+    w.enableTiming(timingTree);
     p.enableTiming(timingTree);
   }
 
@@ -85,12 +95,14 @@ public:
     uint_t counter = 0;
     counter += u.enumerate( level, num );
     counter += v.enumerate( level, num );
+    counter += w.enumerate( level, num );
     counter += p.enumerate( level, num );
     return counter;
   }
 
   P1Function< ValueType > u;
   P1Function< ValueType > v;
+  P1Function< ValueType > w;
   P1Function< ValueType > p;
 };
 
