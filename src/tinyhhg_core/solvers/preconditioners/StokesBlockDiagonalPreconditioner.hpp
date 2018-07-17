@@ -27,10 +27,12 @@ public:
   void apply(F &x, F &y, uint_t level, DoFType flag) {
 
     y.assign({1.0}, {&x}, level, flag);
+
     for ( uint_t vcycles = 0; vcycles < numVcycles_; vcycles++ )
     {
       velocityBlockSolver_.solve(velocityOpr_, y.u, x.u, r.u, level, 1e-16, 10000, flag);
       velocityBlockSolver_.solve(velocityOpr_, y.v, x.v, r.v, level, 1e-16, 10000, flag);
+      velocityBlockSolver_.solve(velocityOpr_, y.w, x.w, r.w, level, 1e-16, 10000, flag);
     }
 
     pressureBlockPreconditioner_.apply( x.p, y.p, level, flag | DirichletBoundary, Replace );
