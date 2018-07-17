@@ -17,11 +17,13 @@ public:
     : A(storage, minLevel, maxLevel),
       div_x(storage, minLevel, maxLevel),
       div_y(storage, minLevel, maxLevel),
+      div_z(storage, minLevel, maxLevel),
       divT_x(storage, minLevel, maxLevel),
       divT_y(storage, minLevel, maxLevel),
-      pspg(storage, minLevel, maxLevel)
-  {
-  }
+      divT_z(storage, minLevel, maxLevel),
+      pspg(storage, minLevel, maxLevel),
+      hasGlobalCells_( storage->hasGlobalCells() )
+  {}
 
   void apply(P1StokesFunction<real_t>& src, P1StokesFunction<real_t>& dst, size_t level, DoFType flag)
   {
@@ -31,17 +33,32 @@ public:
     A.apply(src.v, dst.v, level, flag, Replace);
     divT_y.apply(src.p, dst.v, level, flag, Add);
 
+    if ( hasGlobalCells_ )
+    {
+      A.apply(src.w, dst.w, level, flag, Replace);
+      divT_z.apply(src.p, dst.w, level, flag, Add);
+    }
+
     div_x.apply(src.u, dst.p, level, flag, Replace);
     div_y.apply(src.v, dst.p, level, flag, Add);
+
+    if ( hasGlobalCells_ )
+    {
+      div_z.apply(src.w, dst.p, level, flag, Add);
+    }
+
     pspg.apply(src.p, dst.p, level, flag, Add);
   }
 
   P1ConstantLaplaceOperator A;
   P1DivxOperator div_x;
   P1DivyOperator div_y;
+  P1DivzOperator div_z;
   P1DivTxOperator divT_x;
   P1DivTyOperator divT_y;
+  P1DivTzOperator divT_z;
   P1PSPGOperator pspg;
+  bool hasGlobalCells_;
 };
 
 template<>

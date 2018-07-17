@@ -21,11 +21,14 @@ public:
 
   typedef typename FunctionTrait< FunctionType >::ValueType ValueType;
 
+  Function( std::string name, const std::shared_ptr<PrimitiveStorage> & storage ) : functionName_( name ), storage_( storage ), minLevel_( 0 ), maxLevel_( 0 ), isDummy_( true ) {}
+
   Function(std::string name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
       : functionName_(std::move(name))
       , storage_(storage)
       , minLevel_(minLevel)
       , maxLevel_(maxLevel)
+      , isDummy_( false )
   {
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
@@ -64,6 +67,8 @@ public:
     }
   }
 
+  bool isDummy() const { return isDummy_; }
+
 protected:
 
   virtual void
@@ -73,6 +78,7 @@ protected:
   const std::weak_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
   const uint_t maxLevel_;
+  const bool   isDummy_;
 
   std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > communicators_;
   std::map< uint_t, std::shared_ptr< communication::BufferedCommunicator > > additiveCommunicators_;

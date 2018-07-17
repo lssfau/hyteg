@@ -1,0 +1,5 @@
+p = TrialFunction( trialElement )
+q = TestFunction( testElement )
+
+tau = (CellVolume(tetrahedron))**(2./3)/12 # h^2/12
+a = -tau*dot(grad(p), grad(q))*dx

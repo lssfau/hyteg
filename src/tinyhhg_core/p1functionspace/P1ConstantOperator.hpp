@@ -12,6 +12,10 @@
 #include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_div_tet.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_divt_tet.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_pspg_tet.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -70,6 +74,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       {
         if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
         {
+          const bool assemblyDefined = !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value;
+          WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
           assembleStencils();
         }
       }
@@ -349,6 +355,19 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             {
                stencilMemory[i] = stencil[i];
             }
+
+            if ( Lumped )
+            {
+              for ( uint_t i = 1; i < stencilSize; i++ )
+              {
+                stencilMemory[0] += stencilMemory[i];
+                stencilMemory[i] = 0;
+              }
+            }
+            if ( InvertDiagonal )
+            {
+              stencilMemory[0] = 1.0 / stencilMemory[0];
+            }
          }
 
          for ( const auto & it : storage_->getEdges() )
@@ -363,6 +382,32 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             for ( uint_t i = 0; i < stencilSize; i++ )
             {
                stencilMemory[i] = stencil[i];
+            }
+            if ( Lumped )
+            {
+              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] += stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W ) ];
+              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W ) ] = 0;
+              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] += stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E ) ];
+              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E ) ] = 0;
+              for ( uint_t neighborFace = 0; neighborFace < it.second->getNumNeighborFaces(); neighborFace++ )
+              {
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
+                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace ) ];
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace ) ] = 0;
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
+                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace ) ];
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace ) ] = 0;
+              }
+              for ( uint_t neighborCell = 0; neighborCell < it.second->getNumNeighborCells(); neighborCell++ )
+              {
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
+                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, it.second->getNumNeighborFaces() ) ];
+                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, it.second->getNumNeighborFaces() ) ] = 0;
+              }
+            }
+            if ( InvertDiagonal )
+            {
+              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ];
             }
          }
 
@@ -401,6 +446,33 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
                stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
             }
+
+            if ( Lumped )
+            {
+              if ( face->getNumNeighborCells() == 1 )
+              {
+                for ( auto dir : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+                {
+                  stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
+                    stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
+                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
+                }
+              }
+              else
+              {
+                for ( auto dir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+                {
+                  stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
+                    stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
+                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
+                }
+              }
+            }
+
+            if ( InvertDiagonal )
+            {
+              stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+            }
          }
 
          for ( const auto & it : storage_->getCells() )
@@ -416,6 +488,21 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             {
                const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
                stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
+            }
+
+            if ( Lumped )
+            {
+              for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+              {
+                stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
+                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
+                stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
+              }
+            }
+
+            if ( InvertDiagonal )
+            {
+              stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
             }
          }
       }
@@ -681,22 +768,24 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 typedef P1ConstantOperator< fenics::NoAssemble, fenics::NoAssemble > P1ZeroOperator;
 
 typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1ConstantLaplaceOperator;
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly, true >       P1DiagonalLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly, true >            P1DiagonalLaplaceOperator;
 
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_1_otherwise > P1ConstantEpsilonOperator_12;
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_2_otherwise > P1ConstantEpsilonOperator_21;
 typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_3_otherwise > P1ConstantEpsilonOperator_22;
 
-typedef P1ConstantOperator< p1_div_cell_integral_0_otherwise > P1DivxOperator;
-typedef P1ConstantOperator< p1_div_cell_integral_1_otherwise > P1DivyOperator;
+typedef P1ConstantOperator< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > P1DivxOperator;
+typedef P1ConstantOperator< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > P1DivyOperator;
+typedef P1ConstantOperator< fenics::NoAssemble,               p1_tet_div_tet_cell_integral_2_otherwise > P1DivzOperator;
 
-typedef P1ConstantOperator< p1_divt_cell_integral_0_otherwise > P1DivTxOperator;
-typedef P1ConstantOperator< p1_divt_cell_integral_1_otherwise > P1DivTyOperator;
+typedef P1ConstantOperator< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > P1DivTxOperator;
+typedef P1ConstantOperator< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > P1DivTyOperator;
+typedef P1ConstantOperator< fenics::NoAssemble,                p1_tet_divt_tet_cell_integral_2_otherwise > P1DivTzOperator;
 
-typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise >                    P1MassOperator;
-typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, fenics::UndefinedAssembly, false, true, true > P1LumpedInvMassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >                    P1MassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise, false, true, true > P1LumpedInvMassOperator;
 
-typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise > P1PSPGOperator;
+typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > P1PSPGOperator;
 
 } // namespace hhg
