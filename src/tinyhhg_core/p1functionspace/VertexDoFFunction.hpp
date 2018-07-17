@@ -29,7 +29,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    VertexDoFFunction( const std::string & name,
                       const std::shared_ptr< PrimitiveStorage >& storage ) :
-     Function< VertexDoFFunction< ValueType > >( name ),
+     Function< VertexDoFFunction< ValueType > >( name, storage ),
      vertexDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Vertex >, Vertex >() ),
      edgeDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Edge >,   Edge >() ),
      faceDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Face >,   Face >() ),

@@ -52,7 +52,7 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage ) :
-    Function< EdgeDoFFunction< ValueType > >( name ),
+    Function< EdgeDoFFunction< ValueType > >( name, storage ),
     vertexDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Vertex >, Vertex >() ),
     edgeDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Edge >,   Edge >() ),
     faceDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Face >,   Face >() )

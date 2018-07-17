@@ -20,7 +20,7 @@ class P2Function : public Function< P2Function< ValueType > >
  public:
 
     P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage ) :
-      Function< P2Function < ValueType > >( name ),
+      Function< P2Function < ValueType > >( name, storage ),
       vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF_dummy", storage ) ),
       edgeDoFFunction_  ( std::make_shared< EdgeDoFFunction< ValueType > >( name + "__EdgeDoF_dummy", storage ) )
     {}
