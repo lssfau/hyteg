@@ -596,11 +596,22 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl( uint_t level, uint_t
       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, num );
    }
    communicators_[level]->template startCommunication< Face, Edge >();
+   communicators_[level]->template startCommunication< Face, Cell >();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+     Cell & cell = *it.second;
+     vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, num );
+   }
+
+   communicators_[level]->template startCommunication< Cell, Face >();
 
    communicators_[level]->template endCommunication< Vertex, Edge >();
    communicators_[level]->template endCommunication< Edge, Vertex >();
    communicators_[level]->template endCommunication< Edge, Face >();
    communicators_[level]->template endCommunication< Face, Edge >();
+   communicators_[level]->template endCommunication< Face, Cell >();
+   communicators_[level]->template endCommunication< Cell, Face >();
 
    this->stopTiming( "Enumerate" );
 }
