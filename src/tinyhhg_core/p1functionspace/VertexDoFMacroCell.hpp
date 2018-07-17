@@ -11,6 +11,7 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/types/flags.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -279,6 +280,83 @@ inline void smooth_gs( const uint_t & level,
 }
 
 
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId, uint_t& num) {
+
+  ValueType* dstPtr = cell.getData(dstId)->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::index( Level, it.x(), it.y(), it.z() );
+    dstPtr[idx] = static_cast<ValueType>(num);
+    num++;
+  }
+}
+
+
+#ifdef HHG_BUILD_WITH_PETSC
+
+inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID<StencilMemory< real_t >, Cell>& operatorId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &srcId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &dstId, Mat& mat)
+{
+
+  auto opr_data = cell.getData(operatorId)->getPointer( Level );
+  auto src = cell.getData(srcId)->getPointer( Level );
+  auto dst = cell.getData(dstId)->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+      PetscInt srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
+      PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
+
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
+
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter ) {
+        srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), neighbor)];
+
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,INSERT_VALUES);
+      }
+  }
+}
+
+
+
+template< typename ValueType >
+inline void createVectorFromFunction(const uint_t & Level, Cell & cell,
+                              const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
+                              Vec& vec)
+{
+
+  auto src = cell.getData(srcId)->getPointer( Level );
+  auto numerator = cell.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+      PetscInt numeratorInt = numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
+      VecSetValues(vec,1,&numeratorInt,&src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)],INSERT_VALUES);
+  }
+}
+
+
+template< typename ValueType >
+inline void createFunctionFromVector(const uint_t & Level, Cell & cell,
+                                         const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId,
+                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
+                                         Vec& vec)
+{
+  auto src = cell.getData(srcId)->getPointer( Level );
+  auto numerator = cell.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+      PetscInt numeratorInt = numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
+      VecGetValues(vec,1,&numeratorInt,&src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)]);
+  }
+}
+
+#endif
 
 
 } // namespace macrocell
