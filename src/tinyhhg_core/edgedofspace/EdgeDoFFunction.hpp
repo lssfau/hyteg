@@ -19,6 +19,8 @@
 
 namespace hhg {
 
+using walberla::real_c;
+
 namespace edgedof {
 ///@name Size Functions
 ///@{
@@ -48,6 +50,13 @@ template< typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 {
 public:
+
+  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage ) :
+    Function< EdgeDoFFunction< ValueType > >( name ),
+    vertexDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Vertex >, Vertex >() ),
+    edgeDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Edge >,   Edge >() ),
+    faceDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Face >,   Face >() )
+  {}
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel ) :
     EdgeDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
@@ -110,21 +119,36 @@ public:
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
   template< typename SenderType, typename ReceiverType >
-  inline void startCommunication( const uint_t & level ) const { communicators_.at( level )->template startCommunication< SenderType, ReceiverType >(); }
+  inline void startCommunication( const uint_t & level ) const
+  {
+    if ( isDummy() ) { return; }
+    communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+  }
 
   template< typename SenderType, typename ReceiverType >
-  inline void endCommunication( const uint_t & level ) const { communicators_.at( level )->template endCommunication< SenderType, ReceiverType >(); }
+  inline void endCommunication( const uint_t & level ) const
+  {
+    if ( isDummy() ) { return; }
+    communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
+  }
 
   template< typename SenderType, typename ReceiverType >
-  inline void communicate( const uint_t & level ) const { communicators_.at( level )->template communicate< SenderType, ReceiverType >(); }
+  inline void communicate( const uint_t & level ) const
+  {
+    if ( isDummy() ) { return; }
+    communicators_.at( level )->template communicate< SenderType, ReceiverType >();
+  }
 
   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
   {
+    if ( isDummy() ) { return; }
     for ( auto & communicator : communicators_ )
     {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
     }
   }
+
+   using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
 private:
 
@@ -144,6 +168,7 @@ template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::interpolate(const std::function< ValueType( const Point3D& ) >& expr,
                                                       uint_t level, DoFType flag)
 {
+  if ( isDummy() ) { return; }
   std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
       return expr(x);
   };
@@ -156,6 +181,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(const std::functio
                                                               uint_t level,
                                                               DoFType flag)
 {
+  if ( isDummy() ) { return; }
   this->startTiming( "Interpolate" );
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
@@ -196,6 +222,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(const std::functio
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  if ( isDummy() ) { return; }
   this->startTiming( "Assign" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
@@ -235,6 +262,7 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scalars, const std::vector<EdgeDoFFunction< ValueType >*> functions, size_t level, DoFType flag)
 {
+  if ( isDummy() ) { return; }
   this->startTiming( "Add" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
@@ -274,6 +302,7 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
+  if ( isDummy() ) { return real_c(0); }
   this->startTiming( "Dot" );
   real_t scalarProduct =  0.0 ;
 
@@ -306,6 +335,7 @@ inline real_t EdgeDoFFunction< ValueType >::dot(EdgeDoFFunction< ValueType >& rh
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
 {
+  if ( isDummy() ) { return; }
   this->startTiming( "Enumerate" );
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
@@ -334,6 +364,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
+  if ( isDummy() ) { return real_c(0); }
   real_t localMax = real_t(0.0);
 
   for( auto& it : this->getStorage()->getEdges() )

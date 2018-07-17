@@ -19,6 +19,12 @@ class P2Function : public Function< P2Function< ValueType > >
 {
  public:
 
+    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage ) :
+      Function< P2Function < ValueType > >( name ),
+      vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF_dummy", storage ) ),
+      edgeDoFFunction_  ( std::make_shared< EdgeDoFFunction< ValueType > >( name + "__EdgeDoF_dummy", storage ) )
+    {}
+
     P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel ) :
       P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
     {}

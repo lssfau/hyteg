@@ -26,6 +26,16 @@ template < typename ValueType >
 class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 {
  public:
+
+   VertexDoFFunction( const std::string & name,
+                      const std::shared_ptr< PrimitiveStorage >& storage ) :
+     Function< VertexDoFFunction< ValueType > >( name ),
+     vertexDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Vertex >, Vertex >() ),
+     edgeDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Edge >,   Edge >() ),
+     faceDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Face >,   Face >() ),
+     cellDataID_(   storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Cell >,   Cell >() )
+     {}
+
    VertexDoFFunction( const std::string&                         name,
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       uint_t                                     minLevel,
@@ -111,24 +121,28 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
+      if ( isDummy() ) { return; }
       communicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
+      if ( isDummy() ) { return; }
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void communicate( const uint_t& level ) const
    {
+      if ( isDummy() ) { return; }
       communicators_.at( level )->template communicate< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void startAdditiveCommunication( const uint_t& level ) const
    {
+      if ( isDummy() ) { return; }
       interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
@@ -136,18 +150,21 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
+     if ( isDummy() ) { return; }
       additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
    template < typename SenderType, typename ReceiverType >
    inline void communicateAdditively( const uint_t& level ) const
    {
+     if ( isDummy() ) { return; }
       interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
    }
 
    inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
    {
+     if ( isDummy() ) { return; }
       for( auto& communicator : communicators_ )
       {
          communicator.second->setLocalCommunicationMode( localCommunicationMode );
@@ -158,11 +175,14 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       }
    }
 
+   using Function< VertexDoFFunction< ValueType > >::isDummy;
+
  private:
 
    template< typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType & constant, uint_t level, DoFType flag = All ) const
    {
+     if ( isDummy() ) { return; }
      this->startTiming( "Interpolate" );
 
      if ( std::is_same< PrimitiveType, Vertex >::value )
@@ -235,6 +255,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 template < typename ValueType >
 inline void VertexDoFFunction< ValueType >::interpolate( const ValueType & constant, uint_t level, DoFType flag ) const
 {
+  if ( isDummy() ) { return; }
    this->startTiming( "Interpolate" );
 
    interpolateByPrimitiveType< Vertex >( constant, level, flag );
@@ -249,6 +270,7 @@ template < typename ValueType >
 inline void
     VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag )
 {
+  if ( isDummy() ) { return; }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, flag );
@@ -261,6 +283,7 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(
     uint_t                                                                         level,
     DoFType                                                                        flag )
 {
+  if ( isDummy() ) { return; }
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -324,6 +347,7 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
                                                     size_t                                               level,
                                                     DoFType                                              flag )
 {
+  if ( isDummy() ) { return; }
    this->startTiming( "Assign" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -383,6 +407,7 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
 template< typename ValueType >
 inline void VertexDoFFunction< ValueType >::add(const ValueType & scalar, const uint_t & level, DoFType flag)
 {
+  if ( isDummy() ) { return; }
   this->startTiming( "Add" );
 
   for ( const auto & it : this->getStorage()->getVertices() )
@@ -433,6 +458,7 @@ inline void VertexDoFFunction< ValueType >::add( const std::vector< ValueType > 
                                                  size_t                                               level,
                                                  DoFType                                              flag )
 {
+  if ( isDummy() ) { return; }
    this->startTiming( "Add" );
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -492,6 +518,7 @@ inline void VertexDoFFunction< ValueType >::add( const std::vector< ValueType > 
 template < typename ValueType >
 inline real_t VertexDoFFunction< ValueType >::dot( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
 {
+  if ( isDummy() ) { return real_c(0); }
    this->startTiming( "Dot" );
    real_t scalarProduct = 0.0;
 
@@ -543,6 +570,7 @@ inline real_t VertexDoFFunction< ValueType >::dot( VertexDoFFunction< ValueType 
 template < typename ValueType >
 inline void VertexDoFFunction< ValueType >::enumerate_impl( uint_t level, uint_t& num )
 {
+  if ( isDummy() ) { return; }
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    this->startTiming( "Enumerate" );
    for( auto& it : this->getStorage()->getVertices() )
@@ -583,6 +611,7 @@ inline void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >
                                                          uint_t                          level,
                                                          DoFType                         flag )
 {
+  if ( isDummy() ) { return; }
    this->startTiming( "integrateDG" );
 
    rhsP1.startCommunication< Edge, Vertex >( level );
@@ -641,6 +670,7 @@ inline void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >
 
 inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level )
 {
+  if ( pressure.isDummy() ) { return; }
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 
    tmp.interpolate( ones, level );
@@ -654,6 +684,7 @@ inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunctio
 template < typename ValueType >
 inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
 {
+  if ( isDummy() ) { return real_c(0); }
    real_t localMax = -std::numeric_limits< real_t >::max();
 
    for( auto& it : this->getStorage()->getFaces() )
@@ -694,6 +725,7 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType
 template < typename ValueType >
 inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
+  if ( isDummy() ) { return real_c(0); }
    real_t localMax = real_t( 0.0 );
 
    for( auto& it : this->getStorage()->getFaces() )
@@ -738,6 +770,7 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoF
 template < typename ValueType >
 inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
 {
+  if ( isDummy() ) { return real_c(0); }
    real_t localMin = std::numeric_limits< real_t >::max();
 
    for( auto& it : this->getStorage()->getFaces() )
