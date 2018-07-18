@@ -49,7 +49,7 @@ static void elemIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jelem,
   WALBERLA_ASSERT_LESS( is2, ntan_ );
   WALBERLA_ASSERT_LESS( ir , nrad_ );
   WALBERLA_ASSERT_LESS( id , 10    );
-
+  WALBERLA_UNUSED( nrad_ );
 }
 
 
