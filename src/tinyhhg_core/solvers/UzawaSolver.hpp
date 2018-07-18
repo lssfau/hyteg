@@ -34,7 +34,8 @@ public:
       minLevel_(minLevel), maxLevel_(maxLevel),
       nuPre_( numberOfPreSmoothingSteps ), nuPost_( numberOfPostSmoothingSteps ),
       nuAdd_( smoothingStepIncrement ),
-      ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel)
+      ax_("uzw_ax", storage, minLevel, maxLevel), tmp_("uzw_tmp", storage, minLevel, maxLevel),
+      hasGlobalCells_( storage->hasGlobalCells() )
   {
     zero_ = [](const hhg::Point3D&) { return 0.0; };
   }
@@ -113,8 +114,20 @@ private:
     r.v.assign({1.0, -1.0}, {&b.v, &r.v}, level, flag);
     A.A.smooth_gs(x.v, r.v, level, flag);
 
+    if ( hasGlobalCells_ )
+    {
+      A.divT_z.apply(x.p, r.w, level, flag, Replace);
+      r.w.assign({1.0, -1.0}, {&b.w, &r.w}, level, flag);
+      A.A.smooth_gs(x.w, r.w, level, flag);
+    }
+
     A.div_x.apply(x.u, r.p, level, flag, Replace);
     A.div_y.apply(x.v, r.p, level, flag, Add);
+
+    if ( hasGlobalCells_ )
+    {
+      A.div_z.apply(x.w, r.p, level, flag, Add);
+    }
 
     r.p.assign({1.0, -1.0}, {&b.p, &r.p}, level, flag);
 
@@ -176,7 +189,10 @@ private:
   F ax_;
   F tmp_;
 
+  bool hasGlobalCells_;
+
   std::function<real_t(const hhg::Point3D&)> zero_;
+
 
 };
 
