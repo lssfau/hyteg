@@ -60,7 +60,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    storage->setTimingTree( timingTree );
 
-   hhg::writeDomainPartitioningVTK( storage, "../../output", "StokesSphere_domain" );
+   hhg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
 
    hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
    }
    WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
 
-   hhg::VTKOutput vtkOutput( "../output", "StokesSphere" );
+   hhg::VTKOutput vtkOutput( "./output", "StokesSphere" );
    vtkOutput.set3D();
    vtkOutput.add( &u.u );
    vtkOutput.add( &u.v );
