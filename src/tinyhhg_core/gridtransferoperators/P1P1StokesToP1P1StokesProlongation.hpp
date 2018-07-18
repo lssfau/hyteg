@@ -17,6 +17,7 @@ public:
     {
       prolongationOperator_( function.u, sourceLevel, flag );
       prolongationOperator_( function.v, sourceLevel, flag );
+      prolongationOperator_( function.w, sourceLevel, flag );
       prolongationOperator_( function.p, sourceLevel, flag );
     }
 
