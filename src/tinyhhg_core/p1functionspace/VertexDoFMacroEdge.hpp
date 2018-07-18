@@ -470,39 +470,50 @@ inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< 
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
                           ValueType relax) {
 
+  typedef stencilDirection sD;
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   auto opr_data = edge.getData(operatorId)->getPointer( level );
-  auto dst = edge.getData(dstId)->getPointer( level );
   auto rhs = edge.getData(rhsId)->getPointer( level );
+  auto dst = edge.getData(dstId)->getPointer( level );
+
+  const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_W );
+  const auto stencilIdxC = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_C );
+  const auto stencilIdxE = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_E );
+
+  const auto invCenterWeight = 1.0 / opr_data[ stencilIdxC ];
 
   ValueType tmp;
 
-  for (size_t i = 1; i < rowsize - 1; ++i) {
+  for (size_t i = 1; i < rowsize - 1; ++i)
+  {
+    const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
+    const auto dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
+    const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
 
-    tmp = rhs[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    tmp = rhs[ dofIdxC ];
 
-    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+    tmp -= opr_data[ stencilIdxW ] * dst[ dofIdxW ] + opr_data[ stencilIdxE ] * dst[ dofIdxE ];
+
+    for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
     {
-      tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+      const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
+      const auto stencilIdxE = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
+      const auto stencilWeightW = opr_data[ stencilIdxW ];
+      const auto stencilWeightE = opr_data[ stencilIdxE ];
+      const auto dofIdxW = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
+      const auto dofIdxE = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
+      tmp -= stencilWeightW * dst[dofIdxW] + stencilWeightE * dst[dofIdxE];
     }
 
-    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+    for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
     {
-      tmp -= opr_data[vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+      const auto stencilIdx = vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() );
+      const auto dofIdx = vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCell, edge.getNumNeighborFaces() );
+      tmp -= opr_data[ stencilIdx ] * dst[ dofIdx ];
     }
 
-    if (edge.getNumNeighborFaces() == 2)
-    {
-      for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
-      {
-        tmp -= opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] * dst[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
-      }
-    }
-
-    dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = ( 1.0 - relax) * dst[vertexdof::macroedge::indexFromVertex( level, i,
-                                                                                                                                                                                 stencilDirection::VERTEX_C )]
-                                                                                                            + relax * tmp/opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+    dst[ dofIdxC ] = (1.0 - relax) * dst[ dofIdxC ] + relax * invCenterWeight * tmp;
   }
 }
 
