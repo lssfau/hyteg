@@ -25,6 +25,7 @@
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -34,7 +35,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const uint_t                ntan   = 3;
+   const uint_t                ntan   = 2;
    const std::vector< double > layers = {1.0, 2.0, 3.0};
 
    const double rmin = layers.front();
@@ -44,19 +45,20 @@ int main( int argc, char* argv[] )
    const real_t  sourceRadius = 0.5;
 
    const uint_t minLevel            = 2;
-   const uint_t maxLevel            = 6;
+   const uint_t maxLevel            = 3;
    const uint_t numVCycles          = 1;
    const uint_t maxMinResIterations = 100;
    const real_t tolerance           = 1e-16;
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::meshSphericalShell( ntan, layers );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
+   hhg::loadbalancing::roundRobin( setupStorage );
    WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   //hhg::loadbalancing::distributed::parmetis( *storage );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    storage->setTimingTree( timingTree );
 
@@ -120,7 +122,7 @@ int main( int argc, char* argv[] )
    f.v.interpolate( rhsPlumeY, maxLevel );
    f.w.interpolate( rhsPlumeZ, maxLevel );
 
-   vtkOutput.write( maxLevel, 0 );
+   //vtkOutput.write( maxLevel, 0 );
 #if 1
    typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
    typedef GMultigridSolver< hhg::P1Function< real_t >,
@@ -149,12 +151,12 @@ int main( int argc, char* argv[] )
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
        PressurePreconditionedMinRes_T;
 
-   auto preconditionedMinResSolver         = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
    auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
    // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
 #if 0
-  preconditionedMinResSolver.solve( L, u, f, r, maxLevel, tolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+   auto preconditionedMinResSolver         = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
+   preconditionedMinResSolver.solve( L, u, f, r, maxLevel, tolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
 #else
 
    typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
@@ -193,14 +195,16 @@ int main( int argc, char* argv[] )
    f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
-   vtkOutput.write( maxLevel, 1 );
+   //vtkOutput.write( maxLevel, 1 );
 
    L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
    real_t final_residual =
        r.dot( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual );
-   walberla::WcTimingTree tt = timingTree->getReduced();
+   auto tt = timingTree->getReduced();
+   //19.07.2018 this is not in walberla master yet
+   //auto tt = timingTree->getCopyWithRemainder();
    WALBERLA_LOG_INFO_ON_ROOT( tt );
 
    return EXIT_SUCCESS;
