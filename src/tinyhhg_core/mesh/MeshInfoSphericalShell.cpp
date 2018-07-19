@@ -49,7 +49,7 @@ static void elemIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jelem,
   WALBERLA_ASSERT_LESS( is2, ntan_ );
   WALBERLA_ASSERT_LESS( ir , nrad_ );
   WALBERLA_ASSERT_LESS( id , 10    );
-
+  WALBERLA_UNUSED( nrad_ );
 }
 
 
@@ -302,7 +302,7 @@ static std::vector< uint_t > getCell( uint_t ntan, uint_t nrad, uint_t idx, uint
 
   // Determine global indices of the eight vertices of the local cell
   uint_t vIdx[8], ks1, ks2, kr;
-  for( uint k = 0; k < 8; k++ ) {
+  for( uint_t k = 0; k < 8; k++ ) {
 
     // compute address tuple of vertex (Northern hemisphere)
     if( id <= 4 ) {
@@ -411,16 +411,16 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > 
   iNode_[11][2] = -1.0;
 
   // upper ring
-  for ( uint k = 1; k <= 5; k++ ) {
-    phi = 2.0 * (k - 0.5) * fifthpi;
+  for ( uint_t k = 1; k <= 5; k++ ) {
+    phi = 2.0 * ((double)k - 0.5) * fifthpi;
     iNode_[k][0] = sinw * std::cos(phi);
     iNode_[k][1] = sinw * std::sin(phi);
     iNode_[k][2] = cosw;
   }
 
   // lower ring
-  for ( uint k = 1; k <= 5; k++ ) {
-    phi = 2.0 * (k - 1) * fifthpi;
+  for ( uint_t k = 1; k <= 5; k++ ) {
+    phi = 2.0 * ((double)k - 1) * fifthpi;
     iNode_[k+5][0] =  sinw * std::cos(phi);
     iNode_[k+5][1] =  sinw * std::sin(phi);
     iNode_[k+5][2] = -cosw;
