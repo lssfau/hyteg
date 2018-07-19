@@ -1218,7 +1218,7 @@ std::string PrimitiveStorage::getGlobalInfo() const
   const uint_t globalMinNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MIN );
 
 
-  const uint_t numberOfProcesses = walberla::mpi::MPIManager::instance()->numProcesses();;
+  const uint_t numberOfProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   const double globalAvgNumberOfVertices   = (double) globalNumberOfVertices   / (double) numberOfProcesses;
   const double globalAvgNumberOfEdges      = (double) globalNumberOfEdges      / (double) numberOfProcesses;
