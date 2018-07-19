@@ -16,7 +16,7 @@ namespace hhg {
 
 static void testParMetis()
 {
-  const std::string meshFileName = "../../data/meshes/porous_fine.msh";
+  const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFileName );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -29,7 +29,13 @@ static void testParMetis()
 
   writeDomainPartitioningVTK( storage, "../../output/", "domain_partitioning_after_setup_load_balancing" );
 
+  auto globalInfo = storage->getGlobalInfo();
+  WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
+
   loadbalancing::distributed::parmetis( *storage );
+
+  globalInfo = storage->getGlobalInfo();
+  WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
 
   writeDomainPartitioningVTK( storage, "../../output/", "domain_partitioning_after_distributed_load_balancing" );
 

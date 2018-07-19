@@ -252,6 +252,11 @@ public:
       timingTree_ = timingTree;
    }
 
+  /// Returns a formatted string that contains global information about the storage.
+  /// Must be called by all processes!
+  /// Involves global communication and should therefore not be called in performance critical code.
+  std::string getGlobalInfo() const;
+
 private:
 
   // needed to differentiate when migrating primitives
@@ -518,6 +523,7 @@ inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandl
 
   wasModified();
 }
+
 
 
 } // namespace hhg
