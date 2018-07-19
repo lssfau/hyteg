@@ -1,5 +1,6 @@
 
 #include "tinyhhg_core/primitives/Cell.hpp"
+#include "core/mpi/BufferDataTypeExtensions.h"
 
 namespace hhg {
 
@@ -72,6 +73,20 @@ uint_t Cell::getLocalVertexID( const PrimitiveID & vertexID ) const
     }
   }
   return std::numeric_limits< uint_t >::max();
+}
+
+void Cell::serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  sendBuffer << coordinates_;
+  sendBuffer << edgeLocalVertexToCellLocalVertexMaps_;
+  sendBuffer << faceLocalVertexToCellLocalVertexMaps_;
+}
+
+void Cell::deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )
+{
+  recvBuffer >> coordinates_;
+  recvBuffer >> edgeLocalVertexToCellLocalVertexMaps_;
+  recvBuffer >> faceLocalVertexToCellLocalVertexMaps_;
 }
 
 }
