@@ -71,8 +71,8 @@ protected:
     genericAddData( index, dataHandling, this );
   }
 
-  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const { WALBERLA_LOG_WARNING( "Serialization not fully implemented for macro cell!" ); WALBERLA_UNUSED( sendBuffer ); }
-  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer )       { WALBERLA_LOG_WARNING( "Deserialization not fully implemented for macro cell!" ); WALBERLA_UNUSED( recvBuffer ); };
+  virtual void   serializeSubclass ( walberla::mpi::SendBuffer & sendBuffer ) const;
+  virtual void deserializeSubclass ( walberla::mpi::RecvBuffer & recvBuffer );
 
 private:
 
