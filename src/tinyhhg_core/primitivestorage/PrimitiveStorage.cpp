@@ -1196,6 +1196,60 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
 }
 
 
+std::string PrimitiveStorage::getGlobalInfo() const
+
+{
+  const uint_t globalNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(),   walberla::mpi::SUM );
+  const uint_t globalNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(),      walberla::mpi::SUM );
+  const uint_t globalNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(),      walberla::mpi::SUM );
+  const uint_t globalNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(),      walberla::mpi::SUM );
+  const uint_t globalNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
+
+  const uint_t globalMaxNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(),   walberla::mpi::MAX );
+  const uint_t globalMaxNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(),      walberla::mpi::MAX );
+  const uint_t globalMaxNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(),      walberla::mpi::MAX );
+  const uint_t globalMaxNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(),      walberla::mpi::MAX );
+  const uint_t globalMaxNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MAX );
+
+  const uint_t globalMinNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(),   walberla::mpi::MIN );
+  const uint_t globalMinNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(),      walberla::mpi::MIN );
+  const uint_t globalMinNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(),      walberla::mpi::MIN );
+  const uint_t globalMinNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(),      walberla::mpi::MIN );
+  const uint_t globalMinNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MIN );
+
+
+  const uint_t numberOfProcesses = walberla::mpi::MPIManager::instance()->numProcesses();;
+
+  const double globalAvgNumberOfVertices   = (double) globalNumberOfVertices   / (double) numberOfProcesses;
+  const double globalAvgNumberOfEdges      = (double) globalNumberOfEdges      / (double) numberOfProcesses;
+  const double globalAvgNumberOfFaces      = (double) globalNumberOfFaces      / (double) numberOfProcesses;
+  const double globalAvgNumberOfCells      = (double) globalNumberOfCells      / (double) numberOfProcesses;
+  const double globalAvgNumberOfPrimitives = (double) globalNumberOfPrimitives / (double) numberOfProcesses;
+
+  std::stringstream os;
+  os << "====================== PrimitiveStorage ======================\n";
+  os << " - mesh dimensionality:        " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
+  os << " - processes:                  " << numberOfProcesses << "\n";
+  os << " - primitive distribution:\n";
+  os << "                +-------------------------------------------+\n"
+        "                |    total |      min |      max |      avg |\n"
+        "   +------------+----------+----------+----------+----------+\n"
+        "   | primitives | " << std::setw(8) << globalNumberOfPrimitives << " | " << std::setw(8) << globalMinNumberOfPrimitives << " | " << std::setw(8) << globalMaxNumberOfPrimitives << " | " << std::fixed << std::setprecision( 1 ) << std::setw(8) << globalAvgNumberOfPrimitives << " |\n"
+        "   +------------+----------+----------+----------+----------+\n"
+        "   |   vertices | " << std::setw(8) << globalNumberOfVertices << " | " << std::setw(8) << globalMinNumberOfVertices << " | " << std::setw(8) << globalMaxNumberOfVertices << " | " << std::fixed << std::setprecision( 1 ) << std::setw(8) << globalAvgNumberOfVertices << " |\n"
+        "   +------------+----------+----------+----------+----------+\n"
+        "   |      edges | " << std::setw(8) << globalNumberOfEdges << " | " << std::setw(8) << globalMinNumberOfEdges << " | " << std::setw(8) << globalMaxNumberOfEdges << " | " << std::fixed << std::setprecision( 1 ) << std::setw(8) << globalAvgNumberOfEdges << " |\n"
+        "   +------------+----------+----------+----------+----------+\n"
+        "   |      faces | " << std::setw(8) << globalNumberOfFaces << " | " << std::setw(8) << globalMinNumberOfFaces << " | " << std::setw(8) << globalMaxNumberOfFaces << " | " << std::fixed << std::setprecision( 1 ) << std::setw(8) << globalAvgNumberOfFaces << " |\n"
+        "   +------------+----------+----------+----------+----------+\n"
+        "   |      cells | " << std::setw(8) << globalNumberOfCells << " | " << std::setw(8) << globalMinNumberOfCells << " | " << std::setw(8) << globalMaxNumberOfCells << " | " << std::fixed << std::setprecision( 1 ) << std::setw(8) << globalAvgNumberOfCells << " |\n"
+        "   +------------+----------+----------+----------+----------+\n";
+  os << "==============================================================\n";
+
+  return os.str();
+}
+
+
 void PrimitiveStorage::checkConsistency()
 {
   // 1. Number of data entries less than local counter
