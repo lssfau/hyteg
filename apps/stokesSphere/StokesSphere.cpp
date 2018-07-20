@@ -18,6 +18,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
@@ -25,7 +26,6 @@
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
    //hhg::loadbalancing::distributed::parmetis( *storage );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    storage->setTimingTree( timingTree );
@@ -139,13 +139,8 @@ int main( int argc, char* argv[] )
    typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
        PressurePreconditioner_T;
 
-   auto                          coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
-   hhg::P1toP1LinearProlongation prolongationOperator;
-   hhg::P1toP1LinearRestriction  restrictionOperator;
-   GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
    P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
    PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
-   Preconditioner_T         prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
 
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T > PreconditionedMinRes_T;
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
@@ -155,6 +150,11 @@ int main( int argc, char* argv[] )
    // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
 #if 0
+   auto                          coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
+   hhg::P1toP1LinearProlongation prolongationOperator;
+   hhg::P1toP1LinearRestriction  restrictionOperator;
+   GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+   Preconditioner_T         prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
    auto preconditionedMinResSolver         = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
    preconditionedMinResSolver.solve( L, u, f, r, maxLevel, tolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
 #else
@@ -171,6 +171,8 @@ int main( int argc, char* argv[] )
    UzawaSolver_T                      uzawaSolver(
        storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
+   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
+   WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions: " << count );
    for( uint_t i = 0; i < numVCycles; i++ )
    {
       uzawaSolver.solve(

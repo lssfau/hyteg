@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tinyhhg_core/Operator.hpp>
+#include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
@@ -38,6 +38,7 @@ public:
     if(storage->getTimingTree()){
       enableTiming(storage->getTimingTree());
     }
+    functionCounter_++;
   }
 
   virtual ~Function() {}
@@ -68,6 +69,10 @@ public:
   }
 
   bool isDummy() const { return isDummy_; }
+
+  static walberla::uint_t getFunctionCounter(){
+     return functionCounter_;
+  }
 
 protected:
 
@@ -104,8 +109,14 @@ protected:
       timingTree_->stop( "Function" );
     }
   }
+private:
+
+   static uint_t functionCounter_;
 
 };
+
+template< typename FunctionType >
+walberla::uint_t Function<FunctionType>::functionCounter_ = 0;
 
 
 template< typename FunctionType >
