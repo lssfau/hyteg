@@ -67,7 +67,6 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    uint_t totalGlobalDofsStokes = 0;
    for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
@@ -139,14 +138,14 @@ int main( int argc, char* argv[] )
    typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
        PressurePreconditioner_T;
 
-   P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
+   P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
+   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
 
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T > PreconditionedMinRes_T;
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
        PressurePreconditionedMinRes_T;
 
-   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
+   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, minLevel, pressurePrec );
    // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
 #if 0
@@ -168,11 +167,15 @@ int main( int argc, char* argv[] )
                                       UzawaSolver_T;
    P1P1StokesToP1P1StokesRestriction  stokesRestriction;
    P1P1StokesToP1P1StokesProlongation stokesProlongation;
-   UzawaSolver_T                      uzawaSolver(
+
+   UzawaSolver_T uzawaSolver(
        storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
    auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
-   WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions: " << count );
+   for( uint_t i = minLevel; i <= maxLevel; ++i )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions on " << i << " : " << count[i] );
+   }
    for( uint_t i = 0; i < numVCycles; i++ )
    {
       uzawaSolver.solve(

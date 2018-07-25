@@ -15,6 +15,8 @@
 
 namespace hhg {
 
+using walberla::uint_t;
+
 template< typename FunctionType >
 class Function {
 public:
@@ -38,7 +40,10 @@ public:
     if(storage->getTimingTree()){
       enableTiming(storage->getTimingTree());
     }
-    functionCounter_++;
+    for(uint_t i = minLevel; i <= maxLevel; ++i)
+    {
+      functionCounter_[i]++;
+    }
   }
 
   virtual ~Function() {}
@@ -70,7 +75,7 @@ public:
 
   bool isDummy() const { return isDummy_; }
 
-  static walberla::uint_t getFunctionCounter(){
+  static std::map<uint_t,uint_t> getFunctionCounter(){
      return functionCounter_;
   }
 
@@ -111,12 +116,12 @@ protected:
   }
 private:
 
-   static uint_t functionCounter_;
+   static std::map<uint_t,uint_t> functionCounter_;
 
 };
 
 template< typename FunctionType >
-walberla::uint_t Function<FunctionType>::functionCounter_ = 0;
+std::map<uint_t,uint_t> Function<FunctionType>::functionCounter_ = {};
 
 
 template< typename FunctionType >
