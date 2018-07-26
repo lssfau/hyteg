@@ -73,8 +73,8 @@ int main( int argc, char* argv[] )
 
    dstvecPetsc.createFunctionFromVector( z, numerator, level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( y.dot( oneFunc, level ) );
-   WALBERLA_LOG_INFO_ON_ROOT( z.dot( oneFunc, level ) );
+   WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level ) );
+   WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level ) );
 
    //dstvecPetsc.print("../output/vector1.vec");
 

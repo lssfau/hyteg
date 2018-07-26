@@ -150,7 +150,7 @@ int main( int argc, char* argv[] )
    for( size_t ll = minLevel; ll <= maxLevel; ++ll )
    {
       tmp.interpolate( ones, ll );
-      real_t npoints = tmp.dot( tmp, ll );
+      real_t npoints = tmp.dotGlobal( tmp, ll );
       WALBERLA_LOG_INFO_ON_ROOT( "Level = " << ll );
       WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << npoints );
       WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
@@ -160,12 +160,12 @@ int main( int argc, char* argv[] )
 
       A.apply( x, ax, ll, hhg::Inner );
       r.assign( {1.0, -1.0}, {&b, &ax}, ll, hhg::Inner );
-      real_t abs_res_old = std::sqrt( r.dot( r, ll, hhg::Inner ) );
+      real_t abs_res_old = std::sqrt( r.dotGlobal( r, ll, hhg::Inner ) );
       real_t begin_res   = abs_res_old;
       err.assign( {1.0, -1.0}, {&x, &x_exact}, ll );
-      real_t discr_l2_err = std::sqrt( err.dot( err, ll ) / npoints );
+      real_t discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
       A.apply( err, tmp, ll, hhg::Inner );
-      real_t discr_h1_err = std::sqrt( err.dot( tmp, ll ) );
+      real_t discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( hhg::format(
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, discr_h1_err ) )
@@ -175,12 +175,12 @@ int main( int argc, char* argv[] )
          cscycle( ll );
          A.apply( x, ax, ll, hhg::Inner );
          r.assign( {1.0, -1.0}, {&b, &ax}, ll, hhg::Inner );
-         real_t abs_res = std::sqrt( r.dot( r, ll, hhg::Inner ) );
+         real_t abs_res = std::sqrt( r.dotGlobal( r, ll, hhg::Inner ) );
          rel_res        = abs_res / begin_res;
          err.assign( {1.0, -1.0}, {&x, &x_exact}, ll );
-         discr_l2_err = std::sqrt( err.dot( err, ll ) / npoints );
+         discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
          A.apply( err, tmp, ll, hhg::Inner );
-         discr_h1_err = std::sqrt( err.dot( tmp, ll ) );
+         discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
 
          WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
                                                  i + 1,

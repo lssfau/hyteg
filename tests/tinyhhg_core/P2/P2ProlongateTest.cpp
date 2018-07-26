@@ -313,12 +313,8 @@ static void testP2InterpolateAndProlongate() {
 
   error.assign({1.0, -1.0}, {&x, &y}, targetLevel, hhg::All);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(error.dot(error,targetLevel,hhg::All),0.);
-
-
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,targetLevel,hhg::All),0.);
 }
-
-
 
 }/// namespace hhg
 

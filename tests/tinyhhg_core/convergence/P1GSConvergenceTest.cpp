@@ -64,7 +64,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
 
   L.apply(p2function, Lu, level, hhg::Inner);
   residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
-  begin_res = std::sqrt(residuum.dot(residuum, level, hhg::Inner));
+  begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
   abs_res_old = begin_res;
 
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
@@ -79,7 +79,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
     L.smooth_gs(p2function, rhs, level, hhg::Inner);
     L.apply(p2function, Lu, level, hhg::Inner);
     residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
-    abs_res = std::sqrt(residuum.dot(residuum, level, hhg::Inner));
+    abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
     rel_res = abs_res / begin_res;
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
     WALBERLA_CHECK_LESS(abs_res,abs_res_old);
@@ -91,9 +91,9 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   error.assign({1.0, -1.0}, {&p2function, &p2Exact}, level);
 
   helperFun.interpolate(ones, level);
-  real_t npoints = helperFun.dot(helperFun, level);
+  real_t npoints = helperFun.dotGlobal(helperFun, level);
 
-  real_t discr_l2_err = std::sqrt(error.dot(error, level) / npoints);
+  real_t discr_l2_err = std::sqrt(error.dotGlobal(error, level) / npoints);
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 

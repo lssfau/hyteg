@@ -45,14 +45,14 @@ static void testP2SmoothConvergence()
   {
 #if 0
    // if'd out to speed up test
-   discreteL2Norm = sqrt( p2Function->dot( *p2Function, level, All ) );
+   discreteL2Norm = sqrt( p2Function->dotGlobal( *p2Function, level, All ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Iteration " << std::setw(10) << step << " - Discrete L2 Norm: " << std::scientific << discreteL2Norm );
    vtkOutput.write( level, step );
 #endif
    laplaceOperator->smooth_gs( *p2Function, *rhs, level, Inner );
   }
 
-  discreteL2Norm = sqrt( p2Function->dot( *p2Function, level, All ) );
+  discreteL2Norm = sqrt( p2Function->dotGlobal( *p2Function, level, All ) );
   WALBERLA_LOG_INFO_ON_ROOT( "Discrete L2 norm after " << smootherSteps << " Gauss-Seidel iterations: " << std::scientific << discreteL2Norm );
 
   WALBERLA_CHECK_LESS( discreteL2Norm, 7e-13 );

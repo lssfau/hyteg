@@ -118,7 +118,7 @@ static void testP2Function()
    // Dot
 
    timer["Dot"].start();
-   const real_t scalarProduct = y.dot( x, maxLevel, DoFType::All );
+   const real_t scalarProduct = y.dotGlobal( x, maxLevel, DoFType::All );
    timer["Dot"].end();
 
    WALBERLA_CHECK_FLOAT_EQUAL(

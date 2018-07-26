@@ -67,14 +67,14 @@ int main( int argc, char* argv[] )
     storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );
-  const real_t npoints = npoints_helper.dot( npoints_helper, maxLevel );
+  const real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
   // init residual once
   L.apply(u, Au, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, { &f, &Au }, maxLevel, hhg::Inner);
 
   real_t discr_l2_err;
-  real_t discr_l2_res = std::sqrt( r.dot( r, maxLevel, DoFType::Inner ) / npoints );
+  real_t discr_l2_res = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
   real_t discr_l2_res_last_step = discr_l2_res;
 
   for ( uint_t vCycleCount = 0; vCycleCount < numVCycles; vCycleCount++ )
@@ -86,9 +86,9 @@ int main( int argc, char* argv[] )
     L.apply(u, Au, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Au }, maxLevel, hhg::Inner);
 
-    discr_l2_err = std::sqrt( err.dot( err, maxLevel, DoFType::All ) / npoints );
+    discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, DoFType::All ) / npoints );
     discr_l2_res_last_step = discr_l2_res;
-    discr_l2_res = std::sqrt( r.dot( r, maxLevel, DoFType::Inner ) / npoints );
+    discr_l2_res = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
 
     const real_t convRate = discr_l2_res / discr_l2_res_last_step;
 

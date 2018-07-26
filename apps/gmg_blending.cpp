@@ -192,10 +192,10 @@ int main(int argc, char* argv[])
   M.apply(tmp, f, maxLevel, hhg::All);
 
   npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dot(npoints_helper, maxLevel);
+  real_t npoints = npoints_helper.dotGlobal(npoints_helper, maxLevel);
 
 //  npoints_helper.interpolate(ones, interpolationLevel);
-//  real_t npointsCoarse = npoints_helper.dot(npoints_helper, interpolationLevel);
+//  real_t npointsCoarse = npoints_helper.dotGlobal(npoints_helper, interpolationLevel);
 
   typedef hhg::CGSolver<hhg::P1Function<real_t>, GeneralOperator> CoarseSolver;
   auto coarseLaplaceSolver = std::make_shared<CoarseSolver>(storage, minLevel, minLevel);
@@ -219,11 +219,11 @@ int main(int argc, char* argv[])
   solveOperator->apply(u, Lu, maxLevel, hhg::Inner);
   r.assign({1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner);
 
-  real_t begin_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner));
   real_t abs_res_old = begin_res;
 
   err.assign({1.0, -1.0}, {&u, &u_exact}, maxLevel);
-  real_t discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+  real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
   // Estimating discretization error
   quadraticProlongationOperator( u, maxLevel, hhg::Inner);
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
 //  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //  tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
 //  L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
-//  real_t estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
+//  real_t estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
 //  real_t estL2ErrorOld = estL2Error;
   real_t estL2Error = 0;
 
@@ -256,15 +256,15 @@ int main(int argc, char* argv[])
 //    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
 //    tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
 //    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
-//    estL2Error = std::sqrt(r.dot(r, maxMemoryLevel) / npointsCoarse);
+//    estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
     end = walberla::timing::getWcTime();
     real_t estimatorTime = end - start;
     solveOperator->apply(u, Lu, maxLevel, hhg::Inner);
     r.assign({1.0, -1.0}, { &f, &Lu }, maxLevel, hhg::Inner);
-    real_t abs_res = std::sqrt(r.dot(r, maxLevel, hhg::Inner));
+    real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner));
     rel_res = abs_res / begin_res;
     err.assign({1.0, -1.0}, { &u, &u_exact }, maxLevel);
-    discr_l2_err = std::sqrt(err.dot(err, maxLevel) / npoints);
+    discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
 

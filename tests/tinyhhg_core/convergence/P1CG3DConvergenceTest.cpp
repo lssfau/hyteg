@@ -88,8 +88,8 @@ int main( int argc, char* argv[] )
 
   WALBERLA_CHECK_LESS( lowerLevel, higherLevel );
 
-  const real_t numPointsLowerLevel  = oneFunction.dot( oneFunction, lowerLevel,  DoFType::Inner );
-  const real_t numPointsHigherLevel = oneFunction.dot( oneFunction, higherLevel, DoFType::Inner );
+  const real_t numPointsLowerLevel  = oneFunction.dotGlobal( oneFunction, lowerLevel,  DoFType::Inner );
+  const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, higherLevel, DoFType::Inner );
 
   WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
 
@@ -118,11 +118,11 @@ int main( int argc, char* argv[] )
     vtkOutput.write( lowerLevel, 1 );
   }
 
-  const real_t discrL2ErrLowerLevel  = std::sqrt( err.dot( err, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
-  const real_t discrL2ErrHigherLevel = std::sqrt( err.dot( err, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
+  const real_t discrL2ErrLowerLevel  = std::sqrt( err.dotGlobal( err, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
+  const real_t discrL2ErrHigherLevel = std::sqrt( err.dotGlobal( err, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
 
-  const real_t discrL2ResLowerLevel  = std::sqrt( res.dot( res, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
-  const real_t discrL2ResHigherLevel = std::sqrt( res.dot( res, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
+  const real_t discrL2ResLowerLevel  = std::sqrt( res.dotGlobal( res, lowerLevel,  DoFType::Inner ) / numPointsLowerLevel );
+  const real_t discrL2ResHigherLevel = std::sqrt( res.dotGlobal( res, higherLevel, DoFType::Inner ) / numPointsHigherLevel );
 
   WALBERLA_LOG_INFO( "Residual L2 on level " << lowerLevel  << ": " << std::scientific << discrL2ResLowerLevel  << " | Error L2: " << discrL2ErrLowerLevel );
   WALBERLA_LOG_INFO( "Residual L2 on level " << higherLevel << ": " << std::scientific << discrL2ResHigherLevel << " | Error L2: " << discrL2ErrHigherLevel );

@@ -92,7 +92,7 @@ static void testEdgeDoFFunction()
   // Dot
 
   timer["Dot"].start();
-  const real_t scalarProduct = y->dot( *x, maxLevel, DoFType::All );
+  const real_t scalarProduct = y->dotLocal( *x, maxLevel, DoFType::All );
   timer["Dot"].end();
 
   WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microedges_per_face( maxLevel ) * 48 * 2 ) );

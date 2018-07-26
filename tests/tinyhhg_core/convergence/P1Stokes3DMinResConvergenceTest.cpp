@@ -188,7 +188,7 @@ int main( int argc, char* argv[] )
    vtkOutput.write( maxLevel, 1 );
 
    L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-   real_t final_residual = r.dot( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+   real_t final_residual = r.dotGlobal( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual )
    WALBERLA_CHECK_LESS( final_residual, 3.1e-12 );
