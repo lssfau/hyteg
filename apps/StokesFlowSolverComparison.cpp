@@ -349,14 +349,14 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  real_t currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+  real_t currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   real_t lastResidualL2    = currentResidualL2;
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial residual: " << currentResidualL2 );
 
   if ( compareWithAnalyticalSolution )
   {
     error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
-    const real_t currentErrorL2 = std::sqrt( error.dot( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
+    const real_t currentErrorL2 = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
     WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial error: " << currentErrorL2 );
   }
 
@@ -448,7 +448,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+            currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
 
             if ( compareWithAnalyticalSolution )
             {
@@ -493,7 +493,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+            currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
 
             if ( compareWithAnalyticalSolution )
             {
@@ -538,7 +538,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+            currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
 
             if ( compareWithAnalyticalSolution )
             {
@@ -564,13 +564,13 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  currentResidualL2 = std::sqrt( r.dot( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+  currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Final residual:   " << currentResidualL2 );
 
   if ( compareWithAnalyticalSolution )
   {
     error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
-    const real_t currentErrorL2 = std::sqrt( error.dot( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
+    const real_t currentErrorL2 = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
     WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Final error: " << currentErrorL2 );
   }
 
