@@ -1,6 +1,8 @@
 #include <cmath>
 
 #include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
 #include "tinyhhg_core/FunctionProperties.hpp"
@@ -32,11 +34,37 @@ using walberla::real_t;
 
 int main( int argc, char* argv[] )
 {
-   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const uint_t                ntan   = 2;
-   const std::vector< double > layers = {1.0, 2.0, 3.0};
+   //check if a config was given on command line or load default file otherwise
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if( env.config() == nullptr )
+   {
+      auto defaultFile = "./StokesSphere.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfg->readParameterFile( defaultFile );
+   } else
+   {
+      cfg = env.config();
+   }
+   /////////////// Parameters ///////////////
+   const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
+   const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
+
+   if( mainConf.getParameter< bool >( "printParameters" ) )
+   {
+      mainConf.listParameters();
+      WALBERLA_LOG_INFO_ON_ROOT( "Layers: " );
+      layersParam.listParameters();
+   }
+
+   const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
+   std::vector< double > layers;
+   for( auto it : layersParam )
+   {
+      layers.push_back( layersParam.getParameter< double >( it.first ) );
+   }
 
    const double rmin = layers.front();
    const double rmax = layers.back();
@@ -44,53 +72,74 @@ int main( int argc, char* argv[] )
    const Point3D sourcePoint  = Point3D( {rmin, 0, 0} ) + 0.5 * Point3D( {rmax - rmin, 0, 0} );
    const real_t  sourceRadius = 0.5;
 
-   const uint_t minLevel            = 2;
-   const uint_t maxLevel            = 3;
-   const uint_t numVCycles          = 1;
-   const uint_t maxMinResIterations = 100;
-   const real_t tolerance           = 1e-16;
+   const uint_t minLevel  = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel  = mainConf.getParameter< uint_t >( "ntan" );
+   const uint_t numVCycle = mainConf.getParameter< uint_t >( "numVCycle" );
+   //const uint_t maxMinResIterations = 100;
+   const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
+
+   //////////////////////////////////////////
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::meshSphericalShell( ntan, layers );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hhg::loadbalancing::roundRobin( setupStorage );
-   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
-   //hhg::loadbalancing::distributed::parmetis( *storage );
+
+   if( mainConf.getParameter< bool >( "useParMETIS" ) )
+   {
+      hhg::loadbalancing::distributed::parmetis( *storage );
+   }
+
+   if( mainConf.getParameter< bool >( "printGlobalStorageInfo" ) )
+   {
+      auto globalInfo = storage->getGlobalInfo();
+      WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
+   }
+
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    storage->setTimingTree( timingTree );
 
-   hhg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
+   if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
+   {
+      hhg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
+   }
 
    hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
 
-   uint_t totalGlobalDofsStokes = 0;
-   for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+   if( mainConf.getParameter< bool >( "printDoFCount" ) )
    {
-      uint_t tmpDofStokes = numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
-      WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
-      totalGlobalDofsStokes += tmpDofStokes;
+      uint_t totalGlobalDofsStokes = 0;
+      for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
+      {
+         uint_t tmpDofStokes = numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
+         WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
+         totalGlobalDofsStokes += tmpDofStokes;
+      }
+      WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
-   WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
 
    hhg::VTKOutput vtkOutput( "./output", "StokesSphere" );
-   vtkOutput.set3D();
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.w );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &f.u );
-   vtkOutput.add( &f.v );
-   vtkOutput.add( &f.w );
-   vtkOutput.add( &f.p );
+   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   {
+      vtkOutput.set3D();
+      vtkOutput.add( &u.u );
+      vtkOutput.add( &u.v );
+      vtkOutput.add( &u.w );
+      vtkOutput.add( &u.p );
+      vtkOutput.add( &f.u );
+      vtkOutput.add( &f.v );
+      vtkOutput.add( &f.w );
+      vtkOutput.add( &f.p );
+   }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeX = [rmin, rmax, sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[0] * ( sourceRadius - distToSourcePoint );
@@ -98,7 +147,7 @@ int main( int argc, char* argv[] )
          return 0.0;
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeY = [rmin, rmax, sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[1] * ( sourceRadius - distToSourcePoint );
@@ -106,7 +155,7 @@ int main( int argc, char* argv[] )
          return 0.0;
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeZ = [rmin, rmax, sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[2] * ( sourceRadius - distToSourcePoint );
@@ -121,7 +170,23 @@ int main( int argc, char* argv[] )
    f.v.interpolate( rhsPlumeY, maxLevel );
    f.w.interpolate( rhsPlumeZ, maxLevel );
 
-   //vtkOutput.write( maxLevel, 0 );
+   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   {
+      vtkOutput.write( maxLevel, 0 );
+   }
+
+   std::string solverType = mainConf.getParameter<std::string>( "solver");
+
+   if (solverType.compare("minres")){
+
+   } else if (solverType.compare("uzawa")){
+
+   } else {
+      WALBERLA_ABORT("Unkown solver type");
+   }
+
+
+
 #if 1
    typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
    typedef GMultigridSolver< hhg::P1Function< real_t >,
@@ -130,18 +195,19 @@ int main( int argc, char* argv[] )
                              hhg::P1toP1LinearRestriction,
                              hhg::P1toP1LinearProlongation >
        GMGSolver_T;
+
    typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >,
                                               hhg::P1ConstantLaplaceOperator,
                                               GMGSolver_T,
                                               hhg::P1LumpedInvMassOperator >
        Preconditioner_T;
+
    typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
        PressurePreconditioner_T;
 
    P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
    PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
 
-   typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T > PreconditionedMinRes_T;
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
        PressurePreconditionedMinRes_T;
 
@@ -154,8 +220,9 @@ int main( int argc, char* argv[] )
    hhg::P1toP1LinearRestriction  restrictionOperator;
    GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
    Preconditioner_T         prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+   typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T > PreconditionedMinRes_T;
    auto preconditionedMinResSolver         = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
-   preconditionedMinResSolver.solve( L, u, f, r, maxLevel, tolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+   preconditionedMinResSolver.solve( L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
 #else
 
    typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
@@ -164,9 +231,10 @@ int main( int argc, char* argv[] )
                         P1P1StokesToP1P1StokesRestriction,
                         P1P1StokesToP1P1StokesProlongation,
                         false >
-                                      UzawaSolver_T;
-   P1P1StokesToP1P1StokesRestriction  stokesRestriction;
-   P1P1StokesToP1P1StokesProlongation stokesProlongation;
+       UzawaSolver_T;
+
+   P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
+   P1P1StokesToP1P1StokesProlongation stokesProlongation{};
 
    UzawaSolver_T uzawaSolver(
        storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
@@ -176,10 +244,18 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions on " << i << " : " << count[i] );
    }
-   for( uint_t i = 0; i < numVCycles; i++ )
+   for( uint_t i = 0; i < numVCycle; i++ )
    {
-      uzawaSolver.solve(
-          L, u, f, r, maxLevel, tolerance, 10000, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
+      uzawaSolver.solve( L,
+                         u,
+                         f,
+                         r,
+                         maxLevel,
+                         uzawaTolerance,
+                         10000,
+                         hhg::Inner | hhg::NeumannBoundary,
+                         UzawaSolver_T::CycleType::VCYCLE,
+                         false );
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       real_t residualMG =
           r.dot( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
@@ -198,9 +274,12 @@ int main( int argc, char* argv[] )
    f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );
-   petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
+   petScLUSolver.solve( L, u, f, r, level, uzawaTolerance, maxIterations, Inner | NeumannBoundary );
 #endif
-   //vtkOutput.write( maxLevel, 1 );
+   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   {
+      vtkOutput.write( maxLevel, 1 );
+   }
 
    L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
    real_t final_residual =
