@@ -72,11 +72,13 @@ int main( int argc, char* argv[] )
    const Point3D sourcePoint  = Point3D( {rmin, 0, 0} ) + 0.5 * Point3D( {rmax - rmin, 0, 0} );
    const real_t  sourceRadius = 0.5;
 
-   const uint_t minLevel  = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t maxLevel  = mainConf.getParameter< uint_t >( "ntan" );
-   const uint_t numVCycle = mainConf.getParameter< uint_t >( "numVCycle" );
-   //const uint_t maxMinResIterations = 100;
+   const uint_t minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
+   const uint_t numVCycle           = mainConf.getParameter< uint_t >( "numVCycle" );
+   const uint_t maxMinResIterations = mainConf.getParameter< uint_t >( "maxMinResIterations" );
+
    const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
+   const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
 
    //////////////////////////////////////////
 
@@ -175,95 +177,115 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel, 0 );
    }
 
-   std::string solverType = mainConf.getParameter<std::string>( "solver");
+   std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
-   if (solverType.compare("minres")){
-
-   } else if (solverType.compare("uzawa")){
-
-   } else {
-      WALBERLA_ABORT("Unkown solver type");
-   }
-
-
-
-#if 1
-   typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef GMultigridSolver< hhg::P1Function< real_t >,
-                             hhg::P1ConstantLaplaceOperator,
-                             CoarseGridSolver_T,
-                             hhg::P1toP1LinearRestriction,
-                             hhg::P1toP1LinearProlongation >
-       GMGSolver_T;
-
-   typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >,
-                                              hhg::P1ConstantLaplaceOperator,
-                                              GMGSolver_T,
-                                              hhg::P1LumpedInvMassOperator >
-       Preconditioner_T;
-
-   typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
-       PressurePreconditioner_T;
-
-   P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
-
-   typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
-       PressurePreconditionedMinRes_T;
-
-   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, minLevel, pressurePrec );
-   // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
-
-#if 0
-   auto                          coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
-   hhg::P1toP1LinearProlongation prolongationOperator;
-   hhg::P1toP1LinearRestriction  restrictionOperator;
-   GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-   Preconditioner_T         prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
-   typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T > PreconditionedMinRes_T;
-   auto preconditionedMinResSolver         = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
-   preconditionedMinResSolver.solve( L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
-#else
-
-   typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
-                        hhg::P1StokesOperator,
-                        PressurePreconditionedMinRes_T,
-                        P1P1StokesToP1P1StokesRestriction,
-                        P1P1StokesToP1P1StokesProlongation,
-                        false >
-       UzawaSolver_T;
-
-   P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
-   P1P1StokesToP1P1StokesProlongation stokesProlongation{};
-
-   UzawaSolver_T uzawaSolver(
-       storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
-
-   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
-   for( uint_t i = minLevel; i <= maxLevel; ++i )
+   if( solverType == "minres" )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions on " << i << " : " << count[i] );
-   }
-   for( uint_t i = 0; i < numVCycle; i++ )
+      ///// Coarse Grid solver for the A block GMG preconditioner in MinRes /////
+      typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+      auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
+
+      ///// Geometric Multigrid A block preconditioner for MinRes /////
+      typedef GMultigridSolver< hhg::P1Function< real_t >,
+                                hhg::P1ConstantLaplaceOperator,
+                                CoarseGridSolver_T,
+                                hhg::P1toP1LinearRestriction,
+                                hhg::P1toP1LinearProlongation >
+                                    GMGSolver_T;
+      hhg::P1toP1LinearProlongation prolongationOperator;
+      hhg::P1toP1LinearRestriction  restrictionOperator;
+      GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+
+      /// A block Preconditioner for MinRes /////
+      typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >,
+                                                 hhg::P1ConstantLaplaceOperator,
+                                                 GMGSolver_T,
+                                                 hhg::P1LumpedInvMassOperator >
+          Preconditioner_T;
+
+      P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
+      Preconditioner_T        prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+
+      /// MinResSolver
+      typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T >
+           PreconditionedMinRes_T;
+      auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
+      preconditionedMinResSolver.solve(
+          L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+
+   } else if( solverType == "uzawa" )
    {
-      uzawaSolver.solve( L,
-                         u,
-                         f,
-                         r,
-                         maxLevel,
-                         uzawaTolerance,
-                         10000,
-                         hhg::Inner | hhg::NeumannBoundary,
-                         UzawaSolver_T::CycleType::VCYCLE,
-                         false );
+      ///// MinRes coarse grid solver for UZAWA /////
+      typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
+          PressurePreconditioner_T;
+
+      P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
+      PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
+
+      typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
+          PressurePreconditionedMinRes_T;
+
+      auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, minLevel, pressurePrec );
+
+      ///// UZAWA solver /////
+      typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
+                           hhg::P1StokesOperator,
+                           PressurePreconditionedMinRes_T,
+                           P1P1StokesToP1P1StokesRestriction,
+                           P1P1StokesToP1P1StokesProlongation,
+                           false >
+          UzawaSolver_T;
+
+      P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
+      P1P1StokesToP1P1StokesProlongation stokesProlongation{};
+
+      UzawaSolver_T uzawaSolver(
+          storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
+
+      auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
+      if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
+         for (uint_t i = minLevel; i <= maxLevel; ++i) {
+            WALBERLA_LOG_INFO_ON_ROOT("Total number of P1 Functions on " << i << " : " << count[i]);
+         }
+      }
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      real_t residualMG =
-          r.dot( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
-   }
+      r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dot( r, maxLevel, hhg::Inner ) ) /
+                                 real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+      real_t lastResidualL2 = currentResidualL2;
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate " );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
+                                 << std::setw( 9 ) << 0 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
+                                 << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 );
+      for( uint_t i = 0; i < numVCycle; i++ )
+      {
+         uzawaSolver.solve( L,
+                            u,
+                            f,
+                            r,
+                            maxLevel,
+                            uzawaTolerance,
+                            uzawaMaxIter,
+                            hhg::Inner | hhg::NeumannBoundary,
+                            UzawaSolver_T::CycleType::VCYCLE,
+                            false );
 
-#endif
-#endif
+         lastResidualL2 = currentResidualL2;
+         L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+         r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+         currentResidualL2 = sqrt( r.dot( r, maxLevel, hhg::Inner ) ) /
+                             real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+         WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
+                                    << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
+                                    << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )
+         //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
+      }
+
+   } else
+   {
+      WALBERLA_ABORT( "Unkown solver type" );
+   }
 
 #if 0
   auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
@@ -281,15 +303,12 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel, 1 );
    }
 
-   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-   real_t final_residual =
-       r.dot( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual );
-   auto tt = timingTree->getReduced();
-   //19.07.2018 this is not in walberla master yet
-   //auto tt = timingTree->getCopyWithRemainder();
-   WALBERLA_LOG_INFO_ON_ROOT( tt );
+   if( mainConf.getParameter< bool >( "PrintTiming" ) ) {
+      auto tt = timingTree->getReduced();
+      //19.07.2018 this is not in walberla master yet
+      //auto tt = timingTree->getCopyWithRemainder();
+      WALBERLA_LOG_INFO_ON_ROOT(tt);
+   }
 
    return EXIT_SUCCESS;
 }
