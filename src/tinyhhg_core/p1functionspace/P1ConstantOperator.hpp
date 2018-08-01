@@ -35,6 +35,7 @@
 #include "P1DataHandling.hpp"
 #include "P1Elements.hpp"
 #include "P1Function.hpp"
+#include "generatedKernels/generatedKernels.hpp"
 
 namespace hhg {
 
@@ -554,6 +555,9 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
+#ifdef HHG_USE_GENERATED_KERNEL
+
+#endif
             vertexdof::macroface::apply< real_t >(
                 level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
          }
