@@ -250,12 +250,12 @@ int main( int argc, char* argv[] )
       }
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      real_t currentResidualL2 = sqrt( r.dot( r, maxLevel, hhg::Inner ) ) /
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
                                  real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
       real_t lastResidualL2 = currentResidualL2;
-      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate " );
-      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] iteration | residual (L2) | convergence rate " );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] ----------+---------------+------------------" );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
                                  << std::setw( 9 ) << 0 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
                                  << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 );
       for( uint_t i = 0; i < numVCycle; i++ )
@@ -274,9 +274,9 @@ int main( int argc, char* argv[] )
          lastResidualL2 = currentResidualL2;
          L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
          r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         currentResidualL2 = sqrt( r.dot( r, maxLevel, hhg::Inner ) ) /
+         currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
                              real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
-         WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
+         WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
                                     << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
                                     << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )
          //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
