@@ -49,3 +49,4 @@ if( HHG_BUILD_WITH_EIGEN )
 endif()
 
 add_subdirectory(benchmarks)
+add_subdirectory(stokesSphere)

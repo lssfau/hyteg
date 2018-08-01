@@ -684,6 +684,19 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          }
       }
 
+      dst.communicate< Face, Cell >( level );
+
+      for( auto& it : storage_->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::smooth_sor< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID(), relax );
+         }
+      }
+
    }
 
    void smooth_jac_impl( P1Function< real_t >& dst,

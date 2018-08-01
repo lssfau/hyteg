@@ -38,7 +38,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
    walberla::logging::Logging::instance()->setStreamLogLevel( walberla::logging::Logging::DETAIL );
 
-   //auto cfg = env.config();
+   //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared<walberla::config::Config>();
    if( env.config() == nullptr ) {
       auto defaultFile = "./P1Benchmark.prm";
