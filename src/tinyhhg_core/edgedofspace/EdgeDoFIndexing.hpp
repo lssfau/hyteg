@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
+#include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 
@@ -392,6 +393,79 @@ public:
 };
 
 } // namespace macroface
+
+
+// ##################
+// ### Macro Cell ###
+// ##################
+
+namespace macrocell {
+
+/// Direct access functions
+
+typedef stencilDirection sD;
+
+inline constexpr uint_t xIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t yIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+    + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t zIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return 2 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+         + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t xyIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return 3 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+         + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t xzIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return 4 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+         + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t yzIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return 5 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+         + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ), x, y, z );
+}
+
+inline constexpr uint_t xyzIndex( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z )
+{
+  return 6 * levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) )
+         + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ) - 1, x, y, z );
+}
+
+
+// Iterators
+
+class Iterator : public indexing::CellIterator
+{
+public:
+    Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+      CellIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+    {}
+};
+
+class IteratorXYZ : public indexing::CellIterator
+{
+public:
+    IteratorXYZ( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
+      CellIterator( levelinfo::num_microedges_per_edge( level ) - 1, offsetToCenter )
+    {}
+};
+
+} // namespace macrocell
 
 
 /// these numbers specify the postion of each stencil entry in the stencil memory array
