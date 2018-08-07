@@ -39,8 +39,7 @@ CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter,
   // T(n-4) = ( (n-2) * (n-3) * (n-4) ) / 6
   totalNumberOfDoFs_( ( ( internalWidth_ + 2 ) * ( internalWidth_ + 1 ) * ( internalWidth_ ) ) / 6 ), step_( 0 )
 {
-  WALBERLA_ASSERT_GREATER( width, 0, "Size of cell must be larger than zero!" );
-  WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond cell width!" );
+  WALBERLA_ASSERT_LESS_EQUAL( offsetToCenter, width, "Offset to center is beyond cell width!" );
 
   coordinates_.x() = offsetToCenter_;
   coordinates_.y() = offsetToCenter_;
