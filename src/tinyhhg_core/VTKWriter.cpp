@@ -6,6 +6,7 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/celldofspace/CellDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 
 namespace hhg
@@ -95,9 +96,9 @@ void VTKOutput::writeVertexDoFData( std::ostream & output, const vertexdof::Vert
 void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< real_t > * function,
                               const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const
 {
-  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
-                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
-                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
+  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_X
+                   || dofType == VTKOutput::DoFType::EDGE_Y
+                   || dofType == VTKOutput::DoFType::EDGE_XY );
 
   for ( const auto & it : storage->getFaces() )
   {
@@ -107,7 +108,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
 
     switch ( dofType )
     {
-    case VTKOutput::DoFType::EDGE_HORIZONTAL:
+    case VTKOutput::DoFType::EDGE_X:
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
@@ -115,7 +116,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
       }
       break;
     }
-    case VTKOutput::DoFType::EDGE_VERTICAL:
+    case VTKOutput::DoFType::EDGE_Y:
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
@@ -123,7 +124,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
       }
       break;
     }
-    case VTKOutput::DoFType::EDGE_DIAGONAL:
+    case VTKOutput::DoFType::EDGE_XY:
     {
       for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
       {
@@ -143,9 +144,9 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 {
   { DoFType::VERTEX,          "VertexDoF" },
-  { DoFType::EDGE_HORIZONTAL, "HorizontalEdgeDoF" },
-  { DoFType::EDGE_VERTICAL,   "VerticalEdgeDoF" },
-  { DoFType::EDGE_DIAGONAL,   "DiagonalEdgeDoF" },
+  { DoFType::EDGE_X, "HorizontalEdgeDoF" },
+  { DoFType::EDGE_Y,   "VerticalEdgeDoF" },
+  { DoFType::EDGE_XY,   "DiagonalEdgeDoF" },
   { DoFType::DG,              "DGDoF" },
   { DoFType::P2,              "P2" },
 };
@@ -211,61 +212,115 @@ void VTKOutput::writePointsForMicroVertices( std::ostream & output, const std::s
 void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage,
                                           const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
-  WALBERLA_ASSERT( write2D_, "Three-dimensional output not yet implemented for edge DoFs!" );
-
-  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
-                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
-                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
-
-  for ( const auto & it : storage->getFaces() )
+  if ( write2D_ )
   {
-    Face &face = *it.second;
+    WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X
+                     || dofType == VTKOutput::DoFType::EDGE_Y
+                     || dofType == VTKOutput::DoFType::EDGE_XY );
 
-    const Point3D faceBottomLeftCoords  = face.coords[0];
-    const Point3D faceBottomRightCoords = face.coords[1];
-    const Point3D faceTopLeftCoords     = face.coords[2];
-
-    const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
-    const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ) ) ) * 0.5;
-
-    Point3D xBlend;
-
-    switch ( dofType )
+    for ( const auto & it : storage->getFaces())
     {
-    case DoFType::EDGE_HORIZONTAL:
-    {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
+      Face & face = *it.second;
+
+      const Point3D faceBottomLeftCoords = face.coords[0];
+      const Point3D faceBottomRightCoords = face.coords[1];
+      const Point3D faceTopLeftCoords = face.coords[2];
+
+      const Point3D horizontalMicroEdgeOffset = (( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ))) * 0.5;
+      const Point3D verticalMicroEdgeOffset = (( faceTopLeftCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( level ))) * 0.5;
+
+      Point3D xBlend;
+
+      switch ( dofType )
       {
-        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
-        face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-        output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+        case DoFType::EDGE_X:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ))
+          {
+            const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
+            face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+            output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+          }
+          break;
+        }
+        case DoFType::EDGE_Y:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ))
+          {
+            const Point3D verticalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
+            face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
+            output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+          }
+          break;
+        }
+        case DoFType::EDGE_XY:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ))
+          {
+            const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
+            const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
+            face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
+            output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+          }
+          break;
+        }
+        default:
+        WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
+          break;
       }
-      break;
     }
-    case DoFType::EDGE_VERTICAL:
+  } else
+  {
+    WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X
+                     || dofType == VTKOutput::DoFType::EDGE_Y
+                     || dofType == VTKOutput::DoFType::EDGE_Z
+                     || dofType == VTKOutput::DoFType::EDGE_XY
+                     || dofType == VTKOutput::DoFType::EDGE_XZ
+                     || dofType == VTKOutput::DoFType::EDGE_YZ
+                     || dofType == VTKOutput::DoFType::EDGE_XYZ );
+
+    for ( const auto & it : storage->getCells())
     {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
+      Cell & cell = *it.second;
+      Point3D microEdgePosition;
+
+      if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
       {
-        const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( real_c( itIdx.col() * 2     ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
-        face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-        output << xBlend[0]   << " " << xBlend[1]   << " " << xBlend[2]   << "\n";
-      }
-      break;
-    }
-    case DoFType::EDGE_DIAGONAL:
-    {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level, 0 ) )
+        for ( const auto & itIdx : edgedof::macrocell::IteratorXYZ( level, 0 ))
+        {
+          microEdgePosition = vertexdof::macrocell::coordinateFromIndex( level, cell, itIdx )
+                              + edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+          output << microEdgePosition[0] << " " << microEdgePosition[1] << " " << microEdgePosition[2] << "\n";
+        }
+      } else
       {
-        const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset + real_c( itIdx.row() * 2     ) * verticalMicroEdgeOffset );
-        const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
-        face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-        output << xBlend[0]   << " " << xBlend[1]   << " " << xBlend[2]   << "\n";
+        for ( const auto & itIdx : edgedof::macrocell::Iterator( level, 0 ))
+        {
+          microEdgePosition = vertexdof::macrocell::coordinateFromIndex( level, cell, itIdx );
+          switch ( dofType )
+          {
+            case DoFType::EDGE_X:
+              microEdgePosition += edgedof::macrocell::xShiftFromVertex( level, cell );
+              break;
+            case DoFType::EDGE_Y:
+              microEdgePosition += edgedof::macrocell::yShiftFromVertex( level, cell );
+              break;
+            case DoFType::EDGE_Z:
+              microEdgePosition += edgedof::macrocell::zShiftFromVertex( level, cell );
+              break;
+            case DoFType::EDGE_XY:
+              microEdgePosition += edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::yShiftFromVertex( level, cell );
+              break;
+            case DoFType::EDGE_XZ:
+              microEdgePosition += edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+              break;
+            case DoFType::EDGE_YZ:
+              microEdgePosition += edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+              break;
+          }
+          output << microEdgePosition[0] << " " << microEdgePosition[1] << " " << microEdgePosition[2] << "\n";
+        }
       }
-      break;
-    }
-    default:
-      WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
-      break;
     }
   }
 }
@@ -336,28 +391,29 @@ void VTKOutput::writeCells2D( std::ostream & output, const std::shared_ptr< Prim
 }
 
 
-void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const
+void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & width ) const
 {
   output << "<Cells>\n";
   output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
 
   // calculates the position of the point in the VTK list of points from a logical vertex index
-  auto calcVTKPointArrayPosition = [ level ]( const indexing::Index & vertexIndex ) -> uint_t
+  auto calcVTKPointArrayPosition = [ width ]( const indexing::Index & vertexIndex ) -> uint_t
   {
-    const uint_t zOffset =   levelinfo::num_microvertices_per_cell( level )
-                           - levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() );
-    const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() )
-                           - levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - vertexIndex.z() - vertexIndex.y() );
+    const uint_t zOffset =   levelinfo::num_microvertices_per_cell_from_width( width )
+                           - levelinfo::num_microvertices_per_cell_from_width( width - vertexIndex.z() );
+    const uint_t yOffset =   levelinfo::num_microvertices_per_face_from_width( width - vertexIndex.z() )
+                           - levelinfo::num_microvertices_per_face_from_width( width - vertexIndex.z() - vertexIndex.y() );
     const uint_t xOffset = vertexIndex.x();
     return xOffset + yOffset + zOffset;
   };
 
-  const uint_t numberOfVertices = levelinfo::num_microvertices_per_cell( level );
-  const uint_t numberOfCells    = levelinfo::num_microcells_per_cell( level );
+  const uint_t numberOfVertices = levelinfo::num_microvertices_per_cell_from_width( width );
+  const uint_t numberOfCells    = levelinfo::num_microcells_per_cell_from_width( width );
 
   for ( uint_t macroCellIdx = 0; macroCellIdx < storage->getNumberOfLocalCells(); macroCellIdx++ )
   {
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::WHITE_UP ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 1 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -366,7 +422,8 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::BLUE_UP ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 2 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -375,7 +432,8 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::GREEN_UP ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 2 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_UP );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -384,7 +442,8 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::WHITE_DOWN ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 3 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::WHITE_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -393,7 +452,8 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::BLUE_DOWN ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 2 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::BLUE_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -402,7 +462,8 @@ void VTKOutput::writeCells3D( std::ostream & output, const std::shared_ptr< Prim
       output << "\n";
     }
 
-    for ( const auto & it : celldof::macrocell::Iterator( level, celldof::CellType::GREEN_DOWN ) ) {
+    for ( const auto & it : indexing::CellIterator( width - 2 ) )
+    {
       const auto spanningVertexIndices = celldof::macrocell::getMicroVerticesFromMicroCell( it, celldof::CellType::GREEN_DOWN );
 
       for ( const auto & spanningVertexIndex : spanningVertexIndices ) {
@@ -477,7 +538,7 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
   }
   else
   {
-    writeCells3D( output, storage, level );
+    writeCells3D( output, storage, levelinfo::num_microvertices_per_edge( level ) );
   }
 
   output << "<PointData>\n";
@@ -501,9 +562,9 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
 {
   WALBERLA_ASSERT( write2D_, "Three-dimensional output not yet implemented for edge DoFs!" );
 
-  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_HORIZONTAL
-                   || dofType == VTKOutput::DoFType::EDGE_VERTICAL
-                   || dofType == VTKOutput::DoFType::EDGE_DIAGONAL );
+  WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_X
+                   || dofType == VTKOutput::DoFType::EDGE_Y
+                   || dofType == VTKOutput::DoFType::EDGE_XY );
 
   if ( edgeDoFFunctions_.size() == 0 )
   {
@@ -674,9 +735,9 @@ void VTKOutput::writeDoFByType( std::ostream & output, const uint_t & level, con
   case DoFType::VERTEX:
     writeP1( output, level );
     break;
-  case DoFType::EDGE_HORIZONTAL:
-  case DoFType::EDGE_VERTICAL:
-  case DoFType::EDGE_DIAGONAL:
+  case DoFType::EDGE_X:
+  case DoFType::EDGE_Y:
+  case DoFType::EDGE_XY:
     writeEdgeDoFs( output, level, dofType );
     break;
   case DoFType::DG:
@@ -697,9 +758,9 @@ uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType & dofType 
   {
   case DoFType::VERTEX:
     return p1Functions_.size();
-  case DoFType::EDGE_HORIZONTAL:
-  case DoFType::EDGE_VERTICAL:
-  case DoFType::EDGE_DIAGONAL:
+  case DoFType::EDGE_X:
+  case DoFType::EDGE_Y:
+  case DoFType::EDGE_XY:
     return edgeDoFFunctions_.size();
   case DoFType::DG:
     return dgFunctions_.size();
@@ -720,7 +781,7 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
   {
     syncAllFunctions( level );
 
-    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_HORIZONTAL, DoFType::EDGE_VERTICAL, DoFType::EDGE_DIAGONAL, DoFType::DG, DoFType::P2 };
+    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_XY, DoFType::DG, DoFType::P2 };
 
     for ( const auto & dofType : dofTypes )
     {

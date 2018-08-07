@@ -67,9 +67,13 @@ private:
   enum class DoFType
   {
     VERTEX,
-    EDGE_HORIZONTAL,
-    EDGE_VERTICAL,
-    EDGE_DIAGONAL,
+    EDGE_X,
+    EDGE_Y,
+    EDGE_Z,
+    EDGE_XY,
+    EDGE_XZ,
+    EDGE_YZ,
+    EDGE_XYZ,
     DG,
     P2
   };
