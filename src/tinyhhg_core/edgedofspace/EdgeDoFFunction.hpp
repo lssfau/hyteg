@@ -11,6 +11,7 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
+#include "EdgeDoFMacroCell.hpp"
 #include "EdgeDoFMacroFace.hpp"
 #include "EdgeDoFMacroEdge.hpp"
 #include "EdgeDoFPackInfo.hpp"
@@ -40,6 +41,13 @@ inline uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Pri
 {
   WALBERLA_UNUSED( primitive );
   return 3 * ( ( ( levelinfo::num_microedges_per_edge( level ) + 1 ) * levelinfo::num_microedges_per_edge( level ) ) / 2 );
+}
+
+inline uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive )
+{
+  WALBERLA_UNUSED( primitive );
+  return   6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) )
+         + ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
 
 ///@}
@@ -74,10 +82,14 @@ public:
     std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Face >> faceDataHandling   =
         std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Face   >>(minLevel, maxLevel, edgedof::edgeDoFMacroFaceFunctionMemorySize);
 
+    std::shared_ptr<MemoryDataHandling<FunctionMemory< ValueType >, Cell >> cellDataHandling   =
+        std::make_shared< MemoryDataHandling<FunctionMemory< ValueType >, Cell   >>(minLevel, maxLevel, edgedof::edgeDoFMacroCellFunctionMemorySize);
+
 
     storage->addVertexData( vertexDataID_, vertexDataHandling, name );
     storage->addEdgeData(   edgeDataID_,   edgeDataHandling,   name );
     storage->addFaceData(   faceDataID_,   faceDataHandling,   name );
+    storage->addCellData(   cellDataID_,   cellDataHandling,   name );
 
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
@@ -112,6 +124,7 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
+  const PrimitiveDataID< FunctionMemory< ValueType >,   Cell>   & getCellDataID()   const { return cellDataID_; }
 
 
   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
@@ -160,6 +173,7 @@ private:
     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
     PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
     PrimitiveDataID< FunctionMemory< ValueType >, Face > faceDataID_;
+    PrimitiveDataID< FunctionMemory< ValueType >, Cell > cellDataID_;
 
     BoundaryCondition boundaryCondition_;
 };
@@ -186,11 +200,13 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(const std::functio
   // Collect all source IDs in a vector
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
   std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>   srcFaceIDs;
+  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Cell>>   srcCellIDs;
 
   for (auto& function : srcFunctions)
   {
     srcEdgeIDs.push_back(function->edgeDataID_);
     srcFaceIDs.push_back(function->faceDataID_);
+    srcCellIDs.push_back(function->cellDataID_);
   }
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -216,6 +232,16 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(const std::functio
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+
+  for ( auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+    }
+  }
   this->stopTiming( "Interpolate" );
 }
 
