@@ -21,6 +21,11 @@ constexpr inline uint_t num_microvertices_per_edge(uint_t level)
   //return (uint_t) std::pow(2, level) + 1;
 }
 
+constexpr inline uint_t num_microvertices_per_edge_from_width( uint_t width )
+{
+  return width;
+}
+
 constexpr inline uint_t num_microedges_per_edge(uint_t level)
 {
   return num_microvertices_per_edge(level) - 1;
@@ -64,6 +69,15 @@ constexpr inline uint_t num_microcells_per_cell( const uint_t & level )
   // num_microcells_per_cell = 8 ^ level
   return (1 << (3 * level));
 }
+
+constexpr inline uint_t num_microcells_per_cell_from_width( const uint_t & width )
+{
+  const uint_t whiteUp   = num_microvertices_per_cell_from_width( width - 1 );
+  const uint_t whiteDown = num_microvertices_per_cell_from_width( width - 3 );
+  const uint_t others    = num_microvertices_per_cell_from_width( width - 2 );
+  return whiteUp + whiteDown + 4 * others;
+}
+
 
 }
 
