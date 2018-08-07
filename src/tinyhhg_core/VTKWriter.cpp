@@ -98,57 +98,117 @@ void VTKOutput::writeEdgeDoFData( std::ostream & output, const EdgeDoFFunction< 
 {
   WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_X
                    || dofType == VTKOutput::DoFType::EDGE_Y
-                   || dofType == VTKOutput::DoFType::EDGE_XY );
+                   || dofType == VTKOutput::DoFType::EDGE_Z
+                   || dofType == VTKOutput::DoFType::EDGE_XY
+                   || dofType == VTKOutput::DoFType::EDGE_XZ
+                   || dofType == VTKOutput::DoFType::EDGE_YZ
+                   || dofType == VTKOutput::DoFType::EDGE_XYZ );
 
-  for ( const auto & it : storage->getFaces() )
+  if ( write2D_ )
   {
-    const Face & face = *it.second;
+    for ( const auto & it : storage->getFaces())
+    {
+      const Face & face = *it.second;
 
-    output << std::scientific;
+      output << std::scientific;
 
-    switch ( dofType )
-    {
-    case VTKOutput::DoFType::EDGE_X:
-    {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
+      switch ( dofType )
       {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
+        case VTKOutput::DoFType::EDGE_X:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level ))
+          {
+            output << face.getData( function->getFaceDataID())->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row())] << "\n";
+          }
+          break;
+        }
+        case VTKOutput::DoFType::EDGE_Y:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level ))
+          {
+            output << face.getData( function->getFaceDataID())->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row())] << "\n";
+          }
+          break;
+        }
+        case VTKOutput::DoFType::EDGE_XY:
+        {
+          for ( const auto & itIdx : edgedof::macroface::Iterator( level ))
+          {
+            output << face.getData( function->getFaceDataID())->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row())] << "\n";
+          }
+          break;
+        }
+        default:
+        WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
+          break;
       }
-      break;
     }
-    case VTKOutput::DoFType::EDGE_Y:
+  }
+  else
+  {
+    for ( const auto & it : storage->getCells())
     {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
-      {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
-      }
-      break;
-    }
-    case VTKOutput::DoFType::EDGE_XY:
-    {
-      for ( const auto & itIdx : edgedof::macroface::Iterator( level ) )
-      {
-        output << face.getData( function->getFaceDataID() )->getPointer( level )[ edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() ) ] << "\n";
-      }
-      break;
-    }
-    default:
-      WALBERLA_ABORT( "Bad DoF type in VTK output for edge DoFs" );
-      break;
-    }
+      const Cell & cell = *it.second;
+      const auto cellData = cell.getData( function->getCellDataID())->getPointer( level );
 
+      output << std::scientific;
+
+      if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      {
+        for ( const auto & itIdx : edgedof::macrocell::IteratorXYZ( level ))
+        {
+          output << cellData[ edgedof::macrocell::xyzIndex( level, itIdx.x(), itIdx.y(), itIdx.z()) ] << "\n";
+        }
+      }
+      else
+      {
+        for ( const auto & itIdx : edgedof::macrocell::Iterator( level ))
+        {
+          uint_t idx;
+          switch ( dofType )
+          {
+            case VTKOutput::DoFType::EDGE_X:
+              idx = edgedof::macrocell::xIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            case VTKOutput::DoFType::EDGE_Y:
+              idx = edgedof::macrocell::yIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            case VTKOutput::DoFType::EDGE_Z:
+              idx = edgedof::macrocell::zIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            case VTKOutput::DoFType::EDGE_XY:
+              idx = edgedof::macrocell::xyIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            case VTKOutput::DoFType::EDGE_XZ:
+              idx = edgedof::macrocell::xzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            case VTKOutput::DoFType::EDGE_YZ:
+              idx = edgedof::macrocell::yzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
+              break;
+            default:
+              WALBERLA_ABORT( "[VTK] Invalid DoFType" );
+              break;
+          }
+          output << cellData[ idx ] << "\n";
+        }
+      }
+    }
   }
 }
 
 
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ =
 {
-  { DoFType::VERTEX,          "VertexDoF" },
-  { DoFType::EDGE_X, "HorizontalEdgeDoF" },
-  { DoFType::EDGE_Y,   "VerticalEdgeDoF" },
-  { DoFType::EDGE_XY,   "DiagonalEdgeDoF" },
-  { DoFType::DG,              "DGDoF" },
-  { DoFType::P2,              "P2" },
+  { DoFType::VERTEX,   "VertexDoF" },
+  { DoFType::EDGE_X,   "XEdgeDoF" },
+  { DoFType::EDGE_Y,   "YEdgeDoF" },
+  { DoFType::EDGE_Z,   "ZEdgeDoF" },
+  { DoFType::EDGE_XY,  "XYEdgeDoF" },
+  { DoFType::EDGE_XZ,  "XZEdgeDoF" },
+  { DoFType::EDGE_YZ,  "YZEdgeDoF" },
+  { DoFType::EDGE_XYZ, "XYZEdgeDoF" },
+  { DoFType::DG,       "DGDoF" },
+  { DoFType::P2,       "P2" },
 };
 
 
@@ -269,7 +329,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
           break;
       }
     }
-  } else
+  }
+  else
   {
     WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X
                      || dofType == VTKOutput::DoFType::EDGE_Y
@@ -316,6 +377,9 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
               break;
             case DoFType::EDGE_YZ:
               microEdgePosition += edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
+              break;
+            default:
+              WALBERLA_ABORT( "[VTK] Invalid DoFType" );
               break;
           }
           output << microEdgePosition[0] << " " << microEdgePosition[1] << " " << microEdgePosition[2] << "\n";
@@ -560,11 +624,13 @@ void VTKOutput::writeP1( std::ostream & output, const uint_t & level ) const
 
 void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const
 {
-  WALBERLA_ASSERT( write2D_, "Three-dimensional output not yet implemented for edge DoFs!" );
-
   WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_X
                    || dofType == VTKOutput::DoFType::EDGE_Y
-                   || dofType == VTKOutput::DoFType::EDGE_XY );
+                   || dofType == VTKOutput::DoFType::EDGE_Z
+                   || dofType == VTKOutput::DoFType::EDGE_XY
+                   || dofType == VTKOutput::DoFType::EDGE_XZ
+                   || dofType == VTKOutput::DoFType::EDGE_YZ
+                   || dofType == VTKOutput::DoFType::EDGE_XYZ );
 
   if ( edgeDoFFunctions_.size() == 0 )
   {
@@ -573,12 +639,33 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
 
   auto & storage = edgeDoFFunctions_[0]->getStorage();
 
-  const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
+  const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
   const uint_t faceWidth = levelinfo::num_microedges_per_edge( level );
-  const uint_t numberOfCells = storage->getNumberOfLocalFaces() * ((((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2));
+  const uint_t numberOfCells2D = storage->getNumberOfLocalFaces() * ((((faceWidth - 1) * faceWidth) / 2) + (((faceWidth - 2) * (faceWidth - 1)) / 2));
 
-  writePieceHeader( output, numberOfPoints, numberOfCells );
+  const uint_t numberOfPoints3D = storage->getNumberOfLocalCells() * [ dofType, level ]()
+  {
+    if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+    else
+      return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) );
+  }();
+  const uint_t numberOfCells3D = storage->getNumberOfLocalCells() * [ dofType, level ]()
+  {
+    if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      return levelinfo::num_microcells_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+    else
+      return levelinfo::num_microcells_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) );
+  }();
 
+  if ( write2D_ )
+  {
+    writePieceHeader( output, numberOfPoints2D, numberOfCells2D );
+  }
+  else
+  {
+    writePieceHeader( output, numberOfPoints3D, numberOfCells3D );
+  }
   writePointsHeader( output );
   writePointsForMicroEdges( output, storage, level, dofType );
   writePointsFooter( output );
@@ -596,7 +683,17 @@ void VTKOutput::writeEdgeDoFs( std::ostream & output, const uint_t & level, cons
 
   output << "</PointData>\n";
 
-  writeCells2D( output, storage, levelinfo::num_microedges_per_edge( level ) );
+  if ( write2D_ )
+  {
+    writeCells2D( output, storage, levelinfo::num_microedges_per_edge( level ) );
+  }
+  else
+  {
+    if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      writeCells3D( output, storage, levelinfo::num_microedges_per_edge( level ) - 1 );
+    else
+      writeCells3D( output, storage, levelinfo::num_microedges_per_edge( level ) );
+  }
 
   writePieceFooter( output );
 
@@ -737,7 +834,11 @@ void VTKOutput::writeDoFByType( std::ostream & output, const uint_t & level, con
     break;
   case DoFType::EDGE_X:
   case DoFType::EDGE_Y:
+  case DoFType::EDGE_Z:
   case DoFType::EDGE_XY:
+  case DoFType::EDGE_XZ:
+  case DoFType::EDGE_YZ:
+  case DoFType::EDGE_XYZ:
     writeEdgeDoFs( output, level, dofType );
     break;
   case DoFType::DG:
@@ -760,7 +861,11 @@ uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType & dofType 
     return p1Functions_.size();
   case DoFType::EDGE_X:
   case DoFType::EDGE_Y:
+  case DoFType::EDGE_Z:
   case DoFType::EDGE_XY:
+  case DoFType::EDGE_XZ:
+  case DoFType::EDGE_YZ:
+  case DoFType::EDGE_XYZ:
     return edgeDoFFunctions_.size();
   case DoFType::DG:
     return dgFunctions_.size();
@@ -781,7 +886,10 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
   {
     syncAllFunctions( level );
 
-    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX, DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_XY, DoFType::DG, DoFType::P2 };
+    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX,
+                                                         DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_Z,
+                                                         DoFType::EDGE_XY, DoFType::EDGE_XZ, DoFType::EDGE_YZ, DoFType::EDGE_XYZ,
+                                                         DoFType::DG, DoFType::P2 };
 
     for ( const auto & dofType : dofTypes )
     {
