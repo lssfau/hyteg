@@ -274,7 +274,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream & output, const std::shar
 {
   if ( write2D_ )
   {
-    WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X
+    WALBERLA_ASSERT(    dofType == VTKOutput::DoFType::EDGE_X
                      || dofType == VTKOutput::DoFType::EDGE_Y
                      || dofType == VTKOutput::DoFType::EDGE_XY );
 
@@ -886,10 +886,16 @@ void VTKOutput::write( const uint_t & level, const uint_t & timestep ) const
   {
     syncAllFunctions( level );
 
-    const std::vector< VTKOutput::DoFType > dofTypes = { DoFType::VERTEX,
-                                                         DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_Z,
-                                                         DoFType::EDGE_XY, DoFType::EDGE_XZ, DoFType::EDGE_YZ, DoFType::EDGE_XYZ,
-                                                         DoFType::DG, DoFType::P2 };
+    const std::vector< VTKOutput::DoFType > dofTypes2D = { DoFType::VERTEX,
+                                                           DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_XY,
+                                                           DoFType::DG, DoFType::P2 };
+
+    const std::vector< VTKOutput::DoFType > dofTypes3D = { DoFType::VERTEX,
+                                                           DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_Z,
+                                                           DoFType::EDGE_XY, DoFType::EDGE_XZ, DoFType::EDGE_YZ, DoFType::EDGE_XYZ,
+                                                           DoFType::DG, DoFType::P2 };
+
+    auto dofTypes = write2D_ ? dofTypes2D : dofTypes3D;
 
     for ( const auto & dofType : dofTypes )
     {
