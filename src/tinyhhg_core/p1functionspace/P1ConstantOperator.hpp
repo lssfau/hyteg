@@ -31,6 +31,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/HHGDefinitions.hpp"
 
 #include "P1DataHandling.hpp"
 #include "P1Elements.hpp"
@@ -83,7 +84,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    }
 
-   ~P1ConstantOperator() {}
+   ~P1ConstantOperator() override {}
 
    void scale( real_t scalar )
    {
@@ -300,10 +301,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
                std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-               std::array< uint_t, 3 > stencilMap;
+               std::array< uint_t, 3 > stencilMap{};
                stencilMap[0] = 0;
 
-               std::array< uint_t, 3 > dofMap;
+               std::array< uint_t, 3 > dofMap{};
                dofMap[0] = v_i;
 
                // iterate over adjacent edges
@@ -555,11 +556,19 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
-#ifdef HHG_USE_GENERATED_KERNEL
-
-#endif
-            vertexdof::macroface::apply< real_t >(
-                level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+            if( hhg::globalDefines::useGeneratedKernels && (!storage_->hasGlobalCells()) ){
+               const real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+               const real_t* src_data      = face.getData( src.getFaceDataID() )->getPointer( level );
+               real_t* dst_data      = face.getData( dst.getFaceDataID() )->getPointer( level );
+               if(updateType == hhg::Replace) {
+                  vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+               } else if (updateType == hhg::Add) {
+                  vertexdof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
+               }
+            } else {
+               vertexdof::macroface::apply< real_t >(
+                  level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+            }
          }
       }
 
@@ -576,8 +585,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       }
    }
 
-   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )
-   {
+   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override {
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
       dst.communicate< Face, Cell >( level );
@@ -637,8 +645,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       }
    }
 
-   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag )
-   {
+   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag ) override {
 
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
@@ -694,8 +701,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                          P1Function< real_t >& rhs,
                          P1Function< real_t >& tmp,
                          size_t                level,
-                         DoFType               flag )
-   {
+                         DoFType               flag ) override {
       tmp.communicate< Vertex, Edge >( level );
       tmp.communicate< Edge, Face >( level );
       tmp.communicate< Face, Cell >( level );

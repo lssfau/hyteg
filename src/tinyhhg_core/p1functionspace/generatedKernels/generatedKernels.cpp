@@ -1,9 +1,14 @@
 #include "generatedKernels.hpp"
 
-void faceApplyReplace( double*                fd_p1FaceDst,
-                       const double*          fd_p1FaceSrc,
-                       const double*          fd_p1FaceStencil,
-                       const walberla::uint_t level )
+namespace hhg {
+namespace vertexdof {
+namespace macroface {
+namespace generated {
+
+void applyReplace( double*                fd_p1FaceDst,
+                   const double*          fd_p1FaceSrc,
+                   const double*          fd_p1FaceStencil,
+                   const walberla::uint_t level )
 {
    for( int ctr_2 = 1; ctr_2 < ( 1 << level ) - 1; ctr_2 += 1 )
       for( int ctr_1 = 1; ctr_1 < -ctr_2 + ( 1 << level ); ctr_1 += 1 )
@@ -22,10 +27,7 @@ void faceApplyReplace( double*                fd_p1FaceDst,
       }
 }
 
-void faceApplyAdd( double*                fd_p1FaceDst,
-                   const double*          fd_p1FaceSrc,
-                   const double*          fd_p1FaceStencil,
-                   const walberla::uint_t level )
+void applyAdd( double* fd_p1FaceDst, const double* fd_p1FaceSrc, const double* fd_p1FaceStencil, const walberla::uint_t level )
 {
    for( int ctr_2 = 1; ctr_2 < ( 1 << level ) - 1; ctr_2 += 1 )
       for( int ctr_1 = 1; ctr_1 < -ctr_2 + ( 1 << level ); ctr_1 += 1 )
@@ -43,3 +45,7 @@ void faceApplyAdd( double*                fd_p1FaceDst,
              fd_p1FaceSrc[ctr_1 + ctr_2 * ( ( 1 << level ) + 2 ) - ( ctr_2 * ( ctr_2 + 1 ) / 2 )] * fd_p1FaceStencil[3];
       }
 }
+} // namespace generated
+} // namespace macroface
+} // namespace vertexdof
+} // namespace hhg
