@@ -16,11 +16,22 @@ using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::Environment env( argc, argv );
+   //walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const uint_t      level     = 4;
+   auto cfg = std::make_shared<walberla::config::Config>();
+   if( env.config() == nullptr ) {
+      auto defaultFile = "./P1CGBenchmark.prm";
+      WALBERLA_LOG_PROGRESS_ON_ROOT("No Parameter file given loading default parameter file: " << defaultFile);
+      cfg->readParameterFile( defaultFile );
+   } else {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+
+   const uint_t level = mainConf.getParameter< uint_t >( "level" );
+
    const double      tolerance = 1e-15;
    const uint_t      maxIter   = 1000;
 
