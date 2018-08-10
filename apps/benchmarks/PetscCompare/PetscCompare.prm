@@ -1,5 +1,6 @@
 Parameters
 {
   level 6;
-  VTKOutput false;
+  VTKOutput true;
+  mesh ../../../data/meshes/annulus_coarse.msh;
 }

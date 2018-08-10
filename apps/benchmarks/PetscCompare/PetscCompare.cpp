@@ -30,16 +30,6 @@ int main( int argc, char* argv[] )
 
    PETScManager petscManager;
 
-   std::string meshFileName = "../../../data/meshes/annulus_coarse.msh";
-
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-
-   //hhg::MeshInfo::meshUnitSquare( 2 );
-
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   hhg::loadbalancing::roundRobin( setupStorage );
-
    auto cfg = std::make_shared< walberla::config::Config >();
    if( env.config() == nullptr )
    {
@@ -53,6 +43,16 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    const uint_t level = mainConf.getParameter< uint_t >( "level" );
+
+   std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+
+   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
+
+   //hhg::MeshInfo::meshUnitSquare( 2 );
+
+   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   hhg::loadbalancing::roundRobin( setupStorage );
 
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
