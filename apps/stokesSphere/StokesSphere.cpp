@@ -28,9 +28,70 @@
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "tinyhhg_core/geophysics/TomoVolumeFunction.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
+
+void setPointForce( hhg::P1StokesFunction< real_t > & f, const uint_t & level, const Point3D & sourcePoint, const real_t & sourceRadius )
+{
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
+       if( distToSourcePoint < sourceRadius )
+          return x[0] * ( sourceRadius - distToSourcePoint );
+       else
+          return 0.0;
+   };
+
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
+       if( distToSourcePoint < sourceRadius )
+          return x[1] * ( sourceRadius - distToSourcePoint );
+       else
+          return 0.0;
+   };
+
+   std::function< real_t( const hhg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
+       if( distToSourcePoint < sourceRadius )
+          return x[2] * ( sourceRadius - distToSourcePoint );
+       else
+          return 0.0;
+   };
+
+   f.u.interpolate( rhsPlumeX, level );
+   f.v.interpolate( rhsPlumeY, level );
+   f.w.interpolate( rhsPlumeZ, level );
+}
+
+
+void initForceWithTomoModel( hhg::P1StokesFunction< real_t > & f, const uint_t & level, const std::string & tomoModelFile,
+                             const real_t & rmin, const real_t & rmax )
+{
+  hhg::TomoVolumeFunction< real_t > tomoVolumeFunction( level, 1, 0, 0, rmin, rmax, 100.0, tomoModelFile );
+  std::function< real_t( const hhg::Point3D& ) > forceX = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+  {
+    real_t r = x.norm();
+    // WALBERLA_LOG_INFO_ON_ROOT( "x[0] / r = " << (x[0] / r) << " | temperature = " << tomoVolumeFunction( x[0], x[1], x[2] ) );
+    WALBERLA_LOG_INFO_ON_ROOT( x );
+    return (x[0] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+  };
+  std::function< real_t( const hhg::Point3D& ) > forceY = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+  {
+    real_t r = x.norm();
+    return (x[1] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+  };
+  std::function< real_t( const hhg::Point3D& ) > forceZ = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+  {
+    real_t r = x.norm();
+    return (x[2] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+  };
+
+  f.u.interpolate( forceX, level );
+  f.v.interpolate( forceY, level );
+  f.w.interpolate( forceZ, level );
+}
+
 
 int main( int argc, char* argv[] )
 {
@@ -141,41 +202,40 @@ int main( int argc, char* argv[] )
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
-      const real_t distToSourcePoint = ( x - sourcePoint ).norm();
-      if( distToSourcePoint < sourceRadius )
-         return x[0] * ( sourceRadius - distToSourcePoint );
-      else
-         return 0.0;
-   };
+   ////////////////////////////////
+   // Setting up right-hand side //
+   ////////////////////////////////
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
-      const real_t distToSourcePoint = ( x - sourcePoint ).norm();
-      if( distToSourcePoint < sourceRadius )
-         return x[1] * ( sourceRadius - distToSourcePoint );
-      else
-         return 0.0;
-   };
+   const bool useTomoDataForTemperature = mainConf.getParameter< bool >( "useTomoDataForTemperature" );
+   const std::string tomoModelFile      = mainConf.getParameter< std::string >( "tomoModelFile" );
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
-      const real_t distToSourcePoint = ( x - sourcePoint ).norm();
-      if( distToSourcePoint < sourceRadius )
-         return x[2] * ( sourceRadius - distToSourcePoint );
-      else
-         return 0.0;
-   };
+   if ( useTomoDataForTemperature )
+   {
+      initForceWithTomoModel( f, maxLevel, tomoModelFile, layers.front(), layers.back() );
+   }
+   else
+   {
+      setPointForce( f, maxLevel, sourcePoint, sourceRadius );
+   }
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 
-   f.u.interpolate( rhsPlumeX, maxLevel );
-   f.v.interpolate( rhsPlumeY, maxLevel );
-   f.w.interpolate( rhsPlumeZ, maxLevel );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.write( maxLevel, 0 );
    }
+
+   if ( mainConf.getParameter< bool >( "onlyInitThenExit" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Exiting without simulation..." );
+      return EXIT_SUCCESS;
+   }
+
+   ///////////
+   // Solve //
+   ///////////
 
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 

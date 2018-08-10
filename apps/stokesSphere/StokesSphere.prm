@@ -1,32 +1,38 @@
 Parameters
 {
-  ntan 2;
+  ntan 5;
   minLevel 2;
   maxLevel 3;
-  numVCycle 2;
+  numVCycle 10;
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
   useParMETIS false;
-  maxMinResIterations 10;
+  maxMinResIterations 100;
 
   /// solver can be uzawa, minres
-  solver uzawa;
+  solver minres;
 
   /// output
   printGlobalStorageInfo true;
   printParameters true;
   printDoFCount true;
   printFunctionCount true;
-  printTiming false;
-  writeDomainVTK false;
-  VTKOutput false;
+  printTiming true;
+  writeDomainVTK true;
+  VTKOutput true;
+  onlyInitThenExit true;
+
+  useTomoDataForTemperature true;
+  tomoModelFile             ../../../data/tomomodels/Grand129.dat;
 }
 /// Layers for the spherical shell generator
 /// the keys can be arbitrary but need to different
 /// the values have to be sorted ascending
 Layers
 {
-  layer0 1.0;
-  layer1 2.0;
-  layer2 3.0;
+  layer0 3480000.00; // 1.0;
+  layer1 4202500.00;
+  layer2 5105625.00; // 2.0;
+  layer3 5737812.50;
+  layer4 6370000.00; // 3.0;
 }
