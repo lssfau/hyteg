@@ -252,11 +252,13 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
   this->startTiming( "Assign" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Cell >>     srcCellIDs;
 
   for ( auto& function : functions )
   {
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
   }
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -282,6 +284,18 @@ inline void EdgeDoFFunction< ValueType >::assign(const std::vector<ValueType> sc
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+
+  for ( auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+    }
+  }
+
+
   this->stopTiming( "Assign" );
 }
 
@@ -292,11 +306,13 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
   this->startTiming( "Add" );
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Edge >>     srcEdgeIDs;
   std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Face >>     srcFaceIDs;
+  std::vector<PrimitiveDataID< FunctionMemory< ValueType >, Cell >>     srcCellIDs;
 
   for ( auto& function : functions )
   {
       srcEdgeIDs.push_back( function->edgeDataID_);
       srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
   }
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -322,6 +338,17 @@ inline void EdgeDoFFunction< ValueType >::add(const std::vector<ValueType> scala
   }
 
   communicators_[ level ]->template endCommunication< Edge, Face >();
+
+  for ( auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+    }
+  }
+
   this->stopTiming( "Add" );
 }
 
