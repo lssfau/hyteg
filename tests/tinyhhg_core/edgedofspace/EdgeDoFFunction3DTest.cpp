@@ -45,6 +45,11 @@ int main(int argc, char **argv)
       return real_c(0);
   };
 
+  std::function< real_t( const Point3D & )> ones = []( const Point3D & )
+  {
+      return real_c(1);
+  };
+
   VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest" );
   vtkOutput.set3D();
   vtkOutput.add( &x1 );
@@ -60,6 +65,9 @@ int main(int argc, char **argv)
   xSum.add( {1.0, 1.0}, {&x1, &x2}, level );
   x1.interpolate( fnSum, level );
 
+  x2.interpolate( ones, level );
+  const real_t dotProduct = x2.dotLocal( x2, level );
+
   vtkOutput.write( level, 1 );
 
   for ( const auto & itCell : storage->getCells() )
@@ -74,5 +82,7 @@ int main(int argc, char **argv)
       WALBERLA_CHECK_FLOAT_EQUAL( sumData[i], testData[i] );
     }
   }
+
+  WALBERLA_CHECK_FLOAT_EQUAL( dotProduct, 6 * real_c(20) + real_c(10) );
 
 }
