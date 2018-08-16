@@ -378,6 +378,16 @@ inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType 
     }
   }
 
+  for ( auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+      scalarProduct += edgedof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+    }
+  }
+
   return scalarProduct;
 }
 

@@ -228,6 +228,65 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
 }
 
 
+template< typename ValueType >
+inline real_t dot( const uint_t & Level, Cell & cell,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& lhsId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& rhsId )
+{
+  auto lhsData = cell.getData( lhsId )->getPointer( Level );
+  auto rhsData = cell.getData( rhsId )->getPointer( Level );
+
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx  = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    scalarProduct += lhsData[ idx ] * rhsData[ idx ];
+  }
+
+  return scalarProduct.get();
+}
+
+
 }
 }
 }
