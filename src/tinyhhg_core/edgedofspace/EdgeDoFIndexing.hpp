@@ -447,6 +447,47 @@ inline constexpr uint_t xyzIndex( const uint_t & level, const uint_t & x, const 
 }
 
 
+inline bool isInnerXEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 1 ) == 0;
+}
+
+inline bool isInnerYEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 2 ) == 0;
+}
+
+inline bool isInnerZEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 1 ) == 0 && onCellFaces.count( 2 ) == 0;
+}
+
+inline bool isInnerXYEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 0 ) == 0 && onCellFaces.count( 3 ) == 0;
+}
+
+inline bool isInnerXZEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 1 ) == 0 && onCellFaces.count( 3 ) == 0;
+}
+
+inline bool isInnerYZEdgeDoF( const uint_t & level, const indexing::Index & idx )
+{
+  const auto onCellFaces = indexing::isOnCellFace( idx, levelinfo::num_microvertices_per_edge( level ) - 1 );
+  return onCellFaces.count( 2 ) == 0 && onCellFaces.count( 3 ) == 0;
+}
+
+inline bool isInnerXYZEdgeDoF( const uint_t &, const indexing::Index & )
+{
+  return true;
+}
+
 // Iterators
 
 class Iterator : public indexing::CellIterator
