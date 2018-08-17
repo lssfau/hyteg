@@ -708,6 +708,16 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType
   if ( isDummy() ) { return real_c(0); }
    real_t localMax = -std::numeric_limits< real_t >::max();
 
+   for( auto& it : this->getStorage()->getCells() )
+   {
+     Cell&         cell   = *it.second;
+     const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+     if( testFlag( cellBC, flag ) )
+     {
+       localMax = std::max( localMax, vertexdof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+     }
+   }
+
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
@@ -793,6 +803,16 @@ inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType
 {
   if ( isDummy() ) { return real_c(0); }
    real_t localMin = std::numeric_limits< real_t >::max();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+     Cell&         cell   = *it.second;
+     const DoFType cellBC = this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+     if( testFlag( cellBC, flag ) )
+     {
+       localMin = std::min( localMin, vertexdof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+     }
+   }
 
    for( auto& it : this->getStorage()->getFaces() )
    {

@@ -334,6 +334,34 @@ inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<F
 }
 
 
+template < typename ValueType >
+inline real_t getMaxValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+  auto   src      = cell.getData( srcId )->getPointer( level );
+  real_t localMax = -std::numeric_limits< real_t >::max();
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    localMax = std::max( localMax, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )] );
+  }
+
+  return localMax;
+}
+
+template < typename ValueType >
+inline real_t getMinValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+  auto   src      = cell.getData( srcId )->getPointer( level );
+  real_t localMin = std::numeric_limits< real_t >::max();
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    localMin = std::min( localMin, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )] );
+  }
+
+  return localMin;
+}
+
 #ifdef HHG_BUILD_WITH_PETSC
 
 inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID<StencilMemory< real_t >, Cell>& operatorId,
