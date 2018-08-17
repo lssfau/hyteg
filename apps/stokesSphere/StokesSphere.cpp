@@ -65,31 +65,57 @@ void setPointForce( hhg::P1StokesFunction< real_t > & f, const uint_t & level, c
 }
 
 
-void initForceWithTomoModel( hhg::P1StokesFunction< real_t > & f, const uint_t & level, const std::string & tomoModelFile,
-                             const real_t & rmin, const real_t & rmax )
+void initTemperatureAndForceWithTomoModel( hhg::P1Function< real_t > & temperature, hhg::P1StokesFunction< real_t > & f, hhg::P1MassOperator & massOperator,
+                                           const uint_t & level, const std::string & tomoModelFile, const real_t & rmin, const real_t & rmax )
 {
-  hhg::TomoVolumeFunction< real_t > tomoVolumeFunction( level, 1, 0, 0, rmin, rmax, 100.0, tomoModelFile );
-  std::function< real_t( const hhg::Point3D& ) > forceX = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+
+  hhg::P1Function< real_t > tmp( "tmp", temperature.getStorage(), level, level );
+
+  // temperature
+
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Calculating spherical harmonics from file..." )
+  hhg::TomoVolumeFunction< real_t > tomoVolumeFunction( level, 1, 0, 0, rmin, rmax, 1.0, tomoModelFile );
+
+  std::function< real_t( const hhg::Point3D& ) > temp = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
   {
-    real_t r = x.norm();
-    // WALBERLA_LOG_INFO_ON_ROOT( "x[0] / r = " << (x[0] / r) << " | temperature = " << tomoVolumeFunction( x[0], x[1], x[2] ) );
-    WALBERLA_LOG_INFO_ON_ROOT( x );
-    return (x[0] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+    return tomoVolumeFunction( x[0], x[1], x[2] );
   };
-  std::function< real_t( const hhg::Point3D& ) > forceY = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Interpolating temperature..." )
+  temperature.interpolate( temp, level );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Scaling temperature..." )
+  const real_t maxTemp = temperature.getMaxValue( level, hhg::All );
+  const real_t minTemp = temperature.getMinValue( level, hhg::All );
+  temperature.assign( {1.0 / maxTemp}, {&temperature}, level );
+
+  // force
+
+  std::function< real_t( const hhg::Point3D& ) > forceX = [ &tomoVolumeFunction, maxTemp ]( const hhg::Point3D& x )
   {
-    real_t r = x.norm();
-    return (x[1] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+    return (x[0] / x.norm()) * real_c(1000) * (tomoVolumeFunction(x[0], x[1], x[2]) / maxTemp);
   };
-  std::function< real_t( const hhg::Point3D& ) > forceZ = [ &tomoVolumeFunction ]( const hhg::Point3D& x )
+  std::function< real_t( const hhg::Point3D& ) > forceY = [ &tomoVolumeFunction, maxTemp ]( const hhg::Point3D& x )
   {
-    real_t r = x.norm();
-    return (x[2] / r) * tomoVolumeFunction( x[0], x[1], x[2] );
+    return (x[1] / x.norm()) * real_c(1000) * (tomoVolumeFunction(x[0], x[1], x[2]) / maxTemp);
+  };
+  std::function< real_t( const hhg::Point3D& ) > forceZ = [ &tomoVolumeFunction, maxTemp ]( const hhg::Point3D& x )
+  {
+    return (x[2] / x.norm()) * real_c(1000) * (tomoVolumeFunction(x[0], x[1], x[2]) / maxTemp);
   };
 
+  WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Interpolating force and applying mass operator..." )
+#if 0
+  tmp.interpolate( forceX, level );
+  massOperator.apply( tmp, f.u, level, hhg::All );
+  tmp.interpolate( forceY, level );
+  massOperator.apply( tmp, f.v, level, hhg::All );
+  tmp.interpolate( forceZ, level );
+  massOperator.apply( tmp, f.w, level, hhg::All );
+#else
   f.u.interpolate( forceX, level );
   f.v.interpolate( forceY, level );
   f.w.interpolate( forceZ, level );
+#endif
 }
 
 
@@ -115,9 +141,12 @@ int main( int argc, char* argv[] )
 
    if( mainConf.getParameter< bool >( "printParameters" ) )
    {
-      mainConf.listParameters();
-      WALBERLA_LOG_INFO_ON_ROOT( "Layers: " );
-      layersParam.listParameters();
+      WALBERLA_ROOT_SECTION()
+      {
+         mainConf.listParameters();
+         WALBERLA_LOG_INFO_ON_ROOT( "Layers: " );
+         layersParam.listParameters();
+      }
    }
 
    const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
@@ -143,6 +172,7 @@ int main( int argc, char* argv[] )
 
    //////////////////////////////////////////
 
+   WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Setting up primitive storage..." )
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::meshSphericalShell( ntan, layers );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hhg::loadbalancing::roundRobin( setupStorage );
@@ -167,15 +197,19 @@ int main( int argc, char* argv[] )
 
    if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Writing domain partitioning..." )
       hhg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Allocating functions..." )
    hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t >       temperature( "temperature", storage, minLevel, maxLevel );
 
    if( mainConf.getParameter< bool >( "printDoFCount" ) )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Counting DoFs..." )
       uint_t totalGlobalDofsStokes = 0;
       for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
       {
@@ -198,9 +232,12 @@ int main( int argc, char* argv[] )
       vtkOutput.add( &f.v );
       vtkOutput.add( &f.w );
       vtkOutput.add( &f.p );
+      vtkOutput.add( &temperature );
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Assembling operators..." )
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hhg::P1MassOperator   M( storage, minLevel, maxLevel );
 
    ////////////////////////////////
    // Setting up right-hand side //
@@ -209,12 +246,15 @@ int main( int argc, char* argv[] )
    const bool useTomoDataForTemperature = mainConf.getParameter< bool >( "useTomoDataForTemperature" );
    const std::string tomoModelFile      = mainConf.getParameter< std::string >( "tomoModelFile" );
 
+
    if ( useTomoDataForTemperature )
    {
-      initForceWithTomoModel( f, maxLevel, tomoModelFile, layers.front(), layers.back() );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Initializing temperature and right-hand side..." )
+      initTemperatureAndForceWithTomoModel( temperature, f, M, maxLevel, tomoModelFile, layers.front(), layers.back() );
    }
    else
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Initializing right-hand side..." )
       setPointForce( f, maxLevel, sourcePoint, sourceRadius );
    }
 
@@ -222,8 +262,10 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 
 
+
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Writing VTK..." )
       vtkOutput.write( maxLevel, 0 );
    }
 
@@ -237,10 +279,19 @@ int main( int argc, char* argv[] )
    // Solve //
    ///////////
 
+   WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Solving..." )
+
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
    if( solverType == "minres" )
    {
+      ///// Residual calculation /////
+      L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
+                                 real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] Initial residual: " << std::scientific << currentResidualL2 );
+
       ///// Coarse Grid solver for the A block GMG preconditioner in MinRes /////
       typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
       auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
@@ -262,16 +313,23 @@ int main( int argc, char* argv[] )
                                                  GMGSolver_T,
                                                  hhg::P1LumpedInvMassOperator >
           Preconditioner_T;
+      typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >,
+                                                 hhg::P1LumpedInvMassOperator >
+          PressurePreconditioner_T;
 
-      P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-      Preconditioner_T        prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+      P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
+      Preconditioner_T         prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+      PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
 
       /// MinResSolver
       typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T >
            PreconditionedMinRes_T;
+      typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
+           PressurePreconditionedMinRes_T;
       auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
-      preconditionedMinResSolver.solve(
-          L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
+      // preconditionedMinResSolver.solve( L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      pressurePreconditionedMinResSolver.solve( L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
 
    } else if( solverType == "uzawa" )
    {

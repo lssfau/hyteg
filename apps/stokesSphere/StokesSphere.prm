@@ -2,12 +2,12 @@ Parameters
 {
   ntan 5;
   minLevel 2;
-  maxLevel 3;
+  maxLevel 2;
   numVCycle 10;
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
   useParMETIS false;
-  maxMinResIterations 100;
+  maxMinResIterations 1000;
 
   /// solver can be uzawa, minres
   solver minres;
@@ -20,10 +20,10 @@ Parameters
   printTiming true;
   writeDomainVTK true;
   VTKOutput true;
-  onlyInitThenExit true;
+  onlyInitThenExit false;
 
   useTomoDataForTemperature true;
-  tomoModelFile             ../../../data/tomomodels/Grand129.dat;
+  tomoModelFile             ../../../data/tomomodels/Grand129_T_Stixrude.data;
 }
 /// Layers for the spherical shell generator
 /// the keys can be arbitrary but need to different
