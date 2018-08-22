@@ -28,6 +28,7 @@ Parameters
 
     /// possible values: minres, petsc, uzawa
     solver minres;
+    uzawaRelaxParam 0.37;
 
     /// possible values: minres, petsc, empty
     coarseGridSolver minres;
