@@ -220,8 +220,8 @@ int main( int argc, char* argv[] )
       f.v.multElementwise( {&f.v, &normalY}, maxLevel, All );
       f.w.multElementwise( {&f.w, &normalZ}, maxLevel, All );
 
-      f.u.assign({rhsScaleFactor}, {&f.w}, maxLevel, All);
-      f.v.assign({rhsScaleFactor}, {&f.w}, maxLevel, All);
+      f.u.assign({rhsScaleFactor}, {&f.u}, maxLevel, All);
+      f.v.assign({rhsScaleFactor}, {&f.v}, maxLevel, All);
       f.w.assign({rhsScaleFactor}, {&f.w}, maxLevel, All);
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
