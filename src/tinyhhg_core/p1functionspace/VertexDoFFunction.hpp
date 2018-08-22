@@ -97,6 +97,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                     uint_t                                               level,
                     DoFType                                              flag = All );
 
+   inline void multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
+                                uint_t                                               level,
+                                DoFType                                              flag = All );
+
    inline real_t dotLocal ( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
    inline real_t dotGlobal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
@@ -514,6 +518,69 @@ inline void VertexDoFFunction< ValueType >::add( const std::vector< ValueType > 
       }
    }
    this->stopTiming( "Add" );
+}
+
+template< typename ValueType >
+inline void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
+                                          uint_t                                               level,
+                                          DoFType                                              flag )
+{
+
+  if ( isDummy() ) { return; }
+   this->startTiming( "Multiply elementwise" );
+   // Collect all source IDs in a vector
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
+
+   for( const auto& function : functions )
+   {
+      srcVertexIDs.push_back( function->vertexDataID_ );
+      srcEdgeIDs.push_back( function->edgeDataID_ );
+      srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
+   }
+
+   for( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         vertexdof::macrovertex::multElementwise< ValueType >( vertex, srcVertexIDs, vertexDataID_, level );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         vertexdof::macroedge::multElementwise< ValueType >( level, edge, srcEdgeIDs, edgeDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         vertexdof::macroface::multElementwise< ValueType >( level, face, srcFaceIDs, faceDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         vertexdof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
+      }
+   }
+   this->stopTiming( "Multiply elementwise" );
 }
 
 template< typename ValueType >
