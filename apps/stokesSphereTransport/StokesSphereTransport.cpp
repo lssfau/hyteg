@@ -75,8 +75,6 @@ int main( int argc, char* argv[] )
    const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
    const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
 
-   const real_t temperatureRadius = mainConf.getParameter< double >( "temperatureRadius" );
-
    const uint_t innerTimeSteps  = mainConf.getParameter< uint_t >( "innerTimeSteps" );
    const uint_t outerIterations = mainConf.getParameter< uint_t >( "outerIterations" );
 
@@ -84,9 +82,6 @@ int main( int argc, char* argv[] )
    const real_t dt              = mainConf.getParameter< real_t >( "dt" );
 
    const real_t rhsScaleFactor  = mainConf.getParameter< real_t >( "rhsScaleFactor" );
-
-   WALBERLA_CHECK_GREATER( temperatureRadius, rmin );
-   WALBERLA_CHECK_GREATER( rmax, temperatureRadius );
 
    /////////////////// Mesh / Domain ///////////////////////
 
@@ -155,11 +150,9 @@ int main( int argc, char* argv[] )
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
    hhg::P1MassOperator   M( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > temperature = [ temperatureRadius ]( const hhg::Point3D& x ) 
+   std::function< real_t( const hhg::Point3D& ) > temperature = [ rmin, rmax ]( const hhg::Point3D& x ) 
    {
-      if ( x.norm() < temperatureRadius )
-         return 1.0;
-      return 0.0;
+      return std::pow((rmax - x.norm()) / (rmax - rmin), 3.0);
    };
 
    temp.interpolate( temperature, maxLevel );
