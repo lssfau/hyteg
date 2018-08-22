@@ -10,7 +10,7 @@ Parameters
 
     /// either number of overall V-Cycles / smoothing steps for Uzawa
     /// or number of V-Cycles / smoothing steps for the preconditioned MinRes regarding the A-block
-    numMGCycles 2;
+    numMGCycles 20;
     preSmooth 2;
     postSmooth 2;
 
@@ -27,7 +27,7 @@ Parameters
     discretization TaylorHood;
 
     /// possible values: minres, petsc, uzawa
-    solver minres;
+    solver uzawa;
     uzawaRelaxParam 0.37;
 
     /// possible values: minres, petsc, empty

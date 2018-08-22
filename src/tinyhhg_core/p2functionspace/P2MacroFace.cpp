@@ -171,7 +171,7 @@ void smoothGaussSeidl( const uint_t&                                            
 
    real_t tmpVertex = 0, tmpEdgeHO = 0, tmpEdgeDI = 0, tmpEdgeVE = 0;
 
-   /// sum up weighted values first for vertex and edges and write to corresponding dof afterwards
+   /// sum up weighted values first for vertex and edges and write to corresponding dof
    for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
@@ -190,6 +190,8 @@ void smoothGaussSeidl( const uint_t&                                            
             tmpVertex -= dstEdgeDoF[edgedof::macroface::indexFromVertex( level, it.col(), it.row(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
+         dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
+             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
       }
       ////////// HORIZONTAL EDGE //////////
       if( !edgedof::isHorizontalEdgeOnBoundary( level, it ) )
@@ -207,6 +209,8 @@ void smoothGaussSeidl( const uint_t&                                            
             tmpEdgeHO -= dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
+         dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] =
+             tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
       }
       ////////// VERTICAL EDGE //////////
       if( !edgedof::isVerticalEdgeOnBoundary( level, it ) )
@@ -224,6 +228,8 @@ void smoothGaussSeidl( const uint_t&                                            
             tmpEdgeVE -= dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( dir )];
          }
+         dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] =
+             tmpEdgeVE / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
       }
       ////////// DIAGONAL EDGE //////////
       if( !edgedof::isDiagonalEdgeOnBoundary( level, it ) )
@@ -241,25 +247,6 @@ void smoothGaussSeidl( const uint_t&                                            
             tmpEdgeDI -= dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( dir )];
          }
-      }
-      ////////// WRITE DATA /////////
-      if( !vertexdof::macroface::isVertexOnBoundary( level, it ) )
-      {
-         dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
-             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
-      }
-      if( !edgedof::isHorizontalEdgeOnBoundary( level, it ) )
-      {
-         dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] =
-             tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
-      }
-      if( !edgedof::isVerticalEdgeOnBoundary( level, it ) )
-      {
-         dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] =
-             tmpEdgeVE / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
-      }
-      if( !edgedof::isDiagonalEdgeOnBoundary( level, it ) )
-      {
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] =
              tmpEdgeDI / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
       }
