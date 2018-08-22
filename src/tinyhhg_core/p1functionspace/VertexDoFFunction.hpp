@@ -367,7 +367,7 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
       srcFaceIDs.push_back( function->faceDataID_ );
       srcCellIDs.push_back( function->cellDataID_ );
    }
-
+   this->startTiming( "Vertex" );
    for( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
@@ -377,7 +377,8 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
          vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
-
+   this->stopTiming( "Vertex" );
+   this->startTiming( "Edge" );
    for( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
@@ -387,7 +388,8 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
          vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
-
+   this->stopTiming( "Edge" );
+   this->startTiming( "Face" );
    for( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -397,7 +399,8 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
          vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
-
+   this->stopTiming( "Face" );
+   this->startTiming( "Cell" );
    for( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
@@ -406,6 +409,7 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
          vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
+   this->stopTiming( "Cell" );
    this->stopTiming( "Assign" );
 }
 
