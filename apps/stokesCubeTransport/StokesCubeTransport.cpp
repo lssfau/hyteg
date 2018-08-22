@@ -132,11 +132,8 @@ int main( int argc, char* argv[] )
 
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x ) 
    {
-//     return 1.0 - x[2];
-      if (x[2] < 1e-8)
-         return 1.0;
-
-      return 0.0;
+     real_t temp_ = 1.0 - std::pow(x[2], 0.5);
+     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) + std::sin(walberla::math::PI * x[1]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
@@ -187,14 +184,14 @@ int main( int argc, char* argv[] )
 
    P1Transport transportOperator(storage, minLevel, maxLevel);
    real_t time = 0.0;
-   real_t dt = 1e-2;
-   real_t viscosity = 1e-9;
-   uint_t steps = 500;
+   const real_t dt = mainConf.getParameter< real_t >( "dt" );
+   const real_t viscosity = mainConf.getParameter< real_t >( "viscosity" );
+   const uint_t steps = mainConf.getParameter< uint_t >( "timesteps" );
 
    for (uint_t step = 0; step < steps; ++step)
    {
       M.apply( temp, f.w, maxLevel, All );
-      f.w.assign({100.0}, {&f.w}, maxLevel, All);
+      f.w.assign({mainConf.getParameter< real_t >( "convectivity" )}, {&f.w}, maxLevel, All);
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
@@ -230,7 +227,7 @@ int main( int argc, char* argv[] )
          //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
       }
 
-      for (uint_t innerSteps = 0; innerSteps < 10; ++innerSteps) {
+      for (uint_t innerSteps = 0; innerSteps < mainConf.getParameter< uint_t >( "innerTransportSteps" ); ++innerSteps) {
          time += dt;
          WALBERLA_LOG_INFO("time = " << time);
 

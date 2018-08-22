@@ -2,8 +2,8 @@ Parameters
 {
   ntan 2;
   minLevel 2;
-  maxLevel 3;
-  numVCycle 4;
+  maxLevel 4;
+  numVCycle 2;
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
   useParMETIS false;
@@ -13,6 +13,12 @@ Parameters
 
   /// solver can be uzawa, minres
   solver uzawa;
+
+  dt 1e-3;
+  viscosity 1e-6;
+  timesteps 500;
+  convectivity 10.0;
+  innerTransportSteps 100;
 
   /// output
   printGlobalStorageInfo true;
