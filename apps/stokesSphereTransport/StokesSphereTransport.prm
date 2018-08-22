@@ -1,0 +1,40 @@
+Parameters
+{
+  // domain
+  ntan 2;
+  minLevel 2;
+  maxLevel 3;
+  useParMETIS false;
+
+  // simulation
+  innerTimeSteps 10;
+  outerIterations 10;
+  viscosity 1e-9;
+  dt 1e-2;
+  temperatureRadius 1.1;
+  rhsScaleFactor 100.0;
+
+  // solver
+  numVCycle 2;
+  uzawaTolerance 1e-16;
+  uzawaMaxIter 100;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK false;
+  VTKOutput false;
+}
+
+/// Layers for the spherical shell generator
+/// the keys can be arbitrary but need to different
+/// the values have to be sorted ascending
+Layers
+{
+  layer0 1.0;
+  layer1 2.0;
+  layer2 3.0;
+}
