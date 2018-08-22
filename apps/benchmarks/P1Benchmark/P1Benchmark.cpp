@@ -52,6 +52,8 @@ int main( int argc, char** argv )
    const uint_t level = mainConf.getParameter< uint_t >( "level" );
 
    WALBERLA_LOG_INFO("level: " << level);
+   const uint_t totalInnerPoints =  hhg::indexing::layout::linearMacroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 3 );
+   WALBERLA_LOG_INFO_ON_ROOT("Total inner points: " << totalInnerPoints);
 
    LIKWID_MARKER_THREADINIT;
 
