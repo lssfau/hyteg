@@ -158,7 +158,7 @@ inline void add( const uint_t & level,
 
 
 template< typename ValueType >
-inline real_t multElementwise( const uint_t & level,
+inline void multElementwise( const uint_t & level,
                                const Cell & cell,
                                const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                                const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
