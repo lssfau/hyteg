@@ -50,3 +50,4 @@ endif()
 
 add_subdirectory(benchmarks)
 add_subdirectory(stokesSphere)
+add_subdirectory(stokesCubeTransport)

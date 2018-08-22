@@ -1,0 +1,25 @@
+Parameters
+{
+  ntan 2;
+  minLevel 2;
+  maxLevel 3;
+  numVCycle 2;
+  uzawaTolerance 1e-16;
+  uzawaMaxIter 100;
+  useParMETIS false;
+  maxMinResIterations 1000;
+
+  meshFile ../../../data/meshes/3D/cube_24el.msh;
+
+  /// solver can be uzawa, minres
+  solver minres;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK true;
+  VTKOutput true;
+}
