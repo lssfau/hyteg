@@ -9,7 +9,7 @@ Parameters
   useParMETIS false;
   maxMinResIterations 1000;
 
-  meshFile ../../data/meshes/3D/cube_24el.msh;
+  meshFile ../../data/meshes/3D/cube_6el.msh;
 
   /// solver can be uzawa, minres
   solver uzawa;
