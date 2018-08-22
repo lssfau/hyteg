@@ -235,16 +235,16 @@ private:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        P2::macroedge::smoothGaussSeidl(level,
-                                        edge,
-                                        vertexToVertex.getEdgeStencilID(),
-                                        edgeToVertex.getEdgeStencilID(),
-                                        dst.getVertexDoFFunction()->getEdgeDataID(),
-                                        vertexToEdge.getEdgeStencilID(),
-                                        edgeToEdge.getEdgeStencilID(),
-                                        dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                        rhs.getVertexDoFFunction()->getEdgeDataID(),
-                                        rhs.getEdgeDoFFunction()->getEdgeDataID());
+         P2::macroedge::smoothGaussSeidel(level,
+                                          edge,
+                                          vertexToVertex.getEdgeStencilID(),
+                                          edgeToVertex.getEdgeStencilID(),
+                                          dst.getVertexDoFFunction()->getEdgeDataID(),
+                                          vertexToEdge.getEdgeStencilID(),
+                                          edgeToEdge.getEdgeStencilID(),
+                                          dst.getEdgeDoFFunction()->getEdgeDataID(),
+                                          rhs.getVertexDoFFunction()->getEdgeDataID(),
+                                          rhs.getEdgeDoFFunction()->getEdgeDataID());
       }
     }
 
@@ -257,16 +257,16 @@ private:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        P2::macroface::smoothGaussSeidl(level,
-                                        face,
-                                        vertexToVertex.getFaceStencilID(),
-                                        edgeToVertex.getFaceStencilID(),
-                                        dst.getVertexDoFFunction()->getFaceDataID(),
-                                        vertexToEdge.getFaceStencilID(),
-                                        edgeToEdge.getFaceStencilID(),
-                                        dst.getEdgeDoFFunction()->getFaceDataID(),
-                                        rhs.getVertexDoFFunction()->getFaceDataID(),
-                                        rhs.getEdgeDoFFunction()->getFaceDataID());
+         P2::macroface::smoothGaussSeidel(level,
+                                          face,
+                                          vertexToVertex.getFaceStencilID(),
+                                          edgeToVertex.getFaceStencilID(),
+                                          dst.getVertexDoFFunction()->getFaceDataID(),
+                                          vertexToEdge.getFaceStencilID(),
+                                          edgeToEdge.getFaceStencilID(),
+                                          dst.getEdgeDoFFunction()->getFaceDataID(),
+                                          rhs.getVertexDoFFunction()->getFaceDataID(),
+                                          rhs.getEdgeDoFFunction()->getFaceDataID());
       }
     }
   }
