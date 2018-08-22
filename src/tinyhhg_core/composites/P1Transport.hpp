@@ -17,8 +17,8 @@ public:
     tmp4_( "tmp4", storage, minLevel, maxLevel )
   {}
 
-  void step( const P1Function< real_t > & c, 
-             const P1Function< real_t > & ux, const P1Function< real_t > & uy, const P1Function< real_t > & uz,
+  void step( P1Function< real_t > & c,
+             P1Function< real_t > & ux, P1Function< real_t > & uy, P1Function< real_t > & uz,
              const uint_t & level, const DoFType & flag, const real_t & dt, const real_t & a )
   {
     WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel );
@@ -34,7 +34,7 @@ public:
     tmp2_.multElementwise( {&uy, &tmp2_}, level, flag );
     tmp3_.multElementwise( {&uz, &tmp3_}, level, flag );
 
-    tmp4_.assign( {dt, dt, dt}, {&tmp1_, &tmp2_, &tmp3_}, level, flag );
+    tmp4_.assign( {-dt, -dt, -dt}, {&tmp1_, &tmp2_, &tmp3_}, level, flag );
 
     tmp0_.add( {1.0}, {&tmp4_}, level, flag );
     invLumpedMass_.apply( tmp0_, c, level, flag, Add );
@@ -43,7 +43,7 @@ public:
 
 private:
 
-  P1InvLumpedMassOperator   invLumpedMass_;
+  P1LumpedInvMassOperator   invLumpedMass_;
   P1ConstantLaplaceOperator A_;
   P1DivTxOperator           divT_x_;
   P1DivTyOperator           divT_y_;
@@ -54,7 +54,7 @@ private:
   P1Function< real_t >      tmp3_;
   P1Function< real_t >      tmp4_;
 
-}
+};
 
 }
 

@@ -3,7 +3,7 @@ Parameters
   ntan 2;
   minLevel 2;
   maxLevel 3;
-  numVCycle 2;
+  numVCycle 4;
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
   useParMETIS false;
@@ -12,7 +12,7 @@ Parameters
   meshFile ../../data/meshes/3D/cube_24el.msh;
 
   /// solver can be uzawa, minres
-  solver minres;
+  solver uzawa;
 
   /// output
   printGlobalStorageInfo true;
