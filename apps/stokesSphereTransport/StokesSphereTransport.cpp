@@ -132,18 +132,18 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput( "./output", "StokesSphereTransport" );
+   hhg::VTKOutput vtkOutput( "./output", "StokesSphereTransport", 10 );
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.set3D();
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );
-      vtkOutput.add( &u.p );
-      vtkOutput.add( &f.u );
-      vtkOutput.add( &f.v );
-      vtkOutput.add( &f.w );
-      vtkOutput.add( &f.p );
+//      vtkOutput.add( &u.p );
+//      vtkOutput.add( &f.u );
+//      vtkOutput.add( &f.v );
+//      vtkOutput.add( &f.w );
+//      vtkOutput.add( &f.p );
       vtkOutput.add( &temp );
    }
 
@@ -260,7 +260,7 @@ int main( int argc, char* argv[] )
 
       for (uint_t innerSteps = 0; innerSteps < innerTimeSteps; ++innerSteps) {
          time += dt;
-         WALBERLA_LOG_INFO("time = " << time);
+         WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
 
          transportOperator.step(temp, u.u, u.v, u.w, maxLevel, Inner, dt, viscosity);
       }
