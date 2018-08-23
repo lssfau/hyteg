@@ -349,7 +349,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+            auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
             for ( uint_t i = 0; i < stencilSize; i++ )
             {
@@ -377,7 +377,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
+            auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
             for ( uint_t i = 0; i < stencilSize; i++ )
             {
@@ -418,7 +418,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
+            auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
 
             if ( face->getNumNeighborCells() == 1 )
             {
@@ -482,7 +482,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
-            auto stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
+            auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
             for ( const auto stencilIt : stencil )
             {

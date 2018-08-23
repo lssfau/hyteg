@@ -111,7 +111,7 @@ inline void assembleP1LocalStencil(const StencilMap &stencilMap, const DoFMap &d
 
 
 
-namespace CellVertexDoF {
+namespace P1Elements3D {
 
 typedef stencilDirection sd;
 
