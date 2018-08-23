@@ -130,12 +130,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                   std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::MacroFace::elementSW, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::MacroFace::elementS, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::MacroFace::elementSE, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::MacroFace::elementNE, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::MacroFace::elementN, faceStencil );
+                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::MacroFace::elementNW, faceStencil );
 
                   //if (i == 1 && j == 1) {
                   //   PointND<real_t, 7> test(faceStencil.data());
@@ -244,12 +244,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                  std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::MacroFace::elementSW, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::MacroFace::elementS, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::MacroFace::elementSE, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::MacroFace::elementNE, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::MacroFace::elementN, faceStencil );
+                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::MacroFace::elementNW, faceStencil );
 
                  //if (i == 1 && j == 1) {
                  //   PointND<real_t, 7> test(faceStencil.data());

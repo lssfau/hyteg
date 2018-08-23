@@ -31,7 +31,7 @@ namespace hhg {
                                                std::function<void(Matrix3r&, const real_t[6])> computeElementMatrix,
                                                std::vector<real_t>& vertexStencil ) {
 
-        using namespace P1Elements::FaceVertexDoF;
+        using namespace P1Elements::MacroFace;
 
         Matrix3r localStiffness;
         real_t localCoords[6];

@@ -148,7 +148,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
  private:
    void assembleStencils()
    {
-      using namespace P1Elements::FaceVertexDoF;
+      using namespace P1Elements::MacroFace;
       typedef stencilDirection sD;
 
       Matrix3r local_stiffness_gray;

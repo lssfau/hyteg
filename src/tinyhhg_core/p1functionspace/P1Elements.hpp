@@ -18,7 +18,7 @@ using walberla::real_c;
 using walberla::uint_t;
 
 namespace P1Elements {
-namespace FaceVertexDoF {
+namespace MacroFace {
 
 // Fenics P1 DoF ordering
 // 2       1---0
