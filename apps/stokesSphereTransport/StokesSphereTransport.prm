@@ -1,20 +1,20 @@
 Parameters
 {
   // domain
-  ntan 2;
+  ntan 5;
   minLevel 2;
-  maxLevel 3;
+  maxLevel 5;
   useParMETIS false;
 
   // simulation
   innerTimeSteps 10;
-  outerIterations 10;
+  outerIterations 5000;
   viscosity 1e-9;
-  dt 1e-2;
-  rhsScaleFactor 100.0;
+  dt 1e-3;
+  rhsScaleFactor 20.0;
 
   // solver
-  numVCycle 2;
+  numVCycle 5;
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
 
@@ -23,9 +23,9 @@ Parameters
   printParameters true;
   printDoFCount true;
   printFunctionCount true;
-  printTiming false;
-  writeDomainVTK false;
-  VTKOutput false;
+  printTiming true;
+  writeDomainVTK true;
+  VTKOutput true;
 }
 
 /// Layers for the spherical shell generator
@@ -34,6 +34,6 @@ Parameters
 Layers
 {
   layer0 1.0;
-  layer1 2.0;
-  layer2 3.0;
+  layer1 1.5;
+  layer2 2.0;
 }
