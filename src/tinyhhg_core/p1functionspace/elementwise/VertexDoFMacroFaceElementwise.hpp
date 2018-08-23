@@ -21,7 +21,7 @@ namespace hhg {
       using indexing::Index;
 
 
-      inline void fillLocalCoords( const uint_t & Level, uint_t i, uint_t j, const P1Elements::MacroFace::P1Element& element,
+      inline void fillLocalCoords( const uint_t & Level, uint_t i, uint_t j, const P1Elements::P1Elements2D::P1Element& element,
                                    const std::array<real_t*, 2>& coords, real_t localCoords[6]) {
 
         localCoords[0] = coords[0][vertexdof::macroface::indexFromVertex( Level, i, j, element[0] )];
@@ -38,7 +38,7 @@ namespace hhg {
                                                std::vector<real_t>& faceStencil )
       {
 
-        using namespace P1Elements::MacroFace;
+        using namespace P1Elements::P1Elements2D;
 
         real_t localCoords[6];
         Matrix3r localStiffness;
@@ -93,7 +93,7 @@ namespace hhg {
                                     std::array<const PrimitiveDataID<FunctionMemory< ValueType >, Face>, 2> &coordIds,
                                     UpdateType update ) {
 
-        using namespace P1Elements::MacroFace;
+        using namespace P1Elements::P1Elements2D;
         typedef stencilDirection SD;
 
         uint_t rowsize = levelinfo::num_microvertices_per_edge(level);

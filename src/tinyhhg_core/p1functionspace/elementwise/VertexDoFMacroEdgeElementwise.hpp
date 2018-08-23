@@ -53,7 +53,7 @@ namespace hhg {
                                                std::vector<real_t>& edgeStencil )
       {
 
-        using namespace P1Elements::MacroFace;
+        using namespace P1Elements::P1Elements2D;
 
         typedef std::array< stencilDirection, 3 > Element;
         Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
