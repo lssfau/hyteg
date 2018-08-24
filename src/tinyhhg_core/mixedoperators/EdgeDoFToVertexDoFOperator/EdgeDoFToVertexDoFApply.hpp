@@ -1,8 +1,18 @@
 #pragma once
 
+#include "tinyhhg_core/primitives/Vertex.hpp"
+#include "tinyhhg_core/primitives/Edge.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
@@ -106,6 +116,48 @@ inline void applyFace(const uint_t & Level, Face &face,
       }
     }
     --inner_rowsize;
+  }
+}
+
+
+inline void applyCell(const uint_t & Level, Cell & cell,
+                      const PrimitiveDataID<StencilMemory < real_t >, Cell> &operatorId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Cell> &srcId,
+                      const PrimitiveDataID<FunctionMemory< real_t >, Cell> &dstId,
+                      UpdateType update)
+{
+
+  real_t * opr_data = cell.getData(operatorId)->getPointer( Level );
+  real_t * src      = cell.getData(srcId)->getPointer( Level );
+  real_t * dst      = cell.getData(dstId)->getPointer( Level );
+
+  real_t tmp;
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+    tmp = 0.0;
+    for ( const auto & orientation : edgedof::EdgeDoFOrientation )
+    {
+      const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
+      for ( const auto & neighbor : edgeDoFNeighbors )
+      {
+        const uint_t stencilIdx  = edgedof::stencilIndexFromVertex3D( neighbor, orientation );
+        const auto   srcIdx      = it + neighbor;
+        const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), orientation );
+        tmp += opr_data[stencilIdx] * src[srcArrayIdx];
+      }
+    }
+
+    const auto   dstArrayIdx = vertexdof::macrocell::index( Level, it.x(), it.y(), it.z() );
+
+    if ( update == Replace )
+    {
+      dst[dstArrayIdx] = tmp;
+    }
+    else if ( update == Add )
+    {
+      dst[dstArrayIdx] += tmp;
+    }
   }
 }
 
