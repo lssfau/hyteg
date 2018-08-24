@@ -22,6 +22,79 @@ constexpr uint_t levelToFaceSizeAnyEdgeDoF( const uint_t & level )
   return levelinfo::num_microedges_per_face( level ) / 3;
 }
 
+enum class EdgeDoFOrientation
+{
+  X,
+  Y,
+  Z,
+  XY,
+  XZ,
+  YZ,
+  XYZ,
+  INVALID,
+};
+
+
+/// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
+inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
+{
+  const indexing::IndexIncrement offset = vertexIndex1 - vertexIndex0;
+  const uint_t x = std::abs( offset.x() );
+  const uint_t y = std::abs( offset.y() );
+  const uint_t z = std::abs( offset.z() );
+
+  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
+  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
+  WALBERLA_ASSERT_LESS_EQUAL( y, 1 );
+  WALBERLA_ASSERT_LESS_EQUAL( z, 1 );
+
+  if ( x == 1 && y == 0 && z == 0 )
+    return EdgeDoFOrientation::X;
+  if ( x == 0 && y == 1 && z == 0 )
+    return EdgeDoFOrientation::Y;
+  if ( x == 0 && y == 0 && z == 1 )
+    return EdgeDoFOrientation::Z;
+  if ( x == 1 && y == 1 && z == 0 )
+    return EdgeDoFOrientation::XY;
+  if ( x == 1 && y == 0 && z == 1 )
+    return EdgeDoFOrientation::XZ;
+  if ( x == 0 && y == 1 && z == 1 )
+    return EdgeDoFOrientation::YZ;
+  if ( x == 1 && y == 1 && z == 1 )
+    return EdgeDoFOrientation::XYZ;
+
+  WALBERLA_ASSERT( false, "Invalid index offset." );
+  return EdgeDoFOrientation::INVALID;
+}
+
+/// \brief Given two logical vertexdof indices, this function returns the logical index of the edgedof inbetween.
+/// This function also implicitly calculates the orientation.
+inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
+{
+  const EdgeDoFOrientation orientation = calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
+  switch ( orientation )
+  {
+  case EdgeDoFOrientation::X:
+    return vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1;
+  case EdgeDoFOrientation::Y:
+    return vertexIndex0.y() < vertexIndex1.y() ? vertexIndex0 : vertexIndex1;
+  case EdgeDoFOrientation::Z:
+    return vertexIndex0.z() < vertexIndex1.z() ? vertexIndex0 : vertexIndex1;
+  case EdgeDoFOrientation::XY:
+    return (vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1) + indexing::IndexIncrement( 0, -1,  0 );
+  case EdgeDoFOrientation::XZ:
+    return (vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1) + indexing::IndexIncrement( 0,  0, -1 );
+  case EdgeDoFOrientation::YZ:
+    return (vertexIndex0.y() < vertexIndex1.y() ? vertexIndex0 : vertexIndex1) + indexing::IndexIncrement( 0,  0, -1 );
+  case EdgeDoFOrientation::XYZ:
+    return (vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1) + indexing::IndexIncrement( 0, -1,  0 );
+  default:
+    WALBERLA_ASSERT( false, "Invaild index offset." );
+    return indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() );
+  }
+}
+
+
 // ##################
 // ### Macro Edge ###
 // ##################
@@ -446,6 +519,29 @@ inline constexpr uint_t xyzIndex( const uint_t & level, const uint_t & x, const 
          + indexing::macroCellIndex( levelinfo::num_microedges_per_edge( level ) - 1, x, y, z );
 }
 
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & z, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+  case EdgeDoFOrientation::X:
+    return xIndex( level, x, y, z );
+  case EdgeDoFOrientation::Y:
+    return yIndex( level, x, y, z );
+  case EdgeDoFOrientation::Z:
+    return zIndex( level, x, y, z );
+  case EdgeDoFOrientation::XY:
+    return xyIndex( level, x, y, z );
+  case EdgeDoFOrientation::XZ:
+    return xzIndex( level, x, y, z );
+  case EdgeDoFOrientation::YZ:
+    return yzIndex( level, x, y, z );
+  case EdgeDoFOrientation::XYZ:
+    return xyzIndex( level, x, y, z );
+  case EdgeDoFOrientation::INVALID:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
+
 
 inline bool isInnerXEdgeDoF( const uint_t & level, const indexing::Index & idx )
 {
@@ -507,6 +603,32 @@ public:
 };
 
 } // namespace macrocell
+
+
+inline uint_t stencilIndexFromVertex3D( const indexing::IndexIncrement & direction, const EdgeDoFOrientation & orientation )
+{
+  const uint_t stencilIdxBase = indexing::mapDirectionToArrayIndex( direction );
+  switch ( orientation )
+  {
+  case EdgeDoFOrientation::X:
+    return stencilIdxBase + 0 * 27;
+  case EdgeDoFOrientation::Y:
+    return stencilIdxBase + 1 * 27;
+  case EdgeDoFOrientation::Z:
+    return stencilIdxBase + 2 * 27;
+  case EdgeDoFOrientation::XY:
+    return stencilIdxBase + 3 * 27;
+  case EdgeDoFOrientation::XZ:
+    return stencilIdxBase + 4 * 27;
+  case EdgeDoFOrientation::YZ:
+    return stencilIdxBase + 5 * 27;
+  case EdgeDoFOrientation::XYZ:
+    return stencilIdxBase + 6 * 27;
+  default:
+    WALBERLA_ASSERT( false, "Invalid orientation!" );
+    return std::numeric_limits< uint_t >::max();
+  }
+}
 
 
 /// these numbers specify the postion of each stencil entry in the stencil memory array
