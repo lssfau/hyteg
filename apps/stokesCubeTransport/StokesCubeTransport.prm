@@ -9,15 +9,16 @@ Parameters
   useParMETIS false;
   maxMinResIterations 1000;
 
-  meshFile ../../data/meshes/3D/cube_6el.msh;
+  meshFile ../../data/meshes/3D/tet_1el.msh;
 
   /// solver can be uzawa, minres
   solver uzawa;
 
-  dt 1e-3;
-  viscosity 1e-6;
-  timesteps 500;
-  convectivity 10.0;
+  dt 1e-2;
+  plotDt 1.0;
+  viscosity 1e-8;
+  timesteps 10000;
+  convectivity 500.0;
   innerTransportSteps 100;
 
   /// output

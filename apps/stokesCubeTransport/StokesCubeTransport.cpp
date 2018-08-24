@@ -119,21 +119,25 @@ int main( int argc, char* argv[] )
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );
-      vtkOutput.add( &u.p );
-      vtkOutput.add( &f.u );
-      vtkOutput.add( &f.v );
-      vtkOutput.add( &f.w );
-      vtkOutput.add( &f.p );
+//      vtkOutput.add( &u.p );
+//      vtkOutput.add( &f.u );
+//      vtkOutput.add( &f.v );
+//      vtkOutput.add( &f.w );
+//      vtkOutput.add( &f.p );
       vtkOutput.add( &temp );
    }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
    hhg::P1MassOperator   M( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x ) 
+   std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {
-     real_t temp_ = 1.0 - std::pow(x[2], 0.5);
-     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) + std::sin(walberla::math::PI * x[1]));
+//     real_t temp_ = 1.0 - std::pow(x[2], 0.5);
+//     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) + std::sin(walberla::math::PI * x[1]));
+
+//     return 0.1 * std::pow(1.0 - x[2], 3.0) * (std::sin(walberla::math::PI * x[0]) * std::sin(walberla::math::PI * x[1]));
+
+       return -0.1 * std::pow(1.0 - x[2], 3.0) * x[0] * x[1] * (x[0] + x[1] - (1.0-x[2]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
@@ -185,8 +189,12 @@ int main( int argc, char* argv[] )
    P1Transport transportOperator(storage, minLevel, maxLevel);
    real_t time = 0.0;
    const real_t dt = mainConf.getParameter< real_t >( "dt" );
+   const real_t plotDt = mainConf.getParameter< real_t >( "plotDt" );
    const real_t viscosity = mainConf.getParameter< real_t >( "viscosity" );
    const uint_t steps = mainConf.getParameter< uint_t >( "timesteps" );
+   const uint_t plotFrequency = walberla::uint_c(std::ceil(plotDt / dt));
+   uint plotStep = 1;
+   uint_t transportStep = 0;
 
    for (uint_t step = 0; step < steps; ++step)
    {
@@ -232,11 +240,14 @@ int main( int argc, char* argv[] )
          WALBERLA_LOG_INFO("time = " << time);
 
          transportOperator.step(temp, u.u, u.v, u.w, maxLevel, Inner, dt, viscosity);
-      }
+         ++transportStep;
 
-      if( mainConf.getParameter< bool >( "VTKOutput" ) )
-      {
-         vtkOutput.write( maxLevel, step+1 );
+         if( transportStep % plotFrequency == 0 && mainConf.getParameter< bool >( "VTKOutput" ) )
+         {
+            WALBERLA_LOG_INFO("Writing output...");
+            vtkOutput.write( maxLevel, plotStep );
+            ++plotStep;
+         }
       }
    }
 
