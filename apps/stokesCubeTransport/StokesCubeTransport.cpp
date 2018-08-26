@@ -60,7 +60,6 @@ int main( int argc, char* argv[] )
    const uint_t minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t numVCycle           = mainConf.getParameter< uint_t >( "numVCycle" );
-   const uint_t maxMinResIterations = mainConf.getParameter< uint_t >( "maxMinResIterations" );
    const std::string meshFile       = mainConf.getParameter< std::string >( "meshFile" );
 
    const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );

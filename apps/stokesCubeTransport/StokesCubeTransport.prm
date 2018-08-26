@@ -7,7 +7,6 @@ Parameters
   uzawaTolerance 1e-16;
   uzawaMaxIter 100;
   useParMETIS false;
-  maxMinResIterations 1000;
 
   meshFile ../../data/meshes/3D/cube_6el.msh;
 
