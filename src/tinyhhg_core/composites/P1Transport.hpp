@@ -1,5 +1,8 @@
 #pragma once
 
+#include "tinyhhg_core/composites/transport/VertexDoFMacroVertexTransport.hpp"
+#include "tinyhhg_core/composites/transport/VertexDoFMacroEdgeTransport.hpp"
+#include "tinyhhg_core/composites/transport/VertexDoFMacroFaceTransport.hpp"
 #include "tinyhhg_core/composites/transport/VertexDoFMacroCellTransport.hpp"
 
 namespace hhg {
@@ -32,9 +35,6 @@ class P1Transport
               const real_t&         dt,
               const real_t&         a )
    {
-      WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel );
-      WALBERLA_ASSERT_GREATER_EQUAL( maxLevel, level );
-
       cOld_.assign( {1.0}, {&c}, level, flag );
 
       // diffusive term
@@ -113,7 +113,16 @@ class P1Transport
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
-            WALBERLA_ABORT("Not implemented.");
+           vertexdof::transport::macrovertex::apply< real_t >( level,
+                                                             vertex,
+                                                             src.getVertexDataID(),
+                                                             dst.getVertexDataID(),
+                                                             ux.getVertexDataID(),
+                                                             uy.getVertexDataID(),
+                                                             uz.getVertexDataID(),
+                                                             divT_x_.getVertexStencilID(),
+                                                             divT_y_.getVertexStencilID(),
+                                                             divT_z_.getVertexStencilID() );
          }
       }
 
@@ -124,7 +133,16 @@ class P1Transport
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if( testFlag( edgeBC, flag ) )
          {
-            WALBERLA_ABORT("Not implemented.");
+           vertexdof::transport::macroedge::apply< real_t >( level,
+                                                             edge,
+                                                             src.getEdgeDataID(),
+                                                             dst.getEdgeDataID(),
+                                                             ux.getEdgeDataID(),
+                                                             uy.getEdgeDataID(),
+                                                             uz.getEdgeDataID(),
+                                                             divT_x_.getEdgeStencilID(),
+                                                             divT_y_.getEdgeStencilID(),
+                                                             divT_z_.getEdgeStencilID() );
          }
       }
 
@@ -135,7 +153,16 @@ class P1Transport
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
-            WALBERLA_ABORT("Not implemented.");
+           vertexdof::transport::macroface::apply< real_t >( level,
+                                                             face,
+                                                             src.getFaceDataID(),
+                                                             dst.getFaceDataID(),
+                                                             ux.getFaceDataID(),
+                                                             uy.getFaceDataID(),
+                                                             uz.getFaceDataID(),
+                                                             divT_x_.getFaceStencilID(),
+                                                             divT_y_.getFaceStencilID(),
+                                                             divT_z_.getFaceStencilID() );
          }
       }
 

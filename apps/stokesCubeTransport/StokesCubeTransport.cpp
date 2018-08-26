@@ -132,12 +132,8 @@ int main( int argc, char* argv[] )
 
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {
-//     real_t temp_ = 1.0 - std::pow(x[2], 0.5);
-//     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) + std::sin(walberla::math::PI * x[1]));
-
-//     return 0.1 * std::pow(1.0 - x[2], 3.0) * (std::sin(walberla::math::PI * x[0]) * std::sin(walberla::math::PI * x[1]));
-
-       return -0.1 * std::pow(1.0 - x[2], 3.0) * x[0] * x[1] * (x[0] + x[1] - (1.0-x[2]));
+     real_t temp_ = 1.0 - std::pow(x[2], 0.5);
+     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) * std::sin(walberla::math::PI * x[1]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
