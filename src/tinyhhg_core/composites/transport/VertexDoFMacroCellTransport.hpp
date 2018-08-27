@@ -23,7 +23,7 @@ using walberla::uint_t;
 
 using indexing::Index;
 
-template < typename ValueType >
+template < typename ValueType, bool AlgebraicUpwind >
 inline void apply( const uint_t&                                               level,
                    Cell&                                                       cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,
@@ -76,13 +76,16 @@ inline void apply( const uint_t&                                               l
       }
 
       // algebraic upwind
-      for( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+      if( AlgebraicUpwind )
       {
-         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+         for( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+         {
+            const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
 
-         dTmp = std::abs( stencil[stencilIdx] );
-         stencil[centerStencilIdx] += dTmp;
-         stencil[stencilIdx] -= dTmp;
+            dTmp = std::abs( stencil[stencilIdx] );
+            stencil[centerStencilIdx] += dTmp;
+            stencil[stencilIdx] -= dTmp;
+         }
       }
 
       tmp = stencil[centerStencilIdx] * src[centerIdx];

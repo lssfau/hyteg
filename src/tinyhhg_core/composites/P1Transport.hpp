@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tinyhhg_core/composites/transport/VertexDoFMacroVertexTransport.hpp"
+#include "tinyhhg_core/composites/transport/VertexDoFMacroCellTransport.hpp"
 #include "tinyhhg_core/composites/transport/VertexDoFMacroEdgeTransport.hpp"
 #include "tinyhhg_core/composites/transport/VertexDoFMacroFaceTransport.hpp"
-#include "tinyhhg_core/composites/transport/VertexDoFMacroCellTransport.hpp"
+#include "tinyhhg_core/composites/transport/VertexDoFMacroVertexTransport.hpp"
 
 namespace hhg {
 
@@ -42,7 +42,7 @@ class P1Transport
       tmp0_.assign( {a * dt}, {&tmp0_}, level, flag );
 
       //      transportStupidApply( c, tmp4_, ux, uy, uz, level, flag );
-      transportApply( c, tmp4_, ux, uy, uz, level, flag );
+      transportApply< true >( c, tmp4_, ux, uy, uz, level, flag );
 
       tmp0_.add( {-dt}, {&tmp4_}, level, flag );
       invLumpedMass_.apply( tmp0_, c, level, flag, Add );
@@ -90,6 +90,7 @@ class P1Transport
       out.assign( {1.0, 1.0, 1.0}, {&tmp1_, &tmp2_, &tmp3_}, level, flag );
    }
 
+   template < bool AlgebraicUpwind >
    void transportApply( P1Function< real_t >& src,
                         P1Function< real_t >& dst,
                         P1Function< real_t >& ux,
@@ -113,16 +114,16 @@ class P1Transport
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
-           vertexdof::transport::macrovertex::apply< real_t >( level,
-                                                             vertex,
-                                                             src.getVertexDataID(),
-                                                             dst.getVertexDataID(),
-                                                             ux.getVertexDataID(),
-                                                             uy.getVertexDataID(),
-                                                             uz.getVertexDataID(),
-                                                             divT_x_.getVertexStencilID(),
-                                                             divT_y_.getVertexStencilID(),
-                                                             divT_z_.getVertexStencilID() );
+            vertexdof::transport::macrovertex::apply< real_t, AlgebraicUpwind >( level,
+                                                                                 vertex,
+                                                                                 src.getVertexDataID(),
+                                                                                 dst.getVertexDataID(),
+                                                                                 ux.getVertexDataID(),
+                                                                                 uy.getVertexDataID(),
+                                                                                 uz.getVertexDataID(),
+                                                                                 divT_x_.getVertexStencilID(),
+                                                                                 divT_y_.getVertexStencilID(),
+                                                                                 divT_z_.getVertexStencilID() );
          }
       }
 
@@ -133,16 +134,16 @@ class P1Transport
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if( testFlag( edgeBC, flag ) )
          {
-           vertexdof::transport::macroedge::apply< real_t >( level,
-                                                             edge,
-                                                             src.getEdgeDataID(),
-                                                             dst.getEdgeDataID(),
-                                                             ux.getEdgeDataID(),
-                                                             uy.getEdgeDataID(),
-                                                             uz.getEdgeDataID(),
-                                                             divT_x_.getEdgeStencilID(),
-                                                             divT_y_.getEdgeStencilID(),
-                                                             divT_z_.getEdgeStencilID() );
+            vertexdof::transport::macroedge::apply< real_t, AlgebraicUpwind >( level,
+                                                                               edge,
+                                                                               src.getEdgeDataID(),
+                                                                               dst.getEdgeDataID(),
+                                                                               ux.getEdgeDataID(),
+                                                                               uy.getEdgeDataID(),
+                                                                               uz.getEdgeDataID(),
+                                                                               divT_x_.getEdgeStencilID(),
+                                                                               divT_y_.getEdgeStencilID(),
+                                                                               divT_z_.getEdgeStencilID() );
          }
       }
 
@@ -153,16 +154,16 @@ class P1Transport
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
-           vertexdof::transport::macroface::apply< real_t >( level,
-                                                             face,
-                                                             src.getFaceDataID(),
-                                                             dst.getFaceDataID(),
-                                                             ux.getFaceDataID(),
-                                                             uy.getFaceDataID(),
-                                                             uz.getFaceDataID(),
-                                                             divT_x_.getFaceStencilID(),
-                                                             divT_y_.getFaceStencilID(),
-                                                             divT_z_.getFaceStencilID() );
+            vertexdof::transport::macroface::apply< real_t, AlgebraicUpwind >( level,
+                                                                               face,
+                                                                               src.getFaceDataID(),
+                                                                               dst.getFaceDataID(),
+                                                                               ux.getFaceDataID(),
+                                                                               uy.getFaceDataID(),
+                                                                               uz.getFaceDataID(),
+                                                                               divT_x_.getFaceStencilID(),
+                                                                               divT_y_.getFaceStencilID(),
+                                                                               divT_z_.getFaceStencilID() );
          }
       }
 
@@ -173,16 +174,16 @@ class P1Transport
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if( testFlag( cellBC, flag ) )
          {
-            vertexdof::transport::macrocell::apply< real_t >( level,
-                                                              cell,
-                                                              src.getCellDataID(),
-                                                              dst.getCellDataID(),
-                                                              ux.getCellDataID(),
-                                                              uy.getCellDataID(),
-                                                              uz.getCellDataID(),
-                                                              divT_x_.getCellStencilID(),
-                                                              divT_y_.getCellStencilID(),
-                                                              divT_z_.getCellStencilID() );
+            vertexdof::transport::macrocell::apply< real_t, AlgebraicUpwind >( level,
+                                                                               cell,
+                                                                               src.getCellDataID(),
+                                                                               dst.getCellDataID(),
+                                                                               ux.getCellDataID(),
+                                                                               uy.getCellDataID(),
+                                                                               uz.getCellDataID(),
+                                                                               divT_x_.getCellStencilID(),
+                                                                               divT_y_.getCellStencilID(),
+                                                                               divT_z_.getCellStencilID() );
          }
       }
    }

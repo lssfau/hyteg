@@ -23,8 +23,8 @@ using walberla::uint_t;
 
 using indexing::Index;
 
-template < typename ValueType >
-inline void apply( const uint_t&                                               level,
+template < typename ValueType, bool AlgebraicUpwind >
+inline void apply( const uint_t&                                                 level,
                    Vertex&                                                       vertex,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -35,39 +35,44 @@ inline void apply( const uint_t&                                               l
                    const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  yOprId,
                    const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  zOprId )
 {
-  const ValueType* src = vertex.getData( srcId )->getPointer( level );
-  ValueType*       dst = vertex.getData( dstId )->getPointer( level );
+   const ValueType* src = vertex.getData( srcId )->getPointer( level );
+   ValueType*       dst = vertex.getData( dstId )->getPointer( level );
 
-  const ValueType* ux = vertex.getData( uxId )->getPointer( level );
-  const ValueType* uy = vertex.getData( uyId )->getPointer( level );
-  const ValueType* uz = vertex.getData( uzId )->getPointer( level );
+   const ValueType* ux = vertex.getData( uxId )->getPointer( level );
+   const ValueType* uy = vertex.getData( uyId )->getPointer( level );
+   const ValueType* uz = vertex.getData( uzId )->getPointer( level );
 
-  const ValueType* xOperatorData = vertex.getData( xOprId )->getPointer( level );
-  const ValueType* yOperatorData = vertex.getData( yOprId )->getPointer( level );
-  const ValueType* zOperatorData = vertex.getData( zOprId )->getPointer( level );
+   const ValueType* xOperatorData = vertex.getData( xOprId )->getPointer( level );
+   const ValueType* yOperatorData = vertex.getData( yOprId )->getPointer( level );
+   const ValueType* zOperatorData = vertex.getData( zOprId )->getPointer( level );
 
-  std::vector< ValueType > stencil( vertex.getData( xOprId )->getSize( level ) );
-  real_t                   dTmp;
+   std::vector< ValueType > stencil( vertex.getData( xOprId )->getSize( level ) );
+   real_t                   dTmp;
 
-  // fill stencil
-  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
-    stencil[i+1] = 0.5 * ( ux[0] + ux[i+1] ) * xOperatorData[i+1];
-    stencil[i+1] += 0.5 * ( uy[0] + uy[i+1] ) * yOperatorData[i+1];
-    stencil[i+1] += 0.5 * ( uz[0] + uz[i+1] ) * zOperatorData[i+1];
-    stencil[0] -= stencil[i+1];
+   // fill stencil
+   for( size_t i = 0; i < vertex.getNumNeighborEdges(); ++i )
+   {
+      stencil[i + 1] = 0.5 * ( ux[0] + ux[i + 1] ) * xOperatorData[i + 1];
+      stencil[i + 1] += 0.5 * ( uy[0] + uy[i + 1] ) * yOperatorData[i + 1];
+      stencil[i + 1] += 0.5 * ( uz[0] + uz[i + 1] ) * zOperatorData[i + 1];
+      stencil[0] -= stencil[i + 1];
 
-    // algebraic upwind
-    dTmp = std::abs( stencil[i+1] );
-    stencil[0] += dTmp;
-    stencil[i+1] -= dTmp;
-  }
+      // algebraic upwind
+      if( AlgebraicUpwind )
+      {
+         dTmp = std::abs( stencil[i + 1] );
+         stencil[0] += dTmp;
+         stencil[i + 1] -= dTmp;
+      }
+   }
 
-  // apply stencil
-  dst[0] = stencil[0]*src[0];
+   // apply stencil
+   dst[0] = stencil[0] * src[0];
 
-  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
-    dst[0] += stencil[i + 1]*src[i + 1];
-  }
+   for( size_t i = 0; i < vertex.getNumNeighborEdges(); ++i )
+   {
+      dst[0] += stencil[i + 1] * src[i + 1];
+   }
 }
 
 } // namespace macrovertex
