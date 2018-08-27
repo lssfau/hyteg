@@ -53,9 +53,12 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
    const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
 
-   if( mainConf.getParameter< bool >( "printParameters" ) )
+   WALBERLA_ROOT_SECTION()
    {
-      mainConf.listParameters();
+      if( mainConf.getParameter< bool >( "printParameters" ) )
+      {
+         mainConf.listParameters();
+      }
    }
 
    const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
@@ -68,9 +71,9 @@ int main( int argc, char* argv[] )
    const double rmin = layers.front();
    const double rmax = layers.back();
 
-   const uint_t minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
-   const uint_t numVCycle           = mainConf.getParameter< uint_t >( "numVCycle" );
+   const uint_t minLevel  = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel  = mainConf.getParameter< uint_t >( "maxLevel" );
+   const uint_t numVCycle = mainConf.getParameter< uint_t >( "numVCycle" );
 
    const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
    const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
@@ -78,10 +81,10 @@ int main( int argc, char* argv[] )
    const uint_t innerTimeSteps  = mainConf.getParameter< uint_t >( "innerTimeSteps" );
    const uint_t outerIterations = mainConf.getParameter< uint_t >( "outerIterations" );
 
-   const real_t viscosity       = mainConf.getParameter< real_t >( "viscosity" );
-   const real_t dt              = mainConf.getParameter< real_t >( "dt" );
+   const real_t viscosity = mainConf.getParameter< real_t >( "viscosity" );
+   const real_t dt        = mainConf.getParameter< real_t >( "dt" );
 
-   const real_t rhsScaleFactor  = mainConf.getParameter< real_t >( "rhsScaleFactor" );
+   const real_t rhsScaleFactor = mainConf.getParameter< real_t >( "rhsScaleFactor" );
 
    /////////////////// Mesh / Domain ///////////////////////
 
@@ -139,20 +142,19 @@ int main( int argc, char* argv[] )
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );
-//      vtkOutput.add( &u.p );
-//      vtkOutput.add( &f.u );
-//      vtkOutput.add( &f.v );
-//      vtkOutput.add( &f.w );
-//      vtkOutput.add( &f.p );
+      //      vtkOutput.add( &u.p );
+      //      vtkOutput.add( &f.u );
+      //      vtkOutput.add( &f.v );
+      //      vtkOutput.add( &f.w );
+      //      vtkOutput.add( &f.p );
       vtkOutput.add( &temp );
    }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
    hhg::P1MassOperator   M( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > temperature = [ rmin, rmax ]( const hhg::Point3D& x ) 
-   {
-      return std::pow((rmax - x.norm()) / (rmax - rmin), 3.0);
+   std::function< real_t( const hhg::Point3D& ) > temperature = [rmin, rmax]( const hhg::Point3D& x ) {
+      return std::pow( ( rmax - x.norm() ) / ( rmax - rmin ), 3.0 );
    };
 
    temp.interpolate( temperature, maxLevel );
@@ -201,16 +203,18 @@ int main( int argc, char* argv[] )
        storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
    auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
-   if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
-      for (uint_t i = minLevel; i <= maxLevel; ++i) {
-         WALBERLA_LOG_INFO_ON_ROOT("Total number of P1 Functions on " << i << " : " << count[i]);
+   if( mainConf.getParameter< bool >( "printFunctionCount" ) )
+   {
+      for( uint_t i = minLevel; i <= maxLevel; ++i )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Total number of P1 Functions on " << i << " : " << count[i] );
       }
    }
 
-   P1Transport transportOperator(storage, minLevel, maxLevel);
-   real_t time = 0.0;
+   P1Transport transportOperator( storage, minLevel, maxLevel );
+   real_t      time = 0.0;
 
-   for (uint_t step = 0; step < outerIterations; ++step)
+   for( uint_t step = 0; step < outerIterations; ++step )
    {
       M.apply( temp, f.u, maxLevel, All );
       M.apply( temp, f.v, maxLevel, All );
@@ -220,9 +224,9 @@ int main( int argc, char* argv[] )
       f.v.multElementwise( {&f.v, &normalY}, maxLevel, All );
       f.w.multElementwise( {&f.w, &normalZ}, maxLevel, All );
 
-      f.u.assign({rhsScaleFactor}, {&f.u}, maxLevel, All);
-      f.v.assign({rhsScaleFactor}, {&f.v}, maxLevel, All);
-      f.w.assign({rhsScaleFactor}, {&f.w}, maxLevel, All);
+      f.u.assign( {rhsScaleFactor}, {&f.u}, maxLevel, All );
+      f.v.assign( {rhsScaleFactor}, {&f.v}, maxLevel, All );
+      f.w.assign( {rhsScaleFactor}, {&f.w}, maxLevel, All );
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
@@ -231,9 +235,9 @@ int main( int argc, char* argv[] )
       real_t lastResidualL2 = currentResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] iteration | residual (L2) | convergence rate " );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] ----------+---------------+------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
-                                 << std::setw( 9 ) << 0 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
-                                 << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 );
+      WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] " << std::setw( 9 ) << 0 << " | " << std::setw( 13 ) << std::scientific
+                                                   << currentResidualL2 << " | " << std::setw( 16 ) << std::scientific
+                                                   << currentResidualL2 / lastResidualL2 );
       for( uint_t i = 0; i < numVCycle; i++ )
       {
          uzawaSolver.solve( L,
@@ -252,30 +256,31 @@ int main( int argc, char* argv[] )
          r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
          currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
                              real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
-         WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
-                                    << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
-                                    << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )
+         WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] " << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific
+                                                      << currentResidualL2 << " | " << std::setw( 16 ) << std::scientific
+                                                      << currentResidualL2 / lastResidualL2 )
          //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
       }
 
-      for (uint_t innerSteps = 0; innerSteps < innerTimeSteps; ++innerSteps) {
+      for( uint_t innerSteps = 0; innerSteps < innerTimeSteps; ++innerSteps )
+      {
          time += dt;
-         WALBERLA_LOG_INFO_ON_ROOT("time = " << time);
+         WALBERLA_LOG_INFO_ON_ROOT( "time = " << time );
 
-         transportOperator.step(temp, u.u, u.v, u.w, maxLevel, Inner, dt, viscosity);
+         transportOperator.step( temp, u.u, u.v, u.w, maxLevel, Inner, dt, viscosity );
       }
 
       if( mainConf.getParameter< bool >( "VTKOutput" ) )
       {
-         vtkOutput.write( maxLevel, step+1 );
+         vtkOutput.write( maxLevel, step + 1 );
       }
    }
 
-   if( mainConf.getParameter< bool >( "PrintTiming" ) ) {
+   if( mainConf.getParameter< bool >( "PrintTiming" ) )
+   {
       auto tt = timingTree->getReduced();
-      //19.07.2018 this is not in walberla master yet
-      //auto tt = timingTree->getCopyWithRemainder();
-      WALBERLA_LOG_INFO_ON_ROOT(tt);
+      tt      = timingTree->getCopyWithRemainder();
+      WALBERLA_LOG_INFO_ON_ROOT( tt );
    }
 
    return EXIT_SUCCESS;
