@@ -86,6 +86,8 @@ int main( int argc, char* argv[] )
 
    const real_t rhsScaleFactor = mainConf.getParameter< real_t >( "rhsScaleFactor" );
 
+   const uint_t VTKOutputFrequency = mainConf.getParameter< uint_t >( "VTKFrequency" );
+
    /////////////////// Mesh / Domain ///////////////////////
 
    hhg::MeshInfo              meshInfo = hhg::MeshInfo::meshSphericalShell( ntan, layers );
@@ -135,7 +137,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput( "./output", "StokesSphereTransport", 10 );
+   hhg::VTKOutput vtkOutput( "./output", "StokesSphereTransport", VTKOutputFrequency );
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.set3D();
