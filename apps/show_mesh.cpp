@@ -28,7 +28,8 @@ void showUsage()
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
-             << "  --annulus [full|partial]\n\n"
+             << "  --annulus [full|partial]\n"
+             << "  --spherical-shell [ntan]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -47,12 +48,15 @@ int main( int argc, char* argv[] )
       FROM_FILE,
       RECTANGLE,
       ANNULUS,
-      PARTIAL_ANNULUS
+      PARTIAL_ANNULUS,
+      SPHERICAL_SHELL
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
    MeshInfo*             meshInfo     = nullptr;
    bool                  beVerbose    = false;
+   uint_t                ntan         = 5;
+   std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
 
    typedef enum
    {
@@ -111,7 +115,13 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
-   } else
+   } else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
+   {
+      ntan = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SPHERICAL_SHELL;
+      vtkFileName = std::string( "sphericalShell" );
+   }
+   else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
    }
@@ -173,6 +183,10 @@ int main( int argc, char* argv[] )
 
    case ANNULUS:
       meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
+      break;
+
+   case SPHERICAL_SHELL:
+      meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
       break;
    }
 
