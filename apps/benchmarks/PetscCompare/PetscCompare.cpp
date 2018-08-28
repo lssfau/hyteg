@@ -40,11 +40,9 @@ int main( int argc, char* argv[] )
    {
       cfg = env.config();
    }
-   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-
-   const uint_t level = mainConf.getParameter< uint_t >( "level" );
-
-   std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+   const walberla::Config::BlockHandle mainConf     = cfg->getBlock( "Parameters" );
+   const uint_t                        level        = mainConf.getParameter< uint_t >( "level" );
+   std::string                         meshFileName = mainConf.getParameter< std::string >( "mesh" );
 
    hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
 
@@ -85,41 +83,59 @@ int main( int argc, char* argv[] )
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localSize );
 
+   walberla::WcTimer timer;
+
+   timer.reset();
    LIKWID_MARKER_START( "HyTeG-apply" );
    mass.apply( x, y, level, hhg::Inner );
    LIKWID_MARKER_STOP( "HyTeG-apply" );
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << timer.last() );
 
    //vecPetsc.print("../output/vector0.vec");
    PetscErrorCode ierr;
 
+   timer.reset();
    LIKWID_MARKER_START( "Petsc-MatMult" );
    ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    LIKWID_MARKER_STOP( "Petsc-MatMult" );
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << timer.last() );
    CHKERRQ( ierr );
 
    dstvecPetsc.createFunctionFromVector( z, numerator, level, hhg::Inner );
 
-   WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hhg::Inner ) );
-   WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hhg::Inner ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) );
 
    //dstvecPetsc.print("../output/vector1.vec");
-
-   walberla::WcTimingTree tt  = timingTree->getReduced();
-   auto                   tt2 = tt.getCopyWithRemainder();
-
-   //WALBERLA_LOG_INFO_ON_ROOT(tt2);
 
    diff.assign( {1.0, -1.0}, {&z, &y}, level, hhg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      WALBERLA_LOG_INFO_ON_ROOT("writing VTK output");
+      WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
       hhg::VTKOutput vtkOutput( "./output", "petscCompare" );
       vtkOutput.add( &x );
       vtkOutput.add( &z );
       vtkOutput.add( &y );
       vtkOutput.add( &diff );
       vtkOutput.write( level );
+   }
+
+   walberla::WcTimingTree tt  = timingTree->getReduced();
+   auto                   tt2 = tt.getCopyWithRemainder();
+
+   if( mainConf.getParameter< bool >( "printTiming" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( tt2 );
+   }
+
+   if( mainConf.getParameter< bool >( "writeJSON" ) )
+   {
+      nlohmann::json ttjson = nlohmann::json( tt2 );
+      std::ofstream  o( "PetscCompareOutput.json" );
+      o << ttjson;
+      o.close();
    }
 
    LIKWID_MARKER_CLOSE;

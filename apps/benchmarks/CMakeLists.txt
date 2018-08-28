@@ -7,7 +7,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         DEPENDS tinyhhg_core)
 
 add_subdirectory(P1Benchmark)
-#add_subdirectory(P1CGBenchmark)
+add_subdirectory(P1CGBenchmark)
 
 if( HHG_BUILD_WITH_PETSC )
     add_subdirectory(PetscCompare)
