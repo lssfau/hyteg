@@ -11,4 +11,5 @@ add_subdirectory(P1Benchmark)
 
 if( HHG_BUILD_WITH_PETSC )
     add_subdirectory(PetscCompare)
+    add_subdirectory(PetscCompare-2D-P2-Apply)
 endif()
