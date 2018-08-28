@@ -32,6 +32,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
+using walberla::uint_t;
 
 int main( int argc, char* argv[] )
 {
@@ -188,7 +189,7 @@ int main( int argc, char* argv[] )
    const real_t viscosity = mainConf.getParameter< real_t >( "viscosity" );
    const uint_t steps = mainConf.getParameter< uint_t >( "timesteps" );
    const uint_t plotFrequency = walberla::uint_c(std::ceil(plotDt / dt));
-   uint plotStep = 1;
+   uint_t plotStep = 1;
    uint_t transportStep = 0;
 
    for (uint_t step = 0; step < steps; ++step)
