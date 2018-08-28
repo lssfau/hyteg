@@ -526,6 +526,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                     DoFType               flag,
                     UpdateType            updateType = Replace )
    {
+      this->startTiming( "P1ConstantOperator - Apply" );
       src.communicate< Vertex, Edge >( level );
       src.communicate< Edge, Face >( level );
       src.communicate< Face, Cell >( level );
@@ -597,6 +598,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                 level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
          }
       }
+      this->stopTiming( "P1ConstantOperator - Apply" );
    }
 
    void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override

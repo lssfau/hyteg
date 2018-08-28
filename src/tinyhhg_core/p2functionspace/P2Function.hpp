@@ -108,10 +108,10 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline real_t dotGlobal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
    {
-      this->startTiming( "Dot" );
       real_t sum = dotLocal( rhs, level, flag );
+      this->startTiming( "Dot (reduce)" );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      this->stopTiming( "Dot" );
+      this->stopTiming( "Dot (reduce)" );
       return sum;
    }
 

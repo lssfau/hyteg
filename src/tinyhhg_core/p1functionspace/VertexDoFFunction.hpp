@@ -520,10 +520,10 @@ template< typename ValueType >
 inline real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level,
                                                          DoFType flag )
 {
-  this->startTiming( "Dot" );
   real_t scalarProduct = dotLocal( rhs, level, flag );
+  this->startTiming( "Dot (reduce)" );
   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-  this->stopTiming( "Dot" );
+  this->stopTiming( "Dot (reduce)" );
   return scalarProduct;
 }
 
@@ -533,6 +533,7 @@ inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< Value
                                                         DoFType flag )
 {
   if ( isDummy() ) { return real_c(0); }
+   this->startTiming( "Dot (local)" );
    real_t scalarProduct = 0.0;
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -573,7 +574,7 @@ inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< Value
          scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
       }
    }
-
+   this->stopTiming( "Dot (local)" );
    return scalarProduct;
 }
 

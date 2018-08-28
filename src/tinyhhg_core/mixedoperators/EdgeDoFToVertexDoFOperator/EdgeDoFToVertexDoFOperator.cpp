@@ -114,6 +114,7 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
                                             UpdateType updateType)
 {
   using namespace EdgeDoFToVertexDoF;
+  this->startTiming( "EdgeDoFToVertexDoFOperator - Apply" );
   ///there might be room for optimization in the communication. i.e. splitting communicate into start and end to overlap comm and calc
   src.communicate<Edge, Face>( level );
 
@@ -151,7 +152,7 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
       applyVertex(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
     }
   }
-
+  this->stopTiming( "EdgeDoFToVertexDoFOperator - Apply" );
 }
 
 template<class UFCOperator>

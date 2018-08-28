@@ -22,6 +22,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 void
 EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
 
+  this->startTiming( "EdgeDoFOperator - Apply" );
   src.startCommunication<Face, Edge>( level );
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Face, Edge>( level );
@@ -49,6 +50,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
       edgedof::macroface::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
     }
   }
+  this->stopTiming( "EdgeDoFOperator - Apply" );
 }
 
 

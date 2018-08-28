@@ -111,9 +111,7 @@ protected:
 template< typename FunctionType >
 uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
 {
-  startTiming( "Enumerate" );
   uint_t counter = 0;
-
 
   enumerate_impl(level,counter);
 
@@ -129,10 +127,8 @@ uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
     num += dofs_per_rank[i];
   }
 
-
   enumerate_impl( level, start );
 
-  stopTiming( "Enumerate" );
   return counter;
 }
 

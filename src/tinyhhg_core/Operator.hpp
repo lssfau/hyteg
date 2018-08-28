@@ -61,6 +61,8 @@ public:
 
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
+ protected:
+
   void startTiming( const std::string & timerString )
   {
     if ( timingTree_ )
@@ -84,41 +86,25 @@ public:
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType )
 {
-  startTiming( "Apply" );
-
   apply_impl( src, dst, level, flag, updateType );
-
-  stopTiming( "Apply" );
 }
 
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag )
 {
-  startTiming( "Smooth GS" );
-
   smooth_gs_impl( dst, rhs, level, flag );
-
-  stopTiming( "Smooth GS" );
 }
 
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag )
 {
-  startTiming( "Smooth SOR" );
-
   smooth_sor_impl( dst, rhs, relax, level, flag );
-
-  stopTiming( "Smooth SOR" );
 }
 
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag )
 {
-  startTiming( "Smooth JAC" );
-
   smooth_jac_impl( dst, rhs, tmp, level, flag );
-
-  stopTiming( "Smooth JAC" );
 }
 
 }

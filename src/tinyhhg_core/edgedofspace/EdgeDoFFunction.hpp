@@ -303,6 +303,7 @@ template< typename ValueType >
 inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag)
 {
   if ( isDummy() ) { return real_c(0); }
+  this->startTiming( "Dot (local)" );
   real_t scalarProduct =  0.0 ;
 
   for ( auto & it : this->getStorage()->getEdges() )
@@ -325,6 +326,7 @@ inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType 
     }
   }
 
+  this->stopTiming( "Dot (local)" );
   return scalarProduct;
 }
 
