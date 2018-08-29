@@ -606,6 +606,7 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl( uint_t level, uint_t
       Face& face = *it.second;
       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, num );
    }
+   communicators_[level]->template endCommunication< Edge, Face >();
    communicators_[level]->template startCommunication< Face, Edge >();
    communicators_[level]->template startCommunication< Face, Cell >();
 
@@ -619,7 +620,6 @@ inline void VertexDoFFunction< ValueType >::enumerate_impl( uint_t level, uint_t
 
    communicators_[level]->template endCommunication< Vertex, Edge >();
    communicators_[level]->template endCommunication< Edge, Vertex >();
-   communicators_[level]->template endCommunication< Edge, Face >();
    communicators_[level]->template endCommunication< Face, Edge >();
    communicators_[level]->template endCommunication< Face, Cell >();
    communicators_[level]->template endCommunication< Cell, Face >();
