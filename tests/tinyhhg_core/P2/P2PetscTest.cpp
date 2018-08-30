@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
   WALBERLA_CHECK_LESS( sqSum, 1e-14 );
 
   uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
-  uint_t localDoFs  = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
+  uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2FunctionTag >( *storage, level );
   numerator.enumerate( level );
 
   hhg::PETScSparseMatrix<hhg::P2ConstantLaplaceOperator, hhg::P2Function> Lpetsc(localDoFs, globalDoFs);
