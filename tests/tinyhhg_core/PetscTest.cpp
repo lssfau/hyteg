@@ -61,7 +61,7 @@ int main( int argc, char* argv[] )
    x_exact.interpolate( exact, level );
 
    uint_t globalDoFs = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
-   uint_t localDoFs  = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
+   uint_t localDoFs  = hhg::numberOfLocalDoFs< P1FunctionTag >( *storage, level );
    numerator->enumerate( level );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( globalDoFs ) )
 
