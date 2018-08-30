@@ -62,6 +62,7 @@ public:
                   const std::vector<DGFunction< ValueType >*> functions,
                   uint_t level,
                   DoFType flag = All);
+  inline void enumerate( uint_t level, ValueType offset );
 
   inline void enumerate( uint_t level );
 
@@ -254,9 +255,13 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   this->stopTiming( "Assign" );
 }
 
+template< typename ValueType >
+void DGFunction< ValueType >::enumerate(uint_t level) {
+   enumerate( level, static_cast< ValueType >(0) );
+}
 
 template< typename ValueType >
-void DGFunction< ValueType >::enumerate(uint_t level)
+void DGFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 {
   this->startTiming( "Enumerate" );
 
@@ -264,7 +269,7 @@ void DGFunction< ValueType >::enumerate(uint_t level)
 
   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
-  uint_t startOnRank = 0;
+  ValueType startOnRank = offset;
 
   for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
   {
