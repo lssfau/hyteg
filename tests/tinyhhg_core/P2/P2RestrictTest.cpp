@@ -21,8 +21,7 @@ static void testP2Restrict() {
 
   auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel);
 
-  uint_t num = 1;
-  x->enumerate(sourceLevel,num);
+  x->enumerate( sourceLevel, 1 );
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;

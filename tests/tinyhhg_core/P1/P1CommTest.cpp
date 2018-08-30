@@ -26,8 +26,7 @@ int main (int argc, char ** argv )
 
   hhg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
 
-  size_t num = 1;
-  x.enumerate(maxLevel,num);
+  x.enumerate(maxLevel);
   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
   uint_t numberOfChecks = 0;

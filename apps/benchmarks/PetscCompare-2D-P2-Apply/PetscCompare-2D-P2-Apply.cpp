@@ -89,16 +89,17 @@ int main( int argc, char* argv[] )
    wcTimingTreeApp.stop( "Interpolation" );
 
    wcTimingTreeApp.start( "Enumeration" );
-   uint_t num       = 0;
-   uint_t localSize = numerator.enumerate( level, num );
+   const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t localDoFs = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+   numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
 
    wcTimingTreeApp.start( "Petsc setup" );
-   hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > matPetsc( localSize, num );
+   hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > matPetsc( localDoFs, globalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P2Function > vecPetsc( localSize );
+   hhg::PETScVector< real_t, hhg::P2Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P2Function > dstvecPetsc( localSize );
+   hhg::PETScVector< real_t, hhg::P2Function > dstvecPetsc( localDoFs );
    wcTimingTreeApp.stop( "Petsc setup" );
 
    wcTimingTreeApp.start( "HyTeG apply" );

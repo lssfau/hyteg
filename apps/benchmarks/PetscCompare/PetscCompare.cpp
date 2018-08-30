@@ -112,13 +112,12 @@ int main( int argc, char* argv[] )
    //    vertexPtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
    //  }
 
-   uint_t num       = 0;
-   uint_t localSize = numerator.enumerate( level, num );
 
+   const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
    const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
-   WALBERLA_LOG_INFO( "localsize: " << localSize << " num: " << num );
+   WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );
 
    //   WALBERLA_CRITICAL_SECTION_START
    //  for (auto &edgeIT : storage->getEdges()) {
@@ -127,11 +126,11 @@ int main( int argc, char* argv[] )
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 
-   hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localSize, num );
+   hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localSize );
+   hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localSize );
+   hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localDoFs );
 
    walberla::WcTimer timer;
 

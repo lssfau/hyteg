@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 
 #include <tinyhhg_core/Operator.hpp>
@@ -21,7 +23,7 @@ public:
 
   typedef typename FunctionTrait< FunctionType >::ValueType ValueType;
 
-  Function( std::string name, const std::shared_ptr<PrimitiveStorage> & storage ) : functionName_( name ), storage_( storage ), minLevel_( 0 ), maxLevel_( 0 ), isDummy_( true ) {}
+  Function( std::string name, const std::shared_ptr<PrimitiveStorage> & storage ) : functionName_(std::move(name)), storage_( storage ), minLevel_( 0 ), maxLevel_( 0 ), isDummy_( true ) {}
 
   Function(std::string name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
       : functionName_(std::move(name))
@@ -40,11 +42,7 @@ public:
     }
   }
 
-  virtual ~Function() {}
-
-  inline uint_t enumerate( uint_t   level,
-                           uint_t & num );
-
+  virtual ~Function() = default;
 
   const std::string &getFunctionName() const { return functionName_; }
 
@@ -70,9 +68,6 @@ public:
   bool isDummy() const { return isDummy_; }
 
 protected:
-
-  virtual void
-  enumerate_impl( uint_t level, uint_t& num ) = 0;
 
   const std::string functionName_;
   const std::weak_ptr< PrimitiveStorage > storage_;
@@ -104,32 +99,6 @@ protected:
       timingTree_->stop( "Function" );
     }
   }
-
 };
-
-
-template< typename FunctionType >
-uint_t Function< FunctionType >::enumerate(size_t level, uint_t& num)
-{
-  uint_t counter = 0;
-
-  enumerate_impl(level,counter);
-
-  std::vector<uint_t> dofs_per_rank  = walberla::mpi::allGather(counter);
-
-  uint_t start = num;
-
-  for(uint_t i = 0; i<walberla::MPIManager::instance()->rank();++i) {
-    start += dofs_per_rank[i];
-  }
-
-  for(uint_t i = 0; i<walberla::MPIManager::instance()->numProcesses();++i) {
-    num += dofs_per_rank[i];
-  }
-
-  enumerate_impl( level, start );
-
-  return counter;
-}
 
 }

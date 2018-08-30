@@ -12,6 +12,7 @@
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 #ifndef HHG_BUILD_WITH_PETSC
 WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON" )
@@ -66,15 +67,19 @@ int main( int argc, char* argv[] )
    b.interpolate( exact, level + 1, hhg::DirichletBoundary );
    x_exact.interpolate( exact, level + 1 );
 
-   uint_t num_1 = 0, num_2 = 0;
-   uint_t dofsOnRank_1 = numerator->enumerate( level, num_1 );
-   uint_t dofsOnRank_2 = numerator->enumerate( level + 1, num_2 );
+   numerator->enumerate( level );
+   numerator->enumerate( level + 1 );
 
-   WALBERLA_LOG_INFO( "dofsOnRank1: " << dofsOnRank_1 << " num1: " << num_1 );
-   WALBERLA_LOG_INFO( "dofsOnRank2: " << dofsOnRank_2 << " num2: " << num_2 );
+   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+   uint_t localDoFs2 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
+   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   uint_t globalDoFs2 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level + 1 );
 
-   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_1( numerator, dofsOnRank_1, num_1 );
-   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, dofsOnRank_2, num_2 );
+   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
+   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
+
+   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
    solver_1.solve( A, x, b, x, level, 0, 0 );
@@ -88,10 +93,10 @@ int main( int argc, char* argv[] )
    err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
    err.assign( {1.0, -1.0}, {&x, &x_exact}, level + 1 );
 
-   real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) num_1 );
-   real_t discr_l2_err_2 = std::sqrt( err.dotGlobal( err, level + 1 ) / (real_t) num_2 );
-   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) num_1 );
-   real_t residuum_l2_2  = std::sqrt( residuum.dotGlobal( residuum, level + 1 ) / (real_t) num_2 );
+   real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_2 = std::sqrt( err.dotGlobal( err, level + 1 ) / (real_t) globalDoFs2 );
+   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
+   real_t residuum_l2_2  = std::sqrt( residuum.dotGlobal( residuum, level + 1 ) / (real_t) globalDoFs2 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 1 = " << discr_l2_err_1 );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 2 = " << discr_l2_err_2 );

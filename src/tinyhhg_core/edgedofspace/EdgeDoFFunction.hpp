@@ -11,10 +11,10 @@
 
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-#include "EdgeDoFMacroFace.hpp"
-#include "EdgeDoFMacroEdge.hpp"
-#include "EdgeDoFPackInfo.hpp"
-
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFPackInfo.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
 namespace hhg {
@@ -109,6 +109,11 @@ public:
   inline real_t
   dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
+  inline void enumerate( uint_t level );
+
+  inline void
+  enumerate( uint_t level, ValueType offset );
+
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
@@ -153,9 +158,6 @@ public:
 private:
 
     using Function< EdgeDoFFunction< ValueType > >::communicators_;
-
-    inline void
-    enumerate_impl( uint_t level, uint_t& num );
 
     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
     PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
@@ -330,15 +332,33 @@ inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType 
   return scalarProduct;
 }
 
+template< typename ValueType >
+inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level)
+{
+   enumerate( level, static_cast<ValueType>(0));
+}
 
 template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& num)
+inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 {
   if ( isDummy() ) { return; }
   this->startTiming( "Enumerate" );
+
+   uint_t counter = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+
+   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+
+   uint_t startOnRank = offset;
+
+   for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+   {
+      startOnRank += dofs_per_rank[i];
+   }
+
+
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
-    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, startOnRank);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -346,7 +366,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate_impl(uint_t level, uint_t& n
 
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
-    edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, num);
+    edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, startOnRank);
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();

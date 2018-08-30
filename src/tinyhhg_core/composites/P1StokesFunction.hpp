@@ -91,14 +91,12 @@ public:
     p.enableTiming(timingTree);
   }
 
-  uint_t enumerate( uint_t level, uint_t& num )
+  void enumerate( uint_t level )
   {
-    uint_t counter = 0;
-    counter += u.enumerate( level, num );
-    counter += v.enumerate( level, num );
-    counter += w.enumerate( level, num );
-    counter += p.enumerate( level, num );
-    return counter;
+    u.enumerate( level );
+    v.enumerate( level );
+    w.enumerate( level );
+    p.enumerate( level );
   }
 
   P1Function< ValueType > u;
