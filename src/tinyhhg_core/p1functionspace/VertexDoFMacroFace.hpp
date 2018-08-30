@@ -222,6 +222,40 @@ inline void add( const uint_t&                                                  
 
 
 template < typename ValueType >
+inline void multElementwise( const uint_t&                                                              Level,
+                             Face&                                                                      face,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstId )
+{
+   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
+   uint_t inner_rowsize = rowsize;
+
+   ValueType*                dstPtr = face.getData( dstId )->getPointer( Level );
+   std::vector< ValueType* > srcPtr;
+   for( auto src : srcIds )
+   {
+      srcPtr.push_back( face.getData( src )->getPointer( Level ) );
+   }
+
+   for( uint_t j = 1; j < rowsize - 2; ++j )
+   {
+      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      {
+         const uint_t idx = vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C );
+         ValueType tmp = srcPtr[0][idx];
+
+         for( uint_t k = 1; k < srcIds.size(); ++k )
+         {
+            tmp *= srcPtr[k][idx];
+         }
+         dstPtr[idx] = tmp;
+      }
+      --inner_rowsize;
+   }
+}
+
+
+template < typename ValueType >
 inline real_t dot( const uint_t&                                               Level,
                    Face&                                                       face,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,

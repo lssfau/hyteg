@@ -158,6 +158,35 @@ inline void add( const uint_t & level,
 
 
 template< typename ValueType >
+inline void multElementwise( const uint_t & level,
+                               const Cell & cell,
+                               const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( level );
+
+  std::vector< ValueType * > srcPtr;
+  for( const auto & src : srcIds )
+  {
+    srcPtr.push_back( cell.getData( src )->getPointer( level ));
+  }
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+
+    ValueType tmp = srcPtr[0][ idx ];
+
+    for ( uint_t k = 1; k < srcIds.size(); ++k )
+    {
+      tmp *= srcPtr[k][ idx ];
+    }
+    dst[ idx ] = tmp;
+  }
+
+}
+
+template< typename ValueType >
 inline real_t dot( const uint_t & level,
                    const Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,

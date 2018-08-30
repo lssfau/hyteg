@@ -74,6 +74,13 @@ static void testVertexDoFBasicFunctions()
    y.add( {{4.0, 3.0}}, {{&x, &y}}, maxLevel, DoFType::All );
    timer["Add"].end();
 
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+
+   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   {
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 48 ) );
+   }
+
    // Dot
 
    timer["Dot"].start();
@@ -81,6 +88,16 @@ static void testVertexDoFBasicFunctions()
    timer["Dot"].end();
 
    WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microvertices_per_face( maxLevel ) * 48 * 2 ) );
+
+   timer["MultElementWise"].start();
+   y.multElementwise( {{&x, &y}}, maxLevel, DoFType::All );
+   timer["MultElementWise"].end();
+   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+
+   for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
+   {
+      WALBERLA_CHECK_FLOAT_EQUAL( faceVertexDataY[vertexdof::macroface::index( maxLevel, it.col(), it.row() )], real_c( 96 ) );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( timer );
 }
