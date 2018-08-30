@@ -4,8 +4,8 @@
 #include "core/logging/Logging.h"
 
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -30,7 +30,7 @@ int main( int argc, char* argv[] )
 
    PETScManager petscManager;
 
-   std::string meshFileName = "../../data/meshes/quad_4el.msh";
+   std::string meshFileName = "../../data/meshes/quad_8el.msh";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -76,6 +76,7 @@ int main( int argc, char* argv[] )
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, Level ) / (real_t) num );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
+   WALBERLA_CHECK_LESS(discr_l2_err, 1e-14 );
 
    //  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
    //  hhg::VTKWriter< P1Function >({ &x, &x_exact, &err }, Level, "../output", "exact_solver");
