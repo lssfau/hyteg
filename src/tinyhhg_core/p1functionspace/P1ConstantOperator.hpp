@@ -569,8 +569,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
             {
                WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
-               const real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-               const real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+               real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+               real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
                real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
                if( updateType == hhg::Replace )
                {
