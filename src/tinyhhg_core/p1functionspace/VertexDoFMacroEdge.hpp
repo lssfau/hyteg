@@ -549,12 +549,13 @@ inline void smooth_jac(const uint_t & level, Edge &edge, const PrimitiveDataID< 
 
 
 template< typename ValueType >
-inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, uint_t& num) {
+inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, ValueType& num) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = walberla::real_c( num++);
+    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = num;
+    num++;
   }
 }
 

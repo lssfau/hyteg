@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
 
    PETScManager petscManager;
 
-   std::string meshFileName = "../../data/meshes/quad_8el.msh";
+   std::string meshFileName = "../../data/meshes/quad_2el.msh";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -62,58 +62,58 @@ int main( int argc, char* argv[] )
    b.interpolate( exact, level, hhg::DirichletBoundary );
    x_exact.interpolate( exact, level );
 
-   x.interpolate( exact, level + 1, hhg::DirichletBoundary );
-   x.interpolate( rand, level + 1, hhg::Inner );
-   b.interpolate( exact, level + 1, hhg::DirichletBoundary );
-   x_exact.interpolate( exact, level + 1 );
+//   x.interpolate( exact, level + 1, hhg::DirichletBoundary );
+//   x.interpolate( rand, level + 1, hhg::Inner );
+//   b.interpolate( exact, level + 1, hhg::DirichletBoundary );
+//   x_exact.interpolate( exact, level + 1 );
 
    numerator->enumerate( level );
-   numerator->enumerate( level + 1 );
+//   numerator->enumerate( level + 1 );
 
    uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
-   uint_t localDoFs2 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
+//   uint_t localDoFs2 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
    uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   uint_t globalDoFs2 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level + 1 );
+//   uint_t globalDoFs2 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level + 1 );
 
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
-   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
+//   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
 
    PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
-   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
+//   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
    solver_1.solve( A, x, b, x, level, 0, 0 );
-   solver_2.solve( A, x, b, x, level + 1, 0, 0 );
+//   solver_2.solve( A, x, b, x, level + 1, 0, 0 );
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
    A.apply( x, residuum, level, hhg::Inner );
-   A.apply( x, residuum, level + 1, hhg::Inner );
+//   A.apply( x, residuum, level + 1, hhg::Inner );
 
    err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
-   err.assign( {1.0, -1.0}, {&x, &x_exact}, level + 1 );
+//   err.assign( {1.0, -1.0}, {&x, &x_exact}, level + 1 );
 
    real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_2 = std::sqrt( err.dotGlobal( err, level + 1 ) / (real_t) globalDoFs2 );
+//   real_t discr_l2_err_2 = std::sqrt( err.dotGlobal( err, level + 1 ) / (real_t) globalDoFs2 );
    real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
-   real_t residuum_l2_2  = std::sqrt( residuum.dotGlobal( residuum, level + 1 ) / (real_t) globalDoFs2 );
+//   real_t residuum_l2_2  = std::sqrt( residuum.dotGlobal( residuum, level + 1 ) / (real_t) globalDoFs2 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 1 = " << discr_l2_err_1 );
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 2 = " << discr_l2_err_2 );
-   WALBERLA_LOG_INFO_ON_ROOT( "error ratio = " << ( discr_l2_err_1 / discr_l2_err_2 ) );
+//   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 2 = " << discr_l2_err_2 );
+//   WALBERLA_LOG_INFO_ON_ROOT( "error ratio = " << ( discr_l2_err_1 / discr_l2_err_2 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
-   WALBERLA_LOG_INFO_ON_ROOT( "residuum 2 = " << residuum_l2_2 );
+//   WALBERLA_LOG_INFO_ON_ROOT( "residuum 2 = " << residuum_l2_2 );
 
    VTKOutput vtkOutput( "../../output", "P2PetscSolve" );
    vtkOutput.add( &x );
    vtkOutput.add( &x_exact );
    vtkOutput.add( &err );
    vtkOutput.add( &residuum );
-   vtkOutput.write( level + 1 );
+   vtkOutput.write( level );
 
    WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_1, 0.0, 1e-15 );
-   WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_2, 0.0, 1e-15 );
-   WALBERLA_CHECK_LESS( 8.0, ( discr_l2_err_1 / discr_l2_err_2 ) );
+   //WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_2, 0.0, 1e-15 );
+   //WALBERLA_CHECK_LESS( 8.0, ( discr_l2_err_1 / discr_l2_err_2 ) );
 
    return EXIT_SUCCESS;
 }

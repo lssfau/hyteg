@@ -138,7 +138,7 @@ inline real_t dot( const uint_t & Level, Edge & edge,
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Edge &edge,
                       const PrimitiveDataID < FunctionMemory< ValueType >, Edge> &dstId,
-                      uint_t& num)
+                      ValueType& num)
 {
   ValueType *dst = edge.getData(dstId)->getPointer(Level);
 

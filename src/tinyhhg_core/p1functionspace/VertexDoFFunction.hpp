@@ -115,7 +115,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                                     uint_t                                  level,
                                     DoFType                                 flag = All );
 
-   inline void enumerate( uint_t level, ValueType offset );
+   /// assigns unique values to all data points
+   /// this function is mainly used for petsc to get global identifier for all DoFs
+   /// \tparam ValueType
+   /// \param level
    inline void enumerate( uint_t level );
 
    // TODO: write more general version(s)
@@ -267,6 +270,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       this->stopTiming( "Interpolate" );
    }
 
+   inline void enumerate( uint_t level, ValueType& offset );
+
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -278,6 +283,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    BoundaryCondition boundaryCondition_;
 
    DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
+
+   /// friend P2Function for usage of enumerate
+   friend class P2Function< ValueType >;
 };
 
 template < typename ValueType >
@@ -627,17 +635,6 @@ inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< Value
 template < typename ValueType >
 inline void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 {
-   enumerate( level, static_cast< ValueType >( 0 ) );
-}
-
-/// assigns unique values to all data points
-/// this function is mainly used for petsc to get global identifier for all DoFs
-/// \tparam ValueType
-/// \param level
-/// \param offset is used as an offset for the numbering. The first assigned values will be num
-template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType offset )
-{
    if( isDummy() )
    {
       return;
@@ -649,18 +646,26 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType o
 
    std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
-   uint_t startOnRank = offset;
+   ValueType startOnRank = 0;
 
-   for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+   for( uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i )
    {
-      startOnRank += dofs_per_rank[i];
+      startOnRank += static_cast<ValueType>(dofs_per_rank[i]);
    }
+   enumerate( level, startOnRank );
+   this->stopTiming( "Enumerate" );
+}
+
+
+template < typename ValueType >
+inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+{
 
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    for( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
-      vertexdof::macrovertex::enumerate( level, vertex, vertexDataID_, startOnRank );
+      vertexdof::macrovertex::enumerate( level, vertex, vertexDataID_, offset );
    }
 
    communicators_[level]->template startCommunication< Vertex, Edge >();
@@ -668,7 +673,7 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType o
    for( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
-      vertexdof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, startOnRank );
+      vertexdof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
    communicators_[level]->template startCommunication< Edge, Vertex >();
@@ -677,7 +682,7 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType o
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
-      vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, startOnRank );
+      vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
    communicators_[level]->template endCommunication< Edge, Face >();
    communicators_[level]->template startCommunication< Face, Edge >();
@@ -686,7 +691,7 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType o
    for( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, startOnRank );
+      vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
    }
 
    communicators_[level]->template startCommunication< Cell, Face >();
@@ -697,7 +702,6 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType o
    communicators_[level]->template endCommunication< Face, Cell >();
    communicators_[level]->template endCommunication< Cell, Face >();
 
-   this->stopTiming( "Enumerate" );
 }
 
 template < typename ValueType >

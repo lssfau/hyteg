@@ -303,9 +303,9 @@ inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<StencilMemory< Valu
 }
 
 template< typename ValueType >
-inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &dstId, uint_t &num) {
+inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &dstId, ValueType &num) {
   auto dst = vertex.getData(dstId)->getPointer( level );
-  dst[0] = static_cast< ValueType >( num++ );
+  dst[0] = num++ ;
 }
 
 template< typename ValueType >

@@ -450,13 +450,28 @@ class P2Function : public Function< P2Function< ValueType > >
   }
 
    inline void enumerate( uint_t level ){
-      enumerate( level, static_cast< ValueType >(0));
+      this->startTiming( "Enumerate" );
+
+      uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+      uint_t counterEdgeDoFs = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+
+      std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
+      std::vector< uint_t > edgeDoFsPerRank= walberla::mpi::allGather( counterEdgeDoFs );
+
+      ValueType offset = 0;
+
+      for( uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i )
+      {
+         offset += static_cast<ValueType>( vertexDoFsPerRank[i] + edgeDoFsPerRank[i] );
+      }
+      enumerate( level, offset);
+      this->stopTiming( "Enumerate" );
    }
 
-   inline void enumerate( uint_t level, ValueType offset )
+   inline void enumerate( uint_t level, ValueType& offset )
    {
       vertexDoFFunction_->enumerate( level, offset );
-      edgeDoFFunction_->enumerate( level, hhg::numberOfGlobalDoFs< hhg::VertexDoFFunctionTag> ( *( this->getStorage() ), level ) + offset );
+      edgeDoFFunction_->enumerate( level, offset );
    }
  private:
    using Function< P2Function< ValueType > >::communicators_;

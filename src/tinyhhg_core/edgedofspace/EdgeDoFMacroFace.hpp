@@ -260,7 +260,7 @@ inline real_t dot( const uint_t & Level, Face & face,
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Face &face,
                       const PrimitiveDataID < FunctionMemory< ValueType >, Face> &dstId,
-                      uint_t& num)
+                      ValueType& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   size_t horizontal_num = num;

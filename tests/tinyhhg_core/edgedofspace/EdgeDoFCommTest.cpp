@@ -27,8 +27,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
 
-  size_t num = 1;
-  x.enumerate(level,num);
+  x.enumerate(level);
 
   uint_t numberOfChecks = 0;
   uint_t totalExpectedChecks = 0;

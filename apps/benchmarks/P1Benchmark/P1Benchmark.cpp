@@ -103,8 +103,8 @@ int main( int argc, char** argv )
    timer.reset();
    if( hhg::globalDefines::useGeneratedKernels ){
       WALBERLA_LOG_INFO_ON_ROOT("Using generated 2D apply kernel");
-      const real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
-      const real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
+      real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
+      real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
       real_t* dst_data      = face->getData( dst->getFaceDataID() )->getPointer( level );
       vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
    } else {

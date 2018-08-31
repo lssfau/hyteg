@@ -111,9 +111,6 @@ public:
 
   inline void enumerate( uint_t level );
 
-  inline void
-  enumerate( uint_t level, ValueType offset );
-
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Face>   & getFaceDataID()   const { return faceDataID_; }
@@ -157,13 +154,18 @@ public:
 
 private:
 
-    using Function< EdgeDoFFunction< ValueType > >::communicators_;
+   inline void enumerate( uint_t level, ValueType& offset );
 
-    PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
-    PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
-    PrimitiveDataID< FunctionMemory< ValueType >, Face > faceDataID_;
+   using Function< EdgeDoFFunction< ValueType > >::communicators_;
 
-    BoundaryCondition boundaryCondition_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Face > faceDataID_;
+
+   BoundaryCondition boundaryCondition_;
+
+   /// friend P2Function for usage of enumerate
+   friend class P2Function< ValueType >;
 };
 
 template< typename ValueType >
@@ -335,30 +337,31 @@ inline real_t EdgeDoFFunction< ValueType >::dotLocal(EdgeDoFFunction< ValueType 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level)
 {
-   enumerate( level, static_cast<ValueType>(0));
-}
-
-template< typename ValueType >
-inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level, ValueType offset)
-{
-  if ( isDummy() ) { return; }
-  this->startTiming( "Enumerate" );
+   if ( isDummy() ) { return; }
+   this->startTiming( "Enumerate" );
 
    uint_t counter = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
 
    std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
-   uint_t startOnRank = offset;
+   ValueType startOnRank = 0;
 
-   for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+   for( uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i )
    {
       startOnRank += dofs_per_rank[i];
    }
 
+   enumerate( level, startOnRank);
+   this->stopTiming( "Enumerate" );
+}
+
+template< typename ValueType >
+inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level, ValueType& offset)
+{
 
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
-    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, startOnRank);
+    edgedof::macroedge::enumerate< ValueType >(level, edge, edgeDataID_, offset);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -366,7 +369,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level, ValueType offs
 
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
-    edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, startOnRank);
+    edgedof::macroface::enumerate< ValueType >(level, face, faceDataID_, offset);
   }
 
   communicators_[level]->template endCommunication<Edge, Face>();
@@ -376,7 +379,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate(uint_t level, ValueType offs
 
   communicators_[level]->template startCommunication<Edge, Vertex>();
   communicators_[level]->template endCommunication<Edge, Vertex>();
-  this->stopTiming( "Enumerate" );
+
 }
 
 
