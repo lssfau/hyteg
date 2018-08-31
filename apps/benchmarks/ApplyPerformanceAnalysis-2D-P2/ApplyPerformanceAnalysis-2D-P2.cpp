@@ -27,11 +27,13 @@ static void performBenchmark( hhg::P2Function< double > & src, hhg::P2Function< 
 {
   const std::string benchInfoString = "level" + (level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) ) + "-" + "sampleSize" + std::to_string( sampleSize );
 
+   std::string name;
   /// Vertex to Vertex
   for ( uint_t i = 0; i < sampleSize; i++ )
   {
-    timingTree.start( "Vertex-to-Vertex-Apply-" + benchInfoString );
-    LIKWID_MARKER_START( "Vertex-to-Vertex-Apply-" + benchInfoString );
+    name = "Vertex-to-Vertex-Apply-" + benchInfoString;
+    timingTree.start( name );
+    LIKWID_MARKER_START( name.c_str() );
     if ( USE_GENERATED_KERNELS )
     {
       auto dstPtr = face.getData( dst.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
@@ -47,15 +49,16 @@ static void performBenchmark( hhg::P2Function< double > & src, hhg::P2Function< 
                                         dst.getVertexDoFFunction()->getFaceDataID(),
                                         hhg::Replace );
     }
-    LIKWID_MARKER_STOP( "Vertex-to-Vertex-Apply-" + benchInfoString );
-    timingTree.stop( "Vertex-to-Vertex-Apply-" + benchInfoString );
+    LIKWID_MARKER_STOP( name.c_str() );
+    timingTree.stop( name );
   }
 
   /// Edge to Vertex
   for ( uint_t i = 0; i < sampleSize; i++ )
   {
-    timingTree.start( "Edge-to-Vertex-Apply-" + benchInfoString );
-    LIKWID_MARKER_START( "Edge-to-Vertex-Apply-" + benchInfoString );
+    name = "Edge-to-Vertex-Apply-" + benchInfoString;
+    timingTree.start( name );
+    LIKWID_MARKER_START( name.c_str() );
     if ( USE_GENERATED_KERNELS )
     {
       auto dstPtr = face.getData( dst.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
@@ -71,15 +74,16 @@ static void performBenchmark( hhg::P2Function< double > & src, hhg::P2Function< 
                                           dst.getVertexDoFFunction()->getFaceDataID(),
                                           hhg::Replace );
     }
-    LIKWID_MARKER_STOP( "Edge-to-Vertex-Apply-" + benchInfoString );
-    timingTree.stop( "Edge-to-Vertex-Apply-" + benchInfoString );
+    LIKWID_MARKER_STOP( name.c_str() );
+    timingTree.stop( name );
   }
 
   /// Edge to Edge
   for ( uint_t i = 0; i < sampleSize; i++ )
   {
-    timingTree.start( "Edge-to-Edge-Apply-" + benchInfoString );
-    LIKWID_MARKER_START( "Edge-to-Edge-Apply-" + benchInfoString );
+    name = "Edge-to-Edge-Apply-" + benchInfoString;
+    timingTree.start( name );
+    LIKWID_MARKER_START( name.c_str() );
     if ( USE_GENERATED_KERNELS )
     {
       auto dstPtr = face.getData( dst.getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
@@ -95,22 +99,23 @@ static void performBenchmark( hhg::P2Function< double > & src, hhg::P2Function< 
                                       dst.getEdgeDoFFunction()->getFaceDataID(),
                                       hhg::Replace );
     }
-    LIKWID_MARKER_STOP( "Edge-to-Edge-Apply-" + benchInfoString );
-    timingTree.stop( "Edge-to-Edge-Apply-" + benchInfoString );
+    LIKWID_MARKER_STOP( name.c_str() );
+    timingTree.stop( name );
   }
 
   /// Vertex to Edge
   for ( uint_t i = 0; i < sampleSize; i++ )
   {
-    timingTree.start( "Vertex-to-Edge-Apply-" + benchInfoString );
-    LIKWID_MARKER_START( "Vertex-to-Edge-Apply-" + benchInfoString );
+    name = "Vertex-to-Edge-Apply-" + benchInfoString;
+    timingTree.start( name );
+    LIKWID_MARKER_START( name.c_str() );
     hhg::VertexDoFToEdgeDoF::applyFace( level, face,
                                         laplace.getEdgeToVertexOpr().getFaceStencilID(),
                                         src.getVertexDoFFunction()->getFaceDataID(),
                                         dst.getEdgeDoFFunction()->getFaceDataID(),
                                         hhg::Replace );
-    LIKWID_MARKER_STOP( "Vertex-to-Edge-Apply-" + benchInfoString );
-    timingTree.stop( "Vertex-to-Edge-Apply-" + benchInfoString );
+    LIKWID_MARKER_STOP( name.c_str() );
+    timingTree.stop( name );
   }
 }
 
