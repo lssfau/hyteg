@@ -1,5 +1,6 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
+#include "generatedKernels/generatedKernels.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
@@ -124,7 +125,23 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag))
     {
-      applyFace(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+      {
+        WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
+        real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+        real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+        real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+        if( updateType == hhg::Replace )
+        {
+          EdgeDoFToVertexDoF::generated::applyFaceReplace( dst_data, src_data, opr_data, level );
+        } else if( updateType == hhg::Add )
+        {
+          EdgeDoFToVertexDoF::generated::applyFaceAdd( dst_data, src_data, opr_data, level );
+        }
+      } else
+      {
+        applyFace(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      }
     }
   }
 
