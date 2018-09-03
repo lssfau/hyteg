@@ -1,6 +1,6 @@
 Parameters
 {
-  minLevel  12;
+  minLevel  9;
   maxLevel 12;
   sampleSize 10;
   VTKOutput false;
