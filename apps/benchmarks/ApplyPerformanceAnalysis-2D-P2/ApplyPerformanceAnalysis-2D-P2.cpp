@@ -17,6 +17,7 @@
 #include "tinyhhg_core/p1functionspace/generatedKernels/generatedKernels.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/generatedKernels.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/generatedKernels.hpp"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/generatedKernels.hpp"
 
 const int USE_GENERATED_KERNELS = 1;
 
@@ -109,11 +110,21 @@ static void performBenchmark( hhg::P2Function< double > & src, hhg::P2Function< 
     name = "Vertex-to-Edge-Apply-" + benchInfoString;
     timingTree.start( name );
     LIKWID_MARKER_START( name.c_str() );
-    hhg::VertexDoFToEdgeDoF::applyFace( level, face,
-                                        laplace.getEdgeToVertexOpr().getFaceStencilID(),
-                                        src.getVertexDoFFunction()->getFaceDataID(),
-                                        dst.getEdgeDoFFunction()->getFaceDataID(),
-                                        hhg::Replace );
+    if ( USE_GENERATED_KERNELS )
+    {
+      auto dstPtr = face.getData( dst.getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
+      auto srcPtr = face.getData( src.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      hhg::VertexDoFToEdgeDoF::generated::applyFaceReplace( dstPtr, srcPtr, stencilPtr, level );
+    }
+    else
+    {
+      hhg::VertexDoFToEdgeDoF::applyFace( level, face,
+                                          laplace.getEdgeToVertexOpr().getFaceStencilID(),
+                                          src.getVertexDoFFunction()->getFaceDataID(),
+                                          dst.getEdgeDoFFunction()->getFaceDataID(),
+                                          hhg::Replace );
+    }
     LIKWID_MARKER_STOP( name.c_str() );
     timingTree.stop( name );
   }
