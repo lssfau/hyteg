@@ -1529,12 +1529,12 @@ void applyReplace( double*                fd_p1FaceDst,
                    double*          fd_p1FaceStencil,
                    walberla::uint_t level )
 {
-  apply_2D_macroface_vertexdof_to_vertexdof_replace( fd_p1FaceDst, fd_p1FaceSrc, fd_p1FaceStencil, level );
+  apply_2D_macroface_vertexdof_to_vertexdof_replace( fd_p1FaceDst, fd_p1FaceSrc, fd_p1FaceStencil, static_cast< int64_t >(level) );
 }
 
 void applyAdd( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStencil, walberla::uint_t level )
 {
-  apply_2D_macroface_vertexdof_to_vertexdof_add( fd_p1FaceDst, fd_p1FaceSrc, fd_p1FaceStencil, level );
+  apply_2D_macroface_vertexdof_to_vertexdof_add( fd_p1FaceDst, fd_p1FaceSrc, fd_p1FaceStencil, static_cast< int64_t >(level) );
 }
 } // namespace generated
 } // namespace macroface

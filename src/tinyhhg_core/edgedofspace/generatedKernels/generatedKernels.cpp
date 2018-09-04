@@ -1604,7 +1604,7 @@ void applyReplace( double*                fd_edgeFaceDst,
                    double*          fd_edgeFaceStencil,
                    walberla::uint_t level )
 {
-  apply_2D_macroface_edgedof_to_edgedof_replace(fd_edgeFaceDst, fd_edgeFaceSrc, fd_edgeFaceStencil, level);
+  apply_2D_macroface_edgedof_to_edgedof_replace(fd_edgeFaceDst, fd_edgeFaceSrc, fd_edgeFaceStencil, static_cast< int64_t >(level));
 }
 
 void applyAdd( double* fd_edgeFaceDst, double* fd_edgeFaceSrc, double* fd_edgeFaceStencil, walberla::uint_t level )

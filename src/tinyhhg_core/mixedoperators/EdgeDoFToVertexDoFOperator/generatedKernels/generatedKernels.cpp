@@ -1628,7 +1628,7 @@ void applyFaceReplace( double*                fd_p1FaceDst,
                        double*          fd_edgeToVertexFaceStencil,
                        walberla::uint_t level )
 {
-  apply_2D_macroface_edgedof_to_vertexdof_replace(fd_edgeFaceSrc, fd_edgeToVertexFaceStencil, fd_p1FaceDst, level);
+  apply_2D_macroface_edgedof_to_vertexdof_replace(fd_edgeFaceSrc, fd_edgeToVertexFaceStencil, fd_p1FaceDst, static_cast< int64_t >(level));
 }
 
 void applyFaceAdd( double* fd_p1FaceDst,
@@ -1636,7 +1636,7 @@ void applyFaceAdd( double* fd_p1FaceDst,
                    double* fd_edgeToVertexFaceStencil,
                    walberla::uint_t level )
 {
-  apply_2D_macroface_edgedof_to_vertexdof_add(fd_edgeFaceSrc, fd_edgeToVertexFaceStencil, fd_p1FaceDst, level);
+  apply_2D_macroface_edgedof_to_vertexdof_add(fd_edgeFaceSrc, fd_edgeToVertexFaceStencil, fd_p1FaceDst, static_cast< int64_t >(level));
 }
 
 
