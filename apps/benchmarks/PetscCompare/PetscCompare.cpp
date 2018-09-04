@@ -126,6 +126,8 @@ int main( int argc, char* argv[] )
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 
+   numerator.enumerate( level );
+
    hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localDoFs );
