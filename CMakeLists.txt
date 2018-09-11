@@ -10,6 +10,7 @@ option ( HHG_USE_GENERATED_KERNELS   "Use generated pystencil kernels if availab
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 
 
 include_directories ( src )
@@ -37,11 +38,6 @@ if( HHG_REMOVE_WALBERLA )
 endif()
 
 find_package( waLBerla )
-
-if(WALBERLA_CXX_COMPILER_IS_GNU)
-    add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
-endif()
 
 # We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD
 if(WALBERLA_CXX_COMPILER_IS_INTEL)
