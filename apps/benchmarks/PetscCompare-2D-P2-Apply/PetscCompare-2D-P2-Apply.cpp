@@ -123,7 +123,6 @@ int main( int argc, char* argv[] )
 
    // WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hhg::Inner ) );
    // WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hhg::Inner ) );
-   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
 
    //dstvecPetsc.print("../output/vector1.vec");
 
@@ -153,6 +152,8 @@ int main( int argc, char* argv[] )
       vtkOutput.add( &diff );
       vtkOutput.write( level );
    }
+
+   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
 
    LIKWID_MARKER_CLOSE;
 }
