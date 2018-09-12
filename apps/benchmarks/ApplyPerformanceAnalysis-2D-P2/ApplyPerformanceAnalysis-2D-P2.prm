@@ -1,0 +1,8 @@
+Parameters
+{
+  minLevel  9;
+  maxLevel 12;
+  sampleSize 10;
+  VTKOutput false;
+  mesh ../../../data/meshes/tri_1el.msh;
+}

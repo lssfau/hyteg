@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/petsc/PETScSparseMatrix.hpp"
+#include "tinyhhg_core/FunctionTraits.hpp"
 
 
 using walberla::real_t;
@@ -49,10 +50,11 @@ int main(int argc, char* argv[])
   // Check if row sum is zero
   WALBERLA_CHECK_LESS( sqSum, 1e-14 );
 
-  uint_t num = 0;
-  uint_t localSize = numerator.enumerate(level, num);
+  uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
+  uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2FunctionTag >( *storage, level );
+  numerator.enumerate( level );
 
-  hhg::PETScSparseMatrix<hhg::P2ConstantLaplaceOperator, hhg::P2Function> Lpetsc(localSize, num);
+  hhg::PETScSparseMatrix<hhg::P2ConstantLaplaceOperator, hhg::P2Function> Lpetsc(localDoFs, globalDoFs);
   Lpetsc.createMatrixFromFunction(L, level, numerator, hhg::All);
 
   WALBERLA_CHECK_EQUAL( Lpetsc.isSymmetric(), true );

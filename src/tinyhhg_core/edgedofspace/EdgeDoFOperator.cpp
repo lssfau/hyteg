@@ -1,5 +1,7 @@
+#include "tinyhhg_core/HHGDefinitions.hpp"
 #include "EdgeDoFOperator.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "generatedKernels/generatedKernels.hpp"
 
 namespace hhg {
 
@@ -22,6 +24,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 void
 EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
 
+  this->startTiming( "EdgeDoFOperator - Apply" );
   src.startCommunication<Face, Edge>( level );
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Face, Edge>( level );
@@ -46,9 +49,26 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if ( testFlag( faceBC, flag ) )
     {
-      edgedof::macroface::apply(level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+      if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+      {
+        WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
+        real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+        real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+        real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+        if( updateType == hhg::Replace )
+        {
+          edgedof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+        } else if( updateType == hhg::Add )
+        {
+          edgedof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
+        }
+      } else
+      {
+        edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+      }
     }
   }
+  this->stopTiming( "EdgeDoFOperator - Apply" );
 }
 
 

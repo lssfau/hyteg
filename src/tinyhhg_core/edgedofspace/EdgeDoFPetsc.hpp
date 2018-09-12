@@ -5,9 +5,11 @@
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 namespace hhg {
-namespace EdgeDoF {
+namespace edgedof {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -25,7 +27,7 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
 
     const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if (testFlag(edgeBC, flag)) {
-      edgedof::macroedge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
+      macroedge::createVectorFromFunction<PetscScalar>(level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec);
     }
   }
 
@@ -34,7 +36,7 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
 
     const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag)) {
-      edgedof::macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+      macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
 }

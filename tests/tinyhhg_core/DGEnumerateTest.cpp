@@ -27,10 +27,9 @@ int main (int argc, char ** argv )
 
   hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
 
-  size_t num = 1;
   uint_t check = 1;
   uint_t sum = 0;
-  x.enumerate(maxLevel,num);
+  x.enumerate(maxLevel,1);
 
   uint_t totalDoFs = (hhg::levelinfo::num_microfaces_per_face(maxLevel) * storage->getNumberOfLocalFaces());
   uint_t expectedSum = (totalDoFs * (totalDoFs + 1))/2;

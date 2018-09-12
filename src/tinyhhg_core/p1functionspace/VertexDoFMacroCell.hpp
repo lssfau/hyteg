@@ -350,14 +350,14 @@ inline void smooth_sor( const uint_t & level,
 
 
 template< typename ValueType >
-inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId, uint_t& num) {
+inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId, ValueType& num) {
 
   ValueType* dstPtr = cell.getData(dstId)->getPointer( Level );
 
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
     const uint_t idx = vertexdof::macrocell::index( Level, it.x(), it.y(), it.z() );
-    dstPtr[idx] = static_cast<ValueType>(num);
+    dstPtr[idx] = num;
     num++;
   }
 }

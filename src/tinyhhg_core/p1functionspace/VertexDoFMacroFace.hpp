@@ -806,7 +806,7 @@ inline bool is_boundary( uint_t index, uint_t length )
 
 template < typename ValueType >
 inline void
-    enumerate( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId, uint_t& num )
+    enumerate( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId, ValueType& num )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -819,7 +819,7 @@ inline void
    {
       for( uint_t j = 0; j < inner_rowsize - 3; ++j )
       {
-         dstPtr[mr] = static_cast< ValueType >( num );
+         dstPtr[mr] = num;
          num++;
 
          mr += 1;

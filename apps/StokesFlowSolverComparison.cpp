@@ -29,6 +29,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
@@ -95,9 +96,10 @@ public:
        //tmpRHS_->v.interpolate(velocityVBC_, level, hhg::DirichletBoundary);
        tmpRHS_->u.assign( {1.0}, {&x.u}, level, hhg::DirichletBoundary);
        tmpRHS_->v.assign( {1.0}, {&x.v}, level, hhg::DirichletBoundary);
-       uint_t num = 0;
-       const uint_t localSize = numerator_->enumerate(level, num);
-       PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, num);
+       const uint_t localSize = hhg::numberOfLocalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
+       const uint_t globalSize = hhg::numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
+       numerator_->enumerate( level );
+       PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, globalSize);
        solver.solve(A, x, *tmpRHS_, r, level, tolerance, maxiter, flag, printInfo);
     }
 

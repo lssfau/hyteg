@@ -23,7 +23,7 @@ public:
   PETScLUSolver(std::shared_ptr<FunctionType<PetscInt>> &numerator, uint_t localSize, uint_t globalSize)
       :num(numerator), Amat(localSize, globalSize), xVec(localSize), bVec(localSize)
   {
-     KSPCreate(PETSC_COMM_WORLD, &ksp);
+     KSPCreate(walberla::MPIManager::instance()->comm(), &ksp);
   }
 
   ~PETScLUSolver(){
