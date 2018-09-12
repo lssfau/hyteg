@@ -37,9 +37,15 @@ public:
       communicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
       additiveCommunicators_[ level ] = std::make_shared< communication::BufferedCommunicator >( storage );
     }
-    if(storage->getTimingTree()){
+    if(storage->getTimingTree())
+    {
       enableTiming(storage->getTimingTree());
     }
+    for( uint_t i = minLevel; i <= maxLevel; ++i )
+    {
+      functionCounter_[i]++;
+    }
+
   }
 
   virtual ~Function() = default;
@@ -66,6 +72,8 @@ public:
   }
 
   bool isDummy() const { return isDummy_; }
+
+  static std::map< uint_t, uint_t > getFunctionCounter() { return functionCounter_; }
 
 protected:
 
@@ -99,7 +107,14 @@ protected:
       timingTree_->stop( "Function" );
     }
   }
+
+private:
+  static std::map< uint_t, uint_t > functionCounter_;
+
 };
+
+template < typename FunctionType >
+std::map< uint_t, uint_t > Function< FunctionType >::functionCounter_ = {};
 
 }
 
