@@ -17,6 +17,7 @@ public:
     {
       restrictionOperator_( function.u, sourceLevel, flag );
       restrictionOperator_( function.v, sourceLevel, flag );
+      restrictionOperator_( function.w, sourceLevel, flag );
       restrictionOperator_( function.p, sourceLevel, flag );
     }
 

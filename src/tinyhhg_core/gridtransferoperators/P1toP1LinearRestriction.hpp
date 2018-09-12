@@ -10,6 +10,9 @@ class P1toP1LinearRestriction
  public:
    inline void operator()( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
    {
+     if ( function.isDummy() )
+       return;
+
      if ( function.getStorage()->hasGlobalCells() )
      {
        restrict3D( function, sourceLevel, flag );

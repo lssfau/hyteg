@@ -1,0 +1,32 @@
+Parameters
+{
+  ntan 2;
+  minLevel 2;
+  maxLevel 3;
+  numVCycle 2;
+  uzawaTolerance 1e-16;
+  uzawaMaxIter 100;
+  useParMETIS false;
+  maxMinResIterations 10;
+
+  /// solver can be uzawa, minres
+  solver uzawa;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK false;
+  VTKOutput false;
+}
+/// Layers for the spherical shell generator
+/// the keys can be arbitrary but need to different
+/// the values have to be sorted ascending
+Layers
+{
+  layer0 1.0;
+  layer1 2.0;
+  layer2 3.0;
+}

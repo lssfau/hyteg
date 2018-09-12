@@ -158,6 +158,35 @@ inline void add( const uint_t & level,
 
 
 template< typename ValueType >
+inline void multElementwise( const uint_t & level,
+                               const Cell & cell,
+                               const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
+                               const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( level );
+
+  std::vector< ValueType * > srcPtr;
+  for( const auto & src : srcIds )
+  {
+    srcPtr.push_back( cell.getData( src )->getPointer( level ));
+  }
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+
+    ValueType tmp = srcPtr[0][ idx ];
+
+    for ( uint_t k = 1; k < srcIds.size(); ++k )
+    {
+      tmp *= srcPtr[k][ idx ];
+    }
+    dst[ idx ] = tmp;
+  }
+
+}
+
+template< typename ValueType >
 inline real_t dot( const uint_t & level,
                    const Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,
@@ -278,6 +307,46 @@ inline void smooth_gs( const uint_t & level,
     dst[ centerIdx ] = tmp * inverseCenterWeight;
   }
 }
+
+template< typename ValueType >
+inline void smooth_sor( const uint_t & level,
+                       Cell & cell,
+                       const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
+                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId,
+                       ValueType                                                    relax )
+{
+  typedef stencilDirection sd;
+
+  const ValueType * operatorData = cell.getData( operatorId )->getPointer( level );
+  const ValueType * rhs          = cell.getData( rhsId )->getPointer( level );
+  ValueType * dst          = cell.getData( dstId )->getPointer( level );
+
+  ValueType tmp;
+
+  const auto inverseCenterWeight = 1.0 / operatorData[ vertexdof::stencilIndexFromVertex( sd::VERTEX_C ) ];
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t x = it.x();
+    const uint_t y = it.y();
+    const uint_t z = it.z();
+
+    const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
+
+    tmp = rhs[ centerIdx ];
+
+    for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+    {
+      const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+      const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
+      tmp -= operatorData[ stencilIdx ] * dst[ idx ];
+    }
+
+    dst[ centerIdx ] = ( 1.0 - relax ) * dst[ centerIdx ] + tmp * relax * inverseCenterWeight;
+  }
+}
+
 
 
 template< typename ValueType >

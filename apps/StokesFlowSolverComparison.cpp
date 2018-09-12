@@ -201,6 +201,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           const uint_t & preSmooth,
           const uint_t & postSmooth,
           const uint_t & incrementSmooth,
+          const real_t & uzawaRelaxParam,
           const real_t targetResidual, const uint_t & maxIterations,
           const std::function< void( SetupPrimitiveStorage & ) > setBCFlags,
           const std::function< real_t( const Point3D & ) > setUVelocityBC,
@@ -430,7 +431,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           ProlongationOperator_T prolongationOperator;
           typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, EmptySolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
 
-          auto solver = UzawaSolver_T( storage, emptySolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth );
+          auto solver = UzawaSolver_T( storage, emptySolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
 
           walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
@@ -475,7 +476,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           ProlongationOperator_T prolongationOperator;
           typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, MinResSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
 
-          auto solver = UzawaSolver_T( storage, minResSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth );
+          auto solver = UzawaSolver_T( storage, minResSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
 
           walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
@@ -520,7 +521,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           ProlongationOperator_T prolongationOperator;
           typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, PetscSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
 
-          auto solver = UzawaSolver_T( storage, petscSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth );
+          auto solver = UzawaSolver_T( storage, petscSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
 
           walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
@@ -623,6 +624,7 @@ int main( int argc, char* argv[] )
   const bool rescalePressure = parameters.getParameter< bool >( "rescalePressure" );
   const bool printTimer = parameters.getParameter< bool >( "printTimer" );
   const std::string squareDomainSolutionType = parameters.getParameter< std::string >( "squareDomainReference" );
+  const real_t uzawaRelaxParam = parameters.getParameter<real_t>("uzawaRelaxParam");
 
   ///////////////////////////////////
   // Check and evaluate parameters //
@@ -963,14 +965,14 @@ int main( int argc, char* argv[] )
   {
     case P1P1:
       run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, hhg::P1MassOperator >(
-        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, targetResidual, maxIterations,
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam, targetResidual, maxIterations,
         setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC, setUVelocityRHS, setVVelocityRHS,
         compareWithAnalyticalSolution, solutionU, solutionV, solutionP,
         rescalePressure, printTimer );
       break;
     case TaylorHood:
       run< P2P1TaylorHoodFunction, P2P1TaylorHoodStokesOperator, hhg::P2P1StokesToP2P1StokesRestriction, hhg::P2P1StokesToP2P1StokesProlongation, hhg::P2ConstantMassOperator >(
-        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, targetResidual, maxIterations,
+        meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam, targetResidual, maxIterations,
         setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC, setUVelocityRHS, setVVelocityRHS,
         compareWithAnalyticalSolution, solutionU, solutionV, solutionP,
         rescalePressure, printTimer );
