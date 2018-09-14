@@ -1,9 +1,9 @@
 Parameters
 {
   level 6;
-  VTKOutput true;
+  VTKOutput false;
   writeDomain false;
-  printTiming true;
+  printTiming false;
   writeJSON false;
-  mesh ../../../data/meshes/annulus_coarse.msh;
+  mesh ../../../data/meshes/tri_1el.msh;
 }

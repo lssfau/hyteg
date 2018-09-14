@@ -141,7 +141,8 @@ int main( int argc, char* argv[] )
    mass.apply( x, y, level, hhg::Inner );
    LIKWID_MARKER_STOP( "HyTeG-apply" );
    timer.end();
-   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << timer.last() );
+   double hyteg_apply = timer.last();
+   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << hyteg_apply );
 
    //matPetsc.print("./output/petsc_matrix");
    //vecPetsc.print("../output/vector0.vec");
@@ -152,7 +153,8 @@ int main( int argc, char* argv[] )
    ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    LIKWID_MARKER_STOP( "Petsc-MatMult" );
    timer.end();
-   WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << timer.last() );
+   double petsc_matmult = timer.last();
+   WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << petsc_matmult );
    CHKERRQ( ierr );
 
    dstvecPetsc.createFunctionFromVector( z, numerator, level, hhg::Inner );
@@ -189,6 +191,8 @@ int main( int argc, char* argv[] )
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( " | " << meshFileName << " | " << level << " | " << totalDoFs << " | " << hyteg_apply << " | " << petsc_matmult << " | ");
 
    LIKWID_MARKER_CLOSE;
 }
