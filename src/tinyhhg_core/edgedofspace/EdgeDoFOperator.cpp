@@ -2,6 +2,7 @@
 #include "EdgeDoFOperator.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "generatedKernels/generatedKernels.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 namespace hhg {
 
@@ -16,9 +17,12 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
   auto faceDataHandling   =
       std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize);
 
+  auto cellDataHandling   =
+      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Cell   >>(minLevel_, maxLevel_, macroCellEdgeDoFToEdgeDoFStencilSize);
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
 }
 
 void
@@ -28,6 +32,8 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
   src.startCommunication<Face, Edge>( level );
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Face, Edge>( level );
+
+  // TODO: cell communcation
 
   for (auto& it : storage_->getEdges())
   {
@@ -68,6 +74,18 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
       }
     }
   }
+
+  for (auto& it : storage_->getCells())
+  {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if ( testFlag( cellBC, flag ) )
+    {
+      edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+    }
+  }
+
   this->stopTiming( "EdgeDoFOperator - Apply" );
 }
 
@@ -78,6 +96,10 @@ const PrimitiveDataID<StencilMemory<real_t>, Edge> &EdgeDoFOperator::getEdgeSten
 
 const PrimitiveDataID<StencilMemory<real_t>, Face> &EdgeDoFOperator::getFaceStencilID() const {
   return faceStencilID_;
+}
+
+const PrimitiveDataID<StencilMemory<real_t>, Cell> &EdgeDoFOperator::getCellStencilID() const {
+  return cellStencilID_;
 }
 
 /// on edges only one stencil is required since only the horizontal edge DoFs belong to the edge
@@ -93,6 +115,13 @@ uint_t macroFaceEdgeDoFToEdgeDoFStencilSize( const uint_t & level, const Primiti
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( primitive );
   return 5 + 5 + 5;
+}
+
+uint_t macroCellEdgeDoFToEdgeDoFStencilSize( const uint_t & level, const Primitive & primitive )
+{
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( primitive );
+  return 7 * 7 * 27;
 }
 
 

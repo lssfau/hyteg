@@ -19,10 +19,12 @@ public:
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
+  const PrimitiveDataID<StencilMemory< real_t >, Cell  > &getCellStencilID() const;
 
 private:
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Cell  > cellStencilID_;
 
 };
 
@@ -32,5 +34,6 @@ uint_t macroEdgeEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive
 /// on face three stencils are needed for horizontal, vertical and diagonal DoFs
 uint_t macroFaceEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
+uint_t macroCellEdgeDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 }
