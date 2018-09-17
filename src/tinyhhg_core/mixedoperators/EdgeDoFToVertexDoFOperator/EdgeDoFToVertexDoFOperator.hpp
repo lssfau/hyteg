@@ -31,6 +31,7 @@ public:
   const PrimitiveDataID<StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
+  const PrimitiveDataID<StencilMemory< real_t >, Cell  > &getCellStencilID() const;
 
 private:
   void assembleStencils();
@@ -39,6 +40,7 @@ private:
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
+  PrimitiveDataID<StencilMemory< real_t >, Cell  > cellStencilID_;
 
 };
 
@@ -58,6 +60,11 @@ uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 /// \param primitive \ref Primitive the memory is allocated on
 /// \return number of entries in the stencil on a macro face
 uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
+
+/// \param level the stencil size is independent of the level
+/// \param primitive \ref Primitive the memory is allocated on
+/// \return number of entries in the stencil on a macro cell
+uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
 }/// namespace EdgeDoFToVertexDoF
 
