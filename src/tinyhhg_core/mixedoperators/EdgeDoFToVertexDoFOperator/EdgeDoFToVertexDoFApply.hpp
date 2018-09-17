@@ -136,7 +136,7 @@ inline void applyCell(const uint_t & Level, Cell & cell,
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
     tmp = 0.0;
-    for ( const auto & orientation : edgedof::EdgeDoFOrientation )
+    for ( const auto & orientation : edgedof::allEdgeDoFOrientations )
     {
       const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
       for ( const auto & neighbor : edgeDoFNeighbors )

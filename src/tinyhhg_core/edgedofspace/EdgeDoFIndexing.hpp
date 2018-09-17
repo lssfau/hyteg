@@ -34,6 +34,10 @@ enum class EdgeDoFOrientation
   INVALID,
 };
 
+const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = { EdgeDoFOrientation::X, EdgeDoFOrientation::Y, EdgeDoFOrientation::Z,
+                                                                     EdgeDoFOrientation::XY, EdgeDoFOrientation::XZ, EdgeDoFOrientation::YZ,
+                                                                     EdgeDoFOrientation::XYZ,};
+
 
 /// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
