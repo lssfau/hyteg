@@ -99,6 +99,48 @@ inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement
 }
 
 
+/// \brief Given an orientation, this function returns the logical index offsets of the two neighboring vertexdofs on that edge.
+/// If the resulting offsets are added to an logical edge index, the resulting logical indices are those of the neighboring vertices.
+inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices( const edgedof::EdgeDoFOrientation & orientation )
+{
+  std::array< indexing::IndexIncrement, 2 > vertexIndices = {
+    indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() ),
+    indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() )
+  };
+  vertexIndices[0] = indexing::IndexIncrement( 0, 0, 0 );
+
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 0 );
+      break;
+    case EdgeDoFOrientation::Y:
+      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 0 );
+      break;
+    case EdgeDoFOrientation::Z:
+      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
+      break;
+    case EdgeDoFOrientation::XY:
+      vertexIndices[1] = indexing::IndexIncrement( 1, 1, 0 );
+      break;
+    case EdgeDoFOrientation::XZ:
+      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 1 );
+      break;
+    case EdgeDoFOrientation::YZ:
+      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 1 );
+      break;
+    case EdgeDoFOrientation::XYZ:
+      vertexIndices[0] = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 1 );
+      break;
+    default:
+      WALBERLA_ASSERT( false, "Invaild index offset." );
+  }
+
+  return vertexIndices;
+}
+
+
 // ##################
 // ### Macro Edge ###
 // ##################
