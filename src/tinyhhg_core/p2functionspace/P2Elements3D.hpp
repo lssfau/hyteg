@@ -40,6 +40,45 @@ inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromVertexDoFI
 }
 
 
+inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation,
+                                                                                          const edgedof::EdgeDoFOrientation & leafOrientation )
+{
+  std::set< indexing::IndexIncrement > neighborEdgeDoFs;
+  const auto neighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
+  const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( neighborVertices.at(1) - neighborVertices.at(0) );
+
+  for ( const auto & element : P1Elements::P1Elements3D::allCellsAtInnerVertex )
+  {
+    WALBERLA_ASSERT_EQUAL( element[0], stencilDirection::VERTEX_C );
+    WALBERLA_ASSERT_EQUAL( element.size(), 4 );
+
+    if ( std::find( element.begin(), element.end(), secondDirectionInElements ) == element.end() )
+    {
+      continue;
+    }
+
+    for ( const auto & dir0 : element )
+    {
+      for ( const auto & dir1 : element )
+      {
+        if ( dir0 != dir1 )
+        {
+          const auto elementEdgeOrientation = edgedof::calcEdgeDoFOrientation( vertexdof::logicalIndexOffsetFromVertex( dir0 ), vertexdof::logicalIndexOffsetFromVertex( dir1 ));
+
+          if ( leafOrientation != elementEdgeOrientation )
+          {
+            continue;
+          }
+
+          neighborEdgeDoFs.insert( edgedof::calcEdgeDoFIndex( vertexdof::logicalIndexOffsetFromVertex( dir0 ), vertexdof::logicalIndexOffsetFromVertex( dir1 )) + neighborVertices.at(0));
+        }
+      }
+    }
+  }
+  return neighborEdgeDoFs;
+}
+
+
 }
 }
 }
