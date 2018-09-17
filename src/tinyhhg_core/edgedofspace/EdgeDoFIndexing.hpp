@@ -22,7 +22,7 @@ constexpr uint_t levelToFaceSizeAnyEdgeDoF( const uint_t & level )
   return levelinfo::num_microedges_per_face( level ) / 3;
 }
 
-enum class EdgeDoFOrientation
+enum class EdgeDoFOrientation : walberla::uint_t
 {
   X,
   Y,
@@ -121,13 +121,16 @@ inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices
       vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
       break;
     case EdgeDoFOrientation::XY:
-      vertexIndices[1] = indexing::IndexIncrement( 1, 1, 0 );
+      vertexIndices[0] = indexing::IndexIncrement( 1, 0, 0 );
+      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 0 );
       break;
     case EdgeDoFOrientation::XZ:
-      vertexIndices[1] = indexing::IndexIncrement( 1, 0, 1 );
+      vertexIndices[0] = indexing::IndexIncrement( 1, 0, 0 );
+      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
       break;
     case EdgeDoFOrientation::YZ:
-      vertexIndices[1] = indexing::IndexIncrement( 0, 1, 1 );
+      vertexIndices[0] = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndices[1] = indexing::IndexIncrement( 0, 0, 1 );
       break;
     case EdgeDoFOrientation::XYZ:
       vertexIndices[0] = indexing::IndexIncrement( 0, 1, 0 );
