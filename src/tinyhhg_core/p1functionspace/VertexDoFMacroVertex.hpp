@@ -83,6 +83,20 @@ inline void add(Vertex &vertex,
 }
 
 template< typename ValueType >
+inline void multElementwise(Vertex &vertex,
+                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
+                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
+                            size_t level) {
+  ValueType tmp = vertex.getData(srcIds[0])->getPointer( level )[0];
+
+  for (size_t i = 1; i < srcIds.size(); ++i) {
+    tmp *= vertex.getData(srcIds[i])->getPointer( level )[0];
+  }
+
+  vertex.getData(dstId)->getPointer( level )[0] = tmp;
+}
+
+template< typename ValueType >
 inline real_t dot(Vertex &vertex,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &lhsMemoryId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsMemoryId,
@@ -303,9 +317,9 @@ inline void smooth_jac(Vertex &vertex, const PrimitiveDataID<StencilMemory< Valu
 }
 
 template< typename ValueType >
-inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &dstId, uint_t &num) {
+inline void enumerate(size_t level, Vertex &vertex, const PrimitiveDataID <FunctionMemory<ValueType>, Vertex> &dstId, ValueType &num) {
   auto dst = vertex.getData(dstId)->getPointer( level );
-  dst[0] = static_cast< ValueType >( num++ );
+  dst[0] = num++ ;
 }
 
 template< typename ValueType >

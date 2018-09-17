@@ -3,12 +3,14 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT ( tinyhhg )
 enable_testing()
 
-option ( HHG_BUILD_WITH_PETSC             "Build with PETSc"                       OFF)
-option ( HHG_BUILD_WITH_EIGEN             "Build with Eigen"                       OFF)
-option ( HHG_REMOVE_WALBERLA              "Remove unnecessary walberla components" OFF)
+option ( HHG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
+option ( HHG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
+option ( HHG_REMOVE_WALBERLA        "Remove unnecessary walberla components"       OFF)
+option ( HHG_USE_GENERATED_KERNELS   "Use generated pystencil kernels if available"  ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
 
 
 include_directories ( src )

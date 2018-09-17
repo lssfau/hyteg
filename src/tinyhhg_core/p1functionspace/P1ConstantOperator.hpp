@@ -23,6 +23,7 @@
 
 #include <array>
 
+#include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -35,12 +36,17 @@
 #include "P1DataHandling.hpp"
 #include "P1Elements.hpp"
 #include "P1Function.hpp"
+#include "generatedKernels/generatedKernels.hpp"
 
 namespace hhg {
 
 using walberla::real_t;
 
-template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly, bool Diagonal = false, bool Lumped = false, bool InvertDiagonal = false >
+template < class UFCOperator2D,
+           class UFCOperator3D = fenics::UndefinedAssembly,
+           bool Diagonal       = false,
+           bool Lumped         = false,
+           bool InvertDiagonal = false >
 class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
@@ -61,28 +67,26 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       storage->addEdgeData( edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil" );
       storage->addVertexData( vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil" );
 
-      if ( storage_->hasGlobalCells() )
+      if( storage_->hasGlobalCells() )
       {
-        const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
-        WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
-        if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
-        {
-          assembleStencils3D();
-        }
-      }
-      else
+         const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
+         WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
+         if( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+         {
+            assembleStencils3D();
+         }
+      } else
       {
-        if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
-        {
-          const bool assemblyDefined = !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value;
-          WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
-          assembleStencils();
-        }
+         if( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+         {
+            const bool assemblyDefined = !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value;
+            WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
+            assembleStencils();
+         }
       }
-
    }
 
-   ~P1ConstantOperator() {}
+   ~P1ConstantOperator() override {}
 
    void scale( real_t scalar )
    {
@@ -166,14 +170,12 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
             for( uint_t i = 0; i < P1GrayElements.size(); ++i )
             {
-               assembleP1LocalStencil(
-                   P1GrayStencilMaps[i], P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
+               assembleP1LocalStencil( P1GrayStencilMaps[i], P1GrayDoFMaps[i], local_stiffness_gray, face_stencil );
             }
 
             for( uint_t i = 0; i < P1BlueElements.size(); ++i )
             {
-               assembleP1LocalStencil(
-                   P1BlueStencilMaps[i], P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
+               assembleP1LocalStencil( P1BlueStencilMaps[i], P1BlueDoFMaps[i], local_stiffness_blue, face_stencil );
             }
 
             if( Lumped )
@@ -299,10 +301,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
                std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
 
-               std::array< uint_t, 3 > stencilMap;
+               std::array< uint_t, 3 > stencilMap{};
                stencilMap[0] = 0;
 
-               std::array< uint_t, 3 > dofMap;
+               std::array< uint_t, 3 > dofMap{};
                dofMap[0] = v_i;
 
                // iterate over adjacent edges
@@ -342,167 +344,174 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       for( uint_t level = minLevel_; level <= maxLevel_; level++ )
       {
-         for ( const auto & it : storage_->getVertices() )
+         for( const auto& it : storage_->getVertices() )
          {
-            auto vertex = it.second;
-            auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
-            auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
+            auto          vertex        = it.second;
+            auto          stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
+            auto          stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
-            for ( uint_t i = 0; i < stencilSize; i++ )
+            for( uint_t i = 0; i < stencilSize; i++ )
             {
                stencilMemory[i] = stencil[i];
             }
 
-            if ( Lumped )
+            if( Lumped )
             {
-              for ( uint_t i = 1; i < stencilSize; i++ )
-              {
-                stencilMemory[0] += stencilMemory[i];
-                stencilMemory[i] = 0;
-              }
+               for( uint_t i = 1; i < stencilSize; i++ )
+               {
+                  stencilMemory[0] += stencilMemory[i];
+                  stencilMemory[i] = 0;
+               }
             }
-            if ( InvertDiagonal )
+            if( InvertDiagonal )
             {
-              stencilMemory[0] = 1.0 / stencilMemory[0];
+               stencilMemory[0] = 1.0 / stencilMemory[0];
             }
          }
 
-         for ( const auto & it : storage_->getEdges() )
+         for( const auto& it : storage_->getEdges() )
          {
-            auto edge = it.second;
-            auto stencilSize   = edge->getData( getEdgeStencilID() )->getSize( level );
-            auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
+            auto          edge          = it.second;
+            auto          stencilSize   = edge->getData( getEdgeStencilID() )->getSize( level );
+            auto          stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
+
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
-            for ( uint_t i = 0; i < stencilSize; i++ )
+            for( uint_t i = 0; i < stencilSize; i++ )
             {
                stencilMemory[i] = stencil[i];
             }
-            if ( Lumped )
+            if( Lumped )
             {
-              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] += stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W ) ];
-              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W ) ] = 0;
-              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] += stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E ) ];
-              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E ) ] = 0;
-              for ( uint_t neighborFace = 0; neighborFace < it.second->getNumNeighborFaces(); neighborFace++ )
-              {
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
-                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace ) ];
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace ) ] = 0;
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
-                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace ) ];
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace ) ] = 0;
-              }
-              for ( uint_t neighborCell = 0; neighborCell < it.second->getNumNeighborCells(); neighborCell++ )
-              {
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] +=
-                  stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, it.second->getNumNeighborFaces() ) ];
-                stencilMemory[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, it.second->getNumNeighborFaces() ) ] = 0;
-              }
+               stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
+                   stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W )];
+               stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_W )] = 0;
+               stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
+                   stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E )];
+               stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_E )] = 0;
+               for( uint_t neighborFace = 0; neighborFace < it.second->getNumNeighborFaces(); neighborFace++ )
+               {
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
+                      stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )];
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] = 0;
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
+                      stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )];
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] = 0;
+               }
+               for( uint_t neighborCell = 0; neighborCell < it.second->getNumNeighborCells(); neighborCell++ )
+               {
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
+                      stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell,
+                                                                                      it.second->getNumNeighborFaces() )];
+                  stencilMemory[vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell,
+                                                                                  it.second->getNumNeighborFaces() )] = 0;
+               }
             }
-            if ( InvertDiagonal )
+            if( InvertDiagonal )
             {
-              stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C ) ];
+               stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] =
+                   1.0 / stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )];
             }
          }
 
-         for ( const auto & it : storage_->getFaces() )
+         for( const auto& it : storage_->getFaces() )
          {
-            auto face = it.second;
-            auto stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
-            auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
+            auto          face          = it.second;
+            auto          stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
+            auto          stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
 
-            if ( face->getNumNeighborCells() == 1 )
+            if( face->getNumNeighborCells() == 1 )
             {
-              for ( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
-              {
-                if ( stencil.count( stencilDir ) == 0 )
-                {
-                  stencil[stencilDir] = real_c( 0 );
-                }
-              }
-            }
-            else
+               for( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+               {
+                  if( stencil.count( stencilDir ) == 0 )
+                  {
+                     stencil[stencilDir] = real_c( 0 );
+                  }
+               }
+            } else
             {
-              for ( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
-              {
-                if ( stencil.count( stencilDir ) == 0 )
-                {
-                  stencil[stencilDir] = real_c( 0 );
-                }
-              }
-            }
-
-            for ( const auto stencilIt : stencil )
-            {
-               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
-               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
+               for( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+               {
+                  if( stencil.count( stencilDir ) == 0 )
+                  {
+                     stencil[stencilDir] = real_c( 0 );
+                  }
+               }
             }
 
-            if ( Lumped )
+            for( const auto stencilIt : stencil )
             {
-              if ( face->getNumNeighborCells() == 1 )
-              {
-                for ( auto dir : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
-                {
-                  stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
-                    stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
-                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
-                }
-              }
-              else
-              {
-                for ( auto dir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
-                {
-                  stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
-                    stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
-                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
-                }
-              }
+               const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[stencilIdx] = stencil[stencilIt.first];
             }
 
-            if ( InvertDiagonal )
+            if( Lumped )
             {
-              stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+               if( face->getNumNeighborCells() == 1 )
+               {
+                  for( auto dir : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+                  {
+                     stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
+                         stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
+                     stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
+                  }
+               } else
+               {
+                  for( auto dir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+                  {
+                     stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
+                         stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
+                     stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
+                  }
+               }
+            }
+
+            if( InvertDiagonal )
+            {
+               stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] =
+                   1.0 / stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
             }
          }
 
-         for ( const auto & it : storage_->getCells() )
+         for( const auto& it : storage_->getCells() )
          {
-            auto cell          = it.second;
-            auto stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
-            auto stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
+            auto          cell          = it.second;
+            auto          stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
+            auto          stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
             auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
-            for ( const auto stencilIt : stencil )
+            for( const auto stencilIt : stencil )
             {
-               const auto stencilIdx = vertexdof::stencilIndexFromVertex( stencilIt.first );
-               stencilMemory[ stencilIdx ] = stencil[ stencilIt.first ];
+               const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
+               stencilMemory[stencilIdx] = stencil[stencilIt.first];
             }
 
-            if ( Lumped )
+            if( Lumped )
             {
-              for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
-              {
-                stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] +=
-                  stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ];
-                stencilMemory[ vertexdof::stencilIndexFromVertex( dir ) ] = 0;
-              }
+               for( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+               {
+                  stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
+                      stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
+                  stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
+               }
             }
 
-            if ( InvertDiagonal )
+            if( InvertDiagonal )
             {
-              stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] = 1.0 / stencilMemory[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ];
+               stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] =
+                   1.0 / stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
             }
          }
       }
@@ -515,6 +524,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                     DoFType               flag,
                     UpdateType            updateType = Replace )
    {
+      this->startTiming( "P1ConstantOperator - Apply" );
       src.communicate< Vertex, Edge >( level );
       src.communicate< Edge, Face >( level );
       src.communicate< Face, Cell >( level );
@@ -554,25 +564,42 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
-            vertexdof::macroface::apply< real_t >(
-                level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+            if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+            {
+               WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
+               real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+               real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+               real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+               if( updateType == hhg::Replace )
+               {
+                  vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+               } else if( updateType == hhg::Add )
+               {
+                  vertexdof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
+               }
+            } else
+            {
+               vertexdof::macroface::apply< real_t >(
+                   level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+            }
          }
       }
 
       for( const auto& it : storage_->getCells() )
       {
-        Cell& cell = *it.second;
+         Cell& cell = *it.second;
 
-        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-        if ( testFlag( cellBC, flag ) )
-        {
-          vertexdof::macrocell::apply< real_t >(
-          level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
-        }
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::apply< real_t >(
+                level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+         }
       }
+      this->stopTiming( "P1ConstantOperator - Apply" );
    }
 
-   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )
+   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override
    {
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
@@ -589,7 +616,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
-            vertexdof::macrovertex::smooth_gs< real_t >( vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
+            vertexdof::macrovertex::smooth_gs< real_t >(
+                vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
          }
       }
 
@@ -623,19 +651,18 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
       for( auto& it : storage_->getCells() )
       {
-        Cell& cell = *it.second;
+         Cell& cell = *it.second;
 
-        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-        if( testFlag( cellBC, flag ) )
-        {
-          vertexdof::macrocell::smooth_gs< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID() );
-        }
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::smooth_gs< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID() );
+         }
       }
    }
 
-   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag )
+   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag ) override
    {
-
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
       dst.communicate< Face, Cell >( level );
@@ -696,14 +723,13 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
             vertexdof::macrocell::smooth_sor< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID(), relax );
          }
       }
-
    }
 
    void smooth_jac_impl( P1Function< real_t >& dst,
                          P1Function< real_t >& rhs,
                          P1Function< real_t >& tmp,
                          size_t                level,
-                         DoFType               flag )
+                         DoFType               flag ) override
    {
       tmp.communicate< Vertex, Edge >( level );
       tmp.communicate< Edge, Face >( level );
@@ -780,24 +806,26 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
 typedef P1ConstantOperator< fenics::NoAssemble, fenics::NoAssemble > P1ZeroOperator;
 
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1ConstantLaplaceOperator;
-typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly, true >            P1DiagonalLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >
+                                                                                                      P1ConstantLaplaceOperator;
+typedef P1ConstantOperator< p1_diffusion_cell_integral_0_otherwise, fenics::UndefinedAssembly, true > P1DiagonalLaplaceOperator;
 
-typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;
-typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_1_otherwise > P1ConstantEpsilonOperator_12;
-typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_2_otherwise > P1ConstantEpsilonOperator_21;
-typedef P1ConstantOperator <p1_stokes_epsilon_cell_integral_3_otherwise > P1ConstantEpsilonOperator_22;
+typedef P1ConstantOperator< p1_stokes_epsilon_cell_integral_0_otherwise > P1ConstantEpsilonOperator_11;
+typedef P1ConstantOperator< p1_stokes_epsilon_cell_integral_1_otherwise > P1ConstantEpsilonOperator_12;
+typedef P1ConstantOperator< p1_stokes_epsilon_cell_integral_2_otherwise > P1ConstantEpsilonOperator_21;
+typedef P1ConstantOperator< p1_stokes_epsilon_cell_integral_3_otherwise > P1ConstantEpsilonOperator_22;
 
 typedef P1ConstantOperator< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > P1DivxOperator;
 typedef P1ConstantOperator< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > P1DivyOperator;
-typedef P1ConstantOperator< fenics::NoAssemble,               p1_tet_div_tet_cell_integral_2_otherwise > P1DivzOperator;
+typedef P1ConstantOperator< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise >               P1DivzOperator;
 
 typedef P1ConstantOperator< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > P1DivTxOperator;
 typedef P1ConstantOperator< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > P1DivTyOperator;
-typedef P1ConstantOperator< fenics::NoAssemble,                p1_tet_divt_tet_cell_integral_2_otherwise > P1DivTzOperator;
+typedef P1ConstantOperator< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise >                P1DivTzOperator;
 
-typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >                    P1MassOperator;
-typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise, false, true, true > P1LumpedInvMassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > P1MassOperator;
+typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise, false, true, true >
+    P1LumpedInvMassOperator;
 
 typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > P1PSPGOperator;
 

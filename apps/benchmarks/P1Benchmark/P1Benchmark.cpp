@@ -52,6 +52,8 @@ int main( int argc, char** argv )
    const uint_t level = mainConf.getParameter< uint_t >( "level" );
 
    WALBERLA_LOG_INFO("level: " << level);
+   const uint_t totalInnerPoints =  hhg::indexing::layout::linearMacroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 3 );
+   WALBERLA_LOG_INFO_ON_ROOT("Total inner points: " << totalInnerPoints);
 
    LIKWID_MARKER_THREADINIT;
 
@@ -99,8 +101,16 @@ int main( int argc, char** argv )
 
    LIKWID_MARKER_START( "apply" );
    timer.reset();
-   vertexdof::macroface::apply< real_t >(
-       level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );
+   if( hhg::globalDefines::useGeneratedKernels ){
+      WALBERLA_LOG_INFO_ON_ROOT("Using generated 2D apply kernel");
+      real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
+      real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
+      real_t* dst_data      = face->getData( dst->getFaceDataID() )->getPointer( level );
+      vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+   } else {
+      vertexdof::macroface::apply< real_t >(
+            level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );
+   }
    timer.end();
    LIKWID_MARKER_STOP( "apply" );
    WALBERLA_LOG_INFO_ON_ROOT( "apply runtime: " << timer.last() );

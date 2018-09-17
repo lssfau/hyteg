@@ -27,7 +27,7 @@ using namespace hhg;
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::INFO );
    walberla::MPIManager::instance()->useWorldComm();
 
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );

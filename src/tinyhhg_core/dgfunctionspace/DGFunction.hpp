@@ -62,6 +62,9 @@ public:
                   const std::vector<DGFunction< ValueType >*> functions,
                   uint_t level,
                   DoFType flag = All);
+  inline void enumerate( uint_t level, ValueType offset );
+
+  inline void enumerate( uint_t level );
 
   inline real_t getMaxMagnitude( const uint_t level, DoFType flag = All );
 
@@ -101,8 +104,6 @@ private:
   PrimitiveDataID<FunctionMemory<ValueType>, Face> faceDataID_;
 
   BoundaryCondition boundaryCondition_;
-
-  inline void enumerate_impl(uint_t level, uint_t& num) override;
 
 };
 
@@ -254,14 +255,29 @@ void DGFunction< ValueType >::assign(const std::vector<ValueType> scalars,
   this->stopTiming( "Assign" );
 }
 
+template< typename ValueType >
+void DGFunction< ValueType >::enumerate(uint_t level) {
+   enumerate( level, static_cast< ValueType >(0) );
+}
 
 template< typename ValueType >
-void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num)
+void DGFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 {
   this->startTiming( "Enumerate" );
+
+  uint_t counter = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+
+  std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+
+  ValueType startOnRank = offset;
+
+  for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+  {
+    startOnRank += dofs_per_rank[i];
+  }
   for (auto& it : this->getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
-    DGVertex::enumerate(vertex,vertexDataID_,level,num);
+    DGVertex::enumerate(vertex,vertexDataID_,level,startOnRank);
   }
 
   communicators_[level]->template startCommunication<Vertex, Edge>();
@@ -269,7 +285,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num)
 
   for (auto& it : this->getStorage()->getEdges()) {
     Edge& edge = *it.second;
-    DGEdge::enumerate< ValueType >(level, edge, edgeDataID_, num);
+    DGEdge::enumerate< ValueType >(level, edge, edgeDataID_, startOnRank);
   }
 
   communicators_[level]->template startCommunication<Edge, Face>();
@@ -277,7 +293,7 @@ void DGFunction< ValueType >::enumerate_impl(uint_t level, uint_t &num)
 
   for (auto& it : this->getStorage()->getFaces()) {
     Face& face = *it.second;
-    DGFace::enumerate< ValueType >(level, face, faceDataID_, num);
+    DGFace::enumerate< ValueType >(level, face, faceDataID_, startOnRank);
   }
 
   communicators_[level]->template startCommunication<Face, Edge>();

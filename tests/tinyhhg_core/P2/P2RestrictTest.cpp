@@ -5,6 +5,7 @@
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 
 namespace hhg {
@@ -20,9 +21,15 @@ static void testP2Restrict() {
   std::shared_ptr <PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
   auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel);
+  auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel);
+  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D&  ) {
+     return 1;
+  };
+  ident.interpolate(one, sourceLevel, hhg::All );
 
-  uint_t num = 1;
-  x->enumerate(sourceLevel,num);
+  x->enumerate( sourceLevel );
+  x->add({1.0},{&ident},sourceLevel, hhg::All);
+  hhg::communication::syncP2FunctionBetweenPrimitives( *x, sourceLevel );
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;

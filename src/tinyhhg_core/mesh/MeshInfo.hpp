@@ -372,6 +372,21 @@ public:
   ///                CMB outwards
   static MeshInfo meshSphericalShell( uint_t ntan, const std::vector< double > & layers );
 
+  /// Constructs a MeshInfo object for a chain of triangles.
+  ///
+  /// Starting from the left side, numFaces faces are connected to each other in an alternating fashion
+  /// to build a channel-like domain.
+  /// There are no inner vertices in this mesh - each face is connected to its two neighbors only.
+  /// If numFaces is not even, the channel is not rectangular but a trapezoid.
+  ///
+  /// \param numFaces number of faces in the mesh
+  /// \param width width of the domain
+  /// \param height height of the domain
+  static MeshInfo meshFaceChain( uint_t numFaces, real_t width, real_t height );
+
+  /// Constructs a MeshInfo object for a chain of triangles with regular size.
+  static MeshInfo meshFaceChain( uint_t numFaces );
+
   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
 

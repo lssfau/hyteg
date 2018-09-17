@@ -168,6 +168,29 @@ inline void add( const uint_t & level, Edge &edge,
 
 
 template< typename ValueType >
+inline void multElementwise( const uint_t & level, 
+                             Edge &edge,
+                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+  auto dst = edge.getData( dstId )->getPointer( level );
+
+  for (size_t i = 1; i < rowsize - 1; ++i) 
+  {
+    const uint_t idx = vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C );
+    ValueType tmp = edge.getData(srcIds[0])->getPointer( level )[idx];
+
+    for (size_t k = 1; k < srcIds.size(); ++k) {
+      tmp *= edge.getData(srcIds[k])->getPointer( level )[idx];
+    }
+
+    dst[idx] = tmp;
+  }
+}
+
+
+template< typename ValueType >
 inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &lhsMemoryId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsMemoryId) {
 
@@ -560,12 +583,13 @@ inline void smooth_jac(const uint_t & level, Edge &edge, const PrimitiveDataID< 
 
 
 template< typename ValueType >
-inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, uint_t& num) {
+inline void enumerate( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, ValueType& num) {
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = walberla::real_c( num++);
+    edge.getData(dstId)->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = num;
+    num++;
   }
 }
 

@@ -87,9 +87,10 @@ int main( int argc, char* argv[] )
     PETScManager petscManager;
     f.u.interpolate(bc_x, level, hhg::DirichletBoundary);
     auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction<PetscInt>>("numerator", storage, level, level);
-    uint_t num = 0;
-    const uint_t localSize = numerator->enumerate(level, num);
-    PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localSize, num);
+    numerator->enumerate(level);
+    const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+    const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+    PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
     solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
   }
   else

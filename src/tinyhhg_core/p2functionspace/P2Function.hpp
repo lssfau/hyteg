@@ -2,6 +2,7 @@
 
 #include "core/DataTypes.h"
 
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
@@ -108,10 +109,10 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline real_t dotGlobal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
    {
-      this->startTiming( "Dot" );
       real_t sum = dotLocal( rhs, level, flag );
+      this->startTiming( "Dot (reduce)" );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-      this->stopTiming( "Dot" );
+      this->stopTiming( "Dot (reduce)" );
       return sum;
    }
 
@@ -123,7 +124,7 @@ class P2Function : public Function< P2Function< ValueType > >
       return sum;
    }
 
-   inline void prolongateP1ToP2( const std::shared_ptr< P1Function< ValueType > >& p1Function,
+   inline void prolongateP1ToP2( const std::shared_ptr< hhg::P1Function< ValueType > >& p1Function,
                                  const uint_t&                                     level,
                                  const DoFType&                                    flag = All )
    {
@@ -432,7 +433,7 @@ class P2Function : public Function< P2Function< ValueType > >
 
   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
   {
-    real_t localMax = real_t(0.0);
+    auto localMax = real_t(0.0);
     localMax = std::max( localMax, vertexDoFFunction_->getMaxMagnitude( level, flag, false ) );
     localMax = std::max( localMax, edgeDoFFunction_->getMaxMagnitude( level, flag, false ) );
 
@@ -448,13 +449,32 @@ class P2Function : public Function< P2Function< ValueType > >
      return vertexDoFFunction_->getBoundaryCondition();
   }
 
+   inline void enumerate( uint_t level ){
+      this->startTiming( "Enumerate" );
+
+      uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+      uint_t counterEdgeDoFs = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+
+      std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
+      std::vector< uint_t > edgeDoFsPerRank= walberla::mpi::allGather( counterEdgeDoFs );
+
+      ValueType offset = 0;
+
+      for( uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i )
+      {
+         offset += static_cast<ValueType>( vertexDoFsPerRank[i] + edgeDoFsPerRank[i] );
+      }
+      enumerate( level, offset);
+      this->stopTiming( "Enumerate" );
+   }
+
+   inline void enumerate( uint_t level, ValueType& offset )
+   {
+      vertexDoFFunction_->enumerate( level, offset );
+      edgeDoFFunction_->enumerate( level, offset );
+   }
  private:
    using Function< P2Function< ValueType > >::communicators_;
-   inline void enumerate_impl( uint_t level, uint_t& num )
-   {
-      vertexDoFFunction_->enumerate( level, num );
-      edgeDoFFunction_->enumerate( level, num );
-   }
 
    std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > vertexDoFFunction_;
    std::shared_ptr< EdgeDoFFunction< ValueType > >              edgeDoFFunction_;

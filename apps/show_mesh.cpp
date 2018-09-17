@@ -28,7 +28,9 @@ void showUsage()
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
-             << "  --annulus [full|partial]\n\n"
+             << "  --annulus [full|partial]\n"
+             << "  --spherical-shell [ntan]\n"
+             << "  --face-chain [numFaces]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -47,12 +49,17 @@ int main( int argc, char* argv[] )
       FROM_FILE,
       RECTANGLE,
       ANNULUS,
-      PARTIAL_ANNULUS
+      PARTIAL_ANNULUS,
+      SPHERICAL_SHELL,
+      FACE_CHAIN
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
    MeshInfo*             meshInfo     = nullptr;
    bool                  beVerbose    = false;
+   uint_t                ntan         = 5;
+   std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
+   uint_t                numFaces     = 2;
 
    typedef enum
    {
@@ -67,14 +74,16 @@ int main( int argc, char* argv[] )
    {
       showUsage();
       WALBERLA_ABORT( "Please provide command-line parameters!" );
-   } else if( strcmp( argv[1], "--file" ) == 0 )
+   }
+   else if( strcmp( argv[1], "--file" ) == 0 )
    {
       meshDomain                     = FROM_FILE;
       meshFileName                   = std::string( argv[2] );
       auto pos                       = meshFileName.find_last_of( '/' );
       pos == meshFileName.npos ? pos = 0 : ++pos;
       vtkFileName                    = meshFileName.substr( pos, meshFileName.length() - 4 );
-   } else if( strcmp( argv[1], "--rect" ) == 0 )
+   }
+   else if( strcmp( argv[1], "--rect" ) == 0 )
    {
       meshDomain = RECTANGLE;
       if( strcmp( argv[2], "criss" ) == 0 )
@@ -97,7 +106,8 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "Flavour for rect mesh not recognised!" );
       }
-   } else if( strcmp( argv[1], "--annulus" ) == 0 )
+   }
+   else if( strcmp( argv[1], "--annulus" ) == 0 )
    {
       if( strcmp( argv[2], "full" ) == 0 )
       {
@@ -111,7 +121,20 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
-   } else
+   }
+   else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
+   {
+      ntan = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SPHERICAL_SHELL;
+      vtkFileName = std::string( "sphericalShell" );
+   }
+   else if( strcmp( argv[1], "--face-chain" ) == 0 )
+   {
+      numFaces = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = FACE_CHAIN;
+      vtkFileName = std::string( "faceChain" );
+   }
+   else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
    }
@@ -173,6 +196,14 @@ int main( int argc, char* argv[] )
 
    case ANNULUS:
       meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
+      break;
+
+   case SPHERICAL_SHELL:
+      meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
+      break;
+
+   case FACE_CHAIN:
+      meshInfo = new MeshInfo( MeshInfo::meshFaceChain( numFaces ) );
       break;
    }
 
@@ -255,7 +286,7 @@ int main( int argc, char* argv[] )
 #endif
 
    hhg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: '" << vtkFileName + "_domain_partitioning" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: " << vtkFileName + "_domain_partitioning" );
 
    hhg::VTKOutput                                 vtkOutput( "../output", vtkFileName );
    hhg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );

@@ -9,7 +9,7 @@ namespace hhg {
 namespace P2 {
 namespace macroedge {
 
-void smoothGaussSeidl( const uint_t&                                            level,
+void smoothGaussSeidel( const uint_t&                                            level,
                        const Edge&                                              edge,
                        const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToVertexStencilID,
                        const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToVertexStencilID,
@@ -75,6 +75,8 @@ void smoothGaussSeidl( const uint_t&                                            
                             edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
             }
          }
+         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
+             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
       }
       ////////// HORIZONTAL EDGE //////////
       tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )];
@@ -109,12 +111,6 @@ void smoothGaussSeidl( const uint_t&                                            
             tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
-      }
-      ////////// VERTEX //////////
-      if( it.col() != 0 )
-      {
-         dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
       }
       dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
           tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];

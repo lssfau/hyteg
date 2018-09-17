@@ -136,14 +136,18 @@ inline uint_t stencilIndexOnNeighborFace( const stencilDirection & dir, const ui
         return 0;
       case sD::VERTEX_E:
         return 1;
+      default:
+        WALBERLA_ABORT("wrong direction")
     }
-  }
-  switch ( dir )
-  {
-    case sD::VERTEX_W:
-      return 3 + 2 * faceID;
-    case sD::VERTEX_E:
-      return 3 + 2 * faceID + 1;
+  } else {
+    switch (dir) {
+      case sD::VERTEX_W:
+        return 3 + 2 * faceID;
+      case sD::VERTEX_E:
+        return 3 + 2 * faceID + 1;
+      default:
+        WALBERLA_ABORT("wrong direction")
+     }
   }
 }
 
