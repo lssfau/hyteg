@@ -7,6 +7,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 
 namespace hhg {
 namespace edgedof {
@@ -310,6 +311,90 @@ inline real_t dot( const uint_t & Level, Cell & cell,
   }
 
   return scalarProduct.get();
+}
+
+inline void apply(const uint_t & Level, Cell &cell,
+                  const PrimitiveDataID<StencilMemory < real_t >, Cell> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Cell> &srcId,
+                  const PrimitiveDataID<FunctionMemory< real_t >, Cell> &dstId,
+                  UpdateType update)
+{
+  auto srcData = cell.getData( srcId )->getPointer( Level );
+  auto dstData = cell.getData( dstId )->getPointer( Level );
+  auto opr_data = cell.getData( operatorId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
+
+    if ( isInnerXEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::X );
+    if ( isInnerYEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::Y );
+    if ( isInnerZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::Z );
+    if ( isInnerXYEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::XY );
+    if ( isInnerXZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::XZ );
+    if ( isInnerYZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::YZ );
+
+    for ( const auto & centerOrientation : innerOrientations )
+    {
+      real_t tmp = 0.0;
+      for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+      {
+        const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
+        for ( const auto & neighbor : edgeDoFNeighbors )
+        {
+          const uint_t stencilIdx  = edgedof::stencilIndexFromEdge3D( neighbor, centerOrientation, leafOrientation );
+          const auto   srcIdx      = it + neighbor;
+          const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
+          tmp += opr_data[stencilIdx] * srcData[srcArrayIdx];
+        }
+      }
+
+      const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+
+      if ( update == Replace )
+      {
+        dstData[dstArrayIdx] = tmp;
+      }
+      else if ( update == Add )
+      {
+        dstData[dstArrayIdx] += tmp;
+      }
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    real_t tmp = 0.0;
+    const auto centerOrientation = edgedof::EdgeDoFOrientation::XYZ;
+    for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+    {
+      const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
+      for ( const auto & neighbor : edgeDoFNeighbors )
+      {
+        const uint_t stencilIdx  = edgedof::stencilIndexFromEdge3D( neighbor, centerOrientation, leafOrientation );
+        const auto   srcIdx      = it + neighbor;
+        const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
+        tmp += opr_data[stencilIdx] * srcData[srcArrayIdx];
+      }
+    }
+
+    const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+
+    if ( update == Replace )
+    {
+      dstData[dstArrayIdx] = tmp;
+    }
+    else if ( update == Add )
+    {
+      dstData[dstArrayIdx] += tmp;
+    }
+  }
 }
 
 
