@@ -47,6 +47,12 @@ class P2Function : public Function< P2Function< ValueType > >
    std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
    std::shared_ptr< EdgeDoFFunction< ValueType > >              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
+   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All )
+   {
+      vertexDoFFunction_->interpolate( constant, level, flag );
+      edgeDoFFunction_->interpolate( constant, level, flag );
+   }
+
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All )
    {
       vertexDoFFunction_->interpolate( expr, level, flag );

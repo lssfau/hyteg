@@ -21,6 +21,19 @@ using walberla::real_c;
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge & edge,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
+                        const ValueType & constant )
+{
+  auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = constant;
+  }
+}
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Edge & edge,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
                         const std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {

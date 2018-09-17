@@ -109,6 +109,9 @@ public:
   /// Interpolates a given expression to a EdgeDoFFunction
 
   inline void
+  interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
+
+  inline void
   interpolate( const std::function< ValueType( const Point3D & ) >& expr,
                           uint_t level, DoFType flag = All);
 
@@ -181,6 +184,44 @@ private:
    /// friend P2Function for usage of enumerate
    friend class P2Function< ValueType >;
 };
+
+template< typename ValueType >
+inline void EdgeDoFFunction< ValueType >::interpolate( const ValueType & constant, uint_t level, DoFType flag )
+{
+  if ( isDummy() ) { return; }
+  this->startTiming( "Interpolate" );
+
+  for ( auto & it : this->getStorage()->getEdges() )
+  {
+    Edge & edge = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, constant );
+    }
+  }
+
+  for ( auto & it : this->getStorage()->getFaces() )
+  {
+    Face & face = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, constant );
+    }
+  }
+
+  for ( auto & it : this->getStorage()->getCells() )
+  {
+    Cell & cell = *it.second;
+
+    if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, constant );
+    }
+  }
+  this->stopTiming( "Interpolate" );
+}
 
 template< typename ValueType >
 inline void EdgeDoFFunction< ValueType >::interpolate(const std::function< ValueType( const Point3D& ) >& expr,

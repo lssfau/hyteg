@@ -16,6 +16,37 @@ namespace macroface {
 using walberla::uint_t;
 using walberla::real_c;
 
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Face & face,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
+                        const ValueType & constant )
+{
+  auto faceData = face.getData( faceMemoryId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not update horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = constant;
+    }
+
+    // Do not update vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = constant;
+    }
+
+    // Do not update diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = constant;
+    }
+  }
+}
+
+
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,

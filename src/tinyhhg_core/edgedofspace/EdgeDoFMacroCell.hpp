@@ -33,6 +33,32 @@ inline Point3D zShiftFromVertex( const uint_t & level, const Cell & cell )
   return 0.5 * ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
 }
 
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Cell & cell,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & cellMemoryId,
+                        const ValueType & constant )
+{
+
+  auto cellData = cell.getData( cellMemoryId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z())] = constant;
+    cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z())] = constant;
+    cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z())] = constant;
+    cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z())] = constant;
+    cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z())] = constant;
+    cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z())] = constant;
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z())] = constant;
+  }
+}
+
+
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Cell & cell,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & cellMemoryId,
