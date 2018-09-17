@@ -634,6 +634,30 @@ inline uint_t stencilIndexFromVertex3D( const indexing::IndexIncrement & directi
   }
 }
 
+inline uint_t stencilIndexFromEdge3D( const indexing::IndexIncrement & direction, const EdgeDoFOrientation & centerOrientation, const EdgeDoFOrientation & leafOrientation )
+{
+  switch ( centerOrientation )
+  {
+    case EdgeDoFOrientation::X:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 0 * 7 * 27;
+    case EdgeDoFOrientation::Y:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 1 * 7 * 27;
+    case EdgeDoFOrientation::Z:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 2 * 7 * 27;
+    case EdgeDoFOrientation::XY:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 3 * 7 * 27;
+    case EdgeDoFOrientation::XZ:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 4 * 7 * 27;
+    case EdgeDoFOrientation::YZ:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 5 * 7 * 27;
+    case EdgeDoFOrientation::XYZ:
+      return stencilIndexFromVertex3D( direction, leafOrientation ) + 6 * 7 * 27;
+    default:
+    WALBERLA_ASSERT( false, "Invalid orientation!" );
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
 
 /// these numbers specify the postion of each stencil entry in the stencil memory array
 /// they are chosen such that the edge dofs on the south face from a macro edge are the first seven entries
