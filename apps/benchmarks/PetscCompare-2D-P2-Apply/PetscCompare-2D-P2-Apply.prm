@@ -2,5 +2,6 @@ Parameters
 {
   level 8;
   VTKOutput false;
+  printTiming false;
   mesh ../../../data/meshes/quad_8el.msh;
 }
