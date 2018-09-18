@@ -27,9 +27,10 @@ public:
 
   void apply_impl(P1Function< real_t > & src, EdgeDoFFunction< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace);
 
-  /// since the Vertex does not own any EdgeDoFs only edge and face are needed
+  /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
   const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
   const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+  const PrimitiveDataID< StencilMemory< real_t >, Cell> &getCellStencilID() const { return cellStencilID_; }
 
 private:
   void assembleStencils();
@@ -37,6 +38,7 @@ private:
 
   PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID< StencilMemory< real_t >, Face> faceStencilID_;
+  PrimitiveDataID< StencilMemory< real_t >, Cell> cellStencilID_;
 
 };
 
@@ -51,6 +53,11 @@ uint_t macroEdgeVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
 /// \param primitive \ref Primitive the memory is allocated on
 /// \return number of the stencil entries
 uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
+
+/// \param level stencil size is independent of level
+/// \param primitive \ref Primitive the memory is allocated on
+/// \return number of the stencil entries
+uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive );
 }
 
 typedef VertexDoFToEdgeDoFOperator<hhg::fenics::NoAssemble> GenericVertexDoFToEdgeDoFOperator;

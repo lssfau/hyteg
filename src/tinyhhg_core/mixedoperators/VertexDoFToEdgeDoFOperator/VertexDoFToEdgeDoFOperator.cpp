@@ -20,8 +20,14 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
                                                                         maxLevel_,
                                                                         VertexDoFToEdgeDoF::macroFaceVertexDoFToEdgeDoFStencilSize);
 
+  auto cellDataHandling =
+    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Cell >>(minLevel_,
+                                                                        maxLevel_,
+                                                                        VertexDoFToEdgeDoF::macroCellVertexDoFToEdgeDoFStencilSize);
+
   storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addCellData(cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil");
 
   // Only assemble stencils if UFCOperator is specified
   if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
@@ -100,6 +106,16 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
   ///lastly the vertex dofs on the macro face are communicated to the edge which also contain vertex dofs which are located on neighboring edges
   src.startCommunication<Face, Edge>( level );
 
+  for (auto& it : storage_->getCells()) {
+    Cell& cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag))
+    {
+      VertexDoFToEdgeDoF::applyCell(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+    }
+  }
+
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
 
@@ -154,6 +170,13 @@ uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
   WALBERLA_UNUSED( level );
   WALBERLA_UNUSED( primitive );
   return 4 + 4 + 4;
+}
+
+uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive )
+{
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( primitive );
+  return 7 * 27;
 }
 }
 
