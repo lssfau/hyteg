@@ -779,7 +779,6 @@ inline indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirec
 }
 
 /// Returns the logical index offset from a micro-vertex resulting from moving in the passed stencil direction.
-/// Only paths along edges are valid.
 inline stencilDirection stencilDirectionFromLogicalOffset( const indexing::IndexIncrement & offset )
 {
   typedef stencilDirection sD;
@@ -791,15 +790,30 @@ inline stencilDirection stencilDirectionFromLogicalOffset( const indexing::Index
   else if ( offset == inc( 0, 1, 0 ) ) return sD::VERTEX_N;
   else if ( offset == inc( 0,-1, 0 ) ) return sD::VERTEX_S;
   else if ( offset == inc(-1, 1, 0 ) ) return sD::VERTEX_NW;
+  else if ( offset == inc( 1, 1, 0 ) ) return sD::VERTEX_NE;
+  else if ( offset == inc(-1,-1, 0 ) ) return sD::VERTEX_SW;
   else if ( offset == inc( 1,-1, 0 ) ) return sD::VERTEX_SE;
+
   else if ( offset == inc( 0, 0, 1 ) ) return sD::VERTEX_TC;
   else if ( offset == inc(-1, 0, 1 ) ) return sD::VERTEX_TW;
+  else if ( offset == inc( 1, 0, 1 ) ) return sD::VERTEX_TE;
+  else if ( offset == inc( 0, 1, 1 ) ) return sD::VERTEX_TN;
   else if ( offset == inc( 0,-1, 1 ) ) return sD::VERTEX_TS;
+  else if ( offset == inc(-1, 1, 1 ) ) return sD::VERTEX_TNW;
+  else if ( offset == inc( 1, 1, 1 ) ) return sD::VERTEX_TNE;
+  else if ( offset == inc(-1,-1, 1 ) ) return sD::VERTEX_TSW;
   else if ( offset == inc( 1,-1, 1 ) ) return sD::VERTEX_TSE;
+
   else if ( offset == inc( 0, 0,-1 ) ) return sD::VERTEX_BC;
-  else if ( offset == inc( 0, 1,-1 ) ) return sD::VERTEX_BN;
+  else if ( offset == inc(-1, 0,-1 ) ) return sD::VERTEX_BW;
   else if ( offset == inc( 1, 0,-1 ) ) return sD::VERTEX_BE;
+  else if ( offset == inc( 0, 1,-1 ) ) return sD::VERTEX_BN;
+  else if ( offset == inc( 0,-1,-1 ) ) return sD::VERTEX_BS;
   else if ( offset == inc(-1, 1,-1 ) ) return sD::VERTEX_BNW;
+  else if ( offset == inc( 1, 1,-1 ) ) return sD::VERTEX_BNE;
+  else if ( offset == inc(-1,-1,-1 ) ) return sD::VERTEX_BSW;
+  else if ( offset == inc( 1,-1,-1 ) ) return sD::VERTEX_BSE;
+
   WALBERLA_ASSERT( false, "Invaild offset!" );
   return sD::VERTEX_C;
 }
