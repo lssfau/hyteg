@@ -79,6 +79,32 @@ inline std::set< indexing::IndexIncrement > getAllEdgeDoFNeighborsFromEdgeDoFInM
 }
 
 
+
+inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( const edgedof::EdgeDoFOrientation & centerOrientation )
+{
+  std::set< indexing::IndexIncrement > neighborVertexDoFs;
+  const auto neighborVertices = edgedof::calcNeighboringVertexDoFIndices( centerOrientation );
+  const auto secondDirectionInElements = vertexdof::stencilDirectionFromLogicalOffset( neighborVertices.at(1) - neighborVertices.at(0) );
+
+  for ( const auto & element : P1Elements::P1Elements3D::allCellsAtInnerVertex )
+  {
+    WALBERLA_ASSERT_EQUAL( element[0], stencilDirection::VERTEX_C );
+    WALBERLA_ASSERT_EQUAL( element.size(), 4 );
+
+    if ( std::find( element.begin(), element.end(), secondDirectionInElements ) == element.end() )
+    {
+      continue;
+    }
+
+    for ( const auto & dir : element )
+    {
+      neighborVertexDoFs.insert( vertexdof::logicalIndexOffsetFromVertex( dir ) + neighborVertices.at(0) );
+    }
+  }
+  return neighborVertexDoFs;
+}
+
+
 }
 }
 }
