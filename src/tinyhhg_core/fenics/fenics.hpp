@@ -4,6 +4,7 @@
 
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/types/matrix.hpp"
 
 namespace hhg
 {
@@ -50,6 +51,29 @@ public:
                          const real_t * coordinate_dofs,
                          int cell_orientation) const { WALBERLA_ABORT( "Assembly undefined." ); }
 };
+
+/// Dummy UFCOperator for a 10x10 (i.e. tet, P2) stiffness matrix
+class Dummy10x10Assembly
+{
+public:
+
+    Dummy10x10Assembly() : stiffnessMatrix_( real_c(0) ) {}
+    Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( constant ) {}
+
+    void tabulate_tensor(real_t * A,
+                         const real_t * const * w,
+                         const real_t * coordinate_dofs,
+                         int cell_orientation) const
+    {
+      for ( uint_t i = 0; i < 100; i++ )
+        A[i] = stiffnessMatrix_.data()[i];
+    }
+
+private:
+
+    Matrix10r stiffnessMatrix_;
+};
+
 
 typedef std::function<void(real_t *,
                       const real_t * const *,
