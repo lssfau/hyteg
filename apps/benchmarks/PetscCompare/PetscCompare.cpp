@@ -112,7 +112,6 @@ int main( int argc, char* argv[] )
    //    vertexPtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
    //  }
 
-
    const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
    const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
 
@@ -191,8 +190,10 @@ int main( int argc, char* argv[] )
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) );
-
-   WALBERLA_LOG_INFO_ON_ROOT(std::scientific << " | " << meshFileName << " | " << level << " | " << totalDoFs << " | " << hyteg_apply << " | " << petsc_matmult << " | ");
+   std::size_t pos = meshFileName.find_last_of( "/\\" );
+   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << meshFileName.substr( pos + 1 ) << " | " << level << " | " << totalDoFs
+                                              << " | " << walberla::MPIManager::instance()->numProcesses() << " | " << hyteg_apply
+                                              << " | " << petsc_matmult << " | " );
 
    LIKWID_MARKER_CLOSE;
 }

@@ -161,6 +161,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
 
    WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << meshFileName << " | " << level << " | " << totalDoFs << " | "
+                                              << walberla::MPIManager::instance()->numProcesses() << " | "
                                               << wcTimingTreeApp["HyTeG apply"].last() << " | "
                                               << wcTimingTreeApp["Petsc apply"].last() << " | " );
 
