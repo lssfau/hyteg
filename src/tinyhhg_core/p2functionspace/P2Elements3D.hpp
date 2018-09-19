@@ -1,14 +1,46 @@
 
 #pragma once
 
+#include "core/Optional.h"
+
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
 
+#include <set>
+
+/// FENICS DoF ordering in 10x10 P2 stiffness matrix:
+/// 0: vertex 0
+/// 1: vertex 1
+/// 2: vertex 2
+/// 3: vertex 3
+/// 4: edge (2, 3)
+/// 5: edge (1, 3)
+/// 6: edge (1, 2)
+/// 7: edge (0, 3)
+/// 8: edge (0, 2)
+/// 9: edge (0, 1)
+
 namespace hhg {
 namespace P2Elements {
 namespace P2Elements3D {
+
+/// \brief Returns the (sorted) array indices of the two micro-vertices of the given element that span the edge with the specified orientation there are any.
+inline walberla::optional< std::array< uint_t, 2 > > edgeWithOrientationFromElement( const std::array< indexing::IndexIncrement, 4 > & elementVertices,
+                                                                                     const edgedof::EdgeDoFOrientation & orientation )
+{
+  for ( uint_t vertex0 = 0; vertex0 < 4; vertex0++ )
+  {
+    for ( uint_t vertex1 = 0; vertex1 < vertex0; vertex1++ )
+    {
+      if ( edgedof::calcEdgeDoFOrientation( elementVertices.at( vertex0 ), elementVertices.at( vertex1 ) ) == orientation )
+        return std::array< uint_t, 2 >({ vertex1, vertex0 });
+    }
+  }
+  return {};
+}
+
 
 /// \brief Returns the index offsets to the neighboring edge unknowns of a micro-vertex.
 ///
@@ -126,6 +158,113 @@ inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFI
   }
   return neighborVertexDoFs;
 }
+
+
+/// \brief Calculates the edge to vertex stencil weights for one orientation from the stiffness matrices of neighboring elements at an index in a macro-cell.
+///
+/// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
+/// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
+/// Note that only the weights for the stencil that lie in the specified macro-cell are returned.
+///
+/// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
+/// \param leafOrientation the orientation of the stencil leaves
+/// \param cell the surrounding macro-cell
+/// \param level the hierarchy level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a (variable sized) map from index offsets to stencil weights
+///
+template< typename UFCOperator >
+inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencilInMacroCell( const indexing::Index & microVertexIndex,
+                                                                                             const edgedof::EdgeDoFOrientation & leafOrientation,
+                                                                                             const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+{
+  typedef stencilDirection sd;
+  std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
+
+  const auto neighboringElements = P1Elements::P1Elements3D::getNeighboringElements( microVertexIndex, level );
+
+  // 1. Going over all neighboring cells of a micro-vertex
+  //    A neighboring cell is defined by a 4-tuple of (different) stencil directions with one of them being VERTEX_C.
+  //    VERTEX_C represents the reference micro-vertex.
+  for ( const auto & cellAtVertex : neighboringElements )
+  {
+    WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
+
+    const std::array< indexing::IndexIncrement, 4 > elementAsIndices = {
+      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[0] ),
+      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[1] ),
+      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[2] ),
+      vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[3] ),
+    };
+
+    // Since there are no parallel edges in the same element, there is at most one edge with the specified orientation in the current element.
+    // If there is none, we don't do anything with this element.
+    if ( const auto optEdge = edgeWithOrientationFromElement( elementAsIndices, leafOrientation ))
+    {
+      const auto edge = optEdge.value();
+
+      // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex
+      std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
+      for ( uint_t localID = 0; localID < 4; localID++ ) {
+        logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
+      }
+
+      // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
+      std::array< Point3D, 4 > geometricCoordinates;
+      for ( uint_t localID = 0; localID < 4; localID++ ) {
+        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+      }
+
+      std::array< Point3D, 4 > geometricOffsetsFromCenter;
+      for ( uint_t localID = 0; localID < 4; localID++ ) {
+        geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
+      }
+
+      // 4. Computing the local stiffness matrix
+      //    To calculate the 10x10 stiffness matrix, we need the geometric offsets from the reference micro-vertex
+      //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
+
+      // Flattening the offset array to be able to pass it to the fenics routines.
+      double geometricOffsetsArray[12];
+      for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
+        for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
+          geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
+        }
+      }
+
+      Matrix10r localStiffnessMatrix;
+      ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
+
+      // 5. Adding contribution to stencil
+      //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
+      //    we always only need the first row of the local stiffness matrix.
+
+      /// 4: edge (2, 3)
+      /// 5: edge (1, 3)
+      /// 6: edge (1, 2)
+      /// 7: edge (0, 3)
+      /// 8: edge (0, 2)
+      /// 9: edge (0, 1)
+
+      uint_t localEdgeIDInStiffnessMatrix = 10; // this should crash when accessing the matrix
+           if ( edge.at(0) == 2 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 4;
+      else if ( edge.at(0) == 1 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 5;
+      else if ( edge.at(0) == 1 && edge.at(1) == 2 ) localEdgeIDInStiffnessMatrix = 6;
+      else if ( edge.at(0) == 0 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 7;
+      else if ( edge.at(0) == 0 && edge.at(1) == 2 ) localEdgeIDInStiffnessMatrix = 8;
+      else if ( edge.at(0) == 0 && edge.at(1) == 1 ) localEdgeIDInStiffnessMatrix = 9;
+      else
+      {
+        WALBERLA_ASSERT( "Inconsistent element / orientation." );
+      }
+
+      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( elementAsIndices.at( edge.at(0) ), elementAsIndices.at( edge.at(1) ) );
+      macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( 0, localEdgeIDInStiffnessMatrix ) );
+    }
+  }
+  return macroCellStencilEntries;
+}
+
 
 
 }
