@@ -5,5 +5,13 @@ Parameters
   writeDomain false;
   printTiming false;
   writeJSON false;
-  mesh ../../../data/meshes/tri_1el.msh;
+
+  useMeshFile false;
+  mesh ../../../data/meshes/quad_4el.msh;
+
+  /// only relevant if useMeshFile == false
+  /// if set true the total number of faces is mpi.numProcesses * numberOfFaces
+  /// if set to false the total number is just numberOfFaces
+  facesTimesProcs true;
+  numberOfFaces 1;
 }

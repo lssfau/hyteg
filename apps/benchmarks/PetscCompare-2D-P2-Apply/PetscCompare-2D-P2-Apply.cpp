@@ -43,17 +43,29 @@ int main( int argc, char* argv[] )
       cfg = env.config();
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-
-   const uint_t level = mainConf.getParameter< uint_t >( "level" );
-
-   std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+   const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
 
    wcTimingTreeApp.start( "Mesh setup + load balancing" );
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
 
-   //hhg::MeshInfo::meshUnitSquare( 2 );
+   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   if( mainConf.getParameter< bool >( "useMeshFile" ) )
+   {
+      std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+   } else
+   {
+      uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
+      if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
+      {
+         meshInfo = std::make_shared< hhg::MeshInfo >(
+             hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+      }
+   }
 
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hhg::SetupPrimitiveStorage setupStorage( *meshInfo,
+                                            walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
    hhg::loadbalancing::roundRobin( setupStorage );
 
@@ -160,7 +172,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
 
-   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << meshFileName << " | " << level << " | " << totalDoFs << " | "
+   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
                                               << walberla::MPIManager::instance()->numProcesses() << " | "
                                               << wcTimingTreeApp["HyTeG apply"].last() << " | "
                                               << wcTimingTreeApp["Petsc apply"].last() << " | " );
