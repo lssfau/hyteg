@@ -11,7 +11,6 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -82,13 +81,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );
 
-   //   WALBERLA_CRITICAL_SECTION_START
-   //  for (auto &edgeIT : storage->getEdges()) {
-   //    auto edge = edgeIT.second;
-   //    hhg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
-   //  }
-   //   WALBERLA_CRITICAL_SECTION_END
-
    walberla::WcTimer timer;
 
    timer.reset();
@@ -102,7 +94,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "petscCompare" );
+      hhg::VTKOutput vtkOutput( "./output", "ApplyBenchmark" );
       vtkOutput.add( &x );
       vtkOutput.add( &z );
       vtkOutput.add( &y );
@@ -120,7 +112,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "writeJSON" ) )
    {
       nlohmann::json ttjson = nlohmann::json( tt2 );
-      std::ofstream  o( "PetscCompareOutput.json" );
+      std::ofstream  o( "ApplyBenchmarkOutput.json" );
       o << ttjson;
       o.close();
    }
