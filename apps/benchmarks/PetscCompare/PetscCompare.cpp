@@ -140,11 +140,13 @@ int main( int argc, char* argv[] )
 
    numerator.enumerate( level );
 
+   LIKWID_MARKER_START( "PETSc-setup" );
    hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localDoFs );
+   LIKWID_MARKER_STOP( "PETSc-setup" );
 
    walberla::WcTimer timer;
 

@@ -108,6 +108,7 @@ int main( int argc, char* argv[] )
    numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
 
+   LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
    hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > matPetsc( localDoFs, globalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
@@ -115,6 +116,7 @@ int main( int argc, char* argv[] )
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P2Function > dstvecPetsc( localDoFs );
    wcTimingTreeApp.stop( "Petsc setup" );
+   LIKWID_MARKER_STOP( "PETSc-setup" );
 
    wcTimingTreeApp.start( "HyTeG apply" );
    LIKWID_MARKER_START( "HyTeG-apply" );
