@@ -157,12 +157,23 @@ int main( int argc, char* argv[] )
 
    const uint_t      minLevel        = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t      maxLevel        = mainConf.getParameter< uint_t >( "maxLevel" );
-   const std::string meshFileName    = mainConf.getParameter< std::string >( "mesh" );
 
-   ///// Mesh /////
+   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   if( mainConf.getParameter< bool >( "useMeshFile" ) )
+   {
+      std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+   } else
+   {
+      uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
+      if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
+      {
+         meshInfo = std::make_shared< hhg::MeshInfo >(
+            hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+      }
+   }
 
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hhg::SetupPrimitiveStorage setupStorage( *meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hhg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
