@@ -160,6 +160,47 @@ inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFI
 }
 
 
+/// \brief Calculates the local P2 stiffness matrix from the absolute indices of the element's vertices in a cell.
+///
+/// \param absoluteLogicalElementVertices the absolute logical indices of the element's vertices, their coordinates are given to the UFCOperator in the same order
+/// \param cell the surrounding macro-cell
+/// \param level the multigrid level
+/// \param ufcGen the FENICS UFCOperator
+/// \return the 10x10 P2 stiffness matrix calculated from the given element and macro-cell
+template< typename UFCOperator >
+inline Matrix10r calculateLocalP2StiffnessMatrix( const std::array< indexing::Index, 4 > & absoluteLogicalElementVertices,
+                                                  const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+{
+  // Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
+  std::array< Point3D, 4 > geometricCoordinates;
+  for ( uint_t localID = 0; localID < 4; localID++ ) {
+    geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, absoluteLogicalElementVertices[localID] );
+  }
+
+  std::array< Point3D, 4 > geometricOffsetsFromCenter;
+  for ( uint_t localID = 0; localID < 4; localID++ ) {
+    geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
+  }
+
+  // Computing the local stiffness matrix
+  // To calculate the 10x10 stiffness matrix, we need the geometric offsets from the reference micro-vertex
+  // from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
+
+  // Flattening the offset array to be able to pass it to the fenics routines.
+  double geometricOffsetsArray[12];
+  for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
+    for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
+      geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
+    }
+  }
+
+  Matrix10r localStiffnessMatrix;
+  ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
+
+  return localStiffnessMatrix;
+}
+
+
 /// \brief Calculates the edge to vertex stencil weights for one (leaf-)orientation from the stiffness matrices of neighboring elements at an index in a macro-cell.
 ///
 /// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
@@ -209,31 +250,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
         logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
       }
 
-      // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
-      std::array< Point3D, 4 > geometricCoordinates;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
-      }
-
-      std::array< Point3D, 4 > geometricOffsetsFromCenter;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
-      }
-
-      // 4. Computing the local stiffness matrix
-      //    To calculate the 10x10 stiffness matrix, we need the geometric offsets from the reference micro-vertex
-      //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
-
-      // Flattening the offset array to be able to pass it to the fenics routines.
-      double geometricOffsetsArray[12];
-      for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
-        for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
-          geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
-        }
-      }
-
-      Matrix10r localStiffnessMatrix;
-      ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
+      const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
       // 5. Adding contribution to stencil
       //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
@@ -318,31 +335,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
       logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
     }
 
-    // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
-    std::array< Point3D, 4 > geometricCoordinates;
-    for ( uint_t localID = 0; localID < 4; localID++ ) {
-      geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
-    }
-
-    std::array< Point3D, 4 > geometricOffsetsFromCenter;
-    for ( uint_t localID = 0; localID < 4; localID++ ) {
-      geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
-    }
-
-    // 4. Computing the local stiffness matrix
-    //    To calculate the 10x10 stiffness matrix, we need the geometric offsets from the reference micro-vertex
-    //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
-
-    // Flattening the offset array to be able to pass it to the fenics routines.
-    double geometricOffsetsArray[12];
-    for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
-      for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
-        geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
-      }
-    }
-
-    Matrix10r localStiffnessMatrix;
-    ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
+    const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
     // 5. Adding contribution to stencil
     //    We now need to read from the correct row of the stiffness matrix.
@@ -437,31 +430,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
       }
 
-      // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
-      std::array< Point3D, 4 > geometricCoordinates;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
-      }
-
-      std::array< Point3D, 4 > geometricOffsetsFromCenter;
-      for ( uint_t localID = 0; localID < 4; localID++ ) {
-        geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
-      }
-
-      // 4. Computing the local stiffness matrix
-      //    To calculate the 10x10 stiffness matrix, we need the geometric offsets from the reference micro-vertex
-      //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
-
-      // Flattening the offset array to be able to pass it to the fenics routines.
-      double geometricOffsetsArray[12];
-      for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
-        for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
-          geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
-        }
-      }
-
-      Matrix10r localStiffnessMatrix;
-      ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
+      const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
       // 5. Adding contribution to stencil
       //    We now need to read from the correct row of the stiffness matrix.
