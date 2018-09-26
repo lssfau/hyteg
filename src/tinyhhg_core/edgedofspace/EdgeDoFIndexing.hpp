@@ -38,6 +38,17 @@ const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = { EdgeDoFOrie
                                                                      EdgeDoFOrientation::XY, EdgeDoFOrientation::XZ, EdgeDoFOrientation::YZ,
                                                                      EdgeDoFOrientation::XYZ,};
 
+const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
+  { EdgeDoFOrientation::X, "X"},
+  { EdgeDoFOrientation::Y, "Y"},
+  { EdgeDoFOrientation::Z, "Z"},
+  { EdgeDoFOrientation::XY, "XY"},
+  { EdgeDoFOrientation::XZ, "XZ"},
+  { EdgeDoFOrientation::YZ, "YZ"},
+  { EdgeDoFOrientation::XYZ, "XYZ"},
+  { EdgeDoFOrientation::INVALID, "INVALID"},
+};
+
 
 /// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
