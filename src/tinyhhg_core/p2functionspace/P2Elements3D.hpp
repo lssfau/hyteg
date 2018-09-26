@@ -166,9 +166,10 @@ inline std::set< indexing::IndexIncrement > getAllVertexDoFNeighborsFromEdgeDoFI
 /// \param cell the surrounding macro-cell
 /// \param level the multigrid level
 /// \param ufcGen the FENICS UFCOperator
-/// \return the 10x10 P2 stiffness matrix calculated from the given element and macro-cell
+/// \return the P2 stiffness matrix calculated from the given element and macro-cell
 template< typename UFCOperator >
-inline Matrix10r calculateLocalP2StiffnessMatrix( const std::array< indexing::Index, 4 > & absoluteLogicalElementVertices,
+inline typename fenics::UFCTrait< UFCOperator >::LocalStiffnessMatrix_T calculateLocalP2StiffnessMatrix(
+                                                  const std::array< indexing::Index, 4 > & absoluteLogicalElementVertices,
                                                   const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
 {
   // Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
@@ -194,7 +195,7 @@ inline Matrix10r calculateLocalP2StiffnessMatrix( const std::array< indexing::In
     }
   }
 
-  Matrix10r localStiffnessMatrix;
+  typename fenics::UFCTrait< UFCOperator >::LocalStiffnessMatrix_T localStiffnessMatrix;
   ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
   return localStiffnessMatrix;
