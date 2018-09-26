@@ -11,10 +11,12 @@ from helperFuncs import makeOperators
 #
 elemList = list()
 elemList.append( [ "p1", "Lagrange", 1, "Lagrange", 1 ] )
+elemList.append( [ "p2", "Lagrange", 2, "Lagrange", 2 ] )
 
 # For each element and pair set the forms to compile
 forms = {}
 forms[ "p1" ] = [ "diffusion", "div_tet", "divt_tet", "mass", "pspg_tet" ]
+forms[ "p2" ] = [ "diffusion" ]
 
 # For each element and pair set the directory into which we place the
 # generated C++ header files (relative to tinyHHGsrc below)
