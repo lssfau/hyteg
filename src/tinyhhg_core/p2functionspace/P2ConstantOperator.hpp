@@ -28,8 +28,9 @@ namespace hhg {
 
 using walberla::real_t;
 
-template<class UFCOperator>
-class P2ConstantOperator : public Operator<P2Function < real_t>, P2Function<real_t> > {
+template< class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
+class P2ConstantOperator : public Operator<P2Function < real_t>, P2Function<real_t> >
+{
 public:
 
   P2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
@@ -37,6 +38,45 @@ public:
         edgeToVertex(storage, minLevel, maxLevel),
         vertexToEdge(storage, minLevel, maxLevel),
         edgeToEdge(storage, minLevel, maxLevel)
+  {
+    if( storage_->hasGlobalCells() )
+    {
+      const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
+      WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
+      if( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+      {
+        assembleStencils3D();
+      }
+    } else
+    {
+      if( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+      {
+        const bool assemblyDefined = !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value;
+        WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
+        assembleStencils();
+      }
+    }
+  }
+
+  P1ConstantOperator<fenics::NoAssemble, fenics::NoAssemble>& getVertexToVertexOpr() {
+    return vertexToVertex;
+  }
+
+  GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() {
+    return edgeToVertex;
+  }
+
+  GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() {
+    return vertexToEdge;
+  }
+
+  EdgeDoFOperator& getEdgeToEdgeOpr() {
+    return edgeToEdge;
+  }
+
+private:
+
+  void assembleStencils()
   {
     using namespace P2Elements;
 
@@ -179,23 +219,71 @@ public:
 
   }
 
-  P1ConstantOperator<fenics::NoAssemble>& getVertexToVertexOpr() {
-    return vertexToVertex;
-  }
+  void assembleStencils3D()
+  {
+    UFCOperator3D ufcOperator;
 
-  GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() {
-    return edgeToVertex;
-  }
+    // Assemble stencils on all levels
+    for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+    {
+      for( const auto& it : storage_->getCells() )
+      {
+        const auto & cell = *it.second;
 
-  GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() {
-    return vertexToEdge;
-  }
+        // vertex to vertex
+        auto vertexToVertexStencilMemory = cell.getData( getVertexToVertexOpr().getCellStencilID() )->getPointer( level );
+        const auto vertexToVertexStencilMap = P1Elements::P1Elements3D::assembleP1LocalStencil( getStorage(), cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
-  EdgeDoFOperator& getEdgeToEdgeOpr() {
-    return edgeToEdge;
-  }
+        for( const auto stencilIt : vertexToVertexStencilMap )
+        {
+          const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
+          vertexToVertexStencilMemory[stencilIdx] = stencilIt.second;
+        }
 
-private:
+        // edge to vertex
+        auto edgeToVertexStencilMemory = cell.getData( getEdgeToVertexOpr().getCellStencilID() )->getPointer( level );
+        for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+        {
+          const auto edgeToVertexStencilMap = P2Elements::P2Elements3D::calculateEdgeToVertexStencilInMacroCell( indexing::Index( 1, 1, 1 ), leafOrientation, cell, level, ufcOperator );
+          for( const auto stencilIt : edgeToVertexStencilMap )
+          {
+            const auto stencilIdx = edgedof::stencilIndexFromVertex3D( stencilIt.first, leafOrientation );
+            edgeToVertexStencilMemory[stencilIdx] = stencilIt.second;
+          }
+        }
+
+        // vertex to edge
+        auto vertexToEdgeStencilMemory = cell.getData( getVertexToEdgeOpr().getCellStencilID() )->getPointer( level );
+        for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
+        {
+          const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation, cell, level, ufcOperator );
+          for( const auto stencilIt : vertexToEdgeStencilMap )
+          {
+            const auto dir = vertexdof::stencilDirectionFromLogicalOffset( stencilIt.first );
+            const auto stencilIdx = vertexdof::stencilIndexFromEdge3D( dir, centerOrientation );
+            vertexToEdgeStencilMemory[stencilIdx] = stencilIt.second;
+          }
+        }
+
+        // edge to edge
+        auto edgeToEdgeStencilMemory = cell.getData( getEdgeToEdgeOpr().getCellStencilID() )->getPointer( level );
+        for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
+        {
+          for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+          {
+            const auto edgeToEdgeStencilMap = P2Elements::P2Elements3D::calculateEdgeToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation,
+                                                                                                                 leafOrientation, cell, level, ufcOperator );
+            for( const auto stencilIt : edgeToEdgeStencilMap )
+            {
+              const auto stencilIdx = edgedof::stencilIndexFromEdge3D( stencilIt.first, centerOrientation, leafOrientation );
+              edgeToEdgeStencilMemory[stencilIdx] = stencilIt.second;
+            }
+          }
+        }
+      }
+
+    }
+  }
 
   void apply_impl(P2Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
   {
@@ -317,7 +405,7 @@ private:
 
   }
 
-  P1ConstantOperator<fenics::NoAssemble> vertexToVertex;
+  P1ConstantOperator<fenics::NoAssemble, fenics::NoAssemble> vertexToVertex;
   GenericEdgeDoFToVertexDoFOperator edgeToVertex;
   GenericVertexDoFToEdgeDoFOperator vertexToEdge;
   EdgeDoFOperator edgeToEdge;
@@ -325,13 +413,13 @@ private:
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
     real_t coords[6];
     fenics::compute_micro_coords(face, level, coords, element_type);
-    UFCOperator gen;
+    UFCOperator2D gen;
     gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
   }
 
 };
 
-typedef P2ConstantOperator<p2_diffusion_cell_integral_0_otherwise> P2ConstantLaplaceOperator;
+typedef P2ConstantOperator<p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise> P2ConstantLaplaceOperator;
 typedef P2ConstantOperator<p2_mass_cell_integral_0_otherwise> P2ConstantMassOperator;
 
 typedef P2ConstantOperator<p2_divt_cell_integral_0_otherwise> P2ConstantDivTxOperator;
