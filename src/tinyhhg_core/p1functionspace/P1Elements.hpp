@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
+#include "tinyhhg_core/fenics/ufc_traits.hpp"
 
 
 namespace hhg {
@@ -366,7 +367,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
       }
     }
 
-    Matrix4r localStiffnessMatrix;
+    typename fenics::UFCTrait< UFCOperator >::LocalStiffnessMatrix_T localStiffnessMatrix;
     ufcGen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
     // 5. Adding contribution to stencil
