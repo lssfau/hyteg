@@ -1,30 +1,11 @@
 import os
 import time
-import json
+import math
+import random
+import csv
+import re
 from influxdb import InfluxDBClient
-
-
-def createFields(data):
-
-    if not data:
-        return []
-
-    json_body = []
-
-    for measure in data:
-        level = int(str(measure[measure.find('level') + 5:measure.find('level') + 7]))
-        json_body += [
-            {
-                'measurement': 'ApplyPerformanceAnalysis-2D-P2-local-bylevel-nochildren2',
-                'tags': {
-                    'host': os.uname()[1],
-                    'level': level,
-                },
-                'time': int(time.time()),
-                'fields':  {measure: data[measure]['total']}
-            }
-        ]
-    return json_body
+from git import Repo
 
 
 def main():
@@ -41,14 +22,45 @@ def main():
     client = InfluxDBClient('i10grafana.informatik.uni-erlangen.de', 8086,
                             'terraneo', write_user_pw, 'terraneo')
 
-    # repo = Repo(search_parent_directories=True)
-    # commit = repo.head.commit
+    #repo = Repo(search_parent_directories=True)
+    #commit = repo.head.commit
 
-    with open("ApplyPerformanceAnalysis-2D-P2.json") as f:
-        data = json.load(f)
+    likwidRegions = {}
 
-    # print(data)
-    json_body = createFields(data)
+    with open('./output.txt', 'r') as csvfile:
+        lines = csv.reader(csvfile, delimiter=',')
+        region = 'walberla'
+        likwidRegions[region] = {}
+        for l in lines:
+            if(l[0] == 'Region'):
+                region = l[1]
+                likwidRegions[region] = {}
+            else:
+                likwidRegions[region][l[0]] = l[1:]
+
+    json_body = []
+
+    del likwidRegions['walberla']
+
+    for region in likwidRegions:
+        procs = int(likwidRegions[region]['Region calls STAT'][1]) / int(likwidRegions[region]['Region calls STAT'][2])
+
+        json_body += [
+            {
+                'measurement': 'P2_Apply_Benchmark',
+                'tags': {
+                    'host': os.uname()[1],
+                    'project': 'terraneo',
+                    #'image': os.environ["DOCKER_IMAGE_NAME"],
+                    'Processes': int(procs),
+                    #'commit': commit,
+                    'region': region,
+                },
+                'time': int(time.time()) - int(procs),
+                'fields': {'DP MFLOP/s': float(likwidRegions[region]['DP MFLOP/s STAT'][0])}
+                           #'Memory bandwidth [MBytes/s]': float(likwidRegions[region]['Memory bandwidth [MBytes/s] STAT'][0])}
+            }
+        ]
 
     print(json_body)
     client.write_points(json_body, time_precision='s')
