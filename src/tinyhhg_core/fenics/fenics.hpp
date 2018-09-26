@@ -6,9 +6,10 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 
-namespace hhg
-{
+namespace hhg {
 namespace fenics {
+
+using walberla::real_c;
 
 enum ElementType {
   GRAY,
