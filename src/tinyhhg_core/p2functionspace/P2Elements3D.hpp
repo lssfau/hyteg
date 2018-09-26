@@ -467,7 +467,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         WALBERLA_ASSERT( "Inconsistent element / orientation." );
       }
 
-      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( elementAsIndices.at( leafEdge.at(0) ), elementAsIndices.at( leafEdge.at(1) ) );
+      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( neighboringVertex0 + elementAsIndices.at( leafEdge.at(0) ), neighboringVertex0 + elementAsIndices.at( leafEdge.at(1) ) );
       macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( centerEdgeIDInStiffnessMatrix, leafEdgeIDInStiffnessMatrix ) );
     }
   }
