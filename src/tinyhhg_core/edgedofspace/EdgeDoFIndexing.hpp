@@ -654,10 +654,11 @@ public:
 } // namespace macrocell
 
 
-inline uint_t stencilIndexFromVertex3D( const indexing::IndexIncrement & direction, const EdgeDoFOrientation & orientation )
+/// \brief Returns the stencil index of an edge unknown accessed from a vertex unknown.
+inline uint_t stencilIndexFromVertex3D( const indexing::IndexIncrement & direction, const EdgeDoFOrientation & leafOrientation )
 {
   const uint_t stencilIdxBase = indexing::mapDirectionToArrayIndex( direction );
-  switch ( orientation )
+  switch ( leafOrientation )
   {
   case EdgeDoFOrientation::X:
     return stencilIdxBase + 0 * 27;
