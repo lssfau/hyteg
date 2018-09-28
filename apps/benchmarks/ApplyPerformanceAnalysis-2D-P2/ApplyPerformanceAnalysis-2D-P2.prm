@@ -1,9 +1,9 @@
 Parameters
 {
-  minLevel  9;
-  maxLevel 12;
-  sampleSize 10;
+  level  9;
   VTKOutput false;
+  /// printTiming and write json
+  printTiming false;
 
   useMeshFile false;
   mesh ../../../data/meshes/quad_4el.msh;
