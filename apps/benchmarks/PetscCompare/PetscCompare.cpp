@@ -43,15 +43,28 @@ int main( int argc, char* argv[] )
    {
       cfg = env.config();
    }
-   const walberla::Config::BlockHandle mainConf     = cfg->getBlock( "Parameters" );
-   const uint_t                        level        = mainConf.getParameter< uint_t >( "level" );
-   std::string                         meshFileName = mainConf.getParameter< std::string >( "mesh" );
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+   const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
 
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
+   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   if( mainConf.getParameter< bool >( "useMeshFile" ) )
+   {
+      std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+   } else
+   {
+      uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
+      if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
+      {
+         meshInfo = std::make_shared< hhg::MeshInfo >(
+             hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+      }
+   }
 
-   //hhg::MeshInfo::meshUnitSquare( 2 );
+   hhg::SetupPrimitiveStorage setupStorage( *meshInfo,
+                                            walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
    hhg::loadbalancing::roundRobin( setupStorage );
 
@@ -112,7 +125,6 @@ int main( int argc, char* argv[] )
    //    vertexPtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
    //  }
 
-
    const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
    const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
 
@@ -128,11 +140,13 @@ int main( int argc, char* argv[] )
 
    numerator.enumerate( level );
 
+   LIKWID_MARKER_START( "PETSc-setup" );
    hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localDoFs, totalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localDoFs );
+   LIKWID_MARKER_STOP( "PETSc-setup" );
 
    walberla::WcTimer timer;
 
@@ -141,7 +155,8 @@ int main( int argc, char* argv[] )
    mass.apply( x, y, level, hhg::Inner );
    LIKWID_MARKER_STOP( "HyTeG-apply" );
    timer.end();
-   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << timer.last() );
+   double hyteg_apply = timer.last();
+   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << hyteg_apply );
 
    //matPetsc.print("./output/petsc_matrix");
    //vecPetsc.print("../output/vector0.vec");
@@ -152,7 +167,8 @@ int main( int argc, char* argv[] )
    ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    LIKWID_MARKER_STOP( "Petsc-MatMult" );
    timer.end();
-   WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << timer.last() );
+   double petsc_matmult = timer.last();
+   WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << petsc_matmult );
    CHKERRQ( ierr );
 
    dstvecPetsc.createFunctionFromVector( z, numerator, level, hhg::Inner );
@@ -189,6 +205,9 @@ int main( int argc, char* argv[] )
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
+                                              << walberla::MPIManager::instance()->numProcesses() << " | " << hyteg_apply << " | "
+                                              << petsc_matmult << " | " );
 
    LIKWID_MARKER_CLOSE;
 }

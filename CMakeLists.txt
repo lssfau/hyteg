@@ -20,8 +20,8 @@ set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules
 
 if ( HHG_BUILD_WITH_PETSC )
     find_package( PETSc )
-    include_directories ( ${PETSC_INCLUDE_DIRS} )
-    link_directories    ( ${PETSC_LIBRARY_DIR} )
+    include_directories ( ${PETSC_INCLUDES} )
+    link_directories    ( ${PETSC_LIBRARIES} )
     list ( APPEND SERVICE_LIBS ${PETSC_LIBRARIES} )
     set(WALBERLA_BUILD_WITH_MPI ON CACHE BOOL "Build with MPI" FORCE)
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
