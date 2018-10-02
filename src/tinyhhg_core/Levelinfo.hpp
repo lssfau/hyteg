@@ -31,6 +31,16 @@ constexpr inline uint_t num_microedges_per_edge(uint_t level)
   return num_microvertices_per_edge(level) - 1;
 }
 
+constexpr inline uint_t num_microedges_per_edge_from_width( const uint_t & width)
+{
+  return num_microvertices_per_edge_from_width( width ) - 1;
+}
+
+constexpr inline uint_t num_microedges_per_face_from_width( const uint_t & width)
+{
+  return 3 * ( ( ( num_microedges_per_edge_from_width( width ) + 1 ) * num_microedges_per_edge_from_width( width ) ) / 2 );
+}
+
 constexpr inline uint_t num_microedges_per_face(uint_t level)
 {
   return 3 * ( ( ( num_microedges_per_edge( level ) + 1 ) * num_microedges_per_edge( level ) ) / 2 );

@@ -301,21 +301,68 @@ namespace macroface {
 
 typedef stencilDirection sD;
 
+/// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      return indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
+    case EdgeDoFOrientation::Y:
+      return 2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
+    case EdgeDoFOrientation::XY:
+       return levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
+    case EdgeDoFOrientation::INVALID:
+      return std::numeric_limits< uint_t >::max();
+  }
+}
+
+/// Index of a vertex DoF on a ghost layer of a macro face.
+/// \param neighbor 0 or 1 for the respective cell neighbor
+inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation, const uint_t & neighbor )
+{
+   uint_t ownDoFs = levelinfo::num_microedges_per_face( level );
+   uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1);
+
+   /// adjust own dofs if the second cell is used
+   if( neighbor == 2 ){
+      ownDoFs += ownDoFs + ghostOnParallelFace + levelinfo::num_microvertices_per_edge_from_width( levelinfo::num_microedges_per_edge( level ) - 2);
+   }
+
+   switch ( orientation )
+   {
+      case EdgeDoFOrientation::X:
+         return ownDoFs + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+      case EdgeDoFOrientation::Y:
+         return ownDoFs + 2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+      case EdgeDoFOrientation::XY:
+         return ownDoFs + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+      case EdgeDoFOrientation::Z:
+         return ownDoFs + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
+      case EdgeDoFOrientation::XZ:
+         return ownDoFs + ghostOnParallelFace +  2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y );
+      case EdgeDoFOrientation::YZ:
+         return ownDoFs + ghostOnParallelFace + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y );
+      case EdgeDoFOrientation::XYZ:
+         return ownDoFs * 2 + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+      case EdgeDoFOrientation::INVALID:
+         return std::numeric_limits< uint_t >::max();
+   }
+}
+
 inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
+   return index( level, col, row, EdgeDoFOrientation::X);
 };
 
 inline constexpr uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return 2 * levelToFaceSizeAnyEdgeDoF( level ) +
-  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
+   return index( level, col, row, EdgeDoFOrientation::Y);
 }
 
 inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
-  return levelToFaceSizeAnyEdgeDoF( level ) +
-  indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), col, row );
+   return index( level, col, row, EdgeDoFOrientation::XY);
 }
 
 // Stencil access functions
