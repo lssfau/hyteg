@@ -145,7 +145,6 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
     {
       if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
       {
-        WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
         real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );

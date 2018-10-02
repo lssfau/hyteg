@@ -212,8 +212,11 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   walberla::WcTimingTree tt = timingTree->getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( tt );
+   if( parameters.getParameter< bool >( "printTiming" ) )
+   {
+      walberla::WcTimingTree tt = timingTree->getReduced();
+      WALBERLA_LOG_INFO_ON_ROOT( tt );
+   }
 
    return 0;
 }
