@@ -882,32 +882,6 @@ constexpr inline uint_t stencilIndexFromVertex( const stencilDirection dir )
   }
 }
 
-
-inline uint_t stencilIndexFromEdge3D( const stencilDirection & dir, const edgedof::EdgeDoFOrientation & centerEdgeOrientation )
-{
-  switch ( centerEdgeOrientation )
-  {
-  case edgedof::EdgeDoFOrientation::X:
-    return stencilIndexFromVertex( dir ) + 0 * 27;
-  case edgedof::EdgeDoFOrientation::Y:
-    return stencilIndexFromVertex( dir ) + 1 * 27;
-  case edgedof::EdgeDoFOrientation::Z:
-    return stencilIndexFromVertex( dir ) + 2 * 27;
-  case edgedof::EdgeDoFOrientation::XY:
-    return stencilIndexFromVertex( dir ) + 3 * 27;
-  case edgedof::EdgeDoFOrientation::XZ:
-    return stencilIndexFromVertex( dir ) + 4 * 27;
-  case edgedof::EdgeDoFOrientation::YZ:
-    return stencilIndexFromVertex( dir ) + 5 * 27;
-  case edgedof::EdgeDoFOrientation::XYZ:
-    return stencilIndexFromVertex( dir ) + 6 * 27;
-  default:
-    WALBERLA_ASSERT( false, "Invalid orientation" );
-    return std::numeric_limits< uint_t >::max();
-  }
-}
-
-
 constexpr inline uint_t stencilIndexFromHorizontalEdge(const stencilDirection dir){
   typedef stencilDirection sD;
   switch(dir) {
