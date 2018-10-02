@@ -2,7 +2,9 @@
 
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 #include "EdgeDoFFunction.hpp"
 
@@ -19,12 +21,12 @@ public:
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Cell  > &getCellStencilID() const;
+  const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
-  PrimitiveDataID<StencilMemory< real_t >, Cell  > cellStencilID_;
+  PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > cellStencilID_;
 
 };
 

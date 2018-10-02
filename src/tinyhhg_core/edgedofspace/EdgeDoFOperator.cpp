@@ -18,7 +18,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
       std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize);
 
   auto cellDataHandling   =
-      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Cell   >>(minLevel_, maxLevel_, macroCellEdgeDoFToEdgeDoFStencilSize);
+      std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >>( minLevel_, maxLevel_ );
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
@@ -98,7 +98,7 @@ const PrimitiveDataID<StencilMemory<real_t>, Face> &EdgeDoFOperator::getFaceSten
   return faceStencilID_;
 }
 
-const PrimitiveDataID<StencilMemory<real_t>, Cell> &EdgeDoFOperator::getCellStencilID() const {
+const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell> &EdgeDoFOperator::getCellStencilID() const {
   return cellStencilID_;
 }
 

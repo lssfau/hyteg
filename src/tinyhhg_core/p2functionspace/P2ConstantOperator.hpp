@@ -266,7 +266,7 @@ private:
         }
 
         // edge to edge
-        auto edgeToEdgeStencilMemory = cell.getData( getEdgeToEdgeOpr().getCellStencilID() )->getPointer( level );
+        auto & edgeToEdgeStencilMemory = cell.getData( getEdgeToEdgeOpr().getCellStencilID() )->getData( level );
         for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
         {
           for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
@@ -275,13 +275,11 @@ private:
                                                                                                                  leafOrientation, cell, level, ufcOperator );
             for( const auto stencilIt : edgeToEdgeStencilMap )
             {
-              const auto stencilIdx = edgedof::stencilIndexFromEdge3D( stencilIt.first, centerOrientation, leafOrientation );
-              edgeToEdgeStencilMemory[stencilIdx] = stencilIt.second;
+              edgeToEdgeStencilMemory[centerOrientation][leafOrientation][stencilIt.first] = stencilIt.second;
             }
           }
         }
       }
-
     }
   }
 
