@@ -1,8 +1,9 @@
 #pragma once
 
-#include "VertexDoFToEdgeDoFApply.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -30,7 +31,7 @@ public:
   /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
   const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
   const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
-  const PrimitiveDataID< StencilMemory< real_t >, Cell> &getCellStencilID() const { return cellStencilID_; }
+  const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::StencilMap_T >, Cell> &getCellStencilID() const { return cellStencilID_; }
 
 private:
   void assembleStencils();
@@ -38,7 +39,7 @@ private:
 
   PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID< StencilMemory< real_t >, Face> faceStencilID_;
-  PrimitiveDataID< StencilMemory< real_t >, Cell> cellStencilID_;
+  PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::StencilMap_T >, Cell> cellStencilID_;
 
 };
 

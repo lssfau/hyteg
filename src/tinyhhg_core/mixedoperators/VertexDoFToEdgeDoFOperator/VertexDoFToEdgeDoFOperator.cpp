@@ -21,9 +21,7 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
                                                                         VertexDoFToEdgeDoF::macroFaceVertexDoFToEdgeDoFStencilSize);
 
   auto cellDataHandling =
-    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Cell >>(minLevel_,
-                                                                        maxLevel_,
-                                                                        VertexDoFToEdgeDoF::macroCellVertexDoFToEdgeDoFStencilSize);
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::StencilMap_T >, Cell > >( minLevel_, maxLevel_ );
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");

@@ -252,15 +252,13 @@ private:
         }
 
         // vertex to edge
-        auto vertexToEdgeStencilMemory = cell.getData( getVertexToEdgeOpr().getCellStencilID() )->getPointer( level );
+        auto & vertexToEdgeStencilMemory = cell.getData( getVertexToEdgeOpr().getCellStencilID() )->getData( level );
         for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
         {
           const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation, cell, level, ufcOperator );
           for( const auto stencilIt : vertexToEdgeStencilMap )
           {
-            const auto dir = vertexdof::stencilDirectionFromLogicalOffset( stencilIt.first );
-            const auto stencilIdx = vertexdof::stencilIndexFromEdge3D( dir, centerOrientation );
-            vertexToEdgeStencilMemory[stencilIdx] = stencilIt.second;
+            vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
           }
         }
 

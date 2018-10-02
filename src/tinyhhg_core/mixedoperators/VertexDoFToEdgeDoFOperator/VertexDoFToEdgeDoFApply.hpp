@@ -6,11 +6,14 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 
 namespace hhg{
 namespace VertexDoFToEdgeDoF{
 
+/// map[centerOrientation][indexOffset] = weight
+typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
 
 inline void applyEdge(const uint_t & Level, Edge &edge,
                       const PrimitiveDataID<StencilMemory < real_t >, Edge> &operatorId,
@@ -111,14 +114,14 @@ inline void applyFace(const uint_t & Level, Face &face,
 
 
 inline void applyCell(const uint_t & Level, Cell & cell,
-                      const PrimitiveDataID<StencilMemory < real_t >, Cell> &operatorId,
+                      const PrimitiveDataID<LevelWiseMemory< StencilMap_T >, Cell> & operatorId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &srcId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &dstId,
                       UpdateType update){
 
-  real_t * opr_data = cell.getData(operatorId)->getPointer( Level );
-  real_t * src      = cell.getData(srcId)->getPointer( Level );
-  real_t * dst      = cell.getData(dstId)->getPointer( Level );
+  auto opr_data = cell.getData(operatorId)->getData( Level );
+  real_t * src  = cell.getData(srcId)->getPointer( Level );
+  real_t * dst  = cell.getData(dstId)->getPointer( Level );
 
   for ( const auto & it : hhg::edgedof::macrocell::Iterator( Level, 0 ) )
   {
@@ -144,10 +147,9 @@ inline void applyCell(const uint_t & Level, Cell & cell,
       const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
       for ( const auto & neighbor : vertexDoFNeighbors )
       {
-        const uint_t stencilIdx  = vertexdof::stencilIndexFromEdge3D( vertexdof::stencilDirectionFromLogicalOffset( neighbor ), centerOrientation );
         const auto   srcIdx      = it + neighbor;
         const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
-        tmp += opr_data[stencilIdx] * src[srcArrayIdx];
+        tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
       }
 
       const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
@@ -171,10 +173,9 @@ inline void applyCell(const uint_t & Level, Cell & cell,
     const auto vertexDoFNeighbors = P2Elements::P2Elements3D::getAllVertexDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation );
     for ( const auto & neighbor : vertexDoFNeighbors )
     {
-      const uint_t stencilIdx  = vertexdof::stencilIndexFromEdge3D( vertexdof::stencilDirectionFromLogicalOffset( neighbor ), centerOrientation );
       const auto   srcIdx      = it + neighbor;
       const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
-      tmp += opr_data[stencilIdx] * src[srcArrayIdx];
+      tmp += opr_data[centerOrientation][neighbor] * src[srcArrayIdx];
     }
 
     const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
