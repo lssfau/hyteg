@@ -40,7 +40,21 @@ inline uint_t edgeDoFMacroEdgeFunctionMemorySize( const uint_t &level, const Pri
 inline uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( primitive );
-  return 3 * ( ( ( levelinfo::num_microedges_per_edge( level ) + 1 ) * levelinfo::num_microedges_per_edge( level ) ) / 2 );
+  ///"inner/own" points on the face
+  uint_t innerDofs = 3 * ( ( ( levelinfo::num_microedges_per_edge( level ) + 1 ) * levelinfo::num_microedges_per_edge( level ) ) / 2 );
+
+  ///ghost points on one adjacent tet
+  uint_t GhostDoFsOneSide = 0;
+  if(primitive.getNumNeighborCells() != 0){
+    /// points in the "white up" tets
+    GhostDoFsOneSide += 6 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
+    /// points from the xyz edge
+    GhostDoFsOneSide += levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+    /// points on the parallel face inside the tet
+    GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+  }
+
+  return innerDofs + primitive.getNumNeighborCells() * GhostDoFsOneSide;
 }
 
 inline uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive )
