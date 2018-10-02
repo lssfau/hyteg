@@ -13,9 +13,13 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
+
+/// map[leafOrientation][indexOffset] = weight
+typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
 
 inline void applyVertex(uint_t level,
                   Vertex &vertex,
@@ -121,15 +125,15 @@ inline void applyFace(const uint_t & Level, Face &face,
 
 
 inline void applyCell(const uint_t & Level, Cell & cell,
-                      const PrimitiveDataID<StencilMemory < real_t >, Cell> &operatorId,
+                      const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell> &operatorId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &srcId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &dstId,
                       UpdateType update)
 {
 
-  real_t * opr_data = cell.getData(operatorId)->getPointer( Level );
-  real_t * src      = cell.getData(srcId)->getPointer( Level );
-  real_t * dst      = cell.getData(dstId)->getPointer( Level );
+  auto opr_data = cell.getData(operatorId)->getData( Level );
+  real_t * src  = cell.getData(srcId)->getPointer( Level );
+  real_t * dst  = cell.getData(dstId)->getPointer( Level );
 
   real_t tmp;
 
@@ -141,10 +145,9 @@ inline void applyCell(const uint_t & Level, Cell & cell,
       const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
       for ( const auto & neighbor : edgeDoFNeighbors )
       {
-        const uint_t stencilIdx  = edgedof::stencilIndexFromVertex3D( neighbor, orientation );
         const auto   srcIdx      = it + neighbor;
         const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), orientation );
-        tmp += opr_data[stencilIdx] * src[srcArrayIdx];
+        tmp += opr_data[orientation][neighbor] * src[srcArrayIdx];
       }
     }
 

@@ -4,6 +4,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
+#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -28,10 +30,10 @@ public:
 
   void apply_impl(EdgeDoFFunction< real_t >& src,  P1Function< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
 
-  const PrimitiveDataID<StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
-  const PrimitiveDataID<StencilMemory< real_t >, Cell  > &getCellStencilID() const;
+  const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
+  const PrimitiveDataID< StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
+  const PrimitiveDataID< StencilMemory< real_t >, Face  > &getFaceStencilID() const;
+  const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
   void assembleStencils();
@@ -40,7 +42,7 @@ private:
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
-  PrimitiveDataID<StencilMemory< real_t >, Cell  > cellStencilID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell  > cellStencilID_;
 
 };
 
