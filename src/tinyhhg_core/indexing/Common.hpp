@@ -38,6 +38,23 @@ public:
     z() += increment.z();
     return *this;
   }
+
+  void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
+  {
+    for ( size_t index = 0; index < 2; index++ )
+    {
+      sendBuffer << x_[index];
+    }
+  }
+
+  void deserialize( walberla::mpi::RecvBuffer & recvBuffer )
+  {
+    for ( size_t index = 0; index < 2; index++ )
+    {
+      recvBuffer >> x_[index];
+    }
+  }
+
 };
 
 
@@ -238,6 +255,29 @@ inline uint_t mapDirectionToArrayIndex( const IndexIncrement & indexIncrement )
   }
 }
 
+
+}
+}
+
+namespace walberla {
+namespace mpi {
+
+template< typename T,    // Element type of SendBuffer
+typename G    // Growth policy of SendBuffer
+>
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::indexing::IndexIncrement & indexIncrement )
+{
+  indexIncrement.serialize( buf );
+  return buf;
+}
+
+template< typename T // Element type  of RecvBuffer
+>
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::indexing::IndexIncrement & indexIncrement )
+{
+  indexIncrement.deserialize( buf );
+  return buf;
+}
 
 }
 }
