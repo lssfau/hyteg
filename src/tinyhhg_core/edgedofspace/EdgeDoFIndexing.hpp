@@ -325,7 +325,7 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
    uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1);
 
    /// adjust own dofs if the second cell is used
-   if( neighbor == 2 ){
+   if( neighbor == 1 ){
       ownDoFs += ownDoFs + ghostOnParallelFace + levelinfo::num_microvertices_per_edge_from_width( levelinfo::num_microedges_per_edge( level ) - 2);
    }
 
