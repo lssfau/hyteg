@@ -43,17 +43,29 @@ int main( int argc, char* argv[] )
       cfg = env.config();
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-
-   const uint_t level = mainConf.getParameter< uint_t >( "level" );
-
-   std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+   const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
 
    wcTimingTreeApp.start( "Mesh setup + load balancing" );
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
 
-   //hhg::MeshInfo::meshUnitSquare( 2 );
+   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   if( mainConf.getParameter< bool >( "useMeshFile" ) )
+   {
+      std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
+      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+   } else
+   {
+      uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
+      if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
+      {
+         meshInfo = std::make_shared< hhg::MeshInfo >(
+             hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+      }
+   }
 
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hhg::SetupPrimitiveStorage setupStorage( *meshInfo,
+                                            walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
    hhg::loadbalancing::roundRobin( setupStorage );
 
@@ -62,22 +74,24 @@ int main( int argc, char* argv[] )
 
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-       //return 5.0;
-       return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
-       //return ( real_c(std::rand()) / real_c(RAND_MAX));
+      //return 5.0;
+      return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
+      //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    storage->setTimingTree( timingTree );
 
    wcTimingTreeApp.start( "Function allocation" );
-   hhg::P2Function< double > oneFunc( "x", storage, level, level );
-   hhg::P2Function< double > x( "x", storage, level, level );
-   hhg::P2Function< double > y( "y", storage, level, level );
-   hhg::P2Function< double > z( "z", storage, level, level );
-   hhg::P2Function< double > diff( "diff", storage, level, level );
-   hhg::P2Function< PetscInt >    numerator( "numerator", storage, level, level );
+   hhg::P2Function< double >   oneFunc( "x", storage, level, level );
+   hhg::P2Function< double >   x( "x", storage, level, level );
+   hhg::P2Function< double >   y( "y", storage, level, level );
+   hhg::P2Function< double >   z( "z", storage, level, level );
+   hhg::P2Function< double >   diff( "diff", storage, level, level );
+   hhg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
+
+   const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
 
    wcTimingTreeApp.start( "Operator assembly" );
    hhg::P2ConstantLaplaceOperator mass( storage, level, level );
@@ -90,10 +104,11 @@ int main( int argc, char* argv[] )
 
    wcTimingTreeApp.start( "Enumeration" );
    const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   const uint_t localDoFs = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t localDoFs  = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
    numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
 
+   LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
    hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > matPetsc( localDoFs, globalDoFs );
    matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
@@ -101,6 +116,7 @@ int main( int argc, char* argv[] )
    vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
    hhg::PETScVector< real_t, hhg::P2Function > dstvecPetsc( localDoFs );
    wcTimingTreeApp.stop( "Petsc setup" );
+   LIKWID_MARKER_STOP( "PETSc-setup" );
 
    wcTimingTreeApp.start( "HyTeG apply" );
    LIKWID_MARKER_START( "HyTeG-apply" );
@@ -126,25 +142,28 @@ int main( int argc, char* argv[] )
 
    //dstvecPetsc.print("../output/vector1.vec");
 
-   auto wcTPReduced = wcTimingTreeApp.getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( wcTPReduced );
+   if( mainConf.getParameter< bool >( "printTiming" ) )
+   {
+      auto wcTPReduced = wcTimingTreeApp.getReduced();
+      WALBERLA_LOG_INFO_ON_ROOT( wcTPReduced );
 
-   walberla::WcTimingTree tt  = timingTree->getReduced();
-   auto                   tt2 = tt.getCopyWithRemainder();
-   WALBERLA_LOG_INFO_ON_ROOT(tt2);
+      walberla::WcTimingTree tt  = timingTree->getReduced();
+      auto                   tt2 = tt.getCopyWithRemainder();
+      WALBERLA_LOG_INFO_ON_ROOT( tt2 );
 
-   nlohmann::json ttJson;
-   walberla::timing::to_json( ttJson, tt2 );
-   std::ofstream jsonOutput;
-   jsonOutput.open ( "TimingTree.json" );
-   jsonOutput << ttJson.dump(4);
-   jsonOutput.close();
+      nlohmann::json ttJson;
+      walberla::timing::to_json( ttJson, tt2 );
+      std::ofstream jsonOutput;
+      jsonOutput.open( "TimingTree.json" );
+      jsonOutput << ttJson.dump( 4 );
+      jsonOutput.close();
+   }
 
    diff.assign( {1.0, -1.0}, {&z, &y}, level, hhg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      WALBERLA_LOG_INFO_ON_ROOT("writing VTK output");
+      WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
       hhg::VTKOutput vtkOutput( "./output", "PetscCompare-2D-P2-Apply" );
       vtkOutput.add( &x );
       vtkOutput.add( &z );
@@ -154,6 +173,11 @@ int main( int argc, char* argv[] )
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
+
+   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
+                                              << walberla::MPIManager::instance()->numProcesses() << " | "
+                                              << wcTimingTreeApp["HyTeG apply"].last() << " | "
+                                              << wcTimingTreeApp["Petsc apply"].last() << " | " );
 
    LIKWID_MARKER_CLOSE;
 }

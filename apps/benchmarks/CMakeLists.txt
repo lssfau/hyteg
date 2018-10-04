@@ -9,6 +9,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
 add_subdirectory(P1Benchmark)
 add_subdirectory(P1CGBenchmark)
 add_subdirectory(ApplyPerformanceAnalysis-2D-P2)
+add_subdirectory(ApplyBenchmark)
 
 if( HHG_BUILD_WITH_PETSC )
     add_subdirectory(PetscCompare)

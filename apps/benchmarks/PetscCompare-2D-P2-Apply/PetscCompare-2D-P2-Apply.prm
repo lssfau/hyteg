@@ -2,5 +2,14 @@ Parameters
 {
   level 8;
   VTKOutput false;
+  printTiming false;
+
+  useMeshFile false;
   mesh ../../../data/meshes/quad_8el.msh;
+
+  /// only relevant if useMeshFile == false
+  /// if set true the total number of faces is mpi.numProcesses * numberOfFaces
+  /// if set to false the total number is just numberOfFaces
+  facesTimesProcs true;
+  numberOfFaces 1;
 }

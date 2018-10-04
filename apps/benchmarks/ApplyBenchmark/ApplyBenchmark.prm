@@ -1,0 +1,9 @@
+Parameters
+{
+  level 6;
+  VTKOutput false;
+  writeDomain false;
+  printTiming false;
+  writeJSON false;
+  mesh ../../../data/meshes/quad_4el.msh;
+}
