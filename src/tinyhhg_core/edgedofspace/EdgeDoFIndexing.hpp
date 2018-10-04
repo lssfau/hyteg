@@ -398,7 +398,8 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
 inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation, const uint_t & neighbor )
 {
    uint_t ownDoFs = levelinfo::num_microedges_per_face( level );
-   uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1);
+   uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 1);
+   uint_t parallelFaceOneEdgeTypeSize = walberla::uint_c( ghostOnParallelFace / 3 );
 
    /// adjust own dofs if the second cell is used
    if( neighbor == 1 ){
@@ -410,9 +411,9 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
       case EdgeDoFOrientation::X:
          return ownDoFs + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
       case EdgeDoFOrientation::Y:
-         return ownDoFs + 2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs + 2 * parallelFaceOneEdgeTypeSize + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
       case EdgeDoFOrientation::XY:
-         return ownDoFs + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs + parallelFaceOneEdgeTypeSize + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
       case EdgeDoFOrientation::Z:
          return ownDoFs + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
       case EdgeDoFOrientation::XZ:
