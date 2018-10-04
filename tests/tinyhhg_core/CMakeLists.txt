@@ -86,6 +86,9 @@ waLBerla_execute_test(NAME EdgeDoFOnMacroFaceIndexingTest)
 waLBerla_compile_test(FILES Indexing/DGIndexingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME DGIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
+
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
     waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS tinyhhg_core core)
