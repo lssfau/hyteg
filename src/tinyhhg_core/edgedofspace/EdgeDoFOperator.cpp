@@ -29,24 +29,10 @@ void
 EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
 
   this->startTiming( "EdgeDoFOperator - Apply" );
-  src.startCommunication<Face, Edge>( level );
+
   src.startCommunication<Edge, Face>( level );
-  src.endCommunication<Face, Edge>( level );
-
-  // TODO: cell communcation
-
-  for (auto& it : storage_->getEdges())
-  {
-    Edge& edge = *it.second;
-
-    const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-    if ( testFlag( edgeBC, flag ) )
-    {
-      edgedof::macroedge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
-    }
-  }
-
   src.endCommunication<Edge, Face>( level );
+  src.startCommunication<Face, Edge>( level );
 
   for (auto& it : storage_->getFaces())
   {
@@ -57,7 +43,6 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
     {
       if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
       {
-        WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
         real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
@@ -74,6 +59,23 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
       }
     }
   }
+
+  src.endCommunication<Face, Edge>( level );
+
+  // TODO: cell communcation
+
+  for (auto& it : storage_->getEdges())
+  {
+    Edge& edge = *it.second;
+
+    const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+    if ( testFlag( edgeBC, flag ) )
+    {
+      edgedof::macroedge::apply(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+    }
+  }
+
+
 
   for (auto& it : storage_->getCells())
   {
