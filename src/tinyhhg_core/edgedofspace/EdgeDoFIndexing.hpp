@@ -49,6 +49,10 @@ const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
   { EdgeDoFOrientation::INVALID, "INVALID"},
 };
 
+std::ostream& operator<<(std::ostream& out, const EdgeDoFOrientation ornt){
+   const std::string& orntString = edgeDoFOrientationToString.at(ornt);
+   return out << orntString;
+}
 
 /// \brief Given two logical vertexdof indices, this function returns the appropriate edgedof orientation.
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
@@ -152,6 +156,77 @@ inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices
   }
 
   return vertexIndices;
+}
+
+/// \brief Given to local vertex ids on the tetrahedron this function return the orientation of the edge inbetween those vertices
+inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vertexIndex0, const uint_t & vertexIndex1 ){
+   WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );
+   WALBERLA_ASSERT_LESS_EQUAL( vertexIndex0, 3 );
+   WALBERLA_ASSERT_LESS_EQUAL( vertexIndex1, 3 );
+   indexing::IndexIncrement vertexIndexII0, vertexIndexII1;
+   switch ( vertexIndex0 ){
+      case 0:
+         vertexIndexII0 = indexing::IndexIncrement( 0, 0, 0 );
+         break;
+      case 1:
+         vertexIndexII0 = indexing::IndexIncrement( 1, 0, 0 );
+         break;
+      case 2:
+         vertexIndexII0 = indexing::IndexIncrement( 0, 1, 0 );
+         break;
+      case 3:
+         vertexIndexII0 = indexing::IndexIncrement( 0, 0, 1 );
+         break;
+      default:
+         WALBERLA_ABORT("Wrong vertex ID");
+
+   }
+   switch ( vertexIndex1 ){
+      case 0:
+         vertexIndexII1 = indexing::IndexIncrement( 0, 0, 0 );
+         break;
+      case 1:
+         vertexIndexII1 = indexing::IndexIncrement( 1, 0, 0 );
+         break;
+      case 2:
+         vertexIndexII1 = indexing::IndexIncrement( 0, 1, 0 );
+         break;
+      case 3:
+         vertexIndexII1 = indexing::IndexIncrement( 0, 0, 1 );
+         break;
+      default:
+         WALBERLA_ABORT("Wrong vertex ID");
+   }
+
+   return calcEdgeDoFOrientation(vertexIndexII0, vertexIndexII1);
+
+}
+
+/// \brief converts the edge orientation of the reference face into the correct orientation on the tetrahedron according to the position
+/// and the rotation of the face.
+inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation srcOr, const uint_t v0, const uint_t v1, const uint_t v2 ){
+   /// one can calculate the missing local index by adding all indices and subtract from 0+1+2+3
+   uint_t v3 = 6 - ( v0 + v1 + v2 );
+   switch ( srcOr ){
+      case EdgeDoFOrientation::X:
+         return getEdgeDoFOrientationFromLocalIDs(v0,v1);
+      case EdgeDoFOrientation::Y:
+         return getEdgeDoFOrientationFromLocalIDs(v0,v2);
+      case EdgeDoFOrientation::XY:
+         return getEdgeDoFOrientationFromLocalIDs(v1,v2);
+      case EdgeDoFOrientation::Z:
+         return getEdgeDoFOrientationFromLocalIDs(v0,v3);
+      case EdgeDoFOrientation::XZ:
+         return getEdgeDoFOrientationFromLocalIDs(v1,v3);
+      case EdgeDoFOrientation::YZ:
+         return getEdgeDoFOrientationFromLocalIDs(v2,v3);
+      case EdgeDoFOrientation::XYZ:
+         /// nothing changes here
+         return EdgeDoFOrientation::XYZ;
+      default:
+         WALBERLA_ABORT("wrong orienation")
+
+   }
 }
 
 
