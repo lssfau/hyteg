@@ -49,7 +49,8 @@ const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
   { EdgeDoFOrientation::INVALID, "INVALID"},
 };
 
-std::ostream& operator<<(std::ostream& out, const EdgeDoFOrientation ornt){
+inline std::ostream& operator<<(std::ostream& out, const EdgeDoFOrientation ornt)
+{
    const std::string& orntString = edgeDoFOrientationToString.at(ornt);
    return out << orntString;
 }
