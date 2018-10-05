@@ -398,29 +398,31 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
 inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation, const uint_t & neighbor )
 {
    uint_t ownDoFs = levelinfo::num_microedges_per_face( level );
-   uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1);
+   uint_t ghostOnParallelFace = levelinfo::num_microedges_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 1);
+   uint_t parallelFaceOneEdgeTypeSize = ghostOnParallelFace / 3;
 
    /// adjust own dofs if the second cell is used
+   uint_t offset = 0;
    if( neighbor == 1 ){
-      ownDoFs += ownDoFs + ghostOnParallelFace + levelinfo::num_microvertices_per_edge_from_width( levelinfo::num_microedges_per_edge( level ) - 2);
+      offset += ownDoFs + ghostOnParallelFace + ghostOnParallelFace / 3;
    }
 
    switch ( orientation )
    {
       case EdgeDoFOrientation::X:
-         return ownDoFs + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
       case EdgeDoFOrientation::Y:
-         return ownDoFs + 2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs + 2 * parallelFaceOneEdgeTypeSize + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
       case EdgeDoFOrientation::XY:
-         return ownDoFs + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs + parallelFaceOneEdgeTypeSize + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
       case EdgeDoFOrientation::Z:
-         return ownDoFs + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
+         return ownDoFs + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y ) + offset;
       case EdgeDoFOrientation::XZ:
-         return ownDoFs + ghostOnParallelFace +  2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y );
+         return ownDoFs + ghostOnParallelFace +  2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y ) + offset;
       case EdgeDoFOrientation::YZ:
-         return ownDoFs + ghostOnParallelFace + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y );
+         return ownDoFs + ghostOnParallelFace + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y ) + offset;
       case EdgeDoFOrientation::XYZ:
-         return ownDoFs * 2 + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y );
+         return ownDoFs * 2 + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
       case EdgeDoFOrientation::INVALID:
          return std::numeric_limits< uint_t >::max();
    }
