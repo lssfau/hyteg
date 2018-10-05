@@ -10,6 +10,9 @@ using indexing::Index;
 
 /// This file contains data structures and functions related to a distance based coordinate system for macro-cells.
 ///
+/// It is somewhat similar to a barycentric coordinate system - however the definitions are different since
+/// we measure here the distance from the vertices of a tetrahedron.
+///
 /// The distance coordinate system describes a point in a macro-cell by its distance to the cell's four vertices V0, ..., V3.
 ///
 /// Example: the point (2, 1, 0) in the default coordinate system on a macro-cell with width == 5 (== level 2 vertexdof)
