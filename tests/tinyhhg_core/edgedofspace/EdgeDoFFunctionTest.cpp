@@ -110,7 +110,7 @@ static void testEdgeDoFFunction()
 
   auto dg = std::make_shared< DGFunction< real_t > >( "dg", storage2, minLevel, maxLevel );
 
-  VTKOutput vtkOutput( "../../output", "interpolate_test" );
+  VTKOutput vtkOutput("../../output", "interpolate_test", storage);
   vtkOutput.add( p1 );
   vtkOutput.add( z );
   vtkOutput.add( dg );

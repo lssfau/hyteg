@@ -137,7 +137,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput( "./output", "StokesSphereTransport", VTKOutputFrequency );
+   hhg::VTKOutput vtkOutput("./output", "StokesSphereTransport", storage, VTKOutputFrequency);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.set3D();

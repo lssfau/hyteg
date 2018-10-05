@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
    real_t discr_l2_err = std::sqrt(err->dotGlobal(*err, level) / npoints);
    WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-   VTKOutput vtkOutput("../output", "cg_P1_blending");
+   VTKOutput vtkOutput("../output", "cg_P1_blending", storage);
    vtkOutput.add(x.get());
    vtkOutput.add(y.get());
    vtkOutput.add(u.get());

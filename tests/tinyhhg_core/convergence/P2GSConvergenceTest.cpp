@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
   if (parameters.getParameter<bool>("vtkOutput")) {
-    VTKOutput vtkOutput( "../../output", "gs_P2" );
+    VTKOutput vtkOutput("../../output", "gs_P2", storage);
     vtkOutput.add( &p2function );
     vtkOutput.add( &p2Exact );
     vtkOutput.add( &rhs );

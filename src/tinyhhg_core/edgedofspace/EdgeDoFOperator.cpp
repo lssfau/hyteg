@@ -32,7 +32,23 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
 
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Edge, Face>( level );
+  src.startCommunication<Face, Cell>( level );
+  src.endCommunication<Face, Cell>( level );
+  // TODO: add cell to face communcation
   src.startCommunication<Face, Edge>( level );
+
+  for (auto& it : storage_->getCells())
+  {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if ( testFlag( cellBC, flag ) )
+    {
+      edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+    }
+  }
+
+
 
   for (auto& it : storage_->getFaces())
   {
@@ -62,7 +78,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
 
   src.endCommunication<Face, Edge>( level );
 
-  // TODO: cell communcation
+
 
   for (auto& it : storage_->getEdges())
   {
@@ -77,16 +93,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
 
 
 
-  for (auto& it : storage_->getCells())
-  {
-    Cell & cell = *it.second;
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if ( testFlag( cellBC, flag ) )
-    {
-      edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
-    }
-  }
 
   this->stopTiming( "EdgeDoFOperator - Apply" );
 }

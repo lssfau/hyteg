@@ -1,3 +1,4 @@
+#include <tinyhhg_core/VTKWriter.hpp>
 #include "core/timing/Timer.h"
 
 #include "core/Environment.h"
@@ -22,7 +23,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   const uint_t level         = 3;
-  const std::string meshFile = "../../data/meshes/quad_8el.msh";
+  const std::string meshFile = "../../data/meshes/3D/tet_1el.msh";
   const real_t tolerance     = 1e-15;
   const uint_t maxIter       = 1000;
 
@@ -52,6 +53,17 @@ int main(int argc, char* argv[])
 
   const real_t npoints = npoints_helper.dotGlobal(npoints_helper, level);
   const real_t discr_l2_err = std::sqrt(err.dotGlobal(err, level) / npoints);
+
+
+   hhg::VTKOutput vtkOutput("../../output", "P2CGConvergenceTest", storage);
+   vtkOutput.add( &u );
+   vtkOutput.add( &u_exact );
+   vtkOutput.add( &f );
+   vtkOutput.add( &r );
+   vtkOutput.add( &err );
+   vtkOutput.add( &npoints_helper );
+   vtkOutput.write( level );
+
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
   WALBERLA_CHECK_LESS( discr_l2_err, 2e-8 );

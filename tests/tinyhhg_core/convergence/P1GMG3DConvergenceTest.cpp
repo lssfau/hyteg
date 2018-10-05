@@ -98,8 +98,7 @@ int main( int argc, char* argv[] )
 
   WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
 
-  VTKOutput vtkOutput( "../../output", "P1GMG3DConvergenceTest" );
-  vtkOutput.set3D();
+  VTKOutput vtkOutput("../../output", "P1GMG3DConvergenceTest", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &err );
 

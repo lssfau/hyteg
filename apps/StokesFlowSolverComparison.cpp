@@ -321,7 +321,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // VTK //
   /////////
 
-  hhg::VTKOutput vtkOutput( "../output", "StokesFlowSolverComparison" );
+  hhg::VTKOutput vtkOutput("../output", "StokesFlowSolverComparison", storage);
 
   vtkOutput.add( &r.u );
   vtkOutput.add( &r.v );

@@ -98,8 +98,7 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence" );
-   vtkOutput.set3D();
+   hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
    vtkOutput.add( &u.u );
    vtkOutput.add( &u.v );
    vtkOutput.add( &u.w );

@@ -254,7 +254,7 @@ int main( int argc, char** argv )
    /// [Output]
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput( ".", "FullAppP1GMG" );
+      VTKOutput vtkOutput(".", "FullAppP1GMG", storage);
       vtkOutput.add( &function );
       vtkOutput.add( &residual );
       vtkOutput.add( &rightHandSide );

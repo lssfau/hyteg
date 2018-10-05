@@ -104,7 +104,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 //   WALBERLA_LOG_INFO_ON_ROOT( "residuum 2 = " << residuum_l2_2 );
 
-   VTKOutput vtkOutput( "../../output", "P2PetscSolve" );
+   VTKOutput vtkOutput("../../output", "P2PetscSolve", storage);
    vtkOutput.add( &x );
    vtkOutput.add( &x_exact );
    vtkOutput.add( &err );

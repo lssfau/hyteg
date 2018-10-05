@@ -342,7 +342,7 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const Pr
   const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
+  for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
   {
     buffer >> cellData[ vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
   }
@@ -359,7 +359,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *send
   const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+  auto cellIterator = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
 
   for ( const auto & faceIdx : vertexdof::macroface::Iterator( level_ ) )
   {
@@ -383,7 +383,7 @@ void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const P
   const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ) )
+  for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ) )
   {
     buffer << cellData[ vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
   }
@@ -444,7 +444,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
     neighborDirection = stencilDirection::VERTEX_BC;
   }
 
-  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+  auto cellIterator = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
 
   for ( const auto & it : vertexdof::macroface::Iterator( level_ ) )
   {

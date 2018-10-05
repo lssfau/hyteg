@@ -811,6 +811,15 @@ public:
     {}
 };
 
+class BoundaryIterator : public hhg::indexing::CellBorderIterator
+{
+public:
+  BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
+                    const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
+     CellBorderIterator( levelinfo::num_microedges_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
+  {}
+};
+
 } // namespace macrocell
 
 
