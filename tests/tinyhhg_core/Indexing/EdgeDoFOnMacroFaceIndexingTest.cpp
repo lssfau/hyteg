@@ -10,65 +10,155 @@
 
 namespace hhg {
 
+/// brief basic check for the indexing function
+/// ATTENTION: this will break with a different layout
 static void testEdgeDoFIndexing()
 {
-   //   hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( 1 );
-   //   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   //   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
-
    const uint_t level = 2;
 
    typedef hhg::edgedof::EdgeDoFOrientation EO;
    using hhg::edgedof::macroface::index;
 
-   std::set< uint_t > indexSet;
-   std::vector< EO >  onFace = {EO::X, EO::Y, EO::XY};
-   std::vector< EO >  ghosts = {EO::Z, EO::YZ, EO::XZ};
+   std::set< uint_t >    indexSet;
+   std::set< uint_t >    refIndexSet;
+   std::set< uint_t >    refIndexSetFace0;
+   std::vector< uint_t > diff;
+   std::vector< EO >     onFace = {EO::X, EO::Y, EO::XY};
+   std::vector< EO >     ghosts = {EO::Z, EO::YZ, EO::XZ};
 
    uint_t sizeOnFace = levelinfo::num_microedges_per_face( level );
    uint_t sizeOnParallelFace =
        hhg::levelinfo::num_microedges_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 );
-   uint_t total = 2 * sizeOnFace + sizeOnParallelFace + ( sizeOnParallelFace / 3 );
+   uint_t totalSize = 2 * sizeOnFace + sizeOnParallelFace + ( sizeOnParallelFace / 3 );
 
-   WALBERLA_LOG_DEVEL( "size: " << total );
-
-   for( const auto& it : indexing::FaceIterator( hhg::levelinfo::num_microedges_per_edge( level ), 0 ) )
+   for( uint_t i = 0; i < totalSize; ++i )
    {
-      for( const auto& eo : onFace )
-      {
-         auto checker = indexSet.insert( index( level, it.x(), it.y(), eo ) );
-         WALBERLA_CHECK( checker.second,
-                         *checker.first << " " << it.x() << " "
-                                        << " " << it.y() << " " << eo );
-      }
-      for( const auto& eo : ghosts )
-      {
-         auto checker = indexSet.insert( index( level, it.x(), it.y(), eo, 0 ) );
-         WALBERLA_CHECK( checker.second,
-                         *checker.first << " " << it.x() << " "
-                                        << " " << it.y() << " " << eo );
-      }
+      refIndexSetFace0.insert( i );
    }
-   for( const auto& it : indexing::FaceIterator(
-            hhg::levelinfo::num_microedges_per_edge_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 ) )
+
+   for( uint_t i = 0; i < totalSize + sizeOnFace + sizeOnParallelFace + ( sizeOnParallelFace / 3 ); ++i )
    {
-      for( const auto& eo : onFace )
+      refIndexSet.insert( i );
+   }
+
+   for( uint_t nbr : {0u, 1u} )
+   {
+      /// offset for the second tet
+      uint_t offset = 0;
+      if( nbr == 1 )
       {
-         auto checker = indexSet.insert( index( level, it.x(), it.y(), eo, 0 ) );
-         WALBERLA_CHECK( checker.second,
-                         *checker.first << " " << it.x() << " "
-                                        << " " << it.y() << " " << eo );
+         offset = sizeOnFace + sizeOnParallelFace + ( sizeOnParallelFace / 3 );
       }
 
-      auto checker = indexSet.insert( index( level, it.x(), it.y(), EO::XYZ, 0 ) );
-      WALBERLA_CHECK( checker.second,
-                      *checker.first << " " << it.x() << " "
-                                     << " " << it.y() << " XYZ" );
+      uint_t startX        = 0;
+      uint_t startXY       = sizeOnFace / 3;
+      uint_t startY        = ( sizeOnFace / 3 ) * 2;
+      uint_t startGhostX   = sizeOnFace + offset;
+      uint_t startGhostXY  = sizeOnFace + ( sizeOnParallelFace / 3 ) + offset;
+      uint_t startGhostY   = sizeOnFace + ( ( sizeOnParallelFace / 3 ) * 2 ) + offset;
+      uint_t startGhostZ   = sizeOnFace + sizeOnParallelFace + offset;
+      uint_t startGhostYZ  = sizeOnFace + sizeOnParallelFace + sizeOnFace / 3 + offset;
+      uint_t startGhostXZ  = sizeOnFace + sizeOnParallelFace + ( sizeOnFace / 3 ) * 2 + offset;
+      uint_t startGhostXYZ = sizeOnFace * 2 + sizeOnParallelFace + offset;
+
+      for( const auto& it : indexing::FaceIterator( hhg::levelinfo::num_microedges_per_edge( level ), 0 ) )
+      {
+         for( const auto& eo : onFace )
+         {
+            auto checker = indexSet.insert( index( level, it.x(), it.y(), eo ) );
+            if( nbr == 0 )
+            {
+               WALBERLA_CHECK( checker.second,
+                               *checker.first << " " << it.x() << " "
+                                              << " " << it.y() << " " << eo );
+            }
+            switch( eo )
+            {
+            case EO::X:
+               WALBERLA_CHECK_EQUAL( *checker.first, startX );
+               break;
+            case EO::Y:
+               WALBERLA_CHECK_EQUAL( *checker.first, startY );
+               break;
+            case EO::XY:
+               WALBERLA_CHECK_EQUAL( *checker.first, startXY );
+               break;
+            default:
+               WALBERLA_ABORT( "wrong orientation" );
+            }
+         }
+         startX++;
+         startY++;
+         startXY++;
+
+         for( const auto& eo : ghosts )
+         {
+            auto checker = indexSet.insert( index( level, it.x(), it.y(), eo, nbr ) );
+            WALBERLA_CHECK( checker.second,
+                            *checker.first << " " << it.x() << " "
+                                           << " " << it.y() << " " << eo );
+            switch( eo )
+            {
+            case EO::Z:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostZ );
+               break;
+            case EO::YZ:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostYZ );
+               break;
+            case EO::XZ:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostXZ );
+               break;
+            default:
+               WALBERLA_ABORT( "wrong orientation" );
+            }
+         }
+         startGhostZ++;
+         startGhostYZ++;
+         startGhostXZ++;
+      }
+      for( const auto& it : indexing::FaceIterator(
+               hhg::levelinfo::num_microedges_per_edge_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 ) )
+      {
+         for( const auto& eo : onFace )
+         {
+            auto checker = indexSet.insert( index( level, it.x(), it.y(), eo, nbr ) );
+            WALBERLA_CHECK( checker.second,
+                            *checker.first << " " << it.x() << " "
+                                           << " " << it.y() << " " << eo );
+            switch( eo )
+            {
+            case EO::X:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostX );
+               break;
+            case EO::XY:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostXY );
+               break;
+            case EO::Y:
+               WALBERLA_CHECK_EQUAL( *checker.first, startGhostY );
+               break;
+            default:
+               WALBERLA_ABORT( "wrong orientation" );
+            }
+         }
+         startGhostX++;
+         startGhostXY++;
+         startGhostY++;
+
+         auto checker = indexSet.insert( index( level, it.x(), it.y(), EO::XYZ, nbr ) );
+         WALBERLA_CHECK( checker.second,
+                         *checker.first << " " << it.x() << " "
+                                        << " " << it.y() << " XYZ" );
+         WALBERLA_CHECK_EQUAL( *checker.first, startGhostXYZ );
+         startGhostXYZ++;
+      }
+      if( nbr == 0 )
+      {
+         std::set_difference( indexSet.begin(), indexSet.end(), refIndexSetFace0.begin(), refIndexSetFace0.end(), diff.begin() );
+         WALBERLA_CHECK_EQUAL( diff.size(), 0 );
+      }
    }
-   for( auto it = indexSet.begin(); it != indexSet.end(); ++it )
-   {
-      WALBERLA_LOG_DEVEL( *it );
-   }
+   std::set_difference( indexSet.begin(), indexSet.end(), refIndexSet.begin(), refIndexSet.end(), diff.begin() );
+   WALBERLA_CHECK_EQUAL( diff.size(), 0 );
 }
 
 static void testEdgeDoFsOnMacroFace()
