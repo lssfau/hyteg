@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   const uint_t level         = 3;
-  const std::string meshFile = "../../data/meshes/quad_8el.msh";
+  const std::string meshFile = "../../data/meshes/3D/tet_1el.msh";
   const real_t tolerance     = 1e-15;
   const uint_t maxIter       = 1000;
 

@@ -108,7 +108,7 @@ public:
     for (uint_t level = minLevel; level <= maxLevel; ++level) {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo(
-        std::make_shared<EdgeDoFPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage()));
+        std::make_shared<EdgeDoFPackInfo<ValueType> >(level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage()));
     }
   }
 
