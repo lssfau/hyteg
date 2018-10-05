@@ -242,7 +242,6 @@ private:
 
         auto          stencilSize   = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getSize( level );
         auto          stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-        UFCOperator3D ufcOperator;
 
         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
 
@@ -275,13 +274,13 @@ private:
 
         for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
         {
-          const auto & cell = storage_->getCell( face.neighborCells().at( neighborCellID ) );
+          const auto & cell = *( storage_->getCell( face.neighborCells().at( neighborCellID ) ) );
 
           //////////////////////
           /// Edge -> Vertex ///
           //////////////////////
 
-          auto & edgeToVertexStencilMemory = face.getData( getEdgeToVertexOpr().getFaceStencil3DID()->getData( level );
+          auto & edgeToVertexStencilMemory = face.getData( getEdgeToVertexOpr().getFaceStencil3DID() )->getData( level );
           for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
           {
             const auto edgeToVertexStencilMap = P2Elements::P2Elements3D::calculateEdgeToVertexStencilInMacroCell( indexing::Index( 1, 1, 1 ), leafOrientation, cell, level, ufcOperator );
@@ -295,7 +294,7 @@ private:
           /// Vertex -> Edge ///
           //////////////////////
 
-          auto & vertexToEdgeStencilMemory = face.getData( getVertexToEdgeOpr().getFaceStencil3DID()->getData( level );
+          auto & vertexToEdgeStencilMemory = face.getData( getVertexToEdgeOpr().getFaceStencil3DID() )->getData( level );
           for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
           {
             const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation, cell, level, ufcOperator );
@@ -309,7 +308,7 @@ private:
           /// Edge -> Edge ///
           ////////////////////
 
-          auto & edgeToEdgeStencilMemory = face.getData( getEdgeToEdgeOpr().getFaceStencil3DID()->getData( level );
+          auto & edgeToEdgeStencilMemory = face.getData( getEdgeToEdgeOpr().getFaceStencil3DID() )->getData( level );
           for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
           {
             for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )

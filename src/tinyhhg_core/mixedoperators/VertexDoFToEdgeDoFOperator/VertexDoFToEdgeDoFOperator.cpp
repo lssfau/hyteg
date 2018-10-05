@@ -128,7 +128,7 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     {
       if ( storage_->hasGlobalCells() )
       {
-        VertexDoFToEdgeDoF::applyFace3D( level, face, *storage_, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+        VertexDoFToEdgeDoF::applyFace3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
       }
       else if( hhg::globalDefines::useGeneratedKernels )
       {
