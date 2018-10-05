@@ -974,7 +974,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   //hhg::testEdgeDoFsOnMacroFace();
+   hhg::testEdgeDoFsOnMacroFace();
    hhg::testEdgeDoFIndexing();
 
    return EXIT_SUCCESS;
