@@ -769,6 +769,30 @@ inline bool isInnerXYZEdgeDoF( const uint_t &, const indexing::Index & )
   return true;
 }
 
+inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      return isInnerXEdgeDoF( level, idx );
+    case EdgeDoFOrientation::Y:
+      return isInnerYEdgeDoF( level, idx );
+    case EdgeDoFOrientation::Z:
+      return isInnerZEdgeDoF( level, idx );
+    case EdgeDoFOrientation::XY:
+      return isInnerXYEdgeDoF( level, idx );
+    case EdgeDoFOrientation::XZ:
+      return isInnerXZEdgeDoF( level, idx );
+    case EdgeDoFOrientation::YZ:
+      return isInnerYZEdgeDoF( level, idx );
+    case EdgeDoFOrientation::XYZ:
+      return isInnerXYZEdgeDoF( level, idx );
+    default:
+      WALBERLA_ASSERT( false, "Invalid orientation." )
+      return true;
+  }
+}
+
 // Iterators
 
 class Iterator : public indexing::CellIterator
