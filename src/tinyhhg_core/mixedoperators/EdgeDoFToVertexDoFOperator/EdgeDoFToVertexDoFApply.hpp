@@ -18,8 +18,11 @@
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
 
+/// map[neighborCellID][leafOrientation][indexOffset] = weight
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > > MacroFaceStencilMap_T;
+
 /// map[leafOrientation][indexOffset] = weight
-typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
+typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > MacroCellStencilMap_T;
 
 inline void applyVertex(uint_t level,
                   Vertex &vertex,
@@ -124,8 +127,80 @@ inline void applyFace(const uint_t & Level, Face &face,
 }
 
 
+inline void apply3D( const uint_t & level, Face &face,
+                     const PrimitiveStorage & storage,
+                     const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face > &operatorId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstId,
+                     UpdateType update)
+{
+  auto opr_data = face.getData(operatorId)->getData( level );
+  real_t * src  = face.getData(srcId)->getPointer( level );
+  real_t * dst  = face.getData(dstId)->getPointer( level );
+
+  for ( const auto & centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+  {
+    real_t tmp = real_c( 0 );
+
+    for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
+    {
+      const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+      const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+      const std::array< uint_t, 4 > localVertexIDsAtCell = {
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
+      6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
+      - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
+      - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
+      };
+
+      const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+
+      for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+      {
+        for ( const auto & stencilIt : opr_data[neighborCellID][leafOrientation] )
+        {
+          const auto stencilOffset = stencilIt.first;
+          const auto stencilWeight = stencilIt.second;
+
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+          const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+          WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+          uint_t leafArrayIndexInFace;
+          if ( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientation ) )
+          {
+            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation, neighborCellID );
+          }
+          else
+          {
+            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation );
+          }
+
+          tmp += stencilWeight * src[leafArrayIndexInFace];
+
+        }
+      }
+
+      const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
+      if ( update == Replace )
+      {
+        dst[dstIdx] = tmp;
+      }
+      else
+      {
+        dst[dstIdx] += tmp;
+      }
+
+    }
+  }
+}
+
+
+
 inline void applyCell(const uint_t & Level, Cell & cell,
-                      const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell> &operatorId,
+                      const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell> &operatorId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &srcId,
                       const PrimitiveDataID<FunctionMemory< real_t >, Cell> &dstId,
                       UpdateType update)

@@ -33,7 +33,7 @@ public:
   const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
   const PrimitiveDataID< StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID< StencilMemory< real_t >, Face  > &getFaceStencilID() const;
-  const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell  > &getCellStencilID() const;
+  const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
   void assembleStencils();
@@ -42,7 +42,7 @@ private:
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
-  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::StencilMap_T >, Cell  > cellStencilID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell  > cellStencilID_;
 
 };
 
