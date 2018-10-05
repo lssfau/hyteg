@@ -479,26 +479,40 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
       auto cellIdx = *cellIterator;
 
       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Z, localCellID )] =
-         cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationZ )];
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationZ )];
       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::YZ, localCellID )] =
-         cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationYZ )];
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationYZ )];
       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XZ, localCellID )] =
-         cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationXZ )];
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationXZ )];
 
-
-      if( faceIdx.x() + faceIdx.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 ) {
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
-            cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationX )];
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
-            cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationY )];
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
-            cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), dstEdgeOrientationXY )];
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
-            cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), edgedof::EdgeDoFOrientation::XYZ)];
-
-      }
       cellIterator++;
    }
+
+   auto cellIterator2 = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+   auto cellIterator3 = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
+   {
+      auto cellIdx2 = *cellIterator2;
+
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
+          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationX )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
+          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationY )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
+          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationXY )];
+
+      cellIterator2++;
+
+      auto cellIdx3 = *cellIterator3;
+
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
+          cellData[edgedof::macrocell::index(
+              level_, cellIdx3.x(), cellIdx3.y(), cellIdx3.z(), edgedof::EdgeDoFOrientation::XYZ )];
+
+      cellIterator3++;
+   }
+
+   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) ) {}
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
 }

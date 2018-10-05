@@ -47,7 +47,7 @@ inline uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Pri
   uint_t GhostDoFsOneSide = 0;
   if(primitive.getNumNeighborCells() != 0){
     /// points in the "white up" tets
-    GhostDoFsOneSide += 6 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
+    GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
     /// points from the xyz edge
     GhostDoFsOneSide += levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
     /// points on the parallel face inside the tet

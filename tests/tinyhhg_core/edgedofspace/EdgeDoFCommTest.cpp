@@ -11,6 +11,35 @@ using namespace hhg;
 
 using walberla::real_t;
 
+void checkComm3d(const uint_t level){
+
+
+   MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_2el.msh");
+   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
+
+   hhg::EdgeDoFFunction< uint_t > x("x", storage, level, level);
+
+   for (auto &cellIt : storage->getCells()) {
+      Cell &face = *cellIt.second;
+      uint_t *cellData = face.getData(x.getCellDataID())->getPointer(level);
+      for(uint_t i = 0; i < face.getData(x.getCellDataID())->getSize(level); ++i){
+         cellData[i] = 13;
+      }
+   }
+
+   x.communicate< Cell, Face >( level );
+
+   for (auto &faceIt : storage->getFaces()) {
+      Face &face = *faceIt.second;
+      uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(level);
+      for(uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData(x.getFaceDataID())->getSize(level); ++i){
+         WALBERLA_CHECK_EQUAL( faceData[i], 13, i);
+      }
+   }
+
+}
+
 template<uint_t level>
 void checkComm(std::string meshfile, bool bufferComm = false){
 
@@ -289,7 +318,9 @@ int main (int argc, char ** argv ) {
 
   checkComm<3>("../../data/meshes/bfs_12el.msh", false);
 
-  return 0;
+  checkComm3d( 2u );
+
+   return 0;
 
 
 }
