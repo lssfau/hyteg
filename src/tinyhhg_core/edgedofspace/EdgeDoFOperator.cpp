@@ -17,11 +17,15 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
   auto faceDataHandling   =
       std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize);
 
+  auto face3DDataHandling   =
+      std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >>( minLevel_, maxLevel_ );
+
   auto cellDataHandling   =
       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >>( minLevel_, maxLevel_ );
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addFaceData(faceStencil3DID_, face3DDataHandling  , "VertexDoFToEdgeDoFOperatorFace3DStencil");
   storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
 }
 
@@ -34,7 +38,7 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
   src.endCommunication<Edge, Face>( level );
   src.startCommunication<Face, Cell>( level );
   src.endCommunication<Face, Cell>( level );
-  // TODO: add cell to face communcation
+  src.communicate< Cell, Face >( level );
   src.startCommunication<Face, Edge>( level );
 
   for (auto& it : storage_->getCells())
@@ -57,7 +61,11 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if ( testFlag( faceBC, flag ) )
     {
-      if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+      if ( storage_->hasGlobalCells() )
+      {
+        edgedof::macroface::apply3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+      }
+      else if( hhg::globalDefines::useGeneratedKernels )
       {
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -69,7 +77,8 @@ EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t
         {
           edgedof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
         }
-      } else
+      }
+      else
       {
         edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
       }
@@ -105,6 +114,10 @@ const PrimitiveDataID<StencilMemory<real_t>, Edge> &EdgeDoFOperator::getEdgeSten
 
 const PrimitiveDataID<StencilMemory<real_t>, Face> &EdgeDoFOperator::getFaceStencilID() const {
   return faceStencilID_;
+}
+
+const PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face> &EdgeDoFOperator::getFaceStencil3DID() const {
+  return faceStencil3DID_;
 }
 
 const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell> &EdgeDoFOperator::getCellStencilID() const {

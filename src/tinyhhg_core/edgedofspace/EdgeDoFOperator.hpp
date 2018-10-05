@@ -21,11 +21,13 @@ public:
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
+  const PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face  > &getFaceStencil3DID() const;
   const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
+  PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face  > faceStencil3DID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > cellStencilID_;
 
 };

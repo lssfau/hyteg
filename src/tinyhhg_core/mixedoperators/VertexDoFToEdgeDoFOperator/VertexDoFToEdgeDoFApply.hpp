@@ -13,7 +13,7 @@ namespace hhg{
 namespace VertexDoFToEdgeDoF{
 
 /// map[neighborCellID][centerOrientation][indexOffset] = weight
-typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > > MacroFaceStencilMap_T;
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > MacroFaceStencilMap_T;
 
 /// map[centerOrientation][indexOffset] = weight
 typedef std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > MacroCellStencilMap_T;
@@ -116,12 +116,12 @@ inline void applyFace(const uint_t & Level, Face &face,
 }
 
 
-inline void apply3D( const uint_t & level, Face &face,
-                     const PrimitiveStorage & storage,
-                     const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face > &operatorId,
-                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcId,
-                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstId,
-                     UpdateType update)
+inline void applyFace3D( const uint_t & level, Face &face,
+                         const PrimitiveStorage & storage,
+                         const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face > &operatorId,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcId,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstId,
+                         UpdateType update)
 {
   auto opr_data = face.getData(operatorId)->getData( level );
   real_t * src  = face.getData(srcId)->getPointer( level );

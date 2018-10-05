@@ -20,11 +20,15 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
                                                                         maxLevel_,
                                                                         VertexDoFToEdgeDoF::macroFaceVertexDoFToEdgeDoFStencilSize);
 
+  auto face3DDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face > >( minLevel_, maxLevel_ );
+
   auto cellDataHandling =
     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell > >( minLevel_, maxLevel_ );
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addFaceData(faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil3D");
   storage->addCellData(cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil");
 
   // Only assemble stencils if UFCOperator is specified
@@ -101,6 +105,8 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
   src.communicate<Vertex, Edge>( level );
   ///secondly the vertex dofs on the macro edge are communicated to the face passing on the vertex dof from the macro vertex
   src.communicate<Edge, Face>( level );
+  src.communicate< Face, Cell >( level );
+  src.communicate< Cell, Face >( level );
   ///lastly the vertex dofs on the macro face are communicated to the edge which also contain vertex dofs which are located on neighboring edges
   src.startCommunication<Face, Edge>( level );
 
@@ -120,7 +126,11 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag))
     {
-      if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+      if ( storage_->hasGlobalCells() )
+      {
+        VertexDoFToEdgeDoF::applyFace3D( level, face, *storage_, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+      }
+      else if( hhg::globalDefines::useGeneratedKernels )
       {
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -132,7 +142,8 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
         {
           VertexDoFToEdgeDoF::generated::applyFaceAdd( dst_data, src_data, opr_data, level );
         }
-      } else
+      }
+      else
       {
         VertexDoFToEdgeDoF::applyFace( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
       }

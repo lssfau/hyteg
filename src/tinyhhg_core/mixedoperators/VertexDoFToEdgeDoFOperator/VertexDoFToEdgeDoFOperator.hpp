@@ -31,6 +31,7 @@ public:
   /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
   const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
   const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
+  const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face> &getFaceStencil3DID() const { return faceStencil3DID_; }
   const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell> &getCellStencilID() const { return cellStencilID_; }
 
 private:
@@ -39,6 +40,7 @@ private:
 
   PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID< StencilMemory< real_t >, Face> faceStencilID_;
+  PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face> faceStencil3DID_;
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell> cellStencilID_;
 
 };
