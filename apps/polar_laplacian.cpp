@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
 
   // output data for visualisation
   if( outputVTK ) {
-    hhg::VTKOutput vtkOutput(  "../output", "polar" );
+    hhg::VTKOutput vtkOutput("../output", "polar", storage);
     vtkOutput.add( &u );
     vtkOutput.add( &u_exact );
     vtkOutput.add( &res );

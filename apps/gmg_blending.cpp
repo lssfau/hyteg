@@ -322,7 +322,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 
   if (parameters.getParameter<bool>("vtkOutput")) {
-    hhg::VTKOutput vtkOutput("../output", "gmg_blending");
+    hhg::VTKOutput vtkOutput("../output", "gmg_blending", storage);
     vtkOutput.add(&u);
 //    vtkOutput.add(&u_fe);
     vtkOutput.add(&err);

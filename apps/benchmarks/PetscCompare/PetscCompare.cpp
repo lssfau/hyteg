@@ -180,7 +180,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "petscCompare" );
+      hhg::VTKOutput vtkOutput("./output", "petscCompare", storage);
       vtkOutput.add( &x );
       vtkOutput.add( &z );
       vtkOutput.add( &y );

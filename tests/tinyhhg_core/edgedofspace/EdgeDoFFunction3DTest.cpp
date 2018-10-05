@@ -50,8 +50,7 @@ int main(int argc, char **argv)
       return real_c(1);
   };
 
-  VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest" );
-  vtkOutput.set3D();
+  VTKOutput vtkOutput("../../output", "EdgeDoFInterpolation3DTest", storage);
   vtkOutput.add( &x1 );
   vtkOutput.add( &x2 );
   vtkOutput.add( &xSum );

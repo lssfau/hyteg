@@ -69,8 +69,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   oneFunction.interpolate( one, level, DoFType::All );
   const real_t numPoints  = oneFunction.dotGlobal( oneFunction, level, DoFType::Inner );
 
-  VTKOutput vtkOutput( "../../output", "P1LaplaceOperatorTest3D" );
-  vtkOutput.set3D();
+  VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &result );
   vtkOutput.add( &resultExact );

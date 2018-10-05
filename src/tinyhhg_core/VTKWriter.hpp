@@ -1,3 +1,7 @@
+#include <utility>
+
+#include <utility>
+
 
 #pragma once
 
@@ -31,14 +35,15 @@ class VTKOutput
 public:
 
   /// \param writeFrequency outputs VTK in the specified frequency
-  VTKOutput( const std::string & dir, const std::string & filename, const uint_t & writeFrequency = 1 ) :
-     dir_( dir ), filename_( filename ), writeFrequency_( writeFrequency ), write2D_( true )
-  {}
-
-  /// Writes only macro-faces.
-  void set2D() { write2D_ = true; }
-  /// Writes only macro-cells.
-  void set3D() { write2D_ = false; }
+  VTKOutput(std::string dir, std::string filename, const std::shared_ptr<PrimitiveStorage> &storage, const uint_t &writeFrequency = 1) :
+     dir_(std::move(dir)), filename_(std::move(filename)), writeFrequency_( writeFrequency ), write2D_( true )
+  {
+     /// set output to 3D is storage contains cells
+     if( storage->hasGlobalCells() )
+     {
+        set3D();
+     }
+  }
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
   void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
@@ -105,6 +110,11 @@ private:
   void writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level     ) const;
 
   void syncAllFunctions( const uint_t & level ) const;
+
+  /// Writes only macro-faces.
+  void set2D() { write2D_ = true; }
+  /// Writes only macro-cells.
+  void set3D() { write2D_ = false; }
 
   std::string dir_;
   std::string filename_;

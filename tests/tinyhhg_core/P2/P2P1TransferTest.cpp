@@ -22,7 +22,7 @@ static void testP2P1Transfer()
   auto p1Function = std::make_shared< P1Function< real_t > >( "p1Function", storage, level, level );
   auto p2Function = std::make_shared< P2Function< real_t > >( "p2Function", storage, level, level );
 
-  VTKOutput vtkOutput( "../../output", "P2P1TransferTest" );
+  VTKOutput vtkOutput("../../output", "P2P1TransferTest", storage);
   vtkOutput.add( p1Function );
   vtkOutput.add( p2Function );
 

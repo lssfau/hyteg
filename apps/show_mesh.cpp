@@ -288,7 +288,7 @@ int main( int argc, char* argv[] )
    hhg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
    WALBERLA_LOG_INFO_ON_ROOT( "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: " << vtkFileName + "_domain_partitioning" );
 
-   hhg::VTKOutput                                 vtkOutput( "../output", vtkFileName );
+   hhg::VTKOutput vtkOutput("../output", vtkFileName, storage);
    hhg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
    std::function< real_t( const hhg::Point3D& ) > myFunc = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    someData.interpolate( myFunc, maxLevel );

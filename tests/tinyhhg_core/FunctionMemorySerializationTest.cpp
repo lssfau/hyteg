@@ -39,10 +39,10 @@ static void testFunctionMemorySerialization()
   P1Function< real_t > x("x", storage, minLevel, maxLevel);
   P1ConstantLaplaceOperator A(storage, minLevel, maxLevel);
 
-  VTKOutput vtkOutputBefore( "../../output/", "function_memory_serialization_test_data_before_migration" );
+  VTKOutput vtkOutputBefore("../../output/", "function_memory_serialization_test_data_before_migration", storage);
   vtkOutputBefore.add( &x );
 
-  VTKOutput vtkOutputAfter( "../../output/", "function_memory_serialization_test_data_after_migration" );
+  VTKOutput vtkOutputAfter("../../output/", "function_memory_serialization_test_data_after_migration", storage);
   vtkOutputAfter.add( &x );
 
   std::function<real_t(const hhg::Point3D&)> gradient = [](const hhg::Point3D& xx) { return xx[0]; };

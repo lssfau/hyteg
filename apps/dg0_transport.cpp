@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
   v->interpolate(vel_y, maxLevel);
   c_old->interpolate(initialConcentration, maxLevel);
 
-  hhg::VTKOutput vtkOutput( "../output", "dg0_transport" );
+  hhg::VTKOutput vtkOutput("../output", "dg0_transport", storage);
 
   vtkOutput.add( u );
   vtkOutput.add( v );
