@@ -336,7 +336,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender
   const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
   auto dstEdgeOrientationX = edgedof::convertEdgeDoFOrientation(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
-  auto dstEdgeOrientationY = edgedof::convertEdgeDoFOrientation(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+  auto dstEdgeOrientationY = edgedof::convertEdgeDoFOrientation(edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientation(edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
 
   auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
