@@ -4,10 +4,13 @@
 
 #include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 namespace hhg {
 namespace edgedof {
@@ -16,6 +19,8 @@ namespace macroface {
 using walberla::uint_t;
 using walberla::real_c;
 
+/// map[neighborCellID][centerOrientation][leafOrientation][indexOffset] = weight
+typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > > StencilMap_T;
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,
@@ -377,6 +382,94 @@ inline void apply( const uint_t & Level, Face &face,
         dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] = tmp;
       } else if ( update==Add ) {
         dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] += tmp;
+      }
+    }
+  }
+}
+
+
+inline void apply3D( const uint_t & level, Face &face,
+                     const PrimitiveStorage & storage,
+                     const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face > &operatorId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstId,
+                     UpdateType update)
+{
+  auto opr_data = face.getData(operatorId)->getData( level );
+  real_t * src  = face.getData(srcId)->getPointer( level );
+  real_t * dst  = face.getData(dstId)->getPointer( level );
+
+  const std::vector< edgedof::EdgeDoFOrientation > faceCenterOrientations = { edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY };
+
+  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  {
+    std::map< edgedof::EdgeDoFOrientation, real_t > tmpResults = {
+      { edgedof::EdgeDoFOrientation::X, real_c(0) },
+      { edgedof::EdgeDoFOrientation::Y, real_c(0) },
+      { edgedof::EdgeDoFOrientation::XY, real_c(0) },
+    };
+
+    for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
+    {
+      const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+      const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+      const std::array< uint_t, 4 > localVertexIDsAtCell = {
+        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
+        6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
+          - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
+          - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
+      };
+
+      const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+
+      for ( const auto & faceCenterOrientation : faceCenterOrientations )
+      {
+        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+          continue;
+        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+          continue;
+        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
+          continue;
+
+        const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientation( faceCenterOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+
+        for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+        {
+          for ( const auto & stencilIt : opr_data[neighborCellID][cellCenterOrientation][leafOrientation] )
+          {
+            const auto stencilOffset = stencilIt.first;
+            const auto stencilWeight = stencilIt.second;
+
+            const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+            const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+            WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+            uint_t leafArrayIndexInFace;
+            if ( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientation ) )
+            {
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation, neighborCellID );
+            }
+            else
+            {
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation );
+            }
+
+            tmpResults[faceCenterOrientation] += stencilWeight * src[leafArrayIndexInFace];
+
+          }
+        }
+
+        const auto dstIdx = edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
+        if ( update == Replace )
+        {
+          dst[dstIdx] = tmpResults[faceCenterOrientation];
+        }
+        else
+        {
+          dst[dstIdx] += tmpResults[faceCenterOrientation];
+        }
       }
     }
   }
