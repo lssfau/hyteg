@@ -140,7 +140,6 @@ int main( int argc, char* argv[] )
    hhg::VTKOutput vtkOutput("./output", "StokesSphereTransport", storage, VTKOutputFrequency);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.set3D();
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );

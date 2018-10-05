@@ -128,7 +128,6 @@ int main( int argc, char* argv[] )
    hhg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.set3D();
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );
