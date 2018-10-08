@@ -788,7 +788,7 @@ inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, c
     case EdgeDoFOrientation::XYZ:
       return isInnerXYZEdgeDoF( level, idx );
     default:
-      WALBERLA_ASSERT( false, "Invalid orientation." )
+      WALBERLA_ASSERT( false, "Invalid orientation." );
       return true;
   }
 }
