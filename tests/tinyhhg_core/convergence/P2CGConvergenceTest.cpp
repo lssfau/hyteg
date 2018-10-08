@@ -1,61 +1,53 @@
-#include <tinyhhg_core/VTKWriter.hpp>
-#include "core/timing/Timer.h"
-
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/logging/Logging.h"
+#include "core/timing/Timer.h"
 
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
-using walberla::uint_t;
 using walberla::uint_c;
+using walberla::uint_t;
 
-using namespace hhg;
+namespace hhg {
 
-int main(int argc, char* argv[])
+void P2CGTest( const std::string meshFile, const uint_t level, const real_t targetError )
 {
-  walberla::Environment walberlaEnv(argc, argv);
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-  walberla::MPIManager::instance()->useWorldComm();
+   const real_t tolerance = 1e-16;
+   const uint_t maxIter   = 1000;
 
-  const uint_t level         = 3;
-  const std::string meshFile = "../../data/meshes/3D/tet_1el.msh";
-  const real_t tolerance     = 1e-15;
-  const uint_t maxIter       = 1000;
+   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-  auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
+   hhg::P2ConstantLaplaceOperator L( storage, level, level );
 
-  hhg::P2ConstantLaplaceOperator L(storage, level, level);
+   hhg::P2Function< real_t > r( "r", storage, level, level );
+   hhg::P2Function< real_t > f( "f", storage, level, level );
+   hhg::P2Function< real_t > u( "u", storage, level, level );
+   hhg::P2Function< real_t > u_exact( "u_exact", storage, level, level );
+   hhg::P2Function< real_t > err( "err", storage, level, level );
+   hhg::P2Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
-  hhg::P2Function< real_t > r("r", storage, level, level);
-  hhg::P2Function< real_t > f("f", storage, level, level);
-  hhg::P2Function< real_t > u("u", storage, level, level);
-  hhg::P2Function< real_t > u_exact("u_exact", storage, level, level);
-  hhg::P2Function< real_t > err("err", storage, level, level);
-  hhg::P2Function< real_t > npoints_helper("npoints_helper", storage, level, level);
+   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const hhg::Point3D& ) > rhs   = []( const hhg::Point3D& ) { return 0; };
+   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0; };
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+   u.interpolate( exact, level, hhg::DirichletBoundary );
+   u_exact.interpolate( exact, level );
 
-  u.interpolate(exact, level, hhg::DirichletBoundary);
-  u_exact.interpolate(exact, level);
+   auto solver = hhg::CGSolver< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator >( storage, level, level );
+   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, true );
 
-  auto solver = hhg::CGSolver<hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator>(storage, level, level);
-  solver.solve(L, u, f, r, level, tolerance, maxIter, hhg::Inner, true);
+   err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
+   npoints_helper.interpolate( ones, level );
 
-  err.assign({1.0, -1.0}, {&u, &u_exact}, level);
-  npoints_helper.interpolate(ones, level);
+   const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
+   const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
-  const real_t npoints = npoints_helper.dotGlobal(npoints_helper, level);
-  const real_t discr_l2_err = std::sqrt(err.dotGlobal(err, level) / npoints);
-
-
-   hhg::VTKOutput vtkOutput("../../output", "P2CGConvergenceTest", storage);
+   hhg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
    vtkOutput.add( &u );
    vtkOutput.add( &u_exact );
    vtkOutput.add( &f );
@@ -64,8 +56,19 @@ int main(int argc, char* argv[])
    vtkOutput.add( &npoints_helper );
    vtkOutput.write( level );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
+   WALBERLA_CHECK_LESS( discr_l2_err, targetError );
+}
 
-  WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
-  WALBERLA_CHECK_LESS( discr_l2_err, 2e-8 );
-  return 0;
+} // namespace hhg
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   hhg::P2CGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7 );
+   hhg::P2CGTest( "../../data/meshes//quad_4el.msh", 3, 1e-6 );
+   hhg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 2, 2e-2 );
 }
