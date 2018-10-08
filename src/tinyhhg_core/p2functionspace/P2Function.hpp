@@ -488,6 +488,12 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_->enumerate( level, offset );
    }
 
+   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode )
+   {
+      vertexDoFFunction_->setLocalCommunicationMode( localCommMode );
+      edgeDoFFunction_->setLocalCommunicationMode( localCommMode );
+   }
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
 
