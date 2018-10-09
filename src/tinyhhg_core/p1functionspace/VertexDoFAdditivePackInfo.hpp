@@ -387,10 +387,13 @@ void VertexDoFAdditivePackInfo< ValueType >::packCellForVertex(const Cell *sende
   {
     case 1:
       microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 2:
       microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 3:
       microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     default:
       break;
   }
@@ -445,10 +448,13 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const 
   {
     case 1:
       microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 2:
       microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 3:
       microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     default:
       break;
   }
