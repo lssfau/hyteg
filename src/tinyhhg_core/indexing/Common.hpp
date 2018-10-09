@@ -66,6 +66,8 @@ public:
   Index()                      : PointND< uint_t, 3 >()        {}
   Index( const Index & other ) : PointND< uint_t, 3 >( other ) {}
 
+  static Index max() { return Index( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() ); }
+
   Index( const uint_t & x, const uint_t & y, const uint_t & z )
   {
     x_[0] = x;
