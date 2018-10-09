@@ -26,7 +26,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   // 2. laplace(u) = 0, if u linear
 
   const bool   writeVTK   = true;
-  const real_t errorLimit = 5.0e-13;
+  const real_t errorLimit = 5.1e-13;
 
   uint_t timestep = 0;
 
@@ -42,6 +42,72 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
 
   P2ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
+  // Although the apply test should be sufficient we check here again explicitly that the sum
+  // of the stencil weights at every inner point of the mesh is equal to zero.
+  // This is equivalent to checking that the row wise sums are equal to zero in the stiffness matrix.
+
+  ////////////////
+  // Macro-face //
+  ////////////////
+
+  for ( const auto & faceIt : storage->getFaces() )
+  {
+    auto face = faceIt.second;
+    // skip faces at boundary
+    if ( face->getNumNeighborCells() < 2 )
+      continue;
+
+    // At vertices
+    auto vertexToVertexStencilSize = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencilID() )->getSize( level );
+    auto vertexToVertexStencilArray = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+
+    real_t sumAtVertex = real_c(0);
+    for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
+    {
+      sumAtVertex += vertexToVertexStencilArray[i];
+    }
+
+    auto edgeToVertexStencilMap = face->getData( laplaceOperator3D.getEdgeToVertexOpr().getFaceStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+      for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
+        for ( auto direction : leafOrientation.second )
+        {
+          WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (edge -> vertex) " << direction.second )
+          sumAtVertex += direction.second;
+        }
+
+
+    WALBERLA_LOG_DEVEL_ON_ROOT( "Face stencil sum = " << sumAtVertex );
+    WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
+
+    // At edges
+    // For now we add all three types of edges to check that row sum == 0 (since 0 + 0 + 0 == 0 ;) )
+    // This is however not sufficient to be really sure that the row sum for the individual edge types are zero.
+    real_t sumAtAllEdgeTypes = real_c(0);
+
+    auto vertexToEdgeStencilMap = face->getData( laplaceOperator3D.getVertexToEdgeOpr().getFaceStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+      for ( auto centerOrientation : vertexToEdgeStencilMap.at(neighborCellId) )
+        for ( auto direction : centerOrientation.second )
+        {
+          WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (vertex -> edge)" << direction.second )
+          sumAtAllEdgeTypes += direction.second;
+        }
+
+    auto edgeToEdgeStencilMap = face->getData( laplaceOperator3D.getEdgeToEdgeOpr().getFaceStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+      for ( auto centerOrientation : edgeToEdgeStencilMap.at(neighborCellId) )
+        for ( auto leafOrientation : centerOrientation.second )
+          for ( auto direction : leafOrientation.second )
+          {
+            WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (edge -> edge)" << direction.second )
+            sumAtAllEdgeTypes += direction.second;
+          }
+    WALBERLA_LOG_DEVEL_ON_ROOT( "Face stencil sum = " << sumAtAllEdgeTypes );
+    WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
+  }
+
+
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
   {
       return 0.0;
@@ -55,6 +121,11 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   std::function< real_t( const hhg::Point3D& ) > linearInX = []( const hhg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0];
+  };
+
+  std::function< real_t( const hhg::Point3D& ) > linearInXY = []( const hhg::Point3D & p ) -> real_t
+  {
+      return p[0] + p[1];
   };
 
   std::function< real_t( const hhg::Point3D& ) > linearInXYZ = []( const hhg::Point3D & p ) -> real_t
@@ -117,7 +188,12 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x: L2 error: " << errorULinearInX );
   WALBERLA_CHECK_LESS( errorULinearInX, errorLimit );
 
-  //   b) u linear in x, y and z
+  //   b) u linear in x and y
+  const real_t errorULinearInXY   = testLaplaceResult( linearInXY, zero );
+  WALBERLA_LOG_INFO_ON_ROOT( "u linear in x and y: L2 error: " << errorULinearInXY );
+  WALBERLA_CHECK_LESS( errorULinearInXY, errorLimit );
+
+  //   c) u linear in x, y and z
   const real_t errorULinearInXYZ = testLaplaceResult( linearInXYZ, zero );
   WALBERLA_LOG_INFO_ON_ROOT( "u linear in x, y and z: L2 error: " << errorULinearInXYZ );
   WALBERLA_CHECK_LESS( errorULinearInXYZ, errorLimit );
@@ -127,17 +203,23 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
 #if 0
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
 #endif
+
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
+  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
+
 #if 0
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
+#endif
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
+#if 0
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
