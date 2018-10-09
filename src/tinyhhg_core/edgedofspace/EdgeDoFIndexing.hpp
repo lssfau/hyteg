@@ -38,6 +38,8 @@ const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = { EdgeDoFOrie
                                                                      EdgeDoFOrientation::XY, EdgeDoFOrientation::XZ, EdgeDoFOrientation::YZ,
                                                                      EdgeDoFOrientation::XYZ,};
 
+const std::array< EdgeDoFOrientation, 3 > faceLocalEdgeDoFOrientations = { EdgeDoFOrientation::X, EdgeDoFOrientation::Y, EdgeDoFOrientation::XY };
+
 const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
   { EdgeDoFOrientation::X, "X"},
   { EdgeDoFOrientation::Y, "Y"},
@@ -226,8 +228,44 @@ inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation sr
          return EdgeDoFOrientation::XYZ;
       default:
          WALBERLA_ABORT("wrong orienation")
-
    }
+}
+
+/// \brief Converts the orientation of an edge DoF in a macro-cell to the respective orientation in a neighboring macro-face.
+///
+/// \param orientationInCell the edgedof orientation from the cell-local point of view
+/// \param cellLocalID0 the first index of the face from cell-local point of view (face-local == 0)
+/// \param cellLocalID1 the second index of the face from cell-local point of view (face-local == 1)
+/// \param cellLocalID2 the third index of the face from cell-local point of view (face-local == 2)
+/// \return the edge DoF orientation from the face-local point of view
+inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrientation & orientationInCell, const uint_t & cellLocalID0, const uint_t & cellLocalID1, const uint_t & cellLocalID2 )
+{
+  uint_t v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
+  std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;
+  cellLocalToFaceLocalIDs[cellLocalID0] = 0;
+  cellLocalToFaceLocalIDs[cellLocalID1] = 1;
+  cellLocalToFaceLocalIDs[cellLocalID2] = 2;
+  cellLocalToFaceLocalIDs[v3] = 3;
+  switch ( orientationInCell )
+  {
+    case EdgeDoFOrientation::X:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[0], cellLocalToFaceLocalIDs[1] );
+    case EdgeDoFOrientation::Y:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[0], cellLocalToFaceLocalIDs[2] );
+    case EdgeDoFOrientation::XY:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[1], cellLocalToFaceLocalIDs[2] );
+    case EdgeDoFOrientation::Z:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[0], cellLocalToFaceLocalIDs[3] );
+    case EdgeDoFOrientation::XZ:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[1], cellLocalToFaceLocalIDs[3] );
+    case EdgeDoFOrientation::YZ:
+      return getEdgeDoFOrientationFromLocalIDs( cellLocalToFaceLocalIDs[2], cellLocalToFaceLocalIDs[3] );
+    case EdgeDoFOrientation::XYZ:
+      /// nothing changes here
+      return EdgeDoFOrientation::XYZ;
+    default:
+    WALBERLA_ABORT( "wrong orienation" )
+  }
 }
 
 
@@ -378,7 +416,7 @@ namespace macroface {
 typedef stencilDirection sD;
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation )
+inline uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation )
 {
   switch ( orientation )
   {
@@ -388,7 +426,8 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
       return 2 * levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
     case EdgeDoFOrientation::XY:
        return levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ), x, y );
-    case EdgeDoFOrientation::INVALID:
+    default:
+      WALBERLA_ASSERT( false, "Invalid orientation" );
       return std::numeric_limits< uint_t >::max();
   }
 }
@@ -428,24 +467,24 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
    }
 }
 
-inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
+inline uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
    return index( level, col, row, EdgeDoFOrientation::X);
 };
 
-inline constexpr uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
+inline uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
    return index( level, col, row, EdgeDoFOrientation::Y);
 }
 
-inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
+inline uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & row )
 {
    return index( level, col, row, EdgeDoFOrientation::XY);
 }
 
 // Stencil access functions
 
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
@@ -476,7 +515,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdgeWithoutCent
      sD::EDGE_DI_N, sD::EDGE_VE_NW
    }};
 
-inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
@@ -507,7 +546,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdgeWithoutCenter
      sD::EDGE_HO_N, sD::EDGE_VE_W
    }};
 
-inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   switch( dir )
   {
@@ -538,7 +577,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdgeWithoutCenter
      sD::EDGE_HO_NW, sD::EDGE_DI_W
    }};
 
-inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
+inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const uint_t & row, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -792,6 +831,7 @@ inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, c
       return true;
   }
 }
+
 
 // Iterators
 
