@@ -19,12 +19,16 @@ void checkComm3d(const uint_t level){
    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
    hhg::EdgeDoFFunction< uint_t > x("x", storage, level, level);
+   hhg::EdgeDoFFunction< uint_t > y("x", storage, level, level);
+   y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
    for (auto &cellIt : storage->getCells()) {
       Cell &face = *cellIt.second;
       uint_t *cellData = face.getData(x.getCellDataID())->getPointer(level);
+      uint_t *cellDataY = face.getData(y.getCellDataID())->getPointer(level);
       for(uint_t i = 0; i < face.getData(x.getCellDataID())->getSize(level); ++i){
          cellData[i] = 13;
+         cellDataY[i] = 13;
       }
    }
 
@@ -33,8 +37,10 @@ void checkComm3d(const uint_t level){
    for (auto &faceIt : storage->getFaces()) {
       Face &face = *faceIt.second;
       uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(level);
+      uint_t *faceDataY = face.getData(y.getFaceDataID())->getPointer(level);
       for(uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData(x.getFaceDataID())->getSize(level); ++i){
          WALBERLA_CHECK_EQUAL( faceData[i], 13, i);
+         WALBERLA_CHECK_EQUAL( faceDataY[i], 13, i);
       }
    }
 
