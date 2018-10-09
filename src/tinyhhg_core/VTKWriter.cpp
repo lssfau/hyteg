@@ -999,6 +999,7 @@ void VTKOutput::syncAllFunctions( const uint_t & level ) const
   {
     function->communicate< Vertex, Edge >( level );
     function->communicate< Edge,   Face >( level );
+    function->communicate< Face,   Cell >( level );
   }
 
   for ( const auto & function : dgFunctions_ )
