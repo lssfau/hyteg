@@ -140,10 +140,12 @@ inline void applyFace3D( const uint_t & level, Face &face,
 
   for ( const auto & centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
   {
-    real_t tmp = real_c( 0 );
+    std::map< uint_t, real_t > contributionPerCell;
 
     for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
     {
+      contributionPerCell[neighborCellID] = real_c(0);
+
       const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
       const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
 
@@ -158,6 +160,8 @@ inline void applyFace3D( const uint_t & level, Face &face,
 
       const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
 
+      WALBERLA_ASSERT_GREATER( vertexdof::macrocell::isOnCellFace( centerIndexInCell, level ).size(), 0 );
+
       for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
       {
         for ( const auto & stencilIt : opr_data[neighborCellID][leafOrientation] )
@@ -165,34 +169,36 @@ inline void applyFace3D( const uint_t & level, Face &face,
           const auto stencilOffset = stencilIt.first;
           const auto stencilWeight = stencilIt.second;
 
+          const auto leafOrientationInFace = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+
           const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-          const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+          const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
           WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
           uint_t leafArrayIndexInFace;
-          if ( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientation ) )
+          if ( std::find( edgedof::faceLocalEdgeDoFOrientations.begin(), edgedof::faceLocalEdgeDoFOrientations.end(), leafOrientationInFace ) != edgedof::faceLocalEdgeDoFOrientations.end() && leafIndexInFace.z() == 0 )
           {
-            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation, neighborCellID );
+            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
           }
           else
           {
-            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation );
+            leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
           }
 
-          tmp += stencilWeight * src[leafArrayIndexInFace];
-
+          contributionPerCell[neighborCellID] += stencilWeight * src[leafArrayIndexInFace];
         }
       }
+    }
 
-      const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
-      if ( update == Replace )
-      {
-        dst[dstIdx] = tmp;
-      }
-      else
-      {
-        dst[dstIdx] += tmp;
-      }
+    WALBERLA_ASSERT_EQUAL( contributionPerCell.size(), 2, "Apply currently not implemented for face with single neighbor." );
 
+    const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
+    if ( update == Replace )
+    {
+      dst[dstIdx] = contributionPerCell[0] + contributionPerCell[1];
+    }
+    else
+    {
+      dst[dstIdx] += contributionPerCell[0] + contributionPerCell[1];
     }
   }
 }

@@ -399,41 +399,38 @@ inline void apply3D( const uint_t & level, Face &face,
   real_t * src  = face.getData(srcId)->getPointer( level );
   real_t * dst  = face.getData(dstId)->getPointer( level );
 
-  const std::vector< edgedof::EdgeDoFOrientation > faceCenterOrientations = { edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY };
-
   for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
   {
     std::map< edgedof::EdgeDoFOrientation, real_t > tmpResults = {
-      { edgedof::EdgeDoFOrientation::X, real_c(0) },
-      { edgedof::EdgeDoFOrientation::Y, real_c(0) },
-      { edgedof::EdgeDoFOrientation::XY, real_c(0) },
+    { edgedof::EdgeDoFOrientation::X, real_c(0) },
+    { edgedof::EdgeDoFOrientation::Y, real_c(0) },
+    { edgedof::EdgeDoFOrientation::XY, real_c(0) },
     };
 
-    for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
+    for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
     {
-      const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
-      const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
+        continue;
 
-      const std::array< uint_t, 4 > localVertexIDsAtCell = {
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
-        6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
-          - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
-          - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
-      };
-
-      const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-
-      for ( const auto & faceCenterOrientation : faceCenterOrientations )
+      for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
       {
-        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
-          continue;
-        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
-          continue;
-        if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
-          continue;
+        const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+        const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
 
+        const std::array< uint_t, 4 > localVertexIDsAtCell = {
+          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
+          6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
+            - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
+            - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
+        };
+
+        const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
         const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientation( faceCenterOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
 
         for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
@@ -443,33 +440,34 @@ inline void apply3D( const uint_t & level, Face &face,
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
+            const auto leafOrientationInFace = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+
             const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-            const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+            const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
             WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
             uint_t leafArrayIndexInFace;
-            if ( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientation ) )
+            if ( std::find( edgedof::faceLocalEdgeDoFOrientations.begin(), edgedof::faceLocalEdgeDoFOrientations.end(), leafOrientationInFace ) != edgedof::faceLocalEdgeDoFOrientations.end() && leafIndexInFace.z() == 0 )
             {
-              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation, neighborCellID );
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
             }
             else
             {
-              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientation );
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
             }
 
             tmpResults[faceCenterOrientation] += stencilWeight * src[leafArrayIndexInFace];
-
           }
         }
+      }
 
-        const auto dstIdx = edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
-        if ( update == Replace )
-        {
-          dst[dstIdx] = tmpResults[faceCenterOrientation];
-        }
-        else
-        {
-          dst[dstIdx] += tmpResults[faceCenterOrientation];
-        }
+      const auto dstIdx = edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
+      if ( update == Replace )
+      {
+        dst[dstIdx] = tmpResults[faceCenterOrientation];
+      }
+      else
+      {
+        dst[dstIdx] += tmpResults[faceCenterOrientation];
       }
     }
   }
