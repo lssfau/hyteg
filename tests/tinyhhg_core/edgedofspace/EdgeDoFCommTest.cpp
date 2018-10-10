@@ -14,7 +14,7 @@ using walberla::real_t;
 void checkComm3d(const uint_t level){
 
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/pyramid_2el.msh");
+   MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh");
    SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
@@ -22,6 +22,7 @@ void checkComm3d(const uint_t level){
    hhg::EdgeDoFFunction< uint_t > y("x", storage, level, level);
    y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
+   /// check cell to face comm
    for (auto &cellIt : storage->getCells()) {
       Cell &face = *cellIt.second;
       uint_t *cellData = face.getData(x.getCellDataID())->getPointer(level);
@@ -33,6 +34,7 @@ void checkComm3d(const uint_t level){
    }
 
    x.communicate< Cell, Face >( level );
+   y.communicate< Cell, Face >( level );
 
    for (auto &faceIt : storage->getFaces()) {
       Face &face = *faceIt.second;
