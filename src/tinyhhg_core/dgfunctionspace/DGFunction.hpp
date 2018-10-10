@@ -271,7 +271,7 @@ void DGFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 
   ValueType startOnRank = offset;
 
-  for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+  for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
   {
     startOnRank += dofs_per_rank[i];
   }

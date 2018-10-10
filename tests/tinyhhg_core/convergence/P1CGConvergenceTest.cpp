@@ -38,10 +38,10 @@ int main( int argc, char* argv[] )
    hhg::P1ConstantLaplaceOperator L( storage, level, level );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
-      return ( 1.0L / 2.0L ) * sin( 2 * x[0] ) * sinh( x[1] );
+      return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x ) {
-      return ( 3.0L / 2.0L ) * sin( 2 * x[0] ) * sinh( x[1] );
+      return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 

@@ -299,7 +299,9 @@ inline void applyCoefficient( const uint_t & level, Edge &edge,
   uint_t e_south = face->vertex_index(edge.neighborVertices()[1]);
   uint_t o_south = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-  uint_t s_north, e_north, o_north;
+  uint_t s_north = std::numeric_limits< uint_t >::max();
+  uint_t e_north = std::numeric_limits< uint_t >::max();
+  uint_t o_north = std::numeric_limits< uint_t >::max();
 
   if (edge.getNumNeighborFaces() == 2) {
     face = storage->getFace(edge.neighborFaces()[1]);
@@ -429,7 +431,9 @@ inline void smooth_gs_coefficient(uint_t level, Edge &edge,
   uint_t e_south = face->vertex_index(edge.neighborVertices()[1]);
   uint_t o_south = face->vertex_index(face->get_vertex_opposite_to_edge(edge.getID()));
 
-  uint_t s_north, e_north, o_north;
+  uint_t s_north = std::numeric_limits< uint_t >::max();
+  uint_t e_north = std::numeric_limits< uint_t >::max();
+  uint_t o_north = std::numeric_limits< uint_t >::max();
 
   if (edge.getNumNeighborFaces() == 2) {
     face = storage->getFace(edge.neighborFaces()[1]);
@@ -612,11 +616,9 @@ inline void integrateDG(const uint_t & level, Edge &edge,
   ValueType tmp;
 
   Face* face = storage->getFace(edge.neighborFaces()[0]);
-  real_t weightedFaceArea0, weightedFaceArea1;
 
-  weightedFaceArea0 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
-
-  uint_t s_north, e_north, o_north;
+  real_t weightedFaceArea0 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
+  real_t weightedFaceArea1 = real_c( 0 );
 
   if (edge.getNumNeighborFaces() == 2) {
     face = storage->getFace(edge.neighborFaces()[1]);

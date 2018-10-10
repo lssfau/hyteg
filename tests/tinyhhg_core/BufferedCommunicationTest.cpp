@@ -15,14 +15,14 @@ namespace hhg {
 
 struct VertexTestData
 {
-  uint_t ownID;
-  std::vector< uint_t > edgeIDs;
+  PrimitiveID::IDType ownID;
+  std::vector< PrimitiveID::IDType > edgeIDs;
 };
 
 struct EdgeTestData
 {
-  uint_t ownID;
-  std::vector< uint_t > vertexIDs;
+  PrimitiveID::IDType ownID;
+  std::vector< PrimitiveID::IDType > vertexIDs;
 };
 
 struct VertexTestDataHandling : OnlyInitializeDataHandling< VertexTestData, Vertex >
@@ -234,12 +234,12 @@ static void testBufferedCommunication()
     auto vertex = it.second;
     auto data = vertex->getData( vertexTestDataID );
     WALBERLA_CHECK_GREATER( data->edgeIDs.size(), 0 );
-    std::set< uint_t > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
+    std::set< PrimitiveID::IDType > edgeIdsSet( data->edgeIDs.begin(), data->edgeIDs.end() );
     WALBERLA_CHECK_EQUAL( data->edgeIDs.size(), edgeIdsSet.size() );
 
     for ( const auto & higherDimNeighborID : vertex->getHigherDimNeighbors() )
     {
-      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( higherDimNeighborID.getID() ), 1 );
+      WALBERLA_CHECK_EQUAL( edgeIdsSet.count( uint_c( higherDimNeighborID.getID() ) ), 1 );
     }
   }
 
