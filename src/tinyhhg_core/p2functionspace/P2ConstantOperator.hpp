@@ -240,8 +240,7 @@ private:
         /// Vertex -> Vertex ///
         ////////////////////////
 
-        auto          stencilSize   = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getSize( level );
-        auto          stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+        auto stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
 
         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
 

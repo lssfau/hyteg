@@ -512,7 +512,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
       cellIterator3++;
    }
 
-   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) ) {}
+   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) ) { WALBERLA_UNUSED( faceIdx ); }
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
 }

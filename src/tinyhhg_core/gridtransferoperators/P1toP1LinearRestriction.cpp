@@ -104,6 +104,11 @@ void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function, 
     std::array< real_t, 4 > invNumNeighborsOfVertex;
     std::array< real_t, 6 > invNumNeighborsOfEdge;
     std::array< real_t, 4 > invNumNeighborsOfFace;
+
+    invNumNeighborsOfVertex.fill( real_c(0) );
+    invNumNeighborsOfEdge.fill( real_c(0) );
+    invNumNeighborsOfFace.fill( real_c(0) );
+
     for ( const auto & neighborVertexID : cell->neighborVertices() )
     {
       invNumNeighborsOfVertex[ cell->getLocalVertexID( neighborVertexID ) ] = real_c( 1 ) / real_c( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells() );

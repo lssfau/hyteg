@@ -462,7 +462,7 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
          return ownDoFs + ghostOnParallelFace + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y ) + offset;
       case EdgeDoFOrientation::XYZ:
          return ownDoFs * 2 + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
-      case EdgeDoFOrientation::INVALID:
+      default:
          return std::numeric_limits< uint_t >::max();
    }
 }
@@ -761,7 +761,7 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
     return yzIndex( level, x, y, z );
   case EdgeDoFOrientation::XYZ:
     return xyzIndex( level, x, y, z );
-  case EdgeDoFOrientation::INVALID:
+  default:
     return std::numeric_limits< uint_t >::max();
   }
 }

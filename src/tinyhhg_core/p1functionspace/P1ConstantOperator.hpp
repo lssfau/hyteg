@@ -201,14 +201,13 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
             auto edge_stencil = edge.getData( edgeStencilID_ )->getPointer( level );
 
-            // first face
-            Face* face = storage_->getFace( edge.neighborFaces()[0] );
-            compute_local_stiffness( *face, level, local_stiffness_gray, fenics::GRAY );
-            compute_local_stiffness( *face, level, local_stiffness_blue, fenics::BLUE );
+            Face* firstFace = storage_->getFace( edge.neighborFaces()[0] );
+            compute_local_stiffness( *firstFace, level, local_stiffness_gray, fenics::GRAY );
+            compute_local_stiffness( *firstFace, level, local_stiffness_blue, fenics::BLUE );
 
-            size_t start_id    = face->vertex_index( edge.neighborVertices()[0] );
-            size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
-            size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
+            size_t start_id    = firstFace->vertex_index( edge.neighborVertices()[0] );
+            size_t end_id      = firstFace->vertex_index( edge.neighborVertices()[1] );
+            size_t opposite_id = firstFace->vertex_index( firstFace->get_vertex_opposite_to_edge( edge.getID() ) );
 
             assembleP1LocalStencil( convertStencilDirectionsToIndices( elementSW ),
                                     {{end_id, start_id, opposite_id}},
@@ -225,25 +224,24 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
             if( edge.getNumNeighborFaces() == 2 )
             {
-               // second face
-               Face* face = storage_->getFace( edge.neighborFaces()[1] );
-               compute_local_stiffness( *face, level, local_stiffness_gray, fenics::GRAY );
-               compute_local_stiffness( *face, level, local_stiffness_blue, fenics::BLUE );
+               Face* secondFace = storage_->getFace( edge.neighborFaces()[1] );
+               compute_local_stiffness( *secondFace, level, local_stiffness_gray, fenics::GRAY );
+               compute_local_stiffness( *secondFace, level, local_stiffness_blue, fenics::BLUE );
 
-               size_t start_id    = face->vertex_index( edge.neighborVertices()[0] );
-               size_t end_id      = face->vertex_index( edge.neighborVertices()[1] );
-               size_t opposite_id = face->vertex_index( face->get_vertex_opposite_to_edge( edge.getID() ) );
+               size_t startIdSecondFace    = secondFace->vertex_index( edge.neighborVertices()[0] );
+               size_t endIdSecondFace      = secondFace->vertex_index( edge.neighborVertices()[1] );
+               size_t oppositeIdSecondFace = secondFace->vertex_index( secondFace->get_vertex_opposite_to_edge( edge.getID() ) );
 
                assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNE ),
-                                       {{start_id, end_id, opposite_id}},
+                                       {{startIdSecondFace, endIdSecondFace, oppositeIdSecondFace}},
                                        local_stiffness_gray,
                                        edge_stencil );
                assembleP1LocalStencil( convertStencilDirectionsToIndices( elementN ),
-                                       {{opposite_id, start_id, end_id}},
+                                       {{oppositeIdSecondFace, startIdSecondFace, endIdSecondFace}},
                                        local_stiffness_blue,
                                        edge_stencil );
                assembleP1LocalStencil( convertStencilDirectionsToIndices( elementNW ),
-                                       {{end_id, opposite_id, start_id}},
+                                       {{endIdSecondFace, oppositeIdSecondFace, startIdSecondFace}},
                                        local_stiffness_gray,
                                        edge_stencil );
             }
@@ -423,7 +421,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          for( const auto& it : storage_->getFaces() )
          {
             auto          face          = it.second;
-            auto          stencilSize   = face->getData( getFaceStencilID() )->getSize( level );
             auto          stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 
@@ -486,7 +483,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
          for( const auto& it : storage_->getCells() )
          {
             auto          cell          = it.second;
-            auto          stencilSize   = cell->getData( getCellStencilID() )->getSize( level );
             auto          stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
             UFCOperator3D ufcOperator;
 

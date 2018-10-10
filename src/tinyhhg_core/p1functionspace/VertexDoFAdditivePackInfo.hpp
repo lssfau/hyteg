@@ -236,6 +236,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   {
     for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
     {
+      WALBERLA_UNUSED( it );
       real_t tmp;
       buffer >> tmp;
     }
@@ -325,6 +326,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   {
     for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
     {
+      WALBERLA_UNUSED( it );
       real_t tmp;
       buffer >> tmp;
     }
