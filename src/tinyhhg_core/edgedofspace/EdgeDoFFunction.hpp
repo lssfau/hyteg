@@ -29,7 +29,7 @@ namespace edgedof {
 inline uint_t edgeDoFMacroVertexFunctionMemorySize( const uint_t &level, const Primitive & primitive )
 {
   WALBERLA_UNUSED( level );
-  return 2 * primitive.getNumNeighborEdges();
+  return primitive.getNumNeighborEdges() + primitive.getNumNeighborFaces();
 }
 
 inline uint_t edgeDoFMacroEdgeFunctionMemorySize( const uint_t &level, const Primitive & primitive )

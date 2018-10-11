@@ -146,6 +146,10 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToVertex( const Edge* sen
          vertexData[receiver->getNumNeighborEdges() + receiver->face_index( sender->neighborFaces()[1] )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_DI_N )];
       }
+      if ( sender->getNumNeighborFaces() > 2 )
+      {
+         WALBERLA_LOG_WARNING( "[edgedof] macro-edge to macro-vertex communication is not implemented correctly!" );
+      }
    } else if( vertexIdOnEdge == 1 )
    {
       uint_t nbrEdges = levelinfo::num_microedges_per_edge( level_ );
