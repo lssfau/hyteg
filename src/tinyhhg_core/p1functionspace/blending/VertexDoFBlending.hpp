@@ -209,7 +209,7 @@ inline void applyBlending( uint_t                                               
    ValueType tmp;
 
    Face*  faceS = storage->getFace( edge.neighborFaces()[0] );
-   Face*  faceN;
+   Face*  faceN = nullptr;
    uint_t s_south = faceS->vertex_index( edge.neighborVertices()[0] );
    uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
    uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
@@ -317,10 +317,8 @@ inline void smoothGSBlending( uint_t                                            
    auto rhs = edge.getData( rhsId )->getPointer( Level );
    auto dst = edge.getData( dstId )->getPointer( Level );
 
-   ValueType tmp;
-
    Face*  faceS = storage->getFace( edge.neighborFaces()[0] );
-   Face*  faceN;
+   Face*  faceN = nullptr;
    uint_t s_south = faceS->vertex_index( edge.neighborVertices()[0] );
    uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
    uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
@@ -463,8 +461,6 @@ inline void applyBlending( uint_t                                               
          Edge*       edge     = storage->getEdge( edgeId );
          PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
 
-         uint_t v_j = face->vertex_index( vertex_j );
-
          opr_data[edge_idx] += matrixRow[i];
          i += 1;
       }
@@ -535,8 +531,6 @@ inline void smoothGSBlending( uint_t                                            
          uint_t      edge_idx = vertex.edge_index( edgeId ) + 1;
          Edge*       edge     = storage->getEdge( edgeId );
          PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
-
-         uint_t v_j = face->vertex_index( vertex_j );
 
          opr_data[edge_idx] += matrixRow[i];
          i += 1;

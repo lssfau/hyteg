@@ -23,27 +23,29 @@ MeshInfo MeshInfo::meshFaceChain( uint_t numFaces, real_t width, real_t height )
 {
   MeshInfo meshInfo;
 
+  if ( numFaces == 0 )
+    return meshInfo;
+
   const real_t faceWidth  = width / ( real_c( numFaces / 2 ) + real_c( numFaces % 2 ));
   const real_t faceHeight = height;
 
   uint_t lastLowerVertex;
   uint_t lastUpperVertex;
 
-  if ( numFaces > 0 )
-  {
-    meshInfo.vertices_[0] = MeshInfo::Vertex(0, Point3D({real_c(0), real_c(0),  real_c(0)}), 0);
-    meshInfo.vertices_[1] = MeshInfo::Vertex(1, Point3D({real_c(0), faceHeight, real_c(0)}), 0);
-    meshInfo.vertices_[2] = MeshInfo::Vertex(2, Point3D({faceWidth, real_c(0),  real_c(0)}), 0);
 
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 0, 1 }} ), 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 0, 2 }} ), 0 ) );
-    meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 1, 2 }} ), 0 ) );
+  meshInfo.vertices_[0] = MeshInfo::Vertex(0, Point3D({real_c(0), real_c(0),  real_c(0)}), 0);
+  meshInfo.vertices_[1] = MeshInfo::Vertex(1, Point3D({real_c(0), faceHeight, real_c(0)}), 0);
+  meshInfo.vertices_[2] = MeshInfo::Vertex(2, Point3D({faceWidth, real_c(0),  real_c(0)}), 0);
 
-    meshInfo.addFace( Face( std::vector< IDType >( {{ 0, 1, 2 }} ), 0 ) );
+  meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 0, 1 }} ), 0 ) );
+  meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 0, 2 }} ), 0 ) );
+  meshInfo.addEdge( Edge( std::array< IDType, 2 >( {{ 1, 2 }} ), 0 ) );
 
-    lastLowerVertex = 2;
-    lastUpperVertex = 1;
-  }
+  meshInfo.addFace( Face( std::vector< IDType >( {{ 0, 1, 2 }} ), 0 ) );
+
+  lastLowerVertex = 2;
+  lastUpperVertex = 1;
+
 
   for ( uint_t faceIdx = 1; faceIdx < numFaces; faceIdx++ )
   {

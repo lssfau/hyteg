@@ -95,34 +95,34 @@ inline void apply( const uint_t&                                               l
 
       for( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
       {
-         const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
-         const auto stencilIdxE = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
-         const auto dofIdxW     = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
-         const auto dofIdxE     = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
-         stencil[stencilIdxW]   = 0.5 * ( ux[dofIdxC] + ux[dofIdxW] ) * xOperatorData[stencilIdxW];
-         stencil[stencilIdxW] += 0.5 * ( uy[dofIdxC] + uy[dofIdxW] ) * yOperatorData[stencilIdxW];
-         stencil[stencilIdxW] += 0.5 * ( uz[dofIdxC] + uz[dofIdxW] ) * zOperatorData[stencilIdxW];
-         stencil[stencilIdxC] -= stencil[stencilIdxW];
+         const auto stencilIdxWNeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
+         const auto stencilIdxENeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
+         const auto dofIdxWNeighborFace     = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
+         const auto dofIdxENeighborFace     = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
+         stencil[stencilIdxWNeighborFace]   = 0.5 * ( ux[dofIdxC] + ux[dofIdxWNeighborFace] ) * xOperatorData[stencilIdxWNeighborFace];
+         stencil[stencilIdxWNeighborFace] += 0.5 * ( uy[dofIdxC] + uy[dofIdxWNeighborFace] ) * yOperatorData[stencilIdxWNeighborFace];
+         stencil[stencilIdxWNeighborFace] += 0.5 * ( uz[dofIdxC] + uz[dofIdxWNeighborFace] ) * zOperatorData[stencilIdxWNeighborFace];
+         stencil[stencilIdxC] -= stencil[stencilIdxWNeighborFace];
 
          // algebraic upwind
          if( AlgebraicUpwind )
          {
-            dTmp = std::abs( stencil[stencilIdxW] );
+            dTmp = std::abs( stencil[stencilIdxWNeighborFace] );
             stencil[stencilIdxC] += dTmp;
-            stencil[stencilIdxW] -= dTmp;
+            stencil[stencilIdxWNeighborFace] -= dTmp;
          }
 
-         stencil[stencilIdxE] = 0.5 * ( ux[dofIdxC] + ux[dofIdxE] ) * xOperatorData[stencilIdxE];
-         stencil[stencilIdxE] += 0.5 * ( uy[dofIdxC] + uy[dofIdxE] ) * yOperatorData[stencilIdxE];
-         stencil[stencilIdxE] += 0.5 * ( uz[dofIdxC] + uz[dofIdxE] ) * zOperatorData[stencilIdxE];
-         stencil[stencilIdxC] -= stencil[stencilIdxE];
+         stencil[stencilIdxENeighborFace] = 0.5 * ( ux[dofIdxC] + ux[dofIdxENeighborFace] ) * xOperatorData[stencilIdxENeighborFace];
+         stencil[stencilIdxENeighborFace] += 0.5 * ( uy[dofIdxC] + uy[dofIdxENeighborFace] ) * yOperatorData[stencilIdxENeighborFace];
+         stencil[stencilIdxENeighborFace] += 0.5 * ( uz[dofIdxC] + uz[dofIdxENeighborFace] ) * zOperatorData[stencilIdxENeighborFace];
+         stencil[stencilIdxC] -= stencil[stencilIdxENeighborFace];
 
          // algebraic upwind
          if( AlgebraicUpwind )
          {
-            dTmp = std::abs( stencil[stencilIdxE] );
+            dTmp = std::abs( stencil[stencilIdxENeighborFace] );
             stencil[stencilIdxC] += dTmp;
-            stencil[stencilIdxE] -= dTmp;
+            stencil[stencilIdxENeighborFace] -= dTmp;
          }
       }
 
@@ -150,13 +150,13 @@ inline void apply( const uint_t&                                               l
 
       for( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
       {
-         const auto stencilIdxW    = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
-         const auto stencilIdxE    = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
-         const auto stencilWeightW = stencil[stencilIdxW];
-         const auto stencilWeightE = stencil[stencilIdxE];
-         const auto dofIdxW        = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
-         const auto dofIdxE        = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
-         tmp += stencilWeightW * src[dofIdxW] + stencilWeightE * src[dofIdxE];
+         const auto stencilIdxWNeighborFace    = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
+         const auto stencilIdxENeighborFace    = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
+         const auto stencilWeightW = stencil[stencilIdxWNeighborFace];
+         const auto stencilWeightE = stencil[stencilIdxENeighborFace];
+         const auto dofIdxWNeighborFace        = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
+         const auto dofIdxENeighborFace        = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
+         tmp += stencilWeightW * src[dofIdxWNeighborFace] + stencilWeightE * src[dofIdxENeighborFace];
       }
 
       for( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )

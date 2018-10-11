@@ -296,7 +296,7 @@ inline void apply( const uint_t&                                               L
    ValueType* src      = face.getData( srcId )->getPointer( Level );
    ValueType* dst      = face.getData( dstId )->getPointer( Level );
 
-   ValueType tmp;
+   ValueType tmp = real_c( 0 );
 
   for( uint_t j = 1; j < rowsize - 2; ++j )
   {

@@ -236,7 +236,8 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   {
     for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
     {
-      real_t tmp;
+      WALBERLA_UNUSED( it );
+      ValueType tmp;
       buffer >> tmp;
     }
   }
@@ -244,7 +245,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   {
     for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
     {
-      real_t tmp;
+      ValueType tmp;
       buffer >> tmp;
       faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
     }
@@ -325,7 +326,8 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   {
     for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
     {
-      real_t tmp;
+      WALBERLA_UNUSED( it );
+      ValueType tmp;
       buffer >> tmp;
     }
   }
@@ -333,7 +335,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   {
     for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
     {
-      real_t tmp;
+      ValueType tmp;
       buffer >> tmp;
       edgeData[vertexdof::macroedge::indexFromVertex( level_, it.x(), stencilDirection::VERTEX_C )] += tmp;
     }
@@ -417,12 +419,12 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromCell(Vertex *receiv
 
   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
   {
-    real_t tmp;
+    ValueType tmp;
     buffer >> tmp;
   }
   else
   {
-    real_t tmp;
+    ValueType tmp;
     buffer >> tmp;
     vertexData[ 0 ] += tmp;
   }

@@ -95,17 +95,15 @@ public:
 
           auto edgeLocalMatrices = edge.getData(edgeLocalMatrixIDs_[oprIdx]);
 
-          // first face
-          Face *face = storage_->getFace(edge.neighborFaces()[0]);
-          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
-          compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
+          Face *firstFace = storage_->getFace(edge.neighborFaces()[0]);
+          compute_local_stiffness(operators_[oprIdx], *firstFace, level, edgeLocalMatrices->getGrayMatrix(level, 0), fenics::GRAY);
+          compute_local_stiffness(operators_[oprIdx], *firstFace, level, edgeLocalMatrices->getBlueMatrix(level, 0), fenics::BLUE);
 
 
           if (edge.getNumNeighborFaces() == 2) {
-            // second face
-            Face *face = storage_->getFace(edge.neighborFaces()[1]);
-            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
-            compute_local_stiffness(operators_[oprIdx], *face, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
+            Face *secondFace = storage_->getFace(edge.neighborFaces()[1]);
+            compute_local_stiffness(operators_[oprIdx], *secondFace, level, edgeLocalMatrices->getGrayMatrix(level, 1), fenics::GRAY);
+            compute_local_stiffness(operators_[oprIdx], *secondFace, level, edgeLocalMatrices->getBlueMatrix(level, 1), fenics::BLUE);
           }
         }
 

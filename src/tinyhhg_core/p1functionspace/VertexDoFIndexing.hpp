@@ -122,6 +122,8 @@ inline uint_t stencilIndexOnEdge( const stencilDirection & dir )
       return 2;
     case sD::VERTEX_E:
       return 4;
+    default:
+      return std::numeric_limits< uint_t >::max();
   }
 }
 

@@ -52,7 +52,7 @@ inline void apply( const uint_t&                                               L
    std::vector< ValueType > stencil( 27 );
    real_t                   dTmp;
 
-   ValueType tmp;
+   ValueType tmp = ValueType(0);
 
    if( face.getNumNeighborCells() == 0 )
    {

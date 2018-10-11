@@ -285,14 +285,14 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
     const std::vector< uint_t > onCellFacesVector( onCellFaces.begin(), onCellFaces.end() );
 
-    auto allCellsAtFace0 = allCellsAtFace[ onCellFacesVector[0] ];
-    auto allCellsAtFace1 = allCellsAtFace[ onCellFacesVector[1] ];
-    std::sort( allCellsAtFace0.begin(), allCellsAtFace0.end() );
-    std::sort( allCellsAtFace1.begin(), allCellsAtFace1.end() );
+    auto cellsAtFace0 = allCellsAtFace[ onCellFacesVector[0] ];
+    auto cellsAtFace1 = allCellsAtFace[ onCellFacesVector[1] ];
+    std::sort( cellsAtFace0.begin(), cellsAtFace0.end() );
+    std::sort( cellsAtFace1.begin(), cellsAtFace1.end() );
 
     returnType allCellsAtEdge;
-    std::set_intersection( allCellsAtFace0.begin(), allCellsAtFace0.end(),
-                           allCellsAtFace1.begin(), allCellsAtFace1.end(),
+    std::set_intersection( cellsAtFace0.begin(), cellsAtFace0.end(),
+                           cellsAtFace1.begin(), cellsAtFace1.end(),
                            std::back_inserter( allCellsAtEdge ) );
     return allCellsAtEdge;
   }
@@ -570,7 +570,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
         const auto faceLocalStencilDirection = [ microVertexIndex, faceLocalIndexInDir ]
         {
             const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
-            stencilDirection projectedDirection;
             switch ( xOffset )
             {
               case 0:
@@ -688,7 +687,10 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
         else if ( xOffset == -1 && yOffset == -1 )
           projectedDirection = stencilDirection::VERTEX_SW;
         else
-          WALBERLA_ASSERT( false, "Invalid offsets" );
+        {
+          WALBERLA_ASSERT(false, "Invalid offsets");
+          projectedDirection = stencilDirection::VERTEX_TC;
+        }
 
         if ( indexOnGhostLayer )
         {

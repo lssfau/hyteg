@@ -299,11 +299,11 @@ inline void enumerate(const uint_t & Level, Face &face,
                       ValueType& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
-  size_t horizontal_num = num;
-  size_t diagonal_num = num +
+  size_t horizontal_num = static_cast< size_t >( num );
+  size_t diagonal_num = static_cast< size_t >( num ) +
                         hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
-  size_t vertical_num = num +
+  size_t vertical_num = static_cast< size_t >( num ) +
                         (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
