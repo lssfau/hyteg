@@ -1,24 +1,11 @@
-#include <utility>
-
-#include <utility>
-
-
 #pragma once
 
-#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
-#include "core/mpi/MPITextFile.h"
-
-#include "Levelinfo.hpp"
-#include "Function.hpp"
-#include "p1functionspace/P1Function.hpp"
-
-#include "dgfunctionspace/DGFunction.hpp"
-
-#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-
 #include <string>
+#include <utility>
+#include <map>
+#include <vector>
+
+#include "core/DataTypes.h"
 
 namespace hhg
 {
@@ -27,39 +14,39 @@ using walberla::uint_t;
 using walberla::uint_c;
 using walberla::real_t;
 using walberla::real_c;
-////FIXME this typedef can be remove when we move into walberla namespace
-typedef walberla::uint64_t uint64_t;
+using walberla::uint64_t;
+
+class PrimitiveStorage;
+
+template< typename ValueType > class EdgeDoFFunction;
+template< typename ValueType > class DGFunction;
+template< typename ValueType > class P2Function;
+
+namespace vertexdof {
+template< typename ValueType > class VertexDoFFunction;
+}
+
+template< typename ValueType >
+using P1Function = vertexdof::VertexDoFFunction< ValueType >;
 
 class VTKOutput
 {
 public:
 
   /// \param writeFrequency outputs VTK in the specified frequency
-  VTKOutput(std::string dir, std::string filename, const std::shared_ptr<PrimitiveStorage> &storage, const uint_t &writeFrequency = 1) :
-     dir_(std::move(dir)), filename_(std::move(filename)), writeFrequency_( writeFrequency ), write2D_( true )
-  {
-     /// set output to 3D is storage contains cells
-     if( storage->hasGlobalCells() )
-     {
-        set3D();
-     }
-  }
+  VTKOutput(std::string dir, std::string filename, const std::shared_ptr<PrimitiveStorage> &storage, const uint_t &writeFrequency );
 
   void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
   void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
   void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
 
-  void add( const P2Function     < real_t > * function ) { p2Functions_.push_back( function );
-                                                           p1Functions_.push_back( function->getVertexDoFFunction().get() );
-                                                           edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+  void add( const P2Function     < real_t > * function );
 
   void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
   void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
   void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
 
-  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
-                                                                              p1Functions_.push_back( function->getVertexDoFFunction().get() );
-                                                                              edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+  void add( const std::shared_ptr< P2Function     < real_t > > & function );
 
   /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
   /// Therefore always writes output if timestep is 0.

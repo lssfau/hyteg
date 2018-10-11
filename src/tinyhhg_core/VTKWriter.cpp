@@ -3,10 +3,13 @@
 #include "VTKWriter.hpp"
 #include "Levelinfo.hpp"
 #include "tinyhhg_core/Format.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/celldofspace/CellDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
 
 namespace hhg
@@ -57,6 +60,27 @@ static void writePointsFooter( std::ostream & output )
   output << "\n</DataArray>\n";
   output << "</Points>\n";
 }
+
+VTKOutput::VTKOutput(std::string dir, std::string filename, const std::shared_ptr<PrimitiveStorage> &storage, const uint_t &writeFrequency = 1) :
+dir_(std::move(dir)), filename_(std::move(filename)), writeFrequency_( writeFrequency ), write2D_( true )
+{
+  /// set output to 3D is storage contains cells
+  if( storage->hasGlobalCells() )
+  {
+    set3D();
+  }
+}
+
+void VTKOutput::add( const P2Function     < real_t > * function ) { p2Functions_.push_back( function );
+  p1Functions_.push_back( function->getVertexDoFFunction().get() );
+  edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+
+
+void VTKOutput::add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
+  p1Functions_.push_back( function->getVertexDoFFunction().get() );
+  edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+
+
 
 void VTKOutput::writeVertexDoFData( std::ostream & output, const vertexdof::VertexDoFFunction< real_t > * function,
                                 const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level  ) const
