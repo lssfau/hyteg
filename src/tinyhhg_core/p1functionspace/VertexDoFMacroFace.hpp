@@ -921,7 +921,7 @@ inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataI
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
+         localMax = std::max( localMax, real_c( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ));
       }
       --inner_rowsize;
    }
@@ -965,7 +965,7 @@ inline real_t getMinValue( const uint_t& level, Face& face, const PrimitiveDataI
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMin = std::min( localMin, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
+         localMin = std::min( localMin, real_c( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ));
       }
       --inner_rowsize;
    }

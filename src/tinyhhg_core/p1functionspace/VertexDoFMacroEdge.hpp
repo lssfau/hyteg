@@ -693,7 +693,7 @@ inline real_t getMaxValue( const uint_t & level, Edge &edge, const PrimitiveData
   real_t localMax = -std::numeric_limits<real_t>::max();
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
-    localMax = std::max( localMax, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
+    localMax = std::max( localMax, real_c(src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ]) );
   }
 
   return localMax;
@@ -709,7 +709,7 @@ inline real_t getMaxMagnitude( const uint_t & level, Edge &edge, const Primitive
   real_t localMax = real_t(0.0);
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
-    localMax = std::max( localMax, std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] ));
+    localMax = std::max( localMax, real_c(std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] )));
   }
 
   return localMax;
@@ -725,7 +725,7 @@ inline real_t getMinValue( const uint_t & level, Edge &edge, const PrimitiveData
   real_t localMin = std::numeric_limits<real_t>::max();
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
-    localMin = std::min( localMin, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
+    localMin = std::min( localMin, real_c(src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ]) );
   }
 
   return localMin;
