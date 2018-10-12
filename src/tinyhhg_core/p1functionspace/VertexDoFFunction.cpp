@@ -1,7 +1,5 @@
 #include <utility>
 
-#include <utility>
-
 #include "VertexDoFFunction.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
@@ -631,13 +629,13 @@ inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunctio
 }
 
 template < typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
+inline ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
-   real_t localMax = -std::numeric_limits< real_t >::max();
+   auto localMax = -std::numeric_limits< ValueType >::max();
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -669,19 +667,19 @@ inline real_t VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType
       }
    }
 
-   real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   ValueType globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
 
    return globalMax;
 }
 
 template < typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+inline ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
-   real_t localMax = real_t( 0.0 );
+   auto localMax = ValueType( 0.0 );
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -713,7 +711,7 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoF
       }
    }
 
-   real_t globalMax = localMax;
+   ValueType globalMax = localMax;
    if( mpiReduce )
    {
       globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
@@ -723,13 +721,13 @@ inline real_t VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoF
 }
 
 template < typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
+inline ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
-   real_t localMin = std::numeric_limits< real_t >::max();
+   auto localMin = std::numeric_limits< ValueType >::max();
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -761,7 +759,7 @@ inline real_t VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType
       }
    }
 
-   real_t globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
+   ValueType globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
 
    return globalMin;
 }
@@ -784,7 +782,8 @@ inline void  VertexDoFFunction< ValueType >::setLocalCommunicationMode(
    }
 }
 
-template class VertexDoFFunction< real_t >;
+template class VertexDoFFunction< float >;
+template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
 template class VertexDoFFunction< uint_t >;
 

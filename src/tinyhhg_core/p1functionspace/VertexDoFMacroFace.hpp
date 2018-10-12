@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstdlib>
 
 #include "core/debug/all.h"
 #include "core/math/KahanSummation.h"
@@ -909,19 +910,19 @@ inline void integrateDG( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = -std::numeric_limits< real_t >::max();
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMax = -std::numeric_limits< ValueType >::max();
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMax = std::max( localMax, real_c( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ));
+         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )]);
       }
       --inner_rowsize;
    }
@@ -930,14 +931,14 @@ inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataI
 }
 
 template < typename ValueType >
-inline real_t
+inline ValueType
     getMaxMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = real_t( 0.0 );
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMax = ValueType( 0.0 );
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
@@ -953,19 +954,19 @@ inline real_t
 }
 
 template < typename ValueType >
-inline real_t getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMin = std::numeric_limits< real_t >::max();
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMin = std::numeric_limits< ValueType >::max();
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMin = std::min( localMin, real_c( src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] ));
+         localMin = std::min( localMin, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
       }
       --inner_rowsize;
    }
