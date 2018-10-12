@@ -100,8 +100,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
+   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
 
    return EXIT_SUCCESS;
 }
