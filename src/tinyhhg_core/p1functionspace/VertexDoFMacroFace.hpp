@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "core/debug/all.h"
 #include "core/math/KahanSummation.h"
 
