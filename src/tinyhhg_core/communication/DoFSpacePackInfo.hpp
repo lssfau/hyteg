@@ -1,56 +1,51 @@
 #pragma once
 
-#include "PackInfo.hpp"
-#include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
-#include "tinyhhg_core/FunctionMemory.hpp"
+#include "core/DataTypes.h"
 
-//#include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/communication/PackInfo.hpp"
 
+namespace hhg {
 
-namespace hhg{
+class Vertex;
+class Edge;
+class Face;
+class Cell;
+class PrimitiveStorage;
 
-namespace communication{
+template < typename ValueType >
+class FunctionMemory;
+template < typename DataType, typename PrimitiveType >
+class PrimitiveDataID;
 
-template< typename ValueType >
+namespace communication {
+
+using walberla::uint_t;
+
+template < typename ValueType >
 class DoFSpacePackInfo : public communication::PackInfo
 {
-public:
+ public:
+   DoFSpacePackInfo( uint_t                                                 level,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
+                     std::weak_ptr< PrimitiveStorage >                      storage );
 
-  DoFSpacePackInfo(uint_t level,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Vertex> dataIDVertex,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Edge> dataIDEdge,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Face> dataIDFace,
-                   std::weak_ptr <PrimitiveStorage> storage)
-    : level_(level),
-      dataIDVertex_(dataIDVertex),
-      dataIDEdge_(dataIDEdge),
-      dataIDFace_(dataIDFace),
-      dataIDCell_(storage.lock()->generateInvalidPrimitiveDataID< FunctionMemory< ValueType >, Cell >()),
-      storage_(storage) {}
+   DoFSpacePackInfo( uint_t                                                 level,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
+                     PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell,
+                     std::weak_ptr< PrimitiveStorage >                      storage );
 
-  DoFSpacePackInfo(uint_t level,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Vertex> dataIDVertex,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Edge> dataIDEdge,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Face> dataIDFace,
-                   PrimitiveDataID <FunctionMemory<ValueType>, Cell> dataIDCell,
-                   std::weak_ptr <PrimitiveStorage> storage)
-    : level_(level),
-      dataIDVertex_(dataIDVertex),
-      dataIDEdge_(dataIDEdge),
-      dataIDFace_(dataIDFace),
-      dataIDCell_(dataIDCell),
-      storage_(storage) {}
-
-protected:
-
-  uint_t level_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Vertex> dataIDVertex_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Edge> dataIDEdge_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Face> dataIDFace_;
-  PrimitiveDataID<FunctionMemory< ValueType >, Cell> dataIDCell_;
-  std::weak_ptr<hhg::PrimitiveStorage> storage_;
+ protected:
+   uint_t                                                 level_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Vertex > dataIDVertex_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace_;
+   PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell_;
+   std::weak_ptr< hhg::PrimitiveStorage >                 storage_;
 };
 
-
-}// namespace communication
-}// namesapce hhg
+} // namespace communication
+} // namespace hhg

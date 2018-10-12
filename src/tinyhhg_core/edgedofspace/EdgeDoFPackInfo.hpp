@@ -4,6 +4,8 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
+#include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
+
 namespace hhg {
 
 using walberla::uint_t;
@@ -19,11 +21,6 @@ class Face;
 class Cell;
 class PrimitiveStorage;
 class PrimitiveID;
-
-namespace communication {
-template < typename ValueType >
-class DoFSpacePackInfo;
-} // namespace communication
 
 template < typename ValueType >
 class EdgeDoFPackInfo : public communication::DoFSpacePackInfo< ValueType >
