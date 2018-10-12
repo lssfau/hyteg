@@ -24,7 +24,7 @@ using walberla::mpi::RecvBuffer;
 template< typename ValueType >
 class FunctionMemory
 {
-  static_assert(std::is_arithmetic< ValueType >::value);
+  static_assert(std::is_arithmetic< ValueType >::value, "Wrong ValueType template");
 public:
 
   /// Constructs memory for a function

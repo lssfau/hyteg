@@ -608,7 +608,8 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
 }
 
-template class EdgeDoFPackInfo< real_t >;
+template class EdgeDoFPackInfo< double >;
+template class EdgeDoFPackInfo< float >;
 template class EdgeDoFPackInfo< int >;
 template class EdgeDoFPackInfo< uint_t >;
 

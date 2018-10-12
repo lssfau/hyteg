@@ -36,7 +36,8 @@ DoFSpacePackInfo< ValueType >::DoFSpacePackInfo( uint_t                         
 , storage_( storage )
 {}
 
-template class DoFSpacePackInfo< real_t >;
+template class DoFSpacePackInfo< double >;
+template class DoFSpacePackInfo< float >;
 template class DoFSpacePackInfo< int >;
 template class DoFSpacePackInfo< uint_t >;
 
