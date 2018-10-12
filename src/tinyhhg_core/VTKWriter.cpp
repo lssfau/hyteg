@@ -63,7 +63,7 @@ static void writePointsFooter( std::ostream& output )
 VTKOutput::VTKOutput( std::string                                dir,
                       std::string                                filename,
                       const std::shared_ptr< PrimitiveStorage >& storage,
-                      const uint_t&                              writeFrequency = 1 )
+                      const uint_t&                              writeFrequency )
 : dir_( std::move( dir ) )
 , filename_( std::move( filename ) )
 , writeFrequency_( writeFrequency )

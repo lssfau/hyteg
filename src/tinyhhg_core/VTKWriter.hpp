@@ -39,7 +39,7 @@ class VTKOutput
    VTKOutput( std::string                                dir,
               std::string                                filename,
               const std::shared_ptr< PrimitiveStorage >& storage,
-              const uint_t&                              writeFrequency );
+              const uint_t&                              writeFrequency = 1 );
 
    void add( const P1Function< real_t >* function ) { p1Functions_.push_back( function ); };
    void add( const EdgeDoFFunction< real_t >* function ) { edgeDoFFunctions_.push_back( function ); };

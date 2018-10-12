@@ -21,10 +21,10 @@ using walberla::real_t;
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
 
-template< typename ValueType,
-          typename = typename std::enable_if< std::is_arithmetic< ValueType >::value >::type >
+template< typename ValueType >
 class FunctionMemory
 {
+  static_assert(std::is_arithmetic< ValueType >::value);
 public:
 
   /// Constructs memory for a function
