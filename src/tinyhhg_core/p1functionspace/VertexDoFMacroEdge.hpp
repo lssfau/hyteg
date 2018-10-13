@@ -709,12 +709,26 @@ inline ValueType getMaxMagnitude( const uint_t & level, Edge &edge, const Primit
   auto localMax = ValueType(0.0);
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
-    localMax = std::max( localMax, real_c(std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] )));
+    localMax = std::max( localMax, std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] ));
   }
 
   return localMax;
 }
 
+template<>
+inline uint_t getMaxMagnitude( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< uint_t >, Edge> &srcId ) {
+
+   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto src = edge.getData( srcId )->getPointer( level );
+   auto localMax = uint_t(0.0);
+
+   for( size_t i = 1; i < rowsize - 1; ++i ) {
+      localMax = std::max( localMax, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
+   }
+
+   return localMax;
+}
 
 template< typename ValueType >
 inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {

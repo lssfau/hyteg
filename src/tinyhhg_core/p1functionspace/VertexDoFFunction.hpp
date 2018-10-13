@@ -233,7 +233,21 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    friend class P2Function< ValueType >;
 };
 
-inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level );
+inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level )
+{
+   if( pressure.isDummy() )
+   {
+      return;
+   }
+   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+
+   tmp.interpolate( ones, level );
+
+   real_t numGlobalVertices = tmp.dotGlobal( tmp, level, hhg::All );
+   real_t mean              = pressure.dotGlobal( tmp, level, hhg::All );
+
+   pressure.assign( {1.0, -mean / numGlobalVertices}, {&pressure, &tmp}, level, hhg::All );
+}
 
 } // namespace vertexdof
 } // namespace hhg
