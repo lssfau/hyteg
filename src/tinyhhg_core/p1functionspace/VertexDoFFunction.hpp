@@ -213,7 +213,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       this->stopTiming( "Interpolate" );
    }
 
-   inline void enumerate( uint_t level, ValueType& offset );
+   void enumerate( uint_t level, ValueType& offset );
 
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
