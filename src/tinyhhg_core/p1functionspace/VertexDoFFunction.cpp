@@ -3,6 +3,17 @@
 #include <utility>
 
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
+
 
 namespace hhg {
 namespace vertexdof {
@@ -63,6 +74,9 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                                       boundaryTypeToSkipDuringAdditiveCommunication_ ) );
    }
 }
+
+template < typename ValueType >
+BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const { return boundaryCondition_; }
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
@@ -764,6 +778,65 @@ void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
    }
+}
+
+template< typename ValueType >
+template< typename PrimitiveType >
+void VertexDoFFunction<ValueType>::interpolateByPrimitiveType(const ValueType &constant, uint_t level, DoFType flag) const
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+
+   if( std::is_same< PrimitiveType, Vertex >::value )
+   {
+      for( const auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+         {
+            vertexdof::macrovertex::interpolate( level, vertex, vertexDataID_, constant );
+         }
+      }
+   } else if( std::is_same< PrimitiveType, Edge >::value )
+   {
+      for( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            vertexdof::macroedge::interpolate( level, edge, edgeDataID_, constant );
+         }
+      }
+   } else if( std::is_same< PrimitiveType, Face >::value )
+   {
+      for( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            vertexdof::macroface::interpolate( level, face, faceDataID_, constant );
+         }
+      }
+   } else if( std::is_same< PrimitiveType, Cell >::value )
+   {
+      for( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            vertexdof::macrocell::interpolate( level, cell, cellDataID_, constant );
+         }
+      }
+   }
+
+   this->stopTiming( "Interpolate" );
 }
 
 template class VertexDoFFunction< float >;

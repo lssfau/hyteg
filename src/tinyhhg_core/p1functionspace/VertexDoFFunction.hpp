@@ -1,26 +1,39 @@
 #pragma once
 
+#include <string>
+#include <memory>
+#include <vector>
+
+
+#include "core/DataTypes.h"
+
+#include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/Function.hpp"
-#include "tinyhhg_core/FunctionMemory.hpp"
-#include "tinyhhg_core/FunctionProperties.hpp"
-#include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+/// TODO this should be improved but we need the enum which cant be forward declared
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
-#include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
-#include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
-#include "tinyhhg_core/primitives/Edge.hpp"
-#include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/primitives/Vertex.hpp"
-#include "tinyhhg_core/types/pointnd.hpp"
 
 namespace hhg {
+
+using walberla::uint_t;
+using walberla::real_t;
+using walberla::real_c;
+
+
+template< typename ValueType >
+class DGFunction;
+template< typename ValueType >
+class FunctionMemory;
+template< typename DataType, typename PrimitiveType >
+class PrimitiveDataID;
+
+class PrimitiveStorage;
+class Vertex;
+class Edge;
+class Face;
+class Cell;
+
+
 namespace vertexdof {
 
 template < typename ValueType >
@@ -84,7 +97,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType getMinValue( uint_t level, DoFType flag = All );
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
-   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+   BoundaryCondition getBoundaryCondition() const;
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
@@ -156,62 +169,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
  private:
    template < typename PrimitiveType >
-   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const
-   {
-      if( isDummy() )
-      {
-         return;
-      }
-      this->startTiming( "Interpolate" );
-
-      if( std::is_same< PrimitiveType, Vertex >::value )
-      {
-         for( const auto& it : this->getStorage()->getVertices() )
-         {
-            Vertex& vertex = *it.second;
-
-            if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
-            {
-               vertexdof::macrovertex::interpolate( level, vertex, vertexDataID_, constant );
-            }
-         }
-      } else if( std::is_same< PrimitiveType, Edge >::value )
-      {
-         for( const auto& it : this->getStorage()->getEdges() )
-         {
-            Edge& edge = *it.second;
-
-            if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-            {
-               vertexdof::macroedge::interpolate( level, edge, edgeDataID_, constant );
-            }
-         }
-      } else if( std::is_same< PrimitiveType, Face >::value )
-      {
-         for( const auto& it : this->getStorage()->getFaces() )
-         {
-            Face& face = *it.second;
-
-            if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-            {
-               vertexdof::macroface::interpolate( level, face, faceDataID_, constant );
-            }
-         }
-      } else if( std::is_same< PrimitiveType, Cell >::value )
-      {
-         for( const auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
-
-            if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-            {
-               vertexdof::macrocell::interpolate( level, cell, cellDataID_, constant );
-            }
-         }
-      }
-
-      this->stopTiming( "Interpolate" );
-   }
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
    void enumerate( uint_t level, ValueType& offset );
 

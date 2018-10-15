@@ -4,8 +4,6 @@
 #include "tinyhhg_core/primitives/all.hpp"
 #include "DGMemory.hpp"
 
-using namespace hhg;
-
 namespace hhg{
 
 template< typename ValueType >

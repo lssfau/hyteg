@@ -2,6 +2,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 #include "core/Environment.h"
+#include "core/debug/TestSubsystem.h"
 
 using walberla::real_t;
 using walberla::real_c;
