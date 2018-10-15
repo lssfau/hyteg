@@ -365,7 +365,7 @@ private:
         auto & vertexToEdgeStencilMemory = cell.getData( getVertexToEdgeOpr().getCellStencilID() )->getData( level );
         for ( const auto & centerOrientation : edgedof::allEdgeDoFOrientations )
         {
-          const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation, cell, level, ufcOperator );
+          const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell( edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ), centerOrientation, cell, level, ufcOperator );
           for( const auto stencilIt : vertexToEdgeStencilMap )
           {
             vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
@@ -378,7 +378,7 @@ private:
         {
           for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
           {
-            const auto edgeToEdgeStencilMap = P2Elements::P2Elements3D::calculateEdgeToEdgeStencilInMacroCell( indexing::Index( 1, 1, 1 ), centerOrientation,
+            const auto edgeToEdgeStencilMap = P2Elements::P2Elements3D::calculateEdgeToEdgeStencilInMacroCell( edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ), centerOrientation,
                                                                                                                  leafOrientation, cell, level, ufcOperator );
             for( const auto stencilIt : edgeToEdgeStencilMap )
             {
