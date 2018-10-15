@@ -1,14 +1,14 @@
+#include "VertexDoFFunction.hpp"
+
 #include <utility>
 
-#include "VertexDoFFunction.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
 namespace hhg {
 namespace vertexdof {
 
 template < typename ValueType >
-inline VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
-                                                               const std::shared_ptr< PrimitiveStorage >& storage )
+VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage )
 : Function< VertexDoFFunction< ValueType > >( name, storage )
 , vertexDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Vertex >, Vertex >() )
 , edgeDataID_( storage->generateInvalidPrimitiveDataID< MemoryDataHandling< FunctionMemory< ValueType >, Edge >, Edge >() )
@@ -17,21 +17,21 @@ inline VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&    
 {}
 
 template < typename ValueType >
-inline VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
-                                                               const std::shared_ptr< PrimitiveStorage >& storage,
-                                                               uint_t                                     minLevel,
-                                                               uint_t                                     maxLevel )
+VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
+                                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                                   uint_t                                     minLevel,
+                                                   uint_t                                     maxLevel )
 : VertexDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
 {}
 
 template < typename ValueType >
-inline VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
-                                                               const std::shared_ptr< PrimitiveStorage >& storage,
-                                                               uint_t                                     minLevel,
-                                                               uint_t                                     maxLevel,
-                                                               BoundaryCondition                          boundaryCondition )
+VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&                         name,
+                                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                                   uint_t                                     minLevel,
+                                                   uint_t                                     maxLevel,
+                                                   BoundaryCondition                          boundaryCondition )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
-, boundaryCondition_(std::move(boundaryCondition))
+, boundaryCondition_( std::move( boundaryCondition ) )
 , boundaryTypeToSkipDuringAdditiveCommunication_( DoFType::DirichletBoundary )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
@@ -65,7 +65,7 @@ inline VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&    
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -82,9 +82,9 @@ inline void VertexDoFFunction< ValueType >::interpolate( const ValueType& consta
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
-                                                         uint_t                                              level,
-                                                         DoFType                                             flag )
+void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                                  uint_t                                              level,
+                                                  DoFType                                             flag )
 {
    if( isDummy() )
    {
@@ -96,7 +96,7 @@ inline void VertexDoFFunction< ValueType >::interpolate( const std::function< Va
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::interpolateExtended(
+void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                              srcFunctions,
     uint_t                                                                               level,
@@ -164,10 +164,10 @@ inline void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >                       scalars,
-                                                    const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                                    size_t                                               level,
-                                                    DoFType                                              flag )
+void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >                       scalars,
+                                             const std::vector< VertexDoFFunction< ValueType >* > functions,
+                                             size_t                                               level,
+                                             DoFType                                              flag )
 {
    if( isDummy() )
    {
@@ -234,7 +234,7 @@ inline void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag )
+void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -285,10 +285,10 @@ inline void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const 
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >                       scalars,
-                                                 const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                                 size_t                                               level,
-                                                 DoFType                                              flag )
+void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >                       scalars,
+                                          const std::vector< VertexDoFFunction< ValueType >* > functions,
+                                          size_t                                               level,
+                                          DoFType                                              flag )
 {
    if( isDummy() )
    {
@@ -351,9 +351,9 @@ inline void VertexDoFFunction< ValueType >::add( const std::vector< ValueType > 
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                                             uint_t                                               level,
-                                                             DoFType                                              flag )
+void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
+                                                      uint_t                                               level,
+                                                      DoFType                                              flag )
 {
    if( isDummy() )
    {
@@ -416,7 +416,7 @@ inline void VertexDoFFunction< ValueType >::multElementwise( const std::vector< 
 }
 
 template < typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
 {
    real_t scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -426,7 +426,7 @@ inline real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< Valu
 }
 
 template < typename ValueType >
-inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -478,7 +478,7 @@ inline real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< Value
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::enumerate( uint_t level )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 {
    if( isDummy() )
    {
@@ -502,7 +502,7 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 {
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    for( auto& it : this->getStorage()->getVertices() )
@@ -547,10 +547,10 @@ inline void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& 
 }
 
 template < typename ValueType >
-inline void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&        rhs,
-                                                         VertexDoFFunction< ValueType >& rhsP1,
-                                                         uint_t                          level,
-                                                         DoFType                         flag )
+void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&        rhs,
+                                                  VertexDoFFunction< ValueType >& rhsP1,
+                                                  uint_t                          level,
+                                                  DoFType                         flag )
 {
    if( isDummy() )
    {
@@ -613,7 +613,7 @@ inline void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >
 }
 
 template < typename ValueType >
-inline ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
+ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -657,7 +657,7 @@ inline ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFT
 }
 
 template < typename ValueType >
-inline ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
    {
@@ -705,7 +705,7 @@ inline ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, 
 }
 
 template < typename ValueType >
-inline ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
+ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -749,7 +749,7 @@ inline ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFT
 }
 
 template < typename ValueType >
-inline void  VertexDoFFunction< ValueType >::setLocalCommunicationMode(
+void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
    if( isDummy() )
