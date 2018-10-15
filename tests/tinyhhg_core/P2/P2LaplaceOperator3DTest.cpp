@@ -25,8 +25,10 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   // 1. laplace(u) = 0, if u = const.
   // 2. laplace(u) = 0, if u linear
 
+  WALBERLA_LOG_INFO_ON_ROOT( "===== " << meshFile << " | level " << level << " =====" );
+
   const bool   writeVTK   = true;
-  const real_t errorLimit = 5.1e-13;
+  const real_t errorLimit = 9.3e-13;
 
   uint_t timestep = 0;
 
@@ -72,12 +74,9 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
       for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
         for ( auto direction : leafOrientation.second )
         {
-          WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (edge -> vertex) " << direction.second )
           sumAtVertex += direction.second;
         }
 
-
-    WALBERLA_LOG_DEVEL_ON_ROOT( "Face stencil sum = " << sumAtVertex );
     WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
 
     // At edges
@@ -90,7 +89,6 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
       for ( auto centerOrientation : vertexToEdgeStencilMap.at(neighborCellId) )
         for ( auto direction : centerOrientation.second )
         {
-          WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (vertex -> edge)" << direction.second )
           sumAtAllEdgeTypes += direction.second;
         }
 
@@ -100,10 +98,8 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
         for ( auto leafOrientation : centerOrientation.second )
           for ( auto direction : leafOrientation.second )
           {
-            WALBERLA_LOG_DEVEL_ON_ROOT( "Adding (edge -> edge)" << direction.second )
             sumAtAllEdgeTypes += direction.second;
           }
-    WALBERLA_LOG_DEVEL_ON_ROOT( "Face stencil sum = " << sumAtAllEdgeTypes );
     WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
   }
 
@@ -205,20 +201,17 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-#if 0
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
-#endif
 
+  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
   testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
 
-#if 0
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
-#endif
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
+
 #if 0
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
