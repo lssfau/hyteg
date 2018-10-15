@@ -228,7 +228,7 @@ namespace EdgeDoFToVertexDoF {
 ////////// Stencil sizes //////////
 uint_t macroVertexEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive ) {
   WALBERLA_UNUSED(level);
-  return 2 * primitive.getNumNeighborEdges();
+  return primitive.getNumNeighborEdges() + primitive.getNumNeighborFaces();
 }
 
 uint_t macroEdgeEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive ) {
