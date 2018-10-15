@@ -21,6 +21,7 @@
 const int USE_GENERATED_KERNELS = 1;
 
 using walberla::real_t;
+using namespace hhg;
 
 static void performBenchmark( hhg::P2Function< double >&      src,
                               hhg::P2Function< double >&      dst,
