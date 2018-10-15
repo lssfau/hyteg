@@ -833,6 +833,29 @@ inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, c
 }
 
 
+/// \brief Given any edgedof orientation this function returns an arbitrary index of an edgedof that lies in the interior of a macro-cell.
+inline indexing::Index getInnerIndexByOrientation( const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+    case EdgeDoFOrientation::Y:
+    case EdgeDoFOrientation::Z:
+    case EdgeDoFOrientation::XYZ:
+      return indexing::Index( 1, 1, 1 );
+    case EdgeDoFOrientation::XY:
+      return indexing::Index( 0, 0, 1 );
+    case EdgeDoFOrientation::XZ:
+      return indexing::Index( 0, 1, 0 );
+    case EdgeDoFOrientation::YZ:
+      return indexing::Index( 1, 0, 0 );
+    default:
+      WALBERLA_ASSERT( false, "Invalid orientation." );
+      return indexing::Index::max();
+  }
+}
+
+
 // Iterators
 
 class Iterator : public indexing::CellIterator
