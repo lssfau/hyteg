@@ -5,7 +5,6 @@
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
-#include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
@@ -24,159 +23,40 @@ namespace vertexdof {
 
 namespace macroedge {
 
-inline constexpr uint_t neighborFaceGhostLayerSize( const uint_t & level )
-{
-  return levelinfo::num_microvertices_per_edge( level ) - 1;
-}
+uint_t neighborFaceGhostLayerSize( const uint_t & level );
 
-inline constexpr uint_t neighborCellGhostLayerSize( const uint_t & level )
-{
-  return levelinfo::num_microvertices_per_edge( level ) - 2;
-}
+uint_t neighborCellGhostLayerSize( const uint_t & level );
 
 /// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
-inline constexpr uint_t index( const uint_t & level, const uint_t & x )
-{
-  return hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
-};
+uint_t index( const uint_t & level, const uint_t & x );
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
-inline constexpr uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor )
-{
-  return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) )
-         + neighbor * hhg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) )
-         + hhg::indexing::macroEdgeIndex( neighborFaceGhostLayerSize( level ), x );
-};
+uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor );
 
-inline constexpr uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x,
-                                             const uint_t & neighbor, const uint_t & numNeighborFaces )
-{
-  return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) )
-         + numNeighborFaces * hhg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) )
-         + neighbor * hhg::indexing::macroEdgeSize( neighborCellGhostLayerSize( level ) )
-         + hhg::indexing::macroEdgeIndex( neighborCellGhostLayerSize( level ), x );
-};
+uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x,
+                                             const uint_t & neighbor, const uint_t & numNeighborFaces );
 
 // Stencil access functions
 
-inline uint_t indexFromVertexOnNeighborCell( const uint_t & level, const uint_t & x,
-                                             const uint_t & cellID, const uint_t & numNeighborFaces )
-{
-  WALBERLA_ASSERT_GREATER_EQUAL( x, 1, "The 0th edge idx has no cell neighbor." );
-  WALBERLA_ASSERT_LESS_EQUAL   ( x, neighborCellGhostLayerSize( level ) );
-  return indexOnNeighborCell( level, x - 1, cellID, numNeighborFaces );
-}
+uint_t indexFromVertexOnNeighborCell( const uint_t & level, const uint_t & x,
+                                             const uint_t & cellID, const uint_t & numNeighborFaces );
 
-inline uint_t indexFromVertexOnNeighborFace( const uint_t & level, const uint_t & x,
-                                             const uint_t & faceID, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-  WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-  switch( dir )
-  {
-    case sD::VERTEX_W:
-      return indexOnNeighborFace( level, x - 1, faceID );
-    case sD::VERTEX_E:
-      return indexOnNeighborFace( level, x, faceID  );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromVertexOnNeighborFace( const uint_t & level, const uint_t & x,
+                                             const uint_t & faceID, const stencilDirection & dir );
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-inline uint_t indexFromVertex( const uint_t & level, const uint_t & x, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
+uint_t indexFromVertex( const uint_t & level, const uint_t & x, const stencilDirection & dir );
 
-  switch( dir )
-  {
-    case sD::VERTEX_C:
-      return index( level, x );
-    case sD::VERTEX_E:
-      return index( level, x + 1 );
-    case sD::VERTEX_W:
-      return index( level, x - 1 );
-    case sD::VERTEX_N:
-      return indexFromVertexOnNeighborFace( level, x, 1, sD::VERTEX_E );
-    case sD::VERTEX_S:
-      return indexFromVertexOnNeighborFace( level, x, 0, sD::VERTEX_W );
-    case sD::VERTEX_NW:
-      return indexFromVertexOnNeighborFace( level, x, 1, sD::VERTEX_W );
-    case sD::VERTEX_SE:
-      return indexFromVertexOnNeighborFace( level, x, 0, sD::VERTEX_E );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t stencilIndexOnEdge( const stencilDirection & dir );
 
-inline uint_t stencilIndexOnEdge( const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-  WALBERLA_ASSERT( dir == sD::VERTEX_C || dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-  switch ( dir )
-  {
-    case sD::VERTEX_C:
-      return 3;
-    case sD::VERTEX_W:
-      return 2;
-    case sD::VERTEX_E:
-      return 4;
-  }
-}
+uint_t stencilIndexOnNeighborFace( const stencilDirection & dir, const uint_t & faceID );
 
-inline uint_t stencilIndexOnNeighborFace( const stencilDirection & dir, const uint_t & faceID )
-{
-  typedef stencilDirection sD;
-  WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-  if ( faceID == 0 )
-  {
-    switch ( dir )
-    {
-      case sD::VERTEX_W:
-        return 0;
-      case sD::VERTEX_E:
-        return 1;
-      default:
-        WALBERLA_ABORT("wrong direction")
-    }
-  } else {
-    switch (dir) {
-      case sD::VERTEX_W:
-        return 3 + 2 * faceID;
-      case sD::VERTEX_E:
-        return 3 + 2 * faceID + 1;
-      default:
-        WALBERLA_ABORT("wrong direction")
-     }
-  }
-}
-
-inline uint_t stencilIndexOnNeighborCell( const uint_t & cellID, const uint_t & numNeighborFaces )
-{
-  return 3 + 2 * numNeighborFaces + cellID;
-}
+uint_t stencilIndexOnNeighborCell( const uint_t & cellID, const uint_t & numNeighborFaces );
 
 /// Have a look into the documentation to understand the calculations here
 /// The west vertices have the same col index as the horizonal edge
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-    case sD::VERTEX_W:
-      return index( level, x );
-    case sD::VERTEX_E:
-      return index( level, x + 1 );
-    case sD::VERTEX_SE:
-      return indexOnNeighborFace( level, x, 0 );
-    case sD::VERTEX_NW:
-      return indexOnNeighborFace( level, x, 1 );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const stencilDirection & dir );
 
 /// neighbor arrays from vertex dof
 constexpr std::array<stencilDirection, 7> neighborsWithCenter               = {{ hhg::stencilDirection::VERTEX_C,
@@ -199,9 +79,7 @@ constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdge
 class Iterator : public hhg::indexing::EdgeIterator
 {
 public:
-  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
-    EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
-  {}
+  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
 };
 
 }
@@ -215,106 +93,20 @@ namespace macroface {
 /// Direct access functions
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
-inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y )
-{
-  return hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
-};
+uint_t index( const uint_t & level, const uint_t & x, const uint_t & y );
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
 /// \param neighbor 0 or 1 for the respective neighbor
-inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & neighbor )
-{
-  assert( neighbor <= 1 );
-
-  return hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) )
-         + neighbor * hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 1 )
-         + hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x, y );
-
-};
+uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & neighbor );
 
 // Stencil access functions
 
 /// Index of neighboring vertices of a vertex DoF specified by the coordinates.
-inline
-#ifdef NDEBUG
-constexpr
-#endif
-uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-  case sD::VERTEX_C:
-    return index( level, x, y );
-  case sD::VERTEX_E:
-    return index( level, x + 1, y );
-  case sD::VERTEX_W:
-    return index( level, x - 1, y );
-  case sD::VERTEX_N:
-    return index( level, x, y + 1 );
-  case sD::VERTEX_S:
-    return index( level, x, y - 1 );
-  case sD::VERTEX_NW:
-    return index( level, x - 1, y + 1 );
-  case sD::VERTEX_SE:
-    return index( level, x + 1, y - 1 );
-  case sD::VERTEX_TC:
-    return index( level, x, y, 0 );
-  case sD::VERTEX_TW:
-    return index( level, x - 1, y, 0 );
-  case sD::VERTEX_TS:
-    return index( level, x, y - 1, 0 );
-  case sD::VERTEX_TSE:
-    return index( level, x + 1, y - 1, 0 );
-  case sD::VERTEX_TSW:
-    return index( level, x - 1, y - 1, 0 );
-  case sD::VERTEX_TNW:
-    return index( level, x - 1, y + 1, 0 );
-  case sD::VERTEX_BC:
-    return index( level, x, y, 1 );
-  case sD::VERTEX_BN:
-    return index( level, x, y + 1, 1 );
-  case sD::VERTEX_BS:
-    return index( level, x, y - 1, 1 );
-  case sD::VERTEX_BE:
-    return index( level, x + 1, y, 1 );
-  case sD::VERTEX_BW:
-    return index( level, x - 1, y, 1 );
-  case sD::VERTEX_BSW:
-    return index( level, x - 1, y - 1, 1 );
-  case sD::VERTEX_BSE:
-    return index( level, x + 1, y - 1, 1 );
-  case sD::VERTEX_BNW:
-    return index( level, x - 1, y + 1, 1 );
-  default:
-#ifndef NDEBUG
-    WALBERLA_ASSERT( false, "Vertexdof / macro-face indexing not implemented for direction: " << stencilDirectionToStr[dir] );
-#endif
-    return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
 /// Have a look into the documentation to understand the calculations here
 /// The west vertex has the same col and row index as the horizonal edge
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-    case sD::VERTEX_W:
-      return index( level, x, y );
-    case sD::VERTEX_E:
-      return index( level, x + 1, y );
-    case sD::VERTEX_SE:
-      return index( level, x + 1, y - 1 );
-    case sD::VERTEX_NW:
-      return index( level, x, y + 1 );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
 constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdge =
   {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E,
@@ -323,24 +115,7 @@ constexpr std::array<stencilDirection ,4> neighborsFromHorizontalEdge =
 
 /// Have a look into the documentation to understand the calculations here
 /// The south west vertex has the same col and row index as the horizonal edge
-inline constexpr uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-    case sD::VERTEX_SE:
-      return index( level, x + 1, y );
-    case sD::VERTEX_NE:
-      return index( level, x + 1, y + 1 );
-    case sD::VERTEX_NW:
-      return index( level, x, y + 1 );
-    case sD::VERTEX_SW:
-      return index( level, x, y );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromDiagonalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
 constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdge =
   {{ stencilDirection::VERTEX_SE, stencilDirection::VERTEX_NE,
@@ -349,58 +124,11 @@ constexpr std::array<stencilDirection ,4> neighborsFromDiagonalEdge =
 
 /// Have a look into the documentation to understand the calculations here
 /// The south vertex has the same col and row index as the horizonal edge
-inline constexpr uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
+uint_t indexFromVerticalEdge( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
-  switch( dir )
-  {
-    case sD::VERTEX_S:
-      return index( level, x, y );
-    case sD::VERTEX_SE:
-      return index( level, x + 1, y );
-    case sD::VERTEX_N:
-      return index( level, x, y + 1 );
-    case sD::VERTEX_NW:
-      return index( level, x - 1, y + 1 );
-    default:
-      return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromGrayFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
-inline constexpr uint_t indexFromGrayFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-  case sD::VERTEX_SW:
-    return index( level, x, y );
-  case sD::VERTEX_SE:
-    return index( level, x + 1, y );
-  case sD::VERTEX_NW:
-    return index( level, x, y + 1 );
-  default:
-    return std::numeric_limits< uint_t >::max();
-  }
-}
-
-inline constexpr uint_t indexFromBlueFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir )
-{
-  typedef stencilDirection sD;
-
-  switch( dir )
-  {
-  case sD::VERTEX_SE:
-    return index( level, x + 1, y );
-  case sD::VERTEX_NW:
-    return index( level, x, y + 1 );
-  case sD::VERTEX_NE:
-    return index( level, x + 1, y + 1 );
-  default:
-    return std::numeric_limits< uint_t >::max();
-  }
-}
+uint_t indexFromBlueFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
 constexpr std::array<stencilDirection, 13> neighborsWithOneNeighborCellWithCenter = {{
   hhg::stencilDirection::VERTEX_C,
@@ -471,9 +199,7 @@ constexpr std::array< stencilDirection, 3 > neighborsFromBlueFace = {{ stencilDi
 class Iterator : public hhg::indexing::FaceIterator
 {
 public:
-  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
-    FaceIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
-  {}
+  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
 };
 
 /// Iterator over the border of a vertex DoF macro face.
@@ -481,22 +207,10 @@ public:
 class BorderIterator : public hhg::indexing::FaceBorderIterator
 {
 public:
-  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0) :
-    FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
-  {}
+  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
 };
 
-inline bool isVertexOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  if (idx.row() == 0 ){
-    return true;
-  } else if( idx.col() == 0 ){
-    return true;
-  } else if( (idx.row() + idx.col()) == ( hhg::levelinfo::num_microvertices_per_edge( level ) - 1 ) ){
-    return true;
-  } else {
-    return false;
-  }
-}
+bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);
 
 } /// namespace macroface
 
