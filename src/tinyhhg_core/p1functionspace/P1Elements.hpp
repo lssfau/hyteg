@@ -283,6 +283,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     const auto localEdgeID = *onCellEdges.begin();
     WALBERLA_ASSERT_GREATER_EQUAL( localEdgeID, 0 );
     WALBERLA_ASSERT_LESS_EQUAL( localEdgeID, 6 );
+    WALBERLA_UNUSED( localEdgeID );
 
     WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
     const std::vector< uint_t > onCellFacesVector( onCellFaces.begin(), onCellFaces.end() );
