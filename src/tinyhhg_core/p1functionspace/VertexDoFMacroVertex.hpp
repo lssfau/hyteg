@@ -356,21 +356,26 @@ inline void integrateDG(Vertex &vertex,
 
 
 template< typename ValueType >
-inline real_t getMaxValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMaxValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return src[0];
 }
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return std::abs( src[0] );
 }
 
+template<>
+uint_t inline getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< uint_t >, Vertex> &srcId ) {
+   auto src = vertex.getData( srcId )->getPointer( level );
+   return src[0];
+}
 
 template< typename ValueType >
-inline real_t getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return src[0];
 }

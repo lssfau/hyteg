@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
    hhg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
-   const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
+   const uint_t totalDoFs = hhg::numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );

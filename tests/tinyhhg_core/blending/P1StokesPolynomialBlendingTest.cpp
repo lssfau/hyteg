@@ -22,6 +22,7 @@
 #include "tinyhhg_core/Format.hpp"
 
 using walberla::real_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {

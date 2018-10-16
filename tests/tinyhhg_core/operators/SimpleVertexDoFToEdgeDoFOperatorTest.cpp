@@ -5,8 +5,13 @@
 
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 
 namespace hhg {
+
+using walberla::real_t;
 
 static void testOperator() {
   const uint_t level = 3;

@@ -1,136 +1,134 @@
-#include <utility>
-
-#include <utility>
-
-
 #pragma once
 
-#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
-#include "core/mpi/MPITextFile.h"
-
-#include "Levelinfo.hpp"
-#include "Function.hpp"
-#include "p1functionspace/P1Function.hpp"
-
-#include "dgfunctionspace/DGFunction.hpp"
-
-#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-
+#include <map>
 #include <string>
+#include <utility>
+#include <vector>
 
-namespace hhg
-{
+#include "core/DataTypes.h"
 
-using walberla::uint_t;
-using walberla::uint_c;
-using walberla::real_t;
+namespace hhg {
+
 using walberla::real_c;
-////FIXME this typedef can be remove when we move into walberla namespace
-typedef walberla::uint64_t uint64_t;
+using walberla::real_t;
+using walberla::uint64_t;
+using walberla::uint_c;
+using walberla::uint_t;
+
+class PrimitiveStorage;
+
+template < typename ValueType >
+class EdgeDoFFunction;
+template < typename ValueType >
+class DGFunction;
+template < typename ValueType >
+class P2Function;
+
+namespace vertexdof {
+template < typename ValueType >
+class VertexDoFFunction;
+}
+
+template < typename ValueType >
+using P1Function = vertexdof::VertexDoFFunction< ValueType >;
 
 class VTKOutput
 {
-public:
+ public:
+   /// \param writeFrequency outputs VTK in the specified frequency
+   VTKOutput( std::string                                dir,
+              std::string                                filename,
+              const std::shared_ptr< PrimitiveStorage >& storage,
+              const uint_t&                              writeFrequency = 1 );
 
-  /// \param writeFrequency outputs VTK in the specified frequency
-  VTKOutput(std::string dir, std::string filename, const std::shared_ptr<PrimitiveStorage> &storage, const uint_t &writeFrequency = 1) :
-     dir_(std::move(dir)), filename_(std::move(filename)), writeFrequency_( writeFrequency ), write2D_( true )
-  {
-     /// set output to 3D is storage contains cells
-     if( storage->hasGlobalCells() )
-     {
-        set3D();
-     }
-  }
+   void add( const P1Function< real_t >* function ) { p1Functions_.push_back( function ); };
+   void add( const EdgeDoFFunction< real_t >* function ) { edgeDoFFunctions_.push_back( function ); };
+   void add( const DGFunction< real_t >* function ) { dgFunctions_.push_back( function ); };
 
-  void add( const P1Function     < real_t > * function ) { p1Functions_.push_back( function ); } ;
-  void add( const EdgeDoFFunction< real_t > * function ) { edgeDoFFunctions_.push_back( function ); };
-  void add( const DGFunction     < real_t > * function ) { dgFunctions_.push_back( function ); };
+   void add( const P2Function< real_t >* function );
 
-  void add( const P2Function     < real_t > * function ) { p2Functions_.push_back( function );
-                                                           p1Functions_.push_back( function->getVertexDoFFunction().get() );
-                                                           edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+   void add( const std::shared_ptr< P1Function< real_t > >& function ) { p1Functions_.push_back( function.get() ); };
+   void add( const std::shared_ptr< EdgeDoFFunction< real_t > >& function ) { edgeDoFFunctions_.push_back( function.get() ); };
+   void add( const std::shared_ptr< DGFunction< real_t > >& function ) { dgFunctions_.push_back( function.get() ); };
 
-  void add( const std::shared_ptr< P1Function     < real_t > > & function ) { p1Functions_.push_back( function.get() ); } ;
-  void add( const std::shared_ptr< EdgeDoFFunction< real_t > > & function ) { edgeDoFFunctions_.push_back( function.get() ); };
-  void add( const std::shared_ptr< DGFunction     < real_t > > & function ) { dgFunctions_.push_back( function.get() ); };
+   void add( const std::shared_ptr< P2Function< real_t > >& function );
 
-  void add( const std::shared_ptr< P2Function     < real_t > > & function ) { p2Functions_.push_back( function.get() );
-                                                                              p1Functions_.push_back( function->getVertexDoFFunction().get() );
-                                                                              edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() ); }
+   /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
+   /// Therefore always writes output if timestep is 0.
+   /// Appends the time step to the filename.
+   /// Note: files will be overwritten if called twice with the same time step!
+   void write( const uint_t& level, const uint_t& timestep = 0 ) const;
 
-  /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
-  /// Therefore always writes output if timestep is 0.
-  /// Appends the time step to the filename.
-  /// Note: files will be overwritten if called twice with the same time step!
-  void write( const uint_t & level, const uint_t & timestep = 0 ) const;
+ private:
+   enum class DoFType
+   {
+      VERTEX,
+      EDGE_X,
+      EDGE_Y,
+      EDGE_Z,
+      EDGE_XY,
+      EDGE_XZ,
+      EDGE_YZ,
+      EDGE_XYZ,
+      DG,
+      P2
+   };
 
-private:
+   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
-  enum class DoFType
-  {
-    VERTEX,
-    EDGE_X,
-    EDGE_Y,
-    EDGE_Z,
-    EDGE_XY,
-    EDGE_XZ,
-    EDGE_YZ,
-    EDGE_XYZ,
-    DG,
-    P2
-  };
+   void   writeDoFByType( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
+   uint_t getNumRegisteredFunctions( const VTKOutput::DoFType& dofType ) const;
 
-  static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
+   void writeP1( std::ostream& output, const uint_t& level ) const;
+   void writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
+   void writeDGDoFs( std::ostream& output, const uint_t& level ) const;
+   void writeP2( std::ostream& output, const uint_t& level ) const;
 
-  void writeDoFByType( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
-  uint_t getNumRegisteredFunctions( const VTKOutput::DoFType & dofType ) const;
+   std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
-  void writeP1      ( std::ostream & output, const uint_t & level                                     ) const;
-  void writeEdgeDoFs( std::ostream & output, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
-  void writeDGDoFs  ( std::ostream & output, const uint_t & level                                     ) const;
-  void writeP2      ( std::ostream & output, const uint_t & level                                     ) const;
+   void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
+   void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
 
-  std::string fileNameExtension( const VTKOutput::DoFType & dofType, const uint_t & level, const uint_t & timestep ) const;
+   void writePointsForMicroVertices( std::ostream&                              output,
+                                     const std::shared_ptr< PrimitiveStorage >& storage,
+                                     const uint_t&                              level ) const;
+   void writePointsForMicroEdges( std::ostream&                              output,
+                                  const std::shared_ptr< PrimitiveStorage >& storage,
+                                  const uint_t&                              level,
+                                  const VTKOutput::DoFType&                  dofType ) const;
 
-  void writeHeader       ( std::ostringstream & output, const uint_t & numberOfPoints, const uint_t & numberOfCells ) const;
-  void writeFooterAndFile( std::ostringstream & output, const std::string & completeFilePath ) const;
+   void writeVertexDoFData( std::ostream&                                 output,
+                            const vertexdof::VertexDoFFunction< real_t >* function,
+                            const std::shared_ptr< PrimitiveStorage >&    storage,
+                            const uint_t&                                 level ) const;
+   void writeEdgeDoFData( std::ostream&                              output,
+                          const EdgeDoFFunction< real_t >*           function,
+                          const std::shared_ptr< PrimitiveStorage >& storage,
+                          const uint_t&                              level,
+                          const DoFType&                             dofType ) const;
 
-  void writePointsForMicroVertices( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
-  void writePointsForMicroEdges   ( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const VTKOutput::DoFType & dofType ) const;
+   void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
+   void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;
 
-  void writeVertexDoFData( std::ostream & output, const vertexdof::VertexDoFFunction< real_t > * function,
-                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level ) const;
-  void writeEdgeDoFData  ( std::ostream & output, const EdgeDoFFunction< real_t > * function,
-                           const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level, const DoFType & dofType ) const;
+   void syncAllFunctions( const uint_t& level ) const;
 
-  void writeCells2D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & faceWidth ) const;
-  void writeCells3D( std::ostream & output, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level     ) const;
+   /// Writes only macro-faces.
+   void set2D() { write2D_ = true; }
+   /// Writes only macro-cells.
+   void set3D() { write2D_ = false; }
 
-  void syncAllFunctions( const uint_t & level ) const;
+   std::string dir_;
+   std::string filename_;
 
-  /// Writes only macro-faces.
-  void set2D() { write2D_ = true; }
-  /// Writes only macro-cells.
-  void set3D() { write2D_ = false; }
+   uint_t writeFrequency_;
 
-  std::string dir_;
-  std::string filename_;
+   bool write2D_;
 
-  uint_t writeFrequency_;
+   std::vector< const P1Function< real_t >* >      p1Functions_;
+   std::vector< const EdgeDoFFunction< real_t >* > edgeDoFFunctions_;
+   std::vector< const DGFunction< real_t >* >      dgFunctions_;
 
-  bool write2D_;
-
-  std::vector< const P1Function     < real_t > * > p1Functions_;
-  std::vector< const EdgeDoFFunction< real_t > * > edgeDoFFunctions_;
-  std::vector< const DGFunction     < real_t > * > dgFunctions_;
-
-  std::vector< const P2Function     < real_t > * > p2Functions_;
-
+   std::vector< const P2Function< real_t >* > p2Functions_;
 };
 
-
-}
-
+} // namespace hhg

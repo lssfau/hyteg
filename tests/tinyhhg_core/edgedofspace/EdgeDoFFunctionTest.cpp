@@ -6,6 +6,7 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"

@@ -3,8 +3,6 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "core/debug/CheckFunctions.h"
 
-using namespace hhg;
-
 namespace hhg
 {
 

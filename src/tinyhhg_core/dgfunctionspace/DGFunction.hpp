@@ -10,6 +10,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 namespace hhg {
 

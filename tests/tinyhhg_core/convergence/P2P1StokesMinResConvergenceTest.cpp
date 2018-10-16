@@ -9,6 +9,7 @@
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 
 using walberla::real_t;
+using walberla::real_c;
 
 int main( int argc, char* argv[] )
 {

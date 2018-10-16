@@ -3,6 +3,7 @@
 
 #include "core/timing/Timer.h"
 
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"

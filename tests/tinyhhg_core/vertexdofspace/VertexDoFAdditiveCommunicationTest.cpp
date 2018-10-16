@@ -117,12 +117,12 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_4el.msh" );
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/pyramid_4el.msh" );
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-  hhg::testVertexDoFAdditiveCommunication( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/regular_octahedron_8el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_4el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/pyramid_4el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+  hhg::testVertexDoFAdditiveCommunication( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/regular_octahedron_8el.msh" );
 
   return EXIT_SUCCESS;
 }

@@ -7,6 +7,7 @@
 
 #include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitives/Vertex.hpp"
 
 namespace hhg {
 

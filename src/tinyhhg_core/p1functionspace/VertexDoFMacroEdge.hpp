@@ -687,12 +687,12 @@ inline void printFunctionMemory( const uint_t & level, const Edge& edge, const P
 
 
 template< typename ValueType >
-inline real_t getMaxValue( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+inline ValueType getMaxValue( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = -std::numeric_limits<real_t>::max();
+  auto localMax = -std::numeric_limits< ValueType >::max();
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
     localMax = std::max( localMax, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
@@ -703,12 +703,12 @@ inline real_t getMaxValue( const uint_t & level, Edge &edge, const PrimitiveData
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+inline ValueType getMaxMagnitude( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = real_t(0.0);
+  auto localMax = ValueType(0.0);
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
     localMax = std::max( localMax, std::abs( src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] ));
@@ -717,14 +717,28 @@ inline real_t getMaxMagnitude( const uint_t & level, Edge &edge, const Primitive
   return localMax;
 }
 
+template<>
+inline uint_t getMaxMagnitude( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< uint_t >, Edge> &srcId ) {
+
+   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto src = edge.getData( srcId )->getPointer( level );
+   auto localMax = uint_t(0.0);
+
+   for( size_t i = 1; i < rowsize - 1; ++i ) {
+      localMax = std::max( localMax, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );
+   }
+
+   return localMax;
+}
 
 template< typename ValueType >
-inline real_t getMinValue( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMin = std::numeric_limits<real_t>::max();
+  auto localMin = std::numeric_limits< ValueType >::max();
 
   for( size_t i = 1; i < rowsize - 1; ++i ) {
     localMin = std::min( localMin, src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C ) ] );

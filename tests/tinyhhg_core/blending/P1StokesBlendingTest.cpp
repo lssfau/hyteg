@@ -1,8 +1,5 @@
 #include "core/config/Create.h"
-
 #include "core/DataTypes.h"
-
-//#include "tinyhhg_core/VTKWriter.hpp"
 
 #include "tinyhhg_core/composites/P1BlendingStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1CoefficientStokesOperator.hpp"
@@ -26,6 +23,7 @@
 #include "tinyhhg_core/communication/Syncing.hpp"
 
 using walberla::real_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {

@@ -130,7 +130,7 @@ int main( int argc, char* argv[] )
       uint_t totalGlobalDofsStokes = 0;
       for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
       {
-         uint_t tmpDofStokes = numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
+         uint_t tmpDofStokes = hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
          totalGlobalDofsStokes += tmpDofStokes;
       }
@@ -177,10 +177,10 @@ int main( int argc, char* argv[] )
    }
 
    ///// MinRes coarse grid solver for UZAWA /////
-   typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
+   typedef hhg::StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
        PressurePreconditioner_T;
 
-   P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
+   hhg::P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
    PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
 
    typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
@@ -189,16 +189,16 @@ int main( int argc, char* argv[] )
    auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, minLevel, pressurePrec );
 
    ///// UZAWA solver /////
-   typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
+   typedef hhg::UzawaSolver< hhg::P1StokesFunction< real_t >,
                         hhg::P1StokesOperator,
                         PressurePreconditionedMinRes_T,
-                        P1P1StokesToP1P1StokesRestriction,
-                        P1P1StokesToP1P1StokesProlongation,
+                        hhg::P1P1StokesToP1P1StokesRestriction,
+                        hhg::P1P1StokesToP1P1StokesProlongation,
                         false >
        UzawaSolver_T;
 
-   P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
-   P1P1StokesToP1P1StokesProlongation stokesProlongation{};
+   hhg::P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
+   hhg::P1P1StokesToP1P1StokesProlongation stokesProlongation{};
 
    UzawaSolver_T uzawaSolver(
        storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
@@ -212,22 +212,22 @@ int main( int argc, char* argv[] )
       }
    }
 
-   P1Transport transportOperator( storage, minLevel, maxLevel );
+   hhg::P1Transport transportOperator( storage, minLevel, maxLevel );
    real_t      time = 0.0;
 
    for( uint_t step = 0; step < outerIterations; ++step )
    {
-      M.apply( temp, f.u, maxLevel, All );
-      M.apply( temp, f.v, maxLevel, All );
-      M.apply( temp, f.w, maxLevel, All );
+      M.apply( temp, f.u, maxLevel, hhg::All );
+      M.apply( temp, f.v, maxLevel, hhg::All );
+      M.apply( temp, f.w, maxLevel, hhg::All );
 
-      f.u.multElementwise( {&f.u, &normalX}, maxLevel, All );
-      f.v.multElementwise( {&f.v, &normalY}, maxLevel, All );
-      f.w.multElementwise( {&f.w, &normalZ}, maxLevel, All );
+      f.u.multElementwise( {&f.u, &normalX}, maxLevel, hhg::All );
+      f.v.multElementwise( {&f.v, &normalY}, maxLevel, hhg::All );
+      f.w.multElementwise( {&f.w, &normalZ}, maxLevel, hhg::All );
 
-      f.u.assign( {rhsScaleFactor}, {&f.u}, maxLevel, All );
-      f.v.assign( {rhsScaleFactor}, {&f.v}, maxLevel, All );
-      f.w.assign( {rhsScaleFactor}, {&f.w}, maxLevel, All );
+      f.u.assign( {rhsScaleFactor}, {&f.u}, maxLevel, hhg::All );
+      f.v.assign( {rhsScaleFactor}, {&f.v}, maxLevel, hhg::All );
+      f.w.assign( {rhsScaleFactor}, {&f.w}, maxLevel, hhg::All );
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
@@ -268,7 +268,7 @@ int main( int argc, char* argv[] )
          time += dt;
          WALBERLA_LOG_INFO_ON_ROOT( "time = " << time );
 
-         transportOperator.step( temp, u.u, u.v, u.w, maxLevel, Inner, dt, viscosity );
+         transportOperator.step( temp, u.u, u.v, u.w, maxLevel, hhg::Inner, dt, viscosity );
       }
 
       if( mainConf.getParameter< bool >( "VTKOutput" ) )
