@@ -10,6 +10,7 @@
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 
 namespace hhg {
