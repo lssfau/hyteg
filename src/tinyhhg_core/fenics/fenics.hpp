@@ -38,19 +38,19 @@ inline void compute_micro_coords(const Face &face, size_t level, real_t coords[6
 /// Use this UFCOperator to assemble the zero-matrix.
 class NoAssemble {
  public:
-  void tabulate_tensor(real_t * A,
-                       const real_t * const * w,
-                       const real_t * coordinate_dofs,
-                       int cell_orientation) const { }
+  void tabulate_tensor(real_t *,
+                       const real_t * const *,
+                       const real_t *,
+                       int) const { }
 };
 
 /// Use this UFCOperator to indicate that no assembly is defined at all.
 class UndefinedAssembly {
 public:
-    void tabulate_tensor(real_t * A,
-                         const real_t * const * w,
-                         const real_t * coordinate_dofs,
-                         int cell_orientation) const { WALBERLA_ABORT( "Assembly undefined." ); }
+    void tabulate_tensor(real_t *,
+                         const real_t * const *,
+                         const real_t *,
+                         int) const { WALBERLA_ABORT( "Assembly undefined." ); }
 };
 
 /// Dummy UFCOperator for a 10x10 (i.e. tet, P2) stiffness matrix
@@ -62,9 +62,9 @@ public:
     Dummy10x10Assembly( const real_t & constant ) : stiffnessMatrix_( constant ) {}
 
     void tabulate_tensor(real_t * A,
-                         const real_t * const * w,
-                         const real_t * coordinate_dofs,
-                         int cell_orientation) const
+                         const real_t * const *,
+                         const real_t *,
+                         int) const
     {
       for ( uint_t i = 0; i < 100; i++ )
         A[i] = stiffnessMatrix_.data()[i];

@@ -25,30 +25,21 @@
 namespace hhg {
 namespace fenics {
 
-#define HHG_CREATE_UFCOPERATOR_SPECIALIZATION( UFC_TYPE, LOCAL_STIFFNESS_MATRIX_TYPE ) \
-   template<> \
-   struct UFCTrait< UFC_TYPE > \
-   { \
-      typedef LOCAL_STIFFNESS_MATRIX_TYPE LocalStiffnessMatrix_T; \
-   }
+template struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise >;
+template struct UFCTrait< p1_tet_diffusion_cell_integral_0_otherwise >;
+template struct UFCTrait< p1_tet_div_tet_cell_integral_0_otherwise >;
+template struct UFCTrait< p1_tet_div_tet_cell_integral_1_otherwise >;
+template struct UFCTrait< p1_tet_div_tet_cell_integral_2_otherwise >;
+template struct UFCTrait< p1_tet_divt_tet_cell_integral_0_otherwise >;
+template struct UFCTrait< p1_tet_divt_tet_cell_integral_1_otherwise >;
+template struct UFCTrait< p1_tet_divt_tet_cell_integral_2_otherwise >;
+template struct UFCTrait< p1_tet_pspg_tet_cell_integral_0_otherwise >;
 
+template struct UFCTrait< p2_tet_diffusion_cell_integral_0_otherwise >;
 
-// P1 / Tet traits
+template struct UFCTrait< UndefinedAssembly >;
+template struct UFCTrait< NoAssemble >;
+template struct UFCTrait< Dummy10x10Assembly >;
 
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_diffusion_cell_integral_0_otherwise, Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_0_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_1_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_2_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_0_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_1_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_2_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_mass_cell_integral_0_otherwise,      Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_pspg_tet_cell_integral_0_otherwise,  Matrix4r );
-
-
-// P2 / Tet traits
-
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p2_tet_diffusion_cell_integral_0_otherwise, Matrix10r );
-
-}
-}
+} // namespace fenics
+} // namespace hhg

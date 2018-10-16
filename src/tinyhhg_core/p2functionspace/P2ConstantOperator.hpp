@@ -16,6 +16,7 @@
 #endif
 
 #include "generated/p2_diffusion.h"
+#include "generated/p2_tet_diffusion.h"
 #include "generated/p2_mass.h"
 #include "generated/p2_divt.h"
 #include "generated/p2_div.h"

@@ -14,6 +14,7 @@
 #include "tinyhhg_core/VTKWriter.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 
 namespace hhg {
 
