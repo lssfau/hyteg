@@ -11,6 +11,10 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/FunctionTraits.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
