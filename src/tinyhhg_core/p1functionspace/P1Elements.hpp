@@ -262,7 +262,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 3 );
     WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 3 );
     const auto localVertexID = *onCellVertices.begin();
-    const auto singleMicroCell = [ localVertexID, level ]{
+    const auto singleMicroCell = [ localVertexID ]{
       switch ( localVertexID )
       {
         case 0:
@@ -703,6 +703,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
           else
           {
             WALBERLA_ASSERT_EQUAL( face.getNumNeighborCells(), 2 );
+            WALBERLA_UNUSED( face );
             return makeVertexDirectionBottom( projectedDirection );
           }
         }
