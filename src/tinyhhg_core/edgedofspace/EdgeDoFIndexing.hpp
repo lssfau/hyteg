@@ -885,25 +885,33 @@ inline std::set< uint_t > isOnCellFaces( const uint_t & level, const indexing::I
     case EdgeDoFOrientation::X:
       onCellFacesSet.erase( 2 );
       onCellFacesSet.erase( 3 );
+      break;
     case EdgeDoFOrientation::Y:
       onCellFacesSet.erase( 1 );
       onCellFacesSet.erase( 3 );
+      break;
     case EdgeDoFOrientation::Z:
       onCellFacesSet.erase( 0 );
       onCellFacesSet.erase( 3 );
+      break;
     case EdgeDoFOrientation::XY:
       onCellFacesSet.erase( 1 );
       onCellFacesSet.erase( 2 );
+      break;
     case EdgeDoFOrientation::XZ:
       onCellFacesSet.erase( 0 );
       onCellFacesSet.erase( 2 );
+      break;
     case EdgeDoFOrientation::YZ:
       onCellFacesSet.erase( 0 );
       onCellFacesSet.erase( 1 );
+      break;
     case EdgeDoFOrientation::XYZ:
       onCellFacesSet.clear();
+      break;
     default:
       WALBERLA_ASSERT( false, "Invalid orientation." );
+      break;
   }
   WALBERLA_ASSERT_NOT_IDENTICAL( onCellFacesSet.size(), 3, "Edgedof cannot lie in corner of the cell (i.e. on three faces)." );
   return onCellFacesSet;
