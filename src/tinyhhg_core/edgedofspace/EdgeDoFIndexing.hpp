@@ -278,53 +278,98 @@ namespace macroedge {
 typedef stencilDirection sD;
 
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
-inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col )
+inline constexpr uint_t index( const uint_t & level, const uint_t & x )
 {
-  return ::hhg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), col );
-};
+  return ::hhg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), x );
+}
 
-/// Index of a horizontal edge DoF on a ghost layer of a macro edge.
+
+/// Index of an edge DoF on a ghost layer that is located on a neighbor-face of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-inline constexpr uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
+inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor, const EdgeDoFOrientation & orientation )
 {
+  WALBERLA_ASSERT_EQUAL( std::count( faceLocalEdgeDoFOrientations.begin(), faceLocalEdgeDoFOrientations.end(), orientation ), 1, "Invalid orientation." );
+
   const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
   const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
   const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
 
-  const uint_t offset = numHorizontalDoFsOnEdge + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
+  switch ( orientation )
+  {
+  case EdgeDoFOrientation::X:
+  {
+    const uint_t offset = numHorizontalDoFsOnEdge + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
+    return offset + index( level, x );
+  }
+  case EdgeDoFOrientation::Y:
+  {
+    const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
+    return offset + x;
+  }
+  case EdgeDoFOrientation::XY:
+  {
+    const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
+    return offset + x;
+  }
+  default:
+    return std::numeric_limits< uint_t >::max();
+  }
+}
 
-  return offset + horizontalIndex( level, col );
-};
 
-/// Index of a vertical edge DoF on a ghost layer of a macro edge.
+/// Index of an edge DoF on a ghost layer that is located on a neighbor-cell of a macro edge.
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-inline constexpr uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
+inline uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x, const uint_t & neighbor, const uint_t & numNeighborFaces, const EdgeDoFOrientation & orientation )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1  );
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) + numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+  const uint_t offsetPerOrientation = levelinfo::num_microedges_per_edge( level );
+  switch ( orientation )
+  {
+  case EdgeDoFOrientation::X:
+    return offsetToFirstCellDoF + 0 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::Y:
+    return offsetToFirstCellDoF + 1 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::Z:
+    return offsetToFirstCellDoF + 2 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::XY:
+    return offsetToFirstCellDoF + 3 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::XZ:
+    return offsetToFirstCellDoF + 4 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::YZ:
+    return offsetToFirstCellDoF + 5 * offsetPerOrientation + index( level, x );
+  case EdgeDoFOrientation::XYZ:
+    return offsetToFirstCellDoF + 6 * offsetPerOrientation + index( level, x );
+  default:
+    WALBERLA_ASSERT( false, "Invalid orientation" );
+    return std::numeric_limits< uint_t >::max();
+  }
+}
 
-  const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + numOtherTypeDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
 
-  return offset + col;
+inline uint_t horizontalIndex( const uint_t & level, const uint_t & col )
+{
+  return index( level, col );
 };
 
-/// Index of a diagonal edge DoF on a ghost layer of a macro edge.
-/// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-inline constexpr uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
+inline uint_t horizontalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
 {
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
-
-  const uint_t offset = numHorizontalDoFsOnEdge + numHorizontalDoFsOnGhostLayer + neighbor * (numHorizontalDoFsOnGhostLayer + 2 * numOtherTypeDoFsOnGhostLayer);
-
-  return offset + col;
+  return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::X );
 };
+
+inline uint_t verticalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
+{
+  return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::Y );
+};
+
+inline uint_t diagonalIndex( const uint_t & level, const uint_t & col, const uint_t & neighbor )
+{
+  return indexOnNeighborFace( level, col, neighbor, EdgeDoFOrientation::XY );
+};
+
 
 // Stencil access functions
 
-inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const stencilDirection & dir )
+inline uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -348,7 +393,7 @@ inline constexpr uint_t indexFromHorizontalEdge( const uint_t & level, const uin
 }
 
 
-inline constexpr uint_t indexFromVertex( const uint_t & level, const uint_t & col, const stencilDirection & dir )
+inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const stencilDirection & dir )
 {
   // first  neighbor == south
   // second neighbor == north
@@ -830,6 +875,38 @@ inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, c
       WALBERLA_ASSERT( false, "Invalid orientation." );
       return true;
   }
+}
+
+inline std::set< uint_t > isOnCellFaces( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  auto onCellFacesSet = indexing::isOnCellFace( idx, levelinfo::num_microedges_per_edge( level ) );
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      onCellFacesSet.erase( 2 );
+      onCellFacesSet.erase( 3 );
+    case EdgeDoFOrientation::Y:
+      onCellFacesSet.erase( 1 );
+      onCellFacesSet.erase( 3 );
+    case EdgeDoFOrientation::Z:
+      onCellFacesSet.erase( 0 );
+      onCellFacesSet.erase( 3 );
+    case EdgeDoFOrientation::XY:
+      onCellFacesSet.erase( 1 );
+      onCellFacesSet.erase( 2 );
+    case EdgeDoFOrientation::XZ:
+      onCellFacesSet.erase( 0 );
+      onCellFacesSet.erase( 2 );
+    case EdgeDoFOrientation::YZ:
+      onCellFacesSet.erase( 0 );
+      onCellFacesSet.erase( 1 );
+    case EdgeDoFOrientation::XYZ:
+      onCellFacesSet.clear();
+    default:
+      WALBERLA_ASSERT( false, "Invalid orientation." );
+  }
+  WALBERLA_ASSERT_NOT_IDENTICAL( onCellFacesSet.size(), 3, "Edgedof cannot lie in corner of the cell (i.e. on three faces)." );
+  return onCellFacesSet;
 }
 
 
