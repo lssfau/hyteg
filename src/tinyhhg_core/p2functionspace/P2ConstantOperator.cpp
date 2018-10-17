@@ -10,11 +10,21 @@
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #endif
 
+#ifdef WALBERLA_CXX_COMPILER_IS_GNU
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wfloat-conversion"
+#endif
+
 #include "generated/p2_diffusion.h"
 #include "generated/p2_div.h"
 #include "generated/p2_divt.h"
 #include "generated/p2_mass.h"
 #include "generated/p2_tet_diffusion.h"
+
+#ifdef WALBERLA_CXX_COMPILER_IS_GNU
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef WALBERLA_CXX_COMPILER_IS_CLANG
 #pragma clang diagnostic pop
@@ -27,7 +37,7 @@
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
-#include "tinyhhg_core/p2functionspace/P2Smooth.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
 
 namespace hhg {
 
@@ -431,7 +441,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Funct
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if( testFlag( vertexBC, flag ) )
       {
-         P2::vertex::smoothGSvertexDoF( level,
+         P2::macrovertex::smoothGSvertexDoF( level,
                                         vertex,
                                         vertexToVertex.getVertexStencilID(),
                                         dst.getVertexDoFFunction()->getVertexDataID(),

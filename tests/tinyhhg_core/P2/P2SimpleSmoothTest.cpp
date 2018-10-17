@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
-#include "tinyhhg_core/p2functionspace/P2Smooth.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
