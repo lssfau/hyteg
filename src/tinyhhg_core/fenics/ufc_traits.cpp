@@ -25,21 +25,21 @@
 namespace hhg {
 namespace fenics {
 
-template struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise >;
-template struct UFCTrait< p1_tet_diffusion_cell_integral_0_otherwise >;
-template struct UFCTrait< p1_tet_div_tet_cell_integral_0_otherwise >;
-template struct UFCTrait< p1_tet_div_tet_cell_integral_1_otherwise >;
-template struct UFCTrait< p1_tet_div_tet_cell_integral_2_otherwise >;
-template struct UFCTrait< p1_tet_divt_tet_cell_integral_0_otherwise >;
-template struct UFCTrait< p1_tet_divt_tet_cell_integral_1_otherwise >;
-template struct UFCTrait< p1_tet_divt_tet_cell_integral_2_otherwise >;
-template struct UFCTrait< p1_tet_pspg_tet_cell_integral_0_otherwise >;
-
-template struct UFCTrait< p2_tet_diffusion_cell_integral_0_otherwise >;
-
-template struct UFCTrait< UndefinedAssembly >;
-template struct UFCTrait< NoAssemble >;
-template struct UFCTrait< Dummy10x10Assembly >;
+//template struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise >;
+//template struct UFCTrait< p1_tet_diffusion_cell_integral_0_otherwise >;
+//template struct UFCTrait< p1_tet_div_tet_cell_integral_0_otherwise >;
+//template struct UFCTrait< p1_tet_div_tet_cell_integral_1_otherwise >;
+//template struct UFCTrait< p1_tet_div_tet_cell_integral_2_otherwise >;
+//template struct UFCTrait< p1_tet_divt_tet_cell_integral_0_otherwise >;
+//template struct UFCTrait< p1_tet_divt_tet_cell_integral_1_otherwise >;
+//template struct UFCTrait< p1_tet_divt_tet_cell_integral_2_otherwise >;
+//template struct UFCTrait< p1_tet_pspg_tet_cell_integral_0_otherwise >;
+//
+//template struct UFCTrait< p2_tet_diffusion_cell_integral_0_otherwise >;
+//
+//template struct UFCTrait< UndefinedAssembly >;
+//template struct UFCTrait< NoAssemble >;
+//template struct UFCTrait< Dummy10x10Assembly >;
 
 } // namespace fenics
 } // namespace hhg
