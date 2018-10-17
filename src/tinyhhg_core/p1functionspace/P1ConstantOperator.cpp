@@ -21,7 +21,12 @@
 #pragma warning( pop )
 #endif
 
+#include "generatedKernels/generatedKernels.hpp"
 #include "P1Elements.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 
 namespace hhg {
 
@@ -255,7 +260,7 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
    real_t coords[6];
    fenics::compute_micro_coords( face, level, coords, element_type );
    UFCOperator2D gen;
-   gen.tabulate_tensor( local_stiffness.data(), NULL, coords, 0 );
+   gen.tabulate_tensor( local_stiffness.data(), nullptr, coords, 0 );
 
    if( Diagonal )
    {

@@ -2,22 +2,11 @@
 
 #include <array>
 
-#include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/Operator.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
-#include "tinyhhg_core/types/matrix.hpp"
-#include "tinyhhg_core/types/pointnd.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
+#include "tinyhhg_core/StencilMemory.hpp"
 
-#include "P1DataHandling.hpp"
-
-#include "P1Function.hpp"
-#include "generatedKernels/generatedKernels.hpp"
 
 class p1_diffusion_cell_integral_0_otherwise;
 class p1_tet_diffusion_cell_integral_0_otherwise;
