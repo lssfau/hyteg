@@ -34,7 +34,8 @@ inline uint_t edgeDoFMacroVertexFunctionMemorySize( const uint_t &level, const P
 
 inline uint_t edgeDoFMacroEdgeFunctionMemorySize( const uint_t &level, const Primitive & primitive )
 {
-  return levelinfo::num_microedges_per_edge( level ) + primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+  return levelinfo::num_microedges_per_edge( level ) + primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 )
+    + primitive.getNumNeighborCells() * levelinfo::num_microedges_per_edge( level );
 }
 
 inline uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Primitive & primitive )
