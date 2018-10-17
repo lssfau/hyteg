@@ -12,6 +12,7 @@
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/indexing/LocalIDMappings.hpp"
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 #include "core/math/KahanSummation.h"
@@ -259,25 +260,31 @@ inline void apply3D( const uint_t & level, const Edge & edge,
 
           uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
-          if ( onCellFacesSet.size() == 0 )
+          const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
+          std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
+          std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
+                                 onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
+
+          if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
           {
             // leaf in macro-cell
-            WALBERLA_ASSERT( edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
             leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
           }
-          else if ( onCellFacesSet.size() == 1 )
+          else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
           {
             // leaf on macro-face
             WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
-            const auto faceID = neighborCell.neighborFaces().at( *onCellFacesSet.begin() );
+
+            const auto faceID = neighborCell.neighborFaces().at( *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin() );
             WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() )
             const auto localFaceIDOnEdge = edge.face_index( faceID );
             leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdge.x(), localFaceIDOnEdge, leafOrientationOnEdge );
+
           }
           else
           {
             // leaf on macro-edge
-            WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), 2 );
+            WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
             WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
             WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X );
             leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );

@@ -103,25 +103,33 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
 
         WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() );
 
+        const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
+        std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
+        std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
+                               onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
+
         uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
-        if ( onCellFacesSet.size() == 0 )
+        if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
         {
           // leaf in macro-cell
           leafArrayIndexOnEdge = vertexdof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces() );
         }
-        else if ( onCellFacesSet.size() == 1 )
+        else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
         {
           // leaf on macro-face
-          const auto faceID = neighborCell.neighborFaces().at( *onCellFacesSet.begin() );
+
+          const auto faceID = neighborCell.neighborFaces().at( *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin() );
           WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() )
+
           const auto localFaceIDOnEdge = edge.face_index( faceID );
           leafArrayIndexOnEdge = vertexdof::macroedge::indexOnNeighborFace( level, leafIndexOnEdge.x(), localFaceIDOnEdge );
+
         }
         else
         {
           // leaf on macro-edge
-          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), 2 );
+          WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
           leafArrayIndexOnEdge = vertexdof::macroedge::index( level, leafIndexOnEdge.x() );
         }
 
