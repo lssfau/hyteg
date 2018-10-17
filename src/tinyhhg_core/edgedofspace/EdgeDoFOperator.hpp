@@ -20,12 +20,14 @@ public:
   void apply_impl(EdgeDoFFunction< real_t >& src,  EdgeDoFFunction< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
+  const PrimitiveDataID<LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge  > &getEdgeStencil3DID() const;
   const PrimitiveDataID<StencilMemory< real_t >, Face  > &getFaceStencilID() const;
   const PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face  > &getFaceStencil3DID() const;
   const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
+  PrimitiveDataID<LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge  > edgeStencil3DID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face  > faceStencil3DID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > cellStencilID_;
