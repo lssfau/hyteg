@@ -2,10 +2,11 @@
 
 #include "core/DataTypes.h"
 
+namespace hhg {
+
 template < typename funcType >
 class P2Function;
 
-namespace hhg {
 namespace communication {
 
 using walberla::uint_t;

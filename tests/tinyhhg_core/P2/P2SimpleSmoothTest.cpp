@@ -4,10 +4,14 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
+#include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2Smooth.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 
@@ -22,8 +26,8 @@ static void testP2Smooth()
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto x   = std::make_shared< P2Function< real_t > >( "x", storage, level, level );
-   auto rhs = std::make_shared< P2Function< real_t > >( "rhs", storage, level, level );
+   auto x   = std::make_shared< hhg::P2Function< real_t > >( "x", storage, level, level );
+   auto rhs = std::make_shared< hhg::P2Function< real_t > >( "rhs", storage, level, level );
 
    P2ConstantLaplaceOperator p2operator( storage, level, level );
 
@@ -35,15 +39,15 @@ static void testP2Smooth()
    real_t* edgeToEdgeStencil;
    real_t* vertexToEdgeStencil;
 
-   for( auto faceIt : storage->getFaces() )
+   for( auto& faceIt : storage->getFaces() )
    {
-      Face* face = faceIt.second.get();
+      Face& face = *faceIt.second;
 
-      vertexToVertexStencil = face->getData( p2operator.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-      edgeToVertexStencil   = face->getData( p2operator.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
+      vertexToVertexStencil = face.getData( p2operator.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+      edgeToVertexStencil   = face.getData( p2operator.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
 
-      edgeToEdgeStencil   = face->getData( p2operator.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
-      vertexToEdgeStencil = face->getData( p2operator.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      edgeToEdgeStencil   = face.getData( p2operator.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      vertexToEdgeStencil = face.getData( p2operator.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
 
       /// vertex dofs
       for( uint_t k = 0; k < vertexdof::macroface::neighborsWithCenter.size(); ++k )
@@ -102,24 +106,30 @@ static void testP2Smooth()
 
       hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
-      P2::face::smoothGSvertexDoF( level,
-                                   *face,
-                                   p2operator.getVertexToVertexOpr().getFaceStencilID(),
-                                   x->getVertexDoFFunction()->getFaceDataID(),
-                                   p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-                                   x->getEdgeDoFFunction()->getFaceDataID(),
-                                   rhs->getVertexDoFFunction()->getFaceDataID() );
+      P2::macroface::smoothGaussSeidel( level,
+                                        face,
+                                        p2operator.getVertexToVertexOpr().getFaceStencilID(),
+                                        p2operator.getEdgeToVertexOpr().getFaceStencilID(),
+                                        x->getVertexDoFFunction()->getFaceDataID(),
+                                        p2operator.getVertexToEdgeOpr().getFaceStencilID(),
+                                        p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
+                                        x->getEdgeDoFFunction()->getFaceDataID(),
+                                        rhs->getVertexDoFFunction()->getFaceDataID(),
+                                        rhs->getEdgeDoFFunction()->getFaceDataID() );
 
-      P2::face::smoothGSedgeDoF( level,
-                                 *face,
-                                 p2operator.getVertexToEdgeOpr().getFaceStencilID(),
-                                 x->getVertexDoFFunction()->getFaceDataID(),
-                                 p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
-                                 x->getEdgeDoFFunction()->getFaceDataID(),
-                                 rhs->getEdgeDoFFunction()->getFaceDataID() );
+      P2::macroface::smoothGaussSeidel( level,
+                                        face,
+                                        p2operator.getVertexToVertexOpr().getFaceStencilID(),
+                                        p2operator.getEdgeToVertexOpr().getFaceStencilID(),
+                                        x->getVertexDoFFunction()->getFaceDataID(),
+                                        p2operator.getVertexToEdgeOpr().getFaceStencilID(),
+                                        p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
+                                        x->getEdgeDoFFunction()->getFaceDataID(),
+                                        rhs->getVertexDoFFunction()->getFaceDataID(),
+                                        rhs->getEdgeDoFFunction()->getFaceDataID() );
 
-      real_t* edgeDoFData   = face->getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
-      real_t* vertexDoFData = face->getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
+      real_t* edgeDoFData   = face.getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
+      real_t* vertexDoFData = face.getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
 
       for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 0 ) )
       {
@@ -188,21 +198,27 @@ static void testP2Smooth()
    }
    edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )] = -7.;
 
-   P2::edge::smoothGSvertexDoF( level,
-                                *doubleEdge,
-                                p2operator.getVertexToVertexOpr().getEdgeStencilID(),
-                                x->getVertexDoFFunction()->getEdgeDataID(),
-                                p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                x->getEdgeDoFFunction()->getEdgeDataID(),
-                                rhs->getVertexDoFFunction()->getEdgeDataID() );
+   P2::macroedge::smoothGaussSeidel( level,
+                                     *doubleEdge,
+                                     p2operator.getVertexToVertexOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
+                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
+                                     x->getEdgeDoFFunction()->getEdgeDataID(),
+                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
 
-   P2::edge::smoothGSedgeDoF( level,
-                              *doubleEdge,
-                              p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
-                              x->getVertexDoFFunction()->getEdgeDataID(),
-                              p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                              x->getEdgeDoFFunction()->getEdgeDataID(),
-                              rhs->getEdgeDoFFunction()->getEdgeDataID() );
+   P2::macroedge::smoothGaussSeidel( level,
+                                     *doubleEdge,
+                                     p2operator.getVertexToVertexOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
+                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
+                                     x->getEdgeDoFFunction()->getEdgeDataID(),
+                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
 
    real_t* edgeDoFData   = doubleEdge->getData( x->getEdgeDoFFunction()->getEdgeDataID() )->getPointer( level );
    real_t* vertexDoFData = doubleEdge->getData( x->getVertexDoFFunction()->getEdgeDataID() )->getPointer( level );
@@ -418,21 +434,28 @@ static void testP2JacobiSmooth()
    }
    edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )] = -7.;
 
-   P2::edge::smoothGSvertexDoF( level,
-                                *doubleEdge,
-                                p2operator.getVertexToVertexOpr().getEdgeStencilID(),
-                                x->getVertexDoFFunction()->getEdgeDataID(),
-                                p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                x->getEdgeDoFFunction()->getEdgeDataID(),
-                                rhs->getVertexDoFFunction()->getEdgeDataID() );
 
-   P2::edge::smoothGSedgeDoF( level,
-                              *doubleEdge,
-                              p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
-                              x->getVertexDoFFunction()->getEdgeDataID(),
-                              p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                              x->getEdgeDoFFunction()->getEdgeDataID(),
-                              rhs->getEdgeDoFFunction()->getEdgeDataID() );
+   P2::macroedge::smoothGaussSeidel( level,
+                                     *doubleEdge,
+                                     p2operator.getVertexToVertexOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
+                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
+                                     x->getEdgeDoFFunction()->getEdgeDataID(),
+                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
+
+   P2::macroedge::smoothGaussSeidel( level,
+                                     *doubleEdge,
+                                     p2operator.getVertexToVertexOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
+                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
+                                     p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
+                                     x->getEdgeDoFFunction()->getEdgeDataID(),
+                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
 
    ///TODO: enable once jacobi on macroedges is implemented
 #if 0
