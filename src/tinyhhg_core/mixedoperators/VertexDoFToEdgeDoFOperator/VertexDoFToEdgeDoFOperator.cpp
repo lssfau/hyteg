@@ -15,6 +15,9 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
                                                                         maxLevel_,
                                                                         VertexDoFToEdgeDoF::macroEdgeVertexDoFToEdgeDoFStencilSize);
 
+  auto edge3DDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge > >( minLevel_, maxLevel_ );
+
   auto faceDataHandling =
     std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face >>(minLevel_,
                                                                         maxLevel_,
@@ -27,6 +30,7 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell > >( minLevel_, maxLevel_ );
 
   storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+  storage->addEdgeData(edgeStencil3DID_, edge3DDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil3D");
   storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
   storage->addFaceData(faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil3D");
   storage->addCellData(cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil");
@@ -158,7 +162,14 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if (testFlag(edgeBC, flag))
     {
-      VertexDoFToEdgeDoF::applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+      if ( storage_->hasGlobalCells() )
+      {
+        VertexDoFToEdgeDoF::applyEdge3D( level, edge, *getStorage(), edgeStencil3DID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+      }
+      else
+      {
+        VertexDoFToEdgeDoF::applyEdge( level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+      }
     }
   }
   this->stopTiming( "VertexDoFToEdgeDoFOperator - Apply" );

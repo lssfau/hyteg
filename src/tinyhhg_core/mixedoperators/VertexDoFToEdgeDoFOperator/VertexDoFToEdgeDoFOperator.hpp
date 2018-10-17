@@ -30,6 +30,7 @@ public:
 
   /// since the Vertex does not own any EdgeDoFs only edge, face and cell are needed
   const PrimitiveDataID< StencilMemory< real_t >, Edge> &getEdgeStencilID() const { return edgeStencilID_; }
+  const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge> &getEdgeStencil3DID() const { return edgeStencil3DID_; }
   const PrimitiveDataID< StencilMemory< real_t >, Face> &getFaceStencilID() const { return faceStencilID_; }
   const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face> &getFaceStencil3DID() const { return faceStencil3DID_; }
   const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell> &getCellStencilID() const { return cellStencilID_; }
@@ -39,6 +40,7 @@ private:
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
 
   PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
+  PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge> edgeStencil3DID_;
   PrimitiveDataID< StencilMemory< real_t >, Face> faceStencilID_;
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face> faceStencil3DID_;
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell> cellStencilID_;
