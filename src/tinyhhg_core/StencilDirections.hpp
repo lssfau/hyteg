@@ -2,8 +2,7 @@
 
 #include <map>
 #include "core/DataTypes.h"
-
-#include <map>
+#include "core/debug/Debug.h"
 
 using walberla::uint_t;
 

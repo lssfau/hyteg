@@ -1,69 +1,44 @@
-
 #pragma once
 
 #include "tinyhhg_core/types/matrix.hpp"
 
-#ifdef _MSC_VER
-#pragma warning( push, 0 )
-#endif
+class p1_tet_diffusion_cell_integral_0_otherwise;
+class p1_tet_div_tet_cell_integral_0_otherwise;
+class p1_tet_div_tet_cell_integral_1_otherwise;
+class p1_tet_div_tet_cell_integral_2_otherwise;
+class p1_tet_divt_tet_cell_integral_0_otherwise;
+class p1_tet_divt_tet_cell_integral_1_otherwise;
+class p1_tet_divt_tet_cell_integral_2_otherwise;
+class p1_tet_mass_cell_integral_0_otherwise;
+class p1_tet_pspg_tet_cell_integral_0_otherwise;
 
-#include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_div_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_divt_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_pspg_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
-
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
+class p2_tet_diffusion_cell_integral_0_otherwise;
 
 namespace hhg {
 namespace fenics {
 
+class UndefinedAssembly;
+class NoAssemble;
+class Dummy10x10Assembly;
+
 template< typename UFCOperator >
 struct UFCTrait;
 
-#define HHG_CREATE_UFCOPERATOR_SPECIALIZATION( UFC_TYPE, LOCAL_STIFFNESS_MATRIX_TYPE ) \
-   template<> \
-   struct UFCTrait< UFC_TYPE > \
-   { \
-      typedef LOCAL_STIFFNESS_MATRIX_TYPE LocalStiffnessMatrix_T; \
-   }
+template<> struct UFCTrait< p1_tet_diffusion_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_div_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_div_tet_cell_integral_1_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_div_tet_cell_integral_2_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_1_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_2_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_pspg_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 
+template<> struct UFCTrait< p2_tet_diffusion_cell_integral_0_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
 
-// P1 / Tet traits
+template<> struct UFCTrait< UndefinedAssembly > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< NoAssemble > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< Dummy10x10Assembly > { typedef Matrix10r LocalStiffnessMatrix_T; };
 
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_diffusion_cell_integral_0_otherwise, Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_0_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_1_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_div_tet_cell_integral_2_otherwise,   Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_0_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_1_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_divt_tet_cell_integral_2_otherwise,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_mass_cell_integral_0_otherwise,      Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p1_tet_pspg_tet_cell_integral_0_otherwise,  Matrix4r );
-
-
-// P2 / Tet traits
-
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( p2_tet_diffusion_cell_integral_0_otherwise, Matrix10r );
-
-
-// Other
-
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( UndefinedAssembly,  Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( NoAssemble,         Matrix4r );
-HHG_CREATE_UFCOPERATOR_SPECIALIZATION( Dummy10x10Assembly, Matrix10r );
-
-
-#undef HHG_CREATE_UFCOPERATOR_SPECIALIZATION
 }
 }

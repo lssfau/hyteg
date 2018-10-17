@@ -16,6 +16,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
+using walberla::uint_t;
 
 int main( int argc, char* argv[] )
 {

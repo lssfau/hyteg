@@ -10,6 +10,8 @@
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
+#include "tinyhhg_core/fenics/fenics.hpp"
 
 
 namespace hhg {
@@ -260,7 +262,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 3 );
     WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 3 );
     const auto localVertexID = *onCellVertices.begin();
-    const auto singleMicroCell = [ localVertexID, level ]{
+    const auto singleMicroCell = [ localVertexID ]{
       switch ( localVertexID )
       {
         case 0:
@@ -281,6 +283,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
     const auto localEdgeID = *onCellEdges.begin();
     WALBERLA_ASSERT_GREATER_EQUAL( localEdgeID, 0 );
     WALBERLA_ASSERT_LESS_EQUAL( localEdgeID, 6 );
+    WALBERLA_UNUSED( localEdgeID );
 
     WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
     const std::vector< uint_t > onCellFacesVector( onCellFaces.begin(), onCellFaces.end() );
@@ -308,7 +311,7 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
   {
     return returnType( allCellsAtInnerVertex.begin(), allCellsAtInnerVertex.end() );
   }
-};
+}
 
 
 /// \brief Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
@@ -362,8 +365,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
     // Flattening the offset array to be able to pass it to the fenics routines.
     double geometricOffsetsArray[12];
     for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
-      for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
-        geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
+      for ( int coordinate = 0; coordinate < 3; coordinate++ ) {
+        geometricOffsetsArray[cellVertex * 3 + uint_c(coordinate)] = geometricOffsetsFromCenter[cellVertex][coordinate];
       }
     }
 
@@ -547,7 +550,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
         const auto edgeLocalIndexInDir = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, indexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
         WALBERLA_ASSERT_EQUAL( edgeLocalIndexInDir.y(), 0 );
         WALBERLA_ASSERT_EQUAL( edgeLocalIndexInDir.z(), 0 );
-        const int dirDIfference = edgeLocalIndexInDir.x() - microVertexIndex.x();
+        const int dirDIfference = static_cast<int>(edgeLocalIndexInDir.x() - microVertexIndex.x());
         WALBERLA_ASSERT_GREATER_EQUAL( dirDIfference, -1 );
         WALBERLA_ASSERT_LESS_EQUAL   ( dirDIfference, 1 );
         const stencilDirection dirOnEdge = dirDIfference == 0 ? sd::VERTEX_C : (dirDIfference == 1 ? sd::VERTEX_E : sd::VERTEX_W);
@@ -592,7 +595,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
   }
   return stencil;
 
-};
+}
 
 
 /// \brief Assembles the local P1 operator stencil on a macro-face
@@ -700,6 +703,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
           else
           {
             WALBERLA_ASSERT_EQUAL( face.getNumNeighborCells(), 2 );
+            WALBERLA_UNUSED( face );
             return makeVertexDirectionBottom( projectedDirection );
           }
         }
