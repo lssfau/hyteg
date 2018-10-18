@@ -215,8 +215,8 @@ int main( int argc, char** argv )
    /// [Boundary Conditions]
 
    /// [Solvers]
-   typedef P1toP1LinearRestriction RestrictionOperator;
-   typedef P1toP1LinearProlongation ProlongationOperator;
+   typedef hhg::P1toP1LinearRestriction RestrictionOperator;
+   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
    typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
 
    RestrictionOperator restrictionOperator;
@@ -254,7 +254,7 @@ int main( int argc, char** argv )
    /// [Output]
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput(".", "FullAppP1GMG", storage);
+      hhg::VTKOutput vtkOutput(".", "FullAppP1GMG", storage);
       vtkOutput.add( &function );
       vtkOutput.add( &residual );
       vtkOutput.add( &rightHandSide );

@@ -3,6 +3,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/logging/Logging.h"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 namespace hhg {
 

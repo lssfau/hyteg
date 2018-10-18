@@ -204,20 +204,21 @@ static void testEdgeDoFsOnMacroEdge()
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from vertex): EDGE_DI_SE correct!" );
 
-#ifdef NDEBUG
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 3, sD::EDGE_HO_E)  ==  3 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_HO_W)  ==  5 , "EDGE_HO_W  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 8, sD::EDGE_VE_S)  == 30 , "EDGE_VE_S  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 4, sD::EDGE_VE_N)  == 50 , "EDGE_VE_N  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_DI_NW) == 43 , "EDGE_DI_NW cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 4, sD::EDGE_DI_NE) == 42 , "EDGE_DI_NE cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 7, sD::EDGE_DI_SW) == 21 , "EDGE_DI_SW cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 7, sD::EDGE_DI_SE) == 22 , "EDGE_DI_SE cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 8, sD::EDGE_HO_NW) == 38 , "EDGE_HO_NW cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_HO_SE) == 13 , "EDGE_HO_SE cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 1, sD::EDGE_VE_NW) == 46 , "EDGE_VE_NW cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_VE_SE) == 29 , "EDGE_VE_SE cannot be statically computed by the compiler!" );
-#endif
+/// We moved the indexing into source files this does not work anymore
+//#ifdef NDEBUG
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 3, sD::EDGE_HO_E)  ==  3 , "EDGE_HO_E  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_HO_W)  ==  5 , "EDGE_HO_W  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 8, sD::EDGE_VE_S)  == 30 , "EDGE_VE_S  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 4, sD::EDGE_VE_N)  == 50 , "EDGE_VE_N  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_DI_NW) == 43 , "EDGE_DI_NW cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 4, sD::EDGE_DI_NE) == 42 , "EDGE_DI_NE cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 7, sD::EDGE_DI_SW) == 21 , "EDGE_DI_SW cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 7, sD::EDGE_DI_SE) == 22 , "EDGE_DI_SE cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 8, sD::EDGE_HO_NW) == 38 , "EDGE_HO_NW cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_HO_SE) == 13 , "EDGE_HO_SE cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 1, sD::EDGE_VE_NW) == 46 , "EDGE_VE_NW cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromVertex( 3, 6, sD::EDGE_VE_SE) == 29 , "EDGE_VE_SE cannot be statically computed by the compiler!" );
+//#endif
 
   ////////////////////////////////
   // index from horizontal edge //
@@ -258,12 +259,13 @@ static void testEdgeDoFsOnMacroEdge()
 
   WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro edge indexing (from horizontal edge): EDGE_VE_SE correct!" );
 
-#ifdef NDEBUG
-  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 0, sD::EDGE_DI_N)  == 18, "EDGE_DI_N  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 1, sD::EDGE_DI_S)  ==  8, "EDGE_DI_S  cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 2, sD::EDGE_VE_NW) == 24, "EDGE_VE_NW cannot be statically computed by the compiler!" );
-  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 3, sD::EDGE_VE_SE) == 14, "EDGE_VE_SE cannot be statically computed by the compiler!" );
-#endif
+/// We moved the indexing into source files this does not work anymore
+//#ifdef NDEBUG
+//  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 0, sD::EDGE_DI_N)  == 18, "EDGE_DI_N  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 1, sD::EDGE_DI_S)  ==  8, "EDGE_DI_S  cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 2, sD::EDGE_VE_NW) == 24, "EDGE_VE_NW cannot be statically computed by the compiler!" );
+//  static_assert( edgedof::macroedge::indexFromHorizontalEdge( 2, 3, sD::EDGE_VE_SE) == 14, "EDGE_VE_SE cannot be statically computed by the compiler!" );
+//#endif
 
 }
 

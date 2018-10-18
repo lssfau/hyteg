@@ -273,10 +273,10 @@ inline void apply3D( const uint_t & level, const Edge & edge,
           else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
           {
             // leaf on macro-face
-            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
 
             const auto faceID = neighborCell.neighborFaces().at( *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin() );
-            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() )
+            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() );
             const auto localFaceIDOnEdge = edge.face_index( faceID );
             leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdge.x(), localFaceIDOnEdge, leafOrientationOnEdge );
 
@@ -285,7 +285,7 @@ inline void apply3D( const uint_t & level, const Edge & edge,
           {
             // leaf on macro-edge
             WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
-            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
             WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X );
             leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
           }
