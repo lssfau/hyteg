@@ -350,9 +350,9 @@ inline void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
    }
    this->startTiming( "Enumerate" );
 
-   uint_t counter = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+   auto counter = static_cast< ValueType >( hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level ) );
 
-   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+   std::vector< ValueType > dofs_per_rank = walberla::mpi::allGather( counter );
 
    ValueType startOnRank = 0;
 
