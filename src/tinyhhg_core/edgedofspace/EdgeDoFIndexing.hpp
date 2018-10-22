@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"

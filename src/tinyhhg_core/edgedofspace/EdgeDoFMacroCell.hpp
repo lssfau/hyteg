@@ -2,6 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
@@ -16,9 +17,6 @@ namespace macrocell {
 
 using walberla::uint_t;
 using walberla::real_c;
-
-/// map[centerOrientation][leafOrientation][indexOffset] = weight
-typedef std::map< edgedof::EdgeDoFOrientation, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > StencilMap_T;
 
 inline Point3D xShiftFromVertex( const uint_t & level, const Cell & cell )
 {

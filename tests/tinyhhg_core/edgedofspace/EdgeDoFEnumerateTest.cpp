@@ -1,6 +1,9 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
@@ -16,12 +19,12 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::EdgeDoFFunction< uint_t > x("x", storage, Level, Level);
+  hhg::EdgeDoFFunction< int > x("x", storage, Level, Level);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
 
-  size_t num = 0;
+  int num = 0;
   uint_t check = 0;
 
   //x.enumerate(Level,num);
@@ -29,9 +32,9 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   uint_t totalDoFs = hhg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
 
   for (auto &edgeIt : storage->getEdges()) {
-    hhg::edgedof::macroedge::enumerate< uint_t >(Level,*edgeIt.second,x.getEdgeDataID(),num);
+    hhg::edgedof::macroedge::enumerate< int >(Level,*edgeIt.second,x.getEdgeDataID(),num);
     Edge &edge = *edgeIt.second;
-    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
+    int *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
 
     if(edgeIt.second->getNumNeighborFaces() == 2) totalDoFs -= levelinfo::num_microedges_per_edge( Level );
 
@@ -54,10 +57,10 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   }
 
   for ( auto &faceIt : storage->getFaces() ) {
-    hhg::edgedof::macroface::enumerate< uint_t >(Level,*faceIt.second,x.getFaceDataID(),num);
+    hhg::edgedof::macroface::enumerate< int >(Level,*faceIt.second,x.getFaceDataID(),num);
     size_t idxCounter = 0;
     Face &face = *faceIt.second;
-    uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(Level);
+    int *faceData = face.getData(x.getFaceDataID())->getPointer(Level);
     uint_t rowsize = levelinfo::num_microedges_per_edge(Level);
     uint_t inner_rowsize = rowsize;
     for(uint_t i = 0; i < rowsize ; ++i){

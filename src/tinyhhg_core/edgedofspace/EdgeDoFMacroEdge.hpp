@@ -8,6 +8,7 @@
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
@@ -24,9 +25,6 @@ namespace macroedge {
 
 using walberla::uint_t;
 using walberla::real_c;
-
-/// map[neighborCellID][centerOrientation][leafOrientation][indexOffset] = weight
-typedef std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, std::map< edgedof::EdgeDoFOrientation, std::map< indexing::IndexIncrement, real_t > > > > StencilMap_T;
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge & edge,
