@@ -35,11 +35,10 @@ void P2CGTest(const std::string meshFile, const uint_t level, const real_t targe
       u.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
    }
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return 0; };//sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
    std::function< real_t( const hhg::Point3D& ) > rhs   = []( const hhg::Point3D& ) { return 0; };
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
 
-   u.interpolate( ones, level, hhg::All );
    u.interpolate( exact, level, hhg::DirichletBoundary );
    u_exact.interpolate( exact, level );
 
@@ -73,8 +72,8 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   //hhg::P2CGTest("../../data/meshes//tri_1el.msh", 3, 1e-7, false);
-   //hhg::P2CGTest("../../data/meshes//quad_4el.msh", 3, 1e-6, false);
-   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 3, 2e-2, false);
-   //hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 2e-2, true);
+   hhg::P2CGTest("../../data/meshes//tri_1el.msh", 3, 1e-7, false);
+   hhg::P2CGTest("../../data/meshes//quad_4el.msh", 3, 1e-6, false);
+   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 2e-2, false);
+   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 2e-2, true);
 }
