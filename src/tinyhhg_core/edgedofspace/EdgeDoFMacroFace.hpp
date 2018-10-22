@@ -501,10 +501,10 @@ inline void printFunctionMemory( const uint_t & Level, Face& face, const Primiti
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+inline ValueType getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
 
   auto src = face.getData( srcId )->getPointer( level );
-  real_t localMax = real_t(0.0);
+  auto localMax = ValueType(0.0);
 
   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
   {

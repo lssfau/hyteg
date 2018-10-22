@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
@@ -354,10 +355,10 @@ inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const Pr
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+inline ValueType getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = real_t(0.0);
+  auto localMax = ValueType(0.0);
 
   for( const auto &it: edgedof::macroedge::Iterator( level ) )
   {

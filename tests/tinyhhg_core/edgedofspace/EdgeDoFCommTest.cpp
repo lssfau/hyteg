@@ -18,15 +18,15 @@ void checkComm3d(const uint_t level){
    SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-   hhg::EdgeDoFFunction< uint_t > x("x", storage, level, level);
-   hhg::EdgeDoFFunction< uint_t > y("x", storage, level, level);
+   hhg::EdgeDoFFunction< int > x("x", storage, level, level);
+   hhg::EdgeDoFFunction< int > y("x", storage, level, level);
    y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
    /// check cell to face comm
    for (auto &cellIt : storage->getCells()) {
       Cell &face = *cellIt.second;
-      uint_t *cellData = face.getData(x.getCellDataID())->getPointer(level);
-      uint_t *cellDataY = face.getData(y.getCellDataID())->getPointer(level);
+      int *cellData = face.getData(x.getCellDataID())->getPointer(level);
+      int *cellDataY = face.getData(y.getCellDataID())->getPointer(level);
       for(uint_t i = 0; i < face.getData(x.getCellDataID())->getSize(level); ++i){
          cellData[i] = 13;
          cellDataY[i] = 13;
@@ -38,8 +38,8 @@ void checkComm3d(const uint_t level){
 
    for (auto &faceIt : storage->getFaces()) {
       Face &face = *faceIt.second;
-      uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(level);
-      uint_t *faceDataY = face.getData(y.getFaceDataID())->getPointer(level);
+      int *faceData = face.getData(x.getFaceDataID())->getPointer(level);
+      int *faceDataY = face.getData(y.getFaceDataID())->getPointer(level);
       for(uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData(x.getFaceDataID())->getSize(level); ++i){
          WALBERLA_CHECK_EQUAL( faceData[i], 13, i);
          WALBERLA_CHECK_EQUAL( faceDataY[i], 13, i);
@@ -59,7 +59,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
 
   //const uint_t level = 4;
-  hhg::EdgeDoFFunction< uint_t > x("x", storage, level, level);
+  hhg::EdgeDoFFunction< int > x("x", storage, level, level);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
@@ -88,7 +88,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   using hhg::edgedof::macroface::BorderIterator;
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
-    uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(level);
+    int *faceData = face.getData(x.getFaceDataID())->getPointer(level);
     std::vector<PrimitiveID> nbrEdges;
     face.getNeighborEdges(nbrEdges);
     uint_t localEdgeIdOnFace = 0;
@@ -96,7 +96,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 /////////// FIRST EDGE ////////////
 
     Edge *firstEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
-    uint_t *edgeData = firstEdge->getData(x.getEdgeDataID())->getPointer(level);
+    int *edgeData = firstEdge->getData(x.getEdgeDataID())->getPointer(level);
     uint_t idxCounter = 0;
     /// horizontal Dof on edge 0
     for(const auto& it : BorderIterator(level,indexing::getFaceBorderDirection(localEdgeIdOnFace,face.edge_orientation[localEdgeIdOnFace]),0)){
@@ -239,11 +239,11 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   for (auto &vertexIt : storage->getVertices()) {
     Vertex &vertex = *vertexIt.second;
-    uint_t *vertexData = vertex.getData(x.getVertexDataID())->getPointer(level);
+    int *vertexData = vertex.getData(x.getVertexDataID())->getPointer(level);
 
     for (const PrimitiveID& edgeId : vertex.neighborEdges()) {
       Edge *edge = storage->getEdge(edgeId);
-      uint_t *edgeData = edge->getData(x.getEdgeDataID())->getPointer(level);
+      int *edgeData = edge->getData(x.getEdgeDataID())->getPointer(level);
       if (edge->getVertexID0() == vertex.getID()) {
         WALBERLA_CHECK_EQUAL(
           edgeData[edgedof::macroedge::indexFromVertex( level, 1, stencilDirection::EDGE_HO_W )],
@@ -262,7 +262,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
     }
     for (const PrimitiveID& faceId : vertex.neighborFaces()) {
       Face *face = storage->getFace(faceId);
-      uint_t *faceData = face->getData(x.getFaceDataID())->getPointer(level);
+      int *faceData = face->getData(x.getFaceDataID())->getPointer(level);
       if (face->getVertexID0() == vertex.getID()) {
         WALBERLA_CHECK_EQUAL(
           faceData[edgedof::macroface::indexFromDiagonalEdge( level, 0, 0, stencilDirection::EDGE_DI_C )],
