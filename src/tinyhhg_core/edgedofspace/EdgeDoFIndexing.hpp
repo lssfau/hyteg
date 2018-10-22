@@ -927,8 +927,9 @@ inline indexing::Index getInnerIndexByOrientation( const EdgeDoFOrientation & or
     case EdgeDoFOrientation::X:
     case EdgeDoFOrientation::Y:
     case EdgeDoFOrientation::Z:
-    case EdgeDoFOrientation::XYZ:
       return indexing::Index( 1, 1, 1 );
+    case EdgeDoFOrientation::XYZ:
+      return indexing::Index( 0, 0, 0);
     case EdgeDoFOrientation::XY:
       return indexing::Index( 0, 0, 1 );
     case EdgeDoFOrientation::XZ:
