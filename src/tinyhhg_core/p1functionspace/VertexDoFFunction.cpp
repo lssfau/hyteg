@@ -842,7 +842,6 @@ void VertexDoFFunction<ValueType>::interpolateByPrimitiveType(const ValueType &c
 template class VertexDoFFunction< float >;
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
-template class VertexDoFFunction< uint_t >;
 
 } // namespace vertexdof
 } // namespace hhg

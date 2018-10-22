@@ -368,12 +368,6 @@ inline ValueType getMaxMagnitude( const uint_t &level, Vertex &vertex, const Pri
   return std::abs( src[0] );
 }
 
-template<>
-uint_t inline getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< uint_t >, Vertex> &srcId ) {
-   auto src = vertex.getData( srcId )->getPointer( level );
-   return src[0];
-}
-
 template< typename ValueType >
 inline ValueType getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );

@@ -28,7 +28,6 @@ static void testFunctionSpaceDataTypes()
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
   P1Function< real_t > realP1Function ( "real_t P1Function", storage, minLevel, maxLevel );
-  P1Function< uint_t > uintP1Function ( "uint_t P1Function", storage, minLevel, maxLevel );
   P1Function< int >    intP1Function  ( "int    P1Function", storage, minLevel, maxLevel );
   P1Function< float >  floatP1Function( "float  P1Function", storage, minLevel, maxLevel );
 
