@@ -24,13 +24,13 @@ namespace edgedof {
 ///@name Size Functions
 ///@{
 
-inline uint_t edgeDoFMacroVertexFunctionMemorySize( const uint_t &level, const Primitive & primitive );
+uint_t edgeDoFMacroVertexFunctionMemorySize( const uint_t &level, const Primitive & primitive );
 
-inline uint_t edgeDoFMacroEdgeFunctionMemorySize( const uint_t &level, const Primitive & primitive );
+uint_t edgeDoFMacroEdgeFunctionMemorySize( const uint_t &level, const Primitive & primitive );
 
-inline uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Primitive & primitive );
+uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t &level, const Primitive & primitive );
 
-inline uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive );
+uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive );
 
 ///@}
 
@@ -47,33 +47,27 @@ public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
 
-  inline void
-  assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
+  void assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
           uint_t level, DoFType flag = All );
 
-  inline void
-  add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
+  void add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
        uint_t level, DoFType flag = All );
 
   /// Interpolates a given expression to a EdgeDoFFunction
 
-  inline void
-  interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
+  void interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
 
-  inline void
-  interpolate( const std::function< ValueType( const Point3D & ) >& expr,
+  void interpolate( const std::function< ValueType( const Point3D & ) >& expr,
                           uint_t level, DoFType flag = All);
 
-  inline void
-  interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                       const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                      uint_t level,
-                      DoFType flag = All);
+  void interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
+                            const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
+                            uint_t level,
+                            DoFType flag = All);
 
-  inline real_t
-  dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+  real_t dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 
-  inline void enumerate( uint_t level );
+  void enumerate( uint_t level );
 
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
@@ -81,7 +75,7 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Cell>   & getCellDataID()   const { return cellDataID_; }
 
 
-  inline ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
+  ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
@@ -119,7 +113,7 @@ public:
 
 private:
 
-   inline void enumerate( uint_t level, ValueType& offset );
+   void enumerate( uint_t level, ValueType& offset );
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
 

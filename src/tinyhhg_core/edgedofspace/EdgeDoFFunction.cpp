@@ -64,7 +64,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag )
+void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -105,7 +105,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                        uint_t                                              level,
                                                        DoFType                                             flag )
 {
@@ -119,7 +119,7 @@ inline void EdgeDoFFunction< ValueType >::interpolate( const std::function< Valu
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::interpolateExtended(
+void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
     uint_t                                                                               level,
@@ -179,7 +179,7 @@ inline void EdgeDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >                     scalars,
+void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >                     scalars,
                                                   const std::vector< EdgeDoFFunction< ValueType >* > functions,
                                                   size_t                                             level,
                                                   DoFType                                            flag )
@@ -238,7 +238,7 @@ inline void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >                     scalars,
+void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >                     scalars,
                                                const std::vector< EdgeDoFFunction< ValueType >* > functions,
                                                size_t                                             level,
                                                DoFType                                            flag )
@@ -297,7 +297,7 @@ inline void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >   
 }
 
 template < typename ValueType >
-inline real_t EdgeDoFFunction< ValueType >::dotLocal( EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t EdgeDoFFunction< ValueType >::dotLocal( EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
 {
    if( isDummy() )
    {
@@ -342,7 +342,7 @@ inline real_t EdgeDoFFunction< ValueType >::dotLocal( EdgeDoFFunction< ValueType
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
 {
    if( isDummy() )
    {
@@ -366,7 +366,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
 }
 
 template < typename ValueType >
-inline void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 {
    for( auto& it : this->getStorage()->getEdges() )
    {
@@ -392,7 +392,7 @@ inline void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& of
 }
 
 template < typename ValueType >
-inline ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
    {
