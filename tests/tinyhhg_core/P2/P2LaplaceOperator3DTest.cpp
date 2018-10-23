@@ -28,7 +28,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   WALBERLA_LOG_INFO_ON_ROOT( "===== " << meshFile << " | level " << level << " =====" );
 
   const bool   writeVTK   = true;
-  const real_t errorLimit = 9.3e-13;
+  const real_t errorLimit = 1e-12;
 
   uint_t timestep = 0;
 
