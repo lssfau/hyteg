@@ -208,22 +208,23 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vert
 
 /// \brief converts the edge orientation of the reference face into the correct orientation on the tetrahedron according to the position
 /// and the rotation of the face.
-inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation srcOr, const uint_t v0, const uint_t v1, const uint_t v2 ){
+inline EdgeDoFOrientation convertEdgeDoFOrientationFaceToCell(const EdgeDoFOrientation srcOr, const uint_t cellLocalID0,
+                                                              const uint_t cellLocalID1, const uint_t cellLocalID2){
    /// one can calculate the missing local index by adding all indices and subtract from 0+1+2+3
-   uint_t v3 = 6 - ( v0 + v1 + v2 );
+   uint_t v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
    switch ( srcOr ){
       case EdgeDoFOrientation::X:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v1);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,cellLocalID1);
       case EdgeDoFOrientation::Y:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v2);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,cellLocalID2);
       case EdgeDoFOrientation::XY:
-         return getEdgeDoFOrientationFromLocalIDs(v1,v2);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID1,cellLocalID2);
       case EdgeDoFOrientation::Z:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,v3);
       case EdgeDoFOrientation::XZ:
-         return getEdgeDoFOrientationFromLocalIDs(v1,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID1,v3);
       case EdgeDoFOrientation::YZ:
-         return getEdgeDoFOrientationFromLocalIDs(v2,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID2,v3);
       case EdgeDoFOrientation::XYZ:
          /// nothing changes here
          return EdgeDoFOrientation::XYZ;
@@ -239,7 +240,8 @@ inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation sr
 /// \param cellLocalID1 the second index of the face from cell-local point of view (face-local == 1)
 /// \param cellLocalID2 the third index of the face from cell-local point of view (face-local == 2)
 /// \return the edge DoF orientation from the face-local point of view
-inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrientation & orientationInCell, const uint_t & cellLocalID0, const uint_t & cellLocalID1, const uint_t & cellLocalID2 )
+inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrientation & orientationInCell, const uint_t & cellLocalID0,
+                                                               const uint_t & cellLocalID1, const uint_t & cellLocalID2 )
 {
   uint_t v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
   std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;

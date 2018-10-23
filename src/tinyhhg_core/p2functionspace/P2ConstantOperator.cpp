@@ -311,8 +311,8 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
             auto& vertexToEdgeStencilMemory = face.getData( getVertexToEdgeOpr().getFaceStencil3DID() )->getData( level );
             for( const auto& centerOrientation : faceOrientations )
             {
-               const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientation(
-                   centerOrientation, localVertexIDsAtCell.at( 0 ), localVertexIDsAtCell.at( 1 ), localVertexIDsAtCell.at( 2 ) );
+               const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+                  centerOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2));
                vertexToEdgeStencilMemory[neighborCellID][convertedCenterOrientation] =
                    P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
                        edgeAssemblyIndexInCell, convertedCenterOrientation, cell, level, ufcOperator );
@@ -327,10 +327,10 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
             {
                for( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
                {
-                  const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientation( centerOrientation,
-                                                                                              localVertexIDsAtCell.at( 0 ),
-                                                                                              localVertexIDsAtCell.at( 1 ),
-                                                                                              localVertexIDsAtCell.at( 2 ) );
+                  const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(centerOrientation,
+                                                                                                       localVertexIDsAtCell.at(0),
+                                                                                                       localVertexIDsAtCell.at(1),
+                                                                                                       localVertexIDsAtCell.at(2));
                   edgeToEdgeStencilMemory[neighborCellID][convertedCenterOrientation][leafOrientation] =
                       P2Elements::P2Elements3D::calculateEdgeToEdgeStencilInMacroCell(
                           edgeAssemblyIndexInCell, convertedCenterOrientation, leafOrientation, cell, level, ufcOperator );

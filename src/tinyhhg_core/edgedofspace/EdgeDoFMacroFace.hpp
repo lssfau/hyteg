@@ -429,7 +429,9 @@ inline void apply3D( const uint_t & level, Face &face,
         };
 
         const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-        const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientation( faceCenterOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+        const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(faceCenterOrientation, localVertexIDsAtCell.at(0),
+                                                                                        localVertexIDsAtCell.at(1),
+                                                                                        localVertexIDsAtCell.at(2));
 
         for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
         {

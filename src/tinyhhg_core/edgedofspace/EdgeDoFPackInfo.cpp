@@ -403,11 +403,11 @@ void EdgeDoFPackInfo< ValueType >::unpackCellFromFace( Cell*                    
    const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
    auto dstEdgeOrientationX =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2);
    auto dstEdgeOrientationY =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2);
 
    for( const auto& cellIterator :
       edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
@@ -433,11 +433,11 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToCell( const Face* sende
    const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
    auto dstEdgeOrientationX =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2);
    auto dstEdgeOrientationY =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2);
 
    auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
 
@@ -471,18 +471,18 @@ void EdgeDoFPackInfo< ValueType >::packCellForFace( const Cell*                s
    const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
    auto dstEdgeOrientationX =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2);
    auto dstEdgeOrientationY =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2);
 
    auto dstEdgeOrientationZ =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Z, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationYZ = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::YZ, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXZ = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XZ, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Z, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationYZ = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::YZ, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXZ = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XZ, iterationVertex0, iterationVertex1, iterationVertex2);
 
    for( const auto& cellIt :
       edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
@@ -549,18 +549,18 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
    const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
    auto dstEdgeOrientationX =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2);
    auto dstEdgeOrientationY =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2);
 
    auto dstEdgeOrientationZ =
-      edgedof::convertEdgeDoFOrientation( edgedof::EdgeDoFOrientation::Z, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationYZ = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::YZ, iterationVertex0, iterationVertex1, iterationVertex2 );
-   auto dstEdgeOrientationXZ = edgedof::convertEdgeDoFOrientation(
-      edgedof::EdgeDoFOrientation::XZ, iterationVertex0, iterationVertex1, iterationVertex2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(edgedof::EdgeDoFOrientation::Z, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationYZ = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::YZ, iterationVertex0, iterationVertex1, iterationVertex2);
+   auto dstEdgeOrientationXZ = edgedof::convertEdgeDoFOrientationFaceToCell(
+      edgedof::EdgeDoFOrientation::XZ, iterationVertex0, iterationVertex1, iterationVertex2);
 
    WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
    WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
