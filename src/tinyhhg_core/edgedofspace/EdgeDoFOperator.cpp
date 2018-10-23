@@ -1,8 +1,11 @@
-#include "tinyhhg_core/HHGDefinitions.hpp"
 #include "EdgeDoFOperator.hpp"
+
+#include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "generatedKernels/generatedKernels.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/generatedKernels.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 
 namespace hhg {
 

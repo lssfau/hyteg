@@ -74,6 +74,7 @@ int main( int argc, char* argv[] )
 
    hhg::P2CGTest("../../data/meshes//tri_1el.msh", 3, 1e-7, false);
    hhg::P2CGTest("../../data/meshes//quad_4el.msh", 3, 1e-6, false);
-   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 2e-2, false);
-   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 2e-2, true);
+   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false);
+   hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true);
+   hhg::P2CGTest("../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false);
 }

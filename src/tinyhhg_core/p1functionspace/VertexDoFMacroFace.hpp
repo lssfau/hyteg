@@ -953,27 +953,6 @@ inline ValueType
    return localMax;
 }
 
-template <>
-inline uint_t getMaxMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< uint_t >, Face >& srcId )
-{
-   uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
-   uint_t inner_rowsize = rowsize;
-
-   auto src      = face.getData( srcId )->getPointer( level );
-   auto localMax = uint_t( 0.0 );
-
-   for( uint_t j = 1; j < rowsize - 2; ++j )
-   {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
-      {
-         localMax = std::max( localMax,src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
-      }
-      --inner_rowsize;
-   }
-
-   return localMax;
-}
-
 template < typename ValueType >
 inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {

@@ -3,10 +3,9 @@
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
-#include "EdgeDoFFunction.hpp"
 
 namespace hhg{
 

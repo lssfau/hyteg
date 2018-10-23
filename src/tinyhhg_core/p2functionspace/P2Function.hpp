@@ -3,6 +3,7 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"

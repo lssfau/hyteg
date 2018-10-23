@@ -1,5 +1,8 @@
-
+#include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "core/Environment.h"
 #include "core/debug/all.h"
