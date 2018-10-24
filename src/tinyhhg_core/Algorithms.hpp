@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/debug/Debug.h"
 
 #include <algorithm>
 #include <set>

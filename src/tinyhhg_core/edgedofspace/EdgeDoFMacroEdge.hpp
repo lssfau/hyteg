@@ -290,7 +290,7 @@ inline void apply3D( const uint_t & level, const Edge & edge,
             }
             else
             {
-              WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 )
+              WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 );
               faceBasisInCell = basisInCell;
               faceBasisInCell[2] = basisInCell.at(3);
               faceBasisInCell[3] = basisInCell.at(2);

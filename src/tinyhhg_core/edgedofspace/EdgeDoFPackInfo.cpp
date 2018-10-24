@@ -1,3 +1,4 @@
+#include <tinyhhg_core/Algorithms.hpp>
 #include "EdgeDoFPackInfo.hpp"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
@@ -373,6 +374,62 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
          faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirThree )];
       ++indexOnEdge;
    }
+
+//   for ( uint_t neighborCellID = 0; neighborCellID < sender->getNumNeighborCells(); neighborCellID++  )
+//   {
+//      const Cell & neighborCell = *( storage_.lock()->getCell( sender->neighborCells().at( neighborCellID ) ) );
+
+   for( const auto edgeOrientationOnReferenceEdge: { hhg::edgedof::EdgeDoFOrientation::Z,hhg::edgedof::EdgeDoFOrientation::YZ})
+   {
+      indexOnEdge = 0;
+      for( const auto &neighborCellID : sender->neighborCells() )
+      {
+         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
+         const auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( receiver->getID() );
+         const auto edgeLocalCellID = receiver->cell_index( neighborCellID);
+         const auto faceLocalCellID = sender->cell_index( neighborCellID);
+
+         const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+
+         const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationCellToFace(
+             edgeOrientationOnReferenceEdge, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
+
+      for( const auto& it : BorderIterator( level_, faceBorderDir, 0 ) )
+      {
+         edgeData[edgedof::macroedge::indexOnNeighborCell( level_, indexOnEdge, edgeLocalCellID, receiver->getNumNeighborFaces(),edgeOrientationOnReferenceEdge  )] =
+            faceData[edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace, faceLocalCellID )];
+         ++indexOnEdge;
+      }
+      }
+   }
+   for( const auto edgeOrientationOnReferenceEdge: { hhg::edgedof::EdgeDoFOrientation::Z,hhg::edgedof::EdgeDoFOrientation::YZ})
+   {
+      indexOnEdge = 0;
+      for( const auto &neighborCellID : sender->neighborCells() )
+      {
+         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
+         const auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( receiver->getID() );
+         const auto edgeLocalCellID = receiver->cell_index( neighborCellID);
+         const auto faceLocalCellID = sender->cell_index( neighborCellID);
+
+         const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+            {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+             neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+
+         const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationCellToFace(
+            edgeOrientationOnReferenceEdge, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
+
+         for( const auto& it : BorderIterator( level_, faceBorderDir, 0 ) )
+         {
+            edgeData[edgedof::macroedge::indexOnNeighborCell( level_, indexOnEdge, edgeLocalCellID, receiver->getNumNeighborFaces(),edgeOrientationOnReferenceEdge  )] =
+               faceData[edgedof::macroface::index( level_, it.col(), it.row(), edgeOrientationOnFace, faceLocalCellID )];
+            ++indexOnEdge;
+         }
+      }
+   }
+
 }
 
 template < typename ValueType >
