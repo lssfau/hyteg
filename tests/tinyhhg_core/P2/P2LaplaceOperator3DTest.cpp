@@ -103,6 +103,56 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
     WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
   }
 
+  for ( const auto & edgeIt : storage->getEdges() )
+  {
+    auto edge = edgeIt.second;
+    if ( edge->getMeshBoundaryFlag() != 0 )
+      continue;
+
+    // At vertices
+    auto vertexToVertexStencilSize = edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getSize( level );
+    auto vertexToVertexStencilArray = edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getPointer( level );
+
+    real_t sumAtVertex = real_c(0);
+    for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
+    {
+      sumAtVertex += vertexToVertexStencilArray[i];
+    }
+
+    auto edgeToVertexStencilMap = edge->getData( laplaceOperator3D.getEdgeToVertexOpr().getEdgeStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < edge->getNumNeighborCells(); neighborCellId++ )
+      for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
+        for ( auto direction : leafOrientation.second )
+        {
+          sumAtVertex += direction.second;
+        }
+
+    WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
+
+    // At edges
+    // For now we add all three types of edges to check that row sum == 0 (since 0 + 0 + 0 == 0 ;) )
+    // This is however not sufficient to be really sure that the row sum for the individual edge types are zero.
+    real_t sumAtAllEdgeTypes = real_c(0);
+
+    auto vertexToEdgeStencilMap = edge->getData( laplaceOperator3D.getVertexToEdgeOpr().getEdgeStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < edge->getNumNeighborCells(); neighborCellId++ )
+      for ( auto centerOrientation : vertexToEdgeStencilMap.at(neighborCellId) )
+        for ( auto direction : centerOrientation.second )
+        {
+          sumAtAllEdgeTypes += direction.second;
+        }
+
+    auto edgeToEdgeStencilMap = edge->getData( laplaceOperator3D.getEdgeToEdgeOpr().getEdgeStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < edge->getNumNeighborCells(); neighborCellId++ )
+      for ( auto centerOrientation : edgeToEdgeStencilMap.at(neighborCellId) )
+        for ( auto leafOrientation : centerOrientation.second )
+          for ( auto direction : leafOrientation.second )
+          {
+            sumAtAllEdgeTypes += direction.second;
+          }
+    WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
+  }
+
 
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
   {

@@ -442,7 +442,7 @@ uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const P
 {
    return levelinfo::num_microedges_per_edge( level ) +
           primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 ) +
-          primitive.getNumNeighborCells() * levelinfo::num_microedges_per_edge( level );
+          primitive.getNumNeighborCells() * 6 * levelinfo::num_microedges_per_edge( level );
 }
 
 uint_t edgedof::edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive& primitive )

@@ -151,13 +151,31 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
           {
             // leaf on macro-face
             WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
+            const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
+            const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
+            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end() );
 
-            const auto faceID = neighborCell.neighborFaces().at( *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin() );
-            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() );
+            // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
+            // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
+            const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
+            std::array< uint_t, 4 > faceBasisInCell;
+            if ( spanningCellLocalVertices.count( basisInCell.at( 2 ) ) == 1 )
+            {
+              faceBasisInCell = basisInCell;
+            }
+            else
+            {
+              WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 )
+              faceBasisInCell = basisInCell;
+              faceBasisInCell[2] = basisInCell.at(3);
+              faceBasisInCell[3] = basisInCell.at(2);
+            }
 
-            const auto localFaceIDOnEdge = edge.face_index( faceID );
-            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdge.x(), localFaceIDOnEdge, leafOrientationOnEdge );
+            const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+            const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ));
 
+            const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
+            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
           }
           else
           {
