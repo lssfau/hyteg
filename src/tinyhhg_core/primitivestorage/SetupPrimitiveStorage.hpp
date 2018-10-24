@@ -87,6 +87,9 @@ public:
   /// \param highestDimensionAlwaysInner if true, cells in 3D meshes and faces in 2D meshes are treated as inner primitives
   void setMeshBoundaryFlagsOnBoundary( const uint_t & meshBoundaryFlagOnBoundary, const uint_t & meshBoundaryFlagInner, const bool & highestDimensionAlwaysInner );
 
+  /// Every primitive for which onBoundary() returns true for all of the primitve's vertices is assigned the passed mesh boundary flag.
+  void setMeshBoundaryFlagsByVertexLocation( const uint_t & meshBoundaryFlag, const std::function< bool( const Point3D & x ) > & onBoundary );
+
   /// Returns true, if the primitive lies on the boundary.
   /// \param primitiveID the ID of the primitive to be tested
   /// \param highestDimensionAlwaysInner if true, this method always returns false if the targeted primitive is of highest dimension (cells for 3D, faces for 2D meshes)
