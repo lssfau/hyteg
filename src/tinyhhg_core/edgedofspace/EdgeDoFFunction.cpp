@@ -119,6 +119,20 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
 }
 
 template < typename ValueType >
+void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                                uint_t                                              level,
+                                                BoundaryUID                                         boundaryUID )
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
+   [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+   interpolateExtended( exprExtended, {}, level, boundaryUID );
+}
+
+template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
@@ -171,6 +185,66 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       Cell& cell = *it.second;
 
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+      }
+   }
+   this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::interpolateExtended(
+    const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+    const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
+    uint_t                                                                               level,
+    BoundaryUID                                                                          boundaryUID )
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+   // Collect all source IDs in a vector
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
+
+   for( auto& function : srcFunctions )
+   {
+      srcEdgeIDs.push_back( function->edgeDataID_ );
+      srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
+   }
+
+   for( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+      {
+         edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+      }
+   }
+
+   communicators_[level]->template startCommunication< Edge, Face >();
+
+   for( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      {
+         edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+      }
+   }
+
+   communicators_[level]->template endCommunication< Edge, Face >();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
          edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }

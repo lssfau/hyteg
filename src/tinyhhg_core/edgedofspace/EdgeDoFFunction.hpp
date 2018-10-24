@@ -60,10 +60,17 @@ public:
   void interpolate( const std::function< ValueType( const Point3D & ) >& expr,
                           uint_t level, DoFType flag = All);
 
+  void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID );
+
   void interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
                             const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                             uint_t level,
                             DoFType flag = All);
+
+  void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                            const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
+                            uint_t                                                                               level,
+                            BoundaryUID                                                                          boundaryUID );
 
   real_t dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
 

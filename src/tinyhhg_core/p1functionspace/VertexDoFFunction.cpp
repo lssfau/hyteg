@@ -2,18 +2,17 @@
 
 #include <utility>
 
-#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
-#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
-#include "tinyhhg_core/FunctionProperties.hpp"
-
 
 namespace hhg {
 namespace vertexdof {
@@ -76,7 +75,10 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
 }
 
 template < typename ValueType >
-BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const { return boundaryCondition_; }
+BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const
+{
+   return boundaryCondition_;
+}
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
@@ -107,6 +109,20 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                                  uint_t                                              level,
+                                                  BoundaryUID                                         boundaryUID )
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
+       [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+   interpolateExtended( exprExtended, {}, level, boundaryUID );
 }
 
 template < typename ValueType >
@@ -170,6 +186,74 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
       Cell& cell = *it.second;
 
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+      }
+   }
+   this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::interpolateExtended(
+    const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+    const std::vector< VertexDoFFunction* >                                              srcFunctions,
+    uint_t                                                                               level,
+    BoundaryUID                                                                          boundaryUID )
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+   // Collect all source IDs in a vector
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
+
+   for( const auto& function : srcFunctions )
+   {
+      srcVertexIDs.push_back( function->vertexDataID_ );
+      srcEdgeIDs.push_back( function->edgeDataID_ );
+      srcFaceIDs.push_back( function->faceDataID_ );
+      srcCellIDs.push_back( function->cellDataID_ );
+   }
+
+   for( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
+      {
+         vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+      {
+         vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      {
+         vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
          vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }
@@ -780,9 +864,9 @@ void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
    }
 }
 
-template< typename ValueType >
-template< typename PrimitiveType >
-void VertexDoFFunction<ValueType>::interpolateByPrimitiveType(const ValueType &constant, uint_t level, DoFType flag) const
+template < typename ValueType >
+template < typename PrimitiveType >
+void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
