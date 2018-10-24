@@ -40,6 +40,9 @@ public:
     defaultBC_( defaultBC )
   {}
 
+  /// Return the BoundaryUID of the passed mesh flag.
+  BoundaryUID getBoundaryUIDFromMeshFlag( const uint_t & meshFlag ) const { return meshFlagToID_.at( meshFlag ); }
+
   /// Assigns one mesh boundary flag to the domain.
   BoundaryUID createDomainBC   ( const std::string & name, const uint_t &                meshBoundaryFlag  );
   /// Assigns multiple mesh boundary flags to the domain.
