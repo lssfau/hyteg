@@ -4,6 +4,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 
 
 #include "core/mpi/all.h"
@@ -13,25 +14,26 @@ using namespace hhg;
 
 using walberla::real_t;
 
-void checkComm3d(const uint_t level){
+void checkComm3d( const uint_t level )
+{
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-
-   MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/3D/cube_6el.msh");
-   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-
-   hhg::EdgeDoFFunction< int > x("x", storage, level, level);
+   hhg::EdgeDoFFunction< int > x( "x", storage, level, level );
    /// for y we set the local comm to mpi; default would be direct
-   hhg::EdgeDoFFunction< int > y("x", storage, level, level);
+   hhg::EdgeDoFFunction< int > y( "x", storage, level, level );
    y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
-////////// check cell to face comm //////////
-   for (auto &cellIt : storage->getCells()) {
-      Cell &face = *cellIt.second;
-      int *cellData = face.getData(x.getCellDataID())->getPointer(level);
-      int *cellDataY = face.getData(y.getCellDataID())->getPointer(level);
-      for(uint_t i = 0; i < face.getData(x.getCellDataID())->getSize(level); ++i){
-         cellData[i] = 13;
+   ////////// check cell to face comm //////////
+   for( auto& cellIt : storage->getCells() )
+   {
+      Cell& cell      = *cellIt.second;
+      int*  cellData  = cell.getData( x.getCellDataID() )->getPointer( level );
+      int*  cellDataY = cell.getData( y.getCellDataID() )->getPointer( level );
+      for( uint_t i = 0; i < cell.getData( x.getCellDataID() )->getSize( level ); ++i )
+      {
+         cellData[i]  = 13;
          cellDataY[i] = 26;
       }
    }
@@ -39,17 +41,93 @@ void checkComm3d(const uint_t level){
    x.communicate< Cell, Face >( level );
    y.communicate< Cell, Face >( level );
 
-   for (auto &faceIt : storage->getFaces()) {
-      Face &face = *faceIt.second;
-      int *faceData = face.getData(x.getFaceDataID())->getPointer(level);
-      int *faceDataY = face.getData(y.getFaceDataID())->getPointer(level);
+   for( auto& faceIt : storage->getFaces() )
+   {
+      Face& face      = *faceIt.second;
+      int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
+      int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
       /// all non inner DoFs should be set to 13/26 so we start after the inner DoFs
-      for(uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData(x.getFaceDataID())->getSize(level); ++i){
-         WALBERLA_CHECK_EQUAL( faceData[i], 13, i);
-         WALBERLA_CHECK_EQUAL( faceDataY[i], 26, i);
+      for( uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData( x.getFaceDataID() )->getSize( level );
+           ++i )
+      {
+         WALBERLA_CHECK_EQUAL( faceData[i], 13, i );
+         WALBERLA_CHECK_EQUAL( faceDataY[i], 26, i );
       }
    }
-/////////////////////////////////////////////
+   /////////////////////////////////////////////
+
+   ////////// check edge to face comm //////////
+   for( auto& edgeIt : storage->getEdges() )
+   {
+      Edge& edge      = *edgeIt.second;
+      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
+      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+      for( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i )
+      {
+         edgeData[i]  = 14;
+         edgeDataY[i] = 26;
+      }
+   }
+
+   x.communicate< Edge, Face >( level );
+   y.communicate< Edge, Face >( level );
+
+   using hhg::edgedof::macroface::BorderIterator;
+
+   for( auto& faceIt : storage->getFaces() )
+   {
+      Face& face      = *faceIt.second;
+      int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
+      int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
+      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0 ) )
+      {
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 26);
+      }
+
+      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0 ) )
+      {
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 26);
+      }
+
+      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0 ) )
+      {
+         WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 14);
+         WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 26);
+      }
+   }
+
+   /////////////////////////////////////////////
+
+//   ////////// check face to edge comm //////////
+//   for( auto& faceIt : storage->getFaces() )
+//   {
+//      Face& face      = *faceIt.second;
+//      int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
+//      int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
+//      for( uint_t i = 0; i < face.getData( x.getFaceDataID() )->getSize( level ); ++i )
+//      {
+//         faceData[i]  = 17;
+//         faceDataY[i] = 33;
+//      }
+//   }
+//
+//   x.communicate< Face, Edge >( level );
+//   y.communicate< Face, Edge >( level );
+//
+//   for( auto& edgeIt : storage->getEdges() )
+//   {
+//      Edge& edge      = *edgeIt.second;
+//      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
+//      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+//      for( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i )
+//      {
+//         WALBERLA_CHECK_EQUAL( edgeData[i], 17, i );
+//         WALBERLA_CHECK_EQUAL( edgeDataY[i], 33, i );
+//      }
+//   }
+//   /////////////////////////////////////////////
 }
 
 template<uint_t level>
