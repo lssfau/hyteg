@@ -66,6 +66,12 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_->interpolate( expr, level, flag );
    }
 
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID )
+   {
+      vertexDoFFunction_->interpolate( expr, level, boundaryUID );
+      edgeDoFFunction_->interpolate( expr, level, boundaryUID );
+   }
+
    inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                                     const std::vector< P2Function< ValueType >* > srcFunctions,
                                     uint_t                                        level,
