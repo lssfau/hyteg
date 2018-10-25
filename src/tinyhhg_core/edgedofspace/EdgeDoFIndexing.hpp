@@ -410,11 +410,11 @@ inline uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col,
   case sD::EDGE_DI_N:
     return diagonalIndex( level, col, 1 );
   case sD::EDGE_DI_S:
-    return diagonalIndex( level, col, 0 );
+    return verticalIndex( level, col, 0 );
   case sD::EDGE_VE_NW:
       return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_SE:
-      return verticalIndex( level, col, 0 );
+      return diagonalIndex( level, col, 0 );
   default:
     // assert( false );
     return std::numeric_limits< uint_t >::max();
@@ -438,9 +438,9 @@ inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const s
   case sD::EDGE_HO_SE:
     return horizontalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SW:
-    return diagonalIndex( level, col - 1, 0 );
+    return verticalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SE:
-    return diagonalIndex( level, col, 0 );
+    return verticalIndex( level, col, 0 );
   case sD::EDGE_DI_NW:
     return diagonalIndex( level, col - 1, 1 );
   case sD::EDGE_DI_NE:
@@ -448,11 +448,11 @@ inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const s
   case sD::EDGE_VE_N:
     return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_S:
-    return verticalIndex( level, col - 1, 0 );
+    return diagonalIndex( level, col - 1, 0 );
   case sD::EDGE_VE_NW:
     return verticalIndex( level, col - 1, 1 );
   case sD::EDGE_VE_SE:
-    return verticalIndex( level, col, 0 );
+    return diagonalIndex( level, col, 0 );
   default:
     // assert( false );
     return std::numeric_limits< uint_t >::max();
