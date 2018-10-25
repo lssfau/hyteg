@@ -163,6 +163,7 @@ inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices
 }
 
 /// \brief Given to local vertex ids on the tetrahedron this function return the orientation of the edge inbetween those vertices
+/// it also works for macro faces since the first face in the tetrahedron is equivalent to the reference face
 inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vertexIndex0, const uint_t & vertexIndex1 ){
    WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex0, 3 );
@@ -204,6 +205,30 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vert
 
    return calcEdgeDoFOrientation(vertexIndexII0, vertexIndexII1);
 
+}
+
+/// \brief Converts the orientation of an edge DoF in a macro-edge to the respective orientation in a neighboring macro-face.
+///
+/// \param orientationInCell the edgedof orientation from the edge-local point of view
+/// \param faceLocalID0 the first index of the edge from face-local point of view (face-local == 0)
+/// \param faceLocalID1 the second index of the edge from face-local point of view (face-local == 1)
+/// \return the edge DoF orientation from the face-local point of view
+inline EdgeDoFOrientation convertEdgeDoFOrientationEdgeToFace( const EdgeDoFOrientation & orientationInEdge, const uint_t & faceLocalID0,
+                                                               const uint_t & faceLocalID1 )
+{
+   /// one can calculate the missing local index by adding all indices and subtract from 0+1+2
+   uint_t faceLocalID2 = 3 - ( faceLocalID0 + faceLocalID1 );
+   switch ( orientationInEdge )
+   {
+      case EdgeDoFOrientation::X:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID0, faceLocalID1 );
+      case EdgeDoFOrientation::Y:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID0, faceLocalID2 );
+      case EdgeDoFOrientation::XY:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID1, faceLocalID2 );
+      default:
+         WALBERLA_ABORT( "wrong orienation" )
+   }
 }
 
 /// \brief converts the edge orientation of the reference face into the correct orientation on the tetrahedron according to the position
