@@ -100,34 +100,77 @@ void checkComm3d( const uint_t level )
 
    /////////////////////////////////////////////
 
-//   ////////// check face to edge comm //////////
-//   for( auto& faceIt : storage->getFaces() )
-//   {
-//      Face& face      = *faceIt.second;
-//      int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
-//      int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
-//      for( uint_t i = 0; i < face.getData( x.getFaceDataID() )->getSize( level ); ++i )
-//      {
-//         faceData[i]  = 17;
-//         faceDataY[i] = 33;
-//      }
-//   }
-//
-//   x.communicate< Face, Edge >( level );
-//   y.communicate< Face, Edge >( level );
-//
-//   for( auto& edgeIt : storage->getEdges() )
-//   {
-//      Edge& edge      = *edgeIt.second;
-//      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
-//      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
-//      for( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i )
-//      {
-//         WALBERLA_CHECK_EQUAL( edgeData[i], 17, i );
-//         WALBERLA_CHECK_EQUAL( edgeDataY[i], 33, i );
-//      }
-//   }
-//   /////////////////////////////////////////////
+   ////////// check face to edge comm //////////
+   //TODO: activate MPI comm tests
+   for( auto& faceIt : storage->getFaces() )
+   {
+      Face& face      = *faceIt.second;
+      int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
+      int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
+      for( uint_t i = 0; i < face.getData( x.getFaceDataID() )->getSize( level ); ++i )
+      {
+         faceData[i]  = 15;
+         faceDataY[i] = 27;
+      }
+   }
+
+   x.communicate< Face, Edge >( level );
+   y.communicate< Face, Edge >( level );
+
+   for( auto& edgeIt : storage->getEdges() )
+   {
+      Edge& edge      = *edgeIt.second;
+      uint_t cellOffSet =  levelinfo::num_microedges_per_edge( level ) +
+                           edge.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+
+
+
+      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
+      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+
+#if 0
+      std::cout << std::setw(2);
+      WALBERLA_LOG_DEVEL(edgeIt.first);
+      for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i){
+         std::cout << std::setw(2) << i << " ";
+      }
+      std::cout << std::endl;
+      for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i){
+         std::cout << std::setw(2) << edgeData[i] << " ";
+      }
+      std::cout << std::endl << std::endl;
+
+
+      for(uint_t i = levelinfo::num_microedges_per_edge( level ); i < cellOffSet; ++i){
+         std::cout << std::setw(2) << i << " ";
+      }
+      std::cout << std::endl;
+      for(uint_t i = levelinfo::num_microedges_per_edge( level ); i < cellOffSet; ++i){
+         std::cout << std::setw(2) << edgeData[i] << " ";
+      }
+      std::cout << std::endl << std::endl;
+
+
+      for(uint_t i = cellOffSet; i < edge.getData( x.getEdgeDataID() )->getSize( level ); ++i){
+         std::cout << std::setw(2) << i << " ";
+      }
+      std::cout << std::endl;
+      for(uint_t i = cellOffSet; i < edge.getData( x.getEdgeDataID() )->getSize( level ); ++i){
+         std::cout << std::setw(2) << edgeData[i] << " ";
+      }
+      std::cout << std::endl;
+#endif
+      for( uint_t i = levelinfo::num_microedges_per_edge( level ); i < edge.getData( x.getEdgeDataID() )->getSize( level ); ++i )
+      {
+         ///check it is is the fourth element in cell since this is never used
+         if(((i - (cellOffSet-1)) % 4) != 0){
+            WALBERLA_CHECK_EQUAL( edgeData[i], 15, i );
+            //WALBERLA_CHECK_EQUAL( edgeDataY[i], 27, i );
+         }
+      }
+   }
+
+   /////////////////////////////////////////////
 }
 
 template<uint_t level>
@@ -379,28 +422,28 @@ int main (int argc, char ** argv ) {
 //  checkComm("../../data/meshes/tri_1el.msh", true);
 //
 //  checkComm("../../data/meshes/tri_1el.msh", false);
-  checkComm<3>("../../data/meshes/tri_1el.msh", true);
-
-  checkComm<3>("../../data/meshes/tri_1el.msh", false);
-
-  checkComm<4>("../../data/meshes/tri_1el.msh", true);
-
-  checkComm<4>("../../data/meshes/tri_1el.msh", false);
-
-
-  checkComm<3>("../../data/meshes/quad_4el.msh", true);
-
-  checkComm<4>("../../data/meshes/quad_4el.msh", true);
-
-  checkComm<5>("../../data/meshes/quad_4el.msh", true);
-
-  checkComm<4>("../../data/meshes/quad_4el.msh", false);
-
-  checkComm<5>("../../data/meshes/quad_4el.msh", false);
-
-  checkComm<3>("../../data/meshes/bfs_12el.msh", true);
-
-  checkComm<3>("../../data/meshes/bfs_12el.msh", false);
+//  checkComm<3>("../../data/meshes/tri_1el.msh", true);
+//
+//  checkComm<3>("../../data/meshes/tri_1el.msh", false);
+//
+//  checkComm<4>("../../data/meshes/tri_1el.msh", true);
+//
+//  checkComm<4>("../../data/meshes/tri_1el.msh", false);
+//
+//
+//  checkComm<3>("../../data/meshes/quad_4el.msh", true);
+//
+//  checkComm<4>("../../data/meshes/quad_4el.msh", true);
+//
+//  checkComm<5>("../../data/meshes/quad_4el.msh", true);
+//
+//  checkComm<4>("../../data/meshes/quad_4el.msh", false);
+//
+//  checkComm<5>("../../data/meshes/quad_4el.msh", false);
+//
+//  checkComm<3>("../../data/meshes/bfs_12el.msh", true);
+//
+//  checkComm<3>("../../data/meshes/bfs_12el.msh", false);
 
   checkComm3d( 2u );
 

@@ -326,22 +326,23 @@ inline uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x, const
 {
   const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) + numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
   const uint_t offsetPerOrientation = levelinfo::num_microedges_per_edge( level );
+  const uint_t offsetNeighborCells = neighbor * offsetPerOrientation * 7;
   switch ( orientation )
   {
   case EdgeDoFOrientation::X:
-    return offsetToFirstCellDoF + 0 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 0 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::Y:
-    return offsetToFirstCellDoF + 1 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 1 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::Z:
-    return offsetToFirstCellDoF + 2 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 2 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::XY:
-    return offsetToFirstCellDoF + 3 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 3 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::XZ:
-    return offsetToFirstCellDoF + 4 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 4 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::YZ:
-    return offsetToFirstCellDoF + 5 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 5 * offsetPerOrientation + index( level, x );
   case EdgeDoFOrientation::XYZ:
-    return offsetToFirstCellDoF + 6 * offsetPerOrientation + index( level, x );
+    return offsetToFirstCellDoF + offsetNeighborCells + 6 * offsetPerOrientation + index( level, x );
   default:
     WALBERLA_ASSERT( false, "Invalid orientation" );
     return std::numeric_limits< uint_t >::max();
