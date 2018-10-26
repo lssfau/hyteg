@@ -6,13 +6,47 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
 
-
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
 
 using namespace hhg;
 
 using walberla::real_t;
+
+void check1tet( )
+{
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const uint_t level = 2;
+
+   hhg::EdgeDoFFunction< int > x( "x", storage, level, level );
+   /// for y we set the local comm to mpi; default would be direct
+   hhg::EdgeDoFFunction< int > y( "x", storage, level, level );
+   y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+
+      ////////// check cell to face comm //////////
+   for( auto& cellIt : storage->getCells() )
+   {
+      Cell& cell      = *cellIt.second;
+      int*  cellData  = cell.getData( x.getCellDataID() )->getPointer( level );
+      int*  cellDataY = cell.getData( y.getCellDataID() )->getPointer( level );
+      for( uint_t i = 0; i < cell.getData( x.getCellDataID() )->getSize( level ); ++i )
+      {
+         cellData[i]  = 13;
+         cellDataY[i] = 26;
+      }
+   }
+
+   x.communicate< Cell, Face >( level );
+   y.communicate< Cell, Face >( level );
+
+   x.communicate< Face, Edge >( level );
+   y.communicate< Face, Edge >( level );
+
+}
+
 
 void checkComm3d( const uint_t level )
 {
@@ -415,10 +449,9 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
 
 int main (int argc, char ** argv ) {
 
-  walberla::mpi::Environment MPIenv(argc, argv);
-  walberla::MPIManager::instance()->useWorldComm();
-  walberla::debug::enterTestMode();
-
+   walberla::mpi::Environment MPIenv(argc, argv);
+   walberla::MPIManager::instance()->useWorldComm();
+   walberla::debug::enterTestMode();
 
    checkComm<3>("../../data/meshes/tri_1el.msh", true);
 
@@ -427,7 +460,6 @@ int main (int argc, char ** argv ) {
    checkComm<4>("../../data/meshes/tri_1el.msh", true);
 
    checkComm<4>("../../data/meshes/tri_1el.msh", false);
-
 
    checkComm<3>("../../data/meshes/quad_4el.msh", true);
 
@@ -442,6 +474,8 @@ int main (int argc, char ** argv ) {
    checkComm<3>("../../data/meshes/bfs_12el.msh", true);
 
    checkComm<3>("../../data/meshes/bfs_12el.msh", false);
+
+   check1tet();
 
    checkComm3d( 2u );
 
