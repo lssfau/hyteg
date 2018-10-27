@@ -22,10 +22,12 @@ using namespace hhg;
 void showUsage()
 {
    std::cout << "\n --------\n  USAGE:\n --------\n\n"
-             << " show_mesh demonstrates generation of a MeshInfo object by one of three methods:\n\n"
+             << " show_mesh demonstrates generation of a MeshInfo object by one of five methods:\n\n"
              << " 1) by importing a file in Gmsh format\n"
              << " 2) by meshing a rectangle in a certain flavour\n"
-             << " 3) by meshing a full or partial annulus\n\n"
+             << " 3) by meshing a full or partial annulus\n"
+             << " 4) by meshing a thick spherical shell\n"
+             << " 5) by generating a strip of chained triangles\n\n"
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
