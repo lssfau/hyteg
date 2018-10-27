@@ -20,6 +20,7 @@ using namespace hhg;
 
 static real_t xLocPos = 0.0;
 static real_t yLocPos = 0.0;
+static real_t zLocPos = 0.0;
 static real_t epsilon = 0.0;
 static uint_t counter = 0;
 
@@ -53,12 +54,16 @@ int main( int argc, char* argv[] )
   // Define expressions and functions used for testing
 
   std::function<real_t(const hhg::Point3D&)> testFuncMax = []( const hhg::Point3D& x ) {
-    real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) + (yLocPos - x[1]) * (yLocPos - x[1]) );
+    real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
+                                 (yLocPos - x[1]) * (yLocPos - x[1]) +
+                                 (zLocPos - x[2]) * (zLocPos - x[2]) );
     return distance > epsilon ? real_t(0.0) : TEST_MAX_VALUE;
   };
 
   std::function<real_t(const hhg::Point3D&)> testFuncMin = []( const hhg::Point3D& x ) {
-    real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) + (yLocPos - x[1]) * (yLocPos - x[1]) );
+    real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
+                                 (yLocPos - x[1]) * (yLocPos - x[1]) +
+                                 (zLocPos - x[2]) * (zLocPos - x[2]) );
     return distance > epsilon ? real_t(0.0) : TEST_MIN_VALUE;
   };
 
@@ -298,6 +303,70 @@ int main( int argc, char* argv[] )
   measure = dgFunc.getMaxMagnitude( theLevel, Inner );
   WALBERLA_LOG_INFO_ON_ROOT( "Test #C (combo    ): magnitude = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  // ===========
+  //  3D Meshes
+  // ===========
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\n---------------------\n TEST on 3D Meshes" );
+  WALBERLA_LOG_INFO_ON_ROOT( "----------------------\n" );
+
+  theLevel = 2;
+
+  // Generate mesh from meshfile (mesh represents unit cube)
+  MeshInfo meshInfo3D = MeshInfo::emptyMeshInfo();
+  meshInfo3D = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+
+  // Generate primitives
+  SetupPrimitiveStorage setupStorage3D( meshInfo3D,
+                                        uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  loadbalancing::roundRobin( setupStorage3D );
+  std::shared_ptr<PrimitiveStorage> storage3D = std::make_shared<PrimitiveStorage>( setupStorage3D );
+
+  hhg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
+  hhg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
+  hhg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
+  xLocPos = 0.50;
+  yLocPos = 0.25;
+  zLocPos = 0.25;
+  p1Func3D.interpolate( testFuncMin, theLevel );
+  p2Func3D.interpolate( testFuncMin, theLevel );
+  // dgFunc3D.interpolate( testFuncMin, theLevel );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test\n" );
+
+  measure = p1Func3D.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P1 function: magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  measure = p2Func3D.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P2 function: magnitude = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+
+  p1Func3D.interpolate( testFuncCombo, theLevel );
+  p2Func3D.interpolate( testFuncCombo, theLevel );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nCombo test\n" );
+
+  measure = p1Func3D.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P1 function: magnitude =  " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  measure = p1Func3D.getMaxValue( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     maximum   =  " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  measure = p1Func3D.getMinValue( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
+
+  measure = p2Func3D.getMaxMagnitude( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P2 function: magnitude =  " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+
+  // measure = p2Func3D.getMinValue( theLevel );
+  // WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
+  // WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
 
   return EXIT_SUCCESS;
 }
