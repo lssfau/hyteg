@@ -25,6 +25,9 @@
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 
+#include "tinyhhg_core/petsc/PETScManager.hpp"
+#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+
 #include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg {
@@ -43,10 +46,10 @@ void jefferyHamelFlowTest()
 
   // free parameters
 
-  const double eta      = 5.0;
+  const double eta      = 2.0;
   const double alpha    = 15.0 * (PI / 180.0);
   const uint_t minLevel = 2;
-  const uint_t maxLevel = 3;
+  const uint_t maxLevel = 2;
 
   // derived parameters
 
@@ -71,11 +74,12 @@ void jefferyHamelFlowTest()
   const auto noSlipBCUID  = bc.createDirichletBC( "no-slip", 1 );
   const auto inflowBCUID  = bc.createDirichletBC( "inflow",  2 );
   const auto outflowBCUID = bc.createNeumannBC  ( "outflow", 3 );
-  auto onInflowBoundary  = [ Rhat_i, epsilon ]( const Point3D & p ) { return std::abs( p.norm() - Rhat_i ) < epsilon; };
-  auto onOutflowBoundary = [ Rhat_o, epsilon ]( const Point3D & p ) { return std::abs( p.norm() - Rhat_o ) < epsilon; };
+  auto onInflowBoundary  = [ alpha, Rhat_i, epsilon ]( const Point3D & p ) { return std::abs( p.norm() - Rhat_i ) < epsilon && std::abs( math::toSpherical( p )[2] ) < alpha; };
+  auto onOutflowBoundary = [ alpha, Rhat_o, epsilon ]( const Point3D & p ) { return std::abs( p.norm() - Rhat_o ) < epsilon && std::abs( math::toSpherical( p )[2] ) < alpha; };
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, onInflowBoundary );
-  setupStorage.setMeshBoundaryFlagsByVertexLocation( 3, onOutflowBoundary );
+  setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, onInflowBoundary, false );
+  setupStorage.setMeshBoundaryFlagsByVertexLocation( 3, onOutflowBoundary, false );
+  setupStorage.setMeshBoundaryFlagsInner( 0, true );
 
   WALBERLA_LOG_INFO_ON_ROOT( "[JefferyHamelHBenchmark] Creating distributed domain..." );
 
@@ -105,26 +109,35 @@ void jefferyHamelFlowTest()
     const auto pSpherical = math::toSpherical( p );
     const real_t phiRescaled = pSpherical[2] / alpha;
     const real_t uSpherical = ( real_c( 3 ) / ( real_c( 4 ) * alpha ) ) * ( real_c( 1 ) - phiRescaled * phiRescaled );
-    return math::toCartesian( Point3D( { uSpherical, 0.5 * PI, real_c(0) } ) )[ coordinate ];
+    return math::toCartesian( Point3D( { uSpherical, 0.5 * PI, pSpherical[2] } ) )[ coordinate ];
   };
 
   auto inflowProfileU = [ inflowProfile ]( const Point3D & p ) -> real_t { return inflowProfile( p, 0 ); };
   auto inflowProfileV = [ inflowProfile ]( const Point3D & p ) -> real_t { return inflowProfile( p, 1 ); };
 
-  auto exactSolution = [ alpha ]( const Point3D & p, const uint_t & coordinate ) -> real_t {
-    // from [2] Appendix (ii)
-    const real_t twoAlpha  = real_c(2) * alpha;
-    const real_t cos2alpha = std::cos( twoAlpha );
+  auto solution = [ alpha ]( const Point3D & p, const uint_t & coordinate ) -> real_t {
     const auto pSpherical = math::toSpherical( p );
-    const real_t nom = twoAlpha * ( cos2alpha * pSpherical - cos2alpha );
-    const real_t denom = std::sin( twoAlpha ) - twoAlpha * cos2alpha;
-
+    const real_t theta = pSpherical[2];
+    const real_t y = theta / alpha;
+    const real_t twoAlpha = real_c(2) * alpha;
+    const real_t cosTwoAlpha = std::cos(twoAlpha);
+    const real_t cosTwoAlphaY = std::cos(twoAlpha * y);
+    const real_t sinTwoAlpha = std::sin(twoAlpha);
+    const real_t velocitySpherical = (twoAlpha * (cosTwoAlphaY - cosTwoAlpha)) / (sinTwoAlpha - twoAlpha * cosTwoAlpha);
+    const auto velocityCartesian = math::toCartesian( Point3D( { velocitySpherical, 0.5 * PI, theta } ) );
+    return velocityCartesian[ coordinate ];
   };
+
+  auto solutionU = [ solution ]( const Point3D & p ) -> real_t { return solution( p, 0 ); };
+  auto solutionV = [ solution ]( const Point3D & p ) -> real_t { return solution( p, 1 ); };
 
   WALBERLA_LOG_DEVEL_ON_ROOT( "[JefferyHamelHBenchmark] Interpolating inflow..." );
 
-  x.u.interpolate( inflowProfileU, maxLevel, inflowBCUID );
-  x.v.interpolate( inflowProfileV, maxLevel, inflowBCUID );
+  x.u.interpolate( solutionU, maxLevel, inflowBCUID );
+  x.v.interpolate( solutionV, maxLevel, inflowBCUID );
+
+  exactSolution.u.interpolate( solutionU, maxLevel, All );
+  exactSolution.v.interpolate( solutionV, maxLevel, All );
 
   /////////
   // VTK //
@@ -135,6 +148,9 @@ void jefferyHamelFlowTest()
   VTKOutput vtkOutput( "../../output", "JefferyHamel", storage );
   vtkOutput.add( &x.u );
   vtkOutput.add( &x.v );
+  vtkOutput.add( &x.p );
+  vtkOutput.add( &exactSolution.u );
+  vtkOutput.add( &exactSolution.v );
 
   WALBERLA_LOG_DEVEL_ON_ROOT( "[JefferyHamelHBenchmark] Writing initial VTK..." );
 
@@ -173,7 +189,7 @@ void jefferyHamelFlowTest()
 
   WALBERLA_LOG_DEVEL_ON_ROOT( "[JefferyHamelHBenchmark] Solving..." );
 
-#if 1
+#if 0
   typedef typename P2P1TaylorHoodFunction< real_t >::Tag StokesFunctionTag_T;
 
   stokesOperator.apply( x, Ax, maxLevel, hhg::Inner | hhg::NeumannBoundary );
@@ -205,15 +221,27 @@ void jefferyHamelFlowTest()
   }
 #endif
 
-#if 0
-  preconditionedMinResSolver.solve( stokesOperator, x, rhs, r, maxLevel, 1e-16, 1000, Inner | NeumannBoundary, true );
+#if 1
+  preconditionedMinResSolver.solve( stokesOperator, x, rhs, r, maxLevel, 1e-16, 10000, Inner | NeumannBoundary, true );
 #endif
 
+#if 0
+  PETScManager petscManager;
+  rhs.u.interpolate( solutionU, maxLevel, inflowBCUID );
+  rhs.v.interpolate( solutionV, maxLevel, inflowBCUID );
+  auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction< PetscInt > >("numerator", storage, level, level);
+  numerator->enumerate(level);
+  const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
+  solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+#endif
 
 
   WALBERLA_LOG_DEVEL_ON_ROOT( "[JefferyHamelHBenchmark] Writing final VTK..." );
 
   vtkOutput.write( maxLevel, 1 );
+
 
 }
 
