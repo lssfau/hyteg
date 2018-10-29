@@ -251,18 +251,18 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+//
+//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
+//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
+//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
+//  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
+//  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
+//
+//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
+//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
 
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
-  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
-
-  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
-
-#if 0
+#if 1
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );

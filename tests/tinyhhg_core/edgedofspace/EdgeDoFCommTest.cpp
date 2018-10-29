@@ -15,7 +15,7 @@ using walberla::real_t;
 
 void check1tet( )
 {
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -34,8 +34,8 @@ void check1tet( )
       int*  cellDataY = cell.getData( y.getCellDataID() )->getPointer( level );
       for( uint_t i = 0; i < cell.getData( x.getCellDataID() )->getSize( level ); ++i )
       {
-         cellData[i]  = 13;
-         cellDataY[i] = 26;
+         cellData[i]  = static_cast<int>(i);
+         cellDataY[i] = static_cast<int>(i);
       }
    }
 
@@ -44,6 +44,69 @@ void check1tet( )
 
    x.communicate< Face, Edge >( level );
    y.communicate< Face, Edge >( level );
+
+   Face& bottomFace = *(storage->getFace(PrimitiveID(10)));
+   int* bottomFaceData = bottomFace.getData( x.getFaceDataID() )->getPointer( level );
+   auto edgeIt = storage->getEdges().begin();
+   auto firstEdge = (*edgeIt).second;
+   int* firstEdgeData = firstEdge.get()->getData( x.getEdgeDataID() )->getPointer( level );
+
+   uint_t cellOffSet =  levelinfo::num_microedges_per_edge( level ) +
+                        2 * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+   std::cout << std::setw(2);
+   WALBERLA_LOG_DEVEL((*edgeIt).first);
+   for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i){
+      std::cout << std::setw(2) << i << " ";
+   }
+   std::cout << std::endl;
+   for(uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i){
+      std::cout << std::setw(2) << firstEdgeData[i] << " ";
+   }
+   std::cout << std::endl << std::endl;
+
+
+   for(uint_t i = levelinfo::num_microedges_per_edge( level ); i < cellOffSet; ++i){
+      std::cout << std::setw(2) << i << " ";
+   }
+   std::cout << std::endl;
+   for(uint_t i = levelinfo::num_microedges_per_edge( level ); i < cellOffSet; ++i){
+      std::cout << std::setw(2) << firstEdgeData[i] << " ";
+   }
+   std::cout << std::endl << std::endl;
+
+
+   for(uint_t i = cellOffSet; i < firstEdge->getData( x.getEdgeDataID() )->getSize( level ); ++i){
+      std::cout << std::setw(2) << i << " ";
+   }
+   std::cout << std::endl;
+   for(uint_t i = cellOffSet; i < firstEdge->getData( x.getEdgeDataID() )->getSize( level ); ++i){
+      std::cout << std::setw(2) << firstEdgeData[i] << " ";
+   }
+   std::cout << std::endl;
+
+
+   ///// X /////
+   for(uint_t i = 0; i <= 1; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::X);
+      uint_t faceIdx = edgedof::macroface::index(level,i,1,edgedof::EdgeDoFOrientation::X,0);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+   }
+   ///// Y /////
+   for(uint_t i = 0; i <= 2; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::Y);
+      uint_t faceIdx = edgedof::macroface::index(level,i,0,edgedof::EdgeDoFOrientation::Y,0);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+   }
+//
+//      Edge& edge      = *edgeIt.second;
+//      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
+//      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+//      for( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i )
+//      {
+//         edgeData[i]  = 14;
+//         edgeDataY[i] = 26;
+//      }
+//
 
 }
 
