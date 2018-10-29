@@ -37,11 +37,19 @@ public:
   /// Creates a \ref BoundaryCondition.
   /// \param defaultBC BC that is set to all mesh boundary flags that are not explicitly registered
   BoundaryCondition( const DoFType & defaultBC = DoFType::Inner ) :
-    defaultBC_( defaultBC )
+    defaultBC_( defaultBC ), defaultBoundaryUID_( "DefaultBoundaryUID" )
   {}
 
   /// Return the BoundaryUID of the passed mesh flag.
-  BoundaryUID getBoundaryUIDFromMeshFlag( const uint_t & meshFlag ) const { return meshFlagToID_.at( meshFlag ); }
+  /// If no boundary UID was assigned, the default BoundaryUID is returned.
+  BoundaryUID getBoundaryUIDFromMeshFlag( const uint_t & meshFlag ) const
+  {
+    if ( meshFlagToID_.count( meshFlag ) == 0 )
+    {
+      return defaultBoundaryUID_;
+    }
+    return meshFlagToID_.at( meshFlag );
+  }
 
   /// Assigns one mesh boundary flag to the domain.
   BoundaryUID createDomainBC   ( const std::string & name, const uint_t &                meshBoundaryFlag  );
@@ -66,6 +74,7 @@ public:
 private:
 
   DoFType                          defaultBC_;
+  BoundaryUID                      defaultBoundaryUID_;
   std::map< uint_t, BoundaryUID >  meshFlagToID_;
   std::map< BoundaryUID, DoFType > boundaryUIDToType_;
 
