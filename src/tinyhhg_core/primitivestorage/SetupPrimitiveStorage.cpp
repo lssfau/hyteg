@@ -593,29 +593,49 @@ void SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary( const uint_t & meshB
   }
 }
 
-void SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation( const uint_t & meshBoundaryFlag, const std::function< bool( const Point3D & x ) > & onBoundary )
+void SetupPrimitiveStorage::setMeshBoundaryFlagsInner( const uint_t & meshBoundaryFlagInner, const bool & highestDimensionAlwaysInner )
 {
+  PrimitiveMap primitives;
+  getSetupPrimitives( primitives );
+  for ( auto & primitive : primitives )
+  {
+    primitive.second->meshBoundaryFlag_ = onBoundary( primitive.first, highestDimensionAlwaysInner ) ? primitive.second->getMeshBoundaryFlag() : meshBoundaryFlagInner;
+  }
+}
+
+
+void SetupPrimitiveStorage::setMeshBoundaryFlagsByVertexLocation( const uint_t & meshBoundaryFlag,
+                                                                  const std::function< bool( const Point3D & x ) > & onBoundary,
+                                                                  const bool & allVertices )
+{
+  auto cond = [ allVertices, onBoundary ]( const std::vector< Point3D > & coordinates ) {
+    if ( allVertices )
+      return std::all_of( coordinates.begin(), coordinates.end(), onBoundary );
+    else
+      return std::any_of( coordinates.begin(), coordinates.end(), onBoundary );
+  };
+
   for ( const auto & p : vertices_ )
   {
-    if ( onBoundary( p.second->getCoordinates() ) )
+    if ( cond( { p.second->getCoordinates() } ) )
       setMeshBoundaryFlag( p.first, meshBoundaryFlag );
   }
 
   for ( const auto & p : edges_ )
   {
-    if ( onBoundary( p.second->getCoordinates().at(0) ) && onBoundary( p.second->getCoordinates().at(1) ) )
+    if ( cond( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) ) )
       setMeshBoundaryFlag( p.first, meshBoundaryFlag );
   }
 
   for ( const auto & p : faces_ )
   {
-    if ( onBoundary( p.second->getCoordinates().at(0) ) && onBoundary( p.second->getCoordinates().at(1) ) && onBoundary( p.second->getCoordinates().at(2) ) )
+    if ( cond( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) ) )
       setMeshBoundaryFlag( p.first, meshBoundaryFlag );
   }
 
   for ( const auto & p : cells_ )
   {
-    if ( onBoundary( p.second->getCoordinates().at(0) ) && onBoundary( p.second->getCoordinates().at(1) ) && onBoundary( p.second->getCoordinates().at(2) ) && onBoundary( p.second->getCoordinates().at(3) ) )
+    if ( cond( std::vector< Point3D >( p.second->getCoordinates().begin(), p.second->getCoordinates().end() ) ) )
       setMeshBoundaryFlag( p.first, meshBoundaryFlag );
   }
 }
