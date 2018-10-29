@@ -407,7 +407,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
    {
       for( const auto &neighborCellID : sender->neighborCells() )
       {
-         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );X
+         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
          const auto edgeLocalCellID = receiver->cell_index( neighborCellID);
          const auto faceLocalCellID = sender->cell_index( neighborCellID);
 
