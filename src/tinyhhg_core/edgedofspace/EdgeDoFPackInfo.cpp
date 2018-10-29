@@ -403,13 +403,11 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       }
    }
 
-   for( const auto edgeOrientationOnReferenceEdge: { hhg::edgedof::EdgeDoFOrientation::X, hhg::edgedof::EdgeDoFOrientation::XYZ ,hhg::edgedof::EdgeDoFOrientation::XY})
+   for( const auto edgeOrientationOnReferenceEdge: { hhg::edgedof::EdgeDoFOrientation::X,hhg::edgedof::EdgeDoFOrientation::XY})
    {
       for( const auto &neighborCellID : sender->neighborCells() )
       {
-         //TODO: the index for XYZ is wrong if the first edge is considered
-         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
-         const auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( receiver->getID() );
+         const Cell& neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );X
          const auto edgeLocalCellID = receiver->cell_index( neighborCellID);
          const auto faceLocalCellID = sender->cell_index( neighborCellID);
 
@@ -434,6 +432,29 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
          }
       }
    }
+
+
+      for( const auto &neighborCellID : sender->neighborCells() )
+      {
+         //TODO: the index for XYZ is wrong if the first edge is considered
+
+         const auto edgeLocalCellID = receiver->cell_index( neighborCellID);
+         const auto faceLocalCellID = sender->cell_index( neighborCellID);
+
+         indexOnEdge = 0;
+         for( const auto& it : hhg::indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ - 1), faceBorderDir, 0 ) )
+         {
+            if( indexOnEdge < (levelinfo::num_microedges_per_edge( level_ ) - 1))
+            {
+               uint_t idxOnEdge = edgedof::macroedge::indexOnNeighborCell( level_, indexOnEdge, edgeLocalCellID, receiver->getNumNeighborFaces(),hhg::edgedof::EdgeDoFOrientation::XYZ  );
+               uint_t idxOnFace = edgedof::macroface::index( level_, it.x(), it.y(), hhg::edgedof::EdgeDoFOrientation::XYZ, faceLocalCellID );
+               edgeData[idxOnEdge] =
+                       faceData[idxOnFace];
+            }
+            ++indexOnEdge;
+         }
+      }
+
 
 
 }
