@@ -49,7 +49,7 @@ constexpr uint_t binomialCoefficient(uint_t n, uint_t k)
 inline Point3D toSpherical( const Point3D & pointInCartesianCoordinates )
 {
    const real_t r = pointInCartesianCoordinates.norm();
-   const real_t theta = pointInCartesianCoordinates[2] / r;
+   const real_t theta = std::acos( pointInCartesianCoordinates[2] / r );
    const real_t phi = std::atan2( pointInCartesianCoordinates[1], pointInCartesianCoordinates[0] );
    return Point3D( { r, theta, phi } );
 }
