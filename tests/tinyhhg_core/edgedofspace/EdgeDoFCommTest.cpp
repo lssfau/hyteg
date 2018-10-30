@@ -47,6 +47,10 @@ void check1tet( )
 
    Face& bottomFace = *(storage->getFace(PrimitiveID(10)));
    int* bottomFaceData = bottomFace.getData( x.getFaceDataID() )->getPointer( level );
+
+   Cell& cell = *(storage->getCell(PrimitiveID(14)));
+   int* cellData = cell.getData( x.getCellDataID() )->getPointer( level );
+
    auto edgeIt = storage->getEdges().begin();
    auto firstEdge = (*edgeIt).second;
    int* firstEdgeData = firstEdge.get()->getData( x.getEdgeDataID() )->getPointer( level );
@@ -89,24 +93,58 @@ void check1tet( )
    for(uint_t i = 0; i <= 1; ++i){
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::X);
       uint_t faceIdx = edgedof::macroface::index(level,i,1,edgedof::EdgeDoFOrientation::X,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,1,1,edgedof::EdgeDoFOrientation::X);
       WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
    }
    ///// Y /////
    for(uint_t i = 0; i <= 2; ++i){
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::Y);
       uint_t faceIdx = edgedof::macroface::index(level,i,0,edgedof::EdgeDoFOrientation::Y,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,0,1,edgedof::EdgeDoFOrientation::Y);
       WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
    }
-//
-//      Edge& edge      = *edgeIt.second;
-//      int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
-//      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
-//      for( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level ); ++i )
-//      {
-//         edgeData[i]  = 14;
-//         edgeDataY[i] = 26;
-//      }
-//
+   ///// Z /////
+   for(uint_t i = 0; i <= 2; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::Z);
+      uint_t faceIdx = edgedof::macroface::index(level,i,1,edgedof::EdgeDoFOrientation::Z,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,1,0,edgedof::EdgeDoFOrientation::Z);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
+   }
+   ///// XY /////
+   for(uint_t i = 0; i <= 2; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::XY);
+      uint_t faceIdx = edgedof::macroface::index(level,i,0,edgedof::EdgeDoFOrientation::XY,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,0,1,edgedof::EdgeDoFOrientation::XY);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
+   }
+   ///// XZ /////
+   for(uint_t i = 0; i <= 2; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::XZ);
+      uint_t faceIdx = edgedof::macroface::index(level,i,1,edgedof::EdgeDoFOrientation::XZ,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,1,0,edgedof::EdgeDoFOrientation::XZ);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
+   }
+   ///// YZ /////
+   for(uint_t i = 0; i <= 3; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::YZ);
+      uint_t faceIdx = edgedof::macroface::index(level,i,0,edgedof::EdgeDoFOrientation::YZ,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,0,0,edgedof::EdgeDoFOrientation::YZ);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
+   }
+   ///// XYZ /////
+   for(uint_t i = 0; i <= 2; ++i){
+      uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level,i,0,2,edgedof::EdgeDoFOrientation::XYZ);
+      uint_t faceIdx = edgedof::macroface::index(level,i,0,edgedof::EdgeDoFOrientation::XYZ,0);
+      uint_t cellIdx = edgedof::macrocell::index(level,i,0,0,edgedof::EdgeDoFOrientation::XYZ);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], bottomFaceData[faceIdx],i << " edgeIdx: " << edgeIdx << " faceIdx: " << faceIdx);
+      WALBERLA_CHECK_EQUAL(firstEdgeData[edgeIdx], cellData[cellIdx],i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx);
+   }
 
 }
 
@@ -540,7 +578,7 @@ int main (int argc, char ** argv ) {
 
    check1tet();
 
-   checkComm3d( 2u );
+   //checkComm3d( 2u );
 
    return 0;
 
