@@ -221,20 +221,20 @@ void jefferyHamelFlowTest()
   }
 #endif
 
-#if 1
+#if 0
   preconditionedMinResSolver.solve( stokesOperator, x, rhs, r, maxLevel, 1e-16, 10000, Inner | NeumannBoundary, true );
 #endif
 
-#if 0
+#if 1
   PETScManager petscManager;
   rhs.u.interpolate( solutionU, maxLevel, inflowBCUID );
   rhs.v.interpolate( solutionV, maxLevel, inflowBCUID );
-  auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction< PetscInt > >("numerator", storage, level, level);
-  numerator->enumerate(level);
-  const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  auto numerator = std::make_shared<hhg::P2P1TaylorHoodFunction< PetscInt > >("numerator", storage, minLevel, maxLevel);
+  numerator->enumerate( maxLevel );
+  const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
+  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
   PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
-  solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+  solver.solve( stokesOperator, x, rhs, r, maxLevel, 1e-16, 10000, hhg::Inner | hhg::NeumannBoundary, true );
 #endif
 
 
