@@ -28,6 +28,21 @@ static uint_t counter = 0;
 #define TEST_MIN_VALUE -200.0
 #define TEST_MAG_VALUE  200.0
 
+// typedef enum{ FIND_MAX, FIND_MIN, FIND_MAG } findType;
+
+template<class funcType>
+void runMagTest( std::string mesg, uint_t theLevel, funcType &dofFunc, std::function<real_t(const hhg::Point3D&)> &testFunc, real_t refVal ) {
+
+  real_t measure = 0.0;
+
+  dofFunc.interpolate( testFunc, theLevel );
+  measure = dofFunc.getMaxMagnitude( theLevel );
+
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, refVal );
+  WALBERLA_LOG_INFO_ON_ROOT( mesg << std::scientific << measure );
+}
+
+
 int main( int argc, char* argv[] )
 {
   walberla::debug::enterTestMode();
@@ -261,34 +276,22 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nP2Function (DoFType=All)\n" );
 
   theLevel = 2;
+  hhg::P2Function< real_t > p2func( "", storage, theLevel, theLevel );
 
   // Special value on macro edge (vertexdof)
   xLocPos = 0.25;
   yLocPos = 0.25;
-
-  hhg::P2Function< real_t > p2func( "", storage, theLevel, theLevel );
-  p2func.interpolate( testFuncMin, theLevel );
-  measure = p2func.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test #9 (edge/vert): magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+  runMagTest( "Test #9 (edge/vert): magnitude = ", theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
   // Special value on macro edge (edgedof)
   xLocPos = 0.125;
   yLocPos = 0.125;
-
-  p2func.interpolate( testFuncMin, theLevel );
-  measure = p2func.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test #A (edge/edge): magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+  runMagTest( "Test #A (edge/edge): magnitude = ", theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
   // Special value on macro face (edgedof)
   xLocPos = 0.250;
   yLocPos = 0.125;
-
-  p2func.interpolate( testFuncMin, theLevel );
-  measure = p2func.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test #B (face/edge): magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+  runMagTest( "Test #B (face/edge): magnitude = ", theLevel, p2func, testFuncMin, TEST_MAG_VALUE );
 
   // ============
   //  DGFunction 
@@ -298,11 +301,7 @@ int main( int argc, char* argv[] )
 
   theLevel = 2;
   hhg::DGFunction< real_t > dgFunc( "", storage, theLevel, theLevel );
-
-  dgFunc.interpolate( testFuncCombo, theLevel );
-  measure = dgFunc.getMaxMagnitude( theLevel, Inner );
-  WALBERLA_LOG_INFO_ON_ROOT( "Test #C (combo    ): magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+  runMagTest( "Test #C (combo    ): magnitude = ", theLevel, dgFunc, testFuncCombo, 3.0 );
 
   // ===========
   //  3D Meshes
@@ -326,31 +325,21 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
   hhg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
   hhg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
-  xLocPos = 0.50;
-  yLocPos = 0.25;
-  zLocPos = 0.25;
-  p1Func3D.interpolate( testFuncMin, theLevel );
-  p2Func3D.interpolate( testFuncMin, theLevel );
-  // dgFunc3D.interpolate( testFuncMin, theLevel );
+
 
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test\n" );
 
-  measure = p1Func3D.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P1 function: magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+  xLocPos = 0.25;
+  yLocPos = 0.25;
+  zLocPos = 0.25;
 
-  measure = p2Func3D.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P2 function: magnitude = " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAG_VALUE );
+  runMagTest( "3D Test P1 function: magnitude =  ", theLevel, p1Func3D, testFuncMin, TEST_MAG_VALUE );
+  runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncMin, TEST_MAG_VALUE );
 
-  p1Func3D.interpolate( testFuncCombo, theLevel );
-  p2Func3D.interpolate( testFuncCombo, theLevel );
 
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nCombo test\n" );
 
-  measure = p1Func3D.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P1 function: magnitude =  " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
+  runMagTest( "3D Test P1 function: magnitude =  ", theLevel, p1Func3D, testFuncCombo, 3.0 );
 
   measure = p1Func3D.getMaxValue( theLevel );
   WALBERLA_LOG_INFO_ON_ROOT( "                     maximum   =  " << std::scientific << measure );
@@ -360,13 +349,7 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
   WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
 
-  measure = p2Func3D.getMaxMagnitude( theLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "3D Test P2 function: magnitude =  " << std::scientific << measure );
-  WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0 );
-
-  // measure = p2Func3D.getMinValue( theLevel );
-  // WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   = " << std::scientific << measure );
-  // WALBERLA_CHECK_FLOAT_EQUAL( measure, -1.0 );
+  runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncCombo, 3.0 );
 
   return EXIT_SUCCESS;
 }
