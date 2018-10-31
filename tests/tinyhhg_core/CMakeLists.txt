@@ -1,9 +1,5 @@
 waLBerla_link_files_to_builddir(*.msh)
 
-## Benchmarks ##
-waLBerla_compile_test(FILES benchmarks/JefferyHamelFlow.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME JefferyHamelFlow)
-
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
