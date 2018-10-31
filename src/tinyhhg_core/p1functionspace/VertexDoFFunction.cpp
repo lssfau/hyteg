@@ -719,6 +719,12 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
    }
    auto localMax = -std::numeric_limits< ValueType >::max();
 
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMax = std::max( localMax, vertexdof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+   }
+
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
@@ -773,6 +779,12 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
       }
    }
 
+   for( auto& it : this->getStorage()->getCells() )
+   {
+     Cell& cell = *it.second;
+     localMax = std::max( localMax, vertexdof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+   }
+
    for( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
@@ -810,6 +822,12 @@ ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType fla
       return ValueType( 0 );
    }
    auto localMin = std::numeric_limits< ValueType >::max();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMin = std::min( localMin, vertexdof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+   }
 
    for( auto& it : this->getStorage()->getFaces() )
    {

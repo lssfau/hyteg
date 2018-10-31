@@ -95,6 +95,14 @@ int main( int argc, char* argv[] )
     return retVal;
   };
 
+  std::function<real_t(const hhg::Point3D&)> testFuncInvDst = []( const hhg::Point3D& x ) {
+    real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
+                                 (yLocPos - x[1]) * (yLocPos - x[1]) +
+                                 (zLocPos - x[2]) * (zLocPos - x[2]) );
+    return 2.0 - distance;
+    // return std::exp( -distance );
+  };
+
   real_t hmin = std::pow( 2.0, - (real_t)theLevel );
   epsilon = 0.5 * hmin;
   WALBERLA_LOG_INFO_ON_ROOT( "level    = " << theLevel );
@@ -307,8 +315,8 @@ int main( int argc, char* argv[] )
   //  3D Meshes
   // ===========
 
-  WALBERLA_LOG_INFO_ON_ROOT( "\n\n---------------------\n TEST on 3D Meshes" );
-  WALBERLA_LOG_INFO_ON_ROOT( "----------------------\n" );
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\n--------------------\n TESTs on 3D Meshes" );
+  WALBERLA_LOG_INFO_ON_ROOT( "--------------------\n" );
 
   theLevel = 2;
 
@@ -327,16 +335,54 @@ int main( int argc, char* argv[] )
   hhg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
 
 
-  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test\n" );
+  // --------------------------------------------------------------------------------------------------
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test (micro-vertex-dof)\n" );
 
   xLocPos = 0.25;
   yLocPos = 0.25;
   zLocPos = 0.25;
 
   runMagTest( "3D Test P1 function: magnitude =  ", theLevel, p1Func3D, testFuncMin, TEST_MAG_VALUE );
+
+  measure = p1Func3D.getMinValue( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     minimum   =  " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MIN_VALUE );
+
+  p1Func3D.interpolate( testFuncMax, theLevel );
+  measure = p1Func3D.getMaxValue( theLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "                     maximum   =  " << std::scientific << measure );
+  WALBERLA_CHECK_FLOAT_EQUAL( measure, TEST_MAX_VALUE );
+
   runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncMin, TEST_MAG_VALUE );
 
+  // --------------------------------------------------------------------------------------------------
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test (micro-edge-dof #1)\n" );
 
+  xLocPos = 0.125;
+  yLocPos = 0.25;
+  zLocPos = 0.25;
+
+  runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncMin, TEST_MAG_VALUE );
+
+  // --------------------------------------------------------------------------------------------------
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test (micro-edge-dof #2)\n" );
+
+  xLocPos = 0.125;
+  yLocPos = 0.125;
+  zLocPos = 0.25;
+
+  runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncMin, TEST_MAG_VALUE );
+
+  // --------------------------------------------------------------------------------------------------
+  WALBERLA_LOG_INFO_ON_ROOT( "\n\nSingle point test (micro-edge-dof #3)\n" );
+
+  xLocPos = 0.125;
+  yLocPos = 0.125;
+  zLocPos = 0.125;
+
+  runMagTest( "3D Test P2 function: magnitude =  ", theLevel, p2Func3D, testFuncMin, TEST_MAG_VALUE );
+
+  // --------------------------------------------------------------------------------------------------
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nCombo test\n" );
 
   runMagTest( "3D Test P1 function: magnitude =  ", theLevel, p1Func3D, testFuncCombo, 3.0 );

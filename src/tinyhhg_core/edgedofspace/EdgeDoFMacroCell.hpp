@@ -399,6 +399,24 @@ inline void apply(const uint_t & Level, Cell &cell,
   }
 }
 
+template< typename ValueType >
+inline ValueType getMaxMagnitude( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = ValueType(0.0);
+
+  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] ) );
+    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] ) );
+  }
+
+  return localMax;
+}
 
 }
 }

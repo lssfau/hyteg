@@ -494,6 +494,12 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
       }
    }
 
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMax = std::max( localMax, edgedof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+   }
+
    if( mpiReduce )
    {
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );

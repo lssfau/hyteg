@@ -363,6 +363,48 @@ inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<F
 }
 
 
+template< typename ValueType >
+inline ValueType getMaxValue( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMax = std::max( localMax, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] );
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMin = std::min( localMin, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] );
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
+inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = ValueType(0.0);
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMax = std::max( localMax, std::abs( src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] ));
+  }
+
+  return localMax;
+}
+
+
 #ifdef HHG_BUILD_WITH_PETSC
 
 inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID<StencilMemory< real_t >, Cell>& operatorId,
