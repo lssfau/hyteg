@@ -40,7 +40,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   WALBERLA_CHECK( storage->hasGlobalCells() );
 
   if ( writeVTK )
-    writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
+    writeDomainPartitioningVTK( storage, "../../output", "P2LaplaceOperatorTest3D_partitioning" );
 
   P2ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
@@ -188,7 +188,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   oneFunction.interpolate( one, level, DoFType::All );
   const real_t numPoints  = oneFunction.dotGlobal( oneFunction, level, DoFType::Inner );
 
-  VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
+  VTKOutput vtkOutput("../../output", "P2LaplaceOperatorTest3D", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &result );
   vtkOutput.add( &resultExact );
@@ -251,21 +251,20 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-//
-//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
-//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-//  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
-//  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
-//  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
-//
-//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
-//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
-//  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
 
-#if 1
+  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
+  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );
+  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/tet_tilted_1el.msh", 4 );
+
+  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 2 );
+  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/pyramid_2el.msh", 4 );
+
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
-#endif
+
   return 0;
 }
