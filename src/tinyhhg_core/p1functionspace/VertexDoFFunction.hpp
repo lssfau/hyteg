@@ -81,10 +81,17 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
 
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID );
+
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< VertexDoFFunction* >                                              srcFunctions,
                              uint_t                                                                               level,
                              DoFType                                                                              flag = All );
+
+   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                             const std::vector< VertexDoFFunction* >                                              srcFunctions,
+                             uint_t                                                                               level,
+                             BoundaryUID                                                                          boundaryUID );
 
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs

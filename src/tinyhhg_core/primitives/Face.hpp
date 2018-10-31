@@ -61,8 +61,8 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const Face &face);
 
-  std::array< int, 3 >     getEdgeOrientation() const { return edge_orientation; }
-  std::array< Point3D, 3 > getCoordinates()     const { return coords; }
+  const std::array< int, 3 >     & getEdgeOrientation() const { return edge_orientation; }
+  const std::array< Point3D, 3 > & getCoordinates()     const { return coords; }
 
   const PrimitiveID & getVertexID0() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 3 ); return neighborVertices_[0]; }
   const PrimitiveID & getVertexID1() const { WALBERLA_ASSERT_EQUAL( getNumNeighborVertices(), 3 ); return neighborVertices_[1]; }

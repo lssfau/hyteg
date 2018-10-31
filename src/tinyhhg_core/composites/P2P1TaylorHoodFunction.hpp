@@ -25,6 +25,15 @@ public:
     WALBERLA_CHECK( !storage->hasGlobalCells(), "EdgeDoFSpace is not 3D ready -> TaylorHood functions do not work in this case." )
   }
 
+  P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel, BoundaryCondition velocityBC)
+  : u(_name+"_u", storage, minLevel, maxLevel, velocityBC),
+    v(_name+"_v", storage, minLevel, maxLevel, velocityBC),
+    w(_name+"_w_dummy", storage ),
+    p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+  {
+    WALBERLA_CHECK( !storage->hasGlobalCells(), "EdgeDoFSpace is not 3D ready -> TaylorHood functions do not work in this case." )
+  }
+
   void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
   {
     u.interpolate(expr, level, flag);
