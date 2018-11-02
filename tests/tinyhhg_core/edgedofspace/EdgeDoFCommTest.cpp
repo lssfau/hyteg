@@ -52,7 +52,7 @@ void printEdgeData( uint_t level, int* edgeData, uint_t funcSize )
    std::cout << std::endl;
 }
 
-void check1tet( )
+void check1tet( bool bufferComm = false )
 {
    MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -61,28 +61,25 @@ void check1tet( )
    const uint_t level = 2;
 
    hhg::EdgeDoFFunction< int > x( "x", storage, level, level );
-   /// for y we set the local comm to mpi; default would be direct
-   hhg::EdgeDoFFunction< int > y( "x", storage, level, level );
-   y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   if( bufferComm )
+   {
+      x.setLocalCommunicationMode(communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI);
+   }
 
    ////////// check cell to face comm //////////
    for( auto& cellIt : storage->getCells() )
    {
       Cell& cell      = *cellIt.second;
       int*  cellData  = cell.getData( x.getCellDataID() )->getPointer( level );
-      int*  cellDataY = cell.getData( y.getCellDataID() )->getPointer( level );
       for( uint_t i = 0; i < cell.getData( x.getCellDataID() )->getSize( level ); ++i )
       {
          cellData[i]  = static_cast< int >( i );
-         cellDataY[i] = static_cast< int >( i );
       }
    }
 
    x.communicate< Cell, Face >( level );
-   y.communicate< Cell, Face >( level );
 
    x.communicate< Face, Edge >( level );
-   y.communicate< Face, Edge >( level );
 
    Face& bottomFace     = *( storage->getFace( PrimitiveID( 10 ) ) );
    int*  bottomFaceData = bottomFace.getData( x.getFaceDataID() )->getPointer( level );
@@ -127,6 +124,7 @@ void check1tet( )
    WALBERLA_LOG_DEVEL( *( edge5.get() ) );
    printEdgeData( 2, edge5Data, edge5->getData( x.getEdgeDataID() )->getSize( level ) );
 
+   ////// EDGE 0 /////
    ///// X /////
    for( uint_t i = 0; i <= 1; ++i )
    {
@@ -198,7 +196,7 @@ void check1tet( )
       WALBERLA_CHECK_EQUAL( edge0Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
 
-   ///// X /////
+   ///// X EDGE 1 /////
    for( uint_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
@@ -209,14 +207,14 @@ void check1tet( )
       WALBERLA_CHECK_EQUAL( edge1Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
 
-   ///// X /////
+   ///// X EDGE 2 /////
    for( uint_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
       uint_t cellIdx = edgedof::macrocell::index( level, 1, 1, i, edgedof::EdgeDoFOrientation::Z );
       WALBERLA_CHECK_EQUAL( edge2Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
-   ///// X /////
+   ///// X EDGE 3 /////
    for( uint_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
@@ -224,7 +222,7 @@ void check1tet( )
       WALBERLA_CHECK_EQUAL( edge3Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
 
-   ///// X /////
+   ///// X EDGE 4 /////
    for( uint_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
@@ -232,7 +230,7 @@ void check1tet( )
       WALBERLA_CHECK_EQUAL( edge4Data[edgeIdx], cellData[cellIdx], i << " edgeIdx: " << edgeIdx << " cellIdx: " << cellIdx );
    }
 
-   ///// X /////
+   ///// X EDGE 5 /////
    for( uint_t i = 0; i <= 1; ++i )
    {
       uint_t edgeIdx = edgedof::macroedge::indexOnNeighborCell( level, i, 0, 2, edgedof::EdgeDoFOrientation::X );
@@ -344,27 +342,24 @@ void checkComm3d( const uint_t level )
    x.communicate< Face, Edge >( level );
    y.communicate< Face, Edge >( level );
 
+
+
    for( auto& edgeIt : storage->getEdges() )
    {
       Edge& edge      = *edgeIt.second;
-      uint_t cellOffSet =  levelinfo::num_microedges_per_edge( level ) +
-                           edge.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
-
-
 
       int*  edgeData  = edge.getData( x.getEdgeDataID() )->getPointer( level );
-      //int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+      int*  edgeDataY = edge.getData( y.getEdgeDataID() )->getPointer( level );
+
+      printEdgeData( 2, edgeData, edge.getData( x.getEdgeDataID() )->getSize( level ) );
+      printEdgeData( 2, edgeDataY, edge.getData( x.getEdgeDataID() )->getSize( level ) );
 
       for( uint_t i = levelinfo::num_microedges_per_edge( level ); i < edge.getData( x.getEdgeDataID() )->getSize( level ); ++i )
       {
-         ///check it is is the fourth element in cell since this is never used
-         if(((i - (cellOffSet-1)) % 4) != 0){
-            WALBERLA_CHECK_EQUAL( edgeData[i], 15, i );
-            //WALBERLA_CHECK_EQUAL( edgeDataY[i], 27, i );
-         }
+         WALBERLA_CHECK_EQUAL( edgeData[i], 15, i );
+         WALBERLA_CHECK_EQUAL( edgeDataY[i], 27, i );
       }
    }
-
    /////////////////////////////////////////////
 }
 
@@ -638,7 +633,9 @@ int main (int argc, char ** argv ) {
 
    check1tet();
 
-   //checkComm3d( 2u );
+   check1tet( true );
+
+   checkComm3d( 2u );
 
    return 0;
 
