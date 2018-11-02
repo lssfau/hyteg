@@ -412,6 +412,9 @@ inline ValueType getMaxMagnitude( const uint_t &level, Cell &cell, const Primiti
     localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] ) );
     localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] ) );
     localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] ) );
+  }
+
+  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
     localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] ) );
   }
 
