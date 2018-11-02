@@ -344,36 +344,48 @@ inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const
   }
 }
 
-
 /// Index of an edge DoF on a ghost layer that is located on a neighbor-cell of a macro edge.
+/// the amount of dofs on the ghost layer are:
+/// X: num_microvertices_per_edge - 2
+/// XY: num_microvertices_per_edge
+/// others: num_microvertices_per_edge - 1
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-inline uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x, const uint_t & neighbor, const uint_t & numNeighborFaces, const EdgeDoFOrientation & orientation )
+inline uint_t indexOnNeighborCell( const uint_t&             level,
+                                   const uint_t&             x,
+                                   const uint_t&             neighbor,
+                                   const uint_t&             numNeighborFaces,
+                                   const EdgeDoFOrientation& orientation )
 {
-  const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) + numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
-  const uint_t offsetPerOrientation = levelinfo::num_microedges_per_edge( level );
-  const uint_t offsetNeighborCells = neighbor * offsetPerOrientation * 7;
-  switch ( orientation )
-  {
-  case EdgeDoFOrientation::X:
-    return offsetToFirstCellDoF + offsetNeighborCells + 0 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::Y:
-    return offsetToFirstCellDoF + offsetNeighborCells + 1 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::Z:
-    return offsetToFirstCellDoF + offsetNeighborCells + 2 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XY:
-    return offsetToFirstCellDoF + offsetNeighborCells + 3 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XZ:
-    return offsetToFirstCellDoF + offsetNeighborCells + 4 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::YZ:
-    return offsetToFirstCellDoF + offsetNeighborCells + 5 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XYZ:
-    return offsetToFirstCellDoF + offsetNeighborCells + 6 * offsetPerOrientation + index( level, x );
-  default:
-    WALBERLA_ASSERT( false, "Invalid orientation" );
-    return std::numeric_limits< uint_t >::max();
-  }
-}
+   const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) +
+                                       numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+   const uint_t xGhostOffset = levelinfo::num_microedges_per_edge( level ) - 2;
+   const uint_t xzGhostOffset = levelinfo::num_microedges_per_edge( level );
+   const uint_t otherDoFsoffset = levelinfo::num_microedges_per_edge( level ) - 1;
+   const uint_t offsetNeighborCells  = neighbor * ( xGhostOffset + xzGhostOffset + otherDoFsoffset * 5 );
+   switch( orientation )
+   {
+   case EdgeDoFOrientation::X:
+      return offsetToFirstCellDoF + offsetNeighborCells + index( level, x );
+   case EdgeDoFOrientation::Y:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 0 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::Z:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 1 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XY:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 2 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 3 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XYZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 4 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::YZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 5 * otherDoFsoffset + index( level, x );
 
+
+
+   default:
+      WALBERLA_ASSERT( false, "Invalid orientation" );
+      return std::numeric_limits< uint_t >::max();
+   }
+}
 
 inline uint_t horizontalIndex( const uint_t & level, const uint_t & col )
 {
