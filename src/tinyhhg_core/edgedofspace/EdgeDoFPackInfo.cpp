@@ -57,20 +57,20 @@ void EdgeDoFPackInfo< ValueType >::packEdgeForVertex( const Edge*               
    uint_t     vertexIdOnEdge = sender->vertex_index( receiver );
    if( vertexIdOnEdge == 0 )
    {
-      buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_HO_C )];
-      buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_VE_SE )];
-      if( sender->getNumNeighborFaces() == 2 )
+      buffer << edgeData[edgedof::macroedge::index( level_, 0 )];
+      for( const PrimitiveID& faceID : sender->neighborFaces() )
       {
-         buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_DI_N )];
+         buffer << edgeData[edgedof::macroedge::indexOnNeighborFace(
+             level_, 0, sender->face_index( faceID ), edgedof::EdgeDoFOrientation::XY )];
       }
    } else if( vertexIdOnEdge == 1 )
    {
-      uint_t nbrEdges = levelinfo::num_microedges_per_edge( level_ );
-      buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_HO_C )];
-      buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_DI_S )];
-      if( sender->getNumNeighborFaces() == 2 )
+      uint_t length = levelinfo::num_microedges_per_edge( level_ );
+      buffer << edgeData[edgedof::macroedge::index( level_, length - 1 )];
+      for( const PrimitiveID& faceID : sender->neighborFaces() )
       {
-         buffer << edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_VE_NW )];
+         buffer << edgeData[edgedof::macroedge::indexOnNeighborFace(
+             level_, length - 1, sender->face_index( faceID ), edgedof::EdgeDoFOrientation::Y )];
       }
    } else
    {
