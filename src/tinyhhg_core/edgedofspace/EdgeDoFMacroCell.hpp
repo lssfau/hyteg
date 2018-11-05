@@ -400,6 +400,50 @@ inline void apply(const uint_t & Level, Cell &cell,
 }
 
 template< typename ValueType >
+inline ValueType getMaxValue( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
+    localMax = std::max( localMax, src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMax = std::max( localMax, src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMax = std::max( localMax, src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMax = std::max( localMax, src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMax = std::max( localMax, src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMax = std::max( localMax, src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] );
+  }
+
+  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
+    localMax = std::max( localMax, src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] );
+  }
+
+  return localMax;
+}
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
+    localMin = std::min( localMin, src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMin = std::min( localMin, src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMin = std::min( localMin, src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMin = std::min( localMin, src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMin = std::min( localMin, src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] );
+    localMin = std::min( localMin, src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] );
+  }
+
+  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
+    localMin = std::min( localMin, src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] );
+  }
+
+  return localMin;
+}
+
+template< typename ValueType >
 inline ValueType getMaxMagnitude( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
 
   auto src = cell.getData( srcId )->getPointer( level );

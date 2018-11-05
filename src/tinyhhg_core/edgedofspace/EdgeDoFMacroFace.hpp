@@ -499,6 +499,74 @@ inline void printFunctionMemory( const uint_t & Level, Face& face, const Primiti
 
 
 template< typename ValueType >
+inline ValueType getMaxValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  auto src = face.getData( srcId )->getPointer( level );
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  auto src = face.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
 inline ValueType getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
 
   auto src = face.getData( srcId )->getPointer( level );

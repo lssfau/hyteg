@@ -374,6 +374,38 @@ inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const Pr
 
 
 template< typename ValueType >
+inline ValueType getMaxValue( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+
+  auto src = edge.getData( srcId )->getPointer( level );
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for( const auto &it: edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    localMax = std::max( localMax, src[idx] );
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+
+  auto src = edge.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for( const auto &it: edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    localMin = std::min( localMin, src[idx] );
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
 inline ValueType getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   auto src = edge.getData( srcId )->getPointer( level );

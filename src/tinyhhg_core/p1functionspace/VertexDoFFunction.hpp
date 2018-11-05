@@ -100,8 +100,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    void enumerate( uint_t level );
 
    // TODO: write more general version(s)
-   ValueType getMaxValue( uint_t level, DoFType flag = All );
-   ValueType getMinValue( uint_t level, DoFType flag = All );
+   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
+   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
    BoundaryCondition getBoundaryCondition() const;

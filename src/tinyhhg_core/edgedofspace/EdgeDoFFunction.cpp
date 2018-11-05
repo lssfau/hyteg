@@ -466,6 +466,94 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 }
 
 template < typename ValueType >
+ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
+{
+   if( isDummy() )
+   {
+      return ValueType( 0 );
+   }
+
+   auto localMax = -std::numeric_limits< ValueType >::max();
+
+   for( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge&         edge   = *it.second;
+      const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if( testFlag( edgeBC, flag ) )
+      {
+         localMax = std::max( localMax, edgedof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ) );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getFaces() )
+   {
+      Face&         face   = *it.second;
+      const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if( testFlag( faceBC, flag ) )
+      {
+         localMax = std::max( localMax, edgedof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ) );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMax = std::max( localMax, edgedof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+   }
+
+   if( mpiReduce )
+   {
+      walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+   }
+
+   return localMax;
+}
+
+template < typename ValueType >
+ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
+{
+   if( isDummy() )
+   {
+      return ValueType( 0 );
+   }
+
+   auto localMin = std::numeric_limits< ValueType >::max();
+
+   for( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge&         edge   = *it.second;
+      const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if( testFlag( edgeBC, flag ) )
+      {
+         localMin = std::min( localMin, edgedof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ) );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getFaces() )
+   {
+      Face&         face   = *it.second;
+      const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if( testFlag( faceBC, flag ) )
+      {
+         localMin = std::min( localMin, edgedof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ) );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMin = std::min( localMin, edgedof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+   }
+
+   if( mpiReduce )
+   {
+      walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
+   }
+
+   return localMin;
+}
+
+template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
