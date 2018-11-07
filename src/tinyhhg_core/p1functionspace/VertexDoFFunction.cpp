@@ -711,13 +711,19 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag )
+ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMax = -std::numeric_limits< ValueType >::max();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMax = std::max( localMax, vertexdof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+   }
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -749,7 +755,11 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
       }
    }
 
-   ValueType globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   ValueType globalMax = localMax;
+   if( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
 
    return globalMax;
 }
@@ -762,6 +772,12 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
       return ValueType( 0 );
    }
    auto localMax = ValueType( 0.0 );
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+     Cell& cell = *it.second;
+     localMax = std::max( localMax, vertexdof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+   }
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -803,13 +819,19 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag )
+ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
 {
    if( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMin = std::numeric_limits< ValueType >::max();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      localMin = std::min( localMin, vertexdof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+   }
 
    for( auto& it : this->getStorage()->getFaces() )
    {
@@ -841,7 +863,11 @@ ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType fla
       }
    }
 
-   ValueType globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
+   ValueType globalMin = localMin;
+   if( mpiReduce )
+   {
+      globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
+   }
 
    return globalMin;
 }

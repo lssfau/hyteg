@@ -450,6 +450,16 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
+   inline real_t getMaxValue( uint_t level, DoFType flag = All )
+   {
+      auto localMax = -std::numeric_limits< ValueType >::max();
+      localMax      = std::max( localMax, vertexDoFFunction_->getMaxValue( level, flag, false ) );
+      localMax      = std::max( localMax, edgeDoFFunction_->getMaxValue( level, flag, false ) );
+      walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+
+      return localMax;
+   }
+
    inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
    {
       auto localMax = real_t( 0.0 );
@@ -459,6 +469,16 @@ class P2Function : public Function< P2Function< ValueType > >
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
       return localMax;
+   }
+
+   inline real_t getMinValue( uint_t level, DoFType flag = All )
+   {
+      auto localMin = std::numeric_limits< ValueType >::max();
+      localMin      = std::min( localMin, vertexDoFFunction_->getMinValue( level, flag, false ) );
+      localMin      = std::min( localMin, edgeDoFFunction_->getMinValue( level, flag, false ) );
+      walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
+
+      return localMin;
    }
 
    inline BoundaryCondition getBoundaryCondition() const

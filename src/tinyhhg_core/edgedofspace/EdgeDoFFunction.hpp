@@ -82,6 +82,8 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Cell>   & getCellDataID()   const { return cellDataID_; }
 
 
+  ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
+  ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
