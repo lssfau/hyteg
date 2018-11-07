@@ -98,28 +98,25 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToVertex( const Edge* sen
    uint_t     vertexIdOnEdge = sender->vertex_index( receiver->getID() );
    ValueType* vertexData     = receiver->getData( dataIDVertex_ )->getPointer( level_ );
    uint_t     edgeIdOnVertex = receiver->edge_index( sender->getID() );
+
    if( vertexIdOnEdge == 0 )
    {
-      vertexData[edgeIdOnVertex] =
-          edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_HO_C )];
-      vertexData[receiver->getNumNeighborEdges() + receiver->face_index( sender->neighborFaces()[0] )] =
-          edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_VE_SE )];
-      if( sender->getNumNeighborFaces() == 2 )
+      vertexData[edgeIdOnVertex] = edgeData[edgedof::macroedge::index( level_, 0 )];
+      for( const PrimitiveID& faceID : sender->neighborFaces() )
       {
-         vertexData[receiver->getNumNeighborEdges() + receiver->face_index( sender->neighborFaces()[1] )] =
-             edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, 0, stencilDirection::EDGE_DI_N )];
+         vertexData[receiver->getNumNeighborEdges() + receiver->face_index( faceID )] =
+             edgeData[edgedof::macroedge::indexOnNeighborFace(
+                 level_, 0, sender->face_index( faceID ), edgedof::EdgeDoFOrientation::XY )];
       }
    } else if( vertexIdOnEdge == 1 )
    {
-      uint_t nbrEdges = levelinfo::num_microedges_per_edge( level_ );
-      vertexData[edgeIdOnVertex] =
-          edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_HO_C )];
-      vertexData[receiver->getNumNeighborEdges() + receiver->face_index( sender->neighborFaces()[0] )] =
-          edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_DI_S )];
-      if( sender->getNumNeighborFaces() == 2 )
+      uint_t edgeLength          = levelinfo::num_microedges_per_edge( level_ );
+      vertexData[edgeIdOnVertex] = edgeData[edgedof::macroedge::index( level_, edgeLength - 1 )];
+      for( const PrimitiveID& faceID : sender->neighborFaces() )
       {
-         vertexData[receiver->getNumNeighborEdges() + receiver->face_index( sender->neighborFaces()[1] )] =
-             edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, nbrEdges - 1, stencilDirection::EDGE_VE_NW )];
+         vertexData[receiver->getNumNeighborEdges() + receiver->face_index( faceID )] =
+             edgeData[edgedof::macroedge::indexOnNeighborFace(
+                 level_, edgeLength - 1, sender->face_index( faceID ), edgedof::EdgeDoFOrientation::Y )];
       }
    } else
    {
@@ -789,6 +786,5 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
 template class EdgeDoFPackInfo< double >;
 template class EdgeDoFPackInfo< float >;
 template class EdgeDoFPackInfo< int >;
-template class EdgeDoFPackInfo< uint_t >;
 
 } // namespace hhg
