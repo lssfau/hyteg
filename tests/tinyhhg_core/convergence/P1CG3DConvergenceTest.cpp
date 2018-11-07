@@ -91,8 +91,6 @@ int main( int argc, char* argv[] )
   const real_t numPointsLowerLevel  = oneFunction.dotGlobal( oneFunction, lowerLevel,  DoFType::Inner );
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, higherLevel, DoFType::Inner );
 
-  WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
   VTKOutput vtkOutput("../../output", "P1CGConvergenceTest", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &err );
