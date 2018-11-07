@@ -163,6 +163,7 @@ inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices
 }
 
 /// \brief Given to local vertex ids on the tetrahedron this function return the orientation of the edge inbetween those vertices
+/// it also works for macro faces since the first face in the tetrahedron is equivalent to the reference face
 inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vertexIndex0, const uint_t & vertexIndex1 ){
    WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex0, 3 );
@@ -206,24 +207,49 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vert
 
 }
 
+/// \brief Converts the orientation of an edge DoF in a macro-edge to the respective orientation in a neighboring macro-face.
+///
+/// \param orientationInCell the edgedof orientation from the edge-local point of view
+/// \param faceLocalID0 the first index of the edge from face-local point of view (face-local == 0)
+/// \param faceLocalID1 the second index of the edge from face-local point of view (face-local == 1)
+/// \return the edge DoF orientation from the face-local point of view
+inline EdgeDoFOrientation convertEdgeDoFOrientationEdgeToFace( const EdgeDoFOrientation & orientationInEdge, const uint_t & faceLocalID0,
+                                                               const uint_t & faceLocalID1 )
+{
+   /// one can calculate the missing local index by adding all indices and subtract from 0+1+2
+   uint_t faceLocalID2 = 3 - ( faceLocalID0 + faceLocalID1 );
+   switch ( orientationInEdge )
+   {
+      case EdgeDoFOrientation::X:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID0, faceLocalID1 );
+      case EdgeDoFOrientation::Y:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID0, faceLocalID2 );
+      case EdgeDoFOrientation::XY:
+         return getEdgeDoFOrientationFromLocalIDs( faceLocalID1, faceLocalID2 );
+      default:
+         WALBERLA_ABORT( "wrong orienation" )
+   }
+}
+
 /// \brief converts the edge orientation of the reference face into the correct orientation on the tetrahedron according to the position
 /// and the rotation of the face.
-inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation srcOr, const uint_t v0, const uint_t v1, const uint_t v2 ){
+inline EdgeDoFOrientation convertEdgeDoFOrientationFaceToCell(const EdgeDoFOrientation srcOr, const uint_t cellLocalID0,
+                                                              const uint_t cellLocalID1, const uint_t cellLocalID2){
    /// one can calculate the missing local index by adding all indices and subtract from 0+1+2+3
-   uint_t v3 = 6 - ( v0 + v1 + v2 );
+   uint_t v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
    switch ( srcOr ){
       case EdgeDoFOrientation::X:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v1);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,cellLocalID1);
       case EdgeDoFOrientation::Y:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v2);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,cellLocalID2);
       case EdgeDoFOrientation::XY:
-         return getEdgeDoFOrientationFromLocalIDs(v1,v2);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID1,cellLocalID2);
       case EdgeDoFOrientation::Z:
-         return getEdgeDoFOrientationFromLocalIDs(v0,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID0,v3);
       case EdgeDoFOrientation::XZ:
-         return getEdgeDoFOrientationFromLocalIDs(v1,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID1,v3);
       case EdgeDoFOrientation::YZ:
-         return getEdgeDoFOrientationFromLocalIDs(v2,v3);
+         return getEdgeDoFOrientationFromLocalIDs(cellLocalID2,v3);
       case EdgeDoFOrientation::XYZ:
          /// nothing changes here
          return EdgeDoFOrientation::XYZ;
@@ -239,7 +265,8 @@ inline EdgeDoFOrientation convertEdgeDoFOrientation( const EdgeDoFOrientation sr
 /// \param cellLocalID1 the second index of the face from cell-local point of view (face-local == 1)
 /// \param cellLocalID2 the third index of the face from cell-local point of view (face-local == 2)
 /// \return the edge DoF orientation from the face-local point of view
-inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrientation & orientationInCell, const uint_t & cellLocalID0, const uint_t & cellLocalID1, const uint_t & cellLocalID2 )
+inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrientation & orientationInCell, const uint_t & cellLocalID0,
+                                                               const uint_t & cellLocalID1, const uint_t & cellLocalID2 )
 {
   uint_t v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
   std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;
@@ -317,35 +344,48 @@ inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const
   }
 }
 
-
 /// Index of an edge DoF on a ghost layer that is located on a neighbor-cell of a macro edge.
+/// the amount of dofs on the ghost layer are:
+/// X: num_microvertices_per_edge - 2
+/// XY: num_microvertices_per_edge
+/// others: num_microvertices_per_edge - 1
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
-inline uint_t indexOnNeighborCell( const uint_t & level, const uint_t & x, const uint_t & neighbor, const uint_t & numNeighborFaces, const EdgeDoFOrientation & orientation )
+inline uint_t indexOnNeighborCell( const uint_t&             level,
+                                   const uint_t&             x,
+                                   const uint_t&             neighbor,
+                                   const uint_t&             numNeighborFaces,
+                                   const EdgeDoFOrientation& orientation )
 {
-  const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) + numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
-  const uint_t offsetPerOrientation = levelinfo::num_microedges_per_edge( level );
-  switch ( orientation )
-  {
-  case EdgeDoFOrientation::X:
-    return offsetToFirstCellDoF + 0 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::Y:
-    return offsetToFirstCellDoF + 1 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::Z:
-    return offsetToFirstCellDoF + 2 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XY:
-    return offsetToFirstCellDoF + 3 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XZ:
-    return offsetToFirstCellDoF + 4 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::YZ:
-    return offsetToFirstCellDoF + 5 * offsetPerOrientation + index( level, x );
-  case EdgeDoFOrientation::XYZ:
-    return offsetToFirstCellDoF + 6 * offsetPerOrientation + index( level, x );
-  default:
-    WALBERLA_ASSERT( false, "Invalid orientation" );
-    return std::numeric_limits< uint_t >::max();
-  }
-}
+   const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) +
+                                       numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
+   const uint_t xGhostOffset = levelinfo::num_microedges_per_edge( level ) - 2;
+   const uint_t xzGhostOffset = levelinfo::num_microedges_per_edge( level );
+   const uint_t otherDoFsoffset = levelinfo::num_microedges_per_edge( level ) - 1;
+   const uint_t offsetNeighborCells  = neighbor * ( xGhostOffset + xzGhostOffset + otherDoFsoffset * 5 );
+   switch( orientation )
+   {
+   case EdgeDoFOrientation::X:
+      return offsetToFirstCellDoF + offsetNeighborCells + index( level, x );
+   case EdgeDoFOrientation::Y:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 0 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::Z:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 1 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XY:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 2 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 3 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::XYZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 4 * otherDoFsoffset + index( level, x );
+   case EdgeDoFOrientation::YZ:
+      return offsetToFirstCellDoF + offsetNeighborCells + xGhostOffset + 5 * otherDoFsoffset + index( level, x );
 
+
+
+   default:
+      WALBERLA_ASSERT( false, "Invalid orientation" );
+      return std::numeric_limits< uint_t >::max();
+   }
+}
 
 inline uint_t horizontalIndex( const uint_t & level, const uint_t & col )
 {
@@ -382,11 +422,11 @@ inline uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & col,
   case sD::EDGE_DI_N:
     return diagonalIndex( level, col, 1 );
   case sD::EDGE_DI_S:
-    return diagonalIndex( level, col, 0 );
+    return verticalIndex( level, col, 0 );
   case sD::EDGE_VE_NW:
       return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_SE:
-      return verticalIndex( level, col, 0 );
+      return diagonalIndex( level, col, 0 );
   default:
     // assert( false );
     return std::numeric_limits< uint_t >::max();
@@ -410,9 +450,9 @@ inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const s
   case sD::EDGE_HO_SE:
     return horizontalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SW:
-    return diagonalIndex( level, col - 1, 0 );
+    return verticalIndex( level, col - 1, 0 );
   case sD::EDGE_DI_SE:
-    return diagonalIndex( level, col, 0 );
+    return verticalIndex( level, col, 0 );
   case sD::EDGE_DI_NW:
     return diagonalIndex( level, col - 1, 1 );
   case sD::EDGE_DI_NE:
@@ -420,11 +460,11 @@ inline uint_t indexFromVertex( const uint_t & level, const uint_t & col, const s
   case sD::EDGE_VE_N:
     return verticalIndex( level, col, 1 );
   case sD::EDGE_VE_S:
-    return verticalIndex( level, col - 1, 0 );
+    return diagonalIndex( level, col - 1, 0 );
   case sD::EDGE_VE_NW:
     return verticalIndex( level, col - 1, 1 );
   case sD::EDGE_VE_SE:
-    return verticalIndex( level, col, 0 );
+    return diagonalIndex( level, col, 0 );
   default:
     // assert( false );
     return std::numeric_limits< uint_t >::max();

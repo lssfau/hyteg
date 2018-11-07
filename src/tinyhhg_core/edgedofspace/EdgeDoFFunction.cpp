@@ -608,9 +608,13 @@ uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const
 
 uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const Primitive& primitive )
 {
+   /// memory is allocated on the ghost layer for each orientation (X,Y,Z,XY,XZ,XY,XYZ) and each cell
+   /// most of the direction exists (num_microedges_per_edge - 1) times
+   /// for the YZ orientation it is: num_microedges_per_edge
+   /// for the X orientation num_microedges_per_edge - 2
    return levelinfo::num_microedges_per_edge( level ) +
           primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 ) +
-          primitive.getNumNeighborCells() * 6 * levelinfo::num_microedges_per_edge( level );
+          primitive.getNumNeighborCells() * ( 7 * levelinfo::num_microedges_per_edge( level ) - 7 );
 }
 
 uint_t edgedof::edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive& primitive )

@@ -15,7 +15,7 @@ using walberla::uint_t;
 
 namespace hhg {
 
-void P2CGTest(const std::string meshFile, const uint_t level, const real_t targetError, const bool localMPI)
+void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targetError, const bool localMPI)
 {
    const real_t tolerance = 1e-16;
    const uint_t maxIter   = 1000;

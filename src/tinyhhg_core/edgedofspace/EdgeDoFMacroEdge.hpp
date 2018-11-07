@@ -238,7 +238,8 @@ inline void apply3D( const uint_t & level, const Edge & edge,
                                                                                   neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at(cellLocalEdgeID).at(1) } );
 
       const auto centerIndexInCell = indexing::basisConversion( centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-      const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientation( edgeCenterOrientation, basisInCell.at(0), basisInCell.at(1), basisInCell.at(2) );
+      const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(edgeCenterOrientation, basisInCell.at(0),
+                                                                                      basisInCell.at(1), basisInCell.at(2));
 
       for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientations )
       {

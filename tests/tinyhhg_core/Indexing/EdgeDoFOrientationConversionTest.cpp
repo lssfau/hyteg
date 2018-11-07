@@ -18,7 +18,7 @@ static void
    // vx are the local vertex IDs of the face in the macro-cell
    // TODO: call function here
    WALBERLA_CHECK_EQUAL(
-       edgedof::convertEdgeDoFOrientation( src, v0, v1, v2 ), expectedResult, src << " " << v0 << " " << v1 << " " << v2 );
+      edgedof::convertEdgeDoFOrientationFaceToCell(src, v0, v1, v2), expectedResult, src << " " << v0 << " " << v1 << " " << v2 );
 }
 
 static void testEdgeOrientationConversion()

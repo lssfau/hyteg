@@ -91,8 +91,6 @@ int main( int argc, char* argv[] )
   const real_t numPointsLowerLevel  = oneFunction.dotGlobal( oneFunction, lowerLevel,  DoFType::Inner );
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, higherLevel, DoFType::Inner );
 
-  WALBERLA_ASSERT_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
   VTKOutput vtkOutput("../../output", "P1CGConvergenceTest", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &err );
@@ -129,7 +127,7 @@ int main( int argc, char* argv[] )
   if ( enableChecks )
   {
     WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 6.2e-17 );
-    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.7e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.75e-17 );
 
     // L2 err higher level ~ 0.25 * L2 err lower level
     WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.4e-04 );

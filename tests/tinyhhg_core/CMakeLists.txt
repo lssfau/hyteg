@@ -3,15 +3,19 @@ waLBerla_link_files_to_builddir(*.msh)
 ## Convergence ##
 waLBerla_compile_test(FILES convergence/P1CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CGConvergenceTest)
+waLBerla_execute_test(NAME P1CGConvergenceTestMPI COMMAND $<TARGET_FILE:P1CGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P1CG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1CG3DConvergenceTest)
+waLBerla_execute_test(NAME P1CG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1CG3DConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P1GMGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1GMGConvergenceTest)
+waLBerla_execute_test(NAME P1GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P1GMG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1GMG3DConvergenceTest)
+waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG3DConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1StokesBlockCGTest)
@@ -41,6 +45,7 @@ endif()
 
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
+waLBerla_execute_test(NAME P2CGConvergenceTestMPI COMMAND $<TARGET_FILE:P2CGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
@@ -50,15 +55,21 @@ waLBerla_execute_test(NAME P2JacobiConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P2MinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 walberla_execute_test(NAME P2MinResConvergenceTest)
+waLBerla_execute_test(NAME P2MinResConvergenceTestMPI COMMAND $<TARGET_FILE:P2MinResConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2GMGHRefinementConvergenceTest.cpp DEPENDS tinyhhg_core core)
 walberla_execute_test(NAME P2GMGHRefinementConvergenceTest)
+waLBerla_execute_test(NAME P2GMGHRefinementConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGHRefinementConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2GMGPRefinementConvergenceTest.cpp DEPENDS tinyhhg_core core)
 walberla_execute_test(NAME P2GMGPRefinementConvergenceTest)
+waLBerla_execute_test(NAME P2GMGPRefinementConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMGPRefinementConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2GSConvergenceTest)
 
 ## Indexing ##
 
@@ -210,8 +221,10 @@ waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS tinyhhg_co
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+    waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
+    waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
+endif()
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS tinyhhg_core core )
@@ -219,11 +232,6 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2PetscSolveTest2 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 2)
   waLBerla_execute_test(NAME P2PetscSolveTest3 COMMAND $<TARGET_FILE:P2PetscSolveTest> PROCESSES 8)
 endif()
-
-## convergence ##
-
-waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME P2GSConvergenceTest)
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscTest.cpp DEPENDS tinyhhg_core core)
