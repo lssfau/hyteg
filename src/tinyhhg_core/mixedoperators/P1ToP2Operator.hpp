@@ -138,7 +138,7 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   }
 
 
-  P1ConstantOperator<fenics::NoAssemble> vertexToVertex;
+  P1ConstantOperator< fenics::NoAssemble, fenics::NoAssemble > vertexToVertex;
   GenericVertexDoFToEdgeDoFOperator vertexToEdge;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrixr<6, 3>& local_stiffness, fenics::ElementType element_type) {
