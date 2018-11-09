@@ -6,8 +6,8 @@
 
 namespace hhg{
 
-template<class UFCOperator>
-EdgeDoFToVertexDoFOperator<UFCOperator>::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
+template< class UFCOperator2D, class UFCOperator3D >
+EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
                                                        const size_t & minLevel,
                                                        const size_t & maxLevel)
   :Operator(storage,minLevel,maxLevel)
@@ -41,13 +41,13 @@ EdgeDoFToVertexDoFOperator<UFCOperator>::EdgeDoFToVertexDoFOperator(const std::s
   storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
 
   // Only assemble stencils if UFCOperator is specified
-  if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
+  if (!std::is_same<UFCOperator2D, fenics::NoAssemble>::value) {
     assembleStencils();
   }
 }
 
-template<class UFCOperator>
-void EdgeDoFToVertexDoFOperator<UFCOperator>::assembleStencils() {
+template< class UFCOperator2D, class UFCOperator3D >
+void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencils() {
   using namespace P2Elements;
 
   // Initialize memory for local 6x6 matrices
@@ -111,20 +111,20 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::assembleStencils() {
   }
 }
 
-template<class UFCOperator>
-void EdgeDoFToVertexDoFOperator<UFCOperator>::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
+template< class UFCOperator2D, class UFCOperator3D >
+void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
   real_t coords[6];
   fenics::compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
+  UFCOperator2D gen;
   gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 }
 
-template<class UFCOperator>
-void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t> &src,
-                                            P1Function<real_t> &dst,
-                                            uint_t level,
-                                            DoFType flag,
-                                            UpdateType updateType)
+template< class UFCOperator2D, class UFCOperator3D >
+void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(EdgeDoFFunction<real_t> &src,
+                                                                            P1Function<real_t> &dst,
+                                                                            uint_t level,
+                                                                            DoFType flag,
+                                                                            UpdateType updateType)
 {
   using namespace EdgeDoFToVertexDoF;
   this->startTiming( "EdgeDoFToVertexDoFOperator - Apply" );
@@ -210,33 +210,33 @@ void EdgeDoFToVertexDoFOperator<UFCOperator>::apply_impl(EdgeDoFFunction<real_t>
   this->stopTiming( "EdgeDoFToVertexDoFOperator - Apply" );
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator<UFCOperator>::getVertexStencilID() const {
+    template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getVertexStencilID() const {
   return vertexStencilID_;
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator<UFCOperator>::getEdgeStencilID() const {
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getEdgeStencilID() const {
   return edgeStencilID_;
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > &EdgeDoFToVertexDoFOperator<UFCOperator>::getEdgeStencil3DID() const {
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getEdgeStencil3DID() const {
   return edgeStencil3DID_;
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator<UFCOperator>::getFaceStencilID() const {
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getFaceStencilID() const {
   return faceStencilID_;
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > &EdgeDoFToVertexDoFOperator<UFCOperator>::getFaceStencil3DID() const {
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getFaceStencil3DID() const {
   return faceStencil3DID_;
 }
 
-template<class UFCOperator>
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > &EdgeDoFToVertexDoFOperator<UFCOperator>::getCellStencilID() const {
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getCellStencilID() const {
   return cellStencilID_;
 }
 
@@ -266,7 +266,7 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 
 }/// namespace EdgeDoFToVertexDoF
 
-template class EdgeDoFToVertexDoFOperator<hhg::fenics::NoAssemble>;
+template class EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble >;
 template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
 template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
 

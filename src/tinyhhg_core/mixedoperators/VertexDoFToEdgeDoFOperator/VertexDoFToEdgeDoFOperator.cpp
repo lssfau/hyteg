@@ -5,8 +5,8 @@
 
 namespace hhg {
 
-template<class UFCOperator>
-VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
+template< class UFCOperator2D, class UFCOperator3D >
+VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
   : Operator(storage, minLevel, maxLevel) {
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
 
@@ -36,13 +36,13 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
   storage->addCellData(cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil");
 
   // Only assemble stencils if UFCOperator is specified
-  if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
+  if (!std::is_same<UFCOperator2D, fenics::NoAssemble>::value) {
     assembleStencils();
   }
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::assembleStencils() {
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencils() {
   using namespace P2Elements;
 
   // Initialize memory for local 6x6 matrices
@@ -91,16 +91,16 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::assembleStencils() {
   }
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
   real_t coords[6];
   fenics::compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
+  UFCOperator2D gen;
   gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
                                             UpdateType updateType) {
 
   this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
@@ -199,7 +199,7 @@ uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
 }
 }
 
-template class VertexDoFToEdgeDoFOperator<hhg::fenics::NoAssemble>;
+template class VertexDoFToEdgeDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble >;
 template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_0_otherwise>;
 template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_1_otherwise>;
 
