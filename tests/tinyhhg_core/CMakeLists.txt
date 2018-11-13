@@ -41,6 +41,9 @@ waLBerla_execute_test(NAME P1StokesMinResConvergenceTest)
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_compile_test(FILES convergence/P1Stokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
   waLBerla_execute_test(NAME P1Stokes3DMinResConvergenceTest)
+
+  waLBerla_compile_test(FILES convergence/P2P1TaylorHoodStokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P2P1TaylorHoodStokes3DMinResConvergenceTest)
 endif()
 
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
