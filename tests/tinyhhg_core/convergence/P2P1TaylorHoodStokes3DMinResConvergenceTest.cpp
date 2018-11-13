@@ -199,7 +199,7 @@ int main( int argc, char* argv[] )
   real_t final_residual = r.dotGlobal( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual )
-  WALBERLA_CHECK_LESS( final_residual, 7e-11 );
+  WALBERLA_CHECK_LESS( final_residual, 8e-11 );
 
   return EXIT_SUCCESS;
 }
