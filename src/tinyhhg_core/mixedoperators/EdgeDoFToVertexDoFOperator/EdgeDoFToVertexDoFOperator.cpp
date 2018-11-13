@@ -18,6 +18,9 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
   auto vertexDataHandling =
     std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Vertex >>(minLevel_, maxLevel_, macroVertexEdgeDoFToVertexDoFStencilSize);
 
+  auto vertex3DDataHandling   =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > >(minLevel_, maxLevel_);
+
   auto edgeDataHandling   =
     std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge   >>(minLevel_, maxLevel_, macroEdgeEdgeDoFToVertexDoFStencilSize);
 
@@ -34,6 +37,7 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
     std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > >(minLevel_, maxLevel_);
 
   storage->addVertexData(vertexStencilID_, vertexDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil");
+  storage->addVertexData(vertexStencil3DID_, vertex3DDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil3D");
   storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
   storage->addEdgeData(edgeStencil3DID_, edge3DDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil3D");
   storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
@@ -47,6 +51,7 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
       assembleEdgeToVertexStencils< UFCOperator3D >( this->getStorage(),
                                                      this->minLevel_,
                                                      this->maxLevel_,
+                                                     getVertexStencil3DID(),
                                                      getEdgeStencil3DID(),
                                                      getFaceStencil3DID(),
                                                      getCellStencilID());
@@ -221,15 +226,27 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(Edge
     const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
     if (testFlag(vertexBC, flag))
     {
-      applyVertex(level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+      if ( storage_->hasGlobalCells() )
+      {
+        applyVertex3D( level, vertex, *getStorage(), vertexStencil3DID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+      }
+      else
+      {
+        applyVertex( level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+      }
     }
   }
   this->stopTiming( "EdgeDoFToVertexDoFOperator - Apply" );
 }
 
-    template< class UFCOperator2D, class UFCOperator3D >
+template< class UFCOperator2D, class UFCOperator3D >
 const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getVertexStencilID() const {
   return vertexStencilID_;
+}
+
+template< class UFCOperator2D, class UFCOperator3D >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getVertexStencil3DID() const {
+  return vertexStencil3DID_;
 }
 
 template< class UFCOperator2D, class UFCOperator3D >

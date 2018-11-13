@@ -34,6 +34,7 @@ public:
   void apply_impl(EdgeDoFFunction< real_t >& src,  P1Function< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
 
   const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
+  const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex  > &getVertexStencil3DID() const;
   const PrimitiveDataID< StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge  > &getEdgeStencil3DID() const;
   const PrimitiveDataID< StencilMemory< real_t >, Face  > &getFaceStencilID() const;
@@ -47,11 +48,12 @@ private:
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
 
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > vertexStencil3DID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
-  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge  > edgeStencil3DID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > edgeStencil3DID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
-  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face  > faceStencil3DID_;
-  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell  > cellStencilID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > faceStencil3DID_;
+  PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > cellStencilID_;
 
 };
 
@@ -59,6 +61,7 @@ template< typename UFCOperator3D >
 void assembleEdgeToVertexStencils( const std::shared_ptr< PrimitiveStorage > & storage,
                                    const uint_t & minLevel,
                                    const uint_t & maxLevel,
+                                   const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > & macroVertexStencilID,
                                    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > & macroEdgeStencilID,
                                    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > & macroFaceStencilID,
                                    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > & macroCellStencilID  )
@@ -67,6 +70,36 @@ void assembleEdgeToVertexStencils( const std::shared_ptr< PrimitiveStorage > & s
 
     for( uint_t level = minLevel; level <= maxLevel; ++level )
     {
+        ////////////////////
+        // Macro-vertices //
+        ////////////////////
+
+        for ( const auto &it : storage->getVertices() )
+        {
+            const auto &vertex = *it.second;
+            WALBERLA_ASSERT_GREATER(vertex.getNumNeighborCells(), 0);
+
+            for (uint_t neighborCellID = 0; neighborCellID < vertex.getNumNeighborCells(); neighborCellID++) {
+                const auto &cell = *( storage->getCell(vertex.neighborCells().at(neighborCellID)) );
+
+                const uint_t cellLocalVertexID = cell.getLocalVertexID(vertex.getID());
+                const auto basisInCell = algorithms::getMissingIntegersAscending<1, 4>({ cellLocalVertexID });
+
+                const auto vertexAssemblyIndexInCell = indexing::basisConversion(
+                  indexing::Index(0, 0, 0), basisInCell, {0, 1, 2, 3},
+                  levelinfo::num_microvertices_per_edge(level));
+
+                auto& edgeToVertexStencilMemory = vertex.getData( macroVertexStencilID )->getData( level );
+                for( const auto& leafOrientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+                {
+                    edgeToVertexStencilMemory[neighborCellID][leafOrientation] =
+                    P2Elements::P2Elements3D::calculateEdgeToVertexStencilInMacroCell(
+                    vertexAssemblyIndexInCell, leafOrientation, cell, level, ufcOperator );
+                    WALBERLA_ASSERT_EQUAL( edgeToVertexStencilMemory[neighborCellID][leafOrientation].size(), 1 );
+                }
+            }
+        }
+
         /////////////////
         // Macro-edges //
         /////////////////
