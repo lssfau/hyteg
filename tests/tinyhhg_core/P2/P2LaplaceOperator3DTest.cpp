@@ -262,7 +262,7 @@ int main( int argc, char* argv[] )
 
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-  testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+  // testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
 
   return 0;
 }
