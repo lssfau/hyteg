@@ -921,6 +921,46 @@ inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, c
   }
 }
 
+inline std::set< uint_t > isOnCellEdges( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  auto onCellEdgesSet = indexing::isOnCellEdge( idx, levelinfo::num_microedges_per_edge( level ));
+  std::set< uint_t > result;
+  uint_t validLocalEdgeIdx = 7;
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      validLocalEdgeIdx = 0;
+      break;
+    case EdgeDoFOrientation::Y:
+      validLocalEdgeIdx = 1;
+      break;
+    case EdgeDoFOrientation::Z:
+      validLocalEdgeIdx = 3;
+      break;
+    case EdgeDoFOrientation::XY:
+      validLocalEdgeIdx = 2;
+      break;
+    case EdgeDoFOrientation::XZ:
+      validLocalEdgeIdx = 4;
+      break;
+    case EdgeDoFOrientation::YZ:
+      validLocalEdgeIdx = 5;
+      break;
+    case EdgeDoFOrientation::XYZ:
+      break;
+    default:
+      WALBERLA_ASSERT( false, "Invalid orientation." );
+      break;
+  }
+  if ( onCellEdgesSet.count( validLocalEdgeIdx ) == 1 )
+  {
+    WALBERLA_ASSERT_LESS_EQUAL( validLocalEdgeIdx, 5 );
+    result.insert( validLocalEdgeIdx );
+  }
+  WALBERLA_ASSERT_LESS_EQUAL( result.size(), 1, "Edgedof cannot lie on more than one edge." );
+  return result;
+}
+
 inline std::set< uint_t > isOnCellFaces( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
 {
   auto onCellFacesSet = indexing::isOnCellFace( idx, levelinfo::num_microedges_per_edge( level ) );
