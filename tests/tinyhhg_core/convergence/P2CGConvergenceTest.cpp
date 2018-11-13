@@ -7,6 +7,8 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
@@ -20,7 +22,11 @@ void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targ
    const real_t tolerance = 1e-16;
    const uint_t maxIter   = 1000;
 
-   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
+   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   writeDomainPartitioningVTK( storage, "../../output", "P2CGConvergenceTest_domain" );
 
    hhg::P2ConstantLaplaceOperator L( storage, level, level );
 
@@ -77,4 +83,5 @@ int main( int argc, char* argv[] )
    hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false);
    hhg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true);
    hhg::P2CGTest("../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false);
+   hhg::P2CGTest("../../data/meshes/3D/regular_octahedron_8el.msh", 3, 2e-6, true);
 }
