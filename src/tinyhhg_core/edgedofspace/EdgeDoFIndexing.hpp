@@ -41,6 +41,9 @@ const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = { EdgeDoFOrie
 
 const std::array< EdgeDoFOrientation, 3 > faceLocalEdgeDoFOrientations = { EdgeDoFOrientation::X, EdgeDoFOrientation::Y, EdgeDoFOrientation::XY };
 
+const std::array< EdgeDoFOrientation, 6 > allEdgeDoFOrientationsWithoutXYZ = { EdgeDoFOrientation::X, EdgeDoFOrientation::Y, EdgeDoFOrientation::Z,
+                                                                               EdgeDoFOrientation::XY, EdgeDoFOrientation::XZ, EdgeDoFOrientation::YZ };
+
 const std::map< EdgeDoFOrientation, std::string > edgeDoFOrientationToString = {
   { EdgeDoFOrientation::X, "X"},
   { EdgeDoFOrientation::Y, "Y"},
