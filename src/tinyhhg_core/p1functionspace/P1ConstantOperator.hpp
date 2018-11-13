@@ -29,6 +29,15 @@ class p1_tet_mass_cell_integral_0_otherwise;
 class p1_pspg_cell_integral_0_otherwise;
 class p1_tet_pspg_tet_cell_integral_0_otherwise;
 
+class p2_to_p1_tet_div_tet_cell_integral_0_otherwise;
+class p2_to_p1_tet_div_tet_cell_integral_1_otherwise;
+class p2_to_p1_tet_div_tet_cell_integral_2_otherwise;
+
+class p1_to_p2_tet_divt_tet_cell_integral_0_otherwise;
+class p1_to_p2_tet_divt_tet_cell_integral_1_otherwise;
+class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
+
+
 namespace hhg {
 
 using walberla::real_t;
@@ -109,5 +118,13 @@ typedef P1ConstantOperator< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_
     P1LumpedInvMassOperator;
 
 typedef P1ConstantOperator< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > P1PSPGOperator;
+
+typedef P1ConstantOperator< fenics::NoAssemble,        p2_to_p1_tet_div_tet_cell_integral_0_otherwise > P2ToP1DivxVertexToVertexConstantOperator;
+typedef P1ConstantOperator< fenics::NoAssemble,        p2_to_p1_tet_div_tet_cell_integral_1_otherwise > P2ToP1DivyVertexToVertexConstantOperator;
+typedef P1ConstantOperator< fenics::UndefinedAssembly, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > P2ToP1DivzVertexToVertexConstantOperator;
+
+typedef P1ConstantOperator< fenics::NoAssemble,        p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > P1ToP1DivTxVertexToVertexConstantOperator;
+typedef P1ConstantOperator< fenics::NoAssemble,        p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > P1ToP1DivTyVertexToVertexConstantOperator;
+typedef P1ConstantOperator< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > P1ToP1DivTzVertexToVertexConstantOperator;
 
 } // namespace hhg

@@ -25,15 +25,15 @@ public:
 
   P2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel);
 
-  P1ConstantOperator<fenics::NoAssemble, fenics::NoAssemble>& getVertexToVertexOpr() {
+  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToVertexOpr() {
     return vertexToVertex;
   }
 
-  GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() {
+  EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > & getEdgeToVertexOpr() {
     return edgeToVertex;
   }
 
-  GenericVertexDoFToEdgeDoFOperator& getVertexToEdgeOpr() {
+  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToEdgeOpr() {
     return vertexToEdge;
   }
 
@@ -53,9 +53,9 @@ private:
 
   void smooth_jac_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, P2Function< real_t > & src, size_t level, DoFType flag) override;
 
-  P1ConstantOperator<fenics::NoAssemble, fenics::NoAssemble> vertexToVertex;
-  GenericEdgeDoFToVertexDoFOperator edgeToVertex;
-  GenericVertexDoFToEdgeDoFOperator vertexToEdge;
+  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > vertexToVertex;
+  EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > edgeToVertex;
+  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > vertexToEdge;
   EdgeDoFOperator edgeToEdge;
 
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
