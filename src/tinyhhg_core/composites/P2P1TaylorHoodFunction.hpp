@@ -26,7 +26,7 @@ public:
   P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel, BoundaryCondition velocityBC)
   : u(_name+"_u", storage, minLevel, maxLevel, velocityBC),
     v(_name+"_v", storage, minLevel, maxLevel, velocityBC),
-    w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel ) :  P2Function< ValueType >( _name+"_w_dummy", storage )),
+    w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel, velocityBC ) :  P2Function< ValueType >( _name+"_w_dummy", storage )),
     p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {}
 
