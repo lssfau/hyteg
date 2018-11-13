@@ -103,6 +103,10 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
     WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
   }
 
+  ////////////////
+  // Macro-edge //
+  ////////////////
+
   for ( const auto & edgeIt : storage->getEdges() )
   {
     auto edge = edgeIt.second;
@@ -151,6 +155,40 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
             sumAtAllEdgeTypes += direction.second;
           }
     WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
+  }
+
+  //////////////////
+  // Macro-vertex //
+  //////////////////
+
+  for ( const auto & vertexIt : storage->getVertices() )
+  {
+    auto vertex = vertexIt.second;
+    if ( vertex->getMeshBoundaryFlag() != 0 )
+      continue;
+
+    // At vertices
+    auto vertexToVertexStencilSize = vertex->getData( laplaceOperator3D.getVertexToVertexOpr().getVertexStencilID() )->getSize( level );
+    auto vertexToVertexStencilArray = vertex->getData( laplaceOperator3D.getVertexToVertexOpr().getVertexStencilID() )->getPointer( level );
+
+    real_t sumAtVertexVtoV = real_c(0);
+    for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
+    {
+      sumAtVertexVtoV += vertexToVertexStencilArray[i];
+    }
+
+    real_t sumAtVertexEtoV = real_c(0);
+    auto edgeToVertexStencilMap = vertex->getData( laplaceOperator3D.getEdgeToVertexOpr().getVertexStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < vertex->getNumNeighborCells(); neighborCellId++ )
+      for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
+        for ( auto direction : leafOrientation.second )
+        {
+          sumAtVertexEtoV += direction.second;
+        }
+
+    WALBERLA_LOG_DEVEL_ON_ROOT( "sum test v to v = " << sumAtVertexVtoV );
+    WALBERLA_LOG_DEVEL_ON_ROOT( "sum test e to v = " << sumAtVertexEtoV );
+    WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertexEtoV + sumAtVertexVtoV, 0.0 );
   }
 
 
@@ -262,7 +300,7 @@ int main( int argc, char* argv[] )
 
   testLaplace3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
-  // testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+  testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
 
   return 0;
 }
