@@ -234,15 +234,37 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
                                                   getVertexToEdgeOpr().getCellStencilID() );
 
    assembleEdgeToVertexStencils< UFCOperator3D >( storage_, minLevel_, maxLevel_,
+                                                  getEdgeToVertexOpr().getVertexStencil3DID(),
                                                   getEdgeToVertexOpr().getEdgeStencil3DID(),
                                                   getEdgeToVertexOpr().getFaceStencil3DID(),
                                                   getEdgeToVertexOpr().getCellStencilID() );
 
    UFCOperator3D ufcOperator;
 
-   // Assemble vertex stencils on all levels
+   // Assemble vertex -> vertex stencils on all levels
    for( uint_t level = minLevel_; level <= maxLevel_; ++level )
    {
+      ////////////////
+      /// Vertices ///
+      ////////////////
+
+      for( const auto& it : storage_->getVertices() )
+      {
+         const auto & vertex = *it.second;
+         WALBERLA_ASSERT_GREATER( vertex.getNumNeighborCells(), 0 );
+         auto          stencilSize   = vertex.getData( getVertexToVertexOpr().getVertexStencilID() )->getSize( level );
+         auto          stencilMemory = vertex.getData( getVertexToVertexOpr().getVertexStencilID() )->getPointer( level );
+
+         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil(
+            storage_, vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+
+         WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
+         for( uint_t i = 0; i < stencilSize; i++ )
+         {
+            stencilMemory[i] = stencil[i];
+         }
+      }
+
       /////////////
       /// Edges ///
       /////////////
@@ -251,10 +273,6 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
       {
          const auto & edge = *it.second;
          WALBERLA_ASSERT_GREATER( edge.getNumNeighborCells(), 0 );
-
-         ////////////////////////
-         /// Vertex -> Vertex ///
-         ////////////////////////
 
          auto          stencilSize   = edge.getData( getVertexToVertexOpr().getEdgeStencilID() )->getSize( level );
          auto          stencilMemory = edge.getData( getVertexToVertexOpr().getEdgeStencilID() )->getPointer( level );
@@ -278,10 +296,6 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          const auto& face = *it.second;
 
          WALBERLA_ASSERT_GREATER( face.getNumNeighborCells(), 0 );
-
-         ////////////////////////
-         /// Vertex -> Vertex ///
-         ////////////////////////
 
          auto stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
 
