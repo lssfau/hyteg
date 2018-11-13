@@ -13,6 +13,9 @@
 
 #include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/p2functionspace/generated/p2_div.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
+#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -38,7 +41,9 @@ public:
   const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
+
   void assembleStencils();
+
   void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
 
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
@@ -104,10 +109,6 @@ void assembleEdgeToVertexStencils( const std::shared_ptr< PrimitiveStorage > & s
 
             for (uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++) {
                 const auto &cell = *(storage->getCell(face.neighborCells().at(neighborCellID)));
-
-                const std::array<edgedof::EdgeDoFOrientation, 3> faceOrientations = {
-                        edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y,
-                        edgedof::EdgeDoFOrientation::XY};
 
                 const uint_t localFaceID = cell.getLocalFaceID(face.getID());
                 const std::array<uint_t, 4> localVertexIDsAtCell = {
@@ -181,5 +182,9 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 typedef EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > GenericEdgeDoFToVertexDoFOperator;
 typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise> EdgeToVertexDivxOperator;
 typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise> EdgeToVertexDivyOperator;
+
+typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > P2ToP1DivxEdgeToVertexOperator;
+typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > P2ToP1DivyEdgeToVertexOperator;
+typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > P2ToP1DivzEdgeToVertexOperator;
 
 }/// namespace hhg

@@ -40,10 +40,27 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
   storage->addFaceData(faceStencil3DID_, face3DDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil3D");
   storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
 
-  // Only assemble stencils if UFCOperator is specified
-  if (!std::is_same<UFCOperator2D, fenics::NoAssemble>::value) {
-    assembleStencils();
+  if ( this->getStorage()->hasGlobalCells() )
+  {
+    if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+    {
+      assembleEdgeToVertexStencils< UFCOperator3D >( this->getStorage(),
+                                                     this->minLevel_,
+                                                     this->maxLevel_,
+                                                     getEdgeStencil3DID(),
+                                                     getFaceStencil3DID(),
+                                                     getCellStencilID());
+    }
   }
+  else
+  {
+    // Only assemble stencils if UFCOperator is specified
+    if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+    {
+      assembleStencils();
+    }
+  }
+
 }
 
 template< class UFCOperator2D, class UFCOperator3D >
@@ -267,7 +284,15 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 }/// namespace EdgeDoFToVertexDoF
 
 template class EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble >;
+template class EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::UndefinedAssembly >;
 template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
 template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
+
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >;
+
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >;
 
 }/// namespace hhg

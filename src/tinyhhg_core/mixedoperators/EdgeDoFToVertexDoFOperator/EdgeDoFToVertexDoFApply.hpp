@@ -303,16 +303,23 @@ inline void applyFace3D( const uint_t & level, Face &face,
       }
     }
 
-    WALBERLA_ASSERT_EQUAL( contributionPerCell.size(), 2, "Apply currently not implemented for face with single neighbor." );
-
     const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
     if ( update == Replace )
     {
-      dst[dstIdx] = contributionPerCell[0] + contributionPerCell[1];
+      dst[dstIdx] = contributionPerCell[0];
+      if ( contributionPerCell.size() == 2 )
+      {
+        dst[dstIdx] += contributionPerCell[1];
+      }
     }
     else
     {
-      dst[dstIdx] += contributionPerCell[0] + contributionPerCell[1];
+      dst[dstIdx] += contributionPerCell[0];
+      if ( contributionPerCell.size() == 2 )
+      {
+        dst[dstIdx] += contributionPerCell[1];
+      }
+      // WALBERLA_LOG_DEVEL_ON_ROOT( "Edge -> Vertex: " << dst[dstIdx] << " = " << contributionPerCell[0] << " + " << contributionPerCell[1] );
     }
   }
 }
