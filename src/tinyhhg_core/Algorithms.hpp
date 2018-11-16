@@ -12,6 +12,13 @@ namespace algorithms {
 
 using walberla::uint_t;
 
+/// \brief Convenience function to reduce code clutter when interested if container contains an element but there is no 'std::contains'...
+template< typename Container, typename ElementType >
+inline bool contains( const Container & container, const ElementType & element )
+{
+  return std::find( container.begin(), container.end(), element ) != container.end();
+}
+
 /// Returns an array concatenates all missing natural numbers of [0, OutputArraySize) in the input array to the input array in ascending order.
 /// Example: input array: [2, 1], input size: 4 => output array [2, 1, 0, 3]
 template< uint_t InputArraySize, uint_t OutputArraySize >
