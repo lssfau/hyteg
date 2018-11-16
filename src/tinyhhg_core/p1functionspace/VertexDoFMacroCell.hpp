@@ -12,6 +12,8 @@
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -22,6 +24,22 @@ using walberla::real_t;
 using walberla::real_c;
 
 using indexing::Index;
+
+inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index  & vertexDoFIndexInMacroCell,
+                                                       const Cell             & cell,
+                                                       const uint_t           & neighborFaceID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+  { cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(0),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(1),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(2) } );
+
+  const auto indexInMacroFace = indexing::basisConversion( vertexDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microvertices_per_edge( level ) );
+  return indexInMacroFace;
+}
 
 inline Point3D coordinateFromIndex( const uint_t & level, const Cell & cell, const Index & index )
 {

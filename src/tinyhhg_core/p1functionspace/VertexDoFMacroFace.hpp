@@ -10,10 +10,13 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -22,6 +25,25 @@ namespace macroface {
 using indexing::Index;
 using walberla::real_c;
 using walberla::uint_t;
+
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index  & vertexDoFIndexInMacroFace,
+                                                       const Face             & face,
+                                                       const uint_t           & neighborCellID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+   const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+   const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+   const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+   { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) } );
+
+   const auto indexInMacroCell = indexing::basisConversion( vertexDoFIndexInMacroFace, localVertexIDsAtCell,
+                                                            {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+   return indexInMacroCell;
+}
 
 inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index )
 {
