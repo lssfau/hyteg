@@ -12,6 +12,8 @@
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 namespace hhg {
 namespace edgedof {
@@ -19,6 +21,41 @@ namespace macroface {
 
 using walberla::uint_t;
 using walberla::real_c;
+
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index  & edgeDoFIndexInMacroFace,
+                                                       const Face             & face,
+                                                       const uint_t           & neighborCellID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+  const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+    { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) } );
+
+  const auto indexInMacroCell = indexing::basisConversion( edgeDoFIndexInMacroFace, localVertexIDsAtCell,
+                                                           {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+  return indexInMacroCell;
+}
+
+inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroCell( const EdgeDoFOrientation & orientationInMacroFace,
+                                                                          const Face               & face,
+                                                                          const uint_t             & neighborCellID,
+                                                                          const PrimitiveStorage   & storage )
+{
+  const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+  const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+  const auto orientationInMacroCell = edgedof::convertEdgeDoFOrientationFaceToCell( orientationInMacroFace,
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) );
+  return orientationInMacroCell;
+}
+
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,
