@@ -244,15 +244,6 @@ inline void applyFace3D( const uint_t & level, Face &face,
         const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
         const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
 
-        const std::array< uint_t, 4 > localVertexIDsAtCell = {
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-        neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
-        6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
-        - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
-        - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
-        };
-
         const auto centerIndexInCell = edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
         const auto cellCenterOrientation = edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
@@ -262,8 +253,10 @@ inline void applyFace3D( const uint_t & level, Face &face,
           const auto stencilWeight = stencilIt.second;
 
           const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-          const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microvertices_per_edge( level ) );
+          const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+
           WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
           uint_t leafArrayIndexInFace;
           if ( leafIndexInFace.z() == 0 )
           {

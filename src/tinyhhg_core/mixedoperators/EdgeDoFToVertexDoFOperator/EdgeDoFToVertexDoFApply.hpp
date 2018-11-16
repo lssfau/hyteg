@@ -17,6 +17,7 @@
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
@@ -340,16 +341,7 @@ inline void applyFace3D( const uint_t & level, Face &face,
       const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
       const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
 
-      const std::array< uint_t, 4 > localVertexIDsAtCell = {
-      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
-      6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
-      - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
-      - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
-      };
-
-      const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+      const auto centerIndexInCell = vertexdof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
 
       WALBERLA_ASSERT_GREATER( vertexdof::macrocell::isOnCellFace( centerIndexInCell, level ).size(), 0 );
 
