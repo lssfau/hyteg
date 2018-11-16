@@ -10,6 +10,7 @@
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 
 namespace hhg{
 namespace VertexDoFToEdgeDoF{
@@ -252,10 +253,8 @@ inline void applyFace3D( const uint_t & level, Face &face,
         - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
         };
 
-        const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-        const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(faceCenterOrientation, localVertexIDsAtCell.at(0),
-                                                                                        localVertexIDsAtCell.at(1),
-                                                                                        localVertexIDsAtCell.at(2));
+        const auto centerIndexInCell = edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+        const auto cellCenterOrientation = edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
         for ( const auto & stencilIt : opr_data[neighborCellID][cellCenterOrientation] )
         {

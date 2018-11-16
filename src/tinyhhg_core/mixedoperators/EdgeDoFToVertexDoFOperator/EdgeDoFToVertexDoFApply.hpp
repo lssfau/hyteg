@@ -16,6 +16,7 @@
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 namespace hhg{
 namespace EdgeDoFToVertexDoF {
@@ -359,13 +360,15 @@ inline void applyFace3D( const uint_t & level, Face &face,
           const auto stencilOffset = stencilIt.first;
           const auto stencilWeight = stencilIt.second;
 
-          const auto leafOrientationInFace = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+          const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
           const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-          const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+          const auto leafIndexInFace = edgedof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+
           WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
           uint_t leafArrayIndexInFace;
-          if ( std::find( edgedof::faceLocalEdgeDoFOrientations.begin(), edgedof::faceLocalEdgeDoFOrientations.end(), leafOrientationInFace ) != edgedof::faceLocalEdgeDoFOrientations.end() && leafIndexInFace.z() == 0 )
+          if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) && leafIndexInFace.z() == 0 )
           {
             leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
           }
