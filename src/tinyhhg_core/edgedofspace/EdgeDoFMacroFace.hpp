@@ -456,19 +456,8 @@ inline void apply3D( const uint_t & level, Face &face,
         const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
         const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
 
-        const std::array< uint_t, 4 > localVertexIDsAtCell = {
-          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-          neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
-          6 - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0)
-            - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1)
-            - neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)
-        };
-
-        const auto centerIndexInCell = indexing::basisConversion( centerIndexInFace, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-        const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(faceCenterOrientation, localVertexIDsAtCell.at(0),
-                                                                                        localVertexIDsAtCell.at(1),
-                                                                                        localVertexIDsAtCell.at(2));
+        const auto centerIndexInCell = getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+        const auto cellCenterOrientation = getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
         for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
         {
@@ -477,13 +466,15 @@ inline void apply3D( const uint_t & level, Face &face,
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
-            const auto leafOrientationInFace = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2) );
+            const auto leafOrientationInFace = macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
             const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-            const auto leafIndexInFace = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+            const auto leafIndexInFace = macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+
             WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
             uint_t leafArrayIndexInFace;
-            if ( std::find( edgedof::faceLocalEdgeDoFOrientations.begin(), edgedof::faceLocalEdgeDoFOrientations.end(), leafOrientationInFace ) != edgedof::faceLocalEdgeDoFOrientations.end() && leafIndexInFace.z() == 0 )
+            if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) && leafIndexInFace.z() == 0 )
             {
               leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
             }
