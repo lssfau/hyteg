@@ -456,7 +456,19 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
       edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
 
+   communicators_[level]->template startCommunication< Face, Cell >();
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell & cell = *it.second;
+      edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+   }
+
    communicators_[level]->template endCommunication< Edge, Face >();
+   communicators_[level]->template endCommunication< Face, Cell >();
+
+   communicators_[level]->template startCommunication< Cell, Face >();
+   communicators_[level]->template endCommunication< Cell, Face >();
 
    communicators_[level]->template startCommunication< Face, Edge >();
    communicators_[level]->template endCommunication< Face, Edge >();

@@ -39,6 +39,15 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
       macroface::createVectorFromFunction<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
     }
   }
+
+  for (auto &it : function.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag)) {
+      macrocell::createVectorFromFunction<PetscScalar>(level, cell, function.getCellDataID(), numerator.getCellDataID(), vec);
+    }
+  }
 }
 
 inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
@@ -67,6 +76,15 @@ inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
     const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag)) {
       edgedof::macroface::createFunctionFromVector<PetscScalar>(level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec);
+    }
+  }
+
+  for (auto &it : function.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag)) {
+      edgedof::macrocell::createFunctionFromVector<PetscScalar>(level, cell, function.getCellDataID(), numerator.getCellDataID(), vec);
     }
   }
 }

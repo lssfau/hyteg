@@ -494,6 +494,193 @@ inline ValueType getMaxMagnitude( const uint_t &level, Cell &cell, const Primiti
   return localMax;
 }
 
+
+template< typename ValueType >
+inline void enumerate(const uint_t & Level, Cell &cell,
+                      const PrimitiveDataID < FunctionMemory< ValueType >, Cell > & dstId,
+                      ValueType& num)
+{
+  ValueType *dst = cell.getData(dstId)->getPointer(Level);
+  uint_t xNum   = uint_c( num );
+  uint_t yNum   = xNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t zNum   = yNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t xyNum  = zNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t xzNum  = xyNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t yzNum  = xzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t xyzNum = yzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = xNum;
+      xNum++;
+      num++;
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = yNum;
+      yNum++;
+      num++;    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = zNum;
+      zNum++;
+      num++;    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = xyNum;
+      xyNum++;
+      num++;    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = xzNum;
+      xzNum++;
+      num++;    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      dst[ idx ] = yzNum;
+      yzNum++;
+      num++;    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    dst[ idx ] = xyzNum;
+    xyzNum++;
+    num++;
+  }
+
+}
+
+
+#ifdef HHG_BUILD_WITH_PETSC
+
+template< typename ValueType >
+inline void createVectorFromFunction( const uint_t & Level, Cell & cell,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
+                                      Vec& vec) {
+
+  auto src = cell.getData(srcId)->getPointer( Level );
+  auto numerator = cell.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+  }
+}
+
+
+template< typename ValueType >
+inline void createFunctionFromVector( const uint_t & Level, Cell & cell,
+                                      const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId,
+                                      const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
+                                      Vec& vec) {
+  
+  auto dst = cell.getData(dstId)->getPointer( Level );
+  auto numerator = cell.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    VecGetValues( vec, 1, &numerator[idx], &dst[idx] );
+  }
+}
+
+#endif
+
 }
 }
 }
