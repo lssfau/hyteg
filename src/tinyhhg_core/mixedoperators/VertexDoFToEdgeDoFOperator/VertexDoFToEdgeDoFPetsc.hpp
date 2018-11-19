@@ -104,6 +104,68 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
 }
 
 
+inline void saveFaceOperator3D( const uint_t & level, const Face & face,
+                                const PrimitiveStorage                                                  & storage,
+                                const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face > & operatorId,
+                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
+                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
+                                Mat & mat )
+{
+  auto opr_data = face.getData(operatorId)->getData( level );
+  auto src  = face.getData(srcId)->getPointer( level );
+  auto dst  = face.getData(dstId)->getPointer( level );
+
+  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  {
+     for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
+    {
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
+        continue;
+
+      const auto dstIdx = edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
+      const auto dstInt = dst[ dstIdx ];
+
+      for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
+      {
+        const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+        const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+        const auto centerIndexInCell = edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+        const auto cellCenterOrientation = edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+
+        for ( const auto & stencilIt : opr_data[neighborCellID][cellCenterOrientation] )
+        {
+          const auto stencilOffset = stencilIt.first;
+          const auto stencilWeight = stencilIt.second;
+
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+          const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+
+          WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
+          uint_t leafArrayIndexInFace;
+          if ( leafIndexInFace.z() == 0 )
+          {
+            leafArrayIndexInFace = vertexdof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y() );
+          }
+          else
+          {
+            leafArrayIndexInFace = vertexdof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), neighborCellID );
+          }
+
+          const auto srcInt = src[ leafArrayIndexInFace ];
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES );
+        }
+      }
+    }
+  }
+}
+
+
 inline void saveCellOperator( const uint_t & Level, const Cell & cell,
                               const PrimitiveDataID<LevelWiseMemory< MacroCellStencilMap_T >, Cell> & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & srcId,
@@ -171,6 +233,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, EdgeDoFFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
 {
+  const auto storage = src.getStorage();
 
   for (auto& it : opr.getStorage()->getEdges()) {
     Edge& edge = *it.second;
@@ -188,7 +251,14 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, EdgeDo
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag))
     {
-      saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+      if ( storage->hasGlobalCells() )
+      {
+        saveFaceOperator3D( level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+      }
+      else
+      {
+        saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+      }
     }
   }
 
