@@ -2,6 +2,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
 
 namespace hhg {
 namespace VertexDoFToEdgeDoF {
