@@ -136,15 +136,13 @@ class P2ToP1ConstantOperator : public Operator<P2Function < real_t>, P1Function<
     }
   }
 
-#if 0
   P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToVertexOpr() {
     return vertexToVertex;
   }
 
-  GenericEdgeDoFToVertexDoFOperator& getEdgeToVertexOpr() {
+  EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D >& getEdgeToVertexOpr() {
     return edgeToVertex;
   }
-#endif
 
  private:
 
