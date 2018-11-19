@@ -243,6 +243,13 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2PetscTest8 COMMAND $<TARGET_FILE:P2PetscTest> PROCESSES 8)
 endif()
 
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES P2/P2PetscApplyTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P2PetscApplyTest1 COMMAND $<TARGET_FILE:P2PetscApplyTest> )
+  waLBerla_execute_test(NAME P2PetscApplyTest2 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 2)
+  waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
+endif()
+
 ## Other ##
 
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS tinyhhg_core core)
