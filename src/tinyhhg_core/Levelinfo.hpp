@@ -68,10 +68,21 @@ constexpr inline uint_t num_microvertices_per_cell_from_width( const uint_t & wi
   return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
 }
 
+constexpr inline uint_t num_microedges_per_cell_from_width( const uint_t & width )
+{
+  return 6 * num_microvertices_per_cell_from_width( width - 1 ) + num_microvertices_per_cell_from_width( width - 2 );
+}
+
 constexpr inline uint_t num_microvertices_per_cell( const uint_t & level )
 {
   const uint_t width = ( 1u << level ) + 1;
   return ( ( width + 2 ) * ( width + 1 ) * width ) / 6;
+}
+
+constexpr inline uint_t num_microedges_per_cell( const uint_t & level )
+{
+  const uint_t width = ( 1u << level ) + 1;
+  return num_microedges_per_cell_from_width( width );
 }
 
 constexpr inline uint_t num_microcells_per_cell( const uint_t & level )
