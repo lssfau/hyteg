@@ -97,6 +97,7 @@ int main(int argc, char* argv[])
   hhg::p2PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   1.4e-15 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   3.1e-15 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 1.0e-16 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 8.0e-16 );
 
   return EXIT_SUCCESS;
 }
