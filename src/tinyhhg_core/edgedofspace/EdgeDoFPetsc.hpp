@@ -184,6 +184,76 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
 }
 
 
+inline void saveCellOperator( const uint_t & Level, const Cell & cell,
+                              const PrimitiveDataID< LevelWiseMemory< macrocell::StencilMap_T >, Cell> &operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & dstId,
+                              Mat & mat )
+{
+  auto srcData = cell.getData( srcId )->getPointer( Level );
+  auto dstData = cell.getData( dstId )->getPointer( Level );
+  auto opr_data = cell.getData( operatorId )->getData( Level );
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
+
+    if ( macrocell::isInnerXEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::X );
+    if ( macrocell::isInnerYEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::Y );
+    if ( macrocell::isInnerZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::Z );
+    if ( macrocell::isInnerXYEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::XY );
+    if ( macrocell::isInnerXZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::XZ );
+    if ( macrocell::isInnerYZEdgeDoF( Level, it ) )
+      innerOrientations.push_back( edgedof::EdgeDoFOrientation::YZ );
+
+    for ( const auto & centerOrientation : innerOrientations )
+    {
+      const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+      const auto dstInt      = dstData[ dstArrayIdx ];
+
+      for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+      {
+        const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
+        for ( const auto & neighbor : edgeDoFNeighbors )
+        {
+          const auto   srcIdx        = it + neighbor;
+          const auto   srcArrayIdx   = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
+          const auto   srcInt        = srcData[ srcArrayIdx ];
+          const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
+          MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+        }
+      }
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const auto centerOrientation = edgedof::EdgeDoFOrientation::XYZ;
+
+    const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+    const auto dstInt      = dstData[ dstArrayIdx ];
+
+    for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+    {
+      const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromEdgeDoFInMacroCell( centerOrientation, leafOrientation );
+      for ( const auto & neighbor : edgeDoFNeighbors )
+      {
+        const auto   srcIdx        = it + neighbor;
+        const auto   srcArrayIdx   = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
+        const auto   srcInt        = srcData[ srcArrayIdx ];
+        const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
+        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+      }
+    }
+  }
+}
+
+
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, EdgeDoFFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
 {
@@ -204,6 +274,16 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, E
     if (testFlag(faceBC, flag))
     {
       saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+    }
+  }
+
+  for (auto& it : opr.getStorage()->getCells()) {
+    Cell& cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag))
+    {
+      saveCellOperator(level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat);
     }
   }
 }

@@ -96,6 +96,36 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
 }
 
 
+inline void saveCellOperator( const uint_t & Level, const Cell & cell,
+                              const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell> &operatorId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & srcId,
+                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & dstId,
+                              Mat & mat )
+{
+  auto opr_data = cell.getData(operatorId)->getData( Level );
+  PetscInt * src  = cell.getData(srcId)->getPointer( Level );
+  PetscInt * dst  = cell.getData(dstId)->getPointer( Level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
+  {
+    const auto dstArrayIdx = vertexdof::macrocell::index( Level, it.x(), it.y(), it.z() );
+    const auto dstInt      = dst[ dstArrayIdx ];
+
+    for ( const auto & orientation : edgedof::allEdgeDoFOrientations )
+    {
+      const auto edgeDoFNeighbors = P2Elements::P2Elements3D::getAllEdgeDoFNeighborsFromVertexDoFInMacroCell( orientation );
+      for ( const auto & neighbor : edgeDoFNeighbors )
+      {
+        const auto   srcIdx      = it + neighbor;
+        const auto   srcArrayIdx = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), orientation );
+        const auto   srcInt      = src[ srcArrayIdx ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[orientation][neighbor], ADD_VALUES );
+      }
+    }
+  }
+}
+
+
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P1Function< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
 {
@@ -126,6 +156,16 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P
     if (testFlag(faceBC, flag))
     {
       saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+    }
+  }
+
+  for (auto& it : opr.getStorage()->getCells()) {
+    Cell & cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag))
+    {
+      saveCellOperator(level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat);
     }
   }
 }
