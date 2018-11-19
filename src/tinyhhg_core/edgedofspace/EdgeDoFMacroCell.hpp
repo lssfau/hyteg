@@ -502,12 +502,12 @@ inline void enumerate(const uint_t & Level, Cell &cell,
 {
   ValueType *dst = cell.getData(dstId)->getPointer(Level);
   uint_t xNum   = uint_c( num );
-  uint_t yNum   = xNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
-  uint_t zNum   = yNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
-  uint_t xyNum  = zNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
-  uint_t xzNum  = xyNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
-  uint_t yzNum  = xzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
-  uint_t xyzNum = yzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) );
+  uint_t yNum   = xNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
+  uint_t zNum   = yNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
+  uint_t xyNum  = zNum  + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
+  uint_t xzNum  = xyNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
+  uint_t yzNum  = xzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
+  uint_t xyzNum = yzNum + levelinfo::num_microvertices_per_cell_from_width( ( uint_c(1) << Level ) - 2 );
 
   for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
   {
