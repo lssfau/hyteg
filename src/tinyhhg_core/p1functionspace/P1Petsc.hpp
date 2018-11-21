@@ -136,6 +136,8 @@ inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscI
 template<class OperatorType>
 inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Function< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
 {
+  const auto storage = src.getStorage();
+
   for (auto& it : opr.getStorage()->getVertices()) {
     Vertex& vertex = *it.second;
 
@@ -152,7 +154,7 @@ inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Func
     const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if (testFlag(edgeBC, flag))
     {
-      vertexdof::macroedge::saveOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
+      vertexdof::macroedge::saveOperator(level, edge, *storage, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
     }
   }
 

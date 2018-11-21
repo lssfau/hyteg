@@ -735,9 +735,12 @@ inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveD
 
 
 #ifdef HHG_BUILD_WITH_PETSC
-inline void saveOperator( const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
-                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &srcId,
-                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat) {
+inline void saveOperator( const uint_t & level, Edge &edge,
+                          const PrimitiveStorage & storage,
+                          const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
+                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &srcId,
+                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat )
+{
 
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
@@ -766,10 +769,18 @@ inline void saveOperator( const uint_t & level, Edge &edge, const PrimitiveDataI
       MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] ,INSERT_VALUES);
     }
 
-    for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
+    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
     {
-      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCell, edge.getNumNeighborFaces() )];
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() ) ] ,INSERT_VALUES);
+      const auto & neighborCell = *(storage.getCell( edge.neighborCells().at(neighborCellID) ));
+      const auto localEdgeIDOnNeighborCell = neighborCell.getLocalEdgeID( edge.getID() );
+      if ( localEdgeIDOnNeighborCell == 1 || localEdgeIDOnNeighborCell == 4 )
+      {
+        // Since the functions we access here carry the petsc vector indices, we cannot simply also loop over
+        // ghost layer DoFs that do not exist. In the apply kernel this is okay, as we only add zeros in that case.
+        // Therefore we check if there are inner vertices - this only applies for macro-edge IDs 1 and 4.
+        srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCellID, edge.getNumNeighborFaces() )];
+        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCellID, edge.getNumNeighborFaces() ) ] ,INSERT_VALUES);
+      }
     }
   }
 }
