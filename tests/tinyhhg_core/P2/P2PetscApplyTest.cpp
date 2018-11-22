@@ -6,6 +6,8 @@
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
@@ -13,7 +15,9 @@
 #include "tinyhhg_core/petsc/PETScVector.hpp"
 #include "tinyhhg_core/FunctionTraits.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
+#include <numeric>
 
 using walberla::real_t;
 
@@ -27,8 +31,11 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
 
   MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   loadbalancing::roundRobin( setupStorage );
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+
+  writeDomainPartitioningVTK( storage, "../../output", "P2PetscApplyTestDomain" );
 
   P2Function< real_t >   src      ( "src",       storage, level, level );
   P2Function< real_t >   hhgDst   ( "hhgDst",    storage, level, level );
@@ -37,11 +44,12 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   P2Function< real_t >   ones     ( "ones",      storage, level, level );
   P2Function< PetscInt > numerator( "numerator", storage, level, level );
 
-  std::function<real_t(const hhg::Point3D&)> one  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
+  std::function<real_t(const hhg::Point3D&)> one   = [](const hhg::Point3D&) { return 1.0; };
   std::function<real_t(const hhg::Point3D&)> rand         = []( const hhg::Point3D &   ) { return walberla::math::realRandom<real_t>(); };
   std::function<real_t(const hhg::Point3D&)> srcFunction  = []( const hhg::Point3D & x ) { return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] ); };
 
-  src.interpolate( srcFunction, level, location );
+  src.interpolate( srcFunction, level, hhg::All );
   hhgDst.interpolate( rand, level, location );
   petscDst.interpolate( rand, level, location );
   ones.interpolate( one, level, location );
@@ -53,16 +61,20 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   const uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
   const uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2FunctionTag >( *storage, level );
 
+  WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
+
   // HyTeG apply
-  L.apply( src, hhgDst, level, location, Replace );
+  L.apply( src, hhgDst, level, location );
 
   // PETSc apply
   PETScVector< real_t, P2Function > srcPetscVec( localDoFs );
   PETScVector< real_t, P2Function > dstPetscVec( localDoFs );
   PETScSparseMatrix< P2ConstantLaplaceOperator, P2Function > petscMatrix( localDoFs, globalDoFs );
-  srcPetscVec.createVectorFromFunction( src, numerator, level, location );
-  dstPetscVec.createVectorFromFunction( petscDst, numerator, level, location );
-  petscMatrix.createMatrixFromFunction( L, level, numerator, location );
+
+  srcPetscVec.createVectorFromFunction( src, numerator, level, All );
+  dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
+  petscMatrix.createMatrixFromFunction( L, level, numerator, All );
+
   WALBERLA_CHECK( petscMatrix.isSymmetric() );
 
   MatMult( petscMatrix.get(), srcPetscVec.get(), dstPetscVec.get() );
@@ -96,8 +108,9 @@ int main(int argc, char* argv[])
 
   hhg::p2PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   1.4e-15 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   3.1e-15 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 1.0e-16 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 8.0e-16 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 5.0e-18 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 4.5e-16 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 4.5e-16 );
 
   return EXIT_SUCCESS;
 }
