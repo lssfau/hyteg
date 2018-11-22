@@ -8,6 +8,7 @@
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 
 #include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
