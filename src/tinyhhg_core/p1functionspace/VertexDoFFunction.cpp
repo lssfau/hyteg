@@ -13,6 +13,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -602,14 +603,11 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 {
-   /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
    for( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
       vertexdof::macrovertex::enumerate( level, vertex, vertexDataID_, offset );
    }
-
-   communicators_[level]->template startCommunication< Vertex, Edge >();
 
    for( auto& it : this->getStorage()->getEdges() )
    {
@@ -617,17 +615,11 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
       vertexdof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   communicators_[level]->template startCommunication< Edge, Vertex >();
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
-   communicators_[level]->template endCommunication< Edge, Face >();
-   communicators_[level]->template startCommunication< Face, Edge >();
-   communicators_[level]->template startCommunication< Face, Cell >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -635,13 +627,8 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
       vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
    }
 
-   communicators_[level]->template startCommunication< Cell, Face >();
-
-   communicators_[level]->template endCommunication< Vertex, Edge >();
-   communicators_[level]->template endCommunication< Edge, Vertex >();
-   communicators_[level]->template endCommunication< Face, Edge >();
-   communicators_[level]->template endCommunication< Face, Cell >();
-   communicators_[level]->template endCommunication< Cell, Face >();
+   /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
+   communication::syncFunctionBetweenPrimitives( *this, level );
 }
 
 template < typename ValueType >
