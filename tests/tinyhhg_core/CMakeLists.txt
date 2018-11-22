@@ -191,6 +191,12 @@ waLBerla_execute_test(NAME P1CommTest)
 waLBerla_compile_test(FILES P1/P1DataHandlingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1DataHandlingTest)
 
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest> )
+  waLBerla_execute_test(NAME P1PetscApplyTest2 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 2)
+  waLBerla_execute_test(NAME P1PetscApplyTest8 COMMAND $<TARGET_FILE:P1PetscApplyTest> PROCESSES 8)
+endif()
 
 ############################################
 
