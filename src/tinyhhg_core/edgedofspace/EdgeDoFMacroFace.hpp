@@ -704,6 +704,36 @@ inline void createFunctionFromVector( const uint_t & Level, Face &face,
 
 }
 
+inline void applyDirichletBC( const uint_t & Level, Face &face,std::vector<PetscInt> &mat,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId){
+
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+  }
+}
+
 #endif
 
 }

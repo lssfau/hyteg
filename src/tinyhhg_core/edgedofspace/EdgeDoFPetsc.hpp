@@ -100,6 +100,15 @@ inline void applyDirichletBC(EdgeDoFFunction<PetscInt> &numerator, std::vector<P
     }
   }
 
+  for (auto &it : numerator.getStorage()->getFaces()) {
+    Face &face = *it.second;
+
+    const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if (testFlag(faceBC, DirichletBoundary)) {
+      edgedof::macroface::applyDirichletBC(level, face, mat, numerator.getFaceDataID());
+    }
+  }
+
 }
 
 
