@@ -522,6 +522,17 @@ inline uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, c
 }
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
+/// EXAMPLE: number of DoFs in each direction for level 2:
+/// - X  on face:  start  0; size 10; last 9
+/// - Y  on face:  start 10; size 10; last 19
+/// - XY on face:  start 20; size 10; last 29
+/// - X  on ghost: start 30; size 6;  last 35
+/// - Y  on ghost: start 36; size 6;  last 41
+/// - XY on ghost: start 42; size 6;  last 47
+/// - Z  on ghost: start 48; size 10; last 57
+/// - XZ on ghost: start 58; size 10; last 67
+/// - YZ on ghost: start 68; size 10; last 77
+/// - XYZon ghost: start 78; size 6;  last 83
 /// \param neighbor 0 or 1 for the respective cell neighbor
 inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation, const uint_t & neighbor )
 {
@@ -550,7 +561,7 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uin
       case EdgeDoFOrientation::YZ:
          return ownDoFs + ghostOnParallelFace + levelToFaceSizeAnyEdgeDoF( level ) + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) , x, y ) + offset;
       case EdgeDoFOrientation::XYZ:
-         return ownDoFs + 2 * ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
+         return ownDoFs * 2 + ghostOnParallelFace + indexing::macroFaceIndex( levelToWidthAnyEdgeDoF( level ) - 1, x, y ) + offset;
       default:
          return std::numeric_limits< uint_t >::max();
    }

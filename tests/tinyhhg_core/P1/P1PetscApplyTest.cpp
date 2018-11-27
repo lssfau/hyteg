@@ -108,8 +108,8 @@ int main(int argc, char* argv[])
 
   hhg::p1PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   1.0e-15 );
   hhg::p1PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   1.7e-13 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 2.0e-19 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 4.0e-17 );
+  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 1.8e-18 );
+  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 4.9e-17 );
   hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 2.0e-17 );
 
   return EXIT_SUCCESS;
