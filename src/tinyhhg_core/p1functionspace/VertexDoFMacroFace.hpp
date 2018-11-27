@@ -1021,7 +1021,7 @@ inline void saveOperator( const uint_t&                                         
       PetscInt srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
       PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
-      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )], INSERT_VALUES );
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )], ADD_VALUES );
 
       if ( face.getNumNeighborCells() == 0 )
       {
@@ -1029,7 +1029,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       } else if ( face.getNumNeighborCells() == 1 )
       {
@@ -1037,7 +1037,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       } else if ( face.getNumNeighborCells() == 2 )
       {
@@ -1045,7 +1045,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       }
     }

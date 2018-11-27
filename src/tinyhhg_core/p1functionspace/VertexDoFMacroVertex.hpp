@@ -386,7 +386,7 @@ inline void saveOperator(Vertex &vertex,
   auto src = vertex.getData(srcId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
-  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, INSERT_VALUES);
+  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, ADD_VALUES);
 }
 
 template< typename ValueType >

@@ -754,20 +754,20 @@ inline void saveOperator( const uint_t & level, Edge &edge,
     PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
     PetscInt srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
     //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
-    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] ,INSERT_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
+    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] ,ADD_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
       srcint = src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,ADD_VALUES);
     }
 
     for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
     {
       srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_W )];
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] ,ADD_VALUES);
       srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_E )];
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] ,ADD_VALUES);
     }
 
     for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
@@ -780,7 +780,7 @@ inline void saveOperator( const uint_t & level, Edge &edge,
         // ghost layer DoFs that do not exist. In the apply kernel this is okay, as we only add zeros in that case.
         // Therefore we check if there are inner vertices - this only applies for macro-edge IDs 1 and 4.
         srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCellID, edge.getNumNeighborFaces() )];
-        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCellID, edge.getNumNeighborFaces() ) ] ,INSERT_VALUES);
+        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCellID, edge.getNumNeighborFaces() ) ] ,ADD_VALUES);
       }
     }
   }
