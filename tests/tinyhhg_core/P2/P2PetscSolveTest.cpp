@@ -22,24 +22,20 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+namespace hhg {
 
-int main( int argc, char* argv[] )
+void petscSolveTest( const uint_t & level, const std::string & meshFileName, const real_t & errEps )
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
+   WALBERLA_LOG_INFO_ON_ROOT( "##### Mesh file: " << meshFileName << " / level: " << level << " #####" )
 
    PETScManager petscManager;
-
-   std::string meshFileName = "../../data/meshes/quad_2el.msh";
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   const size_t level = 2;
+   hhg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -49,7 +45,7 @@ int main( int argc, char* argv[] )
    hhg::P2Function< real_t >                      err( "err", storage, level, level + 1 );
    hhg::P2Function< real_t >                      residuum( "err", storage, level, level + 1 );
    std::shared_ptr< hhg::P2Function< PetscInt > > numerator =
-       std::make_shared< hhg::P2Function< PetscInt > >( "numerator", storage, level, level + 1 );
+   std::make_shared< hhg::P2Function< PetscInt > >( "numerator", storage, level, level + 1 );
 
    hhg::P2ConstantLaplaceOperator A( storage, level, level + 1 );
 
@@ -114,6 +110,25 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_1, 0.0, 1e-15 );
    //WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_2, 0.0, 1e-15 );
    //WALBERLA_CHECK_LESS( 8.0, ( discr_l2_err_1 / discr_l2_err_2 ) );
+
+   WALBERLA_CHECK_LESS( discr_l2_err_1, errEps );
+
+}
+
+}
+
+using namespace hhg;
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   petscSolveTest( 3, "../../data/meshes/quad_4el.msh",       3.0e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",     3.0e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh", 2.7e-06 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh", 3.2e-07 );
+   // petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_4el.msh" );
 
    return EXIT_SUCCESS;
 }
