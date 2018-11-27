@@ -36,6 +36,8 @@ template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<int>& function, const uint_t& level );
 
+template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<float>& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<int>& function, const uint_t& level );
 
 //template void syncFunctionBetweenPrimitives( const P1Function<float>& function, const uint_t& level );
