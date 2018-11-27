@@ -124,11 +124,11 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   petscSolveTest( 3, "../../data/meshes/quad_4el.msh",       3.0e-07 );
-   petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",     3.0e-07 );
-   petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh", 2.7e-06 );
-   petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh", 3.2e-07 );
-   // petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_4el.msh" );
+   petscSolveTest( 3, "../../data/meshes/quad_4el.msh",                  3.0e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",                3.0e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh",            2.7e-06 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh",            3.2e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", 1.7e-06 );
 
    return EXIT_SUCCESS;
 }

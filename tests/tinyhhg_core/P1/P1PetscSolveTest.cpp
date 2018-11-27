@@ -11,6 +11,7 @@
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 
@@ -38,6 +39,7 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    hhg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   writeDomainPartitioningVTK( storage, "../../output", "P1PetscSolve_Domain" );
 
    hhg::P1Function< real_t >                      x( "x", storage, level, level + 1 );
    hhg::P1Function< real_t >                      x_exact( "x_exact", storage, level, level + 1 );
@@ -125,12 +127,12 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   petscSolveTest( 3, "../../data/meshes/quad_2el.msh",   2.5e-05 );
-   petscSolveTest( 3, "../../data/meshes/quad_4el.msh",   1.4e-05 );
-   petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh", 4.9e-07 );
-   petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh", 4.9e-05 );
-   petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh", 1.5e-05 );
-   // petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_4el.msh" );
+   petscSolveTest( 3, "../../data/meshes/quad_2el.msh",                  2.5e-05 );
+   petscSolveTest( 3, "../../data/meshes/quad_4el.msh",                  1.4e-05 );
+   petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",                4.9e-07 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh",            4.9e-05 );
+   petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh",            1.5e-05 );
+   petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", 2.3e-04 );
 
    return EXIT_SUCCESS;
 }

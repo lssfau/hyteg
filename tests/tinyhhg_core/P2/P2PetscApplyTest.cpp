@@ -111,6 +111,7 @@ int main(int argc, char* argv[])
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 5.0e-18 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 4.5e-16 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 4.5e-16 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::Inner, 3.1e-16 );
 
   return EXIT_SUCCESS;
 }
