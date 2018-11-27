@@ -29,6 +29,70 @@ inline void saveVertexOperator( const uint_t & level,
   MatSetValues(mat, 1, dst, (PetscInt) ( vertex.getNumNeighborEdges() + vertex.getNumNeighborFaces() ), src, opr_data, INSERT_VALUES );
 }
 
+inline void saveVertexOperator3D( const uint_t & level,  const Vertex & vertex,
+                                  const PrimitiveStorage                                                 & storage,
+                                  const PrimitiveDataID<LevelWiseMemory< MacroVertexStencilMap_T >, Vertex > & operatorId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & srcId,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex> & dstId,
+                                  Mat & mat )
+{
+  auto opr_data = vertex.getData(operatorId)->getData( level );
+  auto src  = vertex.getData(srcId)->getPointer( level );
+  auto dst  = vertex.getData(dstId)->getPointer( level );
+
+  const auto centerIndexOnVertex = indexing::Index( 0, 0, 0 );
+
+  for ( uint_t neighborCellID = 0; neighborCellID < vertex.getNumNeighborCells(); neighborCellID++  )
+  {
+    const Cell & neighborCell = *( storage.getCell( vertex.neighborCells().at( neighborCellID ) ) );
+    auto cellLocalVertexID = neighborCell.getLocalVertexID( vertex.getID() );
+
+    const auto basisInCell = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
+
+    const auto centerIndexInCell = indexing::basisConversion( centerIndexOnVertex, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+
+    for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+    {
+      for ( const auto & stencilIt : opr_data[neighborCellID][leafOrientationInCell] )
+      {
+        const auto stencilOffset = stencilIt.first;
+        const auto stencilWeight = stencilIt.second;
+
+        const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+
+        const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
+        const auto onCellEdgesSet = edgedof::macrocell::isOnCellEdges( level, leafIndexInCell, leafOrientationInCell );
+
+        uint_t leafArrayIndexOnVertex = std::numeric_limits< uint_t >::max();
+
+        WALBERLA_ASSERT_GREATER( onCellFacesSet.size(), 0 );
+
+        if ( onCellFacesSet.size() == 1 )
+        {
+          // on macro-face
+          WALBERLA_ASSERT_EQUAL( onCellEdgesSet.size(), 0 );
+          const auto faceID = neighborCell.neighborFaces().at( *onCellFacesSet.begin() );
+          const auto vertexLocalFaceID = vertex.face_index( faceID );
+          leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
+        }
+        else
+        {
+          // on macro-edge
+          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), 2 );
+          WALBERLA_ASSERT_EQUAL( onCellEdgesSet.size(), 1 );
+          const auto edgeID = neighborCell.neighborEdges().at( *onCellEdgesSet.begin() );
+          const auto vertexLocalEdgeID = vertex.edge_index( edgeID );
+          leafArrayIndexOnVertex = vertexLocalEdgeID;
+        }
+
+        const auto dstInt = dst[ 0 ];
+        const auto srcInt = src[ leafArrayIndexOnVertex ];
+        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES );
+      }
+    }
+  }
+}
+
 inline void saveEdgeOperator( const uint_t & Level,  const Edge & edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
@@ -299,7 +363,15 @@ inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, P
     const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
     if (testFlag(vertexBC, flag))
     {
-      saveVertexOperator(level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat);
+      if ( storage->hasGlobalCells() )
+      {
+        saveVertexOperator3D(level, vertex, *storage, opr.getVertexStencil3DID(), src.getVertexDataID(), dst.getVertexDataID(), mat);
+      }
+      else
+      {
+        saveVertexOperator(level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat);
+      }
+
     }
   }
 
