@@ -233,7 +233,9 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
           const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
 
           const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-          const auto leafIndexInFace = edgedof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+          const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
+            edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ( leafIndexInCell, neighborCell, localFaceID, storage, level ) :
+            edgedof::macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
 
           WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
 

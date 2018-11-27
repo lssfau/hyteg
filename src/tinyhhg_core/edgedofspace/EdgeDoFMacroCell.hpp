@@ -35,6 +35,22 @@ inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index  & 
   return indexInMacroFace;
 }
 
+inline indexing::Index getIndexInNeighboringMacroFaceXYZ( const indexing::Index  & edgeDoFIndexInMacroCell,
+                                                          const Cell             & cell,
+                                                          const uint_t           & neighborFaceID,
+                                                          const PrimitiveStorage & storage,
+                                                          const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+  { cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(0),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(1),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(2) } );
+
+  const auto indexInMacroFace = indexing::basisConversion( edgeDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
+  return indexInMacroFace;
+}
+
 inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroFace( const EdgeDoFOrientation & orientationInMacroCell,
                                                                           const Cell               & cell,
                                                                           const uint_t             & neighborFaceID,
