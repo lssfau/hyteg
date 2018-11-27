@@ -5,6 +5,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFPackInfo.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 
@@ -448,15 +449,11 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
       edgedof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
       edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
-
-   communicators_[level]->template startCommunication< Face, Cell >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -464,17 +461,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
       edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
    }
 
-   communicators_[level]->template endCommunication< Edge, Face >();
-   communicators_[level]->template endCommunication< Face, Cell >();
-
-   communicators_[level]->template startCommunication< Cell, Face >();
-   communicators_[level]->template endCommunication< Cell, Face >();
-
-   communicators_[level]->template startCommunication< Face, Edge >();
-   communicators_[level]->template endCommunication< Face, Edge >();
-
-   communicators_[level]->template startCommunication< Edge, Vertex >();
-   communicators_[level]->template endCommunication< Edge, Vertex >();
+   communication::syncFunctionBetweenPrimitives( *this, level );
 }
 
 template < typename ValueType >
