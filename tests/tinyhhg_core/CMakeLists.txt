@@ -74,6 +74,9 @@ waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2GSConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2P1UzawaConvergenceTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2P1UzawaConvergenceTest.cpp)
+
 ## Indexing ##
 
 waLBerla_compile_test(FILES Indexing/CommonIndexingTest.cpp DEPENDS tinyhhg_core core)
