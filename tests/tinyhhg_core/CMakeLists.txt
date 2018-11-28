@@ -352,3 +352,11 @@ endif()
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
 waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )
+
+# Math
+waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME IntersectionTest COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
+
+# RPD Coupling
+waLBerla_compile_test(FILES rpd_coupling/SyncNextNeighborsTest.cpp DEPENDS tinyhhg_core core rpd)
+waLBerla_execute_test(NAME SyncNextNeighborsTest)
