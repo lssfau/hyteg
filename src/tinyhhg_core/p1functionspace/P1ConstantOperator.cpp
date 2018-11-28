@@ -599,7 +599,18 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if( testFlag( faceBC, flag ) )
       {
-         vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
+         if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+         {
+            real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+            real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+            real_t* rhs_data = face.getData( rhs.getFaceDataID() )->getPointer( level );
+            vertexdof::macroface::generated::gaussSeidel( dst_data, rhs_data, opr_data, level );
+         }
+         else
+         {
+            vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
+         }
+
       }
    }
 

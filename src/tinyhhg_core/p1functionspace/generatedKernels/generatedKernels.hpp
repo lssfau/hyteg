@@ -14,6 +14,8 @@ void applyReplace( double*                fd_p1FaceDst,
 
 void applyAdd( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStencil, walberla::uint_t level );
 
+void gaussSeidel( double * fd_p1FaceDst, double * fd_p1FaceRhs, double * fd_p1FaceStencil, walberla::uint_t level );
+
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
