@@ -38,6 +38,8 @@
 
 using walberla::real_t;
 
+namespace hhg{
+
 enum DiscretizationType
 {
     P1P1,
@@ -321,7 +323,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // VTK //
   /////////
 
-  hhg::VTKOutput vtkOutput( "../output", "StokesFlowSolverComparison" );
+  hhg::VTKOutput vtkOutput("../output", "StokesFlowSolverComparison", storage);
 
   vtkOutput.add( &r.u );
   vtkOutput.add( &r.v );
@@ -583,8 +585,12 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
     WALBERLA_LOG_INFO_ON_ROOT( tt );
 }
 
+}
+
 int main( int argc, char* argv[] )
 {
+  using walberla::real_c;
+
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
@@ -632,52 +638,52 @@ int main( int argc, char* argv[] )
 
   // Solver type
 
-  if ( strToSolverType.count( solverTypeString ) == 0 )
+  if ( hhg::strToSolverType.count( solverTypeString ) == 0 )
   {
     WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid solver type!" );
   }
-  if ( strToSolverType.count( coarseGridSolverString ) == 0 || strToSolverType.at( coarseGridSolverString ) == UZAWA )
+  if ( hhg::strToSolverType.count( coarseGridSolverString ) == 0 || hhg::strToSolverType.at( coarseGridSolverString ) == hhg::UZAWA )
   {
     WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid coarse grid solver type!" );
   }
-  if ( strToDiscretizationType.count( discretizationTypeString ) == 0 )
+  if ( hhg::strToDiscretizationType.count( discretizationTypeString ) == 0 )
   {
     WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid discretization type!" );
   }
-  const SolverType solverType                 = strToSolverType.at( solverTypeString );
-  const SolverType coarseGridSolver           = strToSolverType.at( coarseGridSolverString );
-  const DiscretizationType discretizationType = strToDiscretizationType.at( discretizationTypeString );
+  const hhg::SolverType solverType                 = hhg::strToSolverType.at( solverTypeString );
+  const hhg::SolverType coarseGridSolver           = hhg::strToSolverType.at( coarseGridSolverString );
+  const hhg::DiscretizationType discretizationType = hhg::strToDiscretizationType.at( discretizationTypeString );
 
   // Mesh
 
-  const MeshInfo meshInfo = [ meshType, squareDomainSolutionType ]()
+  const hhg::MeshInfo meshInfo = [ meshType, squareDomainSolutionType ]()
   {
     if ( meshType == "square" )
     {
-      return MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
+      return hhg::MeshInfo::meshRectangle( squareDomainSolutionType == "colliding_flow" || squareDomainSolutionType == "poiseuille_flow" ? hhg::Point2D({-1, -1}) : hhg::Point2D({0, 0}),
                                       hhg::Point2D({1, 1}),
-                                      MeshInfo::CRISSCROSS, 1, 1 );
+                                      hhg::MeshInfo::CRISSCROSS, 1, 1 );
     }
     else if ( meshType == "porous_coarse" )
     {
-      return MeshInfo::fromGmshFile( "../data/meshes/porous_coarse.msh" );
+      return hhg::MeshInfo::fromGmshFile( "../data/meshes/porous_coarse.msh" );
     }
     else if ( meshType == "porous_fine" )
     {
-      return MeshInfo::fromGmshFile( "../data/meshes/porous_fine.msh" );
+      return hhg::MeshInfo::fromGmshFile( "../data/meshes/porous_fine.msh" );
     }
     else if ( meshType == "bfs_coarse" )
     {
-      return MeshInfo::fromGmshFile( "../data/meshes/bfs_12el.msh" );
+      return hhg::MeshInfo::fromGmshFile( "../data/meshes/bfs_12el.msh" );
     }
     else if ( meshType == "bfs_fine" )
     {
-      return MeshInfo::fromGmshFile( "../data/meshes/bfs_126el.msh" );
+      return hhg::MeshInfo::fromGmshFile( "../data/meshes/bfs_126el.msh" );
     }
     else
     {
       WALBERLA_ABORT( "[StokesFlowSolverComparison] Invalid mesh type!" );
-      return MeshInfo::emptyMeshInfo();
+      return hhg::MeshInfo::emptyMeshInfo();
     }
   }();
 
@@ -685,29 +691,29 @@ int main( int argc, char* argv[] )
 
   const std::function< real_t( const hhg::Point3D& ) > zero  = []( const hhg::Point3D& ) { return 0.0; };
 
-  const auto setMeshBoundaryFlags = [ meshType, squareDomainSolutionType ]() -> std::function< void( SetupPrimitiveStorage & ) >
+  const auto setMeshBoundaryFlags = [ meshType, squareDomainSolutionType ]() -> std::function< void( hhg::SetupPrimitiveStorage & ) >
   {
       if ( meshType == "bfs_coarse" || meshType == "bfs_fine" )
       {
-        return setRightBFSBoundaryNeumannBFS;
+        return hhg::setRightBFSBoundaryNeumannBFS;
       }
       else if ( meshType == "square" && squareDomainSolutionType == "poiseuille_flow" )
       {
-        return setRightBFSBoundaryNeumannPoiseuille;
+        return hhg::setRightBFSBoundaryNeumannPoiseuille;
       }
       else if ( meshType == "porous_coarse" || meshType == "porous_fine" )
       {
-        return keepMeshBoundaries;
+        return hhg::keepMeshBoundaries;
       }
       else
       {
-        return setAllBoundariesDirichlet;
+        return hhg::setAllBoundariesDirichlet;
       }
   }();
 
   // Velocity BC
 
-  const auto setUVelocityBC = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const Point3D & ) >
+  const auto setUVelocityBC = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
     if ( meshType == "porous_coarse" || meshType == "porous_fine" )
     {
@@ -777,7 +783,7 @@ int main( int argc, char* argv[] )
     }
   }();
 
-  const auto setVVelocityBC = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const Point3D & ) >
+  const auto setVVelocityBC = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
       if (    meshType == "porous_coarse" || meshType == "porous_fine"
            || meshType == "bfs_coarse"    || meshType == "bfs_fine" )
@@ -815,7 +821,7 @@ int main( int argc, char* argv[] )
 
   // Velocity RHS
 
-  const auto setUVelocityRHS = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const Point3D & ) >
+  const auto setUVelocityRHS = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
       if (    meshType == "porous_coarse" || meshType == "porous_fine"
            || meshType == "bfs_coarse"    || meshType == "bfs_fine" )
@@ -845,7 +851,7 @@ int main( int argc, char* argv[] )
       }
   }();
 
-  const auto setVVelocityRHS = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const Point3D & ) >
+  const auto setVVelocityRHS = [ meshType, zero, squareDomainSolutionType ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
       if (    meshType == "porous_coarse" || meshType == "porous_fine"
               || meshType == "bfs_coarse"    || meshType == "bfs_fine" )
@@ -877,7 +883,7 @@ int main( int argc, char* argv[] )
 
   // Analytical solution
 
-  const auto solutionU = [ meshType, squareDomainSolutionType, setUVelocityBC ]() -> std::function< real_t( const Point3D & ) >
+  const auto solutionU = [ meshType, squareDomainSolutionType, setUVelocityBC ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
     if ( meshType == "square" && squareDomainSolutionType == "poiseuille_flow" )
     {
@@ -892,7 +898,7 @@ int main( int argc, char* argv[] )
     }
   }();
   const auto solutionV = setVVelocityBC;
-  const auto solutionP = [ meshType, zero, squareDomainSolutionType, rescalePressure ]() -> std::function< real_t( const Point3D & ) >
+  const auto solutionP = [ meshType, zero, squareDomainSolutionType, rescalePressure ]() -> std::function< real_t( const hhg::Point3D & ) >
   {
       if (    meshType == "porous_coarse" || meshType == "porous_fine"
            || meshType == "bfs_coarse"    || meshType == "bfs_fine" )
@@ -943,7 +949,7 @@ int main( int argc, char* argv[] )
                              "                             - timer output:                " << (printTimer ? "enabled" : "disabled") << "\n"
                              "                             - rescale pressure:            " << (rescalePressure ? "enabled" : "disabled") << "\n";
 
-  if ( solverType == UZAWA )
+  if ( solverType == hhg::UZAWA )
   {
     parameterOverview <<     "                             - coarsest level:              " << minLevel << "\n"
                              "                             - finest level:                " << maxLevel << "\n"
@@ -951,7 +957,7 @@ int main( int argc, char* argv[] )
                              "                             - num MG cycles:               " << numMGCycles << "\n"
                              "                             - pre- / post-smoothing steps: " << "( " << preSmooth << ", " << postSmooth << " )";
   }
-  else if ( solverType == MIN_RES )
+  else if ( solverType == hhg::MIN_RES )
   {
     parameterOverview <<     "                             - level:                       " << maxLevel << "\n"
                              "                             - max. iterations:             " << maxIterations << "\n"
@@ -963,15 +969,15 @@ int main( int argc, char* argv[] )
 
   switch ( discretizationType )
   {
-    case P1P1:
-      run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, hhg::P1MassOperator >(
+    case hhg::P1P1:
+      hhg::run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, hhg::P1MassOperator >(
         meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam, targetResidual, maxIterations,
         setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC, setUVelocityRHS, setVVelocityRHS,
         compareWithAnalyticalSolution, solutionU, solutionV, solutionP,
         rescalePressure, printTimer );
       break;
-    case TaylorHood:
-      run< P2P1TaylorHoodFunction, P2P1TaylorHoodStokesOperator, hhg::P2P1StokesToP2P1StokesRestriction, hhg::P2P1StokesToP2P1StokesProlongation, hhg::P2ConstantMassOperator >(
+    case hhg::TaylorHood:
+      hhg::run< hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator, hhg::P2P1StokesToP2P1StokesRestriction, hhg::P2P1StokesToP2P1StokesProlongation, hhg::P2ConstantMassOperator >(
         meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam, targetResidual, maxIterations,
         setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC, setUVelocityRHS, setVVelocityRHS,
         compareWithAnalyticalSolution, solutionU, solutionV, solutionP,

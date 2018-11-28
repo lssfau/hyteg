@@ -14,6 +14,7 @@
 #include "tinyhhg_core/VTKWriter.hpp"
 
 #include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 
 namespace hhg {
 
@@ -42,7 +43,7 @@ static void testVertexDoFStencilAssembly()
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-        std::vector< real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, vertex, indexing::Index( 0, 0, 0 ), level,
+        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, vertex, indexing::Index( 0, 0, 0 ), level,
                                                                                                                                          ufcOperator );
         macroVertexStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
@@ -76,7 +77,7 @@ static void testVertexDoFStencilAssembly()
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-        std::vector< real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, edge, indexing::Index( 1, 0, 0 ), level,
+        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, edge, indexing::Index( 1, 0, 0 ), level,
                                                                                                                                          ufcOperator );
         macroEdgeStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
@@ -145,7 +146,7 @@ static void testVertexDoFStencilAssembly()
       std::array< std::map< stencilDirection, real_t >, maxLevel + 1 > macroFaceStencilOnLevel;
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ ) {
-        std::map< stencilDirection, real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, face, indexing::Index( 1, 1, 0 ),
+        std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, face, indexing::Index( 1, 1, 0 ),
                                                                                                                                                         level, ufcOperator );
         macroFaceStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
@@ -179,7 +180,7 @@ static void testVertexDoFStencilAssembly()
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      std::map< stencilDirection, real_t > stencil = P1Elements::CellVertexDoF::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, *cell.second, indexing::Index( 1, 1, 1 ), level, ufcOperator );
+      std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, *cell.second, indexing::Index( 1, 1, 1 ), level, ufcOperator );
       macroCellStencilOnLevel[ level ] = stencil;
       real_t rowSum = real_c( 0 );
 

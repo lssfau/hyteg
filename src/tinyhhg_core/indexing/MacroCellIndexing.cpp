@@ -3,6 +3,7 @@
 
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "core/debug/Debug.h"
 #include "core/DataTypes.h"
 
@@ -31,6 +32,63 @@ static constexpr uint_t tup( const uint_t & a, const uint_t & b, const uint_t & 
   return a << 8 | b << 4 | c;
 }
 
+
+std::set< uint_t > isOnCellFace( const indexing::Index & index, const uint_t & width )
+{
+  std::set< uint_t > cellFaceIndices;
+  const auto dstIndex = toDistanceIndex( index, {{0, 1, 2, 3}}, width );
+  const uint_t maxDist = width - 1;
+  if ( dstIndex.d0() == maxDist )
+    cellFaceIndices.insert( 3 ); // face with vertices 1, 2, 3
+  if ( dstIndex.d1() == maxDist )
+    cellFaceIndices.insert( 2 ); // face with vertices 0, 2, 3
+  if ( dstIndex.d2() == maxDist )
+    cellFaceIndices.insert( 1 ); // face with vertices 0, 1, 3
+  if ( dstIndex.d3() == maxDist )
+    cellFaceIndices.insert( 0 ); // face with vertices 0, 1, 2
+  return cellFaceIndices;
+
+}
+
+
+std::set< uint_t > isOnCellEdge( const indexing::Index & index, const uint_t & width )
+{
+  std::set< uint_t > cellEdgeIndices;
+  const auto onFaces = isOnCellFace( index, width );
+  if ( onFaces.size() <= 1 ) // index on edge <=> index on >= 2 faces
+    return cellEdgeIndices;
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 1 ) == 1 )
+    cellEdgeIndices.insert( 0 );
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 2 ) == 1 )
+    cellEdgeIndices.insert( 1 );
+  if ( onFaces.count( 0 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 2 );
+  if ( onFaces.count( 1 ) == 1 && onFaces.count( 2 ) == 1 )
+    cellEdgeIndices.insert( 3 );
+  if ( onFaces.count( 1 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 4 );
+  if ( onFaces.count( 2 ) == 1 && onFaces.count( 3 ) == 1 )
+    cellEdgeIndices.insert( 5 );
+  return cellEdgeIndices;
+}
+
+
+std::set< uint_t > isOnCellVertex( const indexing::Index & index, const uint_t & width )
+{
+  std::set< uint_t > cellVertexIndices;
+  const auto dstIndex = toDistanceIndex( index, {{0, 1, 2, 3}}, width );
+  if ( dstIndex.d0() == 0 )
+    cellVertexIndices.insert( 0 );
+  if ( dstIndex.d1() == 0 )
+    cellVertexIndices.insert( 1 );
+  if ( dstIndex.d2() == 0 )
+    cellVertexIndices.insert( 2 );
+  if ( dstIndex.d3() == 0 )
+    cellVertexIndices.insert( 3 );
+  return cellVertexIndices;
+}
+
+
 CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter, const bool & end ) :
   width_( width ), internalWidth_( width - ( offsetToCenter == 0 ? 0 : (2 + 2*offsetToCenter)) ), offsetToCenter_( offsetToCenter ),
   // Number of vertices in a tetrahedron with edge length n:
@@ -39,8 +97,7 @@ CellIterator::CellIterator( const uint_t & width, const uint_t & offsetToCenter,
   // T(n-4) = ( (n-2) * (n-3) * (n-4) ) / 6
   totalNumberOfDoFs_( ( ( internalWidth_ + 2 ) * ( internalWidth_ + 1 ) * ( internalWidth_ ) ) / 6 ), step_( 0 )
 {
-  WALBERLA_ASSERT_GREATER( width, 0, "Size of cell must be larger than zero!" );
-  WALBERLA_ASSERT_LESS( offsetToCenter, width, "Offset to center is beyond cell width!" );
+  WALBERLA_ASSERT_LESS_EQUAL( offsetToCenter, width, "Offset to center is beyond cell width!" );
 
   coordinates_.x() = offsetToCenter_;
   coordinates_.y() = offsetToCenter_;

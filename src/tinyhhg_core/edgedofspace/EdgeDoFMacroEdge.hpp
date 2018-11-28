@@ -1,13 +1,21 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
+#include "tinyhhg_core/indexing/LocalIDMappings.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 #include "core/math/KahanSummation.h"
 
@@ -17,6 +25,19 @@ namespace macroedge {
 
 using walberla::uint_t;
 using walberla::real_c;
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Edge & edge,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
+                        const ValueType & constant )
+{
+  auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
+  {
+    edgeData[edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C )] = constant;
+  }
+}
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge & edge,
@@ -191,6 +212,122 @@ inline void apply(const uint_t & Level, Edge &edge,
 }
 
 
+inline void apply3D( const uint_t & level, const Edge & edge,
+                     const PrimitiveStorage & storage,
+                     const PrimitiveDataID<LevelWiseMemory< StencilMap_T >, Edge > &operatorId,
+                     const PrimitiveDataID<FunctionMemory< real_t >, Edge> &srcId,
+                     const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
+                     UpdateType update )
+{
+  auto opr_data = edge.getData(operatorId)->getData( level );
+  real_t * src  = edge.getData(srcId)->getPointer( level );
+  real_t * dst  = edge.getData(dstId)->getPointer( level );
+
+  for ( const auto & centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+  {
+    const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
+
+    real_t tmp = real_c( 0 );
+
+    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++  )
+    {
+      const Cell & neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
+      auto cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
+
+      const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >( { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at(cellLocalEdgeID).at(0),
+                                                                                  neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at(cellLocalEdgeID).at(1) } );
+
+      const auto centerIndexInCell = indexing::basisConversion( centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+      const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(edgeCenterOrientation, basisInCell.at(0),
+                                                                                      basisInCell.at(1), basisInCell.at(2));
+
+      for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientations )
+      {
+        for ( const auto & stencilIt : opr_data[neighborCellID][cellCenterOrientation][leafOrientationInCell] )
+        {
+          const auto stencilOffset = stencilIt.first;
+          const auto stencilWeight = stencilIt.second;
+
+          const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+
+          const auto leafIndexOnEdge = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+
+          const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
+          const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
+
+          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() );
+
+          uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
+
+          const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
+          std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
+          std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
+                                 onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
+
+          if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
+          {
+            // leaf in macro-cell
+            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
+          }
+          else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
+          {
+            // leaf on macro-face
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
+
+            const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
+            const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
+            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end() );
+
+
+            // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
+            // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
+            const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
+            std::array< uint_t, 4 > faceBasisInCell;
+            if ( spanningCellLocalVertices.count( basisInCell.at( 2 ) ) == 1 )
+            {
+              faceBasisInCell = basisInCell;
+            }
+            else
+            {
+              WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 );
+              faceBasisInCell = basisInCell;
+              faceBasisInCell[2] = basisInCell.at(3);
+              faceBasisInCell[3] = basisInCell.at(2);
+            }
+
+            const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+            const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ));
+
+            const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
+            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+          }
+          else
+          {
+            // leaf on macro-edge
+            WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
+            WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X );
+            leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
+          }
+
+          tmp += src[ leafArrayIndexOnEdge ] * stencilWeight;
+        }
+      }
+    }
+
+    if ( update == Replace )
+    {
+      dst[ edgedof::macroedge::index( level, centerIndexOnEdge.x() ) ] = tmp;
+    }
+    else if ( update == Add )
+    {
+      dst[ edgedof::macroedge::index( level, centerIndexOnEdge.x() ) ] += tmp;
+    }
+  }
+}
+
+
 template< typename ValueType >
 inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId){
   ValueType* edgeMemory = edge.getData(dstId)->getPointer( Level );
@@ -238,10 +375,42 @@ inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const Pr
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+inline ValueType getMaxValue( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
 
   auto src = edge.getData( srcId )->getPointer( level );
-  real_t localMax = real_t(0.0);
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for( const auto &it: edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    localMax = std::max( localMax, src[idx] );
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+
+  auto src = edge.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for( const auto &it: edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    localMin = std::min( localMin, src[idx] );
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
+inline ValueType getMaxMagnitude( const uint_t &level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId ) {
+
+  auto src = edge.getData( srcId )->getPointer( level );
+  auto localMax = ValueType(0.0);
 
   for( const auto &it: edgedof::macroedge::Iterator( level ) )
   {

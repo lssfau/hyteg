@@ -143,7 +143,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_DETAIL_ON_ROOT("Total Temperature DoFs on all level :" << totalGlobalDofsTemp);
    WALBERLA_LOG_DETAIL_ON_ROOT("Total DoFs on all level :" << (totalGlobalDofsTemp + totalGlobalDofsStokes));
 
-   hhg::VTKOutput vtkOutput( "../output", "plume", plotModulo );
+   hhg::VTKOutput vtkOutput("../output", "plume", storage, plotModulo);
    vtkOutput.add( &u->u );
    vtkOutput.add( &u->v );
    vtkOutput.add( &u->p );

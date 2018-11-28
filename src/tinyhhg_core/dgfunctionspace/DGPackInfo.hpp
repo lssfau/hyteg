@@ -160,8 +160,9 @@ void DGPackInfo< ValueType >::packEdgeForFace(const Edge *sender, const Primitiv
   {
     dirCellGray = stencilDirection::CELL_GRAY_SE;
   }
-  else if(faceIdOnEdge == 1)
+  else
   {
+    WALBERLA_ASSERT_EQUAL( faceIdOnEdge, 1 );
     dirCellGray = stencilDirection::CELL_GRAY_NE;
   }
   for (uint_t i = 0; i < vPerEdge - 1; ++i)
@@ -195,8 +196,9 @@ void DGPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Fac
   {
     dirCellGray = stencilDirection::CELL_GRAY_SE;
   }
-  else if(faceIdOnEdge == 1)
+  else
   {
+    WALBERLA_ASSERT_EQUAL( faceIdOnEdge, 1 );
     dirCellGray = stencilDirection::CELL_GRAY_NE;
   }
   uint_t pos = 0;
@@ -233,8 +235,9 @@ void DGPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Primitive
   {
     dirCellBlue = stencilDirection::CELL_BLUE_SE;
   }
-  else if(faceIdOnEdge == 1)
+  else
   {
+    WALBERLA_ASSERT_EQUAL( faceIdOnEdge, 1 );
     dirCellBlue = stencilDirection::CELL_BLUE_NW;
   }
   //unpack Blue Cell
@@ -257,8 +260,9 @@ void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edg
   {
     dirCellBlue = stencilDirection::CELL_BLUE_SE;
   }
-  else if(faceIdOnEdge == 1)
+  else
   {
+    WALBERLA_ASSERT_EQUAL( faceIdOnEdge, 1 );
     dirCellBlue = stencilDirection::CELL_BLUE_NW;
   }
   for(auto it = facedof::macroface::indexIterator(edgeIndexOnFace,

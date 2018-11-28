@@ -128,7 +128,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../../Pics4Terraneo/ShellMesh-ntan4-nrad3.png"
+       <img src="../ExtraPics/ShellMesh-ntan4-nrad3.png"
        width="50%"/><br/>
      Mesh resulting from parameter choice (ntan,nrad,rmin,rmax)=(5,3,1.0,2.0)
      </center>
@@ -150,7 +150,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../../Pics4Terraneo/Diamonds-and-SphericalIndices.png"
+       <img src="../ExtraPics/Diamonds-and-SphericalIndices.png"
        width="50%"/><br/>
      Numbering of diamonds and direction of tangential indices depending on
      hemisphere
@@ -160,7 +160,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../../Pics4Terraneo/Tets-per-local-Cell.png" width="50%"/><br/>
+       <img src="../ExtraPics/Tets-per-local-Cell.png" width="50%"/><br/>
        Splitting a local cell into six tetrahedra
      </center>
      \endhtmlonly
@@ -233,7 +233,7 @@ using walberla::real_t;
 ///   this time, \f$i_s^{(1)}\f$ being the fastest running index.
 /*! \htmlonly
      <center>
-       <img src="../../Pics4Terraneo/tuple2VertIndex.png" width="50%"/><br/>
+       <img src="../ExtraPics/tuple2VertIndex.png" width="50%"/><br/>
      Visualisation of vertex ownership convention; vertices marked yellow and
      green are owned by neighbouring diamonds in the indicated direction
      </center>

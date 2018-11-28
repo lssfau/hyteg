@@ -3,6 +3,7 @@
 
 #include "core/timing/Timer.h"
 
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
@@ -68,7 +69,7 @@ int main( int argc, char* argv[] )
    x->interpolate( tmp_x, level, hhg::All );
    y->interpolate( tmp_y, level, hhg::All );
 
-   VTKOutput vtkOutput( "../output", "GeometryBlending" );
+   VTKOutput vtkOutput("../output", "GeometryBlending", storage);
    vtkOutput.add( x.get() );
    vtkOutput.add( y.get() );
    vtkOutput.write( level );

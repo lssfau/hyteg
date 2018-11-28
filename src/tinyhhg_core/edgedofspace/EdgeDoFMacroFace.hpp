@@ -2,12 +2,18 @@
 #pragma once
 
 
-#include <tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp>
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
 namespace hhg {
 namespace edgedof {
@@ -15,6 +21,71 @@ namespace macroface {
 
 using walberla::uint_t;
 using walberla::real_c;
+
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index  & edgeDoFIndexInMacroFace,
+                                                       const Face             & face,
+                                                       const uint_t           & neighborCellID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+  const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+    { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+      neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) } );
+
+  const auto indexInMacroCell = indexing::basisConversion( edgeDoFIndexInMacroFace, localVertexIDsAtCell,
+                                                           {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+  return indexInMacroCell;
+}
+
+inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroCell( const EdgeDoFOrientation & orientationInMacroFace,
+                                                                          const Face               & face,
+                                                                          const uint_t             & neighborCellID,
+                                                                          const PrimitiveStorage   & storage )
+{
+  const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+  const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+  const auto orientationInMacroCell = edgedof::convertEdgeDoFOrientationFaceToCell( orientationInMacroFace,
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+                                                                                    neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) );
+  return orientationInMacroCell;
+}
+
+
+template< typename ValueType >
+inline void interpolate(const uint_t & Level, Face & face,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
+                        const ValueType & constant )
+{
+  auto faceData = face.getData( faceMemoryId )->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not update horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = constant;
+    }
+
+    // Do not update vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      faceData[edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = constant;
+    }
+
+    // Do not update diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = constant;
+    }
+  }
+}
+
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,
@@ -263,11 +334,11 @@ inline void enumerate(const uint_t & Level, Face &face,
                       ValueType& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
-  size_t horizontal_num = num;
-  size_t diagonal_num = num +
+  size_t horizontal_num = static_cast< size_t >( num );
+  size_t diagonal_num = static_cast< size_t >( num ) +
                         hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
-  size_t vertical_num = num +
+  size_t vertical_num = static_cast< size_t >( num ) +
                         (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
@@ -352,6 +423,87 @@ inline void apply( const uint_t & Level, Face &face,
 }
 
 
+inline void apply3D( const uint_t & level, Face &face,
+                     const PrimitiveStorage & storage,
+                     const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face > &operatorId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &srcId,
+                     const PrimitiveDataID< FunctionMemory< real_t >, Face > &dstId,
+                     UpdateType update)
+{
+  auto opr_data = face.getData(operatorId)->getData( level );
+  real_t * src  = face.getData(srcId)->getPointer( level );
+  real_t * dst  = face.getData(dstId)->getPointer( level );
+
+  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  {
+    std::map< edgedof::EdgeDoFOrientation, real_t > tmpResults = {
+    { edgedof::EdgeDoFOrientation::X, real_c(0) },
+    { edgedof::EdgeDoFOrientation::Y, real_c(0) },
+    { edgedof::EdgeDoFOrientation::XY, real_c(0) },
+    };
+
+    for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
+    {
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+        continue;
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
+        continue;
+
+      for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
+      {
+        const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+        const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+        const auto centerIndexInCell = getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+        const auto cellCenterOrientation = getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+
+        for ( const auto & leafOrientation : edgedof::allEdgeDoFOrientations )
+        {
+          for ( const auto & stencilIt : opr_data[neighborCellID][cellCenterOrientation][leafOrientation] )
+          {
+            const auto stencilOffset = stencilIt.first;
+            const auto stencilWeight = stencilIt.second;
+
+            const auto leafOrientationInFace = macrocell::getOrientattionInNeighboringMacroFace( leafOrientation, neighborCell, localFaceID, storage );
+
+            const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+            const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
+                                         macrocell::getIndexInNeighboringMacroFaceXYZ( leafIndexInCell, neighborCell, localFaceID, storage, level ) :
+                                         macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
+
+            WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
+            uint_t leafArrayIndexInFace;
+            if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) && leafIndexInFace.z() == 0 )
+            {
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
+            }
+            else
+            {
+              leafArrayIndexInFace = edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
+            }
+
+            tmpResults[faceCenterOrientation] += stencilWeight * src[leafArrayIndexInFace];
+          }
+        }
+      }
+
+      const auto dstIdx = edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
+      if ( update == Replace )
+      {
+        dst[dstIdx] = tmpResults[faceCenterOrientation];
+      }
+      else
+      {
+        dst[dstIdx] += tmpResults[faceCenterOrientation];
+      }
+    }
+  }
+}
+
+
 template< typename ValueType >
 inline void printFunctionMemory( const uint_t & Level, Face& face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId){
   ValueType* faceMemory = face.getData(dstId)->getPointer( Level );
@@ -379,10 +531,78 @@ inline void printFunctionMemory( const uint_t & Level, Face& face, const Primiti
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+inline ValueType getMaxValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
 
   auto src = face.getData( srcId )->getPointer( level );
-  real_t localMax = real_t(0.0);
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+      localMax = std::max( localMax, src[idx] );
+    }
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  auto src = face.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+      localMin = std::min( localMin, src[idx] );
+    }
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
+inline ValueType getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId ) {
+
+  auto src = face.getData( srcId )->getPointer( level );
+  auto localMax = ValueType(0.0);
 
   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
   {
@@ -484,6 +704,36 @@ inline void createFunctionFromVector( const uint_t & Level, Face &face,
     }
   }
 
+}
+
+inline void applyDirichletBC( const uint_t & Level, Face &face,std::vector<PetscInt> &mat,
+                              const PrimitiveDataID<FunctionMemory< PetscInt >, Face> &numeratorId){
+
+  auto numerator = face.getData(numeratorId)->getPointer( Level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
+  {
+    // Do not read horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+
+    // Do not read vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+
+    // Do not read diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    {
+      const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
+      mat.push_back(numerator[idx]);
+    }
+  }
 }
 
 #endif

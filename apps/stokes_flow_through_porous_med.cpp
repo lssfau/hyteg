@@ -18,6 +18,7 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 using walberla::real_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
@@ -63,7 +64,7 @@ int main( int argc, char* argv[] )
   u.u.interpolate( bc_x, level, hhg::DirichletBoundary );
   u.v.interpolate( zero, level, hhg::DirichletBoundary );
 
-  hhg::VTKOutput vtkOutput( "../output", "stokes_porous_taylor_hood" );
+  hhg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
 
   vtkOutput.add( &r.u );
   vtkOutput.add( &r.v );

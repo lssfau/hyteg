@@ -25,6 +25,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
+using walberla::uint_t;
 
 
 int main( int argc, char* argv[] )
@@ -98,8 +99,7 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence" );
-   vtkOutput.set3D();
+   hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
    vtkOutput.add( &u.u );
    vtkOutput.add( &u.v );
    vtkOutput.add( &u.w );
@@ -156,16 +156,16 @@ int main( int argc, char* argv[] )
    vtkOutput.write( maxLevel, 0 );
 #if 1
 
-   typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
-   typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1ConstantLaplaceOperator, GMGSolver_T, hhg::P1LumpedInvMassOperator > Preconditioner_T;
-   typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
+   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
+   typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1ConstantLaplaceOperator, GMGSolver_T, hhg::P1LumpedInvMassOperator > Preconditioner_T;
+   typedef hhg::StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
 
    auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
    hhg::P1toP1LinearProlongation prolongationOperator;
    hhg::P1toP1LinearRestriction restrictionOperator;
    GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-   P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
+   hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
    PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
    Preconditioner_T prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
 

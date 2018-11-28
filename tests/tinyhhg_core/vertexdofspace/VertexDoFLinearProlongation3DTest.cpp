@@ -72,8 +72,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
   hhg::vertexdof::VertexDoFFunction< real_t > err        ( "err",         storage, lowerLevel, lowerLevel + 1 );
   hhg::vertexdof::VertexDoFFunction< real_t > oneFunction( "oneFunction", storage, lowerLevel, lowerLevel + 1 );
 
-  VTKOutput vtkOutput( "../../output", "P1LaplaceOperatorTest3D" );
-  vtkOutput.set3D();
+  VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
   vtkOutput.add( &u );
   vtkOutput.add( &resultExact );
   vtkOutput.add( &err );

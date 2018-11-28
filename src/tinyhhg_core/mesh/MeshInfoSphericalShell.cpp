@@ -6,7 +6,6 @@
 #include "core/debug/Debug.h"
 
 #include <array>
-#include <cmath>
 #include <vector>
 
 namespace hhg

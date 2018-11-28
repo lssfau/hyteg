@@ -5,8 +5,8 @@
 
 namespace hhg {
 
-template<class UFCOperator>
-VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
+template< class UFCOperator2D, class UFCOperator3D >
+VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
   : Operator(storage, minLevel, maxLevel) {
   /// since the Vertex does not own any EdgeDoFs only edge and face are needed
 
@@ -15,22 +15,50 @@ VertexDoFToEdgeDoFOperator<UFCOperator>::VertexDoFToEdgeDoFOperator(const std::s
                                                                         maxLevel_,
                                                                         VertexDoFToEdgeDoF::macroEdgeVertexDoFToEdgeDoFStencilSize);
 
+  auto edge3DDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge > >( minLevel_, maxLevel_ );
+
   auto faceDataHandling =
     std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face >>(minLevel_,
                                                                         maxLevel_,
                                                                         VertexDoFToEdgeDoF::macroFaceVertexDoFToEdgeDoFStencilSize);
 
-  storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  auto face3DDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face > >( minLevel_, maxLevel_ );
 
-  // Only assemble stencils if UFCOperator is specified
-  if (!std::is_same<UFCOperator, fenics::NoAssemble>::value) {
-    assembleStencils();
+  auto cellDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell > >( minLevel_, maxLevel_ );
+
+  storage->addEdgeData(edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil");
+  storage->addEdgeData(edgeStencil3DID_, edge3DDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil3D");
+  storage->addFaceData(faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil");
+  storage->addFaceData(faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil3D");
+  storage->addCellData(cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil");
+
+  if ( this->getStorage()->hasGlobalCells() )
+  {
+    if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+    {
+      assembleVertexToEdgeStencils< UFCOperator3D >( this->getStorage(),
+                                                     this->minLevel_,
+                                                     this->maxLevel_,
+                                                     getEdgeStencil3DID(),
+                                                     getFaceStencil3DID(),
+                                                     getCellStencilID() );
+    }
+  }
+  else
+  {
+    // Only assemble stencils if UFCOperator is specified
+    if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+    {
+      assembleStencils();
+    }
   }
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::assembleStencils() {
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencils() {
   using namespace P2Elements;
 
   // Initialize memory for local 6x6 matrices
@@ -79,16 +107,16 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::assembleStencils() {
   }
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
   real_t coords[6];
   fenics::compute_micro_coords(face, level, coords, element_type);
-  UFCOperator gen;
+  UFCOperator2D gen;
   gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 }
 
-template<class UFCOperator>
-void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
+template< class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
                                             UpdateType updateType) {
 
   this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
@@ -97,8 +125,20 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
   src.communicate<Vertex, Edge>( level );
   ///secondly the vertex dofs on the macro edge are communicated to the face passing on the vertex dof from the macro vertex
   src.communicate<Edge, Face>( level );
+  src.communicate< Face, Cell >( level );
+  src.communicate< Cell, Face >( level );
   ///lastly the vertex dofs on the macro face are communicated to the edge which also contain vertex dofs which are located on neighboring edges
   src.startCommunication<Face, Edge>( level );
+
+  for (auto& it : storage_->getCells()) {
+    Cell& cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if (testFlag(cellBC, flag))
+    {
+      VertexDoFToEdgeDoF::applyCell(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+    }
+  }
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -106,9 +146,12 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag))
     {
-      if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+      if ( storage_->hasGlobalCells() )
       {
-        WALBERLA_LOG_PROGRESS_ON_ROOT( "Using generated 2D apply kernel" );
+        VertexDoFToEdgeDoF::applyFace3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+      }
+      else if( hhg::globalDefines::useGeneratedKernels )
+      {
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
         real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
@@ -119,7 +162,8 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
         {
           VertexDoFToEdgeDoF::generated::applyFaceAdd( dst_data, src_data, opr_data, level );
         }
-      } else
+      }
+      else
       {
         VertexDoFToEdgeDoF::applyFace( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
       }
@@ -134,7 +178,14 @@ void VertexDoFToEdgeDoFOperator<UFCOperator>::apply_impl(P1Function<real_t> &src
     const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if (testFlag(edgeBC, flag))
     {
-      VertexDoFToEdgeDoF::applyEdge(level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+      if ( storage_->hasGlobalCells() )
+      {
+        VertexDoFToEdgeDoF::applyEdge3D( level, edge, *getStorage(), edgeStencil3DID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+      }
+      else
+      {
+        VertexDoFToEdgeDoF::applyEdge( level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+      }
     }
   }
   this->stopTiming( "VertexDoFToEdgeDoFOperator - Apply" );
@@ -155,10 +206,25 @@ uint_t macroFaceVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
   WALBERLA_UNUSED( primitive );
   return 4 + 4 + 4;
 }
+
+uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primitive & primitive )
+{
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( primitive );
+  return 7 * 27;
+}
 }
 
-template class VertexDoFToEdgeDoFOperator<hhg::fenics::NoAssemble>;
+template class VertexDoFToEdgeDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble >;
+template class VertexDoFToEdgeDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::UndefinedAssembly >;
 template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_0_otherwise>;
 template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_1_otherwise>;
+
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >;
+
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >;
 
 }/// namespace hhg

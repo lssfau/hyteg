@@ -76,12 +76,12 @@ inline void applyBlending( uint_t                                               
       {
          std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
-         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data );
 
          //      PointND<real_t, 7> test(opr_data.data());
          //      WALBERLA_LOG_INFO("stencil = " << test);
@@ -160,12 +160,12 @@ inline void smoothGSBlending( uint_t                                            
       {
          std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
-         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::FaceVertexDoF::elementSW, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::FaceVertexDoF::elementS, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::FaceVertexDoF::elementSE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::FaceVertexDoF::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::FaceVertexDoF::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::FaceVertexDoF::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data );
 
          //      PointND<real_t, 7> test(opr_data.data());
          //      WALBERLA_LOG_INFO("stencil = " << test);
@@ -209,7 +209,7 @@ inline void applyBlending( uint_t                                               
    ValueType tmp;
 
    Face*  faceS = storage->getFace( edge.neighborFaces()[0] );
-   Face*  faceN;
+   Face*  faceN = nullptr;
    uint_t s_south = faceS->vertex_index( edge.neighborVertices()[0] );
    uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
    uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
@@ -255,16 +255,16 @@ inline void applyBlending( uint_t                                               
 
       // assemble south
       form.geometryMap = faceS->getGeometryMap();
-      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::FaceVertexDoF::elementSW, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::FaceVertexDoF::elementS, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::FaceVertexDoF::elementSE, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
          form.geometryMap = faceN->getGeometryMap();
-         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::FaceVertexDoF::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::FaceVertexDoF::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::FaceVertexDoF::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data );
       }
 
       tmp = opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] *
@@ -317,10 +317,8 @@ inline void smoothGSBlending( uint_t                                            
    auto rhs = edge.getData( rhsId )->getPointer( Level );
    auto dst = edge.getData( dstId )->getPointer( Level );
 
-   ValueType tmp;
-
    Face*  faceS = storage->getFace( edge.neighborFaces()[0] );
-   Face*  faceN;
+   Face*  faceN = nullptr;
    uint_t s_south = faceS->vertex_index( edge.neighborVertices()[0] );
    uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
    uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
@@ -366,16 +364,16 @@ inline void smoothGSBlending( uint_t                                            
 
       // assemble south
       form.geometryMap = faceS->getGeometryMap();
-      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::FaceVertexDoF::elementSW, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::FaceVertexDoF::elementS, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::FaceVertexDoF::elementSE, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
          form.geometryMap = faceN->getGeometryMap();
-         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::FaceVertexDoF::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::FaceVertexDoF::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::FaceVertexDoF::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data );
       }
 
       dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] =
@@ -463,8 +461,6 @@ inline void applyBlending( uint_t                                               
          Edge*       edge     = storage->getEdge( edgeId );
          PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
 
-         uint_t v_j = face->vertex_index( vertex_j );
-
          opr_data[edge_idx] += matrixRow[i];
          i += 1;
       }
@@ -535,8 +531,6 @@ inline void smoothGSBlending( uint_t                                            
          uint_t      edge_idx = vertex.edge_index( edgeId ) + 1;
          Edge*       edge     = storage->getEdge( edgeId );
          PrimitiveID vertex_j = edge->get_opposite_vertex( vertex.getID() );
-
-         uint_t v_j = face->vertex_index( vertex_j );
 
          opr_data[edge_idx] += matrixRow[i];
          i += 1;

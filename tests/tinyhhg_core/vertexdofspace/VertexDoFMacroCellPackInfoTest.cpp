@@ -42,11 +42,11 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   for ( const auto & f : storage->getCells() )
   {
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
-    for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 0, 1, 2 ) )
+    for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level, 0, 1, 2 ) )
     {
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 0.0 );
     }
-    for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 1, 2, 3 ) )
+    for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level, 1, 2, 3 ) )
     {
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 0.0 );
     }
@@ -60,11 +60,11 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   for ( const auto & f : storage->getCells() )
   {
     auto cellData = f.second->getData( x->getCellDataID() )->getPointer( level );
-    for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 0, 1, 2 ) )
+    for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level, 0, 1, 2 ) )
     {
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 1.0 );
     }
-    for ( const auto & it : vertexdof::macrocell::BorderIterator( level, 1, 2, 3 ) )
+    for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level, 1, 2, 3 ) )
     {
       WALBERLA_CHECK_FLOAT_EQUAL( cellData[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )], 1.0 );
     }
@@ -100,8 +100,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-   hhg::testVertexDoFMacroCellPackInfo( communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
+   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
 
    return EXIT_SUCCESS;
 }

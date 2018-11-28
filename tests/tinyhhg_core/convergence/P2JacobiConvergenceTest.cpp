@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
   timer.end();
 
   if (parameters.getParameter<bool>("vtkOutput")) {
-    VTKOutput vtkOutput( "../../output", "gs_P2" );
+    VTKOutput vtkOutput("../../output", "gs_P2", storage);
     vtkOutput.add( &p2function );
     vtkOutput.add( &p2Exact );
     vtkOutput.add( &rhs );

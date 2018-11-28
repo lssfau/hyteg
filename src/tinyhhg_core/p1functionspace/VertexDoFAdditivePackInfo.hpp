@@ -216,7 +216,7 @@ void VertexDoFAdditivePackInfo< ValueType >::packCellForFace(const Cell *sender,
   const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  for ( const auto & it : vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 ) )
+  for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 ) )
   {
     buffer << cellData[ vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ];
   }
@@ -236,7 +236,8 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   {
     for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
     {
-      real_t tmp;
+      WALBERLA_UNUSED( it );
+      ValueType tmp;
       buffer >> tmp;
     }
   }
@@ -244,7 +245,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   {
     for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
     {
-      real_t tmp;
+      ValueType tmp;
       buffer >> tmp;
       faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
     }
@@ -270,7 +271,7 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace(const Ce
 
   ValueType *faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
 
-  auto cellIterator = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+  auto cellIterator = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
 
   for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
   {
@@ -302,7 +303,7 @@ void VertexDoFAdditivePackInfo< ValueType >::packCellForEdge(const Cell *sender,
   const uint_t iterationVertex2 = *possibleIterationVertices.begin();
 
   const uint_t edgeSize = levelinfo::num_microvertices_per_edge( level_ );
-  auto it  = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+  auto it  = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
   for ( uint_t i = 0; i < edgeSize; i++ )
   {
     buffer << cellData[ vertexdof::macrocell::indexFromVertex( level_, it->x(), it->y(), it->z(), stencilDirection::VERTEX_C ) ];
@@ -325,7 +326,8 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   {
     for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
     {
-      real_t tmp;
+      WALBERLA_UNUSED( it );
+      ValueType tmp;
       buffer >> tmp;
     }
   }
@@ -333,7 +335,7 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   {
     for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
     {
-      real_t tmp;
+      ValueType tmp;
       buffer >> tmp;
       edgeData[vertexdof::macroedge::indexFromVertex( level_, it.x(), stencilDirection::VERTEX_C )] += tmp;
     }
@@ -363,7 +365,7 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge(const Ce
   const uint_t iterationVertex2 = *possibleIterationVertices.begin();
 
   const uint_t edgeSize = levelinfo::num_microvertices_per_edge( level_ );
-  auto it  = vertexdof::macrocell::BorderIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+  auto it  = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
   for ( uint_t i = 0; i < edgeSize; i++ )
   {
     edgeData[i] += cellData[ vertexdof::macrocell::indexFromVertex( level_, it->x(), it->y(), it->z(), stencilDirection::VERTEX_C ) ];
@@ -387,10 +389,13 @@ void VertexDoFAdditivePackInfo< ValueType >::packCellForVertex(const Cell *sende
   {
     case 1:
       microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 2:
       microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 3:
       microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     default:
       break;
   }
@@ -414,12 +419,12 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromCell(Vertex *receiv
 
   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
   {
-    real_t tmp;
+    ValueType tmp;
     buffer >> tmp;
   }
   else
   {
-    real_t tmp;
+    ValueType tmp;
     buffer >> tmp;
     vertexData[ 0 ] += tmp;
   }
@@ -445,10 +450,13 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const 
   {
     case 1:
       microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 2:
       microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     case 3:
       microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
     default:
       break;
   }

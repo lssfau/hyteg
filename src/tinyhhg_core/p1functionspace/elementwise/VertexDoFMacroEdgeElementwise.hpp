@@ -53,15 +53,7 @@ namespace hhg {
                                                std::vector<real_t>& edgeStencil )
       {
 
-        using namespace P1Elements::FaceVertexDoF;
-
-        typedef std::array< stencilDirection, 3 > Element;
-        Element elementSW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_W,  stencilDirection::VERTEX_S  }};
-        Element elementS  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_S,  stencilDirection::VERTEX_SE }};
-        Element elementSE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_SE, stencilDirection::VERTEX_E  }};
-        Element elementNE = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_E,  stencilDirection::VERTEX_N  }};
-        Element elementN  = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_N,  stencilDirection::VERTEX_NW }};
-        Element elementNW = {{ stencilDirection::VERTEX_C, stencilDirection::VERTEX_NW, stencilDirection::VERTEX_W  }};
+        using namespace P1Elements::P1Elements2D;
 
         real_t localCoords[6];
         Matrix3r localStiffness;
@@ -107,7 +99,6 @@ namespace hhg {
                                     UpdateType update ) {
 
         uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
-        uint_t inner_rowsize = rowsize;
 
         auto src = edge.getData(srcId)->getPointer(level);
         auto dst = edge.getData(dstId)->getPointer(level);
@@ -165,7 +156,6 @@ namespace hhg {
                                             ValueType relax ) {
 
         uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
-        uint_t inner_rowsize = rowsize;
 
         auto dst = edge.getData(dstId)->getPointer(level);
         auto rhs = edge.getData(rhsId)->getPointer(level);

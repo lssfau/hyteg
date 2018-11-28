@@ -1,10 +1,12 @@
 #include "core/Environment.h"
+#include "core/debug/TestSubsystem.h"
 
 #include "tinyhhg_core/indexing/Optimization.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;

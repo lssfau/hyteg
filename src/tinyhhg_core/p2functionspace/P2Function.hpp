@@ -2,14 +2,14 @@
 
 #include "core/DataTypes.h"
 
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
-
-#include "P2Multigrid.hpp"
 
 namespace hhg {
 
@@ -19,22 +19,29 @@ template < typename ValueType >
 class P2Function : public Function< P2Function< ValueType > >
 {
  public:
+   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage )
+   : Function< P2Function< ValueType > >( name, storage )
+   , vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF_dummy", storage ) )
+   , edgeDoFFunction_( std::make_shared< EdgeDoFFunction< ValueType > >( name + "__EdgeDoF_dummy", storage ) )
+   {}
 
-    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage ) :
-      Function< P2Function < ValueType > >( name, storage ),
-      vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF_dummy", storage ) ),
-      edgeDoFFunction_  ( std::make_shared< EdgeDoFFunction< ValueType > >( name + "__EdgeDoF_dummy", storage ) )
-    {}
+   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+   {}
 
-    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel ) :
-      P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
-    {}
-
-   P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, BoundaryCondition boundaryCondition )
+   P2Function( const std::string&                         name,
+               const std::shared_ptr< PrimitiveStorage >& storage,
+               uint_t                                     minLevel,
+               uint_t                                     maxLevel,
+               BoundaryCondition                          boundaryCondition )
    : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
-   , vertexDoFFunction_(
-         std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
-   , edgeDoFFunction_( std::make_shared< EdgeDoFFunction< ValueType > >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+   , vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF",
+                                                                                        storage,
+                                                                                        minLevel,
+                                                                                        maxLevel,
+                                                                                        boundaryCondition ) )
+   , edgeDoFFunction_(
+         std::make_shared< EdgeDoFFunction< ValueType > >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
    {
       for( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -47,16 +54,28 @@ class P2Function : public Function< P2Function< ValueType > >
    std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
    std::shared_ptr< EdgeDoFFunction< ValueType > >              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
+   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All )
+   {
+      vertexDoFFunction_->interpolate( constant, level, flag );
+      edgeDoFFunction_->interpolate( constant, level, flag );
+   }
+
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All )
    {
       vertexDoFFunction_->interpolate( expr, level, flag );
       edgeDoFFunction_->interpolate( expr, level, flag );
    }
 
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID )
+   {
+      vertexDoFFunction_->interpolate( expr, level, boundaryUID );
+      edgeDoFFunction_->interpolate( expr, level, boundaryUID );
+   }
+
    inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                                    const std::vector< P2Function< ValueType >* >                                  srcFunctions,
-                                    uint_t                                                                         level,
-                                    DoFType                                                                        flag = All )
+                                    const std::vector< P2Function< ValueType >* > srcFunctions,
+                                    uint_t                                        level,
+                                    DoFType                                       flag = All )
    {
       std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
       std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
@@ -125,8 +144,8 @@ class P2Function : public Function< P2Function< ValueType > >
    }
 
    inline void prolongateP1ToP2( const std::shared_ptr< hhg::P1Function< ValueType > >& p1Function,
-                                 const uint_t&                                     level,
-                                 const DoFType&                                    flag = All )
+                                 const uint_t&                                          level,
+                                 const DoFType&                                         flag = All )
    {
       // Note: 'this' is the dst function - therefore we test this' boundary conditions
 
@@ -431,40 +450,62 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
-  inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
-  {
-    auto localMax = real_t(0.0);
-    localMax = std::max( localMax, vertexDoFFunction_->getMaxMagnitude( level, flag, false ) );
-    localMax = std::max( localMax, edgeDoFFunction_->getMaxMagnitude( level, flag, false ) );
+   inline real_t getMaxValue( uint_t level, DoFType flag = All )
+   {
+      auto localMax = -std::numeric_limits< ValueType >::max();
+      localMax      = std::max( localMax, vertexDoFFunction_->getMaxValue( level, flag, false ) );
+      localMax      = std::max( localMax, edgeDoFFunction_->getMaxValue( level, flag, false ) );
+      walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+      return localMax;
+   }
 
-    return localMax;
-  }
+   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
+   {
+      auto localMax = real_t( 0.0 );
+      localMax      = std::max( localMax, vertexDoFFunction_->getMaxMagnitude( level, flag, false ) );
+      localMax      = std::max( localMax, edgeDoFFunction_->getMaxMagnitude( level, flag, false ) );
 
-  inline BoundaryCondition getBoundaryCondition() const
-  {
-     WALBERLA_ASSERT_EQUAL( vertexDoFFunction_->getBoundaryCondition(), edgeDoFFunction_->getBoundaryCondition(),
-                            "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" );
-     return vertexDoFFunction_->getBoundaryCondition();
-  }
+      walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-   inline void enumerate( uint_t level ){
+      return localMax;
+   }
+
+   inline real_t getMinValue( uint_t level, DoFType flag = All )
+   {
+      auto localMin = std::numeric_limits< ValueType >::max();
+      localMin      = std::min( localMin, vertexDoFFunction_->getMinValue( level, flag, false ) );
+      localMin      = std::min( localMin, edgeDoFFunction_->getMinValue( level, flag, false ) );
+      walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
+
+      return localMin;
+   }
+
+   inline BoundaryCondition getBoundaryCondition() const
+   {
+      WALBERLA_ASSERT_EQUAL( vertexDoFFunction_->getBoundaryCondition(),
+                             edgeDoFFunction_->getBoundaryCondition(),
+                             "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" );
+      return vertexDoFFunction_->getBoundaryCondition();
+   }
+
+   inline void enumerate( uint_t level )
+   {
       this->startTiming( "Enumerate" );
 
       uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
-      uint_t counterEdgeDoFs = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+      uint_t counterEdgeDoFs   = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
 
       std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
-      std::vector< uint_t > edgeDoFsPerRank= walberla::mpi::allGather( counterEdgeDoFs );
+      std::vector< uint_t > edgeDoFsPerRank   = walberla::mpi::allGather( counterEdgeDoFs );
 
       ValueType offset = 0;
 
-      for( uint_t i = 0; i < uint_c(walberla::MPIManager::instance()->rank()); ++i )
+      for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
       {
-         offset += static_cast<ValueType>( vertexDoFsPerRank[i] + edgeDoFsPerRank[i] );
+         offset += static_cast< ValueType >( vertexDoFsPerRank[i] + edgeDoFsPerRank[i] );
       }
-      enumerate( level, offset);
+      enumerate( level, offset );
       this->stopTiming( "Enumerate" );
    }
 
@@ -473,6 +514,13 @@ class P2Function : public Function< P2Function< ValueType > >
       vertexDoFFunction_->enumerate( level, offset );
       edgeDoFFunction_->enumerate( level, offset );
    }
+
+   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode )
+   {
+      vertexDoFFunction_->setLocalCommunicationMode( localCommMode );
+      edgeDoFFunction_->setLocalCommunicationMode( localCommMode );
+   }
+
  private:
    using Function< P2Function< ValueType > >::communicators_;
 

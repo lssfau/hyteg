@@ -32,7 +32,7 @@ public:
 
   friend class PrimitiveStorage;
 
-  PrimitiveDataID()                            : id_( 0 ) {}
+  PrimitiveDataID()                            : id_( std::numeric_limits< uint_t >::max() ) {}
   explicit PrimitiveDataID( const walberla::uint_t id ) : id_( id ) {}
 
   /// Copy-constructor

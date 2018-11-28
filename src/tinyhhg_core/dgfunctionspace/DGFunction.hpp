@@ -10,6 +10,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 namespace hhg {
 
@@ -66,6 +67,8 @@ public:
 
   inline void enumerate( uint_t level );
 
+  inline real_t getMaxValue( const uint_t level, DoFType flag = All );
+  inline real_t getMinValue( const uint_t level, DoFType flag = All );
   inline real_t getMaxMagnitude( const uint_t level, DoFType flag = All );
 
   const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &getVertexDataID() const { return vertexDataID_; }
@@ -271,7 +274,7 @@ void DGFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 
   ValueType startOnRank = offset;
 
-  for( uint_t i = 0; i < walberla::MPIManager::instance()->rank(); ++i )
+  for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
   {
     startOnRank += dofs_per_rank[i];
   }
@@ -357,6 +360,42 @@ void DGFunction< ValueType >::projectP1(P1Function< real_t >& src, uint_t level,
   endCommunication<Edge, Face>( level );
 
   this->stopTiming( "projectP1" );
+}
+
+template< typename ValueType >
+real_t DGFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag ) {
+
+  real_t localMax = -std::numeric_limits< ValueType >::max();
+
+  for( auto& it : this->getStorage()->getFaces() ) {
+    Face& face = *it.second;
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if( testFlag( faceBC, flag ) )
+    {
+      localMax = std::max( localMax, DGFace::getMaxValue< ValueType >( level, face, faceDataID_ ));
+    }
+  }
+
+  walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  return localMax;
+}
+
+template< typename ValueType >
+real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag ) {
+
+  real_t localMin = std::numeric_limits< ValueType >::min();
+
+  for( auto& it : this->getStorage()->getFaces() ) {
+    Face& face = *it.second;
+    const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+    if( testFlag( faceBC, flag ) )
+    {
+      localMin = std::min( localMin, DGFace::getMinValue< ValueType >( level, face, faceDataID_ ));
+    }
+  }
+
+  walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
+  return localMin;
 }
 
 template< typename ValueType >

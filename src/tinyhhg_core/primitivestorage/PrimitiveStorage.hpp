@@ -1,3 +1,5 @@
+#include <memory>
+
 
 #pragma once
 
@@ -5,9 +7,6 @@
 #include "core/timing/TimingTree.h"
 #include "tinyhhg_core/PrimitiveID.hpp"
 #include "tinyhhg_core/primitives/Primitive.hpp"
-#include "tinyhhg_core/primitives/Face.hpp"
-#include "tinyhhg_core/primitives/Vertex.hpp"
-#include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
 #include <map>
@@ -16,6 +15,10 @@
 namespace hhg {
 
 class SetupPrimitiveStorage;
+class Vertex;
+class Edge;
+class Face;
+class Cell;
 
 class PrimitiveStorage : private walberla::NonCopyable
 {
@@ -27,7 +30,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
-  PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
+  explicit PrimitiveStorage( const SetupPrimitiveStorage & setupStorage );
   PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,  const std::shared_ptr< walberla::WcTimingTree > & timingTree);
 
   /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
@@ -498,7 +501,7 @@ inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandl
   // Set up initialization, serialization and deserialization callbacks
   auto initCallback = [ this, dataID, dataHandling ]( const std::shared_ptr< PrimitiveType > & primitive ) -> void
   {
-    primitive->data_[ dataID ] = std::shared_ptr< internal::PrimitiveData >( new internal::PrimitiveData( dataHandling->initialize( primitive.get() ) ) );
+    primitive->data_[ dataID ] = std::make_shared< internal::PrimitiveData >(dataHandling->initialize( primitive.get() ));
   };
 
   std::function< void( const std::shared_ptr< PrimitiveType > &, walberla::mpi::SendBuffer & ) > serializationCallback =

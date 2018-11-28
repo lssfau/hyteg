@@ -18,6 +18,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
@@ -164,7 +165,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "PetscCompare-2D-P2-Apply" );
+      hhg::VTKOutput vtkOutput("./output", "PetscCompare-2D-P2-Apply", storage);
       vtkOutput.add( &x );
       vtkOutput.add( &z );
       vtkOutput.add( &y );

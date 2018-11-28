@@ -35,6 +35,15 @@ public:
     }
   }
 
+  /// Sets all values to the given constant
+  Matrix( const T & constant )
+  {
+    for (uint_t i = 0; i < Size; ++i)
+    {
+      x[i] = constant;
+    }
+  }
+
   /// Constructs the matrix using values from M*N-dimensional array \p _x in row-major order
   /// \param _x Pointer to M*N-dimensional array
   Matrix(T _x[Size])
@@ -180,5 +189,6 @@ typedef Matrix<real_t, 2, 2> Matrix2r;
 typedef Matrix<real_t, 3, 3> Matrix3r;
 typedef Matrix<real_t, 4, 4> Matrix4r;
 typedef Matrix<real_t, 6, 6> Matrix6r;
+typedef Matrix<real_t, 10, 10> Matrix10r;
 
 }

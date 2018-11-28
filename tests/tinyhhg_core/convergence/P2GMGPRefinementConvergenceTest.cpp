@@ -202,7 +202,7 @@ int main( int argc, char* argv[] )
 
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput( "../output", "gmg_P2" );
+      VTKOutput vtkOutput("../output", "gmg_P2", storage);
       vtkOutput.add( &u_p2 );
       vtkOutput.add( &u_exact_p2 );
       vtkOutput.add( &f_p2 );
@@ -212,8 +212,11 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel );
    }
 
-   walberla::WcTimingTree tt = timingTree->getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( tt );
+   if( parameters.getParameter< bool >( "printTiming" ) )
+   {
+      walberla::WcTimingTree tt = timingTree->getReduced();
+      WALBERLA_LOG_INFO_ON_ROOT( tt );
+   }
 
    return 0;
 }

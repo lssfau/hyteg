@@ -16,6 +16,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
+using walberla::uint_t;
 
 int main( int argc, char* argv[] )
 {
@@ -76,7 +77,7 @@ int main( int argc, char* argv[] )
    hhg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
-   const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
+   const uint_t totalDoFs = hhg::numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );
@@ -94,7 +95,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "ApplyBenchmark" );
+      hhg::VTKOutput vtkOutput("./output", "ApplyBenchmark", storage);
       vtkOutput.add( &x );
       vtkOutput.add( &z );
       vtkOutput.add( &y );

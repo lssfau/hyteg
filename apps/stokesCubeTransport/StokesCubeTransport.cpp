@@ -33,6 +33,7 @@
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
@@ -112,10 +113,9 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput( "./output", "StokesCubeTransport" );
+   hhg::VTKOutput vtkOutput("./output", "StokesCubeTransport", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.set3D();
       vtkOutput.add( &u.u );
       vtkOutput.add( &u.v );
       vtkOutput.add( &u.w );

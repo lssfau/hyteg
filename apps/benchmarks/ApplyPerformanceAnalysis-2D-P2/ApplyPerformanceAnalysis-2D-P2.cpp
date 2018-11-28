@@ -21,6 +21,7 @@
 const int USE_GENERATED_KERNELS = 1;
 
 using walberla::real_t;
+using namespace hhg;
 
 static void performBenchmark( hhg::P2Function< double >&      src,
                               hhg::P2Function< double >&      dst,
@@ -215,7 +216,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "ApplyPerformanceAnalysis-2D-P2.cpp" );
+      hhg::VTKOutput vtkOutput("./output", "ApplyPerformanceAnalysis-2D-P2.cpp", storage);
       vtkOutput.add( &src );
       vtkOutput.add( &dst );
       vtkOutput.write( level );

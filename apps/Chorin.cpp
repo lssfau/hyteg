@@ -19,6 +19,8 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
+using namespace hhg;
+
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
@@ -142,7 +144,7 @@ int main( int argc, char* argv[] )
    u_dg->projectP1( u, maxLevel, hhg::All );
    v_dg->projectP1( v, maxLevel, hhg::All );
 
-   hhg::VTKOutput vtkOutput( "../output", "test", plotModulo );
+   hhg::VTKOutput vtkOutput("../output", "test", storage, plotModulo);
    vtkOutput.add( &u );
    vtkOutput.add( &v );
    vtkOutput.add( &p );

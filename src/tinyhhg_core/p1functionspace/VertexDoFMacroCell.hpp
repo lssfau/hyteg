@@ -12,6 +12,8 @@
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -22,6 +24,22 @@ using walberla::real_t;
 using walberla::real_c;
 
 using indexing::Index;
+
+inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index  & vertexDoFIndexInMacroCell,
+                                                       const Cell             & cell,
+                                                       const uint_t           & neighborFaceID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+  { cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(0),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(1),
+    cell.getFaceLocalVertexToCellLocalVertexMaps().at(neighborFaceID).at(2) } );
+
+  const auto indexInMacroFace = indexing::basisConversion( vertexDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microvertices_per_edge( level ) );
+  return indexInMacroFace;
+}
 
 inline Point3D coordinateFromIndex( const uint_t & level, const Cell & cell, const Index & index )
 {
@@ -363,6 +381,48 @@ inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<F
 }
 
 
+template< typename ValueType >
+inline ValueType getMaxValue( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = -std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMax = std::max( localMax, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] );
+  }
+
+  return localMax;
+}
+
+
+template< typename ValueType >
+inline ValueType getMinValue( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMin = std::numeric_limits< ValueType >::max();
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMin = std::min( localMin, src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] );
+  }
+
+  return localMin;
+}
+
+
+template< typename ValueType >
+inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+
+  auto src = cell.getData( srcId )->getPointer( level );
+  auto localMax = ValueType(0.0);
+
+  for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) ) {
+    localMax = std::max( localMax, std::abs( src[vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C ) ] ));
+  }
+
+  return localMax;
+}
+
+
 #ifdef HHG_BUILD_WITH_PETSC
 
 inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID<StencilMemory< real_t >, Cell>& operatorId,
@@ -379,12 +439,12 @@ inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataI
       PetscInt srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
       PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
 
-      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,INSERT_VALUES);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,ADD_VALUES);
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter ) {
         srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), neighbor)];
 
-        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,INSERT_VALUES);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,ADD_VALUES);
       }
   }
 }

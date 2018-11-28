@@ -39,9 +39,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   hhg::P1Function< real_t > error     ("error",     storage, level, level);
   hhg::P1Function< real_t > helperFun ("helperFun", storage, level, level);
 
-  VTKOutput vtkOutput( "../../output", "gs_P2" );
-  if ( storage->hasGlobalCells() )
-    vtkOutput.set3D();
+  VTKOutput vtkOutput("../../output", "gs_P2", storage);
   vtkOutput.add( &p2function );
   vtkOutput.add( &p2Exact );
   vtkOutput.add( &rhs );

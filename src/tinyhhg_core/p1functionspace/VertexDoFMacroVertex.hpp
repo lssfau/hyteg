@@ -2,7 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/Levelinfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
+
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
@@ -356,21 +356,20 @@ inline void integrateDG(Vertex &vertex,
 
 
 template< typename ValueType >
-inline real_t getMaxValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMaxValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return src[0];
 }
 
 
 template< typename ValueType >
-inline real_t getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMaxMagnitude( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return std::abs( src[0] );
 }
 
-
 template< typename ValueType >
-inline real_t getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
+inline ValueType getMinValue( const uint_t &level, Vertex &vertex, const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId ) {
   auto src = vertex.getData( srcId )->getPointer( level );
   return src[0];
 }
@@ -387,7 +386,7 @@ inline void saveOperator(Vertex &vertex,
   auto src = vertex.getData(srcId)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
-  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, INSERT_VALUES);
+  MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, ADD_VALUES);
 }
 
 template< typename ValueType >

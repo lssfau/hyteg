@@ -4,6 +4,8 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/indexing/Common.hpp"
 
+#include <set>
+
 namespace hhg {
 namespace indexing {
 
@@ -42,6 +44,23 @@ inline constexpr uint_t macroCellIndex( const uint_t & width, const uint_t & x, 
 {
   return layout::linearMacroCellIndex( width, x, y, z );
 }
+
+
+/// Returns the local face indices of the cell if the index is located on a face of the cell.
+/// Note that an index can be located on multiple faces (e.g. if it lies on an edge).
+/// If it is not located on any face, the returned set is empty.
+std::set< uint_t > isOnCellFace( const indexing::Index & index, const uint_t & width );
+
+
+/// Returns the local edge indices of the cell if the index is located on an edge of the cell.
+/// Note that an index can be located on multiple edges (e.g. if it lies on a vertex).
+/// If it is not located on any edge, the returned set is empty.
+std::set< uint_t > isOnCellEdge( const indexing::Index & index, const uint_t & width );
+
+
+/// Returns a set with the vertex index of the cell if the index is located on a vertex of the cell
+/// and empty set otherwise.
+std::set< uint_t > isOnCellVertex( const indexing::Index & index, const uint_t & width );
 
 
 /// Iterator over a cell.

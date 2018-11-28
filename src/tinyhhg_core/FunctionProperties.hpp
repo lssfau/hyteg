@@ -32,9 +32,13 @@ inline uint_t numberOfLocalDoFs< EdgeDoFFunctionTag >( const PrimitiveStorage& p
    const uint_t numDoFsOnSingleEdge   = levelinfo::num_microedges_per_edge( level ) - 2 * numDoFsOnSingleVertex;
    const uint_t numDoFsOnSingleFace =
        levelinfo::num_microedges_per_face( level ) - 3 * numDoFsOnSingleEdge - 3 * numDoFsOnSingleVertex;
+   const uint_t numDoFsOnSingleCell =
+       levelinfo::num_microedges_per_cell( level ) - 4 * numDoFsOnSingleFace
+       - 6 * numDoFsOnSingleEdge - 4 * numDoFsOnSingleVertex;
    return numDoFsOnSingleVertex * primitiveStorage.getNumberOfLocalVertices() +
           numDoFsOnSingleEdge * primitiveStorage.getNumberOfLocalEdges() +
-          numDoFsOnSingleFace * primitiveStorage.getNumberOfLocalFaces();
+          numDoFsOnSingleFace * primitiveStorage.getNumberOfLocalFaces() +
+          numDoFsOnSingleCell * primitiveStorage.getNumberOfLocalCells();
 }
 
 template <>

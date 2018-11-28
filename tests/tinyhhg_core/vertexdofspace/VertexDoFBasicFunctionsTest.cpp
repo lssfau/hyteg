@@ -6,7 +6,10 @@
 
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
 
 namespace hhg {
 

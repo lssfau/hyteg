@@ -1,5 +1,7 @@
 
 #include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
+#include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 
 namespace hhg {
 

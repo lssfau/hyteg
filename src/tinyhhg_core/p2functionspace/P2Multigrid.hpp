@@ -6,6 +6,9 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 
 namespace hhg {
 namespace P2 {
@@ -463,16 +466,10 @@ void restrictInjection(const uint_t sourceLevel,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Face > & edgeDoFMemoryID){
 
   ValueType* vertexDofFineData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
-  ValueType* edgeDofFineData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
   ValueType* vertexDofCoarseData = face.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
   ValueType* edgeDofCoarseData    = face.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1);
 
   typedef hhg::stencilDirection sD;
-  sD targetDirection;
-
-  indexing::FaceBorderDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
-  indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
-  indexing::FaceBorderDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
 
   real_t tmp;
 
@@ -647,7 +644,6 @@ void restrictInjection(const uint_t sourceLevel,
 
   ValueType* vertexDofCoarseData = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel - 1 );
   ValueType* edgeDofCoarseData   = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel - 1 );
-  ValueType* edgeDofFineData     = edge.getData( edgeDoFMemoryID   )->getPointer( sourceLevel );
   ValueType* vertexDofFineData   = edge.getData( vertexDoFMemoryID )->getPointer( sourceLevel );
 
   typedef hhg::stencilDirection sD;

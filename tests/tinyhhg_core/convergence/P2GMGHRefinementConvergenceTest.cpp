@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
 
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      VTKOutput vtkOutput( "../output", "gmg_P2_h_refinement" );
+      VTKOutput vtkOutput("../output", "gmg_P2_h_refinement", storage);
       vtkOutput.add( &u );
       vtkOutput.add( &u_exact );
       vtkOutput.add( &f );

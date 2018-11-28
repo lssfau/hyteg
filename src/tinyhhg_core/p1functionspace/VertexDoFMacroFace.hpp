@@ -1,5 +1,8 @@
 #pragma once
 
+#include <algorithm>
+#include <cstdlib>
+
 #include "core/debug/all.h"
 #include "core/math/KahanSummation.h"
 
@@ -7,10 +10,13 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
-#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
+#include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
+
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/primitives/Cell.hpp"
+#include "tinyhhg_core/Algorithms.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -19,6 +25,25 @@ namespace macroface {
 using indexing::Index;
 using walberla::real_c;
 using walberla::uint_t;
+
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index  & vertexDoFIndexInMacroFace,
+                                                       const Face             & face,
+                                                       const uint_t           & neighborCellID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+   const Cell & neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+   const uint_t localFaceID = neighborCell.getLocalFaceID( face.getID() );
+
+   const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 3, 4 >(
+   { neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
+     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
+     neighborCell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2) } );
+
+   const auto indexInMacroCell = indexing::basisConversion( vertexDoFIndexInMacroFace, localVertexIDsAtCell,
+                                                            {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+   return indexInMacroCell;
+}
 
 inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index )
 {
@@ -296,7 +321,7 @@ inline void apply( const uint_t&                                               L
    ValueType* src      = face.getData( srcId )->getPointer( Level );
    ValueType* dst      = face.getData( dstId )->getPointer( Level );
 
-   ValueType tmp;
+   ValueType tmp = real_c( 0 );
 
   for( uint_t j = 1; j < rowsize - 2; ++j )
   {
@@ -907,19 +932,19 @@ inline void integrateDG( const uint_t&                                          
 }
 
 template < typename ValueType >
-inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = -std::numeric_limits< real_t >::max();
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMax = -std::numeric_limits< ValueType >::max();
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] );
+         localMax = std::max( localMax, src[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )]);
       }
       --inner_rowsize;
    }
@@ -928,14 +953,14 @@ inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataI
 }
 
 template < typename ValueType >
-inline real_t
+inline ValueType
     getMaxMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = real_t( 0.0 );
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMax = ValueType( 0.0 );
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
@@ -951,13 +976,13 @@ inline real_t
 }
 
 template < typename ValueType >
-inline real_t getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    uint_t inner_rowsize = rowsize;
 
-   auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMin = std::numeric_limits< real_t >::max();
+   auto src      = face.getData( srcId )->getPointer( level );
+   auto localMin = std::numeric_limits< ValueType >::max();
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
@@ -996,7 +1021,7 @@ inline void saveOperator( const uint_t&                                         
       PetscInt srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
       PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
       //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, VERTEX_C)], opr_data[VERTEX_C]);
-      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )], INSERT_VALUES );
+      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )], ADD_VALUES );
 
       if ( face.getNumNeighborCells() == 0 )
       {
@@ -1004,7 +1029,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       } else if ( face.getNumNeighborCells() == 1 )
       {
@@ -1012,7 +1037,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       } else if ( face.getNumNeighborCells() == 2 )
       {
@@ -1020,7 +1045,7 @@ inline void saveOperator( const uint_t&                                         
         {
           srcInt = src[vertexdof::macroface::indexFromVertex( Level, i, j, neighbor )];
           //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, j, VERTEX_C)], src[index<Level>(i, j, neighbor)], opr_data[neighbor]);
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], INSERT_VALUES );
+          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[vertexdof::stencilIndexFromVertex( neighbor )], ADD_VALUES );
         }
       }
     }

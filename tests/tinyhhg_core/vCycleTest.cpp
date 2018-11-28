@@ -18,6 +18,7 @@
 
 using walberla::real_t;
 using walberla::uint_c;
+using walberla::uint_t;
 using walberla::real_c;
 
 enum class CycleType

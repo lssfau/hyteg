@@ -6,6 +6,7 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
@@ -110,7 +111,7 @@ static void testEdgeDoFFunction()
 
   auto dg = std::make_shared< DGFunction< real_t > >( "dg", storage2, minLevel, maxLevel );
 
-  VTKOutput vtkOutput( "../../output", "interpolate_test" );
+  VTKOutput vtkOutput("../../output", "interpolate_test", storage);
   vtkOutput.add( p1 );
   vtkOutput.add( z );
   vtkOutput.add( dg );
