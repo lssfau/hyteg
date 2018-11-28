@@ -239,6 +239,11 @@ inline std::ostream& operator<<(std::ostream &os, const PointND<T, N> &pointnd)
 typedef PointND<real_t, 2> Point2D;
 typedef PointND<real_t, 3> Point3D;
 
+inline Point3D crossProduct( const Point3D & a, const Point3D & b )
+{
+  return Point3D({ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] });
+}
+
 }
 
 namespace walberla {
