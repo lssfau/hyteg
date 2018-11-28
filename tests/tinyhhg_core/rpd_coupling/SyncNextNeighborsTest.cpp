@@ -81,7 +81,6 @@ int main( int argc, char ** argv )
      {
        //initialize particle
        const Vec3 position( 0.1, y * 0.1, z * 0.1 );
-       // const Vec3 position( 0.4999, 0.3, 0.8 );
        const Vec3 velocity( 0.01, 0.0, 0.0 );
        const real_t radius = 0.05;
        auto uid = createSphere(position, velocity, radius, ps, rpdSetupStorage);
@@ -94,6 +93,7 @@ int main( int argc, char ** argv )
 
     WALBERLA_LOG_INFO_ON_ROOT("*** VTK ***");
     auto vtkOutput       = make_shared<rpd::vtk::ParticleVtkOutput>(ps) ;
+    vtkOutput->addOutput< rpd::data::SelectParticleOwner >( "particleRank" );
     auto vtkWriter       = walberla::vtk::createVTKOutput_PointData(vtkOutput, "Bodies", 1, "../../output", "simulation_step", false, false);
 
     WALBERLA_LOG_INFO_ON_ROOT("*** SIMULATION - START ***");
