@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   hhg::p2PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   3.0e-15 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   1.2e-13 );
+  hhg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   1.5e-13 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 1.1e-17 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 9.6e-16 );
   hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 1.5e-15 );
