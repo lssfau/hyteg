@@ -117,7 +117,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_s
 
 template< class UFCOperator2D, class UFCOperator3D >
 void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
-                                            UpdateType updateType) {
+                                            UpdateType updateType) const {
 
   this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
   ///the order of communication is crucial here.

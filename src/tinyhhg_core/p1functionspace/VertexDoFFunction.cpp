@@ -263,10 +263,11 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >                       scalars,
-                                             const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                             size_t                                               level,
-                                             DoFType                                              flag )
+void VertexDoFFunction< ValueType >::assign(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+    size_t                                                                               level,
+    DoFType                                                                              flag )
 {
    if( isDummy() )
    {
@@ -279,12 +280,12 @@ void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >     
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : functions )
+   for( const VertexDoFFunction< ValueType >& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
    this->startTiming( "Vertex" );
    for( const auto& it : this->getStorage()->getVertices() )
@@ -384,10 +385,11 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >                       scalars,
-                                          const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                          size_t                                               level,
-                                          DoFType                                              flag )
+void VertexDoFFunction< ValueType >::add(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+    size_t                                                                               level,
+    DoFType                                                                              flag )
 {
    if( isDummy() )
    {
@@ -400,12 +402,12 @@ void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >        
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( auto& function : functions )
+   for( const VertexDoFFunction< ValueType >& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -515,7 +517,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexD
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotGlobal(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    real_t scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -525,7 +527,7 @@ real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    if( isDummy() )
    {

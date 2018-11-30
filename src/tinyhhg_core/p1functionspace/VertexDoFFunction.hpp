@@ -57,22 +57,22 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
-   void assign( const std::vector< ValueType >                       scalars,
-                const std::vector< VertexDoFFunction< ValueType >* > functions,
-                uint_t                                               level,
-                DoFType                                              flag = All );
+   void assign( const std::vector< ValueType >&                                                      scalars,
+                const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                uint_t                                                                               level,
+                DoFType                                                                              flag = All );
 
    void add( const ValueType& scalar, const uint_t& level, DoFType flag = All );
 
-   void add( const std::vector< ValueType >                       scalars,
-             const std::vector< VertexDoFFunction< ValueType >* > functions,
-             uint_t                                               level,
-             DoFType                                              flag = All );
+   void add( const std::vector< ValueType >&                                                      scalars,
+             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+             uint_t                                                                               level,
+             DoFType                                                                              flag = All );
 
    void multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions, uint_t level, DoFType flag = All );
 
-   real_t dotLocal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
-   real_t dotGlobal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+   real_t dotLocal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+   real_t dotGlobal(VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
@@ -209,7 +209,7 @@ inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunctio
    real_t numGlobalVertices = tmp.dotGlobal( tmp, level, hhg::All );
    real_t mean              = pressure.dotGlobal( tmp, level, hhg::All );
 
-   pressure.assign( {1.0, -mean / numGlobalVertices}, {&pressure, &tmp}, level, hhg::All );
+   pressure.assign( {1.0, -mean / numGlobalVertices}, {pressure, tmp}, level, hhg::All );
 }
 
 } // namespace vertexdof

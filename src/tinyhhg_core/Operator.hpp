@@ -22,11 +22,12 @@ public:
     }
   }
 
-  virtual ~Operator()
-  {
-  }
+  typedef SourceFunction srcType;
+  typedef DestinationFunction dstType;
 
-  void apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace );
+  virtual ~Operator() = default;
+
+  void apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const;
 
   void smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag );
 
@@ -40,7 +41,7 @@ public:
 
  protected:
 
-  virtual void apply_impl( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) = 0;
+  virtual void apply_impl( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const = 0;
   virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
     WALBERLA_ASSERT(false, "Not implemented");
   };
@@ -63,7 +64,7 @@ public:
 
  protected:
 
-  void startTiming( const std::string & timerString )
+  void startTiming( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
@@ -72,7 +73,7 @@ public:
     }
   }
 
-  void stopTiming ( const std::string & timerString )
+  void stopTiming ( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
@@ -84,7 +85,7 @@ public:
 
 
 template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType )
+void Operator< SourceFunction, DestinationFunction  >::apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType ) const
 {
   apply_impl( src, dst, level, flag, updateType );
 }

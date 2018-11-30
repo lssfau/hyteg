@@ -37,7 +37,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 }
 
 void
-EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) {
+EdgeDoFOperator::apply_impl(EdgeDoFFunction<real_t> &src, EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) const {
 
   this->startTiming( "EdgeDoFOperator - Apply" );
 

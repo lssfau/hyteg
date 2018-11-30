@@ -146,7 +146,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(Edge
                                                                             P1Function<real_t> &dst,
                                                                             uint_t level,
                                                                             DoFType flag,
-                                                                            UpdateType updateType)
+                                                                            UpdateType updateType) const
 {
   using namespace EdgeDoFToVertexDoF;
   this->startTiming( "EdgeDoFToVertexDoFOperator - Apply" );

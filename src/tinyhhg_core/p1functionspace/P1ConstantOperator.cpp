@@ -479,7 +479,7 @@ P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagona
                                                                                                P1Function<real_t> &dst,
                                                                                                size_t level,
                                                                                                DoFType flag,
-                                                                                               UpdateType updateType) {
+                                                                                               UpdateType updateType) const{
    this->startTiming( "P1ConstantOperator - Apply" );
    src.communicate< Vertex, Edge >( level );
    src.communicate< Edge, Face >( level );

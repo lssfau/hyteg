@@ -356,7 +356,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply_impl( P2Function<
                                                                      P2Function< real_t >& dst,
                                                                      size_t                level,
                                                                      DoFType               flag,
-                                                                     UpdateType            updateType )
+                                                                     UpdateType            updateType ) const
 {
    vertexToVertex.apply( *src.getVertexDoFFunction(), *dst.getVertexDoFFunction(), level, flag, updateType );
    edgeToVertex.apply( *src.getEdgeDoFFunction(), *dst.getVertexDoFFunction(), level, flag, Add );

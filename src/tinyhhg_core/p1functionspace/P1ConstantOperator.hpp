@@ -74,7 +74,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                     P1Function< real_t >& dst,
                     size_t                level,
                     DoFType               flag,
-                    UpdateType            updateType = Replace ) override;
+                    UpdateType            updateType = Replace ) const override;
 
    void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override;
 

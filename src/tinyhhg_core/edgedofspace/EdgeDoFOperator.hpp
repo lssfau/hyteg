@@ -20,7 +20,7 @@ public:
   EdgeDoFOperator(const std::shared_ptr <PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel);
   ~EdgeDoFOperator() final = default;
 
-  void apply_impl(EdgeDoFFunction< real_t >& src,  EdgeDoFFunction< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) final;
+  void apply_impl(EdgeDoFFunction< real_t >& src,  EdgeDoFFunction< real_t >& dst, uint_t level, DoFType flag, UpdateType updateType) const override;
 
   const PrimitiveDataID<StencilMemory< real_t >, Edge  > &getEdgeStencilID() const;
   const PrimitiveDataID<LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge  > &getEdgeStencil3DID() const;
