@@ -47,7 +47,7 @@ private:
 
   void assembleStencils3D();
 
-  void apply_impl(P2Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace) const override;
+  void apply_impl(const P2Function< real_t > & src,const P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace) const override;
 
   void smooth_gs_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag) override;
 

@@ -3,6 +3,7 @@
 #include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/celldofspace/CellDoFIndexing.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
@@ -76,22 +77,28 @@ VTKOutput::VTKOutput( std::string                                dir,
    }
 }
 
-void VTKOutput::add( const P2Function< real_t >* function )
+void VTKOutput::add( const P2Function< real_t > function )
 {
    p2Functions_.push_back( function );
-   p1Functions_.push_back( function->getVertexDoFFunction().get() );
-   edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() );
+   p1Functions_.push_back( function.getVertexDoFFunctionCopy() );
+   edgeDoFFunctions_.push_back( function.getEdgeDoFFunctionCopy() );
 }
 
-void VTKOutput::add( const std::shared_ptr< P2Function< real_t > >& function )
-{
-   p2Functions_.push_back( function.get() );
-   p1Functions_.push_back( function->getVertexDoFFunction().get() );
-   edgeDoFFunctions_.push_back( function->getEdgeDoFFunction().get() );
-}
+void VTKOutput::add(P1Function<real_t> function) { p1Functions_.push_back( function ); }
+
+void VTKOutput::add(EdgeDoFFunction<real_t> function) { edgeDoFFunctions_.push_back( function ); }
+
+void VTKOutput::add(DGFunction<real_t> function) { dgFunctions_.push_back( function ); }
+
+//void VTKOutput::add( const std::shared_ptr< P2Function< real_t > >& function )
+//{
+//   p2Functions_.push_back( function.get() );
+//   p1Functions_.push_back( function->getVertexDoFFunctionCopy() );
+//   edgeDoFFunctions_.push_back( function->getEdgeDoFFunctionCopy() );
+//}
 
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,
-                                    const vertexdof::VertexDoFFunction< real_t >* function,
+                                    const vertexdof::VertexDoFFunction< real_t >& function,
                                     const std::shared_ptr< PrimitiveStorage >&    storage,
                                     const uint_t&                                 level ) const
 {
@@ -106,7 +113,7 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
 
          for( size_t i = 0; i < len; ++i )
          {
-            output << face.getData( function->getFaceDataID() )->getPointer( level )[i] << " ";
+            output << face.getData( function.getFaceDataID() )->getPointer( level )[i] << " ";
          }
       }
    } else
@@ -114,7 +121,7 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
       for( const auto& it : storage->getCells() )
       {
          const Cell& cell     = *it.second;
-         const auto  cellData = cell.getData( function->getCellDataID() )->getPointer( level );
+         const auto  cellData = cell.getData( function.getCellDataID() )->getPointer( level );
 
          output << std::scientific;
 
@@ -127,7 +134,7 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
 }
 
 void VTKOutput::writeEdgeDoFData( std::ostream&                              output,
-                                  const EdgeDoFFunction< real_t >*           function,
+                                  const EdgeDoFFunction< real_t >&           function,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
                                   const uint_t&                              level,
                                   const DoFType&                             dofType ) const
@@ -151,7 +158,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function->getFaceDataID() )
+               output << face.getData( function.getFaceDataID() )
                              ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() )]
                       << "\n";
             }
@@ -161,7 +168,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function->getFaceDataID() )
+               output << face.getData( function.getFaceDataID() )
                              ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() )]
                       << "\n";
             }
@@ -171,7 +178,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function->getFaceDataID() )
+               output << face.getData( function.getFaceDataID() )
                              ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() )]
                       << "\n";
             }
@@ -187,7 +194,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
       for( const auto& it : storage->getCells() )
       {
          const Cell& cell     = *it.second;
-         const auto  cellData = cell.getData( function->getCellDataID() )->getPointer( level );
+         const auto  cellData = cell.getData( function.getCellDataID() )->getPointer( level );
 
          output << std::scientific;
 
@@ -634,7 +641,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = p1Functions_[0]->getStorage();
+   auto& storage = p1Functions_[0].getStorage();
 
    const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
    const uint_t numberOfCells2D  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
@@ -666,7 +673,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : p1Functions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
 
       writeVertexDoFData( output, function, storage, level );
 
@@ -690,7 +697,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
       return;
    }
 
-   auto& storage = edgeDoFFunctions_[0]->getStorage();
+   auto& storage = edgeDoFFunctions_[0].getStorage();
 
    const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
    const uint_t faceWidth        = levelinfo::num_microedges_per_edge( level );
@@ -725,7 +732,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
 
    for( const auto& function : edgeDoFFunctions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
 
       writeEdgeDoFData( output, function, storage, level, dofType );
 
@@ -755,7 +762,7 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = dgFunctions_[0]->getStorage();
+   auto& storage = dgFunctions_[0].getStorage();
 
    const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
    const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
@@ -772,7 +779,7 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : dgFunctions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
       for( const auto& it : storage->getFaces() )
       {
          const Face& face = *it.second;
@@ -788,12 +795,12 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
             for( size_t i = 0; i < inner_rowsize - 2; ++i )
             {
                idx = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
-               output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+               output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
                idx = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
-               output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+               output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
             }
             idx = facedof::macroface::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
-            output << face.getData( function->getFaceDataID() )->getPointer( level )[idx] << " ";
+            output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
             --inner_rowsize;
          }
       }
@@ -812,7 +819,7 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = p2Functions_[0]->getStorage();
+   auto& storage = p2Functions_[0].getStorage();
 
    const uint_t numberOfPoints = write2D_ ?
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :
@@ -839,7 +846,7 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : p2Functions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function->getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
 
       if( write2D_ )
       {
@@ -855,13 +862,13 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
                {
                   if( it.col() % 2 == 0 )
                   {
-                     output << face.getData( function->getVertexDoFFunction()->getFaceDataID() )
+                     output << face.getData( function.getVertexDoFFunction().getFaceDataID() )
                                    ->getPointer( level )[vertexdof::macroface::indexFromVertex(
                                        level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
                             << " ";
                   } else
                   {
-                     output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )
+                     output << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                    ->getPointer(
                                        level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
                             << " ";
@@ -870,13 +877,13 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
                {
                   if( it.col() % 2 == 0 )
                   {
-                     output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )
+                     output << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                    ->getPointer(
                                        level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
                             << " ";
                   } else
                   {
-                     output << face.getData( function->getEdgeDoFFunction()->getFaceDataID() )
+                     output << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                    ->getPointer( level )[edgedof::macroface::diagonalIndex(
                                        level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
                             << " ";
@@ -889,8 +896,8 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
          for( const auto& itCells : storage->getCells() )
          {
             const Cell& cell       = *itCells.second;
-            auto        vertexData = cell.getData( function->getVertexDoFFunction()->getCellDataID() )->getPointer( level );
-            auto        edgeData   = cell.getData( function->getEdgeDoFFunction()->getCellDataID() )->getPointer( level );
+            auto        vertexData = cell.getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+            auto        edgeData   = cell.getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
 
             output << std::scientific;
 
@@ -1053,22 +1060,18 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
   for ( const auto & function : p1Functions_ )
   {
-    function->communicate< Vertex, Edge >( level );
-    function->communicate< Edge,   Face >( level );
-    function->communicate< Face,   Cell >( level );
+     hhg::communication::syncFunctionBetweenPrimitives<hhg::P1Function<real_t> >( function, level);
   }
 
   for ( const auto & function : edgeDoFFunctions_ )
   {
-    function->communicate< Vertex, Edge >( level );
-    function->communicate< Edge,   Face >( level );
-    function->communicate< Face,   Cell >( level );
+     hhg::communication::syncFunctionBetweenPrimitives<hhg::EdgeDoFFunction<real_t>>( function, level);
   }
 
   for ( const auto & function : dgFunctions_ )
   {
-    function->communicate< Vertex, Edge >( level );
-    function->communicate< Edge,   Face >( level );
+    function.communicate< Vertex, Edge >( level );
+    function.communicate< Edge,   Face >( level );
   }
 }
 

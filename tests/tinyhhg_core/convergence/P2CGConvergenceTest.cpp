@@ -48,22 +48,22 @@ void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targ
    u.interpolate( exact, level, hhg::DirichletBoundary );
    u_exact.interpolate( exact, level );
 
-   auto solver = hhg::CGSolver< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator >( storage, level, level );
-   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, true );
+   auto solver = hhg::CGSolver< hhg::P2ConstantLaplaceOperator >( storage, level, level );
+   solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
+   err.assign( {1.0, -1.0}, {u, u_exact}, level );
    npoints_helper.interpolate( ones, level );
 
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
    hhg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
-   vtkOutput.add( &u );
-   vtkOutput.add( &u_exact );
-   vtkOutput.add( &f );
-   vtkOutput.add( &r );
-   vtkOutput.add( &err );
-   vtkOutput.add( &npoints_helper );
+   vtkOutput.add( u );
+   vtkOutput.add( u_exact );
+   vtkOutput.add( f );
+   vtkOutput.add( r );
+   vtkOutput.add( err );
+   vtkOutput.add( npoints_helper );
    vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );

@@ -70,8 +70,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void assembleStencils3D();
 
  private:
-   void apply_impl( P1Function< real_t >& src,
-                    P1Function< real_t >& dst,
+   void apply_impl(const P1Function< real_t >& src,
+                   const P1Function< real_t >& dst,
                     size_t                level,
                     DoFType               flag,
                     UpdateType            updateType = Replace ) const override;

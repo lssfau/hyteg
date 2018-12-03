@@ -115,10 +115,13 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_s
   gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(P1Function<real_t> &src, EdgeDoFFunction<real_t> &dst, size_t level, DoFType flag,
-                                            UpdateType updateType) const {
-
+template < class UFCOperator2D, class UFCOperator3D >
+void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl( const P1Function< real_t >&      src,
+                                                                             const EdgeDoFFunction< real_t >& dst,
+                                                                             size_t                           level,
+                                                                             DoFType                          flag,
+                                                                             UpdateType                       updateType ) const
+{
   this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
   ///the order of communication is crucial here.
   ///first the vertex dofs on the macro vertex need to be communicated to the edge since they are needed on the edge and the face

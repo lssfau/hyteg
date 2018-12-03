@@ -475,8 +475,8 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
 
 template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>
 void
-P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal>::apply_impl(P1Function<real_t> &src,
-                                                                                               P1Function<real_t> &dst,
+P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal>::apply_impl(const P1Function<real_t> &src,
+                                                                                               const P1Function<real_t> &dst,
                                                                                                size_t level,
                                                                                                DoFType flag,
                                                                                                UpdateType updateType) const{

@@ -254,10 +254,11 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >                     scalars,
-                                                  const std::vector< EdgeDoFFunction< ValueType >* > functions,
-                                                  size_t                                             level,
-                                                  DoFType                                            flag )
+void EdgeDoFFunction< ValueType >::assign(
+    const std::vector< ValueType >&                                                    scalars,
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+    size_t                                                                             level,
+    DoFType                                                                            flag )
 {
    if( isDummy() )
    {
@@ -268,11 +269,11 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : functions )
+   for( const EdgeDoFFunction< ValueType >& function : functions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )
@@ -313,8 +314,8 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >                     scalars,
-                                               const std::vector< EdgeDoFFunction< ValueType >* > functions,
+void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&                     scalars,
+                                        const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
                                                size_t                                             level,
                                                DoFType                                            flag )
 {
@@ -327,11 +328,11 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >          
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : functions )
+   for( const EdgeDoFFunction< ValueType >& function : functions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )

@@ -47,11 +47,15 @@ public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
 
-  void assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-          uint_t level, DoFType flag = All );
+  void assign( const std::vector< ValueType >&                                                    scalars,
+               const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+               uint_t                                                                             level,
+               DoFType                                                                            flag = All );
 
-  void add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-       uint_t level, DoFType flag = All );
+  void add( const std::vector< ValueType >&                                                    scalars,
+            const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+            uint_t  level,
+            DoFType flag = All );
 
   /// Interpolates a given expression to a EdgeDoFFunction
 

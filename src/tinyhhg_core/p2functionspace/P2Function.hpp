@@ -35,13 +35,9 @@ class P2Function : public Function< P2Function< ValueType > >
                uint_t                                     maxLevel,
                BoundaryCondition                          boundaryCondition )
    : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
-   , vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF",
-                                                                                        storage,
-                                                                                        minLevel,
-                                                                                        maxLevel,
-                                                                                        boundaryCondition ) )
-   , edgeDoFFunction_(
-         std::make_shared< EdgeDoFFunction< ValueType > >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+   , vertexDoFFunction_(
+         vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
    {
       for( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -51,25 +47,28 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
-   std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > getVertexDoFFunction() const { return vertexDoFFunction_; }
-   std::shared_ptr< EdgeDoFFunction< ValueType > >              getEdgeDoFFunction() const { return edgeDoFFunction_; }
+   vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
+   EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }
+
+   const vertexdof::VertexDoFFunction< ValueType > & getVertexDoFFunction() const { return vertexDoFFunction_; }
+   const EdgeDoFFunction< ValueType > &              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
    inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All )
    {
-      vertexDoFFunction_->interpolate( constant, level, flag );
-      edgeDoFFunction_->interpolate( constant, level, flag );
+      vertexDoFFunction_.interpolate( constant, level, flag );
+      edgeDoFFunction_.interpolate( constant, level, flag );
    }
 
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All )
    {
-      vertexDoFFunction_->interpolate( expr, level, flag );
-      edgeDoFFunction_->interpolate( expr, level, flag );
+      vertexDoFFunction_.interpolate( expr, level, flag );
+      edgeDoFFunction_.interpolate( expr, level, flag );
    }
 
    inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID )
    {
-      vertexDoFFunction_->interpolate( expr, level, boundaryUID );
-      edgeDoFFunction_->interpolate( expr, level, boundaryUID );
+      vertexDoFFunction_.interpolate( expr, level, boundaryUID );
+      edgeDoFFunction_.interpolate( expr, level, boundaryUID );
    }
 
    inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
@@ -86,44 +85,44 @@ class P2Function : public Function< P2Function< ValueType > >
          edgeDoFFunctions.push_back( function->edgeDoFFunction_.get() );
       }
 
-      vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
+      vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
+      edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
    }
 
-   inline void assign( const std::vector< ValueType >                scalars,
-                       const std::vector< P2Function< ValueType >* > functions,
-                       uint_t                                        level,
-                       DoFType                                       flag = All )
+   inline void assign( const std::vector< ValueType >&                                               scalars,
+                       const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
+                       uint_t                                                                        level,
+                       DoFType                                                                       flag = All )
    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
-      std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
+      std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
+      std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > > edgeDoFFunctions;
 
-      for( const auto& function : functions )
+      for( const P2Function< ValueType >& function : functions )
       {
-         vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-         edgeDoFFunctions.push_back( function->edgeDoFFunction_.get() );
+         vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+         edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
       }
 
-      vertexDoFFunction_->assign( scalars, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->assign( scalars, edgeDoFFunctions, level, flag );
+      vertexDoFFunction_.assign( scalars, vertexDoFFunctions, level, flag );
+      edgeDoFFunction_.assign( scalars, edgeDoFFunctions, level, flag );
    }
 
-   inline void add( const std::vector< ValueType >                scalars,
-                    const std::vector< P2Function< ValueType >* > functions,
-                    uint_t                                        level,
-                    DoFType                                       flag = All )
+   inline void add( const std::vector< ValueType >&                                               scalars,
+                    const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
+                    uint_t                                                                        level,
+                    DoFType                                                                       flag = All )
    {
-      std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
-      std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
+      std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
+      std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > > edgeDoFFunctions;
 
-      for( const auto& function : functions )
+      for( const P2Function< ValueType >& function : functions )
       {
-         vertexDoFFunctions.push_back( function->vertexDoFFunction_.get() );
-         edgeDoFFunctions.push_back( function->edgeDoFFunction_.get() );
+         vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+         edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
       }
 
-      vertexDoFFunction_->add( scalars, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->add( scalars, edgeDoFFunctions, level, flag );
+      vertexDoFFunction_.add( scalars, vertexDoFFunctions, level, flag );
+      edgeDoFFunction_.add( scalars, edgeDoFFunctions, level, flag );
    }
 
    inline real_t dotGlobal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
@@ -138,8 +137,8 @@ class P2Function : public Function< P2Function< ValueType > >
    inline real_t dotLocal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
    {
       real_t sum = real_c( 0 );
-      sum += vertexDoFFunction_->dotLocal( *rhs.vertexDoFFunction_, level, flag );
-      sum += edgeDoFFunction_->dotLocal( *rhs.edgeDoFFunction_, level, flag );
+      sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
+      sum += edgeDoFFunction_.dotLocal( rhs.edgeDoFFunction_, level, flag );
       return sum;
    }
 
@@ -163,8 +162,8 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macrovertex::prolongateP1ToP2< ValueType >( level,
                                                             vertex,
-                                                            vertexDoFFunction_->getVertexDataID(),
-                                                            edgeDoFFunction_->getVertexDataID(),
+                                                            vertexDoFFunction_.getVertexDataID(),
+                                                            edgeDoFFunction_.getVertexDataID(),
                                                             p1Function->getVertexDataID() );
          }
       }
@@ -180,8 +179,8 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macroedge::prolongateP1ToP2< ValueType >( level,
                                                           edge,
-                                                          vertexDoFFunction_->getEdgeDataID(),
-                                                          edgeDoFFunction_->getEdgeDataID(),
+                                                          vertexDoFFunction_.getEdgeDataID(),
+                                                          edgeDoFFunction_.getEdgeDataID(),
                                                           p1Function->getEdgeDataID() );
          }
       }
@@ -197,8 +196,8 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macroface::prolongateP1ToP2< ValueType >( level,
                                                           face,
-                                                          vertexDoFFunction_->getFaceDataID(),
-                                                          edgeDoFFunction_->getFaceDataID(),
+                                                          vertexDoFFunction_.getFaceDataID(),
+                                                          edgeDoFFunction_.getFaceDataID(),
                                                           p1Function->getFaceDataID() );
          }
       }
@@ -212,20 +211,20 @@ class P2Function : public Function< P2Function< ValueType > >
    {
       this->startTiming( "Restrict P2 -> P1" );
 
-      vertexDoFFunction_->template startCommunication< Edge, Vertex >( level );
-      edgeDoFFunction_->template startCommunication< Edge, Vertex >( level );
+      vertexDoFFunction_.template startCommunication< Edge, Vertex >( level );
+      edgeDoFFunction_.template startCommunication< Edge, Vertex >( level );
 
-      vertexDoFFunction_->template startCommunication< Vertex, Edge >( level );
-      edgeDoFFunction_->template startCommunication< Vertex, Edge >( level );
+      vertexDoFFunction_.template startCommunication< Vertex, Edge >( level );
+      edgeDoFFunction_.template startCommunication< Vertex, Edge >( level );
 
-      vertexDoFFunction_->template startCommunication< Face, Edge >( level );
-      edgeDoFFunction_->template startCommunication< Face, Edge >( level );
+      vertexDoFFunction_.template startCommunication< Face, Edge >( level );
+      edgeDoFFunction_.template startCommunication< Face, Edge >( level );
 
-      vertexDoFFunction_->template startCommunication< Edge, Face >( level );
-      edgeDoFFunction_->template startCommunication< Edge, Face >( level );
+      vertexDoFFunction_.template startCommunication< Edge, Face >( level );
+      edgeDoFFunction_.template startCommunication< Edge, Face >( level );
 
-      vertexDoFFunction_->template endCommunication< Edge, Vertex >( level );
-      edgeDoFFunction_->template endCommunication< Edge, Vertex >( level );
+      vertexDoFFunction_.template endCommunication< Edge, Vertex >( level );
+      edgeDoFFunction_.template endCommunication< Edge, Vertex >( level );
 
       for( const auto& it : this->getStorage()->getVertices() )
       {
@@ -236,17 +235,17 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macrovertex::restrictP2ToP1< ValueType >( level,
                                                           vertex,
-                                                          vertexDoFFunction_->getVertexDataID(),
-                                                          edgeDoFFunction_->getVertexDataID(),
+                                                          vertexDoFFunction_.getVertexDataID(),
+                                                          edgeDoFFunction_.getVertexDataID(),
                                                           p1Function->getVertexDataID() );
          }
       }
 
-      vertexDoFFunction_->template endCommunication< Vertex, Edge >( level );
-      edgeDoFFunction_->template endCommunication< Vertex, Edge >( level );
+      vertexDoFFunction_.template endCommunication< Vertex, Edge >( level );
+      edgeDoFFunction_.template endCommunication< Vertex, Edge >( level );
 
-      vertexDoFFunction_->template endCommunication< Face, Edge >( level );
-      edgeDoFFunction_->template endCommunication< Face, Edge >( level );
+      vertexDoFFunction_.template endCommunication< Face, Edge >( level );
+      edgeDoFFunction_.template endCommunication< Face, Edge >( level );
 
       for( const auto& it : this->getStorage()->getEdges() )
       {
@@ -257,14 +256,14 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macroedge::restrictP2ToP1< ValueType >( level,
                                                         edge,
-                                                        vertexDoFFunction_->getEdgeDataID(),
-                                                        edgeDoFFunction_->getEdgeDataID(),
+                                                        vertexDoFFunction_.getEdgeDataID(),
+                                                        edgeDoFFunction_.getEdgeDataID(),
                                                         p1Function->getEdgeDataID() );
          }
       }
 
-      vertexDoFFunction_->template endCommunication< Edge, Face >( level );
-      edgeDoFFunction_->template endCommunication< Edge, Face >( level );
+      vertexDoFFunction_.template endCommunication< Edge, Face >( level );
+      edgeDoFFunction_.template endCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -275,8 +274,8 @@ class P2Function : public Function< P2Function< ValueType > >
          {
             P2::macroface::restrictP2ToP1< ValueType >( level,
                                                         face,
-                                                        vertexDoFFunction_->getFaceDataID(),
-                                                        edgeDoFFunction_->getFaceDataID(),
+                                                        vertexDoFFunction_.getFaceDataID(),
+                                                        edgeDoFFunction_.getFaceDataID(),
                                                         p1Function->getFaceDataID() );
          }
       }
@@ -294,7 +293,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrictInjection< ValueType >(
-                sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
          }
       }
 
@@ -306,7 +305,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrictInjection< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
+                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
          }
       }
 
@@ -318,7 +317,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictInjection< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
+                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
          }
       }
    }
@@ -337,8 +336,8 @@ class P2Function : public Function< P2Function< ValueType > >
          edgeDoFFunctions.push_back( function->edgeDoFFunction_.get() );
       }
 
-      vertexDoFFunction_->interpolateExtended( expr, vertexDoFFunctions, level, flag );
-      edgeDoFFunction_->interpolateExtended( expr, edgeDoFFunctions, level, flag );
+      vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
+      edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
    }
 
    inline void prolongateQuadratic( uint_t sourceLevel, DoFType flag = All )
@@ -348,11 +347,11 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void prolongate( uint_t sourceLevel, DoFType flag = All )
    {
-      edgeDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
-      edgeDoFFunction_->template communicate< Edge, Face >( sourceLevel );
+      edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
+      edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
 
-      vertexDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
-      vertexDoFFunction_->template communicate< Edge, Face >( sourceLevel );
+      vertexDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
+      vertexDoFFunction_.template communicate< Edge, Face >( sourceLevel );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -362,7 +361,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( faceBC, flag ) )
          {
             P2::macroface::prolongate< ValueType >(
-                sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
          }
       }
 
@@ -374,7 +373,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::prolongate< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
+                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
          }
       }
 
@@ -386,15 +385,15 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::prolongate< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
+                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
          }
       }
    }
 
    inline void restrict( uint_t sourceLevel, DoFType flag = All )
    {
-      edgeDoFFunction_->template communicate< Vertex, Edge >( sourceLevel );
-      edgeDoFFunction_->template communicate< Edge, Face >( sourceLevel );
+      edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
+      edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -404,12 +403,12 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
          }
       }
 
       /// sync the vertex dofs which contain the missing edge dofs
-      edgeDoFFunction_->template communicate< Face, Edge >( sourceLevel );
+      edgeDoFFunction_.template communicate< Face, Edge >( sourceLevel );
 
       /// remove the temporary updates
       for( const auto& it : this->getStorage()->getFaces() )
@@ -420,7 +419,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( faceBC, flag ) )
          {
             P2::macroface::postRestrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_->getFaceDataID(), edgeDoFFunction_->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
          }
       }
 
@@ -432,7 +431,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrict< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_->getEdgeDataID(), edgeDoFFunction_->getEdgeDataID() );
+                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
          }
       }
 
@@ -445,7 +444,7 @@ class P2Function : public Function< P2Function< ValueType > >
          if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictInjection< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_->getVertexDataID(), edgeDoFFunction_->getVertexDataID() );
+                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
          }
       }
    }
@@ -453,8 +452,8 @@ class P2Function : public Function< P2Function< ValueType > >
    inline real_t getMaxValue( uint_t level, DoFType flag = All )
    {
       auto localMax = -std::numeric_limits< ValueType >::max();
-      localMax      = std::max( localMax, vertexDoFFunction_->getMaxValue( level, flag, false ) );
-      localMax      = std::max( localMax, edgeDoFFunction_->getMaxValue( level, flag, false ) );
+      localMax      = std::max( localMax, vertexDoFFunction_.getMaxValue( level, flag, false ) );
+      localMax      = std::max( localMax, edgeDoFFunction_.getMaxValue( level, flag, false ) );
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
       return localMax;
@@ -463,8 +462,8 @@ class P2Function : public Function< P2Function< ValueType > >
    inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
    {
       auto localMax = real_t( 0.0 );
-      localMax      = std::max( localMax, vertexDoFFunction_->getMaxMagnitude( level, flag, false ) );
-      localMax      = std::max( localMax, edgeDoFFunction_->getMaxMagnitude( level, flag, false ) );
+      localMax      = std::max( localMax, vertexDoFFunction_.getMaxMagnitude( level, flag, false ) );
+      localMax      = std::max( localMax, edgeDoFFunction_.getMaxMagnitude( level, flag, false ) );
 
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
@@ -474,8 +473,8 @@ class P2Function : public Function< P2Function< ValueType > >
    inline real_t getMinValue( uint_t level, DoFType flag = All )
    {
       auto localMin = std::numeric_limits< ValueType >::max();
-      localMin      = std::min( localMin, vertexDoFFunction_->getMinValue( level, flag, false ) );
-      localMin      = std::min( localMin, edgeDoFFunction_->getMinValue( level, flag, false ) );
+      localMin      = std::min( localMin, vertexDoFFunction_.getMinValue( level, flag, false ) );
+      localMin      = std::min( localMin, edgeDoFFunction_.getMinValue( level, flag, false ) );
       walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
       return localMin;
@@ -483,10 +482,10 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline BoundaryCondition getBoundaryCondition() const
    {
-      WALBERLA_ASSERT_EQUAL( vertexDoFFunction_->getBoundaryCondition(),
-                             edgeDoFFunction_->getBoundaryCondition(),
+      WALBERLA_ASSERT_EQUAL( vertexDoFFunction_.getBoundaryCondition(),
+                             edgeDoFFunction_.getBoundaryCondition(),
                              "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" );
-      return vertexDoFFunction_->getBoundaryCondition();
+      return vertexDoFFunction_.getBoundaryCondition();
    }
 
    inline void enumerate( uint_t level )
@@ -511,21 +510,21 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void enumerate( uint_t level, ValueType& offset )
    {
-      vertexDoFFunction_->enumerate( level, offset );
-      edgeDoFFunction_->enumerate( level, offset );
+      vertexDoFFunction_.enumerate( level, offset );
+      edgeDoFFunction_.enumerate( level, offset );
    }
 
    inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode )
    {
-      vertexDoFFunction_->setLocalCommunicationMode( localCommMode );
-      edgeDoFFunction_->setLocalCommunicationMode( localCommMode );
+      vertexDoFFunction_.setLocalCommunicationMode( localCommMode );
+      edgeDoFFunction_.setLocalCommunicationMode( localCommMode );
    }
 
  private:
    using Function< P2Function< ValueType > >::communicators_;
 
-   std::shared_ptr< vertexdof::VertexDoFFunction< ValueType > > vertexDoFFunction_;
-   std::shared_ptr< EdgeDoFFunction< ValueType > >              edgeDoFFunction_;
+   vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
+   EdgeDoFFunction< ValueType >               edgeDoFFunction_;
 };
 
 } //namespace hhg
