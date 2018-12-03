@@ -8,7 +8,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
   typedef P1toP1LinearProlongation ProlongationOperator;
   ProlongationOperator prolongationOperator;
 
-  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMGSolver;
+  typedef GeometricMultigridSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMGSolver;
   GMGSolver solver( storage, coarseSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
   // Prep residual

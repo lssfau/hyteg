@@ -1,10 +1,21 @@
 #pragma once
 
+#include "core/DataTypes.h"
+
+#include "tinyhhg_core/solvers/Solver.hpp"
+#include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/types/pointnd.hpp"
+
 namespace hhg
 {
 
-template< class F, class O, class CoarseSolver, class RestrictionOperator, class ProlongationOperator >
-class GMultigridSolver
+using walberla::uint_t;
+using walberla::real_t;
+
+template< class OperatorType >
+class GeometricMultigridSolver
 {
 public:
 
@@ -14,65 +25,72 @@ public:
     WCYCLE
   };
 
-  GMultigridSolver(const std::shared_ptr<PrimitiveStorage> & storage,
-                   const std::shared_ptr<CoarseSolver>& coarseSolver,
-                   const RestrictionOperator & restrictionOperator,
-                   const ProlongationOperator & prolongationOperator,
-                   uint_t minLevel, uint_t maxLevel,
-                   uint_t nuPre = 3, uint_t nuPost = 3)
-    : minLevel_(minLevel), maxLevel_(maxLevel), coarseSolver_(coarseSolver),
-      restrictionOperator_( restrictionOperator ),
-      prolongationOperator_( prolongationOperator ),
-      ax_("gmg_ax", storage, minLevel, maxLevel), tmp_("gmg_tmp", storage, minLevel, maxLevel),
-      nuPre_(nuPre), nuPost_(nuPost)
+  typedef typename OperatorType::srcType FunctionType;
+
+  GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
+                            std::shared_ptr< Solver< OperatorType > >               coarseSolver,
+                            std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
+                            std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
+                            uint_t                                                  minLevel,
+                            uint_t                                                  maxLevel,
+                            uint_t                                                  nuPre  = 3,
+                            uint_t                                                  nuPost = 3 )
+  : minLevel_( minLevel )
+  , maxLevel_( maxLevel )
+  , coarseSolver_( coarseSolver )
+  , restrictionOperator_( restrictionOperator )
+  , prolongationOperator_( prolongationOperator )
+  , ax_( "gmg_ax", storage, minLevel, maxLevel )
+  , tmp_( "gmg_tmp", storage, minLevel, maxLevel )
+  , nuPre_( nuPre )
+  , nuPost_( nuPost )
+  , flag_( hhg::Inner | hhg::NeumannBoundary)
   {
-    zero_ = [](const hhg::Point3D&) { return 0.0; };
+     zero_ = []( const hhg::Point3D& ) { return 0.0; };
   }
 
-  ~GMultigridSolver()
-  {
-  }
+  ~GeometricMultigridSolver() = default;
 
-  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter, DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
+  void solve(const OperatorType& A, FunctionType& x, FunctionType& b,const uint_t& level)
   {
 
     if (level == minLevel_)
     {
-      coarseSolver_->solve(A, x, b, r, minLevel_, tolerance, maxiter, flag, printInfo);
+      coarseSolver_->solve(A, x, b, minLevel_);
     }
     else
     {
       // pre-smooth
       for (size_t i = 0; i < nuPre_; ++i)
       {
-        A.smooth_gs(x, b, level, flag);
+        A.smooth_gs(x, b, level, flag_);
       }
 
-      A.apply(x, ax_, level, flag);
-      r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
+      A.apply(x, ax_, level, flag_);
+      tmp_.assign({1.0, -1.0}, { b, ax_ }, level, flag_);
 
       // restrict
-      restrictionOperator_( r, level, flag );
+      restrictionOperator_->restrict( tmp_, level, flag_ );
 
-      b.assign({1.0}, { &r }, level - 1, flag);
+      b.assign({1.0}, { tmp_ }, level - 1, flag_);
 
       x.interpolate(zero_, level-1);
 
-      solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      solve(A, x, b, level-1);
 
-      if (cycleType == CycleType::WCYCLE) {
-        solve(A, x, b, r, level-1, tolerance, maxiter, flag, cycleType, printInfo);
+      if (cycleType_ == CycleType::WCYCLE) {
+        solve(A, x, b, level-1);
       }
 
       // prolongate
-      tmp_.assign({1.0}, { &x }, level, flag);
-      prolongationOperator_( x, level-1, flag );
-      x.add({1.0}, { &tmp_ }, level, flag);
+      tmp_.assign({1.0}, { x }, level, flag_);
+      prolongationOperator_->prolongate( x, level-1, flag_ );
+      x.add({1.0}, { tmp_ }, level, flag_);
 
       // post-smooth
       for (size_t i = 0; i < nuPost_; ++i)
       {
-        A.smooth_gs(x, b, level, flag);
+        A.smooth_gs(x, b, level, flag_);
       }
     }
 
@@ -82,16 +100,18 @@ private:
 
   uint_t nuPre_;
   uint_t nuPost_;
-
   uint_t minLevel_;
   uint_t maxLevel_;
 
-  std::shared_ptr<CoarseSolver> coarseSolver_;
-  RestrictionOperator restrictionOperator_;
-  ProlongationOperator prolongationOperator_;
+  hhg::DoFType flag_;
+  CycleType cycleType_;
 
-  F ax_;
-  F tmp_;
+  std::shared_ptr< hhg::Solver< OperatorType > > coarseSolver_;
+  std::shared_ptr< hhg::RestrictionOperator< FunctionType > > restrictionOperator_;
+  std::shared_ptr< hhg::ProlongationOperator< FunctionType > >  prolongationOperator_;
+
+  FunctionType ax_;
+  FunctionType tmp_;
 
   std::function<real_t(const hhg::Point3D&)> zero_;
 

@@ -10,11 +10,11 @@ namespace hhg {
 using walberla::real_t;
 using walberla::uint_t;
 
-template < class Operator >
-class CGSolver : public Solver< Operator >
+template < class OperatorType >
+class CGSolver : public Solver< OperatorType >
 {
  public:
-   typedef typename Operator::srcType FunctionType;
+   typedef typename OperatorType::srcType FunctionType;
 
    /// The algorithm is copied from the book: "Finite Elements and Fast Iterative Solvers"
    /// Therefore the variables are named like the ones in the book
@@ -23,7 +23,7 @@ class CGSolver : public Solver< Operator >
              uint_t                                     maxLevel,
              uint_t                                     maxIter = std::numeric_limits< uint_t>::max(),
              real_t                                     tolerance = 1e-16,
-             std::shared_ptr< Solver< Operator > > preconditioner = std::make_shared< IdentityPreconditioner< Operator > >() )
+             std::shared_ptr< Solver< OperatorType > > preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
    , ap_( "ap", storage, minLevel, maxLevel )
@@ -35,13 +35,13 @@ class CGSolver : public Solver< Operator >
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
    , maxIter_( maxIter )
    {
-      if( !std::is_same< FunctionType, typename Operator::dstType >::value )
+      if( !std::is_same< FunctionType, typename OperatorType::dstType >::value )
       {
          WALBERLA_ABORT( "CGSolver does not work for Operator with different src and dst FunctionTypes" );
       }
    }
 
-   void solve( const Operator& A, FunctionType& x, FunctionType& b, const uint_t& level ) override
+   void solve( const OperatorType& A, FunctionType& x, FunctionType& b, const uint_t& level ) override
    {
       real_t prsold = 0;
       init( A, x, b, level, prsold );
@@ -101,7 +101,7 @@ class CGSolver : public Solver< Operator >
    }
 
  private:
-   void init( const Operator& A, FunctionType& x, FunctionType& b, const uint_t& level, real_t& prsold )
+   void init( const OperatorType& A, FunctionType& x, FunctionType& b, const uint_t& level, real_t& prsold )
    {
       A.apply( x, p_, level, flag_, Replace );
       r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
@@ -114,7 +114,7 @@ class CGSolver : public Solver< Operator >
    FunctionType                          z_;
    FunctionType                          ap_;
    FunctionType                          r_;
-   std::shared_ptr< Solver< Operator > > preconditioner_;
+   std::shared_ptr< Solver< OperatorType > > preconditioner_;
 
    hhg::DoFType flag_;
    bool         printInfo_;

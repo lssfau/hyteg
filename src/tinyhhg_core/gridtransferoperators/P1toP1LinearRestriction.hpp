@@ -1,14 +1,15 @@
 
 #pragma once
 
+#include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 namespace hhg {
 
-class P1toP1LinearRestriction
+class P1toP1LinearRestriction : public RestrictionOperator< P1Function< real_t > >
 {
  public:
-   inline void operator()( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
+   void restrict ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag )
    {
      if ( function.isDummy() )
        return;

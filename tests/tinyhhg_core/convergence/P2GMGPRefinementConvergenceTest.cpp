@@ -15,7 +15,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
    RestrictionOperator  restrictionOperator;
    ProlongationOperator prolongationOperator;
 
-   typedef GMultigridSolver< hhg::P1Function< real_t >,
+   typedef GeometricMultigridSolver< hhg::P1Function< real_t >,
                              hhg::P1ConstantLaplaceOperator,
                              CoarseSolver,
                              RestrictionOperator,

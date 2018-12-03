@@ -49,7 +49,7 @@ void cscycle( size_t    level,
 
    if( level == minLevel )
    {
-      csolver.solve( A, x, b, r, minLevel, coarse_tolerance, coarse_maxiter, hhg::Inner, false );
+      csolver.solve( A, x, b, minLevel );
    } else
    {
       // pre-smooth
@@ -59,11 +59,11 @@ void cscycle( size_t    level,
       }
 
       A.apply( x, ax, level, hhg::Inner );
-      r.assign( {1.0, -1.0}, {&b, &ax}, level, hhg::Inner );
+      r.assign( {1.0, -1.0}, {b, ax}, level, hhg::Inner );
 
       // restrict
       restrictionOperator( r, level, hhg::Inner );
-      b.assign( {1.0}, {&r}, level - 1, hhg::Inner );
+      b.assign( {1.0}, {r}, level - 1, hhg::Inner );
 
       x.interpolate( zero, level - 1 );
 
@@ -78,9 +78,9 @@ void cscycle( size_t    level,
       }
 
       // prolongate
-      tmp.assign( {1.0}, {&x}, level, hhg::Inner );
+      tmp.assign( {1.0}, {x}, level, hhg::Inner );
       prolongationOperator( x, level - 1, hhg::Inner );
-      x.add( {1.0}, {&tmp}, level, hhg::Inner );
+      x.add( {1.0}, {tmp}, level, hhg::Inner );
 
       // post-smooth
       for( size_t i = 0; i < nu_post; ++i )
@@ -159,7 +159,7 @@ int main( int argc, char* argv[] )
    tmp.interpolate( ones, maxLevel );
    real_t npoints = tmp.dotGlobal( tmp, maxLevel );
 
-   auto csolver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
+   auto csolver = hhg::CGSolver< hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = {}" << uint_c( npoints ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
@@ -169,12 +169,12 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    A.apply( x, ax, maxLevel, hhg::Inner );
-   r.assign( {1.0, -1.0}, {&b, &ax}, maxLevel, hhg::Inner );
+   r.assign( {1.0, -1.0}, {b, ax}, maxLevel, hhg::Inner );
 
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err.assign( {1.0, -1.0}, {&x, &x_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -207,10 +207,10 @@ int main( int argc, char* argv[] )
                CycleType::VCYCLE );
       auto end = walberla::timing::getWcTime();
       A.apply( x, ax, maxLevel, hhg::Inner );
-      r.assign( {1.0, -1.0}, {&b, &ax}, maxLevel, hhg::Inner );
+      r.assign( {1.0, -1.0}, {b, ax}, maxLevel, hhg::Inner );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err.assign( {1.0, -1.0}, {&x, &x_exact}, maxLevel );
+      err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",

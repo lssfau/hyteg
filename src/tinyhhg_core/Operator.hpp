@@ -27,10 +27,6 @@ public:
 
   virtual ~Operator() = default;
 
-  void apply(const SourceFunction& src, const DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const;
-
-  void smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag );
-
   void smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag );
 
   void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
@@ -40,11 +36,6 @@ public:
   const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
  protected:
-
-  virtual void apply_impl(const SourceFunction& src,const DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const = 0;
-  virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
 
   virtual void smooth_sor_impl( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag ) {
     WALBERLA_ASSERT(false, "Not implemented");
@@ -82,19 +73,6 @@ public:
     }
   }
 };
-
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::apply(const SourceFunction& src, const DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType ) const
-{
-  apply_impl( src, dst, level, flag, updateType );
-}
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag )
-{
-  smooth_gs_impl( dst, rhs, level, flag );
-}
 
 template< typename SourceFunction, typename DestinationFunction >
 void Operator< SourceFunction, DestinationFunction  >::smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag )

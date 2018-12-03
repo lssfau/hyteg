@@ -1,14 +1,15 @@
 
 #pragma once
 
+#include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 namespace hhg {
 
-class P1toP1LinearProlongation
+class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t > >
 {
  public:
-   inline void operator()( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
+void prolongate ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
    {
       if ( function.isDummy() )
         return;

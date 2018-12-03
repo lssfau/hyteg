@@ -8,7 +8,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -55,15 +55,11 @@ int main( int argc, char* argv[] )
   npoints_helper.interpolate( rhs, maxLevel );
   M.apply( npoints_helper, f, maxLevel, hhg::All );
 
-  typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CGSolver;
-  typedef hhg::P1toP1LinearRestriction RestrictionOperator;
-  typedef hhg::P1toP1LinearProlongation ProlongationOperator;
+  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
-  auto coarseGridSolver = std::make_shared< CGSolver >( storage, minLevel, minLevel );
-  RestrictionOperator restrictionOperator;
-  ProlongationOperator prolongationOperator;
-
-  auto gmgSolver = hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CGSolver, RestrictionOperator, ProlongationOperator >(
+  auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
     storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );
@@ -71,7 +67,7 @@ int main( int argc, char* argv[] )
 
   // init residual once
   L.apply(u, Au, maxLevel, hhg::Inner);
-  r.assign({1.0, -1.0}, { &f, &Au }, maxLevel, hhg::Inner);
+  r.assign({1.0, -1.0}, { f, Au }, maxLevel, hhg::Inner);
 
   real_t discr_l2_err;
   real_t discr_l2_res = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
@@ -79,12 +75,12 @@ int main( int argc, char* argv[] )
 
   for ( uint_t vCycleCount = 0; vCycleCount < numVCycles; vCycleCount++ )
   {
-    gmgSolver.solve( L, u, f, r, maxLevel, coarseGridSolverTolerance, maxCoarseGridSolverIter, DoFType::Inner );
+    gmgSolver.solve( L, u, f, maxLevel);
 
-    err.assign( { 1.0, -1.0 }, { &u, &u_exact }, maxLevel );
+    err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
 
     L.apply(u, Au, maxLevel, hhg::Inner);
-    r.assign({1.0, -1.0}, { &f, &Au }, maxLevel, hhg::Inner);
+    r.assign({1.0, -1.0}, { f, Au }, maxLevel, hhg::Inner);
 
     discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, DoFType::All ) / npoints );
     discr_l2_res_last_step = discr_l2_res;

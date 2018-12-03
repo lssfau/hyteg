@@ -20,7 +20,7 @@
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
 #include "tinyhhg_core/solvers/EmptySolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -262,7 +262,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   // Velocity block solver
   typedef hhg::CGSolver< typename StokesFunction_T< real_t >::VelocityFunction_T, typename StokesOperator_T::VelocityOperator_T > VelocityCGSolver_T;
-  typedef hhg::GMultigridSolver< typename StokesFunction_T< real_t >::VelocityFunction_T,
+  typedef hhg::GeometricMultigridSolver< typename StokesFunction_T< real_t >::VelocityFunction_T,
                                  typename StokesOperator_T::VelocityOperator_T,
                                  VelocityCGSolver_T,
                                  typename RestrictionOperator_T::VelocityRestriction_T,

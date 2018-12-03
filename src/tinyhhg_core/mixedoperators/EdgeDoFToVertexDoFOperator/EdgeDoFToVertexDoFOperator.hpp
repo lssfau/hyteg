@@ -31,7 +31,7 @@ public:
   EdgeDoFToVertexDoFOperator(const std::shared_ptr <PrimitiveStorage> &storage, const size_t & minLevel, const size_t & maxLevel);
   ~EdgeDoFToVertexDoFOperator() final = default;
 
-  void apply_impl(const EdgeDoFFunction <real_t> &src, const P1Function<double> &dst, uint_t level, DoFType flag, UpdateType updateType) const override;
+  void apply(const EdgeDoFFunction <real_t> &src, const P1Function<double> &dst, uint_t level, DoFType flag, UpdateType updateType) const;
 
   const PrimitiveDataID< StencilMemory< real_t >, Vertex> &getVertexStencilID() const;
   const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex  > &getVertexStencil3DID() const;

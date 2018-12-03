@@ -142,11 +142,11 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_s
 }
 
 template< class UFCOperator2D, class UFCOperator3D >
-void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(const EdgeDoFFunction <real_t> &src,
-                                                                            const P1Function<double> &dst,
-                                                                            uint_t level,
-                                                                            DoFType flag,
-                                                                            UpdateType updateType) const
+void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const EdgeDoFFunction <real_t> &src,
+                                                                       const P1Function<double> &dst,
+                                                                       uint_t level,
+                                                                       DoFType flag,
+                                                                       UpdateType updateType) const
 {
   using namespace EdgeDoFToVertexDoF;
   this->startTiming( "EdgeDoFToVertexDoFOperator - Apply" );

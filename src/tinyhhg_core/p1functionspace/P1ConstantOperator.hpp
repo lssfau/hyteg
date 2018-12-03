@@ -40,6 +40,9 @@ class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
 
 namespace hhg {
 
+template< class UFCOperator2D, class UFCOperator3D >
+class P2ConstantOperator;
+
 using walberla::real_t;
 
 template < class UFCOperator2D,
@@ -56,6 +59,14 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    void scale( real_t scalar );
 
+   void apply(const P1Function< real_t >& src,
+              const P1Function< real_t >& dst,
+              size_t                level,
+              DoFType               flag,
+              UpdateType            updateType = Replace ) const;
+
+   void smooth_gs(const P1Function< real_t >& dst,const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
+
    const PrimitiveDataID< StencilMemory< real_t >, Vertex >& getVertexStencilID() const { return vertexStencilID_; }
 
    const PrimitiveDataID< StencilMemory< real_t >, Edge >& getEdgeStencilID() const { return edgeStencilID_; }
@@ -70,13 +81,6 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void assembleStencils3D();
 
  private:
-   void apply_impl(const P1Function< real_t >& src,
-                   const P1Function< real_t >& dst,
-                    size_t                level,
-                    DoFType               flag,
-                    UpdateType            updateType = Replace ) const override;
-
-   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override;
 
    void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag ) override;
 

@@ -14,7 +14,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
@@ -157,7 +157,7 @@ int main( int argc, char* argv[] )
 #if 1
 
    typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
+   typedef hhg::GeometricMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
    typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1ConstantLaplaceOperator, GMGSolver_T, hhg::P1LumpedInvMassOperator > Preconditioner_T;
    typedef hhg::StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
 

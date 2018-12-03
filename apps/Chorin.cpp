@@ -12,7 +12,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
@@ -133,7 +133,7 @@ int main( int argc, char* argv[] )
    RestrictionOperator restrictionOperator;
    ProlongationOperator prolongationOperator;
 
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
+   typedef GeometricMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
    LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );

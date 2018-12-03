@@ -105,6 +105,14 @@ int main( int argc, char* argv[] )
    hhg::communication::syncP2FunctionBetweenPrimitives( u_exact.u, maxLevel );
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
+
+
+   GMGSolver< P2P1StokesOperator > solver = GMGFactory::createDefaultGMGSolver< P2P1StokesOperator >(storage, minlevel, maxlevel);
+
+   solver.setSmoother(  )
+   solver.solve(A,x,b);
+
+
    ///// MinRes coarse grid solver for UZAWA /////
    typedef StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator >
        PressurePreconditioner_T;
@@ -121,16 +129,11 @@ int main( int argc, char* argv[] )
    typedef UzawaSolver< hhg::P2P1TaylorHoodFunction< real_t >,
                         hhg::P2P1TaylorHoodStokesOperator,
                         PressurePreconditionedMinRes_T,
-                        P2P1StokesToP2P1StokesRestriction,
-                        P2P1StokesToP2P1StokesProlongation,
                         false >
        UzawaSolver_T;
 
-   P2P1StokesToP2P1StokesRestriction  stokesRestriction{};
-   P2P1StokesToP2P1StokesProlongation stokesProlongation{};
-
    UzawaSolver_T uzawaSolver(
-       storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2, 0.37 );
+       storage, pressurePreconditionedMinResSolver, minLevel, maxLevel, 2, 2, 2, 0.37 );
 
    const uint_t npoints = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err, currRes, oldRes = 0;

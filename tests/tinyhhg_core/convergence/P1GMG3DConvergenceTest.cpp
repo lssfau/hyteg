@@ -8,7 +8,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
   typedef hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator > CoarseGridSolver_T;
   typedef hhg::P1toP1LinearProlongation ProlongationOperator_T;
   typedef hhg::P1toP1LinearRestriction  RestrictionOpertor_T;
-  typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator, CoarseGridSolver_T, RestrictionOpertor_T, ProlongationOperator_T > GMGSolver_T;
+  typedef hhg::GeometricMultigridSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator, CoarseGridSolver_T, RestrictionOpertor_T, ProlongationOperator_T > GMGSolver_T;
 
   auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
   ProlongationOperator_T prolongationOperator;

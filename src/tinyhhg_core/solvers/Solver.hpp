@@ -2,6 +2,7 @@
 
 #include "core/DataTypes.h"
 
+namespace hhg {
 template < class OperatorType >
 class Solver
 {
@@ -14,3 +15,4 @@ class Solver
 
    virtual ~Solver() = default;
 };
+} // namespace hhg

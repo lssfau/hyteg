@@ -17,7 +17,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/geometry/CircularMap.hpp"
 #include "tinyhhg_core/Format.hpp"
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
   ProlongationOperator prolongationOperator;
   QuadraticProlongationOperator quadraticProlongationOperator;
 
-  typedef GMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
+  typedef GeometricMultigridSolver<hhg::P1Function<real_t>, GeneralOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
   LaplaceSover laplaceSolver(storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");

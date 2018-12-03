@@ -352,11 +352,11 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply_impl(const P2Function< real_t >& src,
-                                                                    const P2Function< real_t >& dst,
-                                                                     size_t                level,
-                                                                     DoFType               flag,
-                                                                     UpdateType            updateType ) const
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply(const P2Function< real_t >& src,
+                                                               const P2Function< real_t >& dst,
+                                                               size_t                level,
+                                                               DoFType               flag,
+                                                               UpdateType            updateType ) const
 {
    vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
    edgeToVertex.apply( src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag, Add );
@@ -366,10 +366,10 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply_impl(const P2Func
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Function< real_t >& dst,
-                                                                         P2Function< real_t >& rhs,
-                                                                         size_t                level,
-                                                                         DoFType               flag )
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs( P2Function< real_t >& dst,
+                                                                    P2Function< real_t >& rhs,
+                                                                    size_t                level,
+                                                                    DoFType               flag ) const
 {
    dst.getVertexDoFFunction().communicate< Face, Edge >( level );
    dst.getVertexDoFFunction().communicate< Edge, Vertex >( level );

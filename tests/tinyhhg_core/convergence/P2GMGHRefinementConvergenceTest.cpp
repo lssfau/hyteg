@@ -16,7 +16,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -89,7 +89,7 @@ int main( int argc, char* argv[] )
    auto                 coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
    RestrictionOperator  restrictionOperator;
    ProlongationOperator prolongationOperator;
-   typedef GMultigridSolver< hhg::P2Function< real_t >,
+   typedef GeometricMultigridSolver< hhg::P2Function< real_t >,
                              hhg::P2ConstantLaplaceOperator,
                              CoarseSolver,
                              RestrictionOperator,

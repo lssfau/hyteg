@@ -1,14 +1,19 @@
 #pragma once
 
 #include "MinresSolver.hpp"
+#include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 namespace hhg
 {
 
-template<class F, class O, class CoarseGridSolver, class RestrictionOperator,
-         class ProlongationOperator, bool Tensor >
+template<class Function, class Operator, class CoarseGridSolver, bool Tensor >
 class UzawaSolver
 {
 public:
@@ -21,16 +26,13 @@ public:
 
   UzawaSolver(const std::shared_ptr<PrimitiveStorage> & storage,
               const CoarseGridSolver & coarseGridSolver,
-              const RestrictionOperator & restrictionOperator,
-              const ProlongationOperator & prolongationOperator,
               const uint_t & minLevel,
               const uint_t & maxLevel,
               const uint_t & numberOfPreSmoothingSteps,
               const uint_t & numberOfPostSmoothingSteps,
               const uint_t & smoothingStepIncrement,
               const real_t & relaxParam = walberla::real_c(0.3) )
-    : coarseGridSolver_( coarseGridSolver ), restrictionOperator_( restrictionOperator ),
-      prolongationOperator_( prolongationOperator ),
+    : coarseGridSolver_( coarseGridSolver ),
       pspg_( storage, minLevel, maxLevel ),
       minLevel_(minLevel), maxLevel_(maxLevel),
       nuPre_( numberOfPreSmoothingSteps ), nuPost_( numberOfPostSmoothingSteps ),
@@ -39,14 +41,31 @@ public:
       hasGlobalCells_( storage->hasGlobalCells() ),
       relaxParam_( relaxParam )
   {
-    zero_ = [](const hhg::Point3D&) { return 0.0; };
+     zero_ = [](const hhg::Point3D&) { return 0.0; };
+     if( std::is_same< Function, P2P1TaylorHoodFunction< real_t > >::value )
+     {
+        restrictionOperator_  = std::make_shared< hhg::P2P1StokesToP2P1StokesRestriction >();
+        prolongationOperator_ = std::make_shared< hhg::P2P1StokesToP2P1StokesProlongation >();
+        prolongateFunction = hhg::prolongateP2P1;
+     } else if( std::is_same< Function, P1StokesFunction< real_t > >::value )
+     {
+       //prolongateFunction = hhg::prolongateP1;
+
+//        restrictionOperator_  = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction >();
+//        prolongationOperator_ = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
+     }
   }
 
-  ~UzawaSolver()
-  {
-  }
 
-  void solve(O& A, F& x, F& b, F& r, uint_t level, real_t tolerance, size_t maxiter,
+  ~UzawaSolver() = default;
+
+  void init(Function){
+    WALBERLA_ABORT( " provide init function for discretization ");
+  };
+
+
+
+  void solve(Operator& A, Function& x, Function& b, Function& r, uint_t level, real_t tolerance, size_t maxiter,
              DoFType flag = All, CycleType cycleType = CycleType::VCYCLE, bool printInfo = false)
   {
 
@@ -67,7 +86,7 @@ public:
       r.assign({1.0, -1.0}, { &b, &ax_ }, level, flag);
 
       // restrict
-      restrictionOperator_( r, level, flag );
+      restrictionOperator_->restrict( r, level, flag );
 
       b.assign({1.0}, { &r }, level - 1, flag);
 //      vertexdof::projectMean(b.p, ax_.p, level-1);
@@ -86,7 +105,7 @@ public:
 
       // prolongate
       tmp_.assign({1.0}, { &x }, level, flag);
-      prolongationOperator_(x, level-1, flag);
+      prolongationOperator_->prolongate(x, level-1, flag);
       x.add({1.0}, { &tmp_ }, level, flag);
 
       // post-smooth
@@ -100,13 +119,13 @@ public:
 
 private:
 
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag)
+  void uzawaSmooth(Operator& A, Function& x, Function& b, Function& r, uint_t level, DoFType flag)
   {
-     uzawaSmooth(A, x, b, r, level, flag, std::integral_constant<bool,Tensor>(), std::integral_constant< bool, has_pspg_block< O >::value >() );
+     uzawaSmooth(A, x, b, r, level, flag, std::integral_constant<bool,Tensor>(), std::integral_constant< bool, has_pspg_block< Operator >::value >() );
   }
 
   // Block-Laplace variant
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::true_type /* PSPG */ )
+  void uzawaSmooth(Operator& A, Function& x, Function& b, Function& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::true_type /* PSPG */ )
   {
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
@@ -137,7 +156,7 @@ private:
   }
 
   // Tensor variant
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::true_type /* tensor */, std::true_type /* PSPG */ )
+  void uzawaSmooth(Operator& A, Function& x, Function& b, Function& r, uint_t level, DoFType flag, std::true_type /* tensor */, std::true_type /* PSPG */ )
   {
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     A.A_uv.apply(x.v, r.u, level, flag, Add);
@@ -158,7 +177,7 @@ private:
   }
 
   // Block-Laplace variant without stabilization
-  void uzawaSmooth(O& A, F& x, F& b, F& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::false_type /* PSPG */ )
+  void uzawaSmooth(Operator& A, Function& x, Function& b, Function& r, uint_t level, DoFType flag, std::false_type /* tensor */, std::false_type /* PSPG */ )
   {
     A.divT_x.apply(x.p, r.u, level, flag, Replace);
     r.u.assign({1.0, -1.0}, {&b.u, &r.u}, level, flag);
@@ -202,19 +221,27 @@ private:
   real_t relaxParam_;
 
   CoarseGridSolver coarseGridSolver_;
-  RestrictionOperator restrictionOperator_;
-  ProlongationOperator prolongationOperator_;
+  std::shared_ptr< hhg::RestrictionOperator< Function > > restrictionOperator_;
+  std::shared_ptr< hhg::ProlongationOperator< Function > >  prolongationOperator_;
 
   P1PSPGOperator pspg_;
 
-  F ax_;
-  F tmp_;
+  Function ax_;
+  Function tmp_;
 
   bool hasGlobalCells_;
 
   std::function<real_t(const hhg::Point3D&)> zero_;
 
 
+
 };
+
+//template<class Operator, class CoarseGridSolver, bool Tensor>
+//class UzawaSolver<P2P1TaylorHoodFunction< real_t >, Operator, CoarseGridSolver, Tensor>::init(){
+//    restrictionOperator_  = std::make_shared< hhg::P2P1StokesToP2P1StokesRestriction >();
+//    prolongationOperator_ = std::make_shared< hhg::P2P1StokesToP2P1StokesProlongation >();
+//  }
+
 
 }
