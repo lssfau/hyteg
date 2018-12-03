@@ -47,7 +47,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto dstPtr     = face.getData( dst.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
          auto srcPtr     = face.getData( src.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
          auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-         hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dstPtr, srcPtr, stencilPtr, level );
+         hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dstPtr, srcPtr, stencilPtr, static_cast< int64_t  >( level ) );
       } else
       {
          hhg::vertexdof::macroface::apply( level,
@@ -72,7 +72,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto dstPtr     = face.getData( dst.getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
          auto srcPtr     = face.getData( src.getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
          auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
-         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( srcPtr, stencilPtr, dstPtr, level );
+         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( srcPtr, stencilPtr, dstPtr, static_cast< int64_t  >( level ) );
       } else
       {
          hhg::EdgeDoFToVertexDoF::applyFace( level,
@@ -97,7 +97,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto dstPtr     = face.getData( dst.getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
          auto srcPtr     = face.getData( src.getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
          auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
-         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dstPtr, srcPtr, stencilPtr, level );
+         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dstPtr, srcPtr, stencilPtr, static_cast< int64_t  >( level ) );
       } else
       {
          hhg::edgedof::macroface::apply( level,
@@ -125,7 +125,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto vertexToDiagonalEdgeStencil   = &stencilPtr[4];
          auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
          auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
-         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr, srcPtr, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, level );
+         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr, srcPtr, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, static_cast< int64_t  >( level ) );
       } else
       {
          hhg::VertexDoFToEdgeDoF::applyFace( level,
