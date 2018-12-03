@@ -2,6 +2,7 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
@@ -61,6 +62,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, 1.2e-5 );
 
+   hhg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+   vtkOutput.add( u );
+   vtkOutput.write( level );
 
    walberla::WcTimingTree tt = timingTree->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

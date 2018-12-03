@@ -6,6 +6,9 @@
 #include <vector>
 
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 #include "core/DataTypes.h"
 
@@ -18,19 +21,6 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 class PrimitiveStorage;
-
-template < typename ValueType >
-class EdgeDoFFunction;
-template < typename ValueType >
-class P2Function;
-
-namespace vertexdof {
-template < typename ValueType >
-class VertexDoFFunction;
-}
-
-template < typename ValueType >
-using P1Function = vertexdof::VertexDoFFunction< ValueType >;
 
 class VTKOutput
 {
@@ -46,13 +36,6 @@ class VTKOutput
    void add( DGFunction< real_t > function );
 
    void add( P2Function< real_t > function );
-
-//TODO: remove these once all tests are green!
-//   void add( const std::shared_ptr< P1Function< real_t > > function ) { p1Functions_.push_back( function.get() ); };
-//   void add( const std::shared_ptr< EdgeDoFFunction< real_t > > function ) { edgeDoFFunctions_.push_back( function.get() ); };
-//   void add( const std::shared_ptr< DGFunction< real_t > > function ) { dgFunctions_.push_back( function.get() ); };
-//
-//   void add( const std::shared_ptr< P2Function< real_t > > function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.

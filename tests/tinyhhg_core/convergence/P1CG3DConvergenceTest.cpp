@@ -3,14 +3,14 @@
 #include "core/timing/Timer.h"
 #include "core/math/Random.h"
 
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
-#include "tinyhhg_core/VTKWriter.hpp"
+
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -27,8 +27,6 @@ int main( int argc, char* argv[] )
   const uint_t      lowerLevel       = 3;
   const uint_t      higherLevel     = lowerLevel + 1;
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
-  const real_t      tolerance       = 1e-17;
-  const uint_t      maxIterations   = 10000;
   const bool        writeVTK        = false;
   const bool        enableChecks    = true;
 
@@ -84,7 +82,7 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, higherLevel, DoFType::All );
   oneFunction.interpolate( one, higherLevel, DoFType::All );
 
-  auto solver = hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator >( storage, lowerLevel, higherLevel );
+  auto solver = hhg::CGSolver< P1ConstantLaplaceOperator >( storage, lowerLevel, higherLevel );
 
   WALBERLA_CHECK_LESS( lowerLevel, higherLevel );
 
@@ -92,8 +90,8 @@ int main( int argc, char* argv[] )
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, higherLevel, DoFType::Inner );
 
   VTKOutput vtkOutput("../../output", "P1CGConvergenceTest", storage);
-  vtkOutput.add( &u );
-  vtkOutput.add( &err );
+  vtkOutput.add( u );
+  vtkOutput.add( err );
 
   if ( writeVTK )
   {
@@ -101,11 +99,11 @@ int main( int argc, char* argv[] )
     vtkOutput.write( lowerLevel, 0 );
   }
 
-  solver.solve( laplaceOperator3D, u, f, res, lowerLevel,  tolerance, maxIterations, hhg::Inner, true );
-  solver.solve( laplaceOperator3D, u, f, res, higherLevel, tolerance, maxIterations, hhg::Inner, true );
+  solver.solve( laplaceOperator3D, u, f, lowerLevel );
+  solver.solve( laplaceOperator3D, u, f, higherLevel );
 
-  err.assign( {1.0, -1.0}, {&u, &uExact}, lowerLevel );
-  err.assign( {1.0, -1.0}, {&u, &uExact}, higherLevel );
+  err.assign( {1.0, -1.0}, {u, uExact}, lowerLevel );
+  err.assign( {1.0, -1.0}, {u, uExact}, higherLevel );
   laplaceOperator3D.apply( u, res, lowerLevel,  DoFType::Inner );
   laplaceOperator3D.apply( u, res, higherLevel, DoFType::Inner );
 

@@ -7,6 +7,7 @@
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
@@ -89,13 +90,6 @@ void VTKOutput::add(P1Function<real_t> function) { p1Functions_.push_back( funct
 void VTKOutput::add(EdgeDoFFunction<real_t> function) { edgeDoFFunctions_.push_back( function ); }
 
 void VTKOutput::add(DGFunction<real_t> function) { dgFunctions_.push_back( function ); }
-
-//void VTKOutput::add( const std::shared_ptr< P2Function< real_t > >& function )
-//{
-//   p2Functions_.push_back( function.get() );
-//   p1Functions_.push_back( function->getVertexDoFFunctionCopy() );
-//   edgeDoFFunctions_.push_back( function->getEdgeDoFFunctionCopy() );
-//}
 
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,
                                     const vertexdof::VertexDoFFunction< real_t >& function,

@@ -19,8 +19,10 @@ class CGSolver : public Solver< Operator >
    /// The algorithm is copied from the book: "Finite Elements and Fast Iterative Solvers"
    /// Therefore the variables are named like the ones in the book
    CGSolver( const std::shared_ptr< PrimitiveStorage >& storage,
-             size_t                                     minLevel,
-             size_t                                     maxLevel,
+             uint_t                                     minLevel,
+             uint_t                                     maxLevel,
+             uint_t                                     maxIter = std::numeric_limits< uint_t>::max(),
+             real_t                                     tolerance = 1e-16,
              std::shared_ptr< Solver< Operator > > preconditioner = std::make_shared< IdentityPreconditioner< Operator > >() )
    : p_( "p", storage, minLevel, maxLevel )
    , z_( "z", storage, minLevel, maxLevel )
@@ -29,9 +31,9 @@ class CGSolver : public Solver< Operator >
    , preconditioner_( preconditioner )
    , flag_( hhg::Inner | hhg::NeumannBoundary )
    , printInfo_( false )
-   , tolerance_( 1e-16 )
+   , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
-   , maxIter_( 100 )
+   , maxIter_( maxIter )
    {
       if( !std::is_same< FunctionType, typename Operator::dstType >::value )
       {

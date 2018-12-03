@@ -127,7 +127,7 @@ public:
   }
 
 private:
-  void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply_impl(const P1Function< real_t >& src,const P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)const override
   {
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;

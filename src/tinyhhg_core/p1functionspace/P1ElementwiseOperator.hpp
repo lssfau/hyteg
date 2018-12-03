@@ -54,14 +54,14 @@ namespace hhg {
       };
     }
 
-    ~P1ElementwiseOperator() {}
+    ~P1ElementwiseOperator() override = default;
 
   private:
-    void apply_impl( P1Function< real_t >& src,
-                     P1Function< real_t >& dst,
-                     size_t                level,
-                     DoFType               flag,
-                     UpdateType            updateType = Replace )
+    void apply_impl( const P1Function< real_t >& src,
+                     const P1Function< real_t >& dst,
+                     size_t                      level,
+                     DoFType                     flag,
+                     UpdateType                  updateType = Replace ) const override
     {
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Vertex >, 2 > vertexCoordIDs{
         {coords_[0]->getVertexDataID(), coords_[1]->getVertexDataID()}};

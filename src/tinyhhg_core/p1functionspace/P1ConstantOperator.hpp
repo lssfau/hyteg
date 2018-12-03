@@ -52,7 +52,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
-   ~P1ConstantOperator() override {}
+   ~P1ConstantOperator() override = default;
 
    void scale( real_t scalar );
 

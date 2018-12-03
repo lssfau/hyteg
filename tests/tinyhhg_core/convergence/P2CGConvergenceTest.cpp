@@ -19,9 +19,6 @@ namespace hhg {
 
 void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targetError, const bool localMPI)
 {
-   const real_t tolerance = 1e-16;
-   const uint_t maxIter   = 1000;
-
    const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
