@@ -274,9 +274,21 @@ if( HHG_BUILD_WITH_PETSC )
 endif()
 
 if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P1P1Stokes2DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P1P1Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P1Stokes2DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P1P1Stokes2DPetscSolveTest2 COMMAND $<TARGET_FILE:P1P1Stokes2DPetscSolveTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES composites/P2P1StokesPetscApplyTest.cpp DEPENDS tinyhhg_core core )
   waLBerla_execute_test(NAME P2P1StokesPetscApplyTest1 COMMAND $<TARGET_FILE:P2P1StokesPetscApplyTest> PROCESSES 1)
   waLBerla_execute_test(NAME P2P1StokesPetscApplyTest2 COMMAND $<TARGET_FILE:P2P1StokesPetscApplyTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P2P1Stokes2DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P2P1Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P2P1Stokes2DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P2P1Stokes2DPetscSolveTest2 COMMAND $<TARGET_FILE:P2P1Stokes2DPetscSolveTest> PROCESSES 2)
 endif()
 
 ## Other ##
