@@ -603,6 +603,11 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 {
+   if( isDummy() )
+   {
+      return;
+   }
+
    for( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
