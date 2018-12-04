@@ -9,6 +9,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -55,12 +56,13 @@ int main( int argc, char* argv[] )
   npoints_helper.interpolate( rhs, maxLevel );
   M.apply( npoints_helper, f, maxLevel, hhg::All );
 
+  auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
-    storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+    storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );
   const real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );

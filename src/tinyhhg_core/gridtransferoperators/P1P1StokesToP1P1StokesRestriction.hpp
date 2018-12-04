@@ -11,15 +11,12 @@ class P1P1StokesToP1P1StokesRestriction : RestrictionOperator< P1StokesFunction<
 {
 public:
 
-    typedef P1toP1LinearRestriction VelocityRestriction_T;
-    typedef P1toP1LinearRestriction PressureRestriction_T;
-
     void restrict ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag )
     {
-      restrictionOperator_( function.u, sourceLevel, flag );
-      restrictionOperator_( function.v, sourceLevel, flag );
-      restrictionOperator_( function.w, sourceLevel, flag );
-      restrictionOperator_( function.p, sourceLevel, flag );
+      restrictionOperator_.restrict( function.u, sourceLevel, flag );
+      restrictionOperator_.restrict( function.v, sourceLevel, flag );
+      restrictionOperator_.restrict( function.w, sourceLevel, flag );
+      restrictionOperator_.restrict( function.p, sourceLevel, flag );
     }
 
 private:

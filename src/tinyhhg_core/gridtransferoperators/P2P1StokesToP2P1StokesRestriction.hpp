@@ -16,9 +16,9 @@ public:
 
     void restrict ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
     {
-      quadraticRestrictionOperator_( function.u, sourceLevel, flag );
-      quadraticRestrictionOperator_( function.v, sourceLevel, flag );
-      linearRestrictionOperator_   ( function.p, sourceLevel, flag );
+      quadraticRestrictionOperator_.restrict( function.u, sourceLevel, flag );
+      quadraticRestrictionOperator_.restrict( function.v, sourceLevel, flag );
+      linearRestrictionOperator_.restrict( function.p, sourceLevel, flag );
     }
 
 private:

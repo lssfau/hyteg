@@ -9,15 +9,15 @@ class P2toP2QuadraticRestriction
 {
 public:
 
-    inline void operator()( const P2Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const
+    inline void restrict( const P2Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const
     {
         const auto storage = function.getStorage();
-        const auto vertexDoFFunction = function.getVertexDoFFunction();
-        const auto edgeDoFFunction = function.getEdgeDoFFunction();
+        const auto& vertexDoFFunction = function.getVertexDoFFunction();
+        const auto& edgeDoFFunction = function.getEdgeDoFFunction();
         const auto boundaryCondition = function.getBoundaryCondition();
 
-        edgeDoFFunction->template communicate< Vertex, Edge >( sourceLevel );
-        edgeDoFFunction->template communicate< Edge, Face >( sourceLevel );
+        edgeDoFFunction.template communicate< Vertex, Edge >( sourceLevel );
+        edgeDoFFunction.template communicate< Edge, Face >( sourceLevel );
 
         for( const auto& it : storage->getFaces() )
         {
@@ -27,12 +27,12 @@ public:
             if( testFlag( faceBC, flag ) )
             {
                 P2::macroface::restrict< real_t >(
-                sourceLevel, face, vertexDoFFunction->getFaceDataID(), edgeDoFFunction->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction.getFaceDataID(), edgeDoFFunction.getFaceDataID() );
             }
         }
 
         /// sync the vertex dofs which contain the missing edge dofs
-        edgeDoFFunction->template communicate< Face, Edge >( sourceLevel );
+        edgeDoFFunction.template communicate< Face, Edge >( sourceLevel );
 
         /// remove the temporary updates
         for( const auto& it : storage->getFaces() )
@@ -43,7 +43,7 @@ public:
             if( testFlag( faceBC, flag ) )
             {
                 P2::macroface::postRestrict< real_t >(
-                sourceLevel, face, vertexDoFFunction->getFaceDataID(), edgeDoFFunction->getFaceDataID() );
+                sourceLevel, face, vertexDoFFunction.getFaceDataID(), edgeDoFFunction.getFaceDataID() );
             }
         }
 
@@ -55,7 +55,7 @@ public:
             if( testFlag( edgeBC, flag ) )
             {
                 P2::macroedge::restrict< real_t >(
-                sourceLevel, edge, vertexDoFFunction->getEdgeDataID(), edgeDoFFunction->getEdgeDataID() );
+                sourceLevel, edge, vertexDoFFunction.getEdgeDataID(), edgeDoFFunction.getEdgeDataID() );
             }
         }
 
@@ -68,7 +68,7 @@ public:
             if( testFlag( vertexBC, flag ) )
             {
                 P2::macrovertex::restrictInjection< real_t >(
-                sourceLevel, vertex, vertexDoFFunction->getVertexDataID(), edgeDoFFunction->getVertexDataID() );
+                sourceLevel, vertex, vertexDoFFunction.getVertexDataID(), edgeDoFFunction.getVertexDataID() );
             }
         }
     }

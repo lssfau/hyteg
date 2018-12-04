@@ -10,7 +10,7 @@ class P1toP1QuadraticProlongation
 {
 public:
 
-    inline void operator()( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const
+    inline void prolongate( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const
     {
       const uint_t destinationLevel = sourceLevel + 1;
 

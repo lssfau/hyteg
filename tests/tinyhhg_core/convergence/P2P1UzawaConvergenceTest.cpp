@@ -150,15 +150,15 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "initial L2 error = " << discr_l2_err );
 
    hhg::VTKOutput vtkOutput( "../../output", "P2P1UzawaConvergence", storage );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &u_exact.u );
-   vtkOutput.add( &u_exact.v );
-   vtkOutput.add( &u_exact.p );
-   vtkOutput.add( &err.u );
-   vtkOutput.add( &err.v );
-   vtkOutput.add( &err.p );
+   vtkOutput.add( u.u );
+   vtkOutput.add( u.v );
+   vtkOutput.add( u.p );
+   vtkOutput.add( u_exact.u );
+   vtkOutput.add( u_exact.v );
+   vtkOutput.add( u_exact.p );
+   vtkOutput.add( err.u );
+   vtkOutput.add( err.v );
+   vtkOutput.add( err.p );
 
    if( writeVTK )
    {

@@ -27,7 +27,11 @@ public:
 
   typedef typename OperatorType::srcType FunctionType;
 
+//  static_assert( !std::is_same< FunctionType, typename OperatorType::dstType >::value,
+//                 "CGSolver does not work for Operator with different src and dst FunctionTypes" );
+
   GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
+                            std::shared_ptr< Solver< OperatorType > >               smoother,
                             std::shared_ptr< Solver< OperatorType > >               coarseSolver,
                             std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
@@ -37,6 +41,7 @@ public:
                             uint_t                                                  nuPost = 3 )
   : minLevel_( minLevel )
   , maxLevel_( maxLevel )
+  , smoother_( smoother )
   , coarseSolver_( coarseSolver )
   , restrictionOperator_( restrictionOperator )
   , prolongationOperator_( prolongationOperator )
@@ -63,7 +68,7 @@ public:
       // pre-smooth
       for (size_t i = 0; i < nuPre_; ++i)
       {
-        A.smooth_gs(x, b, level, flag_);
+        smoother_->solve(A, x, b, level );
       }
 
       A.apply(x, ax_, level, flag_);
@@ -90,7 +95,7 @@ public:
       // post-smooth
       for (size_t i = 0; i < nuPost_; ++i)
       {
-        A.smooth_gs(x, b, level, flag_);
+        smoother_->solve(A, x, b, level );
       }
     }
 
@@ -106,6 +111,7 @@ private:
   hhg::DoFType flag_;
   CycleType cycleType_;
 
+  std::shared_ptr< hhg::Solver< OperatorType > > smoother_;
   std::shared_ptr< hhg::Solver< OperatorType > > coarseSolver_;
   std::shared_ptr< hhg::RestrictionOperator< FunctionType > > restrictionOperator_;
   std::shared_ptr< hhg::ProlongationOperator< FunctionType > >  prolongationOperator_;

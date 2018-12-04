@@ -16,6 +16,9 @@ class CGSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
+//   static_assert( !std::is_same< FunctionType, typename OperatorType::dstType >::value,
+//                  "CGSolver does not work for Operator with different src and dst FunctionTypes" );
+
    /// The algorithm is copied from the book: "Finite Elements and Fast Iterative Solvers"
    /// Therefore the variables are named like the ones in the book
    CGSolver( const std::shared_ptr< PrimitiveStorage >& storage,

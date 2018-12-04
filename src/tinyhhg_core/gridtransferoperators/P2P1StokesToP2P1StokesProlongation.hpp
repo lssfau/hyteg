@@ -17,9 +17,9 @@ public:
 
     void prolongate ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
     {
-      quadraticProlongationOperator_( function.u, sourceLevel, flag );
-      quadraticProlongationOperator_( function.v, sourceLevel, flag );
-      linearProlongationOperator_   ( function.p, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.u, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.v, sourceLevel, flag );
+      linearProlongationOperator_.prolongate( function.p, sourceLevel, flag );
     }
 
 private:
