@@ -28,7 +28,7 @@ public:
     MatSetType(mat,MATMPIAIJ);
     MatSetSizes(mat,(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize);
     // Roughly overestimate number of non-zero entries for faster assembly of matrix
-    MatMPIAIJSetPreallocation(mat, 100, NULL, 100, NULL);
+    MatMPIAIJSetPreallocation(mat, 1000, NULL, 1000, NULL);
     //MatSetUp(mat);
     //MatCreateAIJ(walberla::MPIManager::instance()->comm(),(PetscInt)localSize,(PetscInt)localSize,(PetscInt)globalSize,(PetscInt)globalSize,7, NULL, 0, NULL,&mat);
     setName(name);
