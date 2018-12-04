@@ -116,10 +116,21 @@ public:
 
   void enumerate( uint_t level )
   {
-    u.enumerate( level );
-    v.enumerate( level );
-    w.enumerate( level );
-    p.enumerate( level );
+    uint_t counterDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+
+    std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
+
+    ValueType offset = 0;
+
+    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+    {
+      offset += static_cast< ValueType >( doFsPerRank[i] );
+    }
+
+    u.enumerate( level, offset );
+    v.enumerate( level, offset );
+    w.enumerate( level, offset );
+    p.enumerate( level, offset );
   }
 
 
