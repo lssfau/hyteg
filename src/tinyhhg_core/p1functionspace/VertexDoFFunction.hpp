@@ -192,8 +192,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 
-   /// friend P2Function for usage of enumerate
+   /// friend Stokes and P2Function for usage of enumerate
    friend class P2Function< ValueType >;
+   friend class P1StokesFunction< ValueType >;
+   friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
 inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level )
