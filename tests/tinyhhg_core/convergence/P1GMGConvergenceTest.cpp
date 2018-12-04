@@ -8,7 +8,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

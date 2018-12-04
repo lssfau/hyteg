@@ -22,14 +22,13 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
    , velocity_( velocity )
    {}
 
-   ~DGUpwindOperator() {}
+   ~DGUpwindOperator() = default;
 
- private:
-   void apply_impl( DGFunction< real_t >& src,
-                    DGFunction< real_t >& dst,
-                    uint_t                level,
-                    DoFType               flag,
-                    UpdateType            updateType = Replace )
+   void apply( const DGFunction< real_t >& src,
+               const DGFunction< real_t >& dst,
+               uint_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
    {
       // start pulling edge halos
       src.startCommunication< Face, Edge >( level );

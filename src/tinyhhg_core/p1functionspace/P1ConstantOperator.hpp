@@ -40,9 +40,6 @@ class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
 
 namespace hhg {
 
-template< class UFCOperator2D, class UFCOperator3D >
-class P2ConstantOperator;
-
 using walberla::real_t;
 
 template < class UFCOperator2D,
@@ -65,7 +62,19 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
               DoFType               flag,
               UpdateType            updateType = Replace ) const;
 
-   void smooth_gs(const P1Function< real_t >& dst,const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
+
+   void smooth_sor( const P1Function< real_t >& dst,
+                         const P1Function< real_t >& rhs,
+                         real_t                      relax,
+                         size_t                      level,
+                         DoFType                     flag ) const;
+
+   void smooth_jac( const P1Function< real_t >& dst,
+                         const P1Function< real_t >& rhs,
+                         const P1Function< real_t >& tmp,
+                         size_t                      level,
+                         DoFType                     flag ) const;
 
    const PrimitiveDataID< StencilMemory< real_t >, Vertex >& getVertexStencilID() const { return vertexStencilID_; }
 
@@ -82,13 +91,9 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
  private:
 
-   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag ) override;
 
-   void smooth_jac_impl( P1Function< real_t >& dst,
-                         P1Function< real_t >& rhs,
-                         P1Function< real_t >& tmp,
-                         size_t                level,
-                         DoFType               flag ) override;
+
+
 
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;

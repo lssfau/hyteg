@@ -39,8 +39,11 @@ public:
   {
   }
 
-private:
-  void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply( const P1Function< real_t >& src,
+              const P1Function< real_t >& dst,
+              size_t                      level,
+              DoFType                     flag,
+              UpdateType                  updateType = Replace ) const
   {
     src.communicate< Vertex, Edge>( level );
     src.communicate< Edge, Face>( level );
@@ -79,7 +82,7 @@ private:
 
   }
 
-  void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
+  void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
   {
     // start pulling vertex halos
     dst.startCommunication<Edge, Vertex>( level );
@@ -132,7 +135,11 @@ private:
     dst.endCommunication<Edge, Face>( level );
   }
 
-  void smooth_jac_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, P1Function< real_t >& tmp, size_t level, DoFType flag)
+  void smooth_jac( const P1Function< real_t >& dst,
+                   const P1Function< real_t >& rhs,
+                   const P1Function< real_t >& tmp,
+                   size_t                      level,
+                   DoFType                     flag ) const
   {
     // start pulling vertex halos
     tmp.startCommunication<Edge, Vertex>( level );
@@ -225,7 +232,7 @@ private:
     }
   }
 #endif
-
+private:
   P1Form form;
 };
 

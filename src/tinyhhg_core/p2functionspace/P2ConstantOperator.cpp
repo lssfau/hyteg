@@ -441,11 +441,11 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs( P2Function< 
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac_impl( P2Function< real_t >& dst,
-                                                                          P2Function< real_t >& rhs,
-                                                                          P2Function< real_t >& src,
-                                                                          size_t                level,
-                                                                          DoFType               flag )
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac( const P2Function< real_t >& dst,
+                                                                     const P2Function< real_t >& rhs,
+                                                                     const P2Function< real_t >& src,
+                                                                     size_t                      level,
+                                                                     DoFType                     flag ) const
 {
    ///TODO: remove unneccessary communication here
    src.getVertexDoFFunction().communicate< Face, Edge >( level );

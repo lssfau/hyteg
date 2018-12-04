@@ -620,9 +620,14 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
    }
 }
 
-template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>
-void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal>::smooth_sor_impl(
-        P1Function<real_t> &dst, P1Function<real_t> &rhs, real_t relax, size_t level, DoFType flag) {
+template < class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
+    const P1Function< real_t >& dst,
+    const P1Function< real_t >& rhs,
+    real_t                      relax,
+    size_t                      level,
+    DoFType                     flag ) const
+{
    dst.communicate< Vertex, Edge >( level );
    dst.communicate< Edge, Face >( level );
    dst.communicate< Face, Cell >( level );
@@ -685,9 +690,14 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
    }
 }
 
-template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>
-void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal>::smooth_jac_impl(
-        P1Function<real_t> &dst, P1Function<real_t> &rhs, P1Function<real_t> &tmp, size_t level, DoFType flag) {
+template < class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal >::smooth_jac(
+    const P1Function< real_t >& dst,
+    const P1Function< real_t >& rhs,
+    const P1Function< real_t >& tmp,
+    size_t                      level,
+    DoFType                     flag ) const
+{
    tmp.communicate< Vertex, Edge >( level );
    tmp.communicate< Edge, Face >( level );
    tmp.communicate< Face, Cell >( level );

@@ -144,19 +144,22 @@ class P2ToP1ConstantOperator : public Operator<P2Function < real_t>, P1Function<
     return edgeToVertex;
   }
 
- private:
+   void apply( const P2Function< real_t >& src,
+               const P1Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
+   {
+      vertexToVertex.apply( src.getVertexDoFFunction(), dst, level, flag, updateType );
+      edgeToVertex.apply( src.getEdgeDoFFunction(), dst, level, flag, Add );
+   }
 
-  void apply_impl(P2Function< real_t > & src, P1Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
-  {
-    vertexToVertex.apply(*src.getVertexDoFFunction(), dst, level, flag, updateType);
-    edgeToVertex.apply(*src.getEdgeDoFFunction(), dst, level, flag, Add);
-  }
-
-  void smooth_gs_impl(P2Function< real_t > & dst, P1Function< real_t > & rhs, size_t level, DoFType flag)
+  void smooth_gs(P2Function< real_t > & dst, P1Function< real_t > & rhs, size_t level, DoFType flag)
   {
     WALBERLA_ABORT("not implemented");
   }
 
+private:
 
   P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >         vertexToVertex;
   EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > edgeToVertex;

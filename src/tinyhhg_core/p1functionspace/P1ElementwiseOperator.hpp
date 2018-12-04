@@ -56,12 +56,11 @@ namespace hhg {
 
     ~P1ElementwiseOperator() override = default;
 
-  private:
-    void apply_impl( const P1Function< real_t >& src,
-                     const P1Function< real_t >& dst,
-                     size_t                      level,
-                     DoFType                     flag,
-                     UpdateType                  updateType = Replace ) const override
+    void apply( const P1Function< real_t >& src,
+                const P1Function< real_t >& dst,
+                size_t                      level,
+                DoFType                     flag,
+                UpdateType                  updateType = Replace ) const
     {
       std::array< const PrimitiveDataID< FunctionMemory< real_t >, Vertex >, 2 > vertexCoordIDs{
         {coords_[0]->getVertexDataID(), coords_[1]->getVertexDataID()}};
@@ -131,12 +130,16 @@ namespace hhg {
 
     }
 
-    void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag )
+    void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
     {
-      smooth_sor_impl( dst, rhs, real_t(1.0), level, flag );
+      smooth_sor( dst, rhs, real_t(1.0), level, flag );
     }
 
-    void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag )
+    void smooth_sor( const P1Function< real_t >& dst,
+                     const P1Function< real_t >& rhs,
+                     real_t                      relax,
+                     size_t                      level,
+                     DoFType                     flag ) const
     {
 
       // extract handles to primitive coordinates
@@ -212,12 +215,11 @@ namespace hhg {
         }
     }
 
-
-    void smooth_jac_impl( P1Function< real_t >& dst,
-                          P1Function< real_t >& rhs,
-                          P1Function< real_t >& src,
-                          size_t                level,
-                          DoFType               flag )
+    void smooth_jac( const P1Function< real_t >& dst,
+                     const P1Function< real_t >& rhs,
+                     const P1Function< real_t >& src,
+                     size_t                      level,
+                     DoFType                     flag ) const
     {
 
       src.communicate< Vertex, Edge >( level );

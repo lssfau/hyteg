@@ -27,23 +27,11 @@ public:
 
   virtual ~Operator() = default;
 
-  void smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag );
-
-  void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
-
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
   const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
  protected:
-
-  virtual void smooth_sor_impl( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
-
-  virtual void smooth_jac_impl( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -73,17 +61,5 @@ public:
     }
   }
 };
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag )
-{
-  smooth_sor_impl( dst, rhs, relax, level, flag );
-}
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag )
-{
-  smooth_jac_impl( dst, rhs, tmp, level, flag );
-}
 
 }
