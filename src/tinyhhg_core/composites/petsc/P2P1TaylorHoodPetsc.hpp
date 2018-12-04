@@ -12,7 +12,11 @@ inline void createVectorFromFunction(P2P1TaylorHoodFunction<PetscScalar> &functi
                                      DoFType flag) {
   createVectorFromFunction(function.u, numerator.u, vec, level, flag);
   createVectorFromFunction(function.v, numerator.v, vec, level, flag);
-  createVectorFromFunction(function.p, numerator.p, vec, level, flag | DirichletBoundary);
+  if ( function.u.getStorage()->hasGlobalCells() )
+  {
+    createVectorFromFunction(function.w, numerator.w, vec, level, flag);
+  }
+  createVectorFromFunction(function.p, numerator.p, vec, level, flag);
 }
 
 inline void createFunctionFromVector(P2P1TaylorHoodFunction<PetscScalar> &function,
@@ -22,12 +26,20 @@ inline void createFunctionFromVector(P2P1TaylorHoodFunction<PetscScalar> &functi
                                      DoFType flag) {
   createFunctionFromVector(function.u, numerator.u, vec, level, flag);
   createFunctionFromVector(function.v, numerator.v, vec, level, flag);
-  createFunctionFromVector(function.p, numerator.p, vec, level, flag | DirichletBoundary);
+  if ( function.u.getStorage()->hasGlobalCells() )
+  {
+    createFunctionFromVector(function.w, numerator.w, vec, level, flag);
+  }
+  createFunctionFromVector(function.p, numerator.p, vec, level, flag);
 }
 
 inline void applyDirichletBC(P2P1TaylorHoodFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
   applyDirichletBC(numerator.u, mat, level);
   applyDirichletBC(numerator.v, mat, level);
+  if ( numerator.u.getStorage()->hasGlobalCells() )
+  {
+    applyDirichletBC(numerator.w, mat, level);
+  }
 //  applyDirichletBC(numerator.p, mat, level);
 }
 
@@ -42,10 +54,22 @@ inline void createMatrix(OperatorType& opr, P2P1TaylorHoodFunction< PetscInt > &
   createMatrix(opr.divT_y.getVertexToVertexOpr(), src.p, *dst.v.getVertexDoFFunction(), mat, level, flag);
   VertexDoFToEdgeDoF::createMatrix(opr.divT_y.getVertexToEdgeOpr(), src.p, *dst.v.getEdgeDoFFunction(), mat, level, flag);
 
+  if ( src.u.getStorage()->hasGlobalCells() )
+  {
+    createMatrix(opr.A, src.w, dst.w, mat, level, flag);
+    createMatrix(opr.divT_z.getVertexToVertexOpr(), src.p, *dst.w.getVertexDoFFunction(), mat, level, flag);
+    VertexDoFToEdgeDoF::createMatrix(opr.divT_z.getVertexToEdgeOpr(), src.p, *dst.w.getEdgeDoFFunction(), mat, level, flag);
+  }
+
   createMatrix(opr.div_x.getVertexToVertexOpr(), *src.u.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
   EdgeDoFToVertexDoF::createMatrix(opr.div_x.getEdgeToVertexOpr(), *src.u.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
   createMatrix(opr.div_y.getVertexToVertexOpr(), *src.v.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
   EdgeDoFToVertexDoF::createMatrix(opr.div_y.getEdgeToVertexOpr(), *src.v.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  if ( src.u.getStorage()->hasGlobalCells() )
+  {
+    createMatrix(opr.div_z.getVertexToVertexOpr(), *src.w.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+    EdgeDoFToVertexDoF::createMatrix(opr.div_z.getEdgeToVertexOpr(), *src.w.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  }
 }
 
 }
