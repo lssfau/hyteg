@@ -9,9 +9,9 @@ class Solver
  public:
    /// solves the system A * x = b
    virtual void solve( const OperatorType&             A,
-                       typename OperatorType::srcType& x,
-                       typename OperatorType::dstType& b,
-                       const walberla::uint_t&         level ) = 0;
+                       const typename OperatorType::srcType& x,
+                       const typename OperatorType::dstType& b,
+                       const walberla::uint_t         level )const = 0;
 
    virtual ~Solver() = default;
 };

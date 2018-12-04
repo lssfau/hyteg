@@ -14,6 +14,7 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 #include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 
 using walberla::real_t;
@@ -107,33 +108,43 @@ int main( int argc, char* argv[] )
 
 
 
-   GMGSolver< P2P1StokesOperator > solver = GMGFactory::createDefaultGMGSolver< P2P1StokesOperator >(storage, minlevel, maxlevel);
+//   GMGSolver< P2P1StokesOperator > solver = GMGFactory::createDefaultGMGSolver< P2P1StokesOperator >(storage, minlevel, maxlevel);
+//
+//   solver.setSmoother(  )
+//   solver.solve(A,x,b);
+//
+//
+//   ///// MinRes coarse grid solver for UZAWA /////
+//   typedef StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator >
+//       PressurePreconditioner_T;
+//
+//   P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
+//   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
+//
+//   typedef hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >
+//       PressurePreconditionedMinRes_T;
+//
+//   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
+//
+//   ///// UZAWA solver /////
+//   typedef UzawaSolver< hhg::P2P1TaylorHoodFunction< real_t >,
+//                        hhg::P2P1TaylorHoodStokesOperator,
+//                        PressurePreconditionedMinRes_T,
+//                        false >
+//       UzawaSolver_T;
+//
+//   UzawaSolver_T uzawaSolver(
+//       storage, pressurePreconditionedMinResSolver, minLevel, maxLevel, 2, 2, 2, 0.37 );
 
-   solver.setSmoother(  )
-   solver.solve(A,x,b);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P2P1TaylorHoodStokesOperator>  >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+
+   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
 
-   ///// MinRes coarse grid solver for UZAWA /////
-   typedef StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator >
-       PressurePreconditioner_T;
-
-   P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
-
-   typedef hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >
-       PressurePreconditionedMinRes_T;
-
-   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
-
-   ///// UZAWA solver /////
-   typedef UzawaSolver< hhg::P2P1TaylorHoodFunction< real_t >,
-                        hhg::P2P1TaylorHoodStokesOperator,
-                        PressurePreconditionedMinRes_T,
-                        false >
-       UzawaSolver_T;
-
-   UzawaSolver_T uzawaSolver(
-       storage, pressurePreconditionedMinResSolver, minLevel, maxLevel, 2, 2, 2, 0.37 );
 
    const uint_t npoints = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err, currRes, oldRes = 0;

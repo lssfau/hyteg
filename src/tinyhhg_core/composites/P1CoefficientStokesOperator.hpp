@@ -56,4 +56,8 @@ struct has_pspg_block< P1CoefficientStokesOperator > {
     static const bool value = true;
 };
 
+struct tensor_variant< P1CoefficientStokesOperator > {
+  static const bool value = true;
+};
+
 }

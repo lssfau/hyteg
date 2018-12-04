@@ -27,7 +27,6 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
-   hhg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
    hhg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
@@ -45,13 +44,12 @@ int main( int argc, char* argv[] )
    u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
 
-   typedef hhg::JacobiPreconditioner< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > PreconditionerType;
-   auto prec   = PreconditionerType( storage, minLevel, maxLevel, L, 10 );
-   auto solver = hhg::MinResSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, PreconditionerType >(
-       storage, minLevel, maxLevel, prec );
-   solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
+   auto prec   = std::make_shared<hhg::JacobiPreconditioner< hhg::P1ConstantLaplaceOperator >>( storage, minLevel, maxLevel, 10 );
+   auto solver = hhg::MinResSolver<  hhg::P1ConstantLaplaceOperator >(
+       storage, minLevel, maxLevel,maxiter,1e-8, prec );
+   solver.solve( L, u, f, maxLevel );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
@@ -60,7 +58,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << std::scientific << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 3e-04 )
+   WALBERLA_CHECK_LESS( discr_l2_err, 3.7e-09 )
 
    //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
    return EXIT_SUCCESS;

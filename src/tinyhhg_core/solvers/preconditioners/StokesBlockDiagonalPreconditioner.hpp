@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 

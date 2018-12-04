@@ -101,7 +101,7 @@ void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uin
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                   uint_t                                              level,
-                                                  DoFType                                             flag )
+                                                  DoFType                                             flag ) const
 {
    if( isDummy() )
    {
@@ -115,7 +115,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                   uint_t                                              level,
-                                                  BoundaryUID                                         boundaryUID )
+                                                  BoundaryUID                                         boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -131,7 +131,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                              srcFunctions,
     uint_t                                                                               level,
-    DoFType                                                                              flag )
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -199,7 +199,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                              srcFunctions,
     uint_t                                                                               level,
-    BoundaryUID                                                                          boundaryUID )
+    BoundaryUID                                                                          boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -267,7 +267,7 @@ void VertexDoFFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
     size_t                                                                               level,
-    DoFType                                                                              flag )
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -334,7 +334,7 @@ void VertexDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag )
+void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -389,7 +389,7 @@ void VertexDoFFunction< ValueType >::add(
     const std::vector< ValueType >&                                                      scalars,
     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
     size_t                                                                               level,
-    DoFType                                                                              flag )
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -517,7 +517,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexD
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotGlobal(VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+real_t VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    real_t scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -527,7 +527,7 @@ real_t VertexDoFFunction< ValueType >::dotGlobal(VertexDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    if( isDummy() )
    {

@@ -15,8 +15,8 @@ inline void createVectorFromFunction(P2Function<PetscScalar> &function,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
-  createVectorFromFunction(*function.getVertexDoFFunction(), *numerator.getVertexDoFFunction(), vec, level, flag);
-  edgedof::createVectorFromFunction(*function.getEdgeDoFFunction(), *numerator.getEdgeDoFFunction(), vec, level, flag);
+  createVectorFromFunction(function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag);
+  edgedof::createVectorFromFunction(function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag);
 }
 
 inline void createFunctionFromVector(P2Function<PetscScalar> &function,

@@ -14,7 +14,6 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
@@ -100,14 +99,14 @@ int main( int argc, char* argv[] )
   hhg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
   hhg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
-  vtkOutput.add( &u.u );
-  vtkOutput.add( &u.v );
-  vtkOutput.add( &u.w );
-  vtkOutput.add( &u.p );
-  vtkOutput.add( &uExact.u );
-  vtkOutput.add( &uExact.v );
-  vtkOutput.add( &uExact.w );
-  vtkOutput.add( &uExact.p );
+  vtkOutput.add( u.u );
+  vtkOutput.add( u.v );
+  vtkOutput.add( u.w );
+  vtkOutput.add( u.p );
+  vtkOutput.add( uExact.u );
+  vtkOutput.add( uExact.v );
+  vtkOutput.add( uExact.w );
+  vtkOutput.add( uExact.p );
 
 
   hhg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
@@ -176,11 +175,11 @@ int main( int argc, char* argv[] )
   hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
 
-  auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel );
+  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel );
   // auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
   // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
-  solver.solve( L, u, f, r, maxLevel, tolerance, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+  solver.solve( L, u, f, maxLevel );
 #else
   auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
    uint_t globalSize = 0;

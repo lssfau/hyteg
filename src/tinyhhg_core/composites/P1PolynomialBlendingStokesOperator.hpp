@@ -80,4 +80,8 @@ struct has_pspg_block< P1PolynomialBlendingStokesOperator > {
     static const bool value = true;
 };
 
+struct tensor_variant< P1PolynomialBlendingStokesOperator > {
+  static const bool value = true;
+};
+
 } // namespace hhg
