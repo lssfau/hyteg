@@ -366,10 +366,10 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply(const P2Function<
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs( P2Function< real_t >& dst,
-                                                                    P2Function< real_t >& rhs,
-                                                                    size_t                level,
-                                                                    DoFType               flag ) const
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Function <real_t> &dst,
+                                                                   const P2Function <real_t> &rhs,
+                                                                   const size_t level,
+                                                                   const DoFType flag) const
 {
    dst.getVertexDoFFunction().communicate< Face, Edge >( level );
    dst.getVertexDoFFunction().communicate< Edge, Vertex >( level );

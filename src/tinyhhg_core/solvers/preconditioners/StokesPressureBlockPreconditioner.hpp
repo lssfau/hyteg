@@ -1,35 +1,37 @@
 #pragma once
 
-#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/Solver.hpp"
 
 namespace hhg {
 
-template< class F, class PressureBlockPreconditioner_T >
-class StokesPressureBlockPreconditioner
+template < class OperatorType, class pressureBlockPreconditionerType >
+class StokesPressureBlockPreconditioner : public Solver< OperatorType >
 {
-public:
+ public:
+   typedef typename OperatorType::srcType FunctionType;
 
-    StokesPressureBlockPreconditioner(PressureBlockPreconditioner_T pressureBlockPreconditioner,
-                                    const std::shared_ptr<PrimitiveStorage> & storage,
-                                    uint_t minLevel, uint_t maxLevel)
-      : pressureBlockPreconditioner_( pressureBlockPreconditioner ),
-        r("r", storage, minLevel, maxLevel)
-  {}
+   StokesPressureBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : pressureBlockPreconditioner_( std::make_shared< pressureBlockPreconditionerType >( storage, minLevel, maxLevel ) )
+   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   {}
 
-  // y = M^{-1} * x
-  void apply(F &x, F &y, uint_t level, DoFType flag) {
+   //   StokesPressureBlockPreconditioner( const std::shared_ptr< Solver< OperatorType > >& pressureBlockPreconditioner )
+   //   : pressureBlockPreconditioner_( pressureBlockPreconditioner )
+   //   {}
 
-    y.assign({1.0}, {&x}, level, flag);
-    pressureBlockPreconditioner_.apply( x.p, y.p, level, flag, Replace );
-  }
+   // y = M^{-1} * x
+   void solve( const OperatorType&, const FunctionType& x, const FunctionType& b,const uint_t level ) const override
+   {
+      b.assign( {1.0}, {x}, level, flag_ );
+      pressureBlockPreconditioner_->apply( x.p, b.p, level, flag_, Replace );
+   }
 
-private:
-
-  F r;
-
-  PressureBlockPreconditioner_T pressureBlockPreconditioner_;
+ private:
+   std::shared_ptr< pressureBlockPreconditionerType > pressureBlockPreconditioner_;
+   hhg::DoFType                              flag_;
 };
 
-}
+} // namespace hhg

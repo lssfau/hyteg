@@ -32,19 +32,19 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
    EdgeDoFOperator& getEdgeToEdgeOpr() { return edgeToEdge; }
 
-  void apply( const P2Function< real_t >& src,
-              const P2Function< real_t >& dst,
-              size_t                      level,
-              DoFType                     flag,
-              UpdateType                  updateType = Replace ) const;
+   void apply( const P2Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const;
 
-  void smooth_gs( P2Function< real_t >& dst, P2Function< real_t >& rhs, size_t level, DoFType flag ) const;
+  void smooth_gs(const P2Function <real_t> &dst, const P2Function <real_t> &rhs, size_t level, DoFType flag) const;
 
-  void smooth_jac( const P2Function< real_t >& dst,
-                   const P2Function< real_t >& rhs,
-                   const P2Function< real_t >& src,
-                   size_t                      level,
-                   DoFType                     flag ) const;
+   void smooth_jac( const P2Function< real_t >& dst,
+                    const P2Function< real_t >& rhs,
+                    const P2Function< real_t >& src,
+                    size_t                      level,
+                    DoFType                     flag ) const;
 
  private:
    void assembleStencils();

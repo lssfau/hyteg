@@ -21,8 +21,8 @@ class P2Function : public Function< P2Function< ValueType > >
  public:
    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage )
    : Function< P2Function< ValueType > >( name, storage )
-   , vertexDoFFunction_( std::make_shared< vertexdof::VertexDoFFunction< ValueType > >( name + "_VertexDoF_dummy", storage ) )
-   , edgeDoFFunction_( std::make_shared< EdgeDoFFunction< ValueType > >( name + "__EdgeDoF_dummy", storage ) )
+   , vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF_dummy", storage ) )
+   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "__EdgeDoF_dummy", storage ) )
    {}
 
    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
@@ -53,19 +53,19 @@ class P2Function : public Function< P2Function< ValueType > >
    const vertexdof::VertexDoFFunction< ValueType > & getVertexDoFFunction() const { return vertexDoFFunction_; }
    const EdgeDoFFunction< ValueType > &              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
-   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All )
+   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
    {
       vertexDoFFunction_.interpolate( constant, level, flag );
       edgeDoFFunction_.interpolate( constant, level, flag );
    }
 
-   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All )
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
    {
       vertexDoFFunction_.interpolate( expr, level, flag );
       edgeDoFFunction_.interpolate( expr, level, flag );
    }
 
-   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID )
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const
    {
       vertexDoFFunction_.interpolate( expr, level, boundaryUID );
       edgeDoFFunction_.interpolate( expr, level, boundaryUID );
@@ -74,7 +74,7 @@ class P2Function : public Function< P2Function< ValueType > >
    inline void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                                     const std::vector< P2Function< ValueType >* > srcFunctions,
                                     uint_t                                        level,
-                                    DoFType                                       flag = All )
+                                    DoFType                                       flag = All ) const
    {
       std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
       std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
@@ -92,7 +92,7 @@ class P2Function : public Function< P2Function< ValueType > >
    inline void assign( const std::vector< ValueType >&                                               scalars,
                        const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                        uint_t                                                                        level,
-                       DoFType                                                                       flag = All )
+                       DoFType                                                                       flag = All ) const
    {
       std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
       std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > > edgeDoFFunctions;
@@ -110,7 +110,7 @@ class P2Function : public Function< P2Function< ValueType > >
    inline void add( const std::vector< ValueType >&                                               scalars,
                     const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                     uint_t                                                                        level,
-                    DoFType                                                                       flag = All )
+                    DoFType                                                                       flag = All ) const
    {
       std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
       std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > > edgeDoFFunctions;
@@ -125,7 +125,7 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_.add( scalars, edgeDoFFunctions, level, flag );
    }
 
-   inline real_t dotGlobal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+   inline real_t dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
       real_t sum = dotLocal( rhs, level, flag );
       this->startTiming( "Dot (reduce)" );
@@ -134,7 +134,7 @@ class P2Function : public Function< P2Function< ValueType > >
       return sum;
    }
 
-   inline real_t dotLocal( P2Function< ValueType >& rhs, uint_t level, DoFType flag = All )
+   inline real_t dotLocal(const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
       real_t sum = real_c( 0 );
       sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
@@ -144,7 +144,7 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void prolongateP1ToP2( const std::shared_ptr< hhg::P1Function< ValueType > >& p1Function,
                                  const uint_t&                                          level,
-                                 const DoFType&                                         flag = All )
+                                 const DoFType&                                         flag = All ) const
    {
       // Note: 'this' is the dst function - therefore we test this' boundary conditions
 
@@ -207,7 +207,7 @@ class P2Function : public Function< P2Function< ValueType > >
 
    inline void restrictP2ToP1( const std::shared_ptr< P1Function< ValueType > >& p1Function,
                                const uint_t&                                     level,
-                               const DoFType&                                    flag = All )
+                               const DoFType&                                    flag = All ) const
    {
       this->startTiming( "Restrict P2 -> P1" );
 
@@ -283,7 +283,7 @@ class P2Function : public Function< P2Function< ValueType > >
       this->stopTiming( "Restrict P2 -> P1" );
    }
 
-   inline void restrictInjection( uint_t sourceLevel, DoFType flag = All )
+   inline void restrictInjection( uint_t sourceLevel, DoFType flag = All ) const
    {
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -325,7 +325,7 @@ class P2Function : public Function< P2Function< ValueType > >
    inline void interpolate( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                             const std::vector< P2Function< ValueType >* >                                  srcFunctions,
                             uint_t                                                                         level,
-                            DoFType                                                                        flag = All )
+                            DoFType                                                                        flag = All ) const
    {
       std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
       std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
@@ -345,7 +345,7 @@ class P2Function : public Function< P2Function< ValueType > >
       WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
    }
 
-   inline void prolongate( uint_t sourceLevel, DoFType flag = All )
+   inline void prolongate( uint_t sourceLevel, DoFType flag = All ) const
    {
       edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
       edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
@@ -390,7 +390,7 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
-   inline void restrict( uint_t sourceLevel, DoFType flag = All )
+   inline void restrict( uint_t sourceLevel, DoFType flag = All ) const
    {
       edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
       edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
@@ -449,7 +449,7 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
-   inline real_t getMaxValue( uint_t level, DoFType flag = All )
+   inline real_t getMaxValue( uint_t level, DoFType flag = All ) const
    {
       auto localMax = -std::numeric_limits< ValueType >::max();
       localMax      = std::max( localMax, vertexDoFFunction_.getMaxValue( level, flag, false ) );
@@ -459,7 +459,7 @@ class P2Function : public Function< P2Function< ValueType > >
       return localMax;
    }
 
-   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All )
+   inline real_t getMaxMagnitude( uint_t level, DoFType flag = All ) const
    {
       auto localMax = real_t( 0.0 );
       localMax      = std::max( localMax, vertexDoFFunction_.getMaxMagnitude( level, flag, false ) );
@@ -470,7 +470,7 @@ class P2Function : public Function< P2Function< ValueType > >
       return localMax;
    }
 
-   inline real_t getMinValue( uint_t level, DoFType flag = All )
+   inline real_t getMinValue( uint_t level, DoFType flag = All ) const
    {
       auto localMin = std::numeric_limits< ValueType >::max();
       localMin      = std::min( localMin, vertexDoFFunction_.getMinValue( level, flag, false ) );
@@ -488,7 +488,7 @@ class P2Function : public Function< P2Function< ValueType > >
       return vertexDoFFunction_.getBoundaryCondition();
    }
 
-   inline void enumerate( uint_t level )
+   inline void enumerate( uint_t level ) const
    {
       this->startTiming( "Enumerate" );
 
@@ -508,7 +508,7 @@ class P2Function : public Function< P2Function< ValueType > >
       this->stopTiming( "Enumerate" );
    }
 
-   inline void enumerate( uint_t level, ValueType& offset )
+   inline void enumerate( uint_t level, ValueType& offset ) const
    {
       vertexDoFFunction_.enumerate( level, offset );
       edgeDoFFunction_.enumerate( level, offset );

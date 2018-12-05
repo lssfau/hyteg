@@ -15,9 +15,9 @@ class IdentityPreconditioner : public Solver< OperatorType >
    {}
 
    void solve( const OperatorType&,
-               typename OperatorType::srcType& x,
-               typename OperatorType::dstType& b,
-               const uint_t&                   level ) override
+               const typename OperatorType::srcType& x,
+               const typename OperatorType::dstType& b,
+               const uint_t                          level ) const override
    {
       b.assign( {1.0}, {x}, level, flag_ );
    }

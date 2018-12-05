@@ -30,7 +30,7 @@ public:
     p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {}
 
-  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
+  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
@@ -38,19 +38,22 @@ public:
     p.interpolate(expr, level, flag);
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P2P1TaylorHoodFunction<ValueType>*> functions, size_t level, DoFType flag = All)
+  void assign( const std::vector< walberla::real_t >                                                     scalars,
+               const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
+               size_t                                                                                    level,
+               DoFType                                                                                   flag = All ) const
   {
-    std::vector< VelocityFunction_T * > functions_u;
-    std::vector< VelocityFunction_T * > functions_v;
-    std::vector< VelocityFunction_T * > functions_w;
-    std::vector< PressureFunction_T * > functions_p;
+    std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_u;
+    std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_v;
+    std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_w;
+    std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
-    for (auto& function : functions)
+    for (const P2P1TaylorHoodFunction< ValueType > & function : functions)
     {
-      functions_u.push_back(&function->u);
-      functions_v.push_back(&function->v);
-      functions_w.push_back(&function->w);
-      functions_p.push_back(&function->p);
+      functions_u.push_back(function.u);
+      functions_v.push_back(function.v);
+      functions_w.push_back(function.w);
+      functions_p.push_back(function.p);
     }
 
     u.assign(scalars, functions_u, level, flag);
@@ -59,28 +62,31 @@ public:
     p.assign(scalars, functions_p, level, flag);
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P2P1TaylorHoodFunction<ValueType>*> functions, size_t level, DoFType flag = All)
+  void add( const std::vector< walberla::real_t >                                                     scalars,
+            const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
+            size_t                                                                                    level,
+            DoFType                                                                                   flag = All ) const
   {
-    std::vector< VelocityFunction_T * > functions_u;
-    std::vector< VelocityFunction_T * > functions_v;
-    std::vector< VelocityFunction_T * > functions_w;
-    std::vector< PressureFunction_T * > functions_p;
+     std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_u;
+     std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_v;
+     std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_w;
+     std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
-    for (auto& function : functions)
-    {
-      functions_u.push_back(&function->u);
-      functions_v.push_back(&function->v);
-      functions_w.push_back(&function->w);
-      functions_p.push_back(&function->p);
-    }
+     for( const P2P1TaylorHoodFunction< ValueType >& function : functions )
+     {
+        functions_u.push_back( function.u );
+        functions_v.push_back( function.v );
+        functions_w.push_back( function.w );
+        functions_p.push_back( function.p );
+     }
 
-    u.add(scalars, functions_u, level, flag);
-    v.add(scalars, functions_v, level, flag);
-    w.add(scalars, functions_w, level, flag);
-    p.add(scalars, functions_p, level, flag);
+     u.add( scalars, functions_u, level, flag );
+     v.add( scalars, functions_v, level, flag );
+     w.add( scalars, functions_w, level, flag );
+     p.add( scalars, functions_p, level, flag );
   }
 
-  walberla::real_t dotGlobal(P2P1TaylorHoodFunction<ValueType>& rhs, size_t level, DoFType flag = All)
+  walberla::real_t dotGlobal(const P2P1TaylorHoodFunction< ValueType >& rhs,const size_t level,const DoFType flag = All ) const
   {
     walberla::real_t sum = u.dotLocal(rhs.u, level, flag);
     sum += v.dotLocal(rhs.v, level, flag);
@@ -90,7 +96,7 @@ public:
     return sum;
   }
 
-  void prolongate(size_t level, DoFType flag = All)
+  void prolongate(const size_t level,const DoFType flag = All) const
   {
     u.prolongate(level, flag);
     v.prolongate(level, flag);
@@ -98,7 +104,7 @@ public:
     p.prolongate(level, flag);
   }
 
-  void restrict(size_t level, DoFType flag = All)
+  void restrict(const size_t level,const DoFType flag = All) const
   {
     u.restrict(level, flag);
     v.restrict(level, flag);
@@ -106,7 +112,7 @@ public:
     p.restrict(level, flag);
   }
 
-  void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree )
+  void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) const
   {
     u.enableTiming(timingTree);
     v.enableTiming(timingTree);
@@ -114,7 +120,7 @@ public:
     p.enableTiming(timingTree);
   }
 
-  void enumerate( uint_t level )
+  void enumerate( uint_t level ) const
   {
     u.enumerate( level );
     v.enumerate( level );

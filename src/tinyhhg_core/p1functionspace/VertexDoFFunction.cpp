@@ -700,7 +700,7 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -754,7 +754,7 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -808,7 +808,7 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
