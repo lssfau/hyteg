@@ -35,9 +35,8 @@ public:
   {
   }
 
-  ~P1BlendingOperator()
-  {
-  }
+  ~P1BlendingOperator() override = default;
+
 
   void apply( const P1Function< real_t >& src,
               const P1Function< real_t >& dst,
@@ -56,7 +55,7 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
 
@@ -66,7 +65,7 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -76,7 +75,7 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, form, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
@@ -99,7 +98,7 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::blending::macrovertex::smoothGSBlending<real_t, P1Form>(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
 
@@ -114,7 +113,7 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form>(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -128,7 +127,7 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, form, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::blending::macroface::smoothGSBlending<real_t, P1Form>(level, face, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
@@ -232,8 +231,6 @@ public:
     }
   }
 #endif
-private:
-  P1Form form;
 };
 
 typedef P1BlendingOperator<P1Form_laplace> P1BlendingLaplaceOperator;

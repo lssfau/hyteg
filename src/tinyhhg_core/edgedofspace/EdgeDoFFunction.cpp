@@ -450,7 +450,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -494,7 +494,7 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -538,7 +538,7 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {

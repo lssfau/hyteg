@@ -44,7 +44,7 @@ class CGSolver : public Solver< OperatorType >
       }
    }
 
-   void solve( const OperatorType& A, FunctionType& x, FunctionType& b, const uint_t& level ) override
+   void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) const override
    {
       real_t prsold = 0;
       init( A, x, b, level, prsold );
@@ -104,7 +104,7 @@ class CGSolver : public Solver< OperatorType >
    }
 
  private:
-   void init( const OperatorType& A, FunctionType& x, FunctionType& b, const uint_t& level, real_t& prsold )
+   void init( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level, real_t& prsold ) const
    {
       A.apply( x, p_, level, flag_, Replace );
       r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );

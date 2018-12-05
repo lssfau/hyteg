@@ -10,10 +10,10 @@ class GaussSeidelSmoother : public Solver< OperatorType >
    : flag_( hhg::Inner | hhg::NeumannBoundary )
    {}
 
-   void solve( const OperatorType&             A,
-               typename OperatorType::srcType& x,
-               typename OperatorType::dstType& b,
-               const uint_t&                   level ) override
+   void solve( const OperatorType&                   A,
+               const typename OperatorType::srcType& x,
+               const typename OperatorType::dstType& b,
+               const uint_t                          level ) const override
    {
       A.smooth_gs( x, b, level, flag_ );
    }
