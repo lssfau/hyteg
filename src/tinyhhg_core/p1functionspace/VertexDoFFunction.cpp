@@ -579,7 +579,7 @@ real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueTy
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::enumerate( uint_t level )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
    if( isDummy() )
    {
@@ -603,7 +603,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
    for( auto& it : this->getStorage()->getVertices() )
    {

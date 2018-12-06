@@ -112,12 +112,12 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    L_p2.apply( u_p2, Lu_p2, maxLevel, hhg::Inner );
-   r_p2.assign( {1.0, -1.0}, {&f_p2, &Lu_p2}, maxLevel, hhg::Inner );
+   r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hhg::Inner );
 
    real_t begin_res   = std::sqrt( r_p2.dotGlobal( r_p2, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err_p2.assign( {1.0, -1.0}, {&u_p2, &u_exact_p2}, maxLevel );
+   err_p2.assign( {1.0, -1.0}, {u_p2, u_exact_p2}, maxLevel );
    real_t discr_l2_err = std::sqrt( err_p2.dotGlobal( err_p2, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
@@ -141,7 +141,7 @@ int main( int argc, char* argv[] )
 
       // compute residuum
       L_p2.apply( u_p2, Lu_p2, maxLevel, hhg::Inner );
-      r_p2.assign( {1.0, -1.0}, {&f_p2, &Lu_p2}, maxLevel, hhg::Inner );
+      r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hhg::Inner );
 
       // restrict
       r_p2.restrictP2ToP1( f_p1, maxLevel, hhg::Inner );
@@ -153,9 +153,9 @@ int main( int argc, char* argv[] )
           L_p1, *u_p1, *f_p1, r_p1, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false );
 
       // prolongate
-      tmp_p2.assign( {1.0}, {&u_p2}, maxLevel, hhg::Inner );
+      tmp_p2.assign( {1.0}, {u_p2}, maxLevel, hhg::Inner );
       u_p2.prolongateP1ToP2( u_p1, maxLevel, hhg::Inner );
-      u_p2.add( {1.0}, {&tmp_p2}, maxLevel, hhg::Inner );
+      u_p2.add( {1.0}, {tmp_p2}, maxLevel, hhg::Inner );
 
       // post-smooth
       for( size_t nu = 0; nu < nuPost; ++nu )
@@ -166,10 +166,10 @@ int main( int argc, char* argv[] )
       end = walberla::timing::getWcTime();
 
       L_p2.apply( u_p2, Lu_p2, maxLevel, hhg::Inner );
-      r_p2.assign( {1.0, -1.0}, {&f_p2, &Lu_p2}, maxLevel, hhg::Inner );
+      r_p2.assign( {1.0, -1.0}, {f_p2, Lu_p2}, maxLevel, hhg::Inner );
       real_t abs_res = std::sqrt( r_p2.dotGlobal( r_p2, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err_p2.assign( {1.0, -1.0}, {&u_p2, &u_exact_p2}, maxLevel );
+      err_p2.assign( {1.0, -1.0}, {u_p2, u_exact_p2}, maxLevel );
       discr_l2_err = std::sqrt( err_p2.dotGlobal( err_p2, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
@@ -203,12 +203,12 @@ int main( int argc, char* argv[] )
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
       VTKOutput vtkOutput("../output", "gmg_P2", storage);
-      vtkOutput.add( &u_p2 );
-      vtkOutput.add( &u_exact_p2 );
-      vtkOutput.add( &f_p2 );
-      vtkOutput.add( &r_p2 );
-      vtkOutput.add( &err_p2 );
-      vtkOutput.add( &npoints_helper_p2 );
+      vtkOutput.add( u_p2 );
+      vtkOutput.add( u_exact_p2 );
+      vtkOutput.add( f_p2 );
+      vtkOutput.add( r_p2 );
+      vtkOutput.add( err_p2 );
+      vtkOutput.add( npoints_helper_p2 );
       vtkOutput.write( maxLevel );
    }
 

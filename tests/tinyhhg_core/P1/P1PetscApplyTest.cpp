@@ -82,17 +82,17 @@ void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
   // compare
-  err.assign( {1.0, -1.0}, {&hhgDst, &petscDst}, level, location );
+  err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
   const auto absScalarProd = std::abs( err.dotGlobal( ones, level, location ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
 
   // VTK
   VTKOutput vtkOutput( "../../output", "P1PetscApplyTest", storage );
-  vtkOutput.add( &src );
-  vtkOutput.add( &hhgDst );
-  vtkOutput.add( &petscDst );
-  vtkOutput.add( &err );
+  vtkOutput.add( src );
+  vtkOutput.add( hhgDst );
+  vtkOutput.add( petscDst );
+  vtkOutput.add( err );
   vtkOutput.write( level, 0 );
 
   WALBERLA_CHECK_LESS( absScalarProd, eps );

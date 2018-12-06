@@ -90,8 +90,8 @@ static void testP2BasicFunctions()
    // Assign
 
    timer["Assign"].start();
-   y.assign( {3.0, 2.0}, {&x, &y}, maxLevel, DoFType::All );
-   z.assign( {1.0, -1.0}, {&z, &z}, maxLevel, DoFType::All );
+   y.assign( {3.0, 2.0}, {x, y}, maxLevel, DoFType::All );
+   z.assign( {1.0, -1.0}, {z, z}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
@@ -128,7 +128,7 @@ static void testP2BasicFunctions()
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{&x, &y}}, maxLevel, DoFType::All );
+   y.add( {{4.0, 3.0}}, {{x, y}}, maxLevel, DoFType::All );
    timer["Add"].end();
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
@@ -158,9 +158,9 @@ static void testP2BasicFunctions()
    y.interpolate( func2, maxLevel, DoFType::All );
    z.interpolate( zeros, maxLevel, DoFType::All );
 
-   z.assign( {1.0, -1.0}, {&x, &y}, maxLevel );
+   z.assign( {1.0, -1.0}, {x, y}, maxLevel );
    hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
-   x.add( {-1.0}, {&y}, maxLevel );
+   x.add( {-1.0}, {y}, maxLevel );
    hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )

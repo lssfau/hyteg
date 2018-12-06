@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
   // setup two Laplacians
   P1ConstantLaplaceOperator lapOpCO( storage, minLevel, maxLevel );
-  P1ElementwiseLaplaceOperator lapOpEL( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
+  P1ElementwiseLaplaceOperator lapOpEL( storage, {microCoordX,microCoordY}, minLevel, maxLevel );
 
   // setup auxilliary P1Functions
   P1Function< real_t > zeros( "zeros", storage, minLevel, maxLevel );
@@ -67,8 +67,8 @@ int main(int argc, char **argv)
   P1Function< real_t > smoothCO( "smoothedCO", storage, minLevel, maxLevel );
   P1Function< real_t > smoothEL( "smoothedEL", storage, minLevel, maxLevel );
 
-  std::function< real_t( const Point3D& ) > linear = []( const Point3D &pp ) { return pp[0] + 2.0*pp[1]; };
-  std::function< real_t( const Point3D& ) > quadratic = []( const Point3D &pp ) { return pp[0]*pp[0] + pp[1]*pp[1]; };
+  std::function< real_t( const Point3D& ) > linear = []( const Point3D &p ) { return pp[0] + 2.0*pp[1]; };
+  std::function< real_t( const Point3D& ) > quadratic = []( const Point3D &p ) { return pp[0]*pp[0] + pp[1]*pp[1]; };
   std::function< real_t( const Point3D& ) > one = []( const Point3D & ) { return real_t(1.0); };
 
   real_t value = real_t(0.0);
@@ -83,8 +83,8 @@ int main(int argc, char **argv)
       lapOpCO.smooth_jac( smoothCO, zeros, initialCO, lvl, All );
       lapOpEL.smooth_jac( smoothEL, zeros, initialEL, lvl, All );
 
-      difference.assign( {1.0}, {&zeros}, lvl );
-      difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
+      difference.assign( {1.0}, {zeros}, lvl );
+      difference.add( { 1.0, -1.0 }, { smoothCO, smoothEL }, lvl, All );
       value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": JAC value = " << std::scientific << value );
@@ -97,8 +97,8 @@ int main(int argc, char **argv)
       lapOpCO.smooth_gs( smoothCO, zeros, lvl, All );
       lapOpEL.smooth_gs( smoothEL, zeros, lvl, All );
 
-      difference.assign( {1.0}, {&zeros}, lvl );
-      difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
+      difference.assign( {1.0}, {zeros}, lvl );
+      difference.add( { 1.0, -1.0 }, { smoothCO, smoothEL }, lvl, All );
       value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": GS value = " << std::scientific << value );
@@ -111,8 +111,8 @@ int main(int argc, char **argv)
       lapOpCO.smooth_sor( smoothCO, zeros, real_t(1.25), lvl, All );
       lapOpEL.smooth_sor( smoothEL, zeros, real_t(1.25), lvl, All );
 
-      difference.assign( {1.0}, {&zeros}, lvl );
-      difference.add( { 1.0, -1.0 }, { &smoothCO, &smoothEL }, lvl, All );
+      difference.assign( {1.0}, {zeros}, lvl );
+      difference.add( { 1.0, -1.0 }, { smoothCO, smoothEL }, lvl, All );
       value = sqrt( difference.dotGlobal( difference, lvl, All ) );
 
       WALBERLA_LOG_INFO_ON_ROOT( "level " << lvl << ": SOR value = " << std::scientific << value );

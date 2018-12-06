@@ -30,7 +30,7 @@ void checkArea( std::shared_ptr< PrimitiveStorage > storage, real_t area )
       communication::syncFunctionBetweenPrimitives( microCoordY, lvl );
    }
 
-   P1ElementwiseMassOperator massOp( storage, {&microCoordX, &microCoordY}, minLevel, maxLevel );
+   P1ElementwiseMassOperator massOp( storage, {microCoordX, microCoordY}, minLevel, maxLevel );
 
    P1Function< real_t >                      aux( "aux", storage, minLevel, maxLevel );
    P1Function< real_t >                      vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );

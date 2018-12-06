@@ -69,7 +69,7 @@ static void testP2Function()
    // Assign
 
    timer["Assign"].start();
-   y.assign( {3.0}, {&x}, maxLevel, DoFType::All );
+   y.assign( {3.0}, {x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
@@ -94,7 +94,7 @@ static void testP2Function()
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{&x, &x}}, maxLevel, DoFType::All );
+   y.add( {{4.0, 3.0}}, {{x, x}}, maxLevel, DoFType::All );
    timer["Add"].end();
    hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 

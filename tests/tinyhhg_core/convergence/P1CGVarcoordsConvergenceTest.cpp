@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ &u, &u_exact, &f, &r, &err }, {}, maxLevel,
+   //  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ u, u_exact, &f, &r, &err }, {}, maxLevel,
    //                                                                    "../output", "varcoords", coords);
 
    walberla::WcTimingTree tt = timingTree->getReduced();

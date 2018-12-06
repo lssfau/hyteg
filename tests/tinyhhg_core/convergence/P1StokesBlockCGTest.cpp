@@ -54,7 +54,7 @@ int main( int argc, char* argv[] )
    solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
 
@@ -66,6 +66,6 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( discr_l2_err, 4e-17)
 
-   //  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+   //  hhg::VTKWriter({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "test");
    return 0;
 }

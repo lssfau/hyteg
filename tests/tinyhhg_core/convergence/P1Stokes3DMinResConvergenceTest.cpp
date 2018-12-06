@@ -100,14 +100,14 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.w );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &uExact.u );
-   vtkOutput.add( &uExact.v );
-   vtkOutput.add( &uExact.w );
-   vtkOutput.add( &uExact.p );
+   vtkOutput.add( u.u );
+   vtkOutput.add( u.v );
+   vtkOutput.add( u.w );
+   vtkOutput.add( u.p );
+   vtkOutput.add( uExact.u );
+   vtkOutput.add( uExact.v );
+   vtkOutput.add( uExact.w );
+   vtkOutput.add( uExact.p );
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -180,9 +180,9 @@ int main( int argc, char* argv[] )
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager;
    PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
-   f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
-   f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
-   f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );
+   f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
+   f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
+   f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
    vtkOutput.write( maxLevel, 1 );

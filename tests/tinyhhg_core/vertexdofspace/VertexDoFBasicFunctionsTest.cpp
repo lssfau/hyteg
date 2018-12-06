@@ -61,7 +61,7 @@ static void testVertexDoFBasicFunctions()
 
    timer["Assign"].start();
    //y->assign( { 3.0, 2.0 }, { x.get(), y.get() }, maxLevel, DoFType::All );
-   y.assign( {{3.0, 2.0}}, {{&x, &y}}, maxLevel, DoFType::All );
+   y.assign( {{3.0, 2.0}}, {{x, y}}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
@@ -74,7 +74,7 @@ static void testVertexDoFBasicFunctions()
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{&x, &y}}, maxLevel, DoFType::All );
+   y.add( {{4.0, 3.0}}, {{x, y}}, maxLevel, DoFType::All );
    timer["Add"].end();
 
    hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
@@ -93,7 +93,7 @@ static void testVertexDoFBasicFunctions()
    WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microvertices_per_face( maxLevel ) * 48 * 2 ) );
 
    timer["MultElementWise"].start();
-   y.multElementwise( {{&x, &y}}, maxLevel, DoFType::All );
+   y.multElementwise( {{x, y}}, maxLevel, DoFType::All );
    timer["MultElementWise"].end();
    hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 

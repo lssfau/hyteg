@@ -28,7 +28,7 @@ static void testP2Restrict() {
   ident.interpolate(one, sourceLevel, hhg::All );
 
   x->enumerate( sourceLevel );
-  x->add({1.0},{&ident},sourceLevel, hhg::All);
+  x->add({1.0},{ident},sourceLevel, hhg::All);
   hhg::communication::syncP2FunctionBetweenPrimitives( *x, sourceLevel );
 
 //  for (auto &faceIT : storage->getFaces()) {
@@ -66,7 +66,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (-70 - 72);
   expected += (1./8.) * (-105 - 133 - 106 - 134);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(3))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[1], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(3))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[1], expected);
 
 
   ///calculate expected entry for idx = 2 on edge 1
@@ -76,7 +76,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (- 115 - 122);
   expected += (1./8.) * (- 142 - 146 - 86 - 90);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[2], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(5))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[2], expected);
 
   ///calculate expected entry for idx = 2 on edge 1
   expected = 16;
@@ -85,7 +85,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (- 148 - 153);
   expected += (1./8.) * (- 124 - 121 - 96 - 93);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(4))->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
+  WALBERLA_CHECK_FLOAT_EQUAL(storage->getEdge(PrimitiveID(4))->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(sourceLevel - 1)[3], expected);
 
   ///calculate expected entry for vertex dof on face at 4,2
   expected = 34;
@@ -105,7 +105,7 @@ static void testP2Restrict() {
   expected += (1./8.) * (- 102 - 103);
   WALBERLA_CHECK_FLOAT_EQUAL(storage->
     getFace(PrimitiveID(6))->
-    getData(x->getVertexDoFFunction()->getFaceDataID())->
+    getData(x->getVertexDoFFunction().getFaceDataID())->
     getPointer(sourceLevel - 1)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,2,1,stencilDirection::VERTEX_C)], expected);
 
 
@@ -146,8 +146,8 @@ static void testP2Restrict2() {
 //    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
-  real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 1);
-  real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 1);
+  real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
+  real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
 
   for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -179,8 +179,8 @@ static void testP2Restrict2() {
 
   x->restrict(sourceLevel - 1, hhg::All);
 
-  edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 2);
-  vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel - 2);
+  edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
+  vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
 
   for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel - 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -232,7 +232,7 @@ static void testP2InterpolateAndRestrict() {
   x.restrictInjection(sourceLevel - 1,hhg::All);
   x.restrictInjection(sourceLevel - 2,hhg::All);
 
-  error.assign({1.0, -1.0}, {&x, &y}, sourceLevel - 3, hhg::All);
+  error.assign({1.0, -1.0}, {x, y}, sourceLevel - 3, hhg::All);
 
   WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,sourceLevel - 3,hhg::All),0.);
 }

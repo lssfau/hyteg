@@ -97,15 +97,15 @@ int main( int argc, char* argv[] )
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, maxLevel, DoFType::Inner );
 
   VTKOutput vtkOutput("../../output", "P1GMG3DConvergenceTest", storage);
-  vtkOutput.add( &u );
-  vtkOutput.add( &err );
+  vtkOutput.add( u );
+  vtkOutput.add( err );
 
   if ( writeVTK )
   {
     vtkOutput.write( maxLevel, 0 );
   }
 
-  err.assign( {1.0, -1.0}, {&u, &uExact}, maxLevel );
+  err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
   laplaceOperator3D.apply( u, res, maxLevel, DoFType::Inner );
 
   real_t discrL2ResHigherLevel = res.dotGlobal( res, maxLevel, DoFType::Inner ) / numPointsHigherLevel;
@@ -116,7 +116,7 @@ int main( int argc, char* argv[] )
   {
     gmgSolver.solve( laplaceOperator3D, u, f, res, maxLevel, coarseGridSolverTolerance, coarseGridSolverMaxIterations, Inner );
 
-    err.assign( {1.0, -1.0}, {&u, &uExact}, maxLevel );
+    err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
     laplaceOperator3D.apply( u, res, maxLevel, DoFType::Inner );
 
     const real_t discrL2ErrHigherLevel = err.dotGlobal( err, maxLevel, DoFType::Inner ) / numPointsHigherLevel;

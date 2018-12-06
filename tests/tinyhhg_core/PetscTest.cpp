@@ -73,7 +73,7 @@ int main( int argc, char* argv[] )
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
+   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
 
@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_LESS( discr_l2_err, 1e-14 );
 
    //  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
-   //  hhg::VTKWriter< P1Function >({ &x, &x_exact, &err }, level, "../output", "exact_solver");
+   //  hhg::VTKWriter< P1Function >({ x, x_exact, &err }, level, "../output", "exact_solver");
 
    return EXIT_SUCCESS;
 }

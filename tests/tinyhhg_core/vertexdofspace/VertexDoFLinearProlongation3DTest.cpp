@@ -84,7 +84,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
       P1toP1LinearProlongation prolongationOperator;
       prolongationOperator( u, lowerLevel, Inner | NeumannBoundary );
 
-      err.assign( { 1.0, -1.0 }, { &u, &resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
+      err.assign( { 1.0, -1.0 }, { u, resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
       const real_t discrErr = err.dotGlobal( err, lowerLevel + 1, Inner | NeumannBoundary );
       return discrErr;
   };

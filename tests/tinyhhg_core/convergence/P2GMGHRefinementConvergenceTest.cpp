@@ -140,12 +140,12 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    L.apply( u, Lu, maxLevel, hhg::Inner );
-   r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
+   r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
 
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
@@ -168,10 +168,10 @@ int main( int argc, char* argv[] )
       end = walberla::timing::getWcTime();
 
       L.apply( u, Lu, maxLevel, hhg::Inner );
-      r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
+      r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+      err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
@@ -207,12 +207,12 @@ int main( int argc, char* argv[] )
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
       VTKOutput vtkOutput("../output", "gmg_P2_h_refinement", storage);
-      vtkOutput.add( &u );
-      vtkOutput.add( &u_exact );
-      vtkOutput.add( &f );
-      vtkOutput.add( &r );
-      vtkOutput.add( &err );
-      vtkOutput.add( &npoints_helper );
+      vtkOutput.add( u );
+      vtkOutput.add( u_exact );
+      vtkOutput.add( f );
+      vtkOutput.add( r );
+      vtkOutput.add( err );
+      vtkOutput.add( npoints_helper );
       vtkOutput.write( maxLevel );
    }
 

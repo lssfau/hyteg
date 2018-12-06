@@ -97,7 +97,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// this function is mainly used for petsc to get global identifier for all DoFs
    /// \tparam ValueType
    /// \param level
-   void enumerate( uint_t level );
+   void enumerate( uint_t level ) const;
 
    // TODO: write more general version(s)
    ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
@@ -178,7 +178,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset );
+   void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;

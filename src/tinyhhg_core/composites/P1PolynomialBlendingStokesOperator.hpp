@@ -7,14 +7,15 @@
 
 namespace hhg {
 
-class P1PolynomialBlendingStokesOperator
+class P1PolynomialBlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
    P1PolynomialBlendingStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                        uint_t                                     minLevel,
                                        uint_t                                     maxLevel,
                                        uint_t                                     interpolationLevel )
-   : A_uu( storage, minLevel, maxLevel, interpolationLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , A_uu( storage, minLevel, maxLevel, interpolationLevel )
    , A_uv( storage, minLevel, maxLevel, interpolationLevel )
    , A_vu( storage, minLevel, maxLevel, interpolationLevel )
    , A_vv( storage, minLevel, maxLevel, interpolationLevel )
@@ -49,7 +50,7 @@ class P1PolynomialBlendingStokesOperator
       divT_y.useDegree( degree );
    }
 
-   void apply( P1StokesFunction< real_t >& src, P1StokesFunction< real_t >& dst, size_t level, DoFType flag )
+   void apply(const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
    {
       A_uu.apply( src.u, dst.u, level, flag, Replace );
       A_uv.apply( src.v, dst.u, level, flag, Add );
@@ -80,6 +81,7 @@ struct has_pspg_block< P1PolynomialBlendingStokesOperator > {
     static const bool value = true;
 };
 
+template<>
 struct tensor_variant< P1PolynomialBlendingStokesOperator > {
   static const bool value = true;
 };

@@ -27,7 +27,7 @@ using walberla::real_c;
 using indexing::Index;
 
 template<typename ValueType, OperatorType OprType, uint_t PolyDegree>
-inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face>& polynomialId,
+inline void applyPolynomialTmpl(uint_t Level, Face &face, const PrimitiveDataID<FaceP1PolynomialMemory, Face> polynomialId,
                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &srcId,
                                 const PrimitiveDataID<FunctionMemory< ValueType >, Face> &dstId, UpdateType update) {
 

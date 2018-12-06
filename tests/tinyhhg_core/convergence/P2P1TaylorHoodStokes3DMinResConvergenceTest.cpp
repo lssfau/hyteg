@@ -186,9 +186,9 @@ int main( int argc, char* argv[] )
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager;
    PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
-   f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
-   f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
-   f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );
+   f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
+   f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
+   f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
 

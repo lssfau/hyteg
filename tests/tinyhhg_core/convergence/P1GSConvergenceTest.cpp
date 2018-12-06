@@ -40,12 +40,12 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   hhg::P1Function< real_t > helperFun ("helperFun", storage, level, level);
 
   VTKOutput vtkOutput("../../output", "gs_P2", storage);
-  vtkOutput.add( &p2function );
-  vtkOutput.add( &p2Exact );
-  vtkOutput.add( &rhs );
-  vtkOutput.add( &residuum );
-  vtkOutput.add( &error );
-  vtkOutput.add( &helperFun );
+  vtkOutput.add( p2function );
+  vtkOutput.add( p2Exact );
+  vtkOutput.add( rhs );
+  vtkOutput.add( residuum );
+  vtkOutput.add( error );
+  vtkOutput.add( helperFun );
 
   std::function<real_t(const hhg::Point3D&)> exactFunction = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
@@ -61,7 +61,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
 
   L.apply(p2function, Lu, level, hhg::Inner);
-  residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
+  residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
   begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
   abs_res_old = begin_res;
 
@@ -76,7 +76,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
     }
     L.smooth_gs(p2function, rhs, level, hhg::Inner);
     L.apply(p2function, Lu, level, hhg::Inner);
-    residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
+    residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
     abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
     rel_res = abs_res / begin_res;
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
@@ -86,7 +86,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
-  error.assign({1.0, -1.0}, {&p2function, &p2Exact}, level);
+  error.assign({1.0, -1.0}, {p2function, p2Exact}, level);
 
   helperFun.interpolate(ones, level);
   real_t npoints = helperFun.dotGlobal(helperFun, level);

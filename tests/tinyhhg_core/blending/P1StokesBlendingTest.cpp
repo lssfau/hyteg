@@ -104,25 +104,12 @@ int main( int argc, char* argv[] )
    auto solver = hhg::GeometricMultigridSolver< hhg::P1BlendingStokesOperator >(
       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
-//   typedef hhg::P1BlendingStokesOperator SolveOperator;
-//
-//   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
-//   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
-//   typedef hhg::MinResSolver< P1StokesFunction< real_t >, SolveOperator > CoarseGridSolver;
-//
    auto          start = walberla::timing::getWcTime();
    hhg::P1BlendingStokesOperator L( storage, minLevel, maxLevel );
    auto          end       = walberla::timing::getWcTime();
    real_t        setupTime = end - start;
-//
-//   RestrictionOperator  restrictionOperator;
-//   ProlongationOperator prolongationOperator;
-//   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
-//
+
    P1BlendingMassOperator M( storage, minLevel, maxLevel );
-//
-//   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, CoarseGridSolver, RestrictionOperator, ProlongationOperator, true> Solver;
-//   auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
    std::function< real_t( const hhg::Point3D& ) > zeros   = []( const hhg::Point3D& ) { return 0.0; };
    std::function< real_t( const hhg::Point3D& ) > ones    = []( const hhg::Point3D& ) { return 1.0; };
@@ -264,21 +251,21 @@ int main( int argc, char* argv[] )
 
    // u_u*iHat + u_v*jHat
    //   hhg::VTKOutput vtkOutput( "../output", "stokes_stab_varcoeff" );
-   //   vtkOutput.add( &u.u );
-   //   vtkOutput.add( &u.v );
-   //   vtkOutput.add( &u.p );
-   //   vtkOutput.add( &u_exact.u );
-   //   vtkOutput.add( &u_exact.v );
-   //   vtkOutput.add( &u_exact.p );
-   //   vtkOutput.add( &err.u );
-   //   vtkOutput.add( &err.v );
-   //   vtkOutput.add( &err.p );
-   //   vtkOutput.add( &r.u );
-   //   vtkOutput.add( &r.v );
-   //   vtkOutput.add( &r.p );
-   //   vtkOutput.add( &f.u );
-   //   vtkOutput.add( &f.v );
-   //   vtkOutput.add( &f.p );
+   //   vtkOutput.add( u.u );
+   //   vtkOutput.add( u.v );
+   //   vtkOutput.add( u.p );
+   //   vtkOutput.add( u_exact.u );
+   //   vtkOutput.add( u_exact.v );
+   //   vtkOutput.add( u_exact.p );
+   //   vtkOutput.add( err.u );
+   //   vtkOutput.add( err.v );
+   //   vtkOutput.add( err.p );
+   //   vtkOutput.add( r.u );
+   //   vtkOutput.add( r.v );
+   //   vtkOutput.add( r.p );
+   //   vtkOutput.add( f.u );
+   //   vtkOutput.add( f.v );
+   //   vtkOutput.add( f.p );
    //   vtkOutput.write( maxLevel, 0 );
    return EXIT_SUCCESS;
 }

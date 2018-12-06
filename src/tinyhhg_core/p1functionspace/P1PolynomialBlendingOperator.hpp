@@ -285,7 +285,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
-               size_t                      level,
+               const size_t                level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
    {
@@ -302,7 +302,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+            vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
          }
       }
 
@@ -312,7 +312,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+            vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
          }
       }
 
@@ -323,9 +323,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          if (testFlag(faceBC, flag))
          {
             if (OprType == OperatorType::ODD) {
-               vertexdof::macroface::applyPolynomialOdd<real_t>(polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType);
+               vertexdof::macroface::applyPolynomialOdd<real_t>(polyDegree_, level, face, facePolynomialIDs_.at(level), src.getFaceDataID(), dst.getFaceDataID(), updateType);
             } else {
-               vertexdof::macroface::applyPolynomial<real_t, OprType>(polyDegree_, level, face, facePolynomialIDs_[level], src.getFaceDataID(), dst.getFaceDataID(), updateType);
+               vertexdof::macroface::applyPolynomial<real_t, OprType>(polyDegree_, level, face, facePolynomialIDs_.at(level), src.getFaceDataID(), dst.getFaceDataID(), updateType);
             }
          }
       }
@@ -350,7 +350,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+            vertexdof::blending::macrovertex::smoothGSBlending< real_t, P1Form >(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
          }
       }
 
@@ -365,7 +365,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+            vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form >(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
          }
       }
 
@@ -384,7 +384,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                   WALBERLA_ABORT("Not implemented");
                   break;
                case OperatorType::EVEN:
-                  vertexdof::macroface::smooth_gs_polynomial_even<real_t>(polyDegree_, level, face, facePolynomialIDs_[level], dst.getFaceDataID(), rhs.getFaceDataID());
+                  vertexdof::macroface::smooth_gs_polynomial_even<real_t>(polyDegree_, level, face, facePolynomialIDs_.at(level), dst.getFaceDataID(), rhs.getFaceDataID());
                   break;
                case OperatorType::ODD:
                   WALBERLA_ABORT("Not implemented");
@@ -507,7 +507,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
  private:
 
-   void checkForMissingPolynomial(uint_t level, uint_t degree)
+   void checkForMissingPolynomial(uint_t level, uint_t degree) const
    {
       WALBERLA_ASSERT(facePolynomialIDs_.count(level) > 0, "Polynomial for level " << level << " has not been interpolated");
    }

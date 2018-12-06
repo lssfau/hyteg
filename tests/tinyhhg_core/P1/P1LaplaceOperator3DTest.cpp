@@ -69,10 +69,10 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   const real_t numPoints  = oneFunction.dotGlobal( oneFunction, level, DoFType::Inner );
 
   VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
-  vtkOutput.add( &u );
-  vtkOutput.add( &result );
-  vtkOutput.add( &resultExact );
-  vtkOutput.add( &err );
+  vtkOutput.add( u );
+  vtkOutput.add( result );
+  vtkOutput.add( resultExact );
+  vtkOutput.add( err );
 
   auto testLaplaceResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction,
                                 std::function< real_t( const hhg::Point3D& ) > resultExactFunction ) -> real_t
@@ -84,7 +84,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
 
     laplaceOperator3D.apply( u, result, level, DoFType::Inner );
 
-    err.assign( { 1.0, -1.0 }, { &result, &resultExact }, level, DoFType::All );
+    err.assign( { 1.0, -1.0 }, { result, resultExact }, level, DoFType::All );
     const real_t discrL2Err = std::sqrt( err.dotGlobal( err, level, DoFType::Inner ) / numPoints );
 
     return discrL2Err;
