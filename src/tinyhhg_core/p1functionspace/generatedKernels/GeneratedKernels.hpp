@@ -12,11 +12,11 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void apply_2D_macroface_vertexdof_to_vertexdof_replace(double * fd_p1FaceDst, double * fd_p1FaceSrc, double * fd_p1FaceStencil, int64_t level);
+void apply_2D_macroface_vertexdof_to_vertexdof_replace(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil, int64_t level);
 
-void apply_2D_macroface_vertexdof_to_vertexdof_add(double * fd_p1FaceDst, double * fd_p1FaceSrc, double * fd_p1FaceStencil, int64_t level);
+void apply_2D_macroface_vertexdof_to_vertexdof_add(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil, int64_t level);
 
-void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * fd_p1FaceDst, double * fd_p1FaceRhs, double * fd_p1FaceStencil, int64_t level);
+void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * _data_p1FaceDst, double * _data_p1FaceRhs, double * const _data_p1FaceStencil, int64_t level);
 
 } // namespace generated
 } // namespace macroface
