@@ -452,9 +452,9 @@ void VertexDoFFunction< ValueType >::add(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                                      uint_t                                               level,
-                                                      DoFType                                              flag )
+void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                                                      const uint_t                                               level,
+                                                      const DoFType                                              flag ) const
 {
    if( isDummy() )
    {
@@ -467,12 +467,12 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexD
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : functions )
+   for( const VertexDoFFunction& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )

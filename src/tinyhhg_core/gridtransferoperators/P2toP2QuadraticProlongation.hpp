@@ -2,14 +2,15 @@
 #pragma once
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 
 namespace hhg {
 
-class P2toP2QuadraticProlongation
+class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< real_t > >
 {
 public:
 
-    inline void prolongate( const P2Function <real_t> & function, const uint_t & sourceLevel, const DoFType & flag ) const
+    inline void prolongate( const P2Function <real_t> & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       const auto& vertexDoFFunction = function.getVertexDoFFunction();
       const auto& edgeDoFFunction = function.getEdgeDoFFunction();

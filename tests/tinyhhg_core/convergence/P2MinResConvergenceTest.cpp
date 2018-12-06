@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 
   size_t minLevel = 2;
   size_t maxLevel = 3;
-  size_t maxiter = 1000;
+  //size_t maxiter = 1000;
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
   u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::MinResSolver<hhg::P2Function<real_t>, hhg::P2ConstantLaplaceOperator>(storage, minLevel, maxLevel);
-  solver.solve(L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true);
+  auto solver = hhg::MinResSolver< hhg::P2ConstantLaplaceOperator >(storage, minLevel, maxLevel);
+  solver.solve(L, u, f, maxLevel);
 
   err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
 

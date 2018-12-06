@@ -15,7 +15,7 @@ using walberla::uint_t;
 using walberla::real_t;
 
 template< class OperatorType >
-class GeometricMultigridSolver
+class GeometricMultigridSolver : public Solver< OperatorType >
 {
 public:
 
@@ -58,7 +58,12 @@ public:
 
   ~GeometricMultigridSolver() = default;
 
-  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level)
+  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) const override
+  {
+    solve(A,x,b,level,0);
+  }
+
+  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level,const uint_t currentIncrement) const
   {
 
     if (level == minLevel_)
@@ -68,7 +73,7 @@ public:
     else
     {
       // pre-smooth
-      for (size_t i = 0; i < preSmoothSteps_; ++i)
+      for (size_t i = 0; i < preSmoothSteps_ + currentIncrement; ++i)
       {
         smoother_->solve(A, x, b, level );
       }
@@ -83,17 +88,11 @@ public:
 
       x.interpolate(zero_, level-1);
 
-      preSmoothSteps_ += smoothIncrement_;
-      postSmoothSteps_ += smoothIncrement_;
-
-      solve(A, x, b, level-1);
+      solve(A, x, b, level-1,currentIncrement + smoothIncrement_);
 
       if (cycleType_ == CycleType::WCYCLE) {
-        solve(A, x, b, level-1);
+        solve(A, x, b, level-1, currentIncrement + smoothIncrement_);
       }
-
-      preSmoothSteps_ -= smoothIncrement_;
-      postSmoothSteps_ -= smoothIncrement_;
 
       // prolongate
       tmp_.assign({1.0}, { x }, level, flag_);
@@ -101,7 +100,7 @@ public:
       x.add({1.0}, { tmp_ }, level, flag_);
 
       // post-smooth
-      for (size_t i = 0; i < postSmoothSteps_; ++i)
+      for (size_t i = 0; i < postSmoothSteps_ + currentIncrement; ++i)
       {
         smoother_->solve(A, x, b, level );
       }

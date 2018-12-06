@@ -22,7 +22,7 @@ public:
   {
   }
 
-  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
+  void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);

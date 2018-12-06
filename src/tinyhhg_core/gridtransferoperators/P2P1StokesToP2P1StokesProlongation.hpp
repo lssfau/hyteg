@@ -15,7 +15,7 @@ public:
     typedef P2toP2QuadraticProlongation VelocityProlongation_T;
     typedef P1toP1LinearProlongation    PressureProlongation_T;
 
-    void prolongate ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+    void prolongate ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       quadraticProlongationOperator_.prolongate( function.u, sourceLevel, flag );
       quadraticProlongationOperator_.prolongate( function.v, sourceLevel, flag );

@@ -32,10 +32,10 @@ static void testP2Function()
    storage->getFaceIDs( faces );
    Face* face = storage->getFace( faces[0] );
 
-   real_t* vertexDoFFaceDataX = face->getData( x.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* vertexDoFFaceDataY = face->getData( y.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* edgeDoFFaceDataX   = face->getData( x.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* edgeDoFFaceDataY   = face->getData( y.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
+   real_t* vertexDoFFaceDataX = face->getData( x.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* vertexDoFFaceDataY = face->getData( y.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* edgeDoFFaceDataX   = face->getData( x.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* edgeDoFFaceDataY   = face->getData( y.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
 
    // Interpolate
 
@@ -135,7 +135,7 @@ static void testP2Function()
    p2->interpolate( linearX, maxLevel, DoFType::All );
 
    VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
-   vtkOutput.add( p2 );
+   vtkOutput.add( *p2 );
    vtkOutput.write( maxLevel );
 }
 

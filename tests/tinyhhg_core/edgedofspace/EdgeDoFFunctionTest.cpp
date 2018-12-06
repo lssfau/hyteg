@@ -80,7 +80,7 @@ static void testEdgeDoFFunction()
   // Add
 
   timer["Add"].start();
-  y->add( {{ 4.0, 3.0 }}, {{ x.get(), y.get() }}, maxLevel, DoFType::All );
+  y->add( {{ 4.0, 3.0 }}, {{ *x, *y }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
@@ -112,9 +112,9 @@ static void testEdgeDoFFunction()
   auto dg = std::make_shared< DGFunction< real_t > >( "dg", storage2, minLevel, maxLevel );
 
   VTKOutput vtkOutput("../../output", "interpolate_test", storage);
-  vtkOutput.add( p1 );
-  vtkOutput.add( z );
-  vtkOutput.add( dg );
+  vtkOutput.add( *p1 );
+  vtkOutput.add( *z );
+  vtkOutput.add( *dg );
   vtkOutput.write( maxLevel );
 }
 

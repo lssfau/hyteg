@@ -16,7 +16,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -37,9 +38,9 @@ int main( int argc, char* argv[] )
    const uint_t minLevel         = parameters.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel         = parameters.getParameter< uint_t >( "maxLevel" );
    const uint_t max_outer_iter   = parameters.getParameter< uint_t >( "max_outer_iter" );
-   const uint_t max_cg_iter      = parameters.getParameter< uint_t >( "max_cg_iter" );
+   //const uint_t max_cg_iter      = parameters.getParameter< uint_t >( "max_cg_iter" );
    const real_t mg_tolerance     = parameters.getParameter< real_t >( "mg_tolerance" );
-   const real_t coarse_tolerance = parameters.getParameter< real_t >( "coarse_tolerance" );
+   //const real_t coarse_tolerance = parameters.getParameter< real_t >( "coarse_tolerance" );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -83,19 +84,13 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-   typedef hhg::CGSolver< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator > CoarseSolver;
-   typedef P2toP2QuadraticRestriction                                                 RestrictionOperator;
-   typedef P2toP2QuadraticProlongation                                                ProlongationOperator;
-   auto                 coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   RestrictionOperator  restrictionOperator;
-   ProlongationOperator prolongationOperator;
-   typedef GeometricMultigridSolver< hhg::P2Function< real_t >,
-                             hhg::P2ConstantLaplaceOperator,
-                             CoarseSolver,
-                             RestrictionOperator,
-                             ProlongationOperator >
-                LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P2ConstantLaplaceOperator>  >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P2ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto restrictionOperator = std::make_shared< hhg::P2toP2QuadraticRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P2toP2QuadraticProlongation >();
+
+   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P2ConstantLaplaceOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    if( parameters.getParameter< bool >( "useExactWeights" ) )
    {
@@ -162,8 +157,7 @@ int main( int argc, char* argv[] )
       start = walberla::timing::getWcTime();
 
       // Apply P2 geometric multigrid solver
-      laplaceSolver.solve(
-          L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false );
+      gmgSolver.solve( L, u, f, maxLevel );
 
       end = walberla::timing::getWcTime();
 

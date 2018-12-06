@@ -14,7 +14,7 @@ public:
     typedef P2toP2QuadraticRestriction VelocityRestriction_T;
     typedef P1toP1LinearRestriction    PressureRestriction_T;
 
-    void restrict ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+    void restrict ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       quadraticRestrictionOperator_.restrict( function.u, sourceLevel, flag );
       quadraticRestrictionOperator_.restrict( function.v, sourceLevel, flag );

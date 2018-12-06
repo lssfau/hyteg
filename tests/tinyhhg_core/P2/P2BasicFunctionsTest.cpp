@@ -37,13 +37,13 @@ static void testP2BasicFunctions()
    storage->getFaceIDs( faces );
    Face* face = storage->getFace( faces[0] );
 
-   real_t* faceEdgeDataX = face->getData( x.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* faceEdgeDataY = face->getData( y.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* faceEdgeDataZ = face->getData( z.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceEdgeDataX = face->getData( x.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceEdgeDataY = face->getData( y.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceEdgeDataZ = face->getData( z.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
 
-   real_t* faceVertexDataX = face->getData( x.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* faceVertexDataY = face->getData( y.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* faceVertexDataZ = face->getData( z.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceVertexDataX = face->getData( x.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceVertexDataY = face->getData( y.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* faceVertexDataZ = face->getData( z.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
 
    // Interpolate
 

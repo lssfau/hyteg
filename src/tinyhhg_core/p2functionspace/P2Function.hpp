@@ -142,16 +142,16 @@ class P2Function : public Function< P2Function< ValueType > >
       return sum;
    }
 
-   inline void prolongateP1ToP2( const std::shared_ptr< hhg::P1Function< ValueType > >& p1Function,
-                                 const uint_t&                                          level,
-                                 const DoFType&                                         flag = All ) const
+   inline void prolongateP1ToP2( const hhg::P1Function< ValueType >& p1Function,
+                                 const uint_t& level,
+                                 const DoFType& flag = All ) const
    {
       // Note: 'this' is the dst function - therefore we test this' boundary conditions
 
       this->startTiming( "Prolongate P1 -> P2" );
 
-      p1Function->template startCommunication< Vertex, Edge >( level );
-      p1Function->template startCommunication< Edge, Face >( level );
+      p1Function.template startCommunication< Vertex, Edge >( level );
+      p1Function.template startCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getVertices() )
       {
@@ -164,11 +164,11 @@ class P2Function : public Function< P2Function< ValueType > >
                                                             vertex,
                                                             vertexDoFFunction_.getVertexDataID(),
                                                             edgeDoFFunction_.getVertexDataID(),
-                                                            p1Function->getVertexDataID() );
+                                                            p1Function.getVertexDataID() );
          }
       }
 
-      p1Function->template endCommunication< Vertex, Edge >( level );
+      p1Function.template endCommunication< Vertex, Edge >( level );
 
       for( const auto& it : this->getStorage()->getEdges() )
       {
@@ -181,11 +181,11 @@ class P2Function : public Function< P2Function< ValueType > >
                                                           edge,
                                                           vertexDoFFunction_.getEdgeDataID(),
                                                           edgeDoFFunction_.getEdgeDataID(),
-                                                          p1Function->getEdgeDataID() );
+                                                          p1Function.getEdgeDataID() );
          }
       }
 
-      p1Function->template endCommunication< Edge, Face >( level );
+      p1Function.template endCommunication< Edge, Face >( level );
 
       for( const auto& it : this->getStorage()->getFaces() )
       {
@@ -198,14 +198,14 @@ class P2Function : public Function< P2Function< ValueType > >
                                                           face,
                                                           vertexDoFFunction_.getFaceDataID(),
                                                           edgeDoFFunction_.getFaceDataID(),
-                                                          p1Function->getFaceDataID() );
+                                                          p1Function.getFaceDataID() );
          }
       }
 
       this->stopTiming( "Prolongate P1 -> P2" );
    }
 
-   inline void restrictP2ToP1( const std::shared_ptr< P1Function< ValueType > >& p1Function,
+   inline void restrictP2ToP1( const P1Function< ValueType >& p1Function,
                                const uint_t&                                     level,
                                const DoFType&                                    flag = All ) const
    {
@@ -230,14 +230,14 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Vertex& vertex = *it.second;
 
-         const DoFType vertexBC = p1Function->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         const DoFType vertexBC = p1Function.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
             P2::macrovertex::restrictP2ToP1< ValueType >( level,
                                                           vertex,
                                                           vertexDoFFunction_.getVertexDataID(),
                                                           edgeDoFFunction_.getVertexDataID(),
-                                                          p1Function->getVertexDataID() );
+                                                          p1Function.getVertexDataID() );
          }
       }
 
@@ -251,14 +251,14 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Edge& edge = *it.second;
 
-         const DoFType edgeBC = p1Function->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         const DoFType edgeBC = p1Function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if( testFlag( edgeBC, flag ) )
          {
             P2::macroedge::restrictP2ToP1< ValueType >( level,
                                                         edge,
                                                         vertexDoFFunction_.getEdgeDataID(),
                                                         edgeDoFFunction_.getEdgeDataID(),
-                                                        p1Function->getEdgeDataID() );
+                                                        p1Function.getEdgeDataID() );
          }
       }
 
@@ -269,14 +269,14 @@ class P2Function : public Function< P2Function< ValueType > >
       {
          const Face& face = *it.second;
 
-         const DoFType faceBC = p1Function->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         const DoFType faceBC = p1Function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
             P2::macroface::restrictP2ToP1< ValueType >( level,
                                                         face,
                                                         vertexDoFFunction_.getFaceDataID(),
                                                         edgeDoFFunction_.getFaceDataID(),
-                                                        p1Function->getFaceDataID() );
+                                                        p1Function.getFaceDataID() );
          }
       }
 

@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
-  error.assign({1.0, -1.0}, {p2function, &2Exact}, level);
+  error.assign({1.0, -1.0}, {p2function, p2Exact}, level);
 
   helperFun.interpolate(ones, level);
   real_t npoints = helperFun.dotGlobal(helperFun, level);

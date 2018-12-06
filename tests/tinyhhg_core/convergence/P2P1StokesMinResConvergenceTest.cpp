@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
    hhg::loadbalancing::roundRobin( setupStorage );
 
    size_t level   = 2;
-   size_t maxiter = 10000;
+   //size_t maxiter = 10000;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
@@ -43,9 +43,8 @@ int main( int argc, char* argv[] )
    u.u.interpolate( bc_x, level, hhg::DirichletBoundary );
    u.v.interpolate( zero, level, hhg::DirichletBoundary );
 
-   auto solver =
-       hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator >( storage, level, level );
-   solver.solve( L, u, f, r, level, 1e-3, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
+   auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator >( storage, level, level );
+   solver.solve( L, u, f, level );
 
    L.apply( u, r, level, hhg::Inner | hhg::NeumannBoundary );
    real_t final_residuum = std::sqrt( r.dotGlobal( r, level, hhg::Inner ) ) /

@@ -15,7 +15,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -50,11 +51,9 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
-   hhg::P1Function< real_t >                    r_p1( "r_p1", storage, minLevel, maxLevel );
-   std::shared_ptr< hhg::P1Function< real_t > > f_p1 =
-       std::make_shared< hhg::P1Function< real_t > >( "f_p1", storage, minLevel, maxLevel );
-   std::shared_ptr< hhg::P1Function< real_t > > u_p1 =
-       std::make_shared< hhg::P1Function< real_t > >( "u_p1", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t >  r_p1( "r_p1", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t >  f_p1( "f_p1", storage, minLevel, maxLevel );
+   hhg::P1Function< real_t >  u_p1( "u_p1", storage, minLevel, maxLevel );
 
    hhg::P2Function< real_t > r_p2( "r_p2", storage, maxLevel, maxLevel );
    hhg::P2Function< real_t > f_p2( "f_p2", storage, maxLevel, maxLevel );
@@ -89,21 +88,13 @@ int main( int argc, char* argv[] )
    npoints_helper_p2.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper_p2.dotGlobal( npoints_helper_p2, maxLevel );
 
-   typedef P1toP1LinearRestriction                                                    RestrictionOperator;
-   typedef P1toP1LinearProlongation                                                   ProlongationOperator;
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
+   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
-   auto                 coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   RestrictionOperator  restrictionOperator;
-   ProlongationOperator prolongationOperator;
-
-   typedef GeometricMultigridSolver< hhg::P1Function< real_t >,
-                             hhg::P1ConstantLaplaceOperator,
-                             CoarseSolver,
-                             RestrictionOperator,
-                             ProlongationOperator >
-                LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -146,11 +137,10 @@ int main( int argc, char* argv[] )
       // restrict
       r_p2.restrictP2ToP1( f_p1, maxLevel, hhg::Inner );
 
-      u_p1->interpolate( zero, maxLevel );
+      u_p1.interpolate( zero, maxLevel );
 
       // Apply P1 geometric multigrid solver
-      laplaceSolver.solve(
-          L_p1, *u_p1, *f_p1, r_p1, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false );
+      gmgSolver.solve(L_p1, u_p1, f_p1, maxLevel );
 
       // prolongate
       tmp_p2.assign( {1.0}, {u_p2}, maxLevel, hhg::Inner );

@@ -9,7 +9,7 @@ namespace hhg {
 class P1toP1LinearRestriction : public RestrictionOperator< P1Function< real_t > >
 {
  public:
-   void restrict ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+   void restrict ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
    {
      if ( function.isDummy() )
        return;

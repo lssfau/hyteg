@@ -7,25 +7,26 @@
 namespace hhg
 {
 
-class P1StokesOperator
+class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
 public:
 
   typedef P1ConstantLaplaceOperator VelocityOperator_T;
 
-  P1StokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-    : A(storage, minLevel, maxLevel),
-      div_x(storage, minLevel, maxLevel),
-      div_y(storage, minLevel, maxLevel),
-      div_z(storage, minLevel, maxLevel),
-      divT_x(storage, minLevel, maxLevel),
-      divT_y(storage, minLevel, maxLevel),
-      divT_z(storage, minLevel, maxLevel),
-      pspg(storage, minLevel, maxLevel),
-      hasGlobalCells_( storage->hasGlobalCells() )
+  P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+  : Operator( storage, minLevel, maxLevel )
+  , A( storage, minLevel, maxLevel )
+  , div_x( storage, minLevel, maxLevel )
+  , div_y( storage, minLevel, maxLevel )
+  , div_z( storage, minLevel, maxLevel )
+  , divT_x( storage, minLevel, maxLevel )
+  , divT_y( storage, minLevel, maxLevel )
+  , divT_z( storage, minLevel, maxLevel )
+  , pspg( storage, minLevel, maxLevel )
+  , hasGlobalCells_( storage->hasGlobalCells() )
   {}
 
-  void apply(P1StokesFunction<real_t>& src, P1StokesFunction<real_t>& dst, size_t level, DoFType flag)
+  void apply(const P1StokesFunction<real_t>& src, const P1StokesFunction<real_t>& dst,const size_t level, DoFType flag) const
   {
     A.apply(src.u, dst.u, level, flag, Replace);
     divT_x.apply(src.p, dst.u, level, flag, Add);

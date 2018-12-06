@@ -9,7 +9,7 @@ namespace hhg {
 class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t > >
 {
  public:
-void prolongate ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+void prolongate ( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
    {
       if ( function.isDummy() )
         return;

@@ -10,7 +10,7 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
 {
 public:
 
-    void prolongate ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+    void prolongate ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       prolongationOperator_.prolongate( function.u, sourceLevel, flag );
       prolongationOperator_.prolongate( function.v, sourceLevel, flag );

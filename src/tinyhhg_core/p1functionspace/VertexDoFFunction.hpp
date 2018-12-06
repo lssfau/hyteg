@@ -69,7 +69,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
              uint_t                                                                               level,
              DoFType                                                                              flag = All ) const;
 
-   void multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions, uint_t level, DoFType flag = All );
+   void multElementwise( const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                         uint_t                                                                               level,
+                         DoFType                                                                              flag = All ) const;
 
    real_t dotLocal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    real_t dotGlobal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;

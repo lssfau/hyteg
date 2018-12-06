@@ -62,7 +62,7 @@ void cscycle( size_t    level,
       r.assign( {1.0, -1.0}, {b, ax}, level, hhg::Inner );
 
       // restrict
-      restrictionOperator( r, level, hhg::Inner );
+      restrictionOperator.restrict( r, level, hhg::Inner );
       b.assign( {1.0}, {r}, level - 1, hhg::Inner );
 
       x.interpolate( zero, level - 1 );
@@ -79,7 +79,7 @@ void cscycle( size_t    level,
 
       // prolongate
       tmp.assign( {1.0}, {x}, level, hhg::Inner );
-      prolongationOperator( x, level - 1, hhg::Inner );
+      prolongationOperator.prolongate( x, level - 1, hhg::Inner );
       x.add( {1.0}, {tmp}, level, hhg::Inner );
 
       // post-smooth

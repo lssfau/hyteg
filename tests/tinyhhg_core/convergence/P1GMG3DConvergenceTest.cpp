@@ -8,7 +8,8 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include <tinyhhg_core/solvers/GaussSeidelSmoother.hpp>
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
@@ -31,11 +32,11 @@ int main( int argc, char* argv[] )
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
 
   const uint_t      numVCycles      = 10;
-  const uint_t      numPreSmoothingSteps  = 2;
-  const uint_t      numPostSmoothingSteps = 2;
-
-  const real_t      coarseGridSolverTolerance       = 1e-17;
-  const uint_t      coarseGridSolverMaxIterations   = 10000;
+//  const uint_t      numPreSmoothingSteps  = 2;
+//  const uint_t      numPostSmoothingSteps = 2;
+//
+//  const real_t      coarseGridSolverTolerance       = 1e-17;
+//  const uint_t      coarseGridSolverMaxIterations   = 10000;
 
   const bool        writeVTK        = false;
 
@@ -84,15 +85,13 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, maxLevel, DoFType::All );
   oneFunction.interpolate( one, maxLevel, DoFType::All );
 
-  typedef hhg::CGSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator > CoarseGridSolver_T;
-  typedef hhg::P1toP1LinearProlongation ProlongationOperator_T;
-  typedef hhg::P1toP1LinearRestriction  RestrictionOpertor_T;
-  typedef hhg::GeometricMultigridSolver< hhg::P1Function< real_t >, P1ConstantLaplaceOperator, CoarseGridSolver_T, RestrictionOpertor_T, ProlongationOperator_T > GMGSolver_T;
+  auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
+  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
-  auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
-  ProlongationOperator_T prolongationOperator;
-  RestrictionOpertor_T   restrictionOpertor;
-  GMGSolver_T            gmgSolver( storage, coarseGridSolver, restrictionOpertor, prolongationOperator, minLevel, maxLevel, numPreSmoothingSteps, numPostSmoothingSteps );
+  auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+     storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, maxLevel, DoFType::Inner );
 
@@ -114,7 +113,7 @@ int main( int argc, char* argv[] )
 
   for ( uint_t i = 1; i <= numVCycles; i++ )
   {
-    gmgSolver.solve( laplaceOperator3D, u, f, res, maxLevel, coarseGridSolverTolerance, coarseGridSolverMaxIterations, Inner );
+    gmgSolver.solve( laplaceOperator3D, u, f, maxLevel);
 
     err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
     laplaceOperator3D.apply( u, res, maxLevel, DoFType::Inner );

@@ -11,7 +11,7 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
 {
 public:
 
-    void restrict ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) override
+    void restrict ( const P1StokesFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       restrictionOperator_.restrict( function.u, sourceLevel, flag );
       restrictionOperator_.restrict( function.v, sourceLevel, flag );
