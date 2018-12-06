@@ -1,7 +1,7 @@
 #include "VertexDoFToEdgeDoFOperator.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
-#include "generatedKernels/generatedKernels.hpp"
+#include "generatedKernels/GeneratedKernels.hpp"
 
 namespace hhg {
 
@@ -153,14 +153,17 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply_impl(P1Fu
       else if( hhg::globalDefines::useGeneratedKernels )
       {
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+        real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
+        real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
+        real_t* vertexToVerticalEdgeStencil   = &opr_data[8];
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
-        real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+        real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
         if( updateType == hhg::Replace )
         {
-          VertexDoFToEdgeDoF::generated::applyFaceReplace( dst_data, src_data, opr_data, level );
+          VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dst_data, src_data, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, static_cast< int64_t  >( level ) );
         } else if( updateType == hhg::Add )
         {
-          VertexDoFToEdgeDoF::generated::applyFaceAdd( dst_data, src_data, opr_data, level );
+          VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( dst_data, src_data, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, static_cast< int64_t  >( level ) );
         }
       }
       else
