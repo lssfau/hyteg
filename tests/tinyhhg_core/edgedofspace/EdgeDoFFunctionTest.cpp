@@ -1,4 +1,5 @@
 
+#include "tinyhhg_core/communication/Syncing.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
@@ -53,6 +54,9 @@ static void testEdgeDoFFunction()
   y->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
+   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
+
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
     WALBERLA_CHECK_FLOAT_EQUAL( faceDataX[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 2 ) );
@@ -67,8 +71,11 @@ static void testEdgeDoFFunction()
   // Assign
 
   timer["Assign"].start();
-  y->assign( { 3.0, 2.0 }, { x.get(), y.get() }, maxLevel, DoFType::All );
+  y->assign( { 3.0, 2.0 }, { *x, *y }, maxLevel, DoFType::All );
   timer["Assign"].end();
+
+   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
@@ -82,6 +89,9 @@ static void testEdgeDoFFunction()
   timer["Add"].start();
   y->add( {{ 4.0, 3.0 }}, {{ *x, *y }}, maxLevel, DoFType::All );
   timer["Add"].end();
+
+   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
