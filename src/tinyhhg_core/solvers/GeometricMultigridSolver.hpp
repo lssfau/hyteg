@@ -37,8 +37,9 @@ public:
                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
                             uint_t                                                  minLevel,
                             uint_t                                                  maxLevel,
-                            uint_t                                                  nuPre  = 3,
-                            uint_t                                                  nuPost = 3 )
+                            uint_t                                                  preSmoothSteps                = 3,
+                            uint_t                                                  postSmoothSteps               = 3,
+                            uint_t                                                  smoothIncrementOnCoarserGrids = 0 )
   : minLevel_( minLevel )
   , maxLevel_( maxLevel )
   , smoother_( smoother )
@@ -47,16 +48,17 @@ public:
   , prolongationOperator_( prolongationOperator )
   , ax_( "gmg_ax", storage, minLevel, maxLevel )
   , tmp_( "gmg_tmp", storage, minLevel, maxLevel )
-  , nuPre_( nuPre )
-  , nuPost_( nuPost )
-  , flag_( hhg::Inner | hhg::NeumannBoundary)
+  , preSmoothSteps_( preSmoothSteps )
+  , postSmoothSteps_( postSmoothSteps )
+  , smoothIncrement_( smoothIncrementOnCoarserGrids )
+  , flag_( hhg::Inner | hhg::NeumannBoundary )
   {
      zero_ = []( const hhg::Point3D& ) { return 0.0; };
   }
 
   ~GeometricMultigridSolver() = default;
 
-  void solve(const OperatorType& A, FunctionType& x, FunctionType& b,const uint_t& level)
+  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level)
   {
 
     if (level == minLevel_)
@@ -66,7 +68,7 @@ public:
     else
     {
       // pre-smooth
-      for (size_t i = 0; i < nuPre_; ++i)
+      for (size_t i = 0; i < preSmoothSteps_; ++i)
       {
         smoother_->solve(A, x, b, level );
       }
@@ -81,11 +83,17 @@ public:
 
       x.interpolate(zero_, level-1);
 
+      preSmoothSteps_ += smoothIncrement_;
+      postSmoothSteps_ += smoothIncrement_;
+
       solve(A, x, b, level-1);
 
       if (cycleType_ == CycleType::WCYCLE) {
         solve(A, x, b, level-1);
       }
+
+      preSmoothSteps_ -= smoothIncrement_;
+      postSmoothSteps_ -= smoothIncrement_;
 
       // prolongate
       tmp_.assign({1.0}, { x }, level, flag_);
@@ -93,7 +101,7 @@ public:
       x.add({1.0}, { tmp_ }, level, flag_);
 
       // post-smooth
-      for (size_t i = 0; i < nuPost_; ++i)
+      for (size_t i = 0; i < postSmoothSteps_; ++i)
       {
         smoother_->solve(A, x, b, level );
       }
@@ -103,10 +111,11 @@ public:
 
 private:
 
-  uint_t nuPre_;
-  uint_t nuPost_;
   uint_t minLevel_;
   uint_t maxLevel_;
+  uint_t preSmoothSteps_;
+  uint_t postSmoothSteps_;
+  uint_t smoothIncrement_;
 
   hhg::DoFType flag_;
   CycleType cycleType_;
