@@ -29,9 +29,9 @@ static void testP2BasicFunctions()
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto x = P2Function< real_t >( "x", storage, minLevel, maxLevel );
-   auto y = P2Function< real_t >( "y", storage, minLevel, maxLevel );
-   auto z = P2Function< real_t >( "y", storage, minLevel, maxLevel );
+   P2Function< real_t > x( "x", storage, minLevel, maxLevel );
+   P2Function< real_t > y( "y", storage, minLevel, maxLevel );
+   P2Function< real_t > z( "y", storage, minLevel, maxLevel );
 
    std::vector< PrimitiveID > faces;
    storage->getFaceIDs( faces );
@@ -63,6 +63,9 @@ static void testP2BasicFunctions()
    y.interpolate( expr, maxLevel, DoFType::All );
    z.interpolate( func, maxLevel, DoFType::All );
    timer["Interpolate"].end();
+
+   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -128,8 +131,11 @@ static void testP2BasicFunctions()
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{x, y}}, maxLevel, DoFType::All );
+   y.add( {4.0, 3.0}, {x, y}, maxLevel, DoFType::All );
    timer["Add"].end();
+
+   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
