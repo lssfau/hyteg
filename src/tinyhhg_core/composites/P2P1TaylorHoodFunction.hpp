@@ -8,7 +8,7 @@ namespace hhg
 {
 
 template <typename ValueType>
-class P2P1TaylorHoodFunction
+class P2P1TaylorHoodFunction : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
 public:
 
@@ -16,18 +16,24 @@ public:
   typedef P1Function< ValueType > PressureFunction_T;
   typedef typename FunctionTrait< P2P1TaylorHoodFunction< ValueType > >::Tag Tag;
 
-  P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel)
-    : u(_name+"_u", storage, minLevel, maxLevel),
-      v(_name+"_v", storage, minLevel, maxLevel),
-      w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel ) :  P2Function< ValueType >( _name+"_w_dummy", storage )),
-      p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+  P2P1TaylorHoodFunction( const std::string&                         _name,
+                          const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
+                          size_t                                     maxLevel )
+  : Operator( storage, minLevel, maxLevel )
+  , u( _name + "_u", storage, minLevel, maxLevel )
+  , v( _name + "_v", storage, minLevel, maxLevel )
+  , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
+                                   P2Function< ValueType >( _name + "_w_dummy", storage ) )
+  , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {}
 
   P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel, BoundaryCondition velocityBC)
-  : u(_name+"_u", storage, minLevel, maxLevel, velocityBC),
-    v(_name+"_v", storage, minLevel, maxLevel, velocityBC),
-    w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel, velocityBC ) :  P2Function< ValueType >( _name+"_w_dummy", storage )),
-    p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
+      : Operator( storage, minLevel, maxLevel )
+        , u(_name+"_u", storage, minLevel, maxLevel, velocityBC)
+        , v(_name+"_v", storage, minLevel, maxLevel, velocityBC)
+        , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel, velocityBC ) :  P2Function< ValueType >( _name+"_w_dummy", storage ))
+        , p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {}
 
   void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const

@@ -12,6 +12,7 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
 public:
 
   typedef P1ConstantLaplaceOperator VelocityOperator_T;
+  typedef P1ConstantLaplaceOperator PressureOperator_T;
 
   P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
   : Operator( storage, minLevel, maxLevel )

@@ -124,8 +124,8 @@ int main( int argc, char* argv[] )
 
   if ( enableChecks )
   {
-    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 6.2e-17 );
-    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.81e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResLowerLevel, 6.9e-17 );
+    WALBERLA_CHECK_LESS( discrL2ResHigherLevel, 3.88e-17 );
 
     // L2 err higher level ~ 0.25 * L2 err lower level
     WALBERLA_CHECK_LESS( discrL2ErrLowerLevel, 4.4e-04 );

@@ -172,10 +172,9 @@ int main( int argc, char* argv[] )
 #endif
 
   typedef hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
-  hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-  PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
+  PressurePreconditioner_T pressurePrec( storage, minLevel, maxLevel );
 
-  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel );
+  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance );
   // auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
   // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
