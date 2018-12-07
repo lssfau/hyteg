@@ -12,12 +12,12 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   StokesBlockDiagonalPreconditioner(
-       const std::shared_ptr< PrimitiveStorage >&                                  storage,
-       uint_t                                                                      minLevel,
-       uint_t                                                                      maxLevel,
-       uint_t                                                                      velocityPreconditionSteps,
-       std::shared_ptr< hhg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner )
+   StokesBlockDiagonalPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage,
+                                      uint_t                                     minLevel,
+                                      uint_t                                     maxLevel,
+                                      uint_t                                     velocityPreconditionSteps,
+                                      std::shared_ptr< hhg::Solver< typename OperatorType::VelocityOperator_T > >
+                                          velocityBlockPreconditioner = std::make_shared< hhg::EmptySolver< typename OperatorType::VelocityOperator_T > >() )
    : velocityPreconditionSteps_( velocityPreconditionSteps )
    , flag_( hhg::Inner | hhg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )

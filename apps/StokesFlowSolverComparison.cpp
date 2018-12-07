@@ -70,7 +70,7 @@ const static std::map< std::string, SolverType > strToSolverType =
 };
 
 template< template< typename ValueType > class Function_T, typename Operator_T  >
-class PetscSolver
+class PetscSolver : public Solver< Operator_T >
 {
 #ifdef HHG_BUILD_WITH_PETSC
 public:
@@ -121,12 +121,10 @@ public:
                  const std::function< real_t ( const hhg::Point3D & ) > &)
     {}
 
-    void solve( Operator_T &,
-                Function_T< real_t > &,
-                Function_T< real_t > &,
-                Function_T< real_t > &,
-                size_t, real_t, size_t,
-                DoFType, bool)
+    void solve(const Operator_T &,
+               const Function_T< real_t > &,
+               const Function_T< real_t > &,
+               uint_t) const override
     {
              WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
     }
@@ -262,36 +260,40 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   ////////////////////////
 
   // Velocity block solver
-  typedef hhg::CGSolver<  typename StokesOperator_T::VelocityOperator_T > VelocityCGSolver_T;
-  typedef hhg::GeometricMultigridSolver< typename StokesOperator_T::VelocityOperator_T  > VelocityGMGSolver_T;
-  auto velocityRestriction = std::make_shared<typename RestrictionOperator_T::VelocityRestriction_T >();
-  auto velocityProlongation = std::make_shared<typename ProlongationOperator_T::VelocityProlongation_T >() ;
-  auto velocityCGSolver = std::make_shared< VelocityCGSolver_T >( storage, minLevel, maxLevel );
-  auto gsSmoother = std::make_shared< hhg::GaussSeidelSmoother<typename StokesOperator_T::VelocityOperator_T > >();
-  VelocityGMGSolver_T velocityGMGSolver( storage, gsSmoother, velocityCGSolver, velocityRestriction, velocityProlongation, minLevel, maxLevel, preSmooth, postSmooth );
+  typedef hhg::CGSolver< typename StokesOperator_T::VelocityOperator_T >                 VelocityCGSolver_T;
+  typedef hhg::GeometricMultigridSolver< typename StokesOperator_T::VelocityOperator_T > VelocityGMGSolver_T;
+  auto velocityRestriction  = std::make_shared< typename RestrictionOperator_T::VelocityRestriction_T >();
+  auto velocityProlongation = std::make_shared< typename ProlongationOperator_T::VelocityProlongation_T >();
+  auto velocityCGSolver     = std::make_shared< VelocityCGSolver_T >( storage, minLevel, maxLevel );
+  auto gsSmoother           = std::make_shared< hhg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+  auto velocityGMGSolver    = std::make_shared< VelocityGMGSolver_T >( storage,
+                                                                    gsSmoother,
+                                                                    velocityCGSolver,
+                                                                    velocityRestriction,
+                                                                    velocityProlongation,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    preSmooth,
+                                                                    postSmooth );
 
   // Empty
-  typedef EmptySolver< StokesFunction_T< real_t >, StokesOperator_T > EmptySolver_T;
-  EmptySolver_T emptySolver;
+  typedef EmptySolver< StokesOperator_T > EmptySolver_T;
+  auto emptySolver = std::shared_ptr< EmptySolver_T >();
 
   // MinRes (preconditioned)
-  typedef hhg::StokesBlockDiagonalPreconditioner< StokesFunction_T< real_t >,
-                                                  typename StokesOperator_T::VelocityOperator_T,
-                                                  VelocityGMGSolver_T,
+  typedef hhg::StokesBlockDiagonalPreconditioner< StokesOperator_T,
                                                   hhg::P1LumpedInvMassOperator > Preconditioner_T;
-  hhg::P1LumpedInvMassOperator lumpedInvMassOperator( storage, minLevel, maxLevel );
-  Preconditioner_T preconditioner( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, numMGCycles );
+  auto preconditioner = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, numMGCycles, velocityGMGSolver );
   typedef hhg::MinResSolver< StokesOperator_T > PreconditionedMinResSolver_T;
   auto preconditionedMinResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditioner );
 
   // MinRes (only pressure preconditioner)
-  Preconditioner_T preconditionerOnlyPressure( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, 0 );
-  typedef hhg::MinResSolver< StokesOperator_T > MinResSolver_T;
-  auto minResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditionerOnlyPressure );
+  auto preconditionerOnlyPressure = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 0 );
+  auto minResSolver = std::make_shared< PreconditionedMinResSolver_T >( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditionerOnlyPressure );
 
   // PETSc
   typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;
-  PetscSolver_T petscSolver( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
+  auto petscSolver = std::make_shared< PetscSolver_T >( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
 
   // Laplace solver
   typedef hhg::CGSolver< typename StokesOperator_T::VelocityOperator_T > LaplaceSolver_T;
@@ -351,14 +353,14 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   ////////////////////////////////
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+  r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   real_t currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   real_t lastResidualL2    = currentResidualL2;
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial residual: " << currentResidualL2 );
 
   if ( compareWithAnalyticalSolution )
   {
-    error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+    error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
     const real_t currentErrorL2 = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
     WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial error: " << currentErrorL2 );
   }
@@ -400,7 +402,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
     {
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with MinRes..." );
-      preconditionedMinResSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      preconditionedMinResSolver.solve( L, u, f, maxLevel );
 
       if ( rescalePressure )
       {
@@ -410,7 +412,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       if ( compareWithAnalyticalSolution )
       {
-        error.assign( { 1.0, -1.0 }, { &u, &exactSolution }, maxLevel, DoFType::All );
+        error.assign( { 1.0, -1.0 }, { u, exactSolution }, maxLevel, DoFType::All );
       }
 
       vtkOutput.write( maxLevel, 1 );
@@ -427,8 +429,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
+           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
            auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
                storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
@@ -460,13 +462,13 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
               lastResidualL2 = currentResidualL2;
               L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-              r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+              r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
               currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) /
                                   real_c( hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ) );
 
               if( compareWithAnalyticalSolution )
               {
-                 error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+                 error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
               }
 
               WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
@@ -484,9 +486,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
-
+          auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+          auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
           auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
               storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
@@ -518,12 +519,12 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+            r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
 
             if ( compareWithAnalyticalSolution )
             {
-              error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+              error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
             }
 
             WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] " << std::setw(9) << mgIteration << " | "
@@ -540,12 +541,8 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
-//          typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, PetscSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
-//
-//          auto solver = UzawaSolver_T( storage, petscSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
-
+           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
            auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
                storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
