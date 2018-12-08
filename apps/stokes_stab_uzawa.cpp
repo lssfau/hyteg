@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
 
   r.interpolate(ones, maxLevel);
-  uint_t npoints = (uint_t) r.dotGlobal(*r, maxLevel);
+  uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
   r.interpolate(zero, maxLevel);
 
   u.u.interpolate(rand, maxLevel, hhg::Inner);
@@ -77,13 +77,6 @@ int main(int argc, char* argv[])
 
   L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-
-//  typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator > CoarseGridSolver;
-//  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, CoarseGridSolver,
-//                           hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, false> Solver;
-//
-//  CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
-//  auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
    auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >(
        storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
@@ -98,7 +91,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
 
-  real_t begin_res = std::sqrt(r.dotGlobal(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
   real_t abs_res_old = begin_res;
   real_t rel_res = 1.0;
 

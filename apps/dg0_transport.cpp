@@ -71,10 +71,10 @@ int main(int argc, char* argv[])
 
   hhg::VTKOutput vtkOutput("../output", "dg0_transport", storage);
 
-  vtkOutput.add( u );
-  vtkOutput.add( v );
-  vtkOutput.add( c_old );
-  vtkOutput.add( c );
+  vtkOutput.add( *u );
+  vtkOutput.add( *v );
+  vtkOutput.add( *c_old );
+  vtkOutput.add( *c );
 
   vtkOutput.write( maxLevel );
 

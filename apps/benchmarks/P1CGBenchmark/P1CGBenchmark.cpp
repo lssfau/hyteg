@@ -66,9 +66,9 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( rhs, level );
    M.apply( npoints_helper, f, level, hhg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1Function< double >, hhg::P1ConstantLaplaceOperator >( storage, level, level );
+   auto solver = hhg::CGSolver< hhg::P1ConstantLaplaceOperator >( storage, level, level, maxIter, tolerance );
 
-   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, false );
+   solver.solve( L, u, f, level );
 
    err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
    npoints_helper.interpolate( ones, level );

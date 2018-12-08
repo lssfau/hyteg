@@ -106,36 +106,6 @@ int main( int argc, char* argv[] )
    hhg::communication::syncP2FunctionBetweenPrimitives( u_exact.u, maxLevel );
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
-
-
-//   GMGSolver< P2P1StokesOperator > solver = GMGFactory::createDefaultGMGSolver< P2P1StokesOperator >(storage, minlevel, maxlevel);
-//
-//   solver.setSmoother(  )
-//   solver.solve(A,x,b);
-//
-//
-//   ///// MinRes coarse grid solver for UZAWA /////
-//   typedef StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator >
-//       PressurePreconditioner_T;
-//
-//   P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
-//   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
-//
-//   typedef hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >
-//       PressurePreconditionedMinRes_T;
-//
-//   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
-//
-//   ///// UZAWA solver /////
-//   typedef UzawaSolver< hhg::P2P1TaylorHoodFunction< real_t >,
-//                        hhg::P2P1TaylorHoodStokesOperator,
-//                        PressurePreconditionedMinRes_T,
-//                        false >
-//       UzawaSolver_T;
-//
-//   UzawaSolver_T uzawaSolver(
-//       storage, pressurePreconditionedMinResSolver, minLevel, maxLevel, 2, 2, 2, 0.37 );
-
    auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
    auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P2P1TaylorHoodStokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
