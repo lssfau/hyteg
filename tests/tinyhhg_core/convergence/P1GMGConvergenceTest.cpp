@@ -57,7 +57,8 @@ int main( int argc, char* argv[] )
   M.apply( npoints_helper, f, maxLevel, hhg::All );
 
   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
-  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >(
+      storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
