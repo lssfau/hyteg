@@ -89,7 +89,8 @@ int main( int argc, char* argv[] )
    real_t npoints = npoints_helper_p2.dotGlobal( npoints_helper_p2, maxLevel );
 
    auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
-   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >(
+       storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
    auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 

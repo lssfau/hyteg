@@ -38,9 +38,9 @@ int main( int argc, char* argv[] )
    const uint_t minLevel         = parameters.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel         = parameters.getParameter< uint_t >( "maxLevel" );
    const uint_t max_outer_iter   = parameters.getParameter< uint_t >( "max_outer_iter" );
-   //const uint_t max_cg_iter      = parameters.getParameter< uint_t >( "max_cg_iter" );
+   const uint_t max_cg_iter      = parameters.getParameter< uint_t >( "max_cg_iter" );
    const real_t mg_tolerance     = parameters.getParameter< real_t >( "mg_tolerance" );
-   //const real_t coarse_tolerance = parameters.getParameter< real_t >( "coarse_tolerance" );
+   const real_t coarse_tolerance = parameters.getParameter< real_t >( "coarse_tolerance" );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -85,7 +85,8 @@ int main( int argc, char* argv[] )
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
    auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P2ConstantLaplaceOperator>  >();
-   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P2ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P2ConstantLaplaceOperator > >(
+       storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
    auto restrictionOperator = std::make_shared< hhg::P2toP2QuadraticRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P2toP2QuadraticProlongation >();
 
