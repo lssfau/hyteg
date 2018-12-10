@@ -28,7 +28,7 @@
 #pragma warning( pop )
 #endif
 
-#include "generatedKernels/GeneratedKernels.hpp"
+#include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
 #include "P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"

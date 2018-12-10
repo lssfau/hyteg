@@ -1,7 +1,7 @@
 #include "VertexDoFToEdgeDoFOperator.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
-#include "generatedKernels/GeneratedKernels.hpp"
+#include "generatedKernels/GeneratedKernelsVertexToEdgeMacroFace2D.hpp"
 
 namespace hhg {
 

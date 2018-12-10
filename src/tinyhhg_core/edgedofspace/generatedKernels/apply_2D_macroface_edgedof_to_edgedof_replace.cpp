@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernels.hpp"
+#include "GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
 
 namespace hhg {
 namespace edgedof {
