@@ -26,7 +26,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   // 2. laplace(u) = 0, if u linear
 
   const bool   writeVTK   = false;
-  const real_t errorLimit = 2.4e-13;
+  const real_t errorLimit = 2.8e-13;
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

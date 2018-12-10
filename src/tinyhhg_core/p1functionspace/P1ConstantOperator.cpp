@@ -29,6 +29,7 @@
 #endif
 
 #include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
+#include "generatedKernels/GeneratedKernelsVertexToVertexMacroCell3D.hpp"
 #include "P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -547,8 +548,19 @@ P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagona
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if( testFlag( cellBC, flag ) )
       {
-         vertexdof::macrocell::apply< real_t >(
-                 level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+         if ( hhg::globalDefines::useGeneratedKernels && updateType == Replace )
+         {
+            WALBERLA_LOG_DEVEL_ON_ROOT("USING GENERATED CELL KERNEL")
+            real_t* opr_data = cell.getData( cellStencilID_ )->getPointer( level );
+            real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
+            real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
+            vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+         }
+         else
+         {
+            vertexdof::macrocell::apply< real_t >( level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+         }
+
       }
    }
    this->stopTiming( "P1ConstantOperator - Apply" );
