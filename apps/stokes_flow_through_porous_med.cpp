@@ -91,8 +91,8 @@ int main( int argc, char* argv[] )
     numerator->enumerate(level);
     const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
     const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-    PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
-    solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+    PETScLUSolver< hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
+    solver.solve( L, u, f, level );
   }
   else
 #else

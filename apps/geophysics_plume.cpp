@@ -102,13 +102,6 @@ int main( int argc, char* argv[] )
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
    hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
 
-//   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
-//   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
-//   typedef hhg::MinResSolver< P1StokesFunction< real_t >, P1StokesOperator > CoarseGridSolver;
-//   RestrictionOperator restrictionOperator;
-//   ProlongationOperator prolongationOperator;
-//   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
-
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength );

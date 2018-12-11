@@ -10,6 +10,11 @@ class P1StokesFunction
 {
 public:
 
+  typedef ValueType valueType;
+
+  template< typename VType >
+  using FunctionType = P1StokesFunction< VType >;
+
   typedef P1Function< ValueType > VelocityFunction_T;
   typedef P1Function< ValueType > PressureFunction_T;
   typedef typename FunctionTrait< P1StokesFunction< ValueType > >::Tag Tag;

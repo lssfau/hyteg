@@ -12,6 +12,11 @@ class P2P1TaylorHoodFunction : public Operator< P2P1TaylorHoodFunction< real_t >
 {
 public:
 
+  typedef ValueType valueType;
+
+  template< typename VType >
+  using FunctionType = P2P1TaylorHoodFunction< VType >;
+
   typedef P2Function< ValueType > VelocityFunction_T;
   typedef P1Function< ValueType > PressureFunction_T;
   typedef typename FunctionTrait< P2P1TaylorHoodFunction< ValueType > >::Tag Tag;

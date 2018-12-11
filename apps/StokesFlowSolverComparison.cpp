@@ -85,25 +85,23 @@ public:
       numerator_ = std::make_shared< Function_T< PetscInt > >( "numerator", storage, minLevel, maxLevel );
     }
 
-    void solve( Operator_T & A,
-                Function_T< real_t > & x,
-                Function_T< real_t > & b,
-                Function_T< real_t > & r,
-                size_t level, real_t tolerance, size_t maxiter,
-                DoFType flag = All, bool printInfo = false ) {
+    void solve( const Operator_T & A,
+                const Function_T< real_t > & x,
+                const Function_T< real_t > & b,
+                size_t level) {
 
        PETScManager petscManager;
-       tmpRHS_->assign( {1.0}, {&b}, level, DoFType::Inner | NeumannBoundary );
+       tmpRHS_->assign( {1.0}, {b}, level, DoFType::Inner | NeumannBoundary );
 
        //tmpRHS_->u.interpolate(velocityUBC_, level, hhg::DirichletBoundary);
        //tmpRHS_->v.interpolate(velocityVBC_, level, hhg::DirichletBoundary);
-       tmpRHS_->u.assign( {1.0}, {&x.u}, level, hhg::DirichletBoundary);
-       tmpRHS_->v.assign( {1.0}, {&x.v}, level, hhg::DirichletBoundary);
+       tmpRHS_->u.assign( {1.0}, {x.u}, level, hhg::DirichletBoundary);
+       tmpRHS_->v.assign( {1.0}, {x.v}, level, hhg::DirichletBoundary);
        const uint_t localSize = hhg::numberOfLocalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
        const uint_t globalSize = hhg::numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
        numerator_->enumerate( level );
-       PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, globalSize);
-       solver.solve(A, x, *tmpRHS_, r, level, tolerance, maxiter, flag, printInfo);
+       PETScLUSolver< Operator_T> solver(numerator_, localSize, globalSize);
+       solver.solve(A, x, *tmpRHS_, level );
     }
 
 private:
@@ -379,7 +377,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 #ifdef HHG_BUILD_WITH_PETSC
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with PETSc..." );
-      petscSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      petscSolver->solve( L, u, f, maxLevel);
 
       if ( rescalePressure )
       {

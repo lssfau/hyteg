@@ -125,11 +125,11 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   }
 
 
-  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToVertexOpr() {
+  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > const & getVertexToVertexOpr() const {
     return vertexToVertex;
   }
 
-  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToEdgeOpr() {
+  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > const & getVertexToEdgeOpr() const {
     return vertexToEdge;
   }
 

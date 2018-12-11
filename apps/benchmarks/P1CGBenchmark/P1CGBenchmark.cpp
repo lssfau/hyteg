@@ -70,7 +70,7 @@ int main( int argc, char* argv[] )
 
    solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
+   err.assign( {1.0, -1.0}, {u, u_exact}, level );
    npoints_helper.interpolate( ones, level );
 
    const double npoints      = npoints_helper.dotGlobal( npoints_helper, level );
