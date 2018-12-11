@@ -32,7 +32,7 @@ public:
 
   ~PETScVector() { VecDestroy(&vec); }
 
-  void createVectorFromFunction(FunctionType<ValueType> &src, FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All) {
+  void createVectorFromFunction(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All) {
 
     hhg::petsc::createVectorFromFunction(src, numerator, vec, level, flag);
 
@@ -40,7 +40,7 @@ public:
     VecAssemblyEnd(vec);
   }
 
-  void createFunctionFromVector(FunctionType<ValueType> &src, FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All){
+  void createFunctionFromVector(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All){
 
     hhg::petsc::createFunctionFromVector(src, numerator, vec, level, flag);
 

@@ -14,7 +14,7 @@ class JacobiPreconditioner : public Solver< OperatorType >
    {}
 
    // y = M^{-1} * x
-   void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) const override
+   void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       b.assign( {1.0}, {x}, level, flag_ );
 

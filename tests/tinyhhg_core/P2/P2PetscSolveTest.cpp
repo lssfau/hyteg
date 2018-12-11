@@ -74,11 +74,11 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 //   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
 
-   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+   PETScLUSolver< hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
 //   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
-   solver_1.solve( A, x, b, x, level, 0, 0 );
+   solver_1.solve( A, x, b, level );
 //   solver_2.solve( A, x, b, x, level + 1, 0, 0 );
    timer.end();
 

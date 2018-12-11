@@ -27,7 +27,7 @@ class UzawaSmoother : public Solver< OperatorType >
    void solve( const OperatorType&                   A,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level ) const override
+               const uint_t                          level )override
    {
       uzawaSmooth( A,
                    x,

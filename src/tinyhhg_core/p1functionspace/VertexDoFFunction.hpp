@@ -40,6 +40,12 @@ template < typename ValueType >
 class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 {
  public:
+
+   typedef ValueType valueType;
+
+   template< typename VType >
+   using FunctionType = vertexdof::VertexDoFFunction< VType >;
+
    VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
 
    VertexDoFFunction( const std::string&                         name,

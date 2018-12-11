@@ -58,7 +58,7 @@ public:
 
   ~GeometricMultigridSolver() = default;
 
-  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) const override
+  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) override
   {
     solve(A,x,b,level,0);
   }

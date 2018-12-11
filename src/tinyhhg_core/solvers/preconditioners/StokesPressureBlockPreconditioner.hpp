@@ -18,7 +18,7 @@ class StokesPressureBlockPreconditioner : public Solver< OperatorType >
    , flag_( hhg::Inner | hhg::NeumannBoundary )
    {}
 
-   void solve( const OperatorType&, const FunctionType& x, const FunctionType& b, const uint_t level ) const override
+   void solve( const OperatorType&, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       b.assign( {1.0}, {x}, level, flag_ );
       pressureBlockPreconditioner_->apply( x.p, b.p, level, flag_, Replace );

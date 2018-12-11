@@ -19,6 +19,12 @@ template < typename ValueType >
 class P2Function : public Function< P2Function< ValueType > >
 {
  public:
+
+  typedef ValueType valueType;
+
+  template< typename VType >
+  using FunctionType = P2Function< VType >;
+
    P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage )
    : Function< P2Function< ValueType > >( name, storage )
    , vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF_dummy", storage ) )

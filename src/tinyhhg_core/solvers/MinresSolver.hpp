@@ -37,7 +37,7 @@ public:
   , r_( "r", storage, minLevel, maxLevel )
   {}
 
-  void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) const override
+  void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) override
   {
     std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
     p_vm.interpolate(zero, level, flag_);

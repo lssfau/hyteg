@@ -65,11 +65,11 @@ int main( int argc, char* argv[] )
    numerator->enumerate( level );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( globalDoFs ) )
 
-   PETScLUSolver< real_t, hhg::P1Function, hhg::P1ConstantLaplaceOperator > solver( numerator, localDoFs, globalDoFs );
+   PETScLUSolver< hhg::P1ConstantLaplaceOperator > solver( numerator, localDoFs, globalDoFs );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving System" )
    walberla::WcTimer timer;
-   solver.solve( A, x, x, x, level, 0, 0 );
+   solver.solve( A, x, x, level );
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );

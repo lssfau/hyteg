@@ -13,7 +13,7 @@ class GaussSeidelSmoother : public Solver< OperatorType >
    void solve( const OperatorType&                   A,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level ) const override
+               const uint_t                          level ) override
    {
       A.smooth_gs( x, b, level, flag_ );
    }

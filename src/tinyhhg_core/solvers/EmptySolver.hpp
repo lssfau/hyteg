@@ -11,7 +11,7 @@ class EmptySolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   void solve( const OperatorType&, const FunctionType&, const FunctionType&, uint_t ) const override
+   void solve( const OperatorType&, const FunctionType&, const FunctionType&, uint_t ) override
    {
       // does nothing
    }
