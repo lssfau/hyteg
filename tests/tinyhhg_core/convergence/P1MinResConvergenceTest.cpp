@@ -58,7 +58,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << std::scientific << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 3.8e-09 )
+   WALBERLA_CHECK_LESS( discr_l2_err, 6e-09 )
 
    //hhg::VTKWriter<hhg::P1Function< real_t >>({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "minres");
    return EXIT_SUCCESS;
