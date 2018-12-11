@@ -122,7 +122,7 @@ public:
     void solve(const Operator_T &,
                const Function_T< real_t > &,
                const Function_T< real_t > &,
-               uint_t) const override
+               uint_t) override
     {
              WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
     }
