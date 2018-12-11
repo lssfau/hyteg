@@ -548,13 +548,19 @@ P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagona
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if( testFlag( cellBC, flag ) )
       {
-         if ( hhg::globalDefines::useGeneratedKernels && updateType == Replace )
+         if ( hhg::globalDefines::useGeneratedKernels )
          {
-            WALBERLA_LOG_DEVEL_ON_ROOT("USING GENERATED CELL KERNEL")
             real_t* opr_data = cell.getData( cellStencilID_ )->getPointer( level );
             real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
             real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
-            vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+            if ( updateType == Replace )
+            {
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+            }
+            else if ( updateType == Add )
+            {
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+            }
          }
          else
          {
