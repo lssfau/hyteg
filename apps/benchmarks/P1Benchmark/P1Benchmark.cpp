@@ -7,7 +7,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/p1functionspace/generatedKernels/generatedKernels.hpp"
+#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernels.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;
@@ -111,7 +111,7 @@ int main( int argc, char** argv )
       real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
       real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
       real_t* dst_data      = face->getData( dst->getFaceDataID() )->getPointer( level );
-      vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+      vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
    } else {
       vertexdof::macroface::apply< real_t >(
             level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );

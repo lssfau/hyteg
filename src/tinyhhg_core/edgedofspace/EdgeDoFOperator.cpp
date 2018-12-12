@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "tinyhhg_core/edgedofspace/generatedKernels/generatedKernels.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernels.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -78,10 +78,10 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
         real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
         if( updateType == hhg::Replace )
         {
-          edgedof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dst_data, src_data, opr_data, static_cast< int64_t  >( level ) );
         } else if( updateType == hhg::Add )
         {
-          edgedof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
+          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
         }
       }
       else

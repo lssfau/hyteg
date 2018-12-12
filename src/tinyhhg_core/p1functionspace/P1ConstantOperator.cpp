@@ -28,7 +28,7 @@
 #pragma warning( pop )
 #endif
 
-#include "generatedKernels/generatedKernels.hpp"
+#include "generatedKernels/GeneratedKernels.hpp"
 #include "P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -526,10 +526,10 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
             real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
             if( updateType == hhg::Replace )
             {
-               vertexdof::macroface::generated::applyReplace( dst_data, src_data, opr_data, level );
+               vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
             } else if( updateType == hhg::Add )
             {
-               vertexdof::macroface::generated::applyAdd( dst_data, src_data, opr_data, level );
+               vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
             }
          } else
          {
@@ -602,7 +602,18 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if( testFlag( faceBC, flag ) )
       {
-         vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
+         if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
+         {
+            real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+            real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+            real_t* rhs_data = face.getData( rhs.getFaceDataID() )->getPointer( level );
+            vertexdof::macroface::generated::gaussseidel_2D_macroface_vertexdof_to_vertexdof( dst_data, rhs_data, opr_data, static_cast< int64_t >( level ) );
+         }
+         else
+         {
+            vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
+         }
+
       }
    }
 
