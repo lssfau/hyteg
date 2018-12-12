@@ -5,12 +5,13 @@
 #include "core/mpi/MPIManager.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 
 using walberla::real_t;
@@ -208,23 +209,21 @@ int main( int argc, char** argv )
       {
          return std::sin( 5 * angle );
       }
-      WALBERLA_ABORT("point is not on the boundary");
+      WALBERLA_ABORT( "point is not on the boundary" );
    };
 
    function.interpolate( boundaryConditions, maxLevel, hhg::DirichletBoundary );
    /// [Boundary Conditions]
 
    /// [Solvers]
-   typedef hhg::P1toP1LinearRestriction RestrictionOperator;
-   typedef hhg::P1toP1LinearProlongation ProlongationOperator;
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
+   auto smoother         = std::make_shared< hhg::GaussSeidelSmoother< hhg::P1ConstantLaplaceOperator > >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >(
+       storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+   auto restrictionOperator  = std::make_shared< hhg::P1toP1LinearRestriction >();
+   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
-   RestrictionOperator restrictionOperator;
-   ProlongationOperator prolongationOperator;
-   auto coarseSolver = std::make_shared< CoarseSolver >( storage, minLevel, maxLevel );
-
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMG;
-   GMG multiGridSolver( storage, coarseSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   auto multiGridSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    hhg::P1ConstantLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
    /// [Solvers]
@@ -232,15 +231,7 @@ int main( int argc, char** argv )
    /// [Multigrid]
    for( uint_t i = 0; i < max_outer_iter; ++i )
    {
-      multiGridSolver.solve( laplaceOperator,
-                             function,
-                             rightHandSide,
-                             residual,
-                             maxLevel,
-                             coarse_tolerance,
-                             max_coarse_iter,
-                             hhg::Inner,
-                             GMG::CycleType::VCYCLE );
+      multiGridSolver.solve( laplaceOperator, function, rightHandSide, maxLevel );
    }
    /// [Multigrid]
 
@@ -254,10 +245,10 @@ int main( int argc, char** argv )
    /// [Output]
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      hhg::VTKOutput vtkOutput(".", "FullAppP1GMG", storage);
-      vtkOutput.add( &function );
-      vtkOutput.add( &residual );
-      vtkOutput.add( &rightHandSide );
+      hhg::VTKOutput vtkOutput( ".", "FullAppP1GMG", storage );
+      vtkOutput.add( function );
+      vtkOutput.add( residual );
+      vtkOutput.add( rightHandSide );
       vtkOutput.write( maxLevel );
    }
    /// [Output]
