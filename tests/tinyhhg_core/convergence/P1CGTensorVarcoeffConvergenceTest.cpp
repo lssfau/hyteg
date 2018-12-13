@@ -32,7 +32,6 @@ int main( int argc, char* argv[] )
 
    size_t minLevel = 2;
    size_t maxLevel = 4;
-   size_t maxiter  = 10000;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -97,12 +96,12 @@ int main( int argc, char* argv[] )
    //  auto prec = std::make_shared<PreconditionerType>(L, 30);
 
    auto solver =
-       hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1TensorCoefficientLaplaceOperator >( storage, minLevel, maxLevel );
+       hhg::CGSolver< hhg::P1TensorCoefficientLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
-   solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
+   solver.solve( L, u, f,  maxLevel);
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "time was: %f", timer.last() ) );
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
@@ -111,7 +110,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //hhg::VTKWriter< P1Function< real_t > >({ &u, &u_exact, &f, &r, &err, coefficient.get() }, maxLevel, "../output", "cg_P1_varcoeff");
+   //hhg::VTKWriter< P1Function< real_t > >({ u, u_exact, &f, &r, &err, coefficient.get() }, maxLevel, "../output", "cg_P1_varcoeff");
 
    walberla::WcTimingTree tt = timingTree->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

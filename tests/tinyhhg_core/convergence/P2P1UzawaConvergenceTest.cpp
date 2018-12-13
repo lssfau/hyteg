@@ -13,8 +13,9 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -105,41 +106,25 @@ int main( int argc, char* argv[] )
    hhg::communication::syncP2FunctionBetweenPrimitives( u_exact.u, maxLevel );
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
-   ///// MinRes coarse grid solver for UZAWA /////
-   typedef StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator >
-       PressurePreconditioner_T;
+   auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P2P1TaylorHoodStokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
+   auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
+   auto restrictionOperator = std::make_shared< hhg::P2P1StokesToP2P1StokesRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P2P1StokesToP2P1StokesProlongation >();
 
-   P1LumpedInvMassOperator  massOperator( storage, minLevel, maxLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
+   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P2P1TaylorHoodStokesOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
-   typedef hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >
-       PressurePreconditionedMinRes_T;
 
-   auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, maxLevel, pressurePrec );
-
-   ///// UZAWA solver /////
-   typedef UzawaSolver< hhg::P2P1TaylorHoodFunction< real_t >,
-                        hhg::P2P1TaylorHoodStokesOperator,
-                        PressurePreconditionedMinRes_T,
-                        P2P1StokesToP2P1StokesRestriction,
-                        P2P1StokesToP2P1StokesProlongation,
-                        false >
-       UzawaSolver_T;
-
-   P2P1StokesToP2P1StokesRestriction  stokesRestriction{};
-   P2P1StokesToP2P1StokesProlongation stokesProlongation{};
-
-   UzawaSolver_T uzawaSolver(
-       storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2, 0.37 );
 
    const uint_t npoints = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err, currRes, oldRes = 0;
 
    L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-   r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+   r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
    oldRes = std::sqrt( r.dotGlobal( r, maxLevel, hhg::All ) ) / real_c( npoints );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel, hhg::All );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel, hhg::All );
    discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, hhg::All ) / real_c( npoints ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Totalpoints      = " << npoints );
@@ -147,15 +132,15 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "initial L2 error = " << discr_l2_err );
 
    hhg::VTKOutput vtkOutput( "../../output", "P2P1UzawaConvergence", storage );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &u_exact.u );
-   vtkOutput.add( &u_exact.v );
-   vtkOutput.add( &u_exact.p );
-   vtkOutput.add( &err.u );
-   vtkOutput.add( &err.v );
-   vtkOutput.add( &err.p );
+   vtkOutput.add( u.u );
+   vtkOutput.add( u.v );
+   vtkOutput.add( u.p );
+   vtkOutput.add( u_exact.u );
+   vtkOutput.add( u_exact.v );
+   vtkOutput.add( u_exact.p );
+   vtkOutput.add( err.u );
+   vtkOutput.add( err.v );
+   vtkOutput.add( err.p );
 
    if( writeVTK )
    {
@@ -164,11 +149,10 @@ int main( int argc, char* argv[] )
 
    for( int j = 0; j < 8; ++j )
    {
-      uzawaSolver.solve(
-          L, u, f, r, maxLevel, tolerance, maxIter, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
+      gmgSolver.solve(L, u, f, maxLevel);
 
       L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       currRes = std::sqrt( r.dotGlobal( r, maxLevel, hhg::All ) ) / real_c( npoints );
 
       WALBERLA_LOG_INFO_ON_ROOT( "current Residual = " << currRes );
@@ -181,7 +165,7 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel, 1 );
    }
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
    discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, hhg::Inner ) ) / real_c( npoints );
 
    WALBERLA_CHECK_LESS( discr_l2_err, 2e-2 );

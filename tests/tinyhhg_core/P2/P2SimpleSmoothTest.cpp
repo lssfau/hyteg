@@ -113,26 +113,26 @@ static void testP2Smooth()
                                         face,
                                         p2operator.getVertexToVertexOpr().getFaceStencilID(),
                                         p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-                                        x->getVertexDoFFunction()->getFaceDataID(),
+                                        x->getVertexDoFFunction().getFaceDataID(),
                                         p2operator.getVertexToEdgeOpr().getFaceStencilID(),
                                         p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
-                                        x->getEdgeDoFFunction()->getFaceDataID(),
-                                        rhs->getVertexDoFFunction()->getFaceDataID(),
-                                        rhs->getEdgeDoFFunction()->getFaceDataID() );
+                                        x->getEdgeDoFFunction().getFaceDataID(),
+                                        rhs->getVertexDoFFunction().getFaceDataID(),
+                                        rhs->getEdgeDoFFunction().getFaceDataID() );
 
       P2::macroface::smoothGaussSeidel( level,
                                         face,
                                         p2operator.getVertexToVertexOpr().getFaceStencilID(),
                                         p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-                                        x->getVertexDoFFunction()->getFaceDataID(),
+                                        x->getVertexDoFFunction().getFaceDataID(),
                                         p2operator.getVertexToEdgeOpr().getFaceStencilID(),
                                         p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
-                                        x->getEdgeDoFFunction()->getFaceDataID(),
-                                        rhs->getVertexDoFFunction()->getFaceDataID(),
-                                        rhs->getEdgeDoFFunction()->getFaceDataID() );
+                                        x->getEdgeDoFFunction().getFaceDataID(),
+                                        rhs->getVertexDoFFunction().getFaceDataID(),
+                                        rhs->getEdgeDoFFunction().getFaceDataID() );
 
-      real_t* edgeDoFData   = face.getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
-      real_t* vertexDoFData = face.getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
+      real_t* edgeDoFData   = face.getData( x->getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      real_t* vertexDoFData = face.getData( x->getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
       for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 0 ) )
       {
@@ -205,26 +205,26 @@ static void testP2Smooth()
                                      *doubleEdge,
                                      p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     x->getVertexDoFFunction().getEdgeDataID(),
                                      p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                                     x->getEdgeDoFFunction()->getEdgeDataID(),
-                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
-                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
+                                     x->getEdgeDoFFunction().getEdgeDataID(),
+                                     rhs->getVertexDoFFunction().getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction().getEdgeDataID() );
 
    P2::macroedge::smoothGaussSeidel( level,
                                      *doubleEdge,
                                      p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     x->getVertexDoFFunction().getEdgeDataID(),
                                      p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                                     x->getEdgeDoFFunction()->getEdgeDataID(),
-                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
-                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
+                                     x->getEdgeDoFFunction().getEdgeDataID(),
+                                     rhs->getVertexDoFFunction().getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction().getEdgeDataID() );
 
-   real_t* edgeDoFData   = doubleEdge->getData( x->getEdgeDoFFunction()->getEdgeDataID() )->getPointer( level );
-   real_t* vertexDoFData = doubleEdge->getData( x->getVertexDoFFunction()->getEdgeDataID() )->getPointer( level );
+   real_t* edgeDoFData   = doubleEdge->getData( x->getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
+   real_t* vertexDoFData = doubleEdge->getData( x->getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
 
    for( const auto& it : hhg::vertexdof::macroedge::Iterator( level, 0 ) )
    {
@@ -279,13 +279,13 @@ static void testP2JacobiSmooth()
    for( auto e : storage->getEdges() )
    {
       Edge* edge = e.second.get();
-      vertexdof::macroedge::interpolate( level, *edge, x->getVertexDoFFunction()->getEdgeDataID(), {}, onesExtended );
-      edgedof::macroedge::interpolate( level, *edge, x->getEdgeDoFFunction()->getEdgeDataID(), {}, onesExtended );
+      vertexdof::macroedge::interpolate( level, *edge, x->getVertexDoFFunction().getEdgeDataID(), {}, onesExtended );
+      edgedof::macroedge::interpolate( level, *edge, x->getEdgeDoFFunction().getEdgeDataID(), {}, onesExtended );
    }
    for( auto v : storage->getVertices() )
    {
       Vertex* vertex = v.second.get();
-      vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction()->getVertexDataID(), {}, onesExtended, level );
+      vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction().getVertexDataID(), {}, onesExtended, level );
    }
 
    hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
@@ -352,23 +352,23 @@ static void testP2JacobiSmooth()
       P2::macroface::smoothJacobiVertexDoF( level,
                                             *face,
                                             p2operator.getVertexToVertexOpr().getFaceStencilID(),
-                                            tmp->getVertexDoFFunction()->getFaceDataID(),
-                                            x->getVertexDoFFunction()->getFaceDataID(),
+                                            tmp->getVertexDoFFunction().getFaceDataID(),
+                                            x->getVertexDoFFunction().getFaceDataID(),
                                             p2operator.getEdgeToVertexOpr().getFaceStencilID(),
-                                            tmp->getEdgeDoFFunction()->getFaceDataID(),
-                                            rhs->getVertexDoFFunction()->getFaceDataID() );
+                                            tmp->getEdgeDoFFunction().getFaceDataID(),
+                                            rhs->getVertexDoFFunction().getFaceDataID() );
 
       P2::macroface::smoothJacobiEdgeDoF( level,
                                           *face,
                                           p2operator.getVertexToEdgeOpr().getFaceStencilID(),
-                                          tmp->getVertexDoFFunction()->getFaceDataID(),
+                                          tmp->getVertexDoFFunction().getFaceDataID(),
                                           p2operator.getEdgeToEdgeOpr().getFaceStencilID(),
-                                          tmp->getEdgeDoFFunction()->getFaceDataID(),
-                                          x->getEdgeDoFFunction()->getFaceDataID(),
-                                          rhs->getEdgeDoFFunction()->getFaceDataID() );
+                                          tmp->getEdgeDoFFunction().getFaceDataID(),
+                                          x->getEdgeDoFFunction().getFaceDataID(),
+                                          rhs->getEdgeDoFFunction().getFaceDataID() );
 
-      real_t* edgeDoFData   = face->getData( x->getEdgeDoFFunction()->getFaceDataID() )->getPointer( level );
-      real_t* vertexDoFData = face->getData( x->getVertexDoFFunction()->getFaceDataID() )->getPointer( level );
+      real_t* edgeDoFData   = face->getData( x->getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      real_t* vertexDoFData = face->getData( x->getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
       for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 0 ) )
       {
@@ -442,28 +442,28 @@ static void testP2JacobiSmooth()
                                      *doubleEdge,
                                      p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     x->getVertexDoFFunction().getEdgeDataID(),
                                      p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                                     x->getEdgeDoFFunction()->getEdgeDataID(),
-                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
-                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
+                                     x->getEdgeDoFFunction().getEdgeDataID(),
+                                     rhs->getVertexDoFFunction().getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction().getEdgeDataID() );
 
    P2::macroedge::smoothGaussSeidel( level,
                                      *doubleEdge,
                                      p2operator.getVertexToVertexOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToVertexOpr().getEdgeStencilID(),
-                                     x->getVertexDoFFunction()->getEdgeDataID(),
+                                     x->getVertexDoFFunction().getEdgeDataID(),
                                      p2operator.getVertexToEdgeOpr().getEdgeStencilID(),
                                      p2operator.getEdgeToEdgeOpr().getEdgeStencilID(),
-                                     x->getEdgeDoFFunction()->getEdgeDataID(),
-                                     rhs->getVertexDoFFunction()->getEdgeDataID(),
-                                     rhs->getEdgeDoFFunction()->getEdgeDataID() );
+                                     x->getEdgeDoFFunction().getEdgeDataID(),
+                                     rhs->getVertexDoFFunction().getEdgeDataID(),
+                                     rhs->getEdgeDoFFunction().getEdgeDataID() );
 
    ///TODO: enable once jacobi on macroedges is implemented
 #if 0
-  real_t *edgeDoFData = doubleEdge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(level);
-  real_t *vertexDoFData = doubleEdge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(level);
+  real_t *edgeDoFData = doubleEdge->getData(x->getEdgeDoFFunction().getEdgeDataID()).getPointer(level);
+  real_t *vertexDoFData = doubleEdge->getData(x->getVertexDoFFunction().getEdgeDataID()).getPointer(level);
 
   for (const auto &it : hhg::vertexdof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(

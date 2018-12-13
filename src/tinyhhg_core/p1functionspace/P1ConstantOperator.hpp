@@ -52,9 +52,29 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
-   ~P1ConstantOperator() override {}
+   ~P1ConstantOperator() override = default;
 
    void scale( real_t scalar );
+
+   void apply(const P1Function< real_t >& src,
+              const P1Function< real_t >& dst,
+              size_t                level,
+              DoFType               flag,
+              UpdateType            updateType = Replace ) const;
+
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
+
+   void smooth_sor( const P1Function< real_t >& dst,
+                         const P1Function< real_t >& rhs,
+                         real_t                      relax,
+                         size_t                      level,
+                         DoFType                     flag ) const;
+
+   void smooth_jac( const P1Function< real_t >& dst,
+                         const P1Function< real_t >& rhs,
+                         const P1Function< real_t >& tmp,
+                         size_t                      level,
+                         DoFType                     flag ) const;
 
    const PrimitiveDataID< StencilMemory< real_t >, Vertex >& getVertexStencilID() const { return vertexStencilID_; }
 
@@ -70,21 +90,10 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void assembleStencils3D();
 
  private:
-   void apply_impl( P1Function< real_t >& src,
-                    P1Function< real_t >& dst,
-                    size_t                level,
-                    DoFType               flag,
-                    UpdateType            updateType = Replace ) override;
 
-   void smooth_gs_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag ) override;
 
-   void smooth_sor_impl( P1Function< real_t >& dst, P1Function< real_t >& rhs, real_t relax, size_t level, DoFType flag ) override;
 
-   void smooth_jac_impl( P1Function< real_t >& dst,
-                         P1Function< real_t >& rhs,
-                         P1Function< real_t >& tmp,
-                         size_t                level,
-                         DoFType               flag ) override;
+
 
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;

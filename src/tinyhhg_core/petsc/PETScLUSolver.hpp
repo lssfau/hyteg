@@ -16,21 +16,27 @@
 namespace hhg{
 
 
-template <typename ValueType, template <typename> class FunctionType, class OperatorType>
+template < class OperatorType >
 class PETScLUSolver {
 public:
 
-  PETScLUSolver(std::shared_ptr<FunctionType<PetscInt>> &numerator, uint_t localSize, uint_t globalSize)
-      :num(numerator), Amat(localSize, globalSize), xVec(localSize), bVec(localSize)
+  typedef typename OperatorType::srcType FunctionType;
+
+  PETScLUSolver( std::shared_ptr< typename OperatorType::srcType::template FunctionType< PetscInt > >& numerator, uint_t localSize, uint_t globalSize )
+  : num( numerator )
+  , Amat( localSize, globalSize )
+  , xVec( localSize )
+  , bVec( localSize )
+  , flag_( hhg::All )
   {
-     KSPCreate(walberla::MPIManager::instance()->comm(), &ksp);
+     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
   }
 
   ~PETScLUSolver(){
     KSPDestroy(&ksp);
   }
 
-  void solve(OperatorType& A, FunctionType<ValueType>& x, FunctionType<ValueType>& b, FunctionType<ValueType>& r, size_t level, real_t tolerance, size_t maxiter, DoFType flag = All, bool printInfo = false) {
+  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) {
 
     bVec.createVectorFromFunction(b,*num.get(),level,All);
 
@@ -50,7 +56,7 @@ public:
     //WALBERLA_LOG_INFO_ON_ROOT("Solving Linerar System")
     KSPSolve(ksp,bVec.get(),xVec.get());
 
-    xVec.createFunctionFromVector(x,*num.get(),level,flag);
+    xVec.createFunctionFromVector(x,*num.get(),level,flag_);
 
   }
 
@@ -58,12 +64,13 @@ public:
 
 
 private:
-  std::shared_ptr<FunctionType<PetscInt>> num;
-  PETScSparseMatrix<OperatorType,FunctionType> Amat;
-  PETScVector<ValueType, FunctionType> xVec;
-  PETScVector<ValueType, FunctionType> bVec;
+  std::shared_ptr<typename OperatorType::srcType::template FunctionType<PetscInt>> num;
+  PETScSparseMatrix<OperatorType,OperatorType::srcType::template FunctionType> Amat;
+  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> xVec;
+  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> bVec;
   KSP ksp;
   PC pc;
+  hhg::DoFType flag_;
   //Mat F; //factored Matrix
 
 

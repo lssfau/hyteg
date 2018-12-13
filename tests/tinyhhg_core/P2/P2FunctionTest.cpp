@@ -32,10 +32,10 @@ static void testP2Function()
    storage->getFaceIDs( faces );
    Face* face = storage->getFace( faces[0] );
 
-   real_t* vertexDoFFaceDataX = face->getData( x.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* vertexDoFFaceDataY = face->getData( y.getVertexDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* edgeDoFFaceDataX   = face->getData( x.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
-   real_t* edgeDoFFaceDataY   = face->getData( y.getEdgeDoFFunction()->getFaceDataID() )->getPointer( maxLevel );
+   real_t* vertexDoFFaceDataX = face->getData( x.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* vertexDoFFaceDataY = face->getData( y.getVertexDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* edgeDoFFaceDataX   = face->getData( x.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
+   real_t* edgeDoFFaceDataY   = face->getData( y.getEdgeDoFFunction().getFaceDataID() )->getPointer( maxLevel );
 
    // Interpolate
 
@@ -69,7 +69,7 @@ static void testP2Function()
    // Assign
 
    timer["Assign"].start();
-   y.assign( {3.0}, {&x}, maxLevel, DoFType::All );
+   y.assign( {3.0}, {x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
@@ -94,7 +94,7 @@ static void testP2Function()
    // Add
 
    timer["Add"].start();
-   y.add( {{4.0, 3.0}}, {{&x, &x}}, maxLevel, DoFType::All );
+   y.add( {{4.0, 3.0}}, {{x, x}}, maxLevel, DoFType::All );
    timer["Add"].end();
    hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
@@ -135,7 +135,7 @@ static void testP2Function()
    p2->interpolate( linearX, maxLevel, DoFType::All );
 
    VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
-   vtkOutput.add( p2 );
+   vtkOutput.add( *p2 );
    vtkOutput.write( maxLevel );
 }
 

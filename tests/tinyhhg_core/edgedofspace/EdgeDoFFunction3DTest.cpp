@@ -38,17 +38,17 @@ int main( int argc, char** argv )
    std::function< real_t( const Point3D& ) > ones = []( const Point3D& ) { return real_c( 1 ); };
 
    VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest", storage );
-   vtkOutput.add( &x1 );
-   vtkOutput.add( &x2 );
-   vtkOutput.add( &xSum );
+   vtkOutput.add( x1 );
+   vtkOutput.add( x2 );
+   vtkOutput.add( xSum );
 
    vtkOutput.write( level, 0 );
 
    x1.interpolate( fn1, level );
    xSum.interpolate( fn2, level );
-   x2.assign( {1.0}, {&xSum}, level );
+   x2.assign( {1.0}, {xSum}, level );
    xSum.interpolate( zero, level );
-   xSum.add( {1.0, 1.0}, {&x1, &x2}, level );
+   xSum.add( {1.0, 1.0}, {x1, x2}, level );
    x1.interpolate( fnSum, level );
 
    x2.interpolate( ones, level );

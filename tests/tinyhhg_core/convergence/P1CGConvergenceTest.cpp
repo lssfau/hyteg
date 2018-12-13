@@ -2,6 +2,7 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 
+#include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
@@ -20,8 +21,6 @@ int main( int argc, char* argv[] )
 
    const uint_t      level     = 4;
    const std::string meshFile  = "../../data/meshes/quad_8el.msh";
-   const real_t      tolerance = 1e-15;
-   const uint_t      maxIter   = 1000;
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -50,11 +49,11 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( rhs, level );
    M.apply( npoints_helper, f, level, hhg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, level, level );
+   auto solver = hhg::CGSolver< hhg::P1ConstantLaplaceOperator >( storage, level, level );
 
-   solver.solve( L, u, f, r, level, tolerance, maxIter, hhg::Inner, false );
+   solver.solve( L, u, f, level );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, level );
+   err.assign( {1.0, -1.0}, {u, u_exact}, level );
    npoints_helper.interpolate( ones, level );
 
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
@@ -63,6 +62,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, 1.2e-5 );
 
+   hhg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+   vtkOutput.add( u );
+   vtkOutput.write( level );
 
    walberla::WcTimingTree tt = timingTree->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

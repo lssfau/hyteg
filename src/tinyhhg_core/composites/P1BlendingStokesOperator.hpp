@@ -8,24 +8,27 @@
 namespace hhg
 {
 
-class P1BlendingStokesOperator
+class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
 public:
-
-  P1BlendingStokesOperator(const std::shared_ptr< PrimitiveStorage > & storage, uint_t minLevel, uint_t maxLevel)
-    : A_uu(storage, minLevel, maxLevel),
-      A_uv(storage, minLevel, maxLevel),
-      A_vu(storage, minLevel, maxLevel),
-      A_vv(storage, minLevel, maxLevel),
-      div_x(storage, minLevel, maxLevel),
-      div_y(storage, minLevel, maxLevel),
-      divT_x(storage, minLevel, maxLevel),
-      divT_y(storage, minLevel, maxLevel),
-      pspg(storage, minLevel, maxLevel)
+  P1BlendingStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+  : Operator( storage, minLevel, maxLevel )
+  , A_uu( storage, minLevel, maxLevel )
+  , A_uv( storage, minLevel, maxLevel )
+  , A_vu( storage, minLevel, maxLevel )
+  , A_vv( storage, minLevel, maxLevel )
+  , div_x( storage, minLevel, maxLevel )
+  , div_y( storage, minLevel, maxLevel )
+  , divT_x( storage, minLevel, maxLevel )
+  , divT_y( storage, minLevel, maxLevel )
+  , pspg( storage, minLevel, maxLevel )
   {
   }
 
-  void apply(P1StokesFunction<real_t>& src, P1StokesFunction<real_t>& dst, size_t level, DoFType flag)
+  void apply( const P1StokesFunction< real_t >& src,
+              const P1StokesFunction< real_t >& dst,
+              const uint_t                      level,
+              const DoFType                     flag ) const
   {
     A_uu.apply(src.u, dst.u, level, flag, Replace);
     A_uv.apply(src.v, dst.u, level, flag, Add);
@@ -54,6 +57,11 @@ public:
 template<>
 struct has_pspg_block< P1BlendingStokesOperator > {
     static const bool value = true;
+};
+
+template<>
+struct tensor_variant< P1BlendingStokesOperator > {
+  static const bool value = true;
 };
 
 }

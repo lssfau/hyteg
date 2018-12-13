@@ -308,9 +308,13 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
   }
 }
 
-
-template<class OperatorType>
-inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, EdgeDoFFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+template < class OperatorType >
+inline void createMatrix( const OperatorType&                opr,
+                          const P1Function< PetscInt >&      src,
+                          const EdgeDoFFunction< PetscInt >& dst,
+                          Mat&                               mat,
+                          size_t                             level,
+                          DoFType                            flag )
 {
   const auto storage = src.getStorage();
 

@@ -41,7 +41,7 @@ public:
     MatDestroy(&mat);
   }
 
-  inline void createMatrixFromFunction(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
+  inline void createMatrixFromFunction(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
     //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
     hhg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
 
@@ -49,7 +49,7 @@ public:
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
   }
 
-  inline bool createMatrixFromFunctionOnce(OperatorType& op, uint_t level,FunctionType<PetscInt>& numerator,DoFType flag = All){
+  inline bool createMatrixFromFunctionOnce(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
     if(assembled)
       return false;
     createMatrixFromFunction(op,level,numerator,flag);
@@ -66,7 +66,7 @@ public:
     PetscViewerDestroy(&viewer);
   }
 
-  void applyDirichletBC(FunctionType<PetscInt>& numerator, uint_t level){
+  void applyDirichletBC(const FunctionType<PetscInt>& numerator, uint_t level){
     //WALBERLA_LOG_INFO_ON_ROOT("")
     std::vector<PetscInt> ind;
     hhg::petsc::applyDirichletBC(numerator,ind,level);

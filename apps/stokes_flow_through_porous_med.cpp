@@ -66,17 +66,17 @@ int main( int argc, char* argv[] )
 
   hhg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
 
-  vtkOutput.add( &r.u );
-  vtkOutput.add( &r.v );
-  vtkOutput.add( &r.p );
+  vtkOutput.add( r.u );
+  vtkOutput.add( r.v );
+  vtkOutput.add( r.p );
 
-  vtkOutput.add( &f.u );
-  vtkOutput.add( &f.v );
-  vtkOutput.add( &f.p );
+  vtkOutput.add( f.u );
+  vtkOutput.add( f.v );
+  vtkOutput.add( f.p );
 
-  vtkOutput.add( &u.u );
-  vtkOutput.add( &u.v );
-  vtkOutput.add( &u.p );
+  vtkOutput.add( u.u );
+  vtkOutput.add( u.v );
+  vtkOutput.add( u.p );
 
   timingTree->start( "Complete app" );
 
@@ -91,8 +91,8 @@ int main( int argc, char* argv[] )
     numerator->enumerate(level);
     const uint_t localDoFs = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
     const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-    PETScLUSolver<real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
-    solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+    PETScLUSolver< hhg::P2P1TaylorHoodStokesOperator> solver(numerator, localDoFs, globalDoFs);
+    solver.solve( L, u, f, level );
   }
   else
 #else
@@ -102,10 +102,9 @@ int main( int argc, char* argv[] )
   }
 #endif
   {
-    auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >,
-                                     hhg::P2P1TaylorHoodStokesOperator      >( storage, level, level );
+    auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator >( storage, level, level, maxIterations, targetResidual );
 
-    solver.solve( L, u, f, r, level, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+    solver.solve( L, u, f, level );
   }
 
   vtkOutput.write( level, 1 );
