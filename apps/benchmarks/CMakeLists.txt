@@ -6,6 +6,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES IndexFunctionVSManualVersion.cpp
         DEPENDS tinyhhg_core)
 
+add_subdirectory(KernelBench)
 add_subdirectory(P1Benchmark)
 add_subdirectory(P1CGBenchmark)
 add_subdirectory(ApplyPerformanceAnalysis-2D-P2)
