@@ -8,7 +8,8 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
@@ -36,7 +37,7 @@ int main(int argc, char* argv[])
   size_t maxLevel  = parameters.getParameter<size_t>( "maxlevel"    );
   size_t maxCycles = parameters.getParameter<size_t>( "maxCycles"   );
   real_t mgTol     = parameters.getParameter<real_t>( "mgTolerance" );
-  real_t cgTol     = parameters.getParameter<real_t>( "cgTolerance" );
+  //real_t cgTol     = parameters.getParameter<real_t>( "cgTolerance" );
   bool   outputVTK = parameters.getParameter<bool  >( "outputVTK"   );
 
   // Mesh generation
@@ -106,17 +107,13 @@ int main(int argc, char* argv[])
   hhg::P1ElementwisePolarLaplaceOperator lap( storage, {&microCoordX,&microCoordY}, minLevel, maxLevel );
 
   // Setup geometric MG as solver
-  typedef hhg::CGSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator> CoarseSolver;
-  std::shared_ptr<CoarseSolver> coarseSolver = std::make_shared<CoarseSolver>( storage, minLevel, minLevel );
+   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ElementwisePolarLaplaceOperator>  >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ElementwisePolarLaplaceOperator > >( storage, minLevel, minLevel );
+   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
 
-  typedef P1toP1LinearRestriction RestrictionOperator;
-  RestrictionOperator restrictionOperator;
-
-  typedef P1toP1LinearProlongation ProlongationOperator;
-  ProlongationOperator prolongationOperator;
-
-  typedef GMultigridSolver<hhg::P1Function<real_t>, hhg::P1ElementwisePolarLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > GMGSolver;
-  GMGSolver solver( storage, coarseSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   auto solver = hhg::GeometricMultigridSolver< hhg::P1ElementwisePolarLaplaceOperator >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   // Prep residual
   hhg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );
@@ -136,7 +133,7 @@ int main(int argc, char* argv[])
   uint_t cycle = 0;
 
   for( cycle = 1; cycle <= maxCycles; ++cycle ) {
-    solver.solve( lap, u, rhs, res, maxLevel, cgTol, 100, hhg::Inner, GMGSolver::CycleType::VCYCLE, true );
+    solver.solve( lap, u, rhs, maxLevel );
     lap.apply( u, res, maxLevel, hhg::Inner );
     // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hhg::Inner );
     resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
@@ -167,7 +164,7 @@ int main(int argc, char* argv[])
   npoints_helper.interpolate( ones, maxLevel );
   real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::All );
 
-  error.assign( {1.0, -1.0}, { &u_exact, &u }, maxLevel, hhg::All );
+  error.assign( {1.0, -1.0}, { u_exact, u }, maxLevel, hhg::All );
   // mass.apply( error, tmp, maxLevel, hhg::All );
   // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hhg::All ) );
   real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) / npoints );
@@ -180,10 +177,10 @@ int main(int argc, char* argv[])
   // output data for visualisation
   if( outputVTK ) {
     hhg::VTKOutput vtkOutput("../output", "polar", storage);
-    vtkOutput.add( &u );
-    vtkOutput.add( &u_exact );
-    vtkOutput.add( &res );
-    vtkOutput.add( &error );
+    vtkOutput.add( u );
+    vtkOutput.add( u_exact );
+    vtkOutput.add( res );
+    vtkOutput.add( error );
     vtkOutput.write( maxLevel );
   }
 

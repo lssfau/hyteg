@@ -3,14 +3,15 @@
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 
 namespace hhg {
 
-class P1toP1QuadraticProlongation
+class P1toP1QuadraticProlongation : public ProlongationOperator< P1Function< real_t > >
 {
 public:
 
-    inline void operator()( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const
+    inline void prolongate( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
       const uint_t destinationLevel = sourceLevel + 1;
 

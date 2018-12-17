@@ -7,24 +7,26 @@
 
 namespace hhg {
 
-class P2P1TaylorHoodStokesOperator
+class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
 
    typedef P2ConstantLaplaceOperator VelocityOperator_T;
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : A( storage, minLevel, maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , A( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
    , divT_x( storage, minLevel, maxLevel )
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
+   , pspg_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   void apply( P2P1TaylorHoodFunction< real_t >& src, P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag )
+   void apply(const P2P1TaylorHoodFunction< real_t >& src,const P2P1TaylorHoodFunction< real_t >& dst,const uint_t level,const DoFType flag ) const
    {
       A.apply( src.u, dst.u, level, flag, Replace );
       divT_x.apply( src.p, dst.u, level, flag, Add );
@@ -54,6 +56,9 @@ class P2P1TaylorHoodStokesOperator
    P1ToP2ConstantDivTxOperator divT_x;
    P1ToP2ConstantDivTyOperator divT_y;
    P1ToP2ConstantDivTzOperator divT_z;
+
+   /// this operator is need in the uzawa smoother
+   P1PSPGOperator pspg_;
    bool hasGlobalCells_;
 };
 

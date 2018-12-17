@@ -47,34 +47,38 @@ public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
 
-  void assign( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-          uint_t level, DoFType flag = All );
+  void assign( const std::vector< ValueType >&                                                    scalars,
+               const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+               uint_t                                                                             level,
+               DoFType                                                                            flag = All ) const;
 
-  void add( const std::vector< ValueType > scalars, const std::vector< EdgeDoFFunction< ValueType >* > functions,
-       uint_t level, DoFType flag = All );
+  void add( const std::vector< ValueType >&                                                    scalars,
+            const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+            uint_t  level,
+            DoFType flag = All ) const;
 
   /// Interpolates a given expression to a EdgeDoFFunction
 
-  void interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
+  void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
   void interpolate( const std::function< ValueType( const Point3D & ) >& expr,
-                          uint_t level, DoFType flag = All);
+                          uint_t level, DoFType flag = All) const;
 
-  void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID );
+  void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
   void interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
                             const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
                             uint_t level,
-                            DoFType flag = All);
+                            DoFType flag = All) const;
 
   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                             const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
                             uint_t                                                                               level,
-                            BoundaryUID                                                                          boundaryUID );
+                            BoundaryUID                                                                          boundaryUID ) const;
 
-  real_t dotLocal( EdgeDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+  real_t dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
 
-  void enumerate( uint_t level );
+  void enumerate( uint_t level ) const;
 
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
@@ -82,9 +86,9 @@ public:
   const PrimitiveDataID< FunctionMemory< ValueType >,   Cell>   & getCellDataID()   const { return cellDataID_; }
 
 
-  ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
-  ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
-  ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
+  ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+  ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+  ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
@@ -122,7 +126,7 @@ public:
 
 private:
 
-   void enumerate( uint_t level, ValueType& offset );
+   void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
 

@@ -1,16 +1,20 @@
 
 #pragma once
 
+#include "tinyhhg_core/solvers/Solver.hpp"
+
 namespace hhg {
 
-template< class Function_T, class Operator_T >
-class EmptySolver
+template < class OperatorType >
+class EmptySolver : public Solver< OperatorType >
 {
-public:
-    void solve(Operator_T &, Function_T &, Function_T &, Function_T &, uint_t, real_t, size_t, DoFType, bool)
-    {
+ public:
+   typedef typename OperatorType::srcType FunctionType;
+
+   void solve( const OperatorType&, const FunctionType&, const FunctionType&, uint_t ) override
+   {
       // does nothing
-    }
+   }
 };
 
-}
+} // namespace hhg

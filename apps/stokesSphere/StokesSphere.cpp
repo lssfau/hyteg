@@ -23,9 +23,10 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 
@@ -79,7 +80,7 @@ int main( int argc, char* argv[] )
    const uint_t maxMinResIterations = mainConf.getParameter< uint_t >( "maxMinResIterations" );
 
    const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
-   const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
+   //const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
 
    //////////////////////////////////////////
 
@@ -129,14 +130,14 @@ int main( int argc, char* argv[] )
    hhg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( &u.u );
-      vtkOutput.add( &u.v );
-      vtkOutput.add( &u.w );
-      vtkOutput.add( &u.p );
-      vtkOutput.add( &f.u );
-      vtkOutput.add( &f.v );
-      vtkOutput.add( &f.w );
-      vtkOutput.add( &f.p );
+      vtkOutput.add( u.u );
+      vtkOutput.add( u.v );
+      vtkOutput.add( u.w );
+      vtkOutput.add( u.p );
+      vtkOutput.add( f.u );
+      vtkOutput.add( f.v );
+      vtkOutput.add( f.w );
+      vtkOutput.add( f.p );
    }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
@@ -182,65 +183,50 @@ int main( int argc, char* argv[] )
    if( solverType == "minres" )
    {
       ///// Coarse Grid solver for the A block GMG preconditioner in MinRes /////
-      typedef CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+      typedef CGSolver< hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
       auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
 
       ///// Geometric Multigrid A block preconditioner for MinRes /////
-      typedef GMultigridSolver< hhg::P1Function< real_t >,
-                                hhg::P1ConstantLaplaceOperator,
-                                CoarseGridSolver_T,
-                                hhg::P1toP1LinearRestriction,
-                                hhg::P1toP1LinearProlongation >
-                                    GMGSolver_T;
-      hhg::P1toP1LinearProlongation prolongationOperator;
-      hhg::P1toP1LinearRestriction  restrictionOperator;
-      GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+      typedef GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >GMGSolver_T;
+
+      auto smoother = std::make_shared< hhg::GaussSeidelSmoother< hhg::P1ConstantLaplaceOperator > >();
+      //auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+      auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
+      auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+
+
+      auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
 
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >,
-                                                 hhg::P1ConstantLaplaceOperator,
-                                                 GMGSolver_T,
-                                                 hhg::P1LumpedInvMassOperator >
-          Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator >Preconditioner_T;
 
-      P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-      Preconditioner_T        prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+      auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
 
       /// MinResSolver
-      typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T >
-           PreconditionedMinRes_T;
-      auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, prec );
-      preconditionedMinResSolver.solve(
-          L, u, f, r, maxLevel, uzawaTolerance, maxMinResIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      typedef hhg::MinResSolver< hhg::P1StokesOperator  >PreconditionedMinRes_T;
+      auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, maxMinResIterations, uzawaTolerance, prec );
+      preconditionedMinResSolver.solve( L, u, f, maxLevel );
 
    } else if( solverType == "uzawa" )
    {
       ///// MinRes coarse grid solver for UZAWA /////
-      typedef StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator >
-          PressurePreconditioner_T;
+      typedef StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator >PressurePreconditioner_T;
 
-      P1LumpedInvMassOperator  massOperator( storage, minLevel, minLevel );
-      PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, minLevel );
+      auto pressurePrec = std::make_shared< PressurePreconditioner_T>( storage, minLevel, minLevel );
 
-      typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >
-          PressurePreconditionedMinRes_T;
+      typedef hhg::MinResSolver< hhg::P1StokesOperator >PressurePreconditionedMinRes_T;
 
-      auto pressurePreconditionedMinResSolver = PressurePreconditionedMinRes_T( storage, minLevel, minLevel, pressurePrec );
+      auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >( storage, minLevel, minLevel, maxMinResIterations, uzawaTolerance, pressurePrec );
 
       ///// UZAWA solver /////
-      typedef UzawaSolver< hhg::P1StokesFunction< real_t >,
-                           hhg::P1StokesOperator,
-                           PressurePreconditionedMinRes_T,
-                           P1P1StokesToP1P1StokesRestriction,
-                           P1P1StokesToP1P1StokesProlongation,
-                           false >
-          UzawaSolver_T;
+      typedef GeometricMultigridSolver< hhg::P1StokesOperator >UzawaSolver_T;
 
-      P1P1StokesToP1P1StokesRestriction  stokesRestriction{};
-      P1P1StokesToP1P1StokesProlongation stokesProlongation{};
+      auto stokesRestriction = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
+      auto stokesProlongation = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
+      auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< P1StokesOperator > >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3);
 
       UzawaSolver_T uzawaSolver(
-          storage, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
+          storage, uzawaSmoother, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
       auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
       if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
@@ -249,7 +235,7 @@ int main( int argc, char* argv[] )
          }
       }
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
                                  real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
       real_t lastResidualL2 = currentResidualL2;
@@ -260,20 +246,11 @@ int main( int argc, char* argv[] )
                                  << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 );
       for( uint_t i = 0; i < numVCycle; i++ )
       {
-         uzawaSolver.solve( L,
-                            u,
-                            f,
-                            r,
-                            maxLevel,
-                            uzawaTolerance,
-                            uzawaMaxIter,
-                            hhg::Inner | hhg::NeumannBoundary,
-                            UzawaSolver_T::CycleType::VCYCLE,
-                            false );
+         uzawaSolver.solve( L, u, f, maxLevel );
 
          lastResidualL2 = currentResidualL2;
          L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+         r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
          currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
                              real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
          WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "

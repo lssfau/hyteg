@@ -126,8 +126,11 @@ public:
     }
   }
 
-private:
-  void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+  void apply( const P1Function< real_t >& src,
+              const P1Function< real_t >& dst,
+              size_t                      level,
+              DoFType                     flag,
+              UpdateType                  updateType = Replace ) const
   {
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;
@@ -190,7 +193,7 @@ private:
 
   }
 
-  void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
+  void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
   {
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Vertex>> vertexCoeffIds;
     std::vector<PrimitiveDataID<FunctionMemory< real_t >, Edge>> edgeCoeffIds;
@@ -253,7 +256,11 @@ private:
     dst.endCommunication<Edge, Face>( level );
   }
 
-  void smooth_jac_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, P1Function< real_t >& tmp, size_t level, DoFType flag)
+  void smooth_jac( const P1Function< real_t >& dst,
+                   const P1Function< real_t >& rhs,
+                   const P1Function< real_t >& tmp,
+                   size_t                      level,
+                   DoFType                     flag ) const
   {
     // start pulling vertex halos
     tmp.startCommunication<Edge, Vertex>( level );
@@ -347,6 +354,8 @@ private:
   }
 #endif
 
+private:
+
   std::vector<PrimitiveDataID<VertexP1LocalMatrixMemory, Vertex>> vertexLocalMatrixIDs_;
   std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> edgeLocalMatrixIDs_;
   std::vector<PrimitiveDataID<FaceP1LocalMatrixMemory, Face>> faceLocalMatrixIDs_;
@@ -357,7 +366,6 @@ private:
     opr(local_stiffness.data(), NULL, coords, 0);
   }
 
-private:
   std::vector<std::shared_ptr<P1Function< real_t >>> coefficients_;
   std::vector<fenics::TabulateTensor> operators_;
 };

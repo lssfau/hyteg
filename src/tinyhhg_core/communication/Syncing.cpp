@@ -25,8 +25,8 @@ void syncFunctionBetweenPrimitives( const funcType& function, const uint_t& leve
 template < typename ValueType >
 void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level )
 {
-   syncFunctionBetweenPrimitives< hhg::vertexdof::VertexDoFFunction< ValueType > >( *function.getVertexDoFFunction(), level );
-   syncFunctionBetweenPrimitives< hhg::EdgeDoFFunction< ValueType > >( *function.getEdgeDoFFunction(), level );
+   syncFunctionBetweenPrimitives< hhg::vertexdof::VertexDoFFunction< ValueType > >( function.getVertexDoFFunction(), level );
+   syncFunctionBetweenPrimitives< hhg::EdgeDoFFunction< ValueType > >( function.getEdgeDoFFunction(), level );
 }
 
 template void syncP2FunctionBetweenPrimitives( const P2Function< float >& function, const uint_t& level );

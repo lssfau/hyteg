@@ -289,7 +289,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
    std::function< real_t( const hhg::Point3D& ) > myFunc = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    someData.interpolate( myFunc, maxLevel );
-   vtkOutput.add( &someData );
+   vtkOutput.add( someData );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: '" << vtkFileName );
    vtkOutput.write( outLevel );
 

@@ -10,8 +10,8 @@
 namespace hhg {
 namespace petsc {
 
-inline void createVectorFromFunction(P1Function<PetscScalar> &function,
-                                     P1Function<PetscInt> &numerator,
+inline void createVectorFromFunction(const P1Function<PetscScalar> &function,
+                                     const P1Function<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -52,8 +52,8 @@ inline void createVectorFromFunction(P1Function<PetscScalar> &function,
   }
 }
 
-inline void createFunctionFromVector(P1Function<PetscScalar> &function,
-                                     P1Function<PetscInt> &numerator,
+inline void createFunctionFromVector(const P1Function<PetscScalar> &function,
+                                     const P1Function<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -103,7 +103,7 @@ inline void createFunctionFromVector(P1Function<PetscScalar> &function,
   }
 }
 
-inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
+inline void applyDirichletBC(const P1Function<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
   for (auto &it : numerator.getStorage()->getVertices()) {
     Vertex &vertex = *it.second;
 
@@ -133,8 +133,13 @@ inline void applyDirichletBC(P1Function<PetscInt> &numerator, std::vector<PetscI
 
 }
 
-template<class OperatorType>
-inline void createMatrix(OperatorType& opr, P1Function< PetscInt > & src, P1Function< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+template < class OperatorType >
+inline void createMatrix( const OperatorType&           opr,
+                          const P1Function< PetscInt >& src,
+                          const P1Function< PetscInt >& dst,
+                          Mat&                          mat,
+                          size_t                        level,
+                          DoFType                       flag )
 {
   const auto storage = src.getStorage();
 

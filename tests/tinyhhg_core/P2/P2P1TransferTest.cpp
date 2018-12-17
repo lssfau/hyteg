@@ -23,8 +23,8 @@ static void testP2P1Transfer()
   auto p2Function = std::make_shared< P2Function< real_t > >( "p2Function", storage, level, level );
 
   VTKOutput vtkOutput("../../output", "P2P1TransferTest", storage);
-  vtkOutput.add( p1Function );
-  vtkOutput.add( p2Function );
+  vtkOutput.add( *p1Function );
+  vtkOutput.add( *p2Function );
 
   // To test the transfer we
   // 1. set one vertex unknown in the middle of a P1 macro-face to testValue (rest 0.0)
@@ -58,10 +58,10 @@ static void testP2P1Transfer()
 
   // Step 2:
 
-  p2Function->prolongateP1ToP2( p1Function, level );
+  p2Function->prolongateP1ToP2( *p1Function, level );
 
-  const auto p2VertexDoFFaceDataID = p2Function->getVertexDoFFunction()->getFaceDataID();
-  const auto p2EdgeDoFFaceDataID   = p2Function->getEdgeDoFFunction()->getFaceDataID();
+  const auto p2VertexDoFFaceDataID = p2Function->getVertexDoFFunction().getFaceDataID();
+  const auto p2EdgeDoFFaceDataID   = p2Function->getEdgeDoFFunction().getFaceDataID();
 
         auto p2VertexDoFFaceData   = storage->getFace( faceIDs[ 0 ] )->getData( p2VertexDoFFaceDataID )->getPointer( level );
         auto p2EdgeDoFFaceData     = storage->getFace( faceIDs[ 0 ] )->getData( p2EdgeDoFFaceDataID )->getPointer( level );
@@ -86,7 +86,7 @@ static void testP2P1Transfer()
 
   // Step 3:
 
-  p2Function->restrictP2ToP1( p1Function, level );
+  p2Function->restrictP2ToP1( *p1Function, level );
 
   WALBERLA_CHECK_FLOAT_EQUAL( p1FaceData[ idx ], 2.5 * testValue );
 

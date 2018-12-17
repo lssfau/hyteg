@@ -23,8 +23,8 @@ static void testP2Prolongate() {
   x->interpolate(values, sourceLevel, hhg::All);
   x->prolongate(sourceLevel, hhg::All);
 
-  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
-  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
   for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel + 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -57,9 +57,9 @@ static void testP2Prolongate() {
 
   for (auto &edgeIT : storage->getEdges()) {
     auto edge = edgeIT.second;
-    edgeDoFFineData = edge->getData(x->getEdgeDoFFunction()->getEdgeDataID())->getPointer(
+    edgeDoFFineData = edge->getData(x->getEdgeDoFFunction().getEdgeDataID())->getPointer(
       sourceLevel + 1);
-    vertexDoFFineData = edge->getData(x->getVertexDoFFunction()->getEdgeDataID())->getPointer(
+    vertexDoFFineData = edge->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(
       sourceLevel + 1);
 
     for (const auto &it : hhg::vertexdof::macroedge::Iterator(sourceLevel + 1, 1)) {
@@ -80,8 +80,8 @@ static void testP2Prolongate() {
 
   x->prolongate(sourceLevel + 1, hhg::All);
 
-  edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 2);
-  vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 2);
+  edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
+  vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
 
   for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel + 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
@@ -151,8 +151,8 @@ static void testP2Prolongate2() {
   std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 0; };
   x->interpolate(zeros, sourceLevel);
 
-  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
-  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
+  real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
   /// all possible vertical edge Dof locations that need to be updated by the face
   std::vector<std::pair<uint_t, uint_t > > vertical   = { {1,0},{2,0},{3,0},{1,1},{2,1},{1,2} };
@@ -168,7 +168,7 @@ static void testP2Prolongate2() {
 ///////////////////////////
   for(auto p : vertical) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 16.0;
 
     x->prolongate(sourceLevel, hhg::All);
@@ -187,7 +187,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 0.0;
 
   }
@@ -196,7 +196,7 @@ static void testP2Prolongate2() {
 /////////////////////////////
   for(auto p : horizontal) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 16.0;
 
     x->prolongate(sourceLevel, hhg::All);
@@ -215,7 +215,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 0.0;
 
   }
@@ -224,7 +224,7 @@ static void testP2Prolongate2() {
 ///////////////////////////
   for(auto p : diagonal) {
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 16.0;
 
     x->prolongate(sourceLevel, hhg::All);
@@ -243,7 +243,7 @@ static void testP2Prolongate2() {
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::VERTEX_C)], 16.);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 0.0;
 
   }
@@ -251,7 +251,7 @@ static void testP2Prolongate2() {
 /// CHECK VERTEX ///
 ////////////////////
   for( auto p : vertex ){
-    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
 
 
@@ -261,7 +261,7 @@ static void testP2Prolongate2() {
                                16.,
                                p.first << " " << p.second);
 
-    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction()->getFaceDataID())->getPointer(
+    storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 0.0;
 
   }
@@ -311,7 +311,7 @@ static void testP2InterpolateAndProlongate() {
   x.prolongate(sourceLevel + 1,hhg::All);
   x.prolongate(sourceLevel + 2,hhg::All);
 
-  error.assign({1.0, -1.0}, {&x, &y}, targetLevel, hhg::All);
+  error.assign({1.0, -1.0}, {x, y}, targetLevel, hhg::All);
 
   WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,targetLevel,hhg::All),0.);
 }

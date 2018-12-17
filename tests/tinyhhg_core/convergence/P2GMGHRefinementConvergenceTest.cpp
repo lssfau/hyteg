@@ -16,7 +16,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -83,19 +84,14 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-   typedef hhg::CGSolver< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator > CoarseSolver;
-   typedef P2toP2QuadraticRestriction                                                 RestrictionOperator;
-   typedef P2toP2QuadraticProlongation                                                ProlongationOperator;
-   auto                 coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   RestrictionOperator  restrictionOperator;
-   ProlongationOperator prolongationOperator;
-   typedef GMultigridSolver< hhg::P2Function< real_t >,
-                             hhg::P2ConstantLaplaceOperator,
-                             CoarseSolver,
-                             RestrictionOperator,
-                             ProlongationOperator >
-                LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P2ConstantLaplaceOperator>  >();
+   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P2ConstantLaplaceOperator > >(
+       storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
+   auto restrictionOperator = std::make_shared< hhg::P2toP2QuadraticRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P2toP2QuadraticProlongation >();
+
+   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P2ConstantLaplaceOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    if( parameters.getParameter< bool >( "useExactWeights" ) )
    {
@@ -140,12 +136,12 @@ int main( int argc, char* argv[] )
    real_t rel_res = 1.0;
 
    L.apply( u, Lu, maxLevel, hhg::Inner );
-   r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
+   r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
 
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
    real_t abs_res_old = begin_res;
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
@@ -162,16 +158,15 @@ int main( int argc, char* argv[] )
       start = walberla::timing::getWcTime();
 
       // Apply P2 geometric multigrid solver
-      laplaceSolver.solve(
-          L, u, f, r, maxLevel, coarse_tolerance, max_cg_iter, hhg::Inner, LaplaceSover::CycleType::VCYCLE, false );
+      gmgSolver.solve( L, u, f, maxLevel );
 
       end = walberla::timing::getWcTime();
 
       L.apply( u, Lu, maxLevel, hhg::Inner );
-      r.assign( {1.0, -1.0}, {&f, &Lu}, maxLevel, hhg::Inner );
+      r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
       rel_res        = abs_res / begin_res;
-      err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+      err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
@@ -207,12 +202,12 @@ int main( int argc, char* argv[] )
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
       VTKOutput vtkOutput("../output", "gmg_P2_h_refinement", storage);
-      vtkOutput.add( &u );
-      vtkOutput.add( &u_exact );
-      vtkOutput.add( &f );
-      vtkOutput.add( &r );
-      vtkOutput.add( &err );
-      vtkOutput.add( &npoints_helper );
+      vtkOutput.add( u );
+      vtkOutput.add( u_exact );
+      vtkOutput.add( f );
+      vtkOutput.add( r );
+      vtkOutput.add( err );
+      vtkOutput.add( npoints_helper );
       vtkOutput.write( maxLevel );
    }
 

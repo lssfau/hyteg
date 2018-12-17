@@ -65,15 +65,15 @@ int main( int argc, char* argv[] )
    numerator->enumerate( level );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( globalDoFs ) )
 
-   PETScLUSolver< real_t, hhg::P1Function, hhg::P1ConstantLaplaceOperator > solver( numerator, localDoFs, globalDoFs );
+   PETScLUSolver< hhg::P1ConstantLaplaceOperator > solver( numerator, localDoFs, globalDoFs );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving System" )
    walberla::WcTimer timer;
-   solver.solve( A, x, x, x, level, 0, 0 );
+   solver.solve( A, x, x, level );
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
+   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
 
@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_LESS( discr_l2_err, 1e-14 );
 
    //  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
-   //  hhg::VTKWriter< P1Function >({ &x, &x_exact, &err }, level, "../output", "exact_solver");
+   //  hhg::VTKWriter< P1Function >({ x, x_exact, &err }, level, "../output", "exact_solver");
 
    return EXIT_SUCCESS;
 }

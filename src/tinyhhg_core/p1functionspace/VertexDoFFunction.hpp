@@ -40,6 +40,12 @@ template < typename ValueType >
 class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 {
  public:
+
+   typedef ValueType valueType;
+
+   template< typename VType >
+   using FunctionType = vertexdof::VertexDoFFunction< VType >;
+
    VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
 
    VertexDoFFunction( const std::string&                         name,
@@ -57,52 +63,54 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
-   void assign( const std::vector< ValueType >                       scalars,
-                const std::vector< VertexDoFFunction< ValueType >* > functions,
-                uint_t                                               level,
-                DoFType                                              flag = All );
+   void assign( const std::vector< ValueType >&                                                      scalars,
+                const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                uint_t                                                                               level,
+                DoFType                                                                              flag = All ) const;
 
-   void add( const ValueType& scalar, const uint_t& level, DoFType flag = All );
+   void add( const ValueType& scalar, const uint_t& level, DoFType flag = All ) const;
 
-   void add( const std::vector< ValueType >                       scalars,
-             const std::vector< VertexDoFFunction< ValueType >* > functions,
-             uint_t                                               level,
-             DoFType                                              flag = All );
+   void add( const std::vector< ValueType >&                                                      scalars,
+             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+             uint_t                                                                               level,
+             DoFType                                                                              flag = All ) const;
 
-   void multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions, uint_t level, DoFType flag = All );
+   void multElementwise( const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                         uint_t                                                                               level,
+                         DoFType                                                                              flag = All ) const;
 
-   real_t dotLocal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
-   real_t dotGlobal( VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All );
+   real_t dotLocal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+   real_t dotGlobal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
    void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
-   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID );
-
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< VertexDoFFunction* >                                              srcFunctions,
-                             uint_t                                                                               level,
-                             DoFType                                                                              flag = All );
+   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< VertexDoFFunction* >                                              srcFunctions,
                              uint_t                                                                               level,
-                             BoundaryUID                                                                          boundaryUID );
+                             DoFType                                                                              flag = All ) const;
+
+   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                             const std::vector< VertexDoFFunction* >                                              srcFunctions,
+                             uint_t                                                                               level,
+                             BoundaryUID                                                                          boundaryUID ) const;
 
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs
    /// \tparam ValueType
    /// \param level
-   void enumerate( uint_t level );
+   void enumerate( uint_t level ) const;
 
    // TODO: write more general version(s)
-   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
-   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true );
-   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true );
+   ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
+   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
 
@@ -178,7 +186,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset );
+   void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
@@ -209,7 +217,7 @@ inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunctio
    real_t numGlobalVertices = tmp.dotGlobal( tmp, level, hhg::All );
    real_t mean              = pressure.dotGlobal( tmp, level, hhg::All );
 
-   pressure.assign( {1.0, -mean / numGlobalVertices}, {&pressure, &tmp}, level, hhg::All );
+   pressure.assign( {1.0, -mean / numGlobalVertices}, {pressure, tmp}, level, hhg::All );
 }
 
 } // namespace vertexdof

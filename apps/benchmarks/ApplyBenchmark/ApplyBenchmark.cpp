@@ -96,9 +96,9 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
       hhg::VTKOutput vtkOutput("./output", "ApplyBenchmark", storage);
-      vtkOutput.add( &x );
-      vtkOutput.add( &z );
-      vtkOutput.add( &y );
+      vtkOutput.add( x );
+      vtkOutput.add( z );
+      vtkOutput.add( y );
       vtkOutput.write( level );
    }
 

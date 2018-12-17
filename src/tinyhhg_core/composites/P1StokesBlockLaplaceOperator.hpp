@@ -5,18 +5,19 @@
 
 namespace hhg {
 
-class P1StokesBlockLaplaceOperator
+class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
    P1StokesBlockLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : A( storage, minLevel, maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , A( storage, minLevel, maxLevel )
    {}
 
-   void apply( P1StokesFunction< real_t >& src,
-               P1StokesFunction< real_t >& dst,
-               size_t                      level,
-               DoFType                     flag,
-               UpdateType                  updateType )
+   void apply( const P1StokesFunction< real_t >& src,
+               const P1StokesFunction< real_t >& dst,
+               const size_t                      level,
+               const DoFType                     flag,
+               const UpdateType                  updateType ) const
    {
       A.apply( src.u, dst.u, level, flag, updateType );
       A.apply( src.v, dst.v, level, flag, updateType );

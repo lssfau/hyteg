@@ -35,16 +35,16 @@ class P1Transport
               const real_t&         dt,
               const real_t&         a )
    {
-      cOld_.assign( {1.0}, {&c}, level, flag );
+      cOld_.assign( {1.0}, {c}, level, flag );
 
       // diffusive term
       A_.apply( c, tmp0_, level, flag, Replace );
-      tmp0_.assign( {a * dt}, {&tmp0_}, level, flag );
+      tmp0_.assign( {a * dt}, {tmp0_}, level, flag );
 
       //      transportStupidApply( c, tmp4_, ux, uy, uz, level, flag );
       transportApply< true >( c, tmp4_, ux, uy, uz, level, flag );
 
-      tmp0_.add( {-dt}, {&tmp4_}, level, flag );
+      tmp0_.add( {-dt}, {tmp4_}, level, flag );
       invLumpedMass_.apply( tmp0_, c, level, flag, Add );
 
       //    interSol_.assign({0.5, 0.5}, {&c, &cOld_}, level, flag);
@@ -87,7 +87,7 @@ class P1Transport
       tmp2_.multElementwise( {&uy, &tmp2_}, level, flag );
       tmp3_.multElementwise( {&uz, &tmp3_}, level, flag );
 
-      out.assign( {1.0, 1.0, 1.0}, {&tmp1_, &tmp2_, &tmp3_}, level, flag );
+      out.assign( {1.0, 1.0, 1.0}, {tmp1_, tmp2_, tmp3_}, level, flag );
    }
 
    template < bool AlgebraicUpwind >

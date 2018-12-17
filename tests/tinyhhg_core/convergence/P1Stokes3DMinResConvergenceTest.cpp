@@ -14,7 +14,8 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
@@ -100,14 +101,14 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
-   vtkOutput.add( &u.u );
-   vtkOutput.add( &u.v );
-   vtkOutput.add( &u.w );
-   vtkOutput.add( &u.p );
-   vtkOutput.add( &uExact.u );
-   vtkOutput.add( &uExact.v );
-   vtkOutput.add( &uExact.w );
-   vtkOutput.add( &uExact.p );
+   vtkOutput.add( u.u );
+   vtkOutput.add( u.v );
+   vtkOutput.add( u.w );
+   vtkOutput.add( u.p );
+   vtkOutput.add( uExact.u );
+   vtkOutput.add( uExact.v );
+   vtkOutput.add( uExact.w );
+   vtkOutput.add( uExact.p );
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -156,33 +157,33 @@ int main( int argc, char* argv[] )
    vtkOutput.write( maxLevel, 0 );
 #if 1
 
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
-   typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1ConstantLaplaceOperator, GMGSolver_T, hhg::P1LumpedInvMassOperator > Preconditioner_T;
-   typedef hhg::StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
+   typedef hhg::CGSolver< hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+   typedef hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator  > GMGSolver_T;
+   typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator > Preconditioner_T;
 
    auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
-   hhg::P1toP1LinearProlongation prolongationOperator;
-   hhg::P1toP1LinearRestriction restrictionOperator;
-   GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-   hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
-   Preconditioner_T prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
+   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
+   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction >();
+   auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
+   //hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
+   //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
+   auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2, gmgSolver );
 
-   auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, Preconditioner_T >( storage, minLevel, maxLevel, prec );
+   auto solver = hhg::MinResSolver< hhg::P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
    // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
    // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
 
-   solver.solve( L, u, f, r, maxLevel, tolerance, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+   solver.solve( L, u, f, maxLevel );
 #else
    auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager;
    PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
-   f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
-   f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
-   f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );
+   f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
+   f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
+   f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
    vtkOutput.write( maxLevel, 1 );

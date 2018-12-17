@@ -389,18 +389,17 @@ inline void saveOperator(Vertex &vertex,
   MatSetValues(mat, 1, dst, (PetscInt) (vertex.getNumNeighborEdges() + 1), src, opr_data, ADD_VALUES);
 }
 
-template< typename ValueType >
-inline void createVectorFromFunction(Vertex &vertex,
-                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId,
-                         const PrimitiveDataID<FunctionMemory< PetscInt >, Vertex> &numeratorId,
-                         Vec& vec,
-                         uint_t level) {
+template < typename ValueType >
+inline void createVectorFromFunction( const Vertex&                                                 vertex,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
+                                      Vec&                                                          vec,
+                                      uint_t                                                        level )
+{
+   auto     src       = vertex.getData( srcId )->getPointer( level );
+   PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
-  auto src = vertex.getData(srcId)->getPointer( level );
-  PetscInt numerator = vertex.getData(numeratorId)->getPointer( level )[0];
-
-  VecSetValues(vec, 1, &numerator, src, INSERT_VALUES);
-
+   VecSetValues( vec, 1, &numerator, src, INSERT_VALUES );
 }
 
 template< typename ValueType >

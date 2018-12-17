@@ -160,16 +160,16 @@ int main( int argc, char* argv[] )
       jsonOutput.close();
    }
 
-   diff.assign( {1.0, -1.0}, {&z, &y}, level, hhg::All );
+   diff.assign( {1.0, -1.0}, {z, y}, level, hhg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
       hhg::VTKOutput vtkOutput("./output", "PetscCompare-2D-P2-Apply", storage);
-      vtkOutput.add( &x );
-      vtkOutput.add( &z );
-      vtkOutput.add( &y );
-      vtkOutput.add( &diff );
+      vtkOutput.add( x );
+      vtkOutput.add( z );
+      vtkOutput.add( y );
+      vtkOutput.add( diff );
       vtkOutput.write( level );
    }
 
