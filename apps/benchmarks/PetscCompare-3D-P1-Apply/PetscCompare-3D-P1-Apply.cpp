@@ -160,7 +160,7 @@ int main( int argc, char* argv[] )
       jsonOutput.close();
    }
 
-   diff.assign( {1.0, -1.0}, {&z, &y}, level, hhg::All );
+   diff.assign( {1.0, -1.0}, {z, y}, level, hhg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
