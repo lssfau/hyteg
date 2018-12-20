@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+#include "core/Environment.h"
 #include "core/timing/Timer.h"
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
@@ -8,12 +9,21 @@
 #include "tinyhhg_core/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.cpp"
 //#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernels.hpp"
 
-int main( int, char** )
+int main( int argc, char** argv )
 {
+   LIKWID_MARKER_INIT;
+
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   LIKWID_MARKER_THREADINIT;
+   LIKWID_MARKER_REGISTER( "apply_special" );
+   LIKWID_MARKER_REGISTER( "apply_any" );
+
    walberla::WcTimer timerSpecial;
    walberla::WcTimer timerAny;
 
-   for( size_t level = 2; level < 15; ++level )
+   for( size_t level = 14; level < 15; ++level )
    {
       size_t edgeSize = (size_t) std::pow( 2u, level ) + 1;
       size_t faceSize = ( size_t )( edgeSize * ( edgeSize + 1u ) ) / 2;
@@ -30,6 +40,7 @@ int main( int, char** )
       size_t iter = 2;
       while( timerSpecial.total() < 0.5 )
       {
+         LIKWID_MARKER_START( "apply_special" );
          timerSpecial.reset();
          for( size_t i = 0; i < iter; ++i )
          {
@@ -38,7 +49,9 @@ int main( int, char** )
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timerSpecial.end();
+         LIKWID_MARKER_STOP( "apply_special" );
 
+         LIKWID_MARKER_START( "apply_any" );
          timerAny.reset();
          for( size_t i = 0; i < iter; ++i )
          {
@@ -47,6 +60,7 @@ int main( int, char** )
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timerAny.end();
+         LIKWID_MARKER_STOP( "apply_any" );
 
          timeSpecial = timerSpecial.total();
          timeAny     = timerAny.total();
@@ -60,5 +74,7 @@ int main( int, char** )
       std::cout << "Level: " << level << " special version: " << timeSpecial / (double) iter
                 << " any version: " << timeAny / (double) iter << " speedup (Any/special): " << timeAny / timeSpecial
                 << std::endl;
+
+      LIKWID_MARKER_CLOSE;
    }
 }
