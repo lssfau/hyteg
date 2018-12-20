@@ -6,6 +6,7 @@
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/misc/dummy.hpp"
+#include "tinyhhg_core/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.cpp"
 
 int main( int argc, char** argv )
 {
@@ -20,7 +21,7 @@ int main( int argc, char** argv )
 
    walberla::WcTimer timer;
 
-   for( size_t level = 14; level < 15; ++level )
+   for( size_t level = 9; level < 10; ++level )
    {
       size_t edgeSize = (size_t) std::pow( 2u, level ) + 1;
       size_t faceSize = ( size_t )( edgeSize * ( edgeSize + 1u ) ) / 2;
@@ -30,7 +31,7 @@ int main( int argc, char** argv )
       std::generate( src.begin(), src.end(), std::rand );
       std::vector< double > dst( tetSize );
       std::generate( dst.begin(), dst.end(), std::rand );
-      std::vector< double > stencil( 15 );
+      std::vector< double > stencil( 25 );
       std::generate( stencil.begin(), stencil.end(), std::rand );
 
       double time;
@@ -43,8 +44,8 @@ int main( int argc, char** argv )
          for( size_t i = 0; i < iter; ++i )
          {
 
-//            hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
-//                dst.data(), src.data(), stencil.data(), (int64_t) level );
+            hhg::vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
+                dst.data(), src.data(), stencil.data(), (int64_t) level );
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timer.end();
