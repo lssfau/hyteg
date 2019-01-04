@@ -12,24 +12,30 @@ class SchurCGSolver : public Solver< OperatorType >
 {
 public:
 
-  typedef typename OperatorType::srcType FunctionType;  
+    typedef typename OperatorType::srcType FunctionType;  
 
-    SchurCGSolver( const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel,
-                   const real_t & schurCGResidualTolerance, const real_t & innerSolverResidualTolerance,
-                   const uint_t & maxSchurCGIterations, const uint_t & maxInnerSolverIterations, const DoFType & flag_ ) :
+    SchurCGSolver( const std::shared_ptr< PrimitiveStorage > & storage, 
+                   const std::shared_ptr< Solver< typename OperatorType::VelocityOperator_T > > & velocityBlockSolver,
+                   const uint_t & minLevel, 
+                   const uint_t & maxLevel,
+                   const real_t & residualTolerance, 
+                   const uint_t & maxIterations, 
+                   const DoFType & flag_,
+                   const bool & clipAlpha = true,
+                   const bool & clipBeta  = false ) :
+            velocityBlockSolver_( velocityBlockSolver ),
             minLevel_( minLevel ),
             maxLevel_( maxLevel ),
-            schurCGResidualTolerance_( schurCGResidualTolerance ),
-            innerSolverResidualTolerance_( innerSolverResidualTolerance ),
-            maxSchurCGIterations_( maxSchurCGIterations ),
-            maxInnerSolverIterations_( maxInnerSolverIterations ),
+            residualTolerance_( residualTolerance ),
+            maxIterations_( maxIterations ),
             flag_( flag_ ),
+
+            clipAlpha_( clipAlpha ),
+            clipBeta_( clipBeta ),
+
             tmp("tmp", storage, minLevel, maxLevel),
             tmp_2("tmp_2", storage, minLevel, maxLevel),
             tmp_3("tmp_3", storage, minLevel, maxLevel),
-            cgSolver( storage, minLevel, maxLevel ),
-            //GMultigridSolver(storage, &cgSolver, minLevel, maxLevel),
-            inner_residual("inner_residual", storage, minLevel, maxLevel),
             z("z", storage, minLevel, maxLevel),
             s("s", storage, minLevel, maxLevel),
             v("v", storage, minLevel, maxLevel),
@@ -51,14 +57,15 @@ public:
         // prepared solver instances
     }
 
-    void solve( const P2P1TaylorHoodStokesOperator & stokesOperator,
-                const P2P1TaylorHoodFunction< real_t > & u,
-                const P2P1TaylorHoodFunction< real_t > & b,
+    void solve( const OperatorType & stokesOperator,
+                const FunctionType & u,
+                const FunctionType & b,
                 const uint_t level )
     {
         // compare /w Elman (1996): Multigrid and Krylov subspace methods, sect. 2.2
 
         real_t alpha, alpha_n, alpha_d, beta, beta_n, beta_d;
+        const uint_t numGlobalDoFs = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *u.u.getStorage(), level );
 
         /////////
         // R_0 //
@@ -84,8 +91,8 @@ public:
         /////////////
 
         // velocity
-        cgSolver.solve( stokesOperator.A, RHat.u, R.u, level );
-        cgSolver.solve( stokesOperator.A, RHat.v, R.v, level );
+        velocityBlockSolver_->solve( stokesOperator.A, RHat.u, R.u, level );
+        velocityBlockSolver_->solve( stokesOperator.A, RHat.v, R.v, level );
 
         // pressure
         stokesOperator.div_x.apply( RHat.u, RHat.p, level, flag_ | DirichletBoundary, Replace );
@@ -116,8 +123,8 @@ public:
         // 1. calc tmp := A^-1 * B^T * P_pressure
         stokesOperator.divT_x.apply( P.p, tmp.u, level, flag_ );
         stokesOperator.divT_y.apply( P.p, tmp.v, level, flag_ );
-        cgSolver.solve( stokesOperator.A, tmp_2.u, tmp.u, level );
-        cgSolver.solve( stokesOperator.A, tmp_2.v, tmp.v, level );
+        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.u, tmp.u, level );
+        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.v, tmp.v, level );
         // 2. velocity of M * P
         MP.u.assign( {1.0, 1.0}, {P.u, tmp_2.u}, level, flag_ );
         MP.v.assign( {1.0, 1.0}, {P.v, tmp_2.v}, level, flag_ );
@@ -129,7 +136,7 @@ public:
 
         alpha = alpha_n / alpha_d;
 
-        WALBERLA_LOG_INFO_ON_ROOT( "alpha_0 = " << alpha_n << " / " << alpha_d << " = " << alpha );
+        // WALBERLA_LOG_INFO_ON_ROOT( "alpha_0 = " << alpha_n << " / " << alpha_d << " = " << alpha );
 
         ///////
         // X //
@@ -160,7 +167,7 @@ public:
         RTilde.assign( {1.0}, {RHat}, level, flag_ );
         invMass.apply( RHat.p, RTilde.p, level, flag_ | DirichletBoundary );
 
-        for ( uint_t i = 0; i < maxSchurCGIterations_; i++ )
+        for ( uint_t i = 0; i < maxIterations_; i++ )
         {
             // rescale pressure
             vertexdof::projectMean( u.p, Au.p, level );
@@ -168,8 +175,10 @@ public:
             // check residual
             stokesOperator.apply( u, Au, level, flag_ );
             residual.assign( {1.0, -1.0}, {b, Au}, level, flag_ );
-            real_t currentResidual = std::sqrt( residual.dotGlobal( residual, level, flag_ ) );
+            real_t currentResidual = std::sqrt( residual.dotGlobal( residual, level, flag_ ) ) / numGlobalDoFs;
             WALBERLA_LOG_DEVEL_ON_ROOT( "CURRENT SCHUR CG RESIDUAL (" << i << "): " << std::scientific << currentResidual  );
+            if ( currentResidual < residualTolerance_ )
+              return;
 
             //////////
             // beta //
@@ -178,21 +187,23 @@ public:
             beta_n = RTilde.p.dotGlobal( RHat.p, level, flag_ | DirichletBoundary );
             beta_d = alpha_n;
 
-#if 0
-            if ( beta_n < 1e-16 && beta_d < 1e-16 )
+            if ( clipBeta_ )
             {
-              beta = 1.0;
+              if ( beta_n < 1e-16 && beta_d < 1e-16 )
+              {
+                beta = 1.0;
+              }
+              else
+              {
+                beta = beta_n / beta_d;
+                beta = beta > 1.0 ? 1.0 : beta;
+              }
             }
             else
             {
               beta = beta_n / beta_d;
-              beta = beta > 1.0 ? 1.0 : beta;
             }
-#else
-            beta = beta_n / beta_d;
-#endif
-
-            WALBERLA_LOG_INFO_ON_ROOT( "beta_" << i << " = " << beta_n << " / " << beta_d << " = " << beta );
+            // WALBERLA_LOG_INFO_ON_ROOT( "beta_" << i << " = " << beta_n << " / " << beta_d << " = " << beta );
 
             //////////////
             // P update //
@@ -210,8 +221,8 @@ public:
             // 1. calc tmp := A^-1 * B^T * P_pressure
             stokesOperator.divT_x.apply( P.p, tmp.u, level, flag_ );
             stokesOperator.divT_y.apply( P.p, tmp.v, level, flag_ );
-            cgSolver.solve( stokesOperator.A, tmp_2.u, tmp.u, level );
-            cgSolver.solve( stokesOperator.A, tmp_2.v, tmp.v, level );
+            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.u, tmp.u, level );
+            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.v, tmp.v, level );
             // 2. velocity of M * P
             MP.u.assign( {1.0, 1.0}, {P.u, tmp_2.u}, level, flag_ );
             MP.v.assign( {1.0, 1.0}, {P.v, tmp_2.v}, level, flag_ );
@@ -221,20 +232,23 @@ public:
 
             alpha_d = P.p.dotGlobal( MP.p, level, flag_ | DirichletBoundary );
 
-#if 1
-            if ( alpha_n < 1e-16 && alpha_d < 1e-16 )
+            if ( clipAlpha_ )
             {
-              alpha = 1.0;
+              if ( alpha_n < 1e-16 && alpha_d < 1e-16 )
+              {
+                alpha = 1.0;
+              }
+              else
+              {
+                alpha = alpha_n / alpha_d;
+                alpha = alpha > 1.0 ? 1.0 : alpha;
+              }
             }
             else
             {
               alpha = alpha_n / alpha_d;
-              alpha = alpha > 1.0 ? 1.0 : alpha;
             }
-#else
-            alpha = alpha_n / alpha_d;
-#endif
-            WALBERLA_LOG_INFO_ON_ROOT( "alpha_" << i+1 << " = " << alpha_n << " / " << alpha_d << " = " << alpha );
+            // WALBERLA_LOG_INFO_ON_ROOT( "alpha_" << i+1 << " = " << alpha_n << " / " << alpha_d << " = " << alpha );
 
             ///////
             // X //
@@ -269,18 +283,16 @@ public:
     }
 
 private:
+    std::shared_ptr< Solver< typename OperatorType::VelocityOperator_T > > velocityBlockSolver_;
     uint_t minLevel_;
     uint_t maxLevel_;
-    real_t schurCGResidualTolerance_;
-    real_t innerSolverResidualTolerance_;
-    uint_t maxSchurCGIterations_;
-    uint_t maxInnerSolverIterations_;
+    real_t residualTolerance_;
+    uint_t maxIterations_;
     DoFType flag_;
-    P2P1TaylorHoodFunction< real_t > tmp, tmp_2, tmp_3, z, s, v, BTs, Bv,
+    bool clipAlpha_;
+    bool clipBeta_;
+    FunctionType tmp, tmp_2, tmp_3, z, s, v, BTs, Bv,
             R, RHat, RTilde, P, MP, Au, residual;
-    CGSolver< P2ConstantLaplaceOperator > cgSolver;
-    //GMultigridSolver<P2Function<real_t>, P2ConstantLaplaceOperator, CGSolver<P2Function<real_t>, P2ConstantLaplaceOperator > > GMultigridSolver;
-    P2Function<real_t> inner_residual;
     P1LumpedInvMassOperator invMass;
 };
 
