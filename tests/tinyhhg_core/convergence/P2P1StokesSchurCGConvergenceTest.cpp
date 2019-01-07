@@ -104,7 +104,7 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_v, 2.4e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_p, 2.9e-01 );
-  WALBERLA_CHECK_LESS( residuum_l2_1,  2.7e-14 );
+  WALBERLA_CHECK_LESS( residuum_l2_1,  2.9e-14 );
 }
 
 }
