@@ -204,7 +204,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    friend class P2Function< ValueType >;
 };
 
-inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level )
+inline void projectMean( const VertexDoFFunction< real_t >& pressure, const VertexDoFFunction< real_t >& tmp, uint_t level )
 {
    if( pressure.isDummy() )
    {
