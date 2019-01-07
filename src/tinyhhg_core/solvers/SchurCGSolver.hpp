@@ -4,9 +4,13 @@
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "core/debug/CheckFunctions.h"
 
 namespace hhg {
 
+///  \brief Preconditioned Schur CG solver for the Stokes system
+///         compare w/ Elman (1996): Multigrid and Krylov subspace methods, sect. 2.2
 template< class OperatorType >
 class SchurCGSolver : public Solver< OperatorType >
 {
@@ -53,8 +57,8 @@ public:
             invMass( storage, minLevel, maxLevel )
 
     {
-        // TODO
-        // prepared solver instances
+        const bool available = !storage->hasGlobalCells() && std::is_same< OperatorType, P2P1TaylorHoodStokesOperator >::value;
+        WALBERLA_CHECK( available, "SchurCG solver currently only available for Taylor-Hood discretization on 2D domains." );
     }
 
     void solve( const OperatorType & stokesOperator,
@@ -62,8 +66,6 @@ public:
                 const FunctionType & b,
                 const uint_t level )
     {
-        // compare /w Elman (1996): Multigrid and Krylov subspace methods, sect. 2.2
-
         real_t alpha, alpha_n, alpha_d, beta, beta_n, beta_d;
         const uint_t numGlobalDoFs = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *u.u.getStorage(), level );
 
