@@ -20,7 +20,7 @@ using walberla::uint_t;
 
 namespace hhg {
 
-void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & errEps, const real_t & resEps )
+void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo )
 {
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -69,11 +69,13 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFsPerVelocityComponent = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+  uint_t globalDoFsPressure = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
   auto cgSolver = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, level, level );
-  SchurCGSolver< P2P1TaylorHoodStokesOperator > solver( storage, cgSolver, level, level, 1e-15, 10, Inner | NeumannBoundary );
+  SchurCGSolver< P2P1TaylorHoodStokesOperator > solver( storage, cgSolver, level, level, 1e-15, 100, Inner | NeumannBoundary );
 
   walberla::WcTimer timer;
   solver.solve( A, x, b, level );
@@ -87,16 +89,22 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFsPerVelocityComponent );
+  real_t discr_l2_err_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFsPerVelocityComponent );
+  real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFsPressure );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level, Inner ) / (real_t) globalDoFs1 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 1 = " << discr_l2_err_1 );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_v );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
   vtkOutput.write( level, 1 );
 
-  WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
-  WALBERLA_CHECK_LESS( discr_l2_err_1, errEps );
+  WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-03 );
+  WALBERLA_CHECK_LESS( discr_l2_err_v, 2.4e-03 );
+  WALBERLA_CHECK_LESS( discr_l2_err_p, 2.9e-01 );
+  WALBERLA_CHECK_LESS( residuum_l2_1,  2.7e-14 );
 }
 
 }
@@ -108,7 +116,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  P2P1SchurCGConvergenceTest( 3, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 0.2, 0.12 );
+  P2P1SchurCGConvergenceTest( 3, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ) );
 
   return EXIT_SUCCESS;
 }
