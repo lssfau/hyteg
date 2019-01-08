@@ -40,12 +40,99 @@ class FunctionIteratorDoF
    const PrimitiveID& primitiveID() const { return primitiveID_; }
    const uint_t&      level() const { return level_; }
 
+   /// The absolute (array-)index of a FunctionIteratorDoF object
+   uint_t arrayIndex() const;
+
+   /// The value of the DoF
+   const typename FunctionType::ValueType & value() const;
+         typename FunctionType::ValueType & value();
+
+
  private:
    FunctionType function_;
    uint_t       level_;
    PrimitiveID  primitiveID_;
    Index        index_;
 };
+
+
+template < typename FunctionType >
+inline uint_t FunctionIteratorDoF< FunctionType >::arrayIndex() const
+{
+   if( isVertexDoF() )
+   {
+      if( isOnMacroVertex() )
+      {
+         WALBERLA_ASSERT_EQUAL( index(), Index( 0, 0, 0 ) );
+         return 0;
+      }
+      if( isOnMacroEdge() )
+      {
+         return vertexdof::macroedge::index( level(), index().x() );
+      }
+      if( isOnMacroFace() )
+      {
+         return vertexdof::macroface::index( level(), index().x(), index().y() );
+      }
+      if( isOnMacroCell() )
+      {
+         return vertexdof::macrocell::index( level(), index().x(), index().y(), index().z() );
+      }
+   }
+}
+
+
+template < typename FunctionType >
+inline const typename FunctionType::ValueType & FunctionIteratorDoF< FunctionType >::value() const
+{
+   if( isOnMacroVertex() )
+      return function_.getStorage()
+      ->getVertex( primitiveID() )
+      ->getData( function_.getVertexDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroEdge() )
+      return function_.getStorage()
+      ->getEdge( primitiveID() )
+      ->getData( function_.getEdgeDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroFace() )
+      return function_.getStorage()
+      ->getFace( primitiveID() )
+      ->getData( function_.getFaceDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroCell() )
+      return function_.getStorage()
+      ->getCell( primitiveID() )
+      ->getData( function_.getCellDataID() )
+      ->getPointer( level() )[arrayIndex()];
+}
+
+
+template < typename FunctionType >
+inline typename FunctionType::ValueType & FunctionIteratorDoF< FunctionType >::value()
+{
+   if( isOnMacroVertex() )
+      return function_.getStorage()
+      ->getVertex( primitiveID() )
+      ->getData( function_.getVertexDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroEdge() )
+      return function_.getStorage()
+      ->getEdge( primitiveID() )
+      ->getData( function_.getEdgeDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroFace() )
+      return function_.getStorage()
+      ->getFace( primitiveID() )
+      ->getData( function_.getFaceDataID() )
+      ->getPointer( level() )[arrayIndex()];
+   if( isOnMacroCell() )
+      return function_.getStorage()
+      ->getCell( primitiveID() )
+      ->getData( function_.getCellDataID() )
+      ->getPointer( level() )[arrayIndex()];
+}
+
 
 /// \brief Iterator that iterates over all DoFs of a function.
 ///
@@ -77,7 +164,7 @@ class FunctionIterator
    : function_( function )
    , level_( level )
    , step_( 0 )
-   , totalNumberOfDoFs_( numberOfGlobalDoFs< typename FunctionType::Tag >( *( function_.getStorage() ), level_ ) )
+   , totalNumberOfDoFs_( numberOfLocalDoFs< typename FunctionType::Tag >( *( function_.getStorage() ), level_ ) )
    , currentDoF_( function, level )
    , macroVertexIterator_( function.getStorage()->getVertices().begin() )
    , macroEdgeIterator_( function.getStorage()->getEdges().begin() )
@@ -196,58 +283,6 @@ inline void FunctionIterator< FunctionType >::setState()
    }
 }
 
-/// \brief Helper function to get the absolute (array-)index of a FunctionIteratorDoF object
-template < typename FunctionType >
-inline uint_t absoluteIndex( const FunctionIteratorDoF< FunctionType >& dof )
-{
-   if( dof.isVertexDoF() )
-   {
-      if( dof.isOnMacroVertex() )
-      {
-         WALBERLA_ASSERT_EQUAL( dof.index(), Index( 0, 0, 0 ) );
-         return 0;
-      }
-      if( dof.isOnMacroEdge() )
-      {
-         return vertexdof::macroedge::index( dof.level(), dof.index().x() );
-      }
-      if( dof.isOnMacroFace() )
-      {
-         return vertexdof::macroface::index( dof.level(), dof.index().x(), dof.index().y() );
-      }
-      if( dof.isOnMacroCell() )
-      {
-         return vertexdof::macrocell::index( dof.level(), dof.index().x(), dof.index().y(), dof.index().z() );
-      }
-   }
-}
-
-template < typename FunctionType >
-inline typename FunctionType::ValueType getDoFValueFromFunction( const FunctionType&                        function,
-                                                                 const FunctionIteratorDoF< FunctionType >& dof )
-{
-   if( dof.isOnMacroVertex() )
-      return function.getStorage()
-          ->getVertex( dof.primitiveID() )
-          ->getData( function.getVertexDataID() )
-          ->getPointer( dof.level() )[absoluteIndex( dof )];
-   if( dof.isOnMacroEdge() )
-      return function.getStorage()
-          ->getEdge( dof.primitiveID() )
-          ->getData( function.getEdgeDataID() )
-          ->getPointer( dof.level() )[absoluteIndex( dof )];
-   if( dof.isOnMacroFace() )
-      return function.getStorage()
-          ->getFace( dof.primitiveID() )
-          ->getData( function.getFaceDataID() )
-          ->getPointer( dof.level() )[absoluteIndex( dof )];
-   if( dof.isOnMacroCell() )
-      return function.getStorage()
-          ->getCell( dof.primitiveID() )
-          ->getData( function.getCellDataID() )
-          ->getPointer( dof.level() )[absoluteIndex( dof )];
-}
-
 template < typename FunctionType >
 inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
 {
@@ -260,7 +295,7 @@ inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< Fu
       primitiveType = "MacroCell";
 
    os << FunctionTrait< FunctionType >::getTypeName() << ", PrimitiveID: " << dof.primitiveID() << ", " << primitiveType << ", "
-      << "level: " << dof.level() << ", logical idx: " << dof.index() << ", array idx: " << absoluteIndex( dof );
+      << "level: " << dof.level() << ", logical idx: " << dof.index() << ", array idx: " << dof.arrayIndex() << ", value: " << dof.value();
    return os;
 }
 

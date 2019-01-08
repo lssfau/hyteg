@@ -12,8 +12,7 @@ namespace hhg {
 
 static void testFunctionIterator()
 {
-
-  const std::string meshFileName = "../../data/meshes/3D/pyramid_2el.msh";
+  const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
 
   const uint_t level = 3;
 
@@ -29,20 +28,19 @@ static void testFunctionIterator()
 
   std::set< uint_t > testEnumerateSet;
 
-  WALBERLA_LOG_INFO_ON_ROOT( "global dofs: " << numberOfGlobalDoFs< P1FunctionTag >( *storage, level ) );
+  const uint_t numGlobalDoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
+  const uint_t numLocalDoFs  = numberOfLocalDoFs< P1FunctionTag >( *storage, level );
+  WALBERLA_LOG_INFO_ON_ROOT( "global dofs: " << numGlobalDoFs );
+  WALBERLA_LOG_INFO( "local dofs: " << numLocalDoFs );
 
   for ( const auto & dof : FunctionIterator< P1Function< int > >( n, level ) )
   {
-    // WALBERLA_CHECK( dof.isVertexDoF() )
-    auto value = getDoFValueFromFunction( n, dof );
-
-    WALBERLA_LOG_DEVEL( dof );
-    WALBERLA_LOG_DEVEL( value );
-
-    WALBERLA_CHECK_EQUAL( testEnumerateSet.count( value ), 0 );
-    testEnumerateSet.insert( value );
+    WALBERLA_CHECK( dof.isVertexDoF() )
+    WALBERLA_LOG_INFO( dof );
+    WALBERLA_CHECK_EQUAL( testEnumerateSet.count( dof.value() ), 0 );
+    testEnumerateSet.insert( dof.value() );
   }
-  WALBERLA_LOG_INFO_ON_ROOT( testEnumerateSet.size() );
+  WALBERLA_CHECK_EQUAL( testEnumerateSet.size(), numLocalDoFs );
 
 }
 
@@ -52,7 +50,6 @@ static void testFunctionIterator()
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv(argc, argv);
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
   hhg::testFunctionIterator();
 
