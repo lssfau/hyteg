@@ -10,32 +10,56 @@ using walberla::uint_t;
 
 namespace hhg {
 
-static void testFunctionIterator()
+static void testFunctionIterator( const std::string & meshFileName, const uint_t & level )
 {
-  const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
-
-  const uint_t level = 3;
-
   auto storage = PrimitiveStorage::createFromGmshFile( meshFileName );
 
-  P1Function< real_t > x( "x", storage, level, level );
-  P1Function< int    > n( "n", storage, level, level );
+  P1Function     < int > nVertex( "nVertex", storage, level, level );
+  EdgeDoFFunction< int > nEdge  ( "nEdge",   storage, level, level );
 
-  n.enumerate( level );
+  nVertex.enumerate( level );
+  nEdge.enumerate( level );
 
   auto storageInfo = storage->getGlobalInfo();
   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
 
   std::set< uint_t > testEnumerateSet;
+  uint_t numGlobalDoFs;
+  uint_t numLocalDoFs;
 
-  const uint_t numGlobalDoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
-  const uint_t numLocalDoFs  = numberOfLocalDoFs< P1FunctionTag >( *storage, level );
+  WALBERLA_LOG_INFO_ON_ROOT( "--- Testing VertexDoFSpace ---" );
+  WALBERLA_MPI_BARRIER();
+
+  numGlobalDoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
+  numLocalDoFs  = numberOfLocalDoFs< P1FunctionTag >( *storage, level );
+
   WALBERLA_LOG_INFO_ON_ROOT( "global dofs: " << numGlobalDoFs );
   WALBERLA_LOG_INFO( "local dofs: " << numLocalDoFs );
 
-  for ( const auto & dof : FunctionIterator< P1Function< int > >( n, level ) )
+  for ( const auto & dof : FunctionIterator< P1Function< int > >( nVertex, level ) )
   {
     WALBERLA_CHECK( dof.isVertexDoF() )
+    WALBERLA_LOG_INFO( dof );
+    WALBERLA_CHECK_EQUAL( testEnumerateSet.count( dof.value() ), 0 );
+    testEnumerateSet.insert( dof.value() );
+  }
+  WALBERLA_CHECK_EQUAL( testEnumerateSet.size(), numLocalDoFs );
+
+  testEnumerateSet.clear();
+
+  WALBERLA_MPI_BARRIER();
+  WALBERLA_LOG_INFO_ON_ROOT( "--- Testing EdgeDoFSpace ---" );
+  WALBERLA_MPI_BARRIER();
+
+  numGlobalDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
+  numLocalDoFs  = numberOfLocalDoFs< EdgeDoFFunctionTag >( *storage, level );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "global dofs: " << numGlobalDoFs );
+  WALBERLA_LOG_INFO( "local dofs: " << numLocalDoFs );
+
+  for ( const auto & dof : FunctionIterator< EdgeDoFFunction< int > >( nEdge, level ) )
+  {
+    WALBERLA_CHECK( dof.isEdgeDoF() )
     WALBERLA_LOG_INFO( dof );
     WALBERLA_CHECK_EQUAL( testEnumerateSet.count( dof.value() ), 0 );
     testEnumerateSet.insert( dof.value() );
@@ -51,7 +75,10 @@ int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testFunctionIterator();
+  hhg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 2 );
+  hhg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 3 );
+  hhg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 2 );
+  hhg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 3 );
 
   return EXIT_SUCCESS;
 }
