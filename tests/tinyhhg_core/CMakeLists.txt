@@ -355,6 +355,9 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
 endif()
 
+waLBerla_compile_test(FILES FunctionIteratorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FunctionIteratorTest)
+
 waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
