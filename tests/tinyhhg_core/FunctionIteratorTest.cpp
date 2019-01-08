@@ -23,7 +23,7 @@ static void testFunctionIterator( const std::string & meshFileName, const uint_t
   auto storageInfo = storage->getGlobalInfo();
   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
 
-  std::set< uint_t > testEnumerateSet;
+  std::set< int > testEnumerateSet;
   uint_t numGlobalDoFs;
   uint_t numLocalDoFs;
 
