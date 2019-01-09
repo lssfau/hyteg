@@ -49,6 +49,8 @@ class FunctionIteratorDoF
    const typename FunctionType::ValueType& value() const;
    typename FunctionType::ValueType&       value();
 
+   std::string toString() const;
+
  private:
    FunctionType                function_;
    uint_t                      level_;
@@ -146,6 +148,36 @@ inline typename FunctionType::ValueType& FunctionIteratorDoF< FunctionType >::va
           ->getData( function_.getCellDataID() )
           ->getPointer( level() )[arrayIndex()];
 }
+
+
+template < typename FunctionType >
+inline std::string FunctionIteratorDoF< FunctionType >::toString() const
+{
+   std::stringstream os;
+
+   std::string primitiveType = "MacroVertex";
+   if ( isOnMacroEdge() )
+      primitiveType = "MacroEdge";
+   if ( isOnMacroFace() )
+      primitiveType = "MacroFace";
+   if ( isOnMacroCell() )
+      primitiveType = "MacroCell";
+
+   os << FunctionTrait< FunctionType >::getTypeName() << ", PrimitiveID: " << primitiveID() << ", " << primitiveType << ", "
+      << "level: " << level() << ", logical idx: " << index() << ", edge orientation: " << edgeDoFOrientation()
+      << ", array idx: " << arrayIndex() << ", value: " << value();
+
+   return os.str();
+}
+
+
+template < typename FunctionType >
+inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
+{
+   os << dof.toString();
+   return os;
+}
+
 
 /// \brief Iterator that iterates over all DoFs of a function (process-locally).
 ///
@@ -460,23 +492,6 @@ inline void FunctionIterator< FunctionType >::skipEdgeDoFBoundaryCoordinates()
    {
       edgeDoFMacroCellIterator_++;
    }
-}
-
-template < typename FunctionType >
-inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
-{
-   std::string primitiveType = "MacroVertex";
-   if ( dof.isOnMacroEdge() )
-      primitiveType = "MacroEdge";
-   if ( dof.isOnMacroFace() )
-      primitiveType = "MacroFace";
-   if ( dof.isOnMacroCell() )
-      primitiveType = "MacroCell";
-
-   os << FunctionTrait< FunctionType >::getTypeName() << ", PrimitiveID: " << dof.primitiveID() << ", " << primitiveType << ", "
-      << "level: " << dof.level() << ", logical idx: " << dof.index() << ", edge orientation: " << dof.edgeDoFOrientation()
-      << ", array idx: " << dof.arrayIndex() << ", value: " << dof.value();
-   return os;
 }
 
 } // namespace hhg
