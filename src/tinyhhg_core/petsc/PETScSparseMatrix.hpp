@@ -85,13 +85,15 @@ public:
 
   inline Mat& get() { return mat; }
 
-  bool isSymmetric(real_t tol = real_c(1e-14)) {
+  bool isSymmetric(real_t tol = real_c(1e-13)) {
     Mat B;
+    PetscReal norm;
     MatTranspose(mat, MAT_INITIAL_MATRIX, &B);
-    PetscBool flg;
-    MatIsTranspose(mat, B, (PetscReal) tol, &flg);
-    MatDestroy(&B);
-    return flg;
+    MatAYPX(B, -1.0, mat, DIFFERENT_NONZERO_PATTERN);
+    MatNorm(B, NORM_INFINITY, &norm);
+    WALBERLA_LOG_DEVEL_ON_ROOT( "PETSC_NORM = " << norm );
+    MatDestroy( &B );
+    return norm < tol;
   }
 
 };
