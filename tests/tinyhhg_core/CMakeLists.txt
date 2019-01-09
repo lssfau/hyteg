@@ -240,6 +240,11 @@ waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS tinyhhg_co
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
 
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES P2/P2LaplacePetscSymmetryTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P2LaplacePetscSymmetryTest)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
     waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
