@@ -19,6 +19,53 @@ namespace macrocell {
 using walberla::uint_t;
 using walberla::real_c;
 
+inline indexing::Index getIndexInNeighboringMacroEdge( const indexing::Index  & edgeDoFIndexInMacroCell,
+                                                       const Cell             & cell,
+                                                       const uint_t           & neighborEdgeID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto indexInMacroEdge = indexing::basisConversion( edgeDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+  return indexInMacroEdge;
+}
+
+inline indexing::Index getIndexInNeighboringMacroEdgeXYZ( const indexing::Index  & edgeDoFIndexInMacroCell,
+                                                          const Cell             & cell,
+                                                          const uint_t           & neighborEdgeID,
+                                                          const PrimitiveStorage & storage,
+                                                          const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto indexInMacroEdge = indexing::basisConversion( edgeDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
+  return indexInMacroEdge;
+}
+
+inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroEdge( const EdgeDoFOrientation & orientationInMacroCell,
+                                                                          const Cell               & cell,
+                                                                          const uint_t             & neighborEdgeID,
+                                                                          const PrimitiveStorage   & storage )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto orientationInMacroEdge = edgedof::convertEdgeDoFOrientationCellToFace( orientationInMacroCell,
+                                                                                    localVertexIDsAtCell.at(0),
+                                                                                    localVertexIDsAtCell.at(1),
+                                                                                    localVertexIDsAtCell.at(2) );
+  return orientationInMacroEdge;
+}
+
+
 inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index  & edgeDoFIndexInMacroCell,
                                                        const Cell             & cell,
                                                        const uint_t           & neighborFaceID,
