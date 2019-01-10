@@ -90,7 +90,9 @@ int main( int argc, char* argv[] )
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "useParMETIS" ) )
    {
@@ -102,9 +104,6 @@ int main( int argc, char* argv[] )
       auto globalInfo = storage->getGlobalInfo();
       WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
    }
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
    {

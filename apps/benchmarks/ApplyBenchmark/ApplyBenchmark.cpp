@@ -57,15 +57,13 @@ int main( int argc, char* argv[] )
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "writeDomain" ) )
    {
       hhg::writeDomainPartitioningVTK( storage, "./output", "domain" );
    }
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    hhg::P1Function< double > oneFunc( "x", storage, level, level );
    oneFunc.interpolate( ones, level );

@@ -69,10 +69,8 @@ int main( int argc, char* argv[] )
 
    setRightBFSBoundaryNeumannPoiseuille( setupStorage );
 
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
    hhg::writeDomainPartitioningVTK( storage, "../../output", "UzawaConvergenceTestDomain" );
 

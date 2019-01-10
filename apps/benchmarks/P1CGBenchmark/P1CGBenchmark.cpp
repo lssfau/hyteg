@@ -38,10 +38,9 @@ int main( int argc, char* argv[] )
    MeshInfo                            meshInfo = MeshInfo::meshUnitSquare( 2 );
    SetupPrimitiveStorage               setupStorage( meshInfo, 1 );
    //auto storage = PrimitiveStorage( setupStorage );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
-   //auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree(timingTree);
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+   //auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
    hhg::P1Function< double > r( "r", storage, level, level );
    hhg::P1Function< double > f( "f", storage, level, level );
