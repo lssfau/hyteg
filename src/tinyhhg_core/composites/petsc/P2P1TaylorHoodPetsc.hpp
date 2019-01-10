@@ -62,18 +62,18 @@ inline void createMatrix( const OperatorType&                       opr,
   if ( src.u.getStorage()->hasGlobalCells() )
   {
     createMatrix(opr.A, src.w, dst.w, mat, level, flag);
-    createMatrix(opr.divT_z.getVertexToVertexOpr(), src.p, *dst.w.getVertexDoFFunction(), mat, level, flag);
-    VertexDoFToEdgeDoF::createMatrix(opr.divT_z.getVertexToEdgeOpr(), src.p, *dst.w.getEdgeDoFFunction(), mat, level, flag);
+    createMatrix(opr.divT_z.getVertexToVertexOpr(), src.p, dst.w.getVertexDoFFunction(), mat, level, flag);
+    VertexDoFToEdgeDoF::createMatrix(opr.divT_z.getVertexToEdgeOpr(), src.p, dst.w.getEdgeDoFFunction(), mat, level, flag);
   }
 
-  createMatrix(opr.div_x.getVertexToVertexOpr(), *src.u.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
-  EdgeDoFToVertexDoF::createMatrix(opr.div_x.getEdgeToVertexOpr(), *src.u.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
-  createMatrix(opr.div_y.getVertexToVertexOpr(), *src.v.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
-  EdgeDoFToVertexDoF::createMatrix(opr.div_y.getEdgeToVertexOpr(), *src.v.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  createMatrix(opr.div_x.getVertexToVertexOpr(), src.u.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  EdgeDoFToVertexDoF::createMatrix(opr.div_x.getEdgeToVertexOpr(), src.u.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  createMatrix(opr.div_y.getVertexToVertexOpr(), src.v.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+  EdgeDoFToVertexDoF::createMatrix(opr.div_y.getEdgeToVertexOpr(), src.v.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
   if ( src.u.getStorage()->hasGlobalCells() )
   {
-    createMatrix(opr.div_z.getVertexToVertexOpr(), *src.w.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
-    EdgeDoFToVertexDoF::createMatrix(opr.div_z.getEdgeToVertexOpr(), *src.w.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+    createMatrix(opr.div_z.getVertexToVertexOpr(), src.w.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
+    EdgeDoFToVertexDoF::createMatrix(opr.div_z.getEdgeToVertexOpr(), src.w.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary);
   }
 }
 
