@@ -68,18 +68,18 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   b.v.interpolate( exactV, level, DirichletBoundary );
 
   VTKOutput vtkOutput("../../output", "P2P1Stokes2DPetscSolve", storage);
-  vtkOutput.add( &x.u );
-  vtkOutput.add( &x.v );
-  vtkOutput.add( &x.p );
-  vtkOutput.add( &x_exact.u );
-  vtkOutput.add( &x_exact.v );
-  vtkOutput.add( &x_exact.p );
-  vtkOutput.add( &err.u );
-  vtkOutput.add( &err.v );
-  vtkOutput.add( &err.p );
-  vtkOutput.add( &b.u );
-  vtkOutput.add( &b.v );
-  vtkOutput.add( &b.p );
+  vtkOutput.add( x.u );
+  vtkOutput.add( x.v );
+  vtkOutput.add( x.p );
+  vtkOutput.add( x_exact.u );
+  vtkOutput.add( x_exact.v );
+  vtkOutput.add( x_exact.p );
+  vtkOutput.add( err.u );
+  vtkOutput.add( err.v );
+  vtkOutput.add( err.p );
+  vtkOutput.add( b.u );
+  vtkOutput.add( b.v );
+  vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
   numerator->enumerate( level );
@@ -89,10 +89,10 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< real_t, hhg::P2P1TaylorHoodFunction, hhg::P2P1TaylorHoodStokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+  PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
 
   walberla::WcTimer timer;
-  solver_1.solve( A, x, b, residuum, level, 0, 0, Inner | NeumannBoundary );
+  solver_1.solve( A, x, b, level );
   timer.end();
 
   hhg::vertexdof::projectMean( x.p, err.p, level );
@@ -101,7 +101,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );
 
-  err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
+  err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
   real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level, Inner ) / (real_t) globalDoFs1 );

@@ -68,18 +68,18 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   x_exact.p.interpolate( exactP, level );
 
   VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
-  vtkOutput.add( &x.u );
-  vtkOutput.add( &x.v );
-  vtkOutput.add( &x.p );
-  vtkOutput.add( &x_exact.u );
-  vtkOutput.add( &x_exact.v );
-  vtkOutput.add( &x_exact.p );
-  vtkOutput.add( &err.u );
-  vtkOutput.add( &err.v );
-  vtkOutput.add( &err.p );
-  vtkOutput.add( &b.u );
-  vtkOutput.add( &b.v );
-  vtkOutput.add( &b.p );
+  vtkOutput.add( x.u );
+  vtkOutput.add( x.v );
+  vtkOutput.add( x.p );
+  vtkOutput.add( x_exact.u );
+  vtkOutput.add( x_exact.v );
+  vtkOutput.add( x_exact.p );
+  vtkOutput.add( err.u );
+  vtkOutput.add( err.v );
+  vtkOutput.add( err.p );
+  vtkOutput.add( b.u );
+  vtkOutput.add( b.v );
+  vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
   numerator->enumerate( level );
@@ -89,10 +89,10 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+  PETScLUSolver< P1StokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
 
   walberla::WcTimer timer;
-  solver_1.solve( A, x, b, x, level, 0, 0 );
+  solver_1.solve( A, x, b, level );
   timer.end();
 
   hhg::vertexdof::projectMean( x.p, err.p, level );

@@ -82,31 +82,31 @@ void p2p1StokesPetscApplyTest( const uint_t & level, const std::string & meshFil
   dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
   // compare
-  err.assign( {1.0, -1.0}, {&hhgDst, &petscDst}, level, location );
+  err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
   const auto absScalarProd = std::abs( err.dotGlobal( ones, level, location ) );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
 
   // VTK
   VTKOutput vtkOutput( "../../output", "P2P1StokesPetscApplyTest", storage );
-  vtkOutput.add( &src.u );
-  vtkOutput.add( &src.v );
+  vtkOutput.add( src.u );
+  vtkOutput.add( src.v );
 
-  vtkOutput.add( &hhgDst.u );
-  vtkOutput.add( &hhgDst.v );
+  vtkOutput.add( hhgDst.u );
+  vtkOutput.add( hhgDst.v );
 
-  vtkOutput.add( &petscDst.u );
-  vtkOutput.add( &petscDst.v );
+  vtkOutput.add( petscDst.u );
+  vtkOutput.add( petscDst.v );
 
-  vtkOutput.add( &err.u );
-  vtkOutput.add( &err.v );
+  vtkOutput.add( err.u );
+  vtkOutput.add( err.v );
 
   if ( storage->hasGlobalCells() )
   {
-    vtkOutput.add( &src.w );
-    vtkOutput.add( &hhgDst.w );
-    vtkOutput.add( &petscDst.w );
-    vtkOutput.add( &err.w );
+    vtkOutput.add( src.w );
+    vtkOutput.add( hhgDst.w );
+    vtkOutput.add( petscDst.w );
+    vtkOutput.add( err.w );
   }
   vtkOutput.write( level, 0 );
 
@@ -121,13 +121,13 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All, 2.3e-15 );
+  hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All, 4.9e-15 );
   hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All, 2.6e-13 );
   hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::All, 6.9e-17 );
-  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hhg::All, 4.7e-16 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hhg::All, 6.1e-16 );
   hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hhg::All, 1.1e-15 );
-  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 6.9e-16 );
-  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hhg::All, 9.0e-16 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 1.8e-15 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hhg::All, 2.5e-15 );
 
   return EXIT_SUCCESS;
 }
