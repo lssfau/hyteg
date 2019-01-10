@@ -101,7 +101,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hhg::Inner );
 
-  err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
+  err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
   real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
