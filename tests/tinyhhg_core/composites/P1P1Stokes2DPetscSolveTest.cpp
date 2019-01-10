@@ -26,7 +26,7 @@ using walberla::uint_t;
 
 namespace hhg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & errEps, const real_t & resEps )
+void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
   PETScManager petscManager;
 
@@ -103,16 +103,21 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error 1 = " << discr_l2_err_1 );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
   vtkOutput.write( level, 1 );
 
-  // WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
-  // WALBERLA_CHECK_LESS( discr_l2_err_1, errEps );
+  WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
+  WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
+  WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP);
 }
 
 }
@@ -124,7 +129,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 3, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ),     4.0, 4.0e-14 );
+  petscSolveTest( 5, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 4.9e-15, 0.025, 0.366 );
 
   return EXIT_SUCCESS;
 }
