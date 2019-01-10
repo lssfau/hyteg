@@ -352,29 +352,29 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply_impl( P2Function< real_t >& src,
-                                                                     P2Function< real_t >& dst,
-                                                                     size_t                level,
-                                                                     DoFType               flag,
-                                                                     UpdateType            updateType )
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::apply(const P2Function< real_t >& src,
+                                                               const P2Function< real_t >& dst,
+                                                               size_t                level,
+                                                               DoFType               flag,
+                                                               UpdateType            updateType ) const
 {
-   vertexToVertex.apply( *src.getVertexDoFFunction(), *dst.getVertexDoFFunction(), level, flag, updateType );
-   edgeToVertex.apply( *src.getEdgeDoFFunction(), *dst.getVertexDoFFunction(), level, flag, Add );
+   vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
+   edgeToVertex.apply( src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag, Add );
 
-   edgeToEdge.apply( *src.getEdgeDoFFunction(), *dst.getEdgeDoFFunction(), level, flag, updateType );
-   vertexToEdge.apply( *src.getVertexDoFFunction(), *dst.getEdgeDoFFunction(), level, flag, Add );
+   edgeToEdge.apply( src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), level, flag, updateType );
+   vertexToEdge.apply( src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), level, flag, Add );
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Function< real_t >& dst,
-                                                                         P2Function< real_t >& rhs,
-                                                                         size_t                level,
-                                                                         DoFType               flag )
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Function <real_t> &dst,
+                                                                   const P2Function <real_t> &rhs,
+                                                                   const size_t level,
+                                                                   const DoFType flag) const
 {
-   dst.getVertexDoFFunction()->communicate< Face, Edge >( level );
-   dst.getVertexDoFFunction()->communicate< Edge, Vertex >( level );
-   dst.getEdgeDoFFunction()->communicate< Face, Edge >( level );
-   dst.getEdgeDoFFunction()->communicate< Edge, Vertex >( level );
+   dst.getVertexDoFFunction().communicate< Face, Edge >( level );
+   dst.getVertexDoFFunction().communicate< Edge, Vertex >( level );
+   dst.getEdgeDoFFunction().communicate< Face, Edge >( level );
+   dst.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
 
    for( auto& it : storage_->getVertices() )
    {
@@ -386,15 +386,15 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Funct
          P2::macrovertex::smoothGSvertexDoF( level,
                                              vertex,
                                              vertexToVertex.getVertexStencilID(),
-                                             dst.getVertexDoFFunction()->getVertexDataID(),
+                                             dst.getVertexDoFFunction().getVertexDataID(),
                                              edgeToVertex.getVertexStencilID(),
-                                             dst.getEdgeDoFFunction()->getVertexDataID(),
-                                             rhs.getVertexDoFFunction()->getVertexDataID() );
+                                             dst.getEdgeDoFFunction().getVertexDataID(),
+                                             rhs.getVertexDoFFunction().getVertexDataID() );
       }
    }
 
-   dst.getVertexDoFFunction()->communicate< Vertex, Edge >( level );
-   dst.getEdgeDoFFunction()->communicate< Vertex, Edge >( level );
+   dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
+   dst.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
 
    for( auto& it : storage_->getEdges() )
    {
@@ -407,17 +407,17 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Funct
                                            edge,
                                            vertexToVertex.getEdgeStencilID(),
                                            edgeToVertex.getEdgeStencilID(),
-                                           dst.getVertexDoFFunction()->getEdgeDataID(),
+                                           dst.getVertexDoFFunction().getEdgeDataID(),
                                            vertexToEdge.getEdgeStencilID(),
                                            edgeToEdge.getEdgeStencilID(),
-                                           dst.getEdgeDoFFunction()->getEdgeDataID(),
-                                           rhs.getVertexDoFFunction()->getEdgeDataID(),
-                                           rhs.getEdgeDoFFunction()->getEdgeDataID() );
+                                           dst.getEdgeDoFFunction().getEdgeDataID(),
+                                           rhs.getVertexDoFFunction().getEdgeDataID(),
+                                           rhs.getEdgeDoFFunction().getEdgeDataID() );
       }
    }
 
-   dst.getVertexDoFFunction()->communicate< Edge, Face >( level );
-   dst.getEdgeDoFFunction()->communicate< Edge, Face >( level );
+   dst.getVertexDoFFunction().communicate< Edge, Face >( level );
+   dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
 
    for( auto& it : storage_->getFaces() )
    {
@@ -430,32 +430,32 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs_impl( P2Funct
                                            face,
                                            vertexToVertex.getFaceStencilID(),
                                            edgeToVertex.getFaceStencilID(),
-                                           dst.getVertexDoFFunction()->getFaceDataID(),
+                                           dst.getVertexDoFFunction().getFaceDataID(),
                                            vertexToEdge.getFaceStencilID(),
                                            edgeToEdge.getFaceStencilID(),
-                                           dst.getEdgeDoFFunction()->getFaceDataID(),
-                                           rhs.getVertexDoFFunction()->getFaceDataID(),
-                                           rhs.getEdgeDoFFunction()->getFaceDataID() );
+                                           dst.getEdgeDoFFunction().getFaceDataID(),
+                                           rhs.getVertexDoFFunction().getFaceDataID(),
+                                           rhs.getEdgeDoFFunction().getFaceDataID() );
       }
    }
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac_impl( P2Function< real_t >& dst,
-                                                                          P2Function< real_t >& rhs,
-                                                                          P2Function< real_t >& src,
-                                                                          size_t                level,
-                                                                          DoFType               flag )
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac( const P2Function< real_t >& dst,
+                                                                     const P2Function< real_t >& rhs,
+                                                                     const P2Function< real_t >& src,
+                                                                     size_t                      level,
+                                                                     DoFType                     flag ) const
 {
    ///TODO: remove unneccessary communication here
-   src.getVertexDoFFunction()->communicate< Face, Edge >( level );
-   src.getVertexDoFFunction()->communicate< Edge, Vertex >( level );
-   src.getVertexDoFFunction()->communicate< Vertex, Edge >( level );
-   src.getVertexDoFFunction()->communicate< Edge, Face >( level );
-   src.getEdgeDoFFunction()->communicate< Face, Edge >( level );
-   src.getEdgeDoFFunction()->communicate< Edge, Vertex >( level );
-   src.getEdgeDoFFunction()->communicate< Vertex, Edge >( level );
-   src.getEdgeDoFFunction()->communicate< Edge, Face >( level );
+   src.getVertexDoFFunction().communicate< Face, Edge >( level );
+   src.getVertexDoFFunction().communicate< Edge, Vertex >( level );
+   src.getVertexDoFFunction().communicate< Vertex, Edge >( level );
+   src.getVertexDoFFunction().communicate< Edge, Face >( level );
+   src.getEdgeDoFFunction().communicate< Face, Edge >( level );
+   src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
+   src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
+   src.getEdgeDoFFunction().communicate< Edge, Face >( level );
 
    for( auto& it : storage_->getFaces() )
    {
@@ -467,11 +467,11 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac_impl( P2Func
          P2::macroface::smoothJacobiVertexDoF( level,
                                                face,
                                                vertexToVertex.getFaceStencilID(),
-                                               src.getVertexDoFFunction()->getFaceDataID(),
-                                               dst.getVertexDoFFunction()->getFaceDataID(),
+                                               src.getVertexDoFFunction().getFaceDataID(),
+                                               dst.getVertexDoFFunction().getFaceDataID(),
                                                edgeToVertex.getFaceStencilID(),
-                                               src.getEdgeDoFFunction()->getFaceDataID(),
-                                               rhs.getVertexDoFFunction()->getFaceDataID() );
+                                               src.getEdgeDoFFunction().getFaceDataID(),
+                                               rhs.getVertexDoFFunction().getFaceDataID() );
       }
    }
    for( auto& it : storage_->getFaces() )
@@ -484,11 +484,11 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_jac_impl( P2Func
          P2::macroface::smoothJacobiEdgeDoF( level,
                                              face,
                                              vertexToEdge.getFaceStencilID(),
-                                             src.getVertexDoFFunction()->getFaceDataID(),
+                                             src.getVertexDoFFunction().getFaceDataID(),
                                              edgeToEdge.getFaceStencilID(),
-                                             src.getEdgeDoFFunction()->getFaceDataID(),
-                                             dst.getEdgeDoFFunction()->getFaceDataID(),
-                                             rhs.getEdgeDoFFunction()->getFaceDataID() );
+                                             src.getEdgeDoFFunction().getFaceDataID(),
+                                             dst.getEdgeDoFFunction().getFaceDataID(),
+                                             rhs.getEdgeDoFFunction().getFaceDataID() );
       }
    }
 }

@@ -125,28 +125,30 @@ class P1ToP2ConstantOperator : public Operator<P1Function < real_t>, P2Function<
   }
 
 
-  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToVertexOpr() {
+  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > const & getVertexToVertexOpr() const {
     return vertexToVertex;
   }
 
-  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToEdgeOpr() {
+  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > const & getVertexToEdgeOpr() const {
     return vertexToEdge;
   }
 
-
- private:
-
-  void apply_impl(P1Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace)
-  {
-    vertexToVertex.apply(src, *dst.getVertexDoFFunction(), level, flag, updateType);
-    vertexToEdge.apply(src, *dst.getEdgeDoFFunction(), level, flag, updateType);
+   void apply( const P1Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
+   {
+      vertexToVertex.apply( src, dst.getVertexDoFFunction(), level, flag, updateType );
+      vertexToEdge.apply( src, dst.getEdgeDoFFunction(), level, flag, updateType );
   }
 
-  void smooth_gs_impl(P1Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)
+  void smooth_gs(P1Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag)
   {
     WALBERLA_ABORT("not implemented");
   }
 
+private:
 
   P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > vertexToVertex;
   VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > vertexToEdge;

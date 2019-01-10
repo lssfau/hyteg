@@ -101,7 +101,7 @@ void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uin
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                   uint_t                                              level,
-                                                  DoFType                                             flag )
+                                                  DoFType                                             flag ) const
 {
    if( isDummy() )
    {
@@ -115,7 +115,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                   uint_t                                              level,
-                                                  BoundaryUID                                         boundaryUID )
+                                                  BoundaryUID                                         boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -131,7 +131,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                              srcFunctions,
     uint_t                                                                               level,
-    DoFType                                                                              flag )
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -199,7 +199,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< VertexDoFFunction* >                                              srcFunctions,
     uint_t                                                                               level,
-    BoundaryUID                                                                          boundaryUID )
+    BoundaryUID                                                                          boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -263,10 +263,11 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >                       scalars,
-                                             const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                             size_t                                               level,
-                                             DoFType                                              flag )
+void VertexDoFFunction< ValueType >::assign(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+    size_t                                                                               level,
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -279,12 +280,12 @@ void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >     
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : functions )
+   for( const VertexDoFFunction< ValueType >& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
    this->startTiming( "Vertex" );
    for( const auto& it : this->getStorage()->getVertices() )
@@ -333,7 +334,7 @@ void VertexDoFFunction< ValueType >::assign( const std::vector< ValueType >     
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag )
+void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -384,10 +385,11 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >                       scalars,
-                                          const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                          size_t                                               level,
-                                          DoFType                                              flag )
+void VertexDoFFunction< ValueType >::add(
+    const std::vector< ValueType >&                                                      scalars,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+    size_t                                                                               level,
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -400,12 +402,12 @@ void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >        
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( auto& function : functions )
+   for( const VertexDoFFunction< ValueType >& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -450,9 +452,9 @@ void VertexDoFFunction< ValueType >::add( const std::vector< ValueType >        
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexDoFFunction< ValueType >* > functions,
-                                                      uint_t                                               level,
-                                                      DoFType                                              flag )
+void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+                                                      const uint_t                                               level,
+                                                      const DoFType                                              flag ) const
 {
    if( isDummy() )
    {
@@ -465,12 +467,12 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexD
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : functions )
+   for( const VertexDoFFunction& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -515,7 +517,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< VertexD
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    real_t scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -525,7 +527,7 @@ real_t VertexDoFFunction< ValueType >::dotGlobal( VertexDoFFunction< ValueType >
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -577,7 +579,7 @@ real_t VertexDoFFunction< ValueType >::dotLocal( VertexDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::enumerate( uint_t level )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
    if( isDummy() )
    {
@@ -601,7 +603,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level )
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
    if( isDummy() )
    {
@@ -703,7 +705,7 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -757,7 +759,7 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -811,7 +813,7 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {

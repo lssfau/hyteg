@@ -35,12 +35,14 @@ public:
   {
   }
 
-  ~P1BlendingOperator()
-  {
-  }
+  ~P1BlendingOperator() override = default;
 
-private:
-  void apply_impl(P1Function< real_t >& src, P1Function< real_t >& dst, size_t level, DoFType flag, UpdateType updateType = Replace)
+
+  void apply( const P1Function< real_t >& src,
+              const P1Function< real_t >& dst,
+              size_t                      level,
+              DoFType                     flag,
+              UpdateType                  updateType = Replace ) const
   {
     src.communicate< Vertex, Edge>( level );
     src.communicate< Edge, Face>( level );
@@ -53,7 +55,7 @@ private:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, form, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
       }
     }
 
@@ -63,7 +65,7 @@ private:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, form, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -73,13 +75,13 @@ private:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, form, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, src.getFaceDataID(), dst.getFaceDataID(), updateType);
       }
     }
 
   }
 
-  void smooth_gs_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, size_t level, DoFType flag)
+  void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
   {
     // start pulling vertex halos
     dst.startCommunication<Edge, Vertex>( level );
@@ -96,7 +98,7 @@ private:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::smoothGSBlending(level, vertex, form, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::blending::macrovertex::smoothGSBlending<real_t, P1Form>(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
       }
     }
 
@@ -111,7 +113,7 @@ private:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::smoothGSBlending<real_t>(level, edge, form, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form>(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
       }
     }
 
@@ -125,14 +127,18 @@ private:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::smoothGSBlending<real_t>(level, face, form, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::blending::macroface::smoothGSBlending<real_t, P1Form>(level, face, dst.getFaceDataID(), rhs.getFaceDataID());
       }
     }
 
     dst.endCommunication<Edge, Face>( level );
   }
 
-  void smooth_jac_impl(P1Function< real_t >& dst, P1Function< real_t >& rhs, P1Function< real_t >& tmp, size_t level, DoFType flag)
+  void smooth_jac( const P1Function< real_t >& dst,
+                   const P1Function< real_t >& rhs,
+                   const P1Function< real_t >& tmp,
+                   size_t                      level,
+                   DoFType                     flag ) const
   {
     // start pulling vertex halos
     tmp.startCommunication<Edge, Vertex>( level );
@@ -225,8 +231,6 @@ private:
     }
   }
 #endif
-
-  P1Form form;
 };
 
 typedef P1BlendingOperator<P1Form_laplace> P1BlendingLaplaceOperator;

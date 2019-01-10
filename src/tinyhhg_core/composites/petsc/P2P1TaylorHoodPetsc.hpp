@@ -5,8 +5,8 @@
 namespace hhg {
 namespace petsc {
 
-inline void createVectorFromFunction(P2P1TaylorHoodFunction<PetscScalar> &function,
-                                     P2P1TaylorHoodFunction<PetscInt> &numerator,
+inline void createVectorFromFunction(const P2P1TaylorHoodFunction<PetscScalar> &function,
+                                     const P2P1TaylorHoodFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -19,8 +19,8 @@ inline void createVectorFromFunction(P2P1TaylorHoodFunction<PetscScalar> &functi
   createVectorFromFunction(function.p, numerator.p, vec, level, flag);
 }
 
-inline void createFunctionFromVector(P2P1TaylorHoodFunction<PetscScalar> &function,
-                                     P2P1TaylorHoodFunction<PetscInt> &numerator,
+inline void createFunctionFromVector(const P2P1TaylorHoodFunction<PetscScalar> &function,
+                                     const P2P1TaylorHoodFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -33,7 +33,7 @@ inline void createFunctionFromVector(P2P1TaylorHoodFunction<PetscScalar> &functi
   createFunctionFromVector(function.p, numerator.p, vec, level, flag);
 }
 
-inline void applyDirichletBC(P2P1TaylorHoodFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
+inline void applyDirichletBC(const P2P1TaylorHoodFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
   applyDirichletBC(numerator.u, mat, level);
   applyDirichletBC(numerator.v, mat, level);
   if ( numerator.u.getStorage()->hasGlobalCells() )
@@ -43,16 +43,21 @@ inline void applyDirichletBC(P2P1TaylorHoodFunction<PetscInt> &numerator, std::v
 //  applyDirichletBC(numerator.p, mat, level);
 }
 
-template<class OperatorType>
-inline void createMatrix(OperatorType& opr, P2P1TaylorHoodFunction< PetscInt > & src, P2P1TaylorHoodFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+template < class OperatorType >
+inline void createMatrix( const OperatorType&                       opr,
+                          const P2P1TaylorHoodFunction< PetscInt >& src,
+                          const P2P1TaylorHoodFunction< PetscInt >& dst,
+                          Mat&                                      mat,
+                          size_t                                    level,
+                          DoFType                                   flag )
 {
   createMatrix(opr.A, src.u, dst.u, mat, level, flag);
-  createMatrix(opr.divT_x.getVertexToVertexOpr(), src.p, *dst.u.getVertexDoFFunction(), mat, level, flag);
-  VertexDoFToEdgeDoF::createMatrix(opr.divT_x.getVertexToEdgeOpr(), src.p, *dst.u.getEdgeDoFFunction(), mat, level, flag);
+  createMatrix(opr.divT_x.getVertexToVertexOpr(), src.p, dst.u.getVertexDoFFunction(), mat, level, flag);
+  VertexDoFToEdgeDoF::createMatrix(opr.divT_x.getVertexToEdgeOpr(), src.p, dst.u.getEdgeDoFFunction(), mat, level, flag);
 
   createMatrix(opr.A, src.v, dst.v, mat, level, flag);
-  createMatrix(opr.divT_y.getVertexToVertexOpr(), src.p, *dst.v.getVertexDoFFunction(), mat, level, flag);
-  VertexDoFToEdgeDoF::createMatrix(opr.divT_y.getVertexToEdgeOpr(), src.p, *dst.v.getEdgeDoFFunction(), mat, level, flag);
+  createMatrix(opr.divT_y.getVertexToVertexOpr(), src.p, dst.v.getVertexDoFFunction(), mat, level, flag);
+  VertexDoFToEdgeDoF::createMatrix(opr.divT_y.getVertexToEdgeOpr(), src.p, dst.v.getEdgeDoFFunction(), mat, level, flag);
 
   if ( src.u.getStorage()->hasGlobalCells() )
   {

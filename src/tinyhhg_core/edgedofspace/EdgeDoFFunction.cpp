@@ -65,7 +65,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag )
+void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -108,7 +108,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                        uint_t                                              level,
-                                                       DoFType                                             flag )
+                                                       DoFType                                             flag ) const
 {
    if( isDummy() )
    {
@@ -122,7 +122,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                 uint_t                                              level,
-                                                BoundaryUID                                         boundaryUID )
+                                                BoundaryUID                                         boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -138,7 +138,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
     uint_t                                                                               level,
-    DoFType                                                                              flag )
+    DoFType                                                                              flag ) const
 {
    if( isDummy() )
    {
@@ -167,8 +167,6 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       }
    }
 
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -178,8 +176,6 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
          edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -198,7 +194,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
     uint_t                                                                               level,
-    BoundaryUID                                                                          boundaryUID )
+    BoundaryUID                                                                          boundaryUID ) const
 {
    if( isDummy() )
    {
@@ -227,8 +223,6 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       }
    }
 
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -238,8 +232,6 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
          edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -254,10 +246,11 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >                     scalars,
-                                                  const std::vector< EdgeDoFFunction< ValueType >* > functions,
-                                                  size_t                                             level,
-                                                  DoFType                                            flag )
+void EdgeDoFFunction< ValueType >::assign(
+    const std::vector< ValueType >&                                                    scalars,
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+    size_t                                                                             level,
+    DoFType                                                                            flag ) const
 {
    if( isDummy() )
    {
@@ -268,11 +261,11 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : functions )
+   for( const EdgeDoFFunction< ValueType >& function : functions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )
@@ -285,8 +278,6 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
       }
    }
 
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -296,8 +287,6 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
          edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -313,10 +302,10 @@ void EdgeDoFFunction< ValueType >::assign( const std::vector< ValueType >       
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >                     scalars,
-                                               const std::vector< EdgeDoFFunction< ValueType >* > functions,
+void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&                     scalars,
+                                        const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
                                                size_t                                             level,
-                                               DoFType                                            flag )
+                                               DoFType                                            flag ) const
 {
    if( isDummy() )
    {
@@ -327,11 +316,11 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >          
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : functions )
+   for( const EdgeDoFFunction< ValueType >& function : functions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )
@@ -344,8 +333,6 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >          
       }
    }
 
-   communicators_[level]->template startCommunication< Edge, Face >();
-
    for( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -355,8 +342,6 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >          
          edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
-
-   communicators_[level]->template endCommunication< Edge, Face >();
 
    for( auto& it : this->getStorage()->getCells() )
    {
@@ -372,7 +357,7 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >          
 }
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::dotLocal( EdgeDoFFunction< ValueType >& rhs, size_t level, DoFType flag )
+real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
 {
    if( isDummy() )
    {
@@ -417,7 +402,7 @@ real_t EdgeDoFFunction< ValueType >::dotLocal( EdgeDoFFunction< ValueType >& rhs
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
    if( isDummy() )
    {
@@ -441,7 +426,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level )
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
    if( isDummy() )
    {
@@ -470,7 +455,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset )
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -514,7 +499,7 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {
@@ -558,7 +543,7 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce )
+ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    if( isDummy() )
    {

@@ -19,7 +19,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 
 using walberla::real_t;
@@ -94,20 +95,19 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > err( "err", storage, minLevel, maxLevel );
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   typedef hhg::P1BlendingStokesOperator SolveOperator;
+   auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1BlendingStokesOperator > >(
+       storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+   auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1BlendingStokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+   auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
 
-   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
-   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
-   typedef hhg::MinResSolver< P1StokesFunction< real_t >, SolveOperator > CoarseGridSolver;
+   auto solver = hhg::GeometricMultigridSolver< hhg::P1BlendingStokesOperator >(
+      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
    auto          start = walberla::timing::getWcTime();
-   SolveOperator L( storage, minLevel, maxLevel );
+   hhg::P1BlendingStokesOperator L( storage, minLevel, maxLevel );
    auto          end       = walberla::timing::getWcTime();
    real_t        setupTime = end - start;
-
-   RestrictionOperator  restrictionOperator;
-   ProlongationOperator prolongationOperator;
-   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
 
    P1BlendingMassOperator M( storage, minLevel, maxLevel );
 
@@ -170,21 +170,18 @@ int main( int argc, char* argv[] )
    real_t corr = one.dotGlobal( tmp2.p, maxLevel, hhg::DirichletBoundary );
    M.apply( one, tmp2.p, maxLevel, hhg::DirichletBoundary, Replace );
    real_t volume = one.dotGlobal( tmp2.p, maxLevel, hhg::DirichletBoundary );
-   tmp2.p.assign( {corr / volume}, {&one}, maxLevel, hhg::DirichletBoundary );
+   tmp2.p.assign( {corr / volume}, {one}, maxLevel, hhg::DirichletBoundary );
    M.apply( tmp2.p, f.p, maxLevel, hhg::DirichletBoundary );
 
    one.interpolate( ones, maxLevel, hhg::All );
    communication::syncFunctionBetweenPrimitives( one, maxLevel);
    real_t npoints = one.dotGlobal( one, maxLevel );
 
-   typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, SolveOperator, CoarseGridSolver, RestrictionOperator, ProlongationOperator, true> Solver;
-   auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
-
    WALBERLA_LOG_INFO_ON_ROOT( "Starting Uzawa cycles" );
    WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%6s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "Time" ) );
 
    L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-   r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+   r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
    real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
    real_t abs_res_old = begin_res;
    real_t rel_res     = 1.0;
@@ -201,15 +198,14 @@ int main( int argc, char* argv[] )
    {
       start = walberla::timing::getWcTime();
 
-      solver.solve(L, u, f, r, maxLevel, 1e-6, coarseMaxiter,
-                   hhg::Inner | hhg::NeumannBoundary, Solver::CycleType::VCYCLE, true);
+      solver.solve(L, u, f, maxLevel);
 
       end = walberla::timing::getWcTime();
       hhg::vertexdof::projectMean( u.p, tmp.p, maxLevel );
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 
-      r.assign( {1.0, -1.0}, {&f, &r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
       rel_res        = abs_res / begin_res;
       WALBERLA_LOG_INFO_ON_ROOT(
@@ -243,7 +239,7 @@ int main( int argc, char* argv[] )
                                                         << averageConvergenceRate / real_c( outer + 1 - convergenceStartIter ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Dofs: " << 3 * npoints );
 
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
    real_t discr_u_l2_err = std::sqrt( ( err.u.dotGlobal( err.u, maxLevel ) + err.v.dotGlobal( err.v, maxLevel ) ) / ( 2 * npoints ) );
    real_t discr_p_l2_err = std::sqrt( ( err.p.dotGlobal( err.p, maxLevel ) ) / ( npoints ) );
 
@@ -255,21 +251,21 @@ int main( int argc, char* argv[] )
 
    // u_u*iHat + u_v*jHat
    //   hhg::VTKOutput vtkOutput( "../output", "stokes_stab_varcoeff" );
-   //   vtkOutput.add( &u.u );
-   //   vtkOutput.add( &u.v );
-   //   vtkOutput.add( &u.p );
-   //   vtkOutput.add( &u_exact.u );
-   //   vtkOutput.add( &u_exact.v );
-   //   vtkOutput.add( &u_exact.p );
-   //   vtkOutput.add( &err.u );
-   //   vtkOutput.add( &err.v );
-   //   vtkOutput.add( &err.p );
-   //   vtkOutput.add( &r.u );
-   //   vtkOutput.add( &r.v );
-   //   vtkOutput.add( &r.p );
-   //   vtkOutput.add( &f.u );
-   //   vtkOutput.add( &f.v );
-   //   vtkOutput.add( &f.p );
+   //   vtkOutput.add( u.u );
+   //   vtkOutput.add( u.v );
+   //   vtkOutput.add( u.p );
+   //   vtkOutput.add( u_exact.u );
+   //   vtkOutput.add( u_exact.v );
+   //   vtkOutput.add( u_exact.p );
+   //   vtkOutput.add( err.u );
+   //   vtkOutput.add( err.v );
+   //   vtkOutput.add( err.p );
+   //   vtkOutput.add( r.u );
+   //   vtkOutput.add( r.v );
+   //   vtkOutput.add( r.p );
+   //   vtkOutput.add( f.u );
+   //   vtkOutput.add( f.v );
+   //   vtkOutput.add( f.p );
    //   vtkOutput.write( maxLevel, 0 );
    return EXIT_SUCCESS;
 }

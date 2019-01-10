@@ -5,6 +5,11 @@
 #include <utility>
 #include <vector>
 
+#include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+
 #include "core/DataTypes.h"
 
 namespace hhg {
@@ -17,21 +22,6 @@ using walberla::uint_t;
 
 class PrimitiveStorage;
 
-template < typename ValueType >
-class EdgeDoFFunction;
-template < typename ValueType >
-class DGFunction;
-template < typename ValueType >
-class P2Function;
-
-namespace vertexdof {
-template < typename ValueType >
-class VertexDoFFunction;
-}
-
-template < typename ValueType >
-using P1Function = vertexdof::VertexDoFFunction< ValueType >;
-
 class VTKOutput
 {
  public:
@@ -41,17 +31,11 @@ class VTKOutput
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
 
-   void add( const P1Function< real_t >* function ) { p1Functions_.push_back( function ); };
-   void add( const EdgeDoFFunction< real_t >* function ) { edgeDoFFunctions_.push_back( function ); };
-   void add( const DGFunction< real_t >* function ) { dgFunctions_.push_back( function ); };
+   void add( P1Function< real_t > function );
+   void add( EdgeDoFFunction< real_t > function );
+   void add( DGFunction< real_t > function );
 
-   void add( const P2Function< real_t >* function );
-
-   void add( const std::shared_ptr< P1Function< real_t > >& function ) { p1Functions_.push_back( function.get() ); };
-   void add( const std::shared_ptr< EdgeDoFFunction< real_t > >& function ) { edgeDoFFunctions_.push_back( function.get() ); };
-   void add( const std::shared_ptr< DGFunction< real_t > >& function ) { dgFunctions_.push_back( function.get() ); };
-
-   void add( const std::shared_ptr< P2Function< real_t > >& function );
+   void add( P2Function< real_t > function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -98,11 +82,11 @@ class VTKOutput
                                   const VTKOutput::DoFType&                  dofType ) const;
 
    void writeVertexDoFData( std::ostream&                                 output,
-                            const vertexdof::VertexDoFFunction< real_t >* function,
+                            const vertexdof::VertexDoFFunction< real_t >& function,
                             const std::shared_ptr< PrimitiveStorage >&    storage,
                             const uint_t&                                 level ) const;
    void writeEdgeDoFData( std::ostream&                              output,
-                          const EdgeDoFFunction< real_t >*           function,
+                          const EdgeDoFFunction< real_t >&           function,
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           const uint_t&                              level,
                           const DoFType&                             dofType ) const;
@@ -124,11 +108,11 @@ class VTKOutput
 
    bool write2D_;
 
-   std::vector< const P1Function< real_t >* >      p1Functions_;
-   std::vector< const EdgeDoFFunction< real_t >* > edgeDoFFunctions_;
-   std::vector< const DGFunction< real_t >* >      dgFunctions_;
+   std::vector< P1Function< real_t > >      p1Functions_;
+   std::vector< EdgeDoFFunction< real_t > > edgeDoFFunctions_;
+   std::vector< DGFunction< real_t > >      dgFunctions_;
 
-   std::vector< const P2Function< real_t >* > p2Functions_;
+   std::vector< P2Function< real_t > > p2Functions_;
 };
 
 } // namespace hhg

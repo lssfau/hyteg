@@ -18,9 +18,10 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
 #include "tinyhhg_core/solvers/EmptySolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -69,7 +70,7 @@ const static std::map< std::string, SolverType > strToSolverType =
 };
 
 template< template< typename ValueType > class Function_T, typename Operator_T  >
-class PetscSolver
+class PetscSolver : public Solver< Operator_T >
 {
 #ifdef HHG_BUILD_WITH_PETSC
 public:
@@ -84,25 +85,23 @@ public:
       numerator_ = std::make_shared< Function_T< PetscInt > >( "numerator", storage, minLevel, maxLevel );
     }
 
-    void solve( Operator_T & A,
-                Function_T< real_t > & x,
-                Function_T< real_t > & b,
-                Function_T< real_t > & r,
-                size_t level, real_t tolerance, size_t maxiter,
-                DoFType flag = All, bool printInfo = false ) {
+    void solve( const Operator_T & A,
+                const Function_T< real_t > & x,
+                const Function_T< real_t > & b,
+                size_t level) {
 
        PETScManager petscManager;
-       tmpRHS_->assign( {1.0}, {&b}, level, DoFType::Inner | NeumannBoundary );
+       tmpRHS_->assign( {1.0}, {b}, level, DoFType::Inner | NeumannBoundary );
 
        //tmpRHS_->u.interpolate(velocityUBC_, level, hhg::DirichletBoundary);
        //tmpRHS_->v.interpolate(velocityVBC_, level, hhg::DirichletBoundary);
-       tmpRHS_->u.assign( {1.0}, {&x.u}, level, hhg::DirichletBoundary);
-       tmpRHS_->v.assign( {1.0}, {&x.v}, level, hhg::DirichletBoundary);
+       tmpRHS_->u.assign( {1.0}, {x.u}, level, hhg::DirichletBoundary);
+       tmpRHS_->v.assign( {1.0}, {x.v}, level, hhg::DirichletBoundary);
        const uint_t localSize = hhg::numberOfLocalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
        const uint_t globalSize = hhg::numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
        numerator_->enumerate( level );
-       PETScLUSolver<real_t, Function_T, Operator_T> solver(numerator_, localSize, globalSize);
-       solver.solve(A, x, *tmpRHS_, r, level, tolerance, maxiter, flag, printInfo);
+       PETScLUSolver< Operator_T> solver(numerator_, localSize, globalSize);
+       solver.solve(A, x, *tmpRHS_, level );
     }
 
 private:
@@ -120,12 +119,10 @@ public:
                  const std::function< real_t ( const hhg::Point3D & ) > &)
     {}
 
-    void solve( Operator_T &,
-                Function_T< real_t > &,
-                Function_T< real_t > &,
-                Function_T< real_t > &,
-                size_t, real_t, size_t,
-                DoFType, bool)
+    void solve(const Operator_T &,
+               const Function_T< real_t > &,
+               const Function_T< real_t > &,
+               uint_t) override
     {
              WALBERLA_ABORT( "Cannot use PETSc solver if PETSc was not built..." );
     }
@@ -261,42 +258,43 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   ////////////////////////
 
   // Velocity block solver
-  typedef hhg::CGSolver< typename StokesFunction_T< real_t >::VelocityFunction_T, typename StokesOperator_T::VelocityOperator_T > VelocityCGSolver_T;
-  typedef hhg::GMultigridSolver< typename StokesFunction_T< real_t >::VelocityFunction_T,
-                                 typename StokesOperator_T::VelocityOperator_T,
-                                 VelocityCGSolver_T,
-                                 typename RestrictionOperator_T::VelocityRestriction_T,
-                                 typename ProlongationOperator_T::VelocityProlongation_T > VelocityGMGSolver_T;
-  typename RestrictionOperator_T::VelocityRestriction_T   velocityRestriction;
-  typename ProlongationOperator_T::VelocityProlongation_T velocityProlongation;
-  auto velocityCGSolver = std::make_shared< VelocityCGSolver_T >( storage, minLevel, maxLevel );
-  VelocityGMGSolver_T velocityGMGSolver( storage, velocityCGSolver, velocityRestriction, velocityProlongation, minLevel, maxLevel, preSmooth, postSmooth );
+  typedef hhg::CGSolver< typename StokesOperator_T::VelocityOperator_T >                 VelocityCGSolver_T;
+  typedef hhg::GeometricMultigridSolver< typename StokesOperator_T::VelocityOperator_T > VelocityGMGSolver_T;
+  auto velocityRestriction  = std::make_shared< typename RestrictionOperator_T::VelocityRestriction_T >();
+  auto velocityProlongation = std::make_shared< typename ProlongationOperator_T::VelocityProlongation_T >();
+  auto velocityCGSolver     = std::make_shared< VelocityCGSolver_T >( storage, minLevel, maxLevel );
+  auto gsSmoother           = std::make_shared< hhg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+  auto velocityGMGSolver    = std::make_shared< VelocityGMGSolver_T >( storage,
+                                                                    gsSmoother,
+                                                                    velocityCGSolver,
+                                                                    velocityRestriction,
+                                                                    velocityProlongation,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    preSmooth,
+                                                                    postSmooth );
 
   // Empty
-  typedef EmptySolver< StokesFunction_T< real_t >, StokesOperator_T > EmptySolver_T;
-  EmptySolver_T emptySolver;
+  typedef EmptySolver< StokesOperator_T > EmptySolver_T;
+  auto emptySolver = std::shared_ptr< EmptySolver_T >();
 
   // MinRes (preconditioned)
-  typedef hhg::StokesBlockDiagonalPreconditioner< StokesFunction_T< real_t >,
-                                                  typename StokesOperator_T::VelocityOperator_T,
-                                                  VelocityGMGSolver_T,
+  typedef hhg::StokesBlockDiagonalPreconditioner< StokesOperator_T,
                                                   hhg::P1LumpedInvMassOperator > Preconditioner_T;
-  hhg::P1LumpedInvMassOperator lumpedInvMassOperator( storage, minLevel, maxLevel );
-  Preconditioner_T preconditioner( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, numMGCycles );
-  typedef hhg::MinResSolver< StokesFunction_T< real_t >, StokesOperator_T, Preconditioner_T > PreconditionedMinResSolver_T;
-  auto preconditionedMinResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, preconditioner );
+  auto preconditioner = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, numMGCycles, velocityGMGSolver );
+  typedef hhg::MinResSolver< StokesOperator_T > PreconditionedMinResSolver_T;
+  auto preconditionedMinResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditioner );
 
   // MinRes (only pressure preconditioner)
-  Preconditioner_T preconditionerOnlyPressure( L.A, velocityGMGSolver, lumpedInvMassOperator, storage, minLevel, maxLevel, 0 );
-  typedef hhg::MinResSolver< StokesFunction_T< real_t >, StokesOperator_T, Preconditioner_T > MinResSolver_T;
-  auto minResSolver = PreconditionedMinResSolver_T( storage, minLevel, maxLevel, preconditionerOnlyPressure );
+  auto preconditionerOnlyPressure = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 0 );
+  auto minResSolver = std::make_shared< PreconditionedMinResSolver_T >( storage, minLevel, maxLevel, maxIterations, targetResidual, preconditionerOnlyPressure );
 
   // PETSc
   typedef PetscSolver< StokesFunction_T, StokesOperator_T > PetscSolver_T;
-  PetscSolver_T petscSolver( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
+  auto petscSolver = std::make_shared< PetscSolver_T >( storage, minLevel, maxLevel, setUVelocityBC, setVVelocityBC );
 
   // Laplace solver
-  typedef hhg::CGSolver< typename StokesFunction_T< real_t >::VelocityFunction_T, typename StokesOperator_T::VelocityOperator_T > LaplaceSolver_T;
+  typedef hhg::CGSolver< typename StokesOperator_T::VelocityOperator_T > LaplaceSolver_T;
   LaplaceSolver_T laplaceSolver( storage, minLevel, maxLevel );
 
   /////////////////////////
@@ -325,27 +323,27 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   hhg::VTKOutput vtkOutput("../output", "StokesFlowSolverComparison", storage);
 
-  vtkOutput.add( &r.u );
-  vtkOutput.add( &r.v );
-  vtkOutput.add( &r.p );
+  vtkOutput.add( r.u );
+  vtkOutput.add( r.v );
+  vtkOutput.add( r.p );
 
-  vtkOutput.add( &f.u );
-  vtkOutput.add( &f.v );
-  vtkOutput.add( &f.p );
+  vtkOutput.add( f.u );
+  vtkOutput.add( f.v );
+  vtkOutput.add( f.p );
 
-  vtkOutput.add( &u.u );
-  vtkOutput.add( &u.v );
-  vtkOutput.add( &u.p );
+  vtkOutput.add( u.u );
+  vtkOutput.add( u.v );
+  vtkOutput.add( u.p );
 
   if ( compareWithAnalyticalSolution )
   {
-    vtkOutput.add( &exactSolution.u );
-    vtkOutput.add( &exactSolution.v );
-    vtkOutput.add( &exactSolution.p );
+    vtkOutput.add( exactSolution.u );
+    vtkOutput.add( exactSolution.v );
+    vtkOutput.add( exactSolution.p );
 
-    vtkOutput.add( &error.u );
-    vtkOutput.add( &error.v );
-    vtkOutput.add( &error.p );
+    vtkOutput.add( error.u );
+    vtkOutput.add( error.v );
+    vtkOutput.add( error.p );
   }
 
   ////////////////////////////////
@@ -353,14 +351,14 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   ////////////////////////////////
 
   L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+  r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
   real_t currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
   real_t lastResidualL2    = currentResidualL2;
   WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial residual: " << currentResidualL2 );
 
   if ( compareWithAnalyticalSolution )
   {
-    error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+    error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
     const real_t currentErrorL2 = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) ) / real_c(hhg::numberOfGlobalDoFs< typename StokesFunction_T< real_t >::Tag >( *storage, maxLevel ));
     WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Initial error: " << currentErrorL2 );
   }
@@ -379,7 +377,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 #ifdef HHG_BUILD_WITH_PETSC
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with PETSc..." );
-      petscSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      petscSolver->solve( L, u, f, maxLevel);
 
       if ( rescalePressure )
       {
@@ -402,7 +400,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
     {
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with MinRes..." );
-      preconditionedMinResSolver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, true );
+      preconditionedMinResSolver.solve( L, u, f, maxLevel );
 
       if ( rescalePressure )
       {
@@ -412,7 +410,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       if ( compareWithAnalyticalSolution )
       {
-        error.assign( { 1.0, -1.0 }, { &u, &exactSolution }, maxLevel, DoFType::All );
+        error.assign( { 1.0, -1.0 }, { u, exactSolution }, maxLevel, DoFType::All );
       }
 
       vtkOutput.write( maxLevel, 1 );
@@ -429,41 +427,53 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
-          typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, EmptySolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
+           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
+               storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
-          auto solver = UzawaSolver_T( storage, emptySolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
+           auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
+                                                                            uzawaSmoother,
+                                                                            emptySolver,
+                                                                            restrictionOperator,
+                                                                            prolongationOperator,
+                                                                            minLevel,
+                                                                            maxLevel,
+                                                                            preSmooth,
+                                                                            postSmooth,
+                                                                            incrementSmooth );
 
-          walberla::WcTimer timer;
-          for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
-          {
-            vtkOutput.write( maxLevel, mgIteration );
+           walberla::WcTimer timer;
+           for( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
+           {
+              vtkOutput.write( maxLevel, mgIteration );
 
-            timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
-            timer.end();
+              timer.start();
+              solver.solve( L, u, f, maxLevel );
+              timer.end();
 
-            if ( rescalePressure )
-            {
-              const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
-              u.p.add( -minPressure, maxLevel, DoFType::All );
-            }
+              if( rescalePressure )
+              {
+                 const real_t minPressure = u.p.getMinValue( maxLevel, DoFType::All );
+                 u.p.add( -minPressure, maxLevel, DoFType::All );
+              }
 
-            lastResidualL2 = currentResidualL2;
-            L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
+              lastResidualL2 = currentResidualL2;
+              L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+              r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+              currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) /
+                                  real_c( hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ) );
 
-            if ( compareWithAnalyticalSolution )
-            {
-              error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
-            }
+              if( compareWithAnalyticalSolution )
+              {
+                 error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
+              }
 
-            WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] " << std::setw(9) << mgIteration << " | "
-                                                                       << std::setw(13) << std::scientific << currentResidualL2 << " | "
-                                                                       << std::setw(16) << std::scientific << currentResidualL2 / lastResidualL2 << " | "
-                                                                       << std::setw(7) << std::fixed << std::setprecision(3) << timer.last() )
+              WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] "
+                                         << std::setw( 9 ) << mgIteration << " | " << std::setw( 13 ) << std::scientific
+                                         << currentResidualL2 << " | " << std::setw( 16 ) << std::scientific
+                                         << currentResidualL2 / lastResidualL2 << " | " << std::setw( 7 ) << std::fixed
+                                         << std::setprecision( 3 ) << timer.last() )
           }
           vtkOutput.write( maxLevel, numMGCycles );
           break;
@@ -474,11 +484,21 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
-          typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, MinResSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
+          auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+          auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+          auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
+              storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
-          auto solver = UzawaSolver_T( storage, minResSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
+          auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
+                                                                           uzawaSmoother,
+                                                                           minResSolver,
+                                                                           restrictionOperator,
+                                                                           prolongationOperator,
+                                                                           minLevel,
+                                                                           maxLevel,
+                                                                           preSmooth,
+                                                                           postSmooth,
+                                                                           incrementSmooth );
 
           walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
@@ -486,7 +506,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             vtkOutput.write( maxLevel, mgIteration );
 
             timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
+            solver.solve( L, u, f, maxLevel );
             timer.end();
 
             if ( rescalePressure )
@@ -497,12 +517,12 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
             lastResidualL2 = currentResidualL2;
             L.apply( u, Au, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            r.assign( {1.0, -1.0}, {&f, &Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+            r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             currentResidualL2 = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) ) / real_c(hhg::numberOfGlobalDoFs< StokesFunctionTag_T >( *storage, maxLevel ));
 
             if ( compareWithAnalyticalSolution )
             {
-              error.assign( {1.0, -1.0}, {&u, &exactSolution}, maxLevel, DoFType::All );
+              error.assign( {1.0, -1.0}, {u, exactSolution}, maxLevel, DoFType::All );
             }
 
             WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] " << std::setw(9) << mgIteration << " | "
@@ -519,11 +539,21 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] iteration | residual (L2) | convergence rate |     time " )
           WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] ----------+---------------+------------------+--------- " )
 
-          RestrictionOperator_T restrictionOperator;
-          ProlongationOperator_T prolongationOperator;
-          typedef hhg::UzawaSolver< StokesFunction_T< real_t >, StokesOperator_T, PetscSolver_T, RestrictionOperator_T, ProlongationOperator_T, false > UzawaSolver_T;
+           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
+           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
+               storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
 
-          auto solver = UzawaSolver_T( storage, petscSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam );
+           auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
+                                                                            uzawaSmoother,
+                                                                            petscSolver,
+                                                                            restrictionOperator,
+                                                                            prolongationOperator,
+                                                                            minLevel,
+                                                                            maxLevel,
+                                                                            preSmooth,
+                                                                            postSmooth,
+                                                                            incrementSmooth );
 
           walberla::WcTimer timer;
           for ( uint_t mgIteration = 0; mgIteration < numMGCycles; mgIteration++ )
@@ -531,7 +561,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
             vtkOutput.write( maxLevel, mgIteration );
 
             timer.start();
-            solver.solve( L, u, f, r, maxLevel, targetResidual, maxIterations, hhg::Inner | hhg::NeumannBoundary, UzawaSolver_T::CycleType::VCYCLE, false );
+            solver.solve( L, u, f, maxLevel );
             timer.end();
 
             if ( rescalePressure )

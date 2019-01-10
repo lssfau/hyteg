@@ -12,6 +12,11 @@ class P1StokesFunction
 {
 public:
 
+  typedef ValueType valueType;
+
+  template< typename VType >
+  using FunctionType = P1StokesFunction< VType >;
+
   typedef P1Function< ValueType > VelocityFunction_T;
   typedef P1Function< ValueType > PressureFunction_T;
   typedef typename FunctionTrait< P1StokesFunction< ValueType > >::Tag Tag;
@@ -24,7 +29,7 @@ public:
   {
   }
 
-  void interpolate(std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All)
+  void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
@@ -32,49 +37,55 @@ public:
     p.interpolate(expr, level, flag);
   }
 
-  void assign(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
+  void assign( const std::vector< walberla::real_t >                                               scalars,
+               const std::vector< std::reference_wrapper< const P1StokesFunction< ValueType > > >& functions,
+               size_t                                                                              level,
+               DoFType                                                                             flag = All ) const
   {
-    std::vector< P1Function< ValueType > * > functions_u;
-    std::vector< P1Function< ValueType > * > functions_v;
-    std::vector< P1Function< ValueType > * > functions_w;
-    std::vector< P1Function< ValueType > * > functions_p;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_u;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_v;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_w;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_p;
 
-    for (auto& function : functions)
-    {
-      functions_u.push_back(&function->u);
-      functions_v.push_back(&function->v);
-      functions_w.push_back(&function->w);
-      functions_p.push_back(&function->p);
-    }
+     for( const P1StokesFunction< ValueType >& function : functions )
+     {
+        functions_u.push_back( function.u );
+        functions_v.push_back( function.v );
+        functions_w.push_back( function.w );
+        functions_p.push_back( function.p );
+     }
 
-    u.assign(scalars, functions_u, level, flag);
-    v.assign(scalars, functions_v, level, flag);
-    w.assign(scalars, functions_w, level, flag);
-    p.assign(scalars, functions_p, level, flag);
+     u.assign( scalars, functions_u, level, flag );
+     v.assign( scalars, functions_v, level, flag );
+     w.assign( scalars, functions_w, level, flag );
+     p.assign( scalars, functions_p, level, flag );
   }
 
-  void add(const std::vector<walberla::real_t> scalars, const std::vector<P1StokesFunction<ValueType>*> functions, size_t level, DoFType flag = All)
+  void add( const std::vector< walberla::real_t >                                               scalars,
+            const std::vector< std::reference_wrapper< const P1StokesFunction< ValueType > > >& functions,
+            size_t                                                                              level,
+            DoFType                                                                             flag = All ) const
   {
-    std::vector< P1Function< ValueType > * > functions_u;
-    std::vector< P1Function< ValueType > * > functions_v;
-    std::vector< P1Function< ValueType > * > functions_w;
-    std::vector< P1Function< ValueType > * > functions_p;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_u;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_v;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_w;
+     std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_p;
 
-    for (auto& function : functions)
-    {
-      functions_u.push_back(&function->u);
-      functions_v.push_back(&function->v);
-      functions_w.push_back(&function->w);
-      functions_p.push_back(&function->p);
-    }
+     for( const P1StokesFunction< ValueType >& function : functions )
+     {
+        functions_u.push_back( function.u );
+        functions_v.push_back( function.v );
+        functions_w.push_back( function.w );
+        functions_p.push_back( function.p );
+     }
 
-    u.add(scalars, functions_u, level, flag);
-    v.add(scalars, functions_v, level, flag);
-    w.add(scalars, functions_w, level, flag);
-    p.add(scalars, functions_p, level, flag);
+     u.add( scalars, functions_u, level, flag );
+     v.add( scalars, functions_v, level, flag );
+     w.add( scalars, functions_w, level, flag );
+     p.add( scalars, functions_p, level, flag );
   }
 
-  walberla::real_t dotGlobal(P1StokesFunction<ValueType>& rhs, size_t level, DoFType flag = All)
+  walberla::real_t dotGlobal(const P1StokesFunction<ValueType>& rhs,const uint_t level,const DoFType flag = All) const
   {
     walberla::real_t sum = u.dotLocal(rhs.u, level, flag);
     sum += v.dotLocal(rhs.v, level, flag);
@@ -118,3 +129,4 @@ public:
 };
 
 }
+

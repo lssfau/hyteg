@@ -48,8 +48,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   x->communicate< Edge, Face >( level );
   x->communicate< Face, Cell >( level );
 
-  y->assign( { 7.0 }, { x.get() }, level );
-  y->add( { 6.0 }, { x.get() }, level );
+  y->assign( { 7.0 }, { *x }, level );
+  y->add( { 6.0 }, { *x }, level );
 
   y->communicate< Vertex, Edge >( level );
   y->communicate< Edge, Face >( level );

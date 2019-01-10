@@ -74,11 +74,11 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 //   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
 
-   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+   PETScLUSolver< hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
 //   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
-   solver_1.solve( A, x, b, x, level, 0, 0 );
+   solver_1.solve( A, x, b, level );
 //   solver_2.solve( A, x, b, x, level + 1, 0, 0 );
    timer.end();
 
@@ -86,8 +86,8 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    A.apply( x, residuum, level, hhg::Inner );
 //   A.apply( x, residuum, level + 1, hhg::Inner );
 
-   err.assign( {1.0, -1.0}, {&x, &x_exact}, level );
-//   err.assign( {1.0, -1.0}, {&x, &x_exact}, level + 1 );
+   err.assign( {1.0, -1.0}, {x, x_exact}, level );
+//   err.assign( {1.0, -1.0}, {x, x_exact}, level + 1 );
 
    real_t discr_l2_err_1 = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
 //   real_t discr_l2_err_2 = std::sqrt( err.dotGlobal( err, level + 1 ) / (real_t) globalDoFs2 );
@@ -101,10 +101,10 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
 //   WALBERLA_LOG_INFO_ON_ROOT( "residuum 2 = " << residuum_l2_2 );
 
    VTKOutput vtkOutput("../../output", "P2PetscSolve", storage);
-   vtkOutput.add( &x );
-   vtkOutput.add( &x_exact );
-   vtkOutput.add( &err );
-   vtkOutput.add( &residuum );
+   vtkOutput.add( x );
+   vtkOutput.add( x_exact );
+   vtkOutput.add( err );
+   vtkOutput.add( residuum );
    vtkOutput.write( level );
 
    WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_1, 0.0, 1e-15 );

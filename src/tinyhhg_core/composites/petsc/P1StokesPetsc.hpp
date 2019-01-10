@@ -6,8 +6,8 @@
 namespace hhg {
 namespace petsc {
 
-inline void createVectorFromFunction(P1StokesFunction<PetscScalar> &function,
-                                     P1StokesFunction<PetscInt> &numerator,
+inline void createVectorFromFunction(const P1StokesFunction<PetscScalar> &function,
+                                     const P1StokesFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -20,8 +20,8 @@ inline void createVectorFromFunction(P1StokesFunction<PetscScalar> &function,
   createVectorFromFunction(function.p, numerator.p, vec, level, flag);
 }
 
-inline void createFunctionFromVector(P1StokesFunction<PetscScalar> &function,
-                                     P1StokesFunction<PetscInt> &numerator,
+inline void createFunctionFromVector(const P1StokesFunction<PetscScalar> &function,
+                                     const P1StokesFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -34,7 +34,7 @@ inline void createFunctionFromVector(P1StokesFunction<PetscScalar> &function,
   createFunctionFromVector(function.p, numerator.p, vec, level, flag);
 }
 
-inline void applyDirichletBC(P1StokesFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
+inline void applyDirichletBC(const P1StokesFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
   applyDirichletBC(numerator.u, mat, level);
   applyDirichletBC(numerator.v, mat, level);
   if ( numerator.u.getStorage()->hasGlobalCells() )
@@ -44,8 +44,13 @@ inline void applyDirichletBC(P1StokesFunction<PetscInt> &numerator, std::vector<
 //  applyDirichletBC(numerator.p, mat, level);
 }
 
-template<class OperatorType>
-inline void createMatrix(OperatorType& opr, P1StokesFunction< PetscInt > & src, P1StokesFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+template < class OperatorType >
+inline void createMatrix( const OperatorType&                 opr,
+                          const P1StokesFunction< PetscInt >& src,
+                          const P1StokesFunction< PetscInt >& dst,
+                          Mat&                                mat,
+                          size_t                              level,
+                          DoFType                             flag )
 {
   createMatrix(opr.A, src.u, dst.u, mat, level, flag);
   createMatrix(opr.divT_x, src.p, dst.u, mat, level, flag);

@@ -12,7 +12,8 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GeometricMultiGrid.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
@@ -125,16 +126,14 @@ int main( int argc, char* argv[] )
         std::shared_ptr< hhg::P1Function< real_t > >( &v, boost::null_deleter() )}};
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
-   typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseSolver;
-   typedef P1toP1LinearRestriction RestrictionOperator;
-   typedef P1toP1LinearProlongation ProlongationOperator;
+   typedef hhg::CGSolver< hhg::P1ConstantLaplaceOperator > CoarseSolver;
+   auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel, max_cg_iter );
+   auto smoother = std::make_shared<hhg::GaussSeidelSmoother< P1ConstantLaplaceOperator >>();
+   auto restrictionOperator = std::make_shared< P1toP1LinearRestriction >();
+   auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
 
-   auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel );
-   RestrictionOperator restrictionOperator;
-   ProlongationOperator prolongationOperator;
-
-   typedef GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseSolver, RestrictionOperator, ProlongationOperator > LaplaceSover;
-   LaplaceSover laplaceSolver( storage, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+   typedef GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator > LaplaceSover;
+   LaplaceSover laplaceSolver( storage, smoother, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
    u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
    v.interpolate( bc_y, maxLevel, hhg::DirichletBoundary );
@@ -145,9 +144,9 @@ int main( int argc, char* argv[] )
    v_dg->projectP1( v, maxLevel, hhg::All );
 
    hhg::VTKOutput vtkOutput("../output", "test", storage, plotModulo);
-   vtkOutput.add( &u );
-   vtkOutput.add( &v );
-   vtkOutput.add( &p );
+   vtkOutput.add( u );
+   vtkOutput.add( v );
+   vtkOutput.add( p );
    vtkOutput.write( maxLevel, iter );
    ++iter;
 
@@ -167,20 +166,20 @@ int main( int argc, char* argv[] )
       tmp.integrateDG( *u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       Ascaled.apply( u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      u.add( {-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      u.add( {-dt}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 
       // Predict v
       tmp.integrateDG( *v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       Ascaled.apply( v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add );
       invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      v.add( {-dt}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      v.add( {-dt}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 
       // Solve p
       p.interpolate( zero, maxLevel - 1, hhg::NeumannBoundary );
       div_x.apply( u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Replace );
       div_y.apply( v, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Add );
 
-      restrictionOperator( p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary );
+      restrictionOperator->restrict( p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary );
 
       if( !neumann )
       {
@@ -192,13 +191,7 @@ int main( int argc, char* argv[] )
          laplaceSolver.solve( A,
                               p,
                               p_rhs,
-                              p_res,
-                              maxLevel - 1,
-                              1e-2,
-                              max_cg_iter,
-                              hhg::Inner | hhg::DirichletBoundary,
-                              LaplaceSover::CycleType::VCYCLE,
-                              false );
+                              maxLevel - 1);
       }
 
       if( !neumann )
@@ -206,17 +199,17 @@ int main( int argc, char* argv[] )
          hhg::vertexdof::projectMean( p, tmp, maxLevel - 1 );
       }
 
-      prolongationOperator( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
+      prolongationOperator->prolongate( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
 
       // Correct u
       divT_x.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      u.add( {-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      u.add( {-1.0}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 
       // Correct v
       divT_y.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );
       invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      v.add( {-1.0}, {&tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      v.add( {-1.0}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 
       vtkOutput.write( maxLevel, iter );
       ++iter;

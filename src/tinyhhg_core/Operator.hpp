@@ -22,36 +22,16 @@ public:
     }
   }
 
-  virtual ~Operator()
-  {
-  }
+  typedef SourceFunction srcType;
+  typedef DestinationFunction dstType;
 
-  void apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace );
-
-  void smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag );
-
-  void smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag );
-
-  void smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag );
+  virtual ~Operator() = default;
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
   const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
  protected:
-
-  virtual void apply_impl( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) = 0;
-  virtual void smooth_gs_impl( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
-
-  virtual void smooth_sor_impl( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
-
-  virtual void smooth_jac_impl( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag ) {
-    WALBERLA_ASSERT(false, "Not implemented");
-  };
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -63,7 +43,7 @@ public:
 
  protected:
 
-  void startTiming( const std::string & timerString )
+  void startTiming( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
@@ -72,7 +52,7 @@ public:
     }
   }
 
-  void stopTiming ( const std::string & timerString )
+  void stopTiming ( const std::string & timerString ) const
   {
     if ( timingTree_ )
     {
@@ -81,30 +61,5 @@ public:
     }
   }
 };
-
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::apply( SourceFunction& src, DestinationFunction& dst, size_t level, DoFType flag, UpdateType updateType )
-{
-  apply_impl( src, dst, level, flag, updateType );
-}
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_gs( DestinationFunction& dst, SourceFunction& rhs, size_t level, DoFType flag )
-{
-  smooth_gs_impl( dst, rhs, level, flag );
-}
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_sor( DestinationFunction& dst, SourceFunction& rhs, real_t relax, size_t level, DoFType flag )
-{
-  smooth_sor_impl( dst, rhs, relax, level, flag );
-}
-
-template< typename SourceFunction, typename DestinationFunction >
-void Operator< SourceFunction, DestinationFunction  >::smooth_jac( DestinationFunction& dst, SourceFunction& rhs, DestinationFunction& tmp, size_t level, DoFType flag )
-{
-  smooth_jac_impl( dst, rhs, tmp, level, flag );
-}
 
 }

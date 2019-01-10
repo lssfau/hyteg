@@ -1,8 +1,8 @@
 #pragma once
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
-#include "tinyhhg_core/edgedofspace/EdgeDoFOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
@@ -18,56 +18,54 @@ namespace hhg {
 
 using walberla::real_t;
 
-template< class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
-class P2ConstantOperator : public Operator<P2Function < real_t>, P2Function<real_t> >
+template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
+class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
 {
-public:
+ public:
+   P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
-  P2ConstantOperator(const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel);
+   const P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToVertexOpr() const { return vertexToVertex; }
 
-  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToVertexOpr() {
-    return vertexToVertex;
-  }
+   const EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D >& getEdgeToVertexOpr() const { return edgeToVertex; }
 
-  EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > & getEdgeToVertexOpr() {
-    return edgeToVertex;
-  }
+   const VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToEdgeOpr() const { return vertexToEdge; }
 
-  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > & getVertexToEdgeOpr() {
-    return vertexToEdge;
-  }
+   const EdgeDoFOperator& getEdgeToEdgeOpr() const { return edgeToEdge; }
 
-  EdgeDoFOperator& getEdgeToEdgeOpr() {
-    return edgeToEdge;
-  }
+   void apply( const P2Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const;
 
-private:
+  void smooth_gs(const P2Function <real_t> &dst, const P2Function <real_t> &rhs, size_t level, DoFType flag) const;
 
-  void assembleStencils();
+   void smooth_jac( const P2Function< real_t >& dst,
+                    const P2Function< real_t >& rhs,
+                    const P2Function< real_t >& src,
+                    size_t                      level,
+                    DoFType                     flag ) const;
 
-  void assembleStencils3D();
+ private:
+   void assembleStencils();
 
-  void apply_impl(P2Function< real_t > & src, P2Function< real_t > & dst, size_t level, DoFType flag, UpdateType updateType = Replace) override;
+   void assembleStencils3D();
 
-  void smooth_gs_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, size_t level, DoFType flag) override;
+   P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >         vertexToVertex;
+   EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > edgeToVertex;
+   VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > vertexToEdge;
+   EdgeDoFOperator                                                 edgeToEdge;
 
-  void smooth_jac_impl(P2Function< real_t > & dst, P2Function< real_t > & rhs, P2Function< real_t > & src, size_t level, DoFType flag) override;
-
-  P1ConstantOperator< fenics::NoAssemble, UFCOperator3D > vertexToVertex;
-  EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > edgeToVertex;
-  VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > vertexToEdge;
-  EdgeDoFOperator edgeToEdge;
-
-  void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
-
+   void compute_local_stiffness( const Face& face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type );
 };
 
-typedef P2ConstantOperator<p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise> P2ConstantLaplaceOperator;
-typedef P2ConstantOperator<p2_mass_cell_integral_0_otherwise,      p2_tet_mass_cell_integral_0_otherwise>      P2ConstantMassOperator;
+typedef P2ConstantOperator< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >
+                                                                                                       P2ConstantLaplaceOperator;
+typedef P2ConstantOperator< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > P2ConstantMassOperator;
 
-typedef P2ConstantOperator<p2_divt_cell_integral_0_otherwise> P2ConstantDivTxOperator;
-typedef P2ConstantOperator<p2_divt_cell_integral_1_otherwise> P2ConstantDivTyOperator;
-typedef P2ConstantOperator<p2_div_cell_integral_0_otherwise> P2ConstantDivxOperator;
-typedef P2ConstantOperator<p2_div_cell_integral_1_otherwise> P2ConstantDivyOperator;
+typedef P2ConstantOperator< p2_divt_cell_integral_0_otherwise > P2ConstantDivTxOperator;
+typedef P2ConstantOperator< p2_divt_cell_integral_1_otherwise > P2ConstantDivTyOperator;
+typedef P2ConstantOperator< p2_div_cell_integral_0_otherwise >  P2ConstantDivxOperator;
+typedef P2ConstantOperator< p2_div_cell_integral_1_otherwise >  P2ConstantDivyOperator;
 
-}
+} // namespace hhg

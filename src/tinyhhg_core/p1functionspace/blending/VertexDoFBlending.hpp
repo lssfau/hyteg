@@ -34,8 +34,7 @@ namespace macroface {
 
 template < typename ValueType, class P1Form >
 inline void applyBlending( uint_t                                                      Level,
-                           Face&                                                       face,
-                           P1Form&                                                     form,
+                           const Face&                                                 face,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
                            UpdateType                                                  update )
@@ -54,6 +53,7 @@ inline void applyBlending( uint_t                                               
    Point3D d0 = h * ( face.coords[1] - face.coords[0] );
    Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
+   P1Form form;
    form.geometryMap = face.getGeometryMap();
 
    ValueType tmp;
@@ -119,8 +119,7 @@ inline void applyBlending( uint_t                                               
 
 template < typename ValueType, class P1Form >
 inline void smoothGSBlending( uint_t                                                      Level,
-                              Face&                                                       face,
-                              P1Form&                                                     form,
+                              const Face&                                                 face,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
 {
@@ -138,6 +137,7 @@ inline void smoothGSBlending( uint_t                                            
    Point3D d0 = h * ( face.coords[1] - face.coords[0] );
    Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
+   P1Form form;
    form.geometryMap = face.getGeometryMap();
 
    ValueType tmp;
@@ -150,6 +150,7 @@ inline void smoothGSBlending( uint_t                                            
    Point3D dirN  = d2;
 
    std::vector< real_t > opr_data( 7 );
+
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
@@ -194,8 +195,7 @@ namespace macroedge {
 
 template < typename ValueType, class P1Form >
 inline void applyBlending( uint_t                                                      Level,
-                           Edge&                                                       edge,
-                           P1Form&                                                     form,
+                           const Edge&                                                 edge,
                            const std::shared_ptr< PrimitiveStorage >&                  storage,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
@@ -232,6 +232,7 @@ inline void applyBlending( uint_t                                               
    uint_t  s_north, e_north, o_north;
    Point3D dir_N;
    Point3D dir_NW;
+   P1Form form;
 
    if( edge.getNumNeighborFaces() == 2 )
    {
@@ -306,8 +307,7 @@ inline void applyBlending( uint_t                                               
 
 template < typename ValueType, class P1Form >
 inline void smoothGSBlending( uint_t                                                      Level,
-                              Edge&                                                       edge,
-                              P1Form&                                                     form,
+                              const Edge&                                                 edge,
                               const std::shared_ptr< PrimitiveStorage >&                  storage,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
@@ -341,6 +341,7 @@ inline void smoothGSBlending( uint_t                                            
    uint_t  s_north, e_north, o_north;
    Point3D dir_N;
    Point3D dir_NW;
+   P1Form form;
 
    if( edge.getNumNeighborFaces() == 2 )
    {
@@ -415,8 +416,7 @@ namespace macrovertex {
 
 template < typename ValueType, class P1Form >
 inline void applyBlending( uint_t                                                        level,
-                           Vertex&                                                       vertex,
-                           P1Form&                                                       form,
+                           const Vertex&                                                 vertex,
                            const std::shared_ptr< PrimitiveStorage >&                    storage,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -432,6 +432,7 @@ inline void applyBlending( uint_t                                               
    Point3D x;
    Point3D d0;
    Point3D d2;
+   P1Form form;
 
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
 
@@ -488,7 +489,6 @@ inline void applyBlending( uint_t                                               
 template < typename ValueType, class P1Form >
 inline void smoothGSBlending( uint_t                                                        level,
                               Vertex&                                                       vertex,
-                              P1Form&                                                       form,
                               const std::shared_ptr< PrimitiveStorage >&                    storage,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
                               const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsId )
@@ -505,6 +505,7 @@ inline void smoothGSBlending( uint_t                                            
    Point3D d2;
 
    real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+   P1Form form;
 
    uint_t neighborId = 0;
    for( auto& faceId : vertex.neighborFaces() )

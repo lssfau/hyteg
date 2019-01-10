@@ -10,7 +10,6 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
@@ -73,9 +72,9 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
   hhg::vertexdof::VertexDoFFunction< real_t > oneFunction( "oneFunction", storage, lowerLevel, lowerLevel + 1 );
 
   VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
-  vtkOutput.add( &u );
-  vtkOutput.add( &resultExact );
-  vtkOutput.add( &err );
+  vtkOutput.add( u );
+  vtkOutput.add( resultExact );
+  vtkOutput.add( err );
 
   auto testProlongationResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction ) -> real_t
   {
@@ -83,9 +82,9 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
       resultExact.interpolate( uFunction, lowerLevel + 1, Inner | NeumannBoundary );
 
       P1toP1LinearProlongation prolongationOperator;
-      prolongationOperator( u, lowerLevel, Inner | NeumannBoundary );
+      prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
 
-      err.assign( { 1.0, -1.0 }, { &u, &resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
+      err.assign( { 1.0, -1.0 }, { u, resultExact }, lowerLevel + 1, Inner | NeumannBoundary );
       const real_t discrErr = err.dotGlobal( err, lowerLevel + 1, Inner | NeumannBoundary );
       return discrErr;
   };

@@ -34,7 +34,6 @@ int main( int argc, char* argv[] )
 
    size_t minLevel = 2;
    size_t maxLevel = 4;
-   size_t maxiter  = 10000;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -114,12 +113,12 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( rhs, maxLevel );
    M.apply( npoints_helper, f, maxLevel, hhg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ElementwiseLaplaceOperator >( storage, minLevel, maxLevel );
+   auto solver = hhg::CGSolver< hhg::P1ElementwiseLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
-   solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
+   solver.solve( L, u, f, maxLevel);
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
@@ -128,7 +127,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ &u, &u_exact, &f, &r, &err }, {}, maxLevel,
+   //  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ u, u_exact, &f, &r, &err }, {}, maxLevel,
    //                                                                    "../output", "varcoords", coords);
 
    walberla::WcTimingTree tt = timingTree->getReduced();

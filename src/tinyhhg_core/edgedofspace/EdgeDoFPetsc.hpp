@@ -16,8 +16,8 @@ using walberla::uint_t;
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
-                                     EdgeDoFFunction<PetscInt> &numerator,
+inline void createVectorFromFunction(const EdgeDoFFunction<PetscScalar> &function,
+                                     const EdgeDoFFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -50,8 +50,8 @@ inline void createVectorFromFunction(EdgeDoFFunction<PetscScalar> &function,
   }
 }
 
-inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
-                                     EdgeDoFFunction<PetscInt> &numerator,
+inline void createFunctionFromVector(const EdgeDoFFunction<PetscScalar> &function,
+                                     const EdgeDoFFunction<PetscInt> &numerator,
                                      Vec &vec,
                                      uint_t level,
                                      DoFType flag) {
@@ -89,7 +89,7 @@ inline void createFunctionFromVector(EdgeDoFFunction<PetscScalar> &function,
   }
 }
 
-inline void applyDirichletBC(EdgeDoFFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
+inline void applyDirichletBC(const EdgeDoFFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
 
   for (auto &it : numerator.getStorage()->getEdges()) {
     Edge &edge = *it.second;
@@ -437,9 +437,13 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
   }
 }
 
-
-template<class OperatorType>
-inline void createMatrix(OperatorType& opr, EdgeDoFFunction< PetscInt > & src, EdgeDoFFunction< PetscInt > & dst, Mat& mat, size_t level, DoFType flag)
+template < class OperatorType >
+inline void createMatrix( const OperatorType&                opr,
+                          const EdgeDoFFunction< PetscInt >& src,
+                          const EdgeDoFFunction< PetscInt >& dst,
+                          Mat&                               mat,
+                          size_t                             level,
+                          DoFType                            flag )
 {
   auto storage = src.getStorage();
 

@@ -18,7 +18,11 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
+#include "tinyhhg_core/solvers/MinresSolver.hpp"
+#include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -98,13 +102,6 @@ int main( int argc, char* argv[] )
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
    hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
 
-   typedef hhg::P1P1StokesToP1P1StokesRestriction RestrictionOperator;
-   typedef hhg::P1P1StokesToP1P1StokesProlongation ProlongationOperator;
-   typedef hhg::MinResSolver< P1StokesFunction< real_t >, P1StokesOperator > CoarseGridSolver;
-   RestrictionOperator restrictionOperator;
-   ProlongationOperator prolongationOperator;
-   CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
-
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength );
@@ -125,8 +122,15 @@ int main( int argc, char* argv[] )
    c_old->interpolate( initialConcentration, maxLevel );
    c->assign( {1.0}, {c_old.get()}, maxLevel );
 
-   auto solver = hhg::UzawaSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, CoarseGridSolver,
-   RestrictionOperator, ProlongationOperator, false >( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
+   auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P1StokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
+   auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
+   auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
+
+   auto solver = hhg::GeometricMultigridSolver< hhg::P1StokesOperator >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
+
    WALBERLA_LOG_DETAIL_ON_ROOT("Total number of faces: " << storage->getNumberOfLocalFaces());
 
    uint_t totalGlobalDofsStokes = 0;
@@ -144,11 +148,11 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_DETAIL_ON_ROOT("Total DoFs on all level :" << (totalGlobalDofsTemp + totalGlobalDofsStokes));
 
    hhg::VTKOutput vtkOutput("../output", "plume", storage, plotModulo);
-   vtkOutput.add( &u->u );
-   vtkOutput.add( &u->v );
-   vtkOutput.add( &u->p );
-   vtkOutput.add( &f->u );
-   vtkOutput.add( &f->v );
+   vtkOutput.add( u->u );
+   vtkOutput.add( u->v );
+   vtkOutput.add( u->p );
+   vtkOutput.add( f->u );
+   vtkOutput.add( f->v );
 
    uint_t plotIter = 0;
    for( uint_t t = 0; t <= timesteps; ++t )
@@ -166,13 +170,13 @@ int main( int argc, char* argv[] )
 
          for( uint_t outer = 0; outer < 2; ++outer )
          {
-            solver.solve( L, *u, *f, *r, maxLevel, 1e-4, solverMaxiter, hhg::Inner | hhg::NeumannBoundary );
+            solver.solve( L, *u, *f, maxLevel );
             hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
 
             L.apply( *u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
 
-            r->assign( {1.0, -1.0}, {f.get(), r.get()}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+            r->assign( {1.0, -1.0}, { *f, *r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
             WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum );
          }

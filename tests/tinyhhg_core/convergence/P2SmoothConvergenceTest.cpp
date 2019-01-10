@@ -27,7 +27,7 @@ static void testP2SmoothConvergence()
   auto laplaceOperator = std::make_shared< P2ConstantLaplaceOperator >( storage, level, level );
 
   VTKOutput vtkOutput("../../output", "P2SmoothConvergenceTest", storage);
-  vtkOutput.add( p2Function );
+  vtkOutput.add( *p2Function );
 
   std::function< real_t( const Point3D & )> zeros = []( const Point3D & ) { return 0; };
 

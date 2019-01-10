@@ -12,7 +12,10 @@
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
-#include "tinyhhg_core/solvers/UzawaSolver.hpp"
+#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
+#include "tinyhhg_core/solvers/MinresSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -48,48 +51,47 @@ int main(int argc, char* argv[])
 
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  auto r = std::make_shared<hhg::P1StokesFunction<real_t>>("r", storage, minLevel, maxLevel);
-  auto f = std::make_shared<hhg::P1StokesFunction<real_t>>("f", storage, minLevel, maxLevel);
-  auto u = std::make_shared<hhg::P1StokesFunction<real_t>>("u", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> f("f", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> u("u", storage, minLevel, maxLevel);
 
   auto tmp = std::make_shared<hhg::P1Function<real_t>>("tmp", storage, maxLevel, maxLevel);
 
   hhg::P1StokesOperator L(storage, minLevel, maxLevel);
-
-  hhg::P1P1StokesToP1P1StokesRestriction restrictionOperator;
-  hhg::P1P1StokesToP1P1StokesProlongation prolongationOperator;
 
   std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
   std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
 
-  r->interpolate(ones, maxLevel);
-  uint_t npoints = (uint_t) r->dotGlobal(*r, maxLevel);
-  r->interpolate(zero, maxLevel);
+  r.interpolate(ones, maxLevel);
+  uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
+  r.interpolate(zero, maxLevel);
 
-  u->u.interpolate(rand, maxLevel, hhg::Inner);
-  u->v.interpolate(rand, maxLevel, hhg::Inner);
-  u->p.interpolate(rand, maxLevel, hhg::All);
+  u.u.interpolate(rand, maxLevel, hhg::Inner);
+  u.v.interpolate(rand, maxLevel, hhg::Inner);
+  u.p.interpolate(rand, maxLevel, hhg::All);
 
-  u->u.interpolate(zero, maxLevel, hhg::DirichletBoundary);
-  u->v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
+  u.u.interpolate(zero, maxLevel, hhg::DirichletBoundary);
+  u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
 
-  L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-  r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+  L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+  r.assign({1.0, -1.0}, { f, r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-  typedef hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator > CoarseGridSolver;
-  typedef hhg::UzawaSolver<hhg::P1StokesFunction<real_t>, hhg::P1StokesOperator, CoarseGridSolver,
-                           hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, false> Solver;
+   auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >(
+       storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+   auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+   auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
+   auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
 
-  CoarseGridSolver coarseGridSolver( storage, minLevel, maxLevel );
-  auto solver = Solver(storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
+   auto solver = hhg::GeometricMultigridSolver< hhg::P1StokesOperator >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2 );
 
   WALBERLA_LOG_INFO_ON_ROOT("Num dofs = "<< npoints);
   WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
 
-  real_t begin_res = std::sqrt(r->dotGlobal(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
   real_t abs_res_old = begin_res;
   real_t rel_res = 1.0;
 
@@ -102,17 +104,15 @@ int main(int argc, char* argv[])
   uint_t outer;
   for (outer = 0; outer < maxOuterIter; ++outer) {
     auto start = walberla::timing::getWcTime();
-    solver.solve(L, *u, *f, *r, maxLevel,
-                 1e-6, coarseMaxiter, hhg::Inner | hhg::NeumannBoundary,
-                 Solver::CycleType::VCYCLE, true);
+    solver.solve(L, u, f, maxLevel);
     auto end = walberla::timing::getWcTime();
-    hhg::vertexdof::projectMean(u->p, *tmp, maxLevel);
+    hhg::vertexdof::projectMean(u.p, *tmp, maxLevel);
 
 
-    L.apply(*u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-    r->assign({1.0, -1.0}, { f.get(), r.get() }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
-    real_t abs_res = std::sqrt(r->dotGlobal(*r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
+    r.assign({1.0, -1.0}, { f, r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
+    real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner | hhg::NeumannBoundary));
     rel_res = abs_res / begin_res;
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
     totalTime += end-start;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(outer+1-convergenceStartIter));
 
-//  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u->u, &u->v, &u->p, &f->u, &f->v, &f->p}, {}, maxLevel,
+//  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({&u.u, &u.v, &u.p, &f.u, &f->v, &f->p}, {}, maxLevel,
 //                                                                    "../output", "after");
   return EXIT_SUCCESS;
 }

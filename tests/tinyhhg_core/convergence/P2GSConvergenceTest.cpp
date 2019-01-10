@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
 
   L.apply(p2function, Lu, level, hhg::Inner);
-  residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
+  residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
   begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
   abs_res_old = begin_res;
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
   for(uint_t i = 0; i < maxiter; ++i) {
     L.smooth_gs(p2function, rhs, level, hhg::Inner);
     L.apply(p2function, Lu, level, hhg::Inner);
-    residuum.assign({1.0, -1.0}, { &rhs, &Lu }, level, hhg::Inner);
+    residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
     abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
     rel_res = abs_res / begin_res;
     WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
   timer.end();
 
   WALBERLA_LOG_INFO_ON_ROOT("time was: " << timer.last());
-  error.assign({1.0, -1.0}, {&p2function, &p2Exact}, level);
+  error.assign({1.0, -1.0}, {p2function, p2Exact}, level);
 
   helperFun.interpolate(ones, level);
   real_t npoints = helperFun.dotGlobal(helperFun, level);
@@ -91,12 +91,12 @@ int main(int argc, char* argv[])
 
   if (parameters.getParameter<bool>("vtkOutput")) {
     VTKOutput vtkOutput("../../output", "gs_P2", storage);
-    vtkOutput.add( &p2function );
-    vtkOutput.add( &p2Exact );
-    vtkOutput.add( &rhs );
-    vtkOutput.add( &residuum );
-    vtkOutput.add( &error );
-    vtkOutput.add( &helperFun );
+    vtkOutput.add( p2function );
+    vtkOutput.add( p2Exact );
+    vtkOutput.add( rhs );
+    vtkOutput.add( residuum );
+    vtkOutput.add( error );
+    vtkOutput.add( helperFun );
     vtkOutput.write( level );
   }
 

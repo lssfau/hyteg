@@ -64,17 +64,8 @@ int main(int argc, char* argv[])
    hhg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-//   typedef hhg::P1BlendingLaplaceOperator SolveOperator;
-
    typedef hhg::P1BlendingLaplaceOperator SolveOperator;
    SolveOperator L(storage, level, level);
-
-//   typedef hhg::P1PolynomialBlendingLaplaceOperatorNew SolveOperator;
-//   const uint_t interpolationLevel = level;
-//   const uint_t polyDegree = 12;
-//   SolveOperator L(storage, level, level, interpolationLevel);
-//   L.interpolateStencils(polyDegree);
-//   L.useDegree(polyDegree);
 
    P1BlendingMassOperator M(storage, level, level);
 
@@ -112,8 +103,8 @@ int main(int argc, char* argv[])
    helper->interpolate(rhs, level, hhg::All);
    M.apply(*helper, *f, level, hhg::All);
 
-   auto solver = hhg::CGSolver<hhg::P1Function< real_t >, SolveOperator>(storage, level, level);
-   solver.solve(L, *u, *f, *r, level, 1e-10, maxiter, hhg::Inner, true);
+   auto solver = hhg::CGSolver< SolveOperator>(storage, level, level, maxiter, 1e-10);
+   solver.solve(L, *u, *f, level);
 
    err->assign({1.0, -1.0}, {u.get(), u_exact.get()}, level, hhg::All);
 
@@ -122,11 +113,11 @@ int main(int argc, char* argv[])
    WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
    VTKOutput vtkOutput("../output", "cg_P1_blending", storage);
-   vtkOutput.add(x.get());
-   vtkOutput.add(y.get());
-   vtkOutput.add(u.get());
-   vtkOutput.add(u_exact.get());
-   vtkOutput.add(err.get());
+   vtkOutput.add(*x);
+   vtkOutput.add(*y);
+   vtkOutput.add(*u.get());
+   vtkOutput.add(*u_exact);
+   vtkOutput.add(*err);
    vtkOutput.write(level);
 
    return 0;

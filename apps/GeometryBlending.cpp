@@ -70,8 +70,8 @@ int main( int argc, char* argv[] )
    y->interpolate( tmp_y, level, hhg::All );
 
    VTKOutput vtkOutput("../output", "GeometryBlending", storage);
-   vtkOutput.add( x.get() );
-   vtkOutput.add( y.get() );
+   vtkOutput.add( *x );
+   vtkOutput.add( *y );
    vtkOutput.write( level );
 
    return 0;

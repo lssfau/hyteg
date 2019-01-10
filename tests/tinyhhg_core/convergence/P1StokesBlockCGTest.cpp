@@ -25,7 +25,7 @@ int main( int argc, char* argv[] )
 
    size_t minLevel = 2;
    size_t maxLevel = 2;
-   size_t maxiter  = 10000;
+   //size_t maxiter  = 10000;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
@@ -49,12 +49,12 @@ int main( int argc, char* argv[] )
    u_exact.v.interpolate( exact, maxLevel );
 
    auto solver =
-       hhg::CGSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
+       hhg::CGSolver< hhg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
-   solver.solve( L, u, f, r, maxLevel, 1e-8, maxiter, hhg::Inner, true );
+   solver.solve( L, u, f, maxLevel );
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   err.assign( {1.0, -1.0}, {&u, &u_exact}, maxLevel );
+   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );
 
@@ -66,6 +66,6 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( discr_l2_err, 4e-17)
 
-   //  hhg::VTKWriter({ &u, &u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+   //  hhg::VTKWriter({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "test");
    return 0;
 }

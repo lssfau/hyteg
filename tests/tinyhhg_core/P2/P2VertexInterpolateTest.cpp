@@ -31,10 +31,10 @@ int main( int argc, char* argv[] )
    u.interpolate( testExpression, level, hhg::All );
 
    // Sync interpolated function values
-   u.getEdgeDoFFunction()->communicate< Vertex, Edge >( level );
-   u.getEdgeDoFFunction()->communicate< Edge, Face >( level );
-   u.getEdgeDoFFunction()->communicate< Face, Edge >( level );
-   u.getEdgeDoFFunction()->communicate< Edge, Vertex >( level );
+   u.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
+   u.getEdgeDoFFunction().communicate< Edge, Face >( level );
+   u.getEdgeDoFFunction().communicate< Face, Edge >( level );
+   u.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
 
    // We assume that the bottom left vertex has following connectivity
    //
@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    auto vertex = storage->getVertex( PrimitiveID( 0 ) );
 
    // Get vertex values
-   auto vertexEdgeData = vertex->getData( u.getEdgeDoFFunction()->getVertexDataID() )->getPointer( level );
+   auto vertexEdgeData = vertex->getData( u.getEdgeDoFFunction().getVertexDataID() )->getPointer( level );
 
    WALBERLA_CHECK_FLOAT_EQUAL( vertexEdgeData[0], 1.0 );
    WALBERLA_CHECK_FLOAT_EQUAL( vertexEdgeData[1], 1.125 );

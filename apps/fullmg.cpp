@@ -105,14 +105,14 @@ int main( int argc, char* argv[] )
       M.apply( tmp, b, ll, hhg::Inner );
    }
 
-   auto solver = hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel );
+   auto solver = hhg::CGSolver<  hhg::P1ConstantLaplaceOperator >( storage, minLevel, minLevel, coarse_maxiter, coarse_tolerance );
 
    std::function< void( size_t ) > cscycle;
 
    cscycle = [&]( size_t level ) {
       if( level == minLevel )
       {
-         solver.solve( A, x, b, r, minLevel, coarse_tolerance, coarse_maxiter, hhg::Inner, false );
+         solver.solve( A, x, b, minLevel );
       } else
       {
          // pre-smooth
@@ -122,20 +122,20 @@ int main( int argc, char* argv[] )
          }
 
          A.apply( x, ax, level, hhg::Inner );
-         r.assign( {1.0, -1.0}, {&b, &ax}, level, hhg::Inner );
+         r.assign( {1.0, -1.0}, {b, ax}, level, hhg::Inner );
 
          // restrict
-         restrictionOperator( r, level, hhg::Inner );
-         b.assign( {1.0}, {&r}, level - 1, hhg::Inner );
+         restrictionOperator.restrict( r, level, hhg::Inner );
+         b.assign( {1.0}, {r}, level - 1, hhg::Inner );
 
          x.interpolate( zero, level - 1 );
 
          cscycle( level - 1 );
 
          // prolongate
-         tmp.assign( {1.0}, {&x}, level, hhg::Inner );
-         prolongationOperator( x, level - 1, hhg::Inner );
-         x.add( {1.0}, {&tmp}, level, hhg::Inner );
+         tmp.assign( {1.0}, {x}, level, hhg::Inner );
+         prolongationOperator.prolongate( x, level - 1, hhg::Inner );
+         x.add( {1.0}, {tmp}, level, hhg::Inner );
 
          // post-smooth
          for( size_t i = 0; i < nu_post; ++i )
@@ -159,10 +159,10 @@ int main( int argc, char* argv[] )
       real_t rel_res = 1.0;
 
       A.apply( x, ax, ll, hhg::Inner );
-      r.assign( {1.0, -1.0}, {&b, &ax}, ll, hhg::Inner );
+      r.assign( {1.0, -1.0}, {b, ax}, ll, hhg::Inner );
       real_t abs_res_old = std::sqrt( r.dotGlobal( r, ll, hhg::Inner ) );
       real_t begin_res   = abs_res_old;
-      err.assign( {1.0, -1.0}, {&x, &x_exact}, ll );
+      err.assign( {1.0, -1.0}, {x, x_exact}, ll );
       real_t discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
       A.apply( err, tmp, ll, hhg::Inner );
       real_t discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
@@ -174,10 +174,10 @@ int main( int argc, char* argv[] )
       {
          cscycle( ll );
          A.apply( x, ax, ll, hhg::Inner );
-         r.assign( {1.0, -1.0}, {&b, &ax}, ll, hhg::Inner );
+         r.assign( {1.0, -1.0}, {b, ax}, ll, hhg::Inner );
          real_t abs_res = std::sqrt( r.dotGlobal( r, ll, hhg::Inner ) );
          rel_res        = abs_res / begin_res;
-         err.assign( {1.0, -1.0}, {&x, &x_exact}, ll );
+         err.assign( {1.0, -1.0}, {x, x_exact}, ll );
          discr_l2_err = std::sqrt( err.dotGlobal( err, ll ) / npoints );
          A.apply( err, tmp, ll, hhg::Inner );
          discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
@@ -193,7 +193,7 @@ int main( int argc, char* argv[] )
       }
       if( ll < maxLevel )
       {
-         quadraticProlongationOperator( x, ll, hhg::Inner );
+         quadraticProlongationOperator.prolongate( x, ll, hhg::Inner );
       }
    }
    LIKWID_MARKER_STOP( "Compute" );

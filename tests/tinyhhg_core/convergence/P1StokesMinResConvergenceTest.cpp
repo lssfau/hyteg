@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
 
    size_t minLevel = 2;
    size_t maxLevel = 2;
-   size_t maxiter  = 10000;
+   //size_t maxiter  = 10000;
 
    std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
 
@@ -55,8 +55,8 @@ int main( int argc, char* argv[] )
    u.u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
    u.v.interpolate( zero, maxLevel, hhg::DirichletBoundary );
 
-   auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
-   solver.solve( L, u, f, r, maxLevel, 1e-5, maxiter, hhg::Inner | hhg::NeumannBoundary, true );
+   auto solver = hhg::MinResSolver<  hhg::P1StokesOperator >( storage, minLevel, maxLevel );
+   solver.solve( L, u, f, maxLevel );
 
    L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
    real_t final_residuum = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
@@ -65,6 +65,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
    WALBERLA_CHECK_LESS( final_residuum, 9.1e-07 );
-   //hhg::VTKWriter<hhg::P1Function< real_t >>({ &u.u, &u.v, &u.p }, maxLevel, "../output", "stokes_stab");
+   //hhg::VTKWriter<hhg::P1Function< real_t >>({ u.u, u.v, u.p }, maxLevel, "../output", "stokes_stab");
    return EXIT_SUCCESS;
 }
