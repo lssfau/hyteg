@@ -108,614 +108,1086 @@ stages:
 
 
 intel_16_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_16_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_16_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_16_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_16_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_16_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_17_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_18_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_18_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_18_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_18_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_18_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_18_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:18
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
       - intel
 
 intel_19_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_19_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
       - intel
 
 intel_19_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
 
 intel_19_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_mpionly_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
 
 intel_19_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
 
 intel_19_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   variables:
+      <<: *build_eigen_petsc_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
 
 gcc_5_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_5_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_5_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_5_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_5_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_5_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_6_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_6_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_6_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_6_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_6_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_6_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:6
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_7_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_7_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_7_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_7_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_7_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_7_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 gcc_8_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_8_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_8_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 gcc_8_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   stage: pretest
+   variables:
+      <<: *build_mpionly_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 gcc_8_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 gcc_8_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   variables:
+      <<: *build_eigen_petsc_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 clang_3.6_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.6_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.6_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.6_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   variables:
+      <<: *build_mpionly_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 clang_3.6_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.6
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.7_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.7
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.7_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.7
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.7_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.7
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.7_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.7
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.7_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.7
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.8_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.8
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_3.9_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:3.9
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_4.0_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:4.0
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_5.0_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:5.0
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_6.0_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_6.0_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_6.0_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_serial_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_6.0_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_6.0_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_6.0_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - cuda
       - docker
 
 clang_7.0_serial:
-   <<: *build_serial_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_7.0_mpionly:
-   <<: *build_mpionly_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_7.0_serial_dbg:
-   <<: *build_serial_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 clang_7.0_mpionly_dbg:
-   <<: *build_mpionly_dbg_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_mpionly_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 clang_7.0_hybrid_dbg_sp:
-   <<: *build_hybrid_dbg_sp_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
 clang_7.0_eigen_petsc:
-   <<: *build_eigen_petsc_variables
+   <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   stage: pretest
+   variables:
+      <<: *build_eigen_petsc_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
 
