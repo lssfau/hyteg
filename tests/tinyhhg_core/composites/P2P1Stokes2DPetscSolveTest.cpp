@@ -129,7 +129,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 4, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 5.5e-10, 0.00033, 0.0184 );
+  petscSolveTest( 4, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 1.7e-09, 0.00033, 0.0184 );
 
   return EXIT_SUCCESS;
 }
