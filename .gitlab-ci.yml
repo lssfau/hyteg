@@ -148,9 +148,9 @@ intel_16_mpionly_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
    variables:
       <<: *build_mpionly_dbg_variables
-   only:
+   except:
       variables:
-         - $ENABLE_NIGHTLY_BUILDS
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
@@ -442,9 +442,9 @@ gcc_5_mpionly_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:5
    variables:
       <<: *build_mpionly_dbg_variables
-   only:
+   except:
       variables:
-         - $ENABLE_NIGHTLY_BUILDS
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - cuda
       - docker
