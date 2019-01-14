@@ -107,78 +107,6 @@ stages:
 
 
 
-intel_16_serial:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_serial_variables
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-      - intel
-
-intel_16_mpionly:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_mpionly_variables
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-      - intel
-
-intel_16_serial_dbg:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_serial_dbg_variables
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-      - intel
-
-intel_16_mpionly_dbg:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_mpionly_dbg_variables
-   except:
-      variables:
-         - $DISABLE_PER_COMMIT_BUILDS
-   tags:
-      - docker
-      - intel
-
-intel_16_hybrid_dbg_sp:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_hybrid_dbg_sp_variables
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-      - intel
-
-intel_16_eigen_petsc:
-   <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:16
-   variables:
-      <<: *build_eigen_petsc_variables
-   only:
-      variables:
-         - $ENABLE_NIGHTLY_BUILDS
-   tags:
-      - docker
-      - intel
-
 intel_17_serial:
    <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
@@ -220,9 +148,9 @@ intel_17_mpionly_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
    variables:
       <<: *build_mpionly_dbg_variables
-   only:
+   except:
       variables:
-         - $ENABLE_NIGHTLY_BUILDS
+         - $DISABLE_PER_COMMIT_BUILDS
    tags:
       - docker
       - intel
