@@ -16,8 +16,7 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    LIKWID_MARKER_THREADINIT;
-   LIKWID_MARKER_REGISTER( "apply_special" );
-   LIKWID_MARKER_REGISTER( "apply_any" );
+   LIKWID_MARKER_REGISTER( "apply" );
 
    walberla::WcTimer timer;
 

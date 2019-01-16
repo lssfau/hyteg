@@ -35,13 +35,23 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                        "sampleSize" + std::to_string( sampleSize ) +
                                        "numProcs" + std::to_string(walberla::mpi::MPIManager::instance()->numProcesses());
 
-   std::string name;
+   std::string vvname, vename, eename, evname;
+   vvname = "Vertex-to-Vertex-Apply-" + benchInfoString;
+   evname = "Edge-to-Vertex-Apply-" + benchInfoString;
+   eename = "Edge-to-Edge-Apply-" + benchInfoString;
+   vename = "Vertex-to-Edge-Apply-" + benchInfoString;
+
+   LIKWID_MARKER_REGISTER(vvname);
+   LIKWID_MARKER_REGISTER(evname);
+   LIKWID_MARKER_REGISTER(eename);
+   LIKWID_MARKER_REGISTER(vename);
+
    /// Vertex to Vertex
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      name = "Vertex-to-Vertex-Apply-" + benchInfoString;
-      timingTree.start( name );
-      LIKWID_MARKER_START( name.c_str() );
+
+      timingTree.start( vvname );
+      LIKWID_MARKER_START( vvname.c_str() );
       if( USE_GENERATED_KERNELS )
       {
          auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
@@ -57,16 +67,16 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                            dst.getVertexDoFFunction().getFaceDataID(),
                                            hhg::Replace );
       }
-      LIKWID_MARKER_STOP( name.c_str() );
-      timingTree.stop( name );
+      LIKWID_MARKER_STOP( vvname.c_str() );
+      timingTree.stop( vvname );
    }
 
    /// Edge to Vertex
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      name = "Edge-to-Vertex-Apply-" + benchInfoString;
-      timingTree.start( name );
-      LIKWID_MARKER_START( name.c_str() );
+
+      timingTree.start( evname );
+      LIKWID_MARKER_START( evname.c_str() );
       if( USE_GENERATED_KERNELS )
       {
          auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
@@ -82,16 +92,16 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                              dst.getVertexDoFFunction().getFaceDataID(),
                                              hhg::Replace );
       }
-      LIKWID_MARKER_STOP( name.c_str() );
-      timingTree.stop( name );
+      LIKWID_MARKER_STOP( evname.c_str() );
+      timingTree.stop( evname );
    }
 
    /// Edge to Edge
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      name = "Edge-to-Edge-Apply-" + benchInfoString;
-      timingTree.start( name );
-      LIKWID_MARKER_START( name.c_str() );
+
+      timingTree.start( eename );
+      LIKWID_MARKER_START( eename.c_str() );
       if( USE_GENERATED_KERNELS )
       {
          auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
@@ -107,16 +117,16 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                          dst.getEdgeDoFFunction().getFaceDataID(),
                                          hhg::Replace );
       }
-      LIKWID_MARKER_STOP( name.c_str() );
-      timingTree.stop( name );
+      LIKWID_MARKER_STOP( eename.c_str() );
+      timingTree.stop( eename );
    }
 
    /// Vertex to Edge
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      name = "Vertex-to-Edge-Apply-" + benchInfoString;
-      timingTree.start( name );
-      LIKWID_MARKER_START( name.c_str() );
+
+      timingTree.start( vename );
+      LIKWID_MARKER_START( vename.c_str() );
       if( USE_GENERATED_KERNELS )
       {
          auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
@@ -135,8 +145,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                              dst.getEdgeDoFFunction().getFaceDataID(),
                                              hhg::Replace );
       }
-      LIKWID_MARKER_STOP( name.c_str() );
-      timingTree.stop( name );
+      LIKWID_MARKER_STOP( vename.c_str() );
+      timingTree.stop( vename );
    }
 }
 

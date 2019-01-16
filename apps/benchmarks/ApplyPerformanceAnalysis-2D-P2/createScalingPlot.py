@@ -9,7 +9,7 @@ def main():
     totalProcs = range(2,20)
     likwidRegions = collections.OrderedDict()
 
-    with open('createScaling.txt','r') as csvfile:
+    with open('scalingData.txt','r') as csvfile:
         lines = csv.reader(csvfile, delimiter=',')
         region = 'walberla'
         likwidRegions[region] = {}
