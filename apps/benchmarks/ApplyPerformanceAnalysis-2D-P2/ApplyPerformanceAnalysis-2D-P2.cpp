@@ -8,6 +8,7 @@
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/misc/dummy.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/GeneratedKernelsVertexToEdgeMacroFace2D.hpp"
@@ -58,6 +59,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
          hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+         hhg::misc::dummy( srcPtr, dstPtr );
       } else
       {
          hhg::vertexdof::macroface::apply( level,
@@ -83,6 +85,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
          hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
              srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
+         hhg::misc::dummy( srcPtr, dstPtr );
       } else
       {
          hhg::EdgeDoFToVertexDoF::applyFace( level,
@@ -108,6 +111,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
          hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+         hhg::misc::dummy( srcPtr, dstPtr );
       } else
       {
          hhg::edgedof::macroface::apply( level,
@@ -140,6 +144,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               vertexToHorizontalEdgeStencil,
                                                                                               vertexToVerticalEdgeStencil,
                                                                                               static_cast< int64_t >( level ) );
+         hhg::misc::dummy( srcPtr, dstPtr );
       } else
       {
          hhg::VertexDoFToEdgeDoF::applyFace( level,
