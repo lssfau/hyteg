@@ -1,0 +1,14 @@
+Parameters
+{
+  level 8;
+  minLevel 2;
+  mesh  ../../../data/meshes/quad_16el.msh;
+
+  cgIterations 20;
+  minresIterations 10;
+  vCycles 5;
+  preSmoothingSteps 2;
+  postSmoothingSteps 2;
+
+  checkError false;
+}
