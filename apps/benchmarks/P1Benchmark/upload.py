@@ -28,7 +28,6 @@ def main():
         s = f.read()
     apply = re.search('apply runtime: (\d*.\d*)', s)
     assign = re.search('assign runtime: (\d*.\d*)', s)
-    apply_gen = re.search('apply_gen runtime: (\d*.\d*)', s)
     interpolate = re.search('interpolate runtime: (\d*.\d*)', s)
     l = re.search('level: (\d*.\d*)', s)
 
@@ -46,7 +45,6 @@ def main():
             'fields': {'apply_runtime': float(apply.group(1)),
                        'assign_runtime': float(assign.group(1)),
                        'interpolate_runtime': float(interpolate.group(1)),
-                       'apply_gen_runtime': float(apply_gen.group(1))}
         }
     ]
     client.write_points(json_body, time_precision='s')
