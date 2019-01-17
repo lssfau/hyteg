@@ -52,6 +52,7 @@ public:
   , postSmoothSteps_( postSmoothSteps )
   , smoothIncrement_( smoothIncrementOnCoarserGrids )
   , flag_( hhg::Inner | hhg::NeumannBoundary )
+  , cycleType_( CycleType::VCYCLE )
   {
      zero_ = []( const hhg::Point3D& ) { return 0.0; };
   }
