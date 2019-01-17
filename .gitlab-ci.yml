@@ -1300,6 +1300,14 @@ msvc-14.1_MpiOnly_Dbg:
       - python3 upload.py
       - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P1Benchmark P1Benchmark.prm -Parameters.level=14 | tee P1BenchmarkOutput.txt
       - python3 upload.py
+      - cd $CI_PROJECT_DIR/build/apps/benchmarks/P2Benchmark
+      - make -j 20
+      - export PATH=$PATH:/usr/local/likwid/bin
+      - likwid-setFrequencies -t 0
+      - likwid-setFrequencies -g performance
+      - likwid-setFrequencies -f 3.3 # set frequency to 3.3
+      - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P2Benchmark P2Benchmark.prm -Parameters.level=10 | tee P2BenchmarkOutput.txt
+      - python3 upload.py
    # only:
    #    variables:
    #       - $ENABLE_BENCHMARKS
