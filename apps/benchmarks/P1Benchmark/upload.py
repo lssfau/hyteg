@@ -44,7 +44,7 @@ def main():
             'time': int(time.time()),
             'fields': {'apply_runtime': float(apply.group(1)),
                        'assign_runtime': float(assign.group(1)),
-                       'interpolate_runtime': float(interpolate.group(1)),
+                       'interpolate_runtime': float(interpolate.group(1))}
         }
     ]
     client.write_points(json_body, time_precision='s')
