@@ -46,8 +46,8 @@ class FunctionIteratorDoF
    uint_t arrayIndex() const;
 
    /// The value of the DoF
-   const typename FunctionType::ValueType& value() const;
-   typename FunctionType::ValueType&       value();
+   const typename FunctionType::valueType& value() const;
+   typename FunctionType::valueType&       value();
 
    std::string toString() const;
 
@@ -100,7 +100,7 @@ inline uint_t FunctionIteratorDoF< FunctionType >::arrayIndex() const
 }
 
 template < typename FunctionType >
-inline const typename FunctionType::ValueType& FunctionIteratorDoF< FunctionType >::value() const
+inline const typename FunctionType::valueType& FunctionIteratorDoF< FunctionType >::value() const
 {
    if ( isOnMacroVertex() )
       return function_.getStorage()
@@ -125,7 +125,7 @@ inline const typename FunctionType::ValueType& FunctionIteratorDoF< FunctionType
 }
 
 template < typename FunctionType >
-inline typename FunctionType::ValueType& FunctionIteratorDoF< FunctionType >::value()
+inline typename FunctionType::valueType& FunctionIteratorDoF< FunctionType >::value()
 {
    if ( isOnMacroVertex() )
       return function_.getStorage()
