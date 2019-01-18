@@ -480,7 +480,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                                                                                                size_t level,
                                                                                                DoFType flag,
                                                                                                UpdateType updateType) const{
-   this->startTiming( "P1ConstantOperator - Apply" );
+   this->startTiming( "Apply" );
    src.communicate< Vertex, Edge >( level );
    src.communicate< Edge, Face >( level );
    src.communicate< Face, Cell >( level );
@@ -568,7 +568,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
       }
    }
-   this->stopTiming( "P1ConstantOperator - Apply" );
+   this->stopTiming( "Apply" );
 }
 
 template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>

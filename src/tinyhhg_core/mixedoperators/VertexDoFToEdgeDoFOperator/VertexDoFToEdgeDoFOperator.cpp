@@ -122,7 +122,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
                                                                         DoFType                          flag,
                                                                         UpdateType                       updateType ) const
 {
-  this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
+  this->startTiming( "Apply" );
   ///the order of communication is crucial here.
   ///first the vertex dofs on the macro vertex need to be communicated to the edge since they are needed on the edge and the face
   src.communicate<Vertex, Edge>( level );
@@ -194,7 +194,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
       }
     }
   }
-  this->stopTiming( "VertexDoFToEdgeDoFOperator - Apply" );
+  this->stopTiming( "Apply" );
 }
 
 namespace VertexDoFToEdgeDoF {

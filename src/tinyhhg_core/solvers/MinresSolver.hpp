@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/timing/TimingTree.h"
+
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 #include "tinyhhg_core/solvers/Solver.hpp"
 
@@ -35,10 +37,12 @@ public:
   , p_wp( "wp", storage, minLevel, maxLevel )
   , p_tmp( "tmp", storage, minLevel, maxLevel )
   , r_( "r", storage, minLevel, maxLevel )
+  , timingTree_( storage->getTimingTree() )
   {}
 
   void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) override
   {
+    timingTree_->start( "MinRes Solver" );
     std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
     p_vm.interpolate(zero, level, flag_);
     p_wm.interpolate(zero, level, flag_);
@@ -70,6 +74,7 @@ public:
       if (printInfo_) {
         WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
       }
+      timingTree_->stop( "MinRes Solver" );
       return;
     }
 
@@ -128,6 +133,7 @@ public:
         break;
       }
     }
+    timingTree_->stop( "MinRes Solver" );
   }
 
 private:
@@ -153,6 +159,8 @@ private:
   FunctionType p_tmp;
 
   FunctionType r_;
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
 }

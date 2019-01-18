@@ -38,7 +38,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 
 void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) const {
 
-  this->startTiming( "EdgeDoFOperator - Apply" );
+  this->startTiming( "Apply" );
 
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Edge, Face>( level );
@@ -118,7 +118,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
 
 
 
-  this->stopTiming( "EdgeDoFOperator - Apply" );
+  this->stopTiming( "Apply" );
 }
 
 

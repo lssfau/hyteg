@@ -326,7 +326,7 @@ void VertexDoFFunction< ValueType >::assign(
       srcFaceIDs.push_back( function.faceDataID_ );
       srcCellIDs.push_back( function.cellDataID_ );
    }
-   this->startTiming( "Vertex" );
+   this->getStorage()->getTimingTree()->start( "Vertex" );
    for( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
@@ -336,8 +336,8 @@ void VertexDoFFunction< ValueType >::assign(
          vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
-   this->stopTiming( "Vertex" );
-   this->startTiming( "Edge" );
+   this->getStorage()->getTimingTree()->stop( "Vertex" );
+   this->getStorage()->getTimingTree()->start( "Edge" );
    for( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
@@ -347,8 +347,8 @@ void VertexDoFFunction< ValueType >::assign(
          vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
-   this->stopTiming( "Edge" );
-   this->startTiming( "Face" );
+   this->getStorage()->getTimingTree()->stop( "Edge" );
+   this->getStorage()->getTimingTree()->start( "Face" );
    for( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
@@ -359,8 +359,8 @@ void VertexDoFFunction< ValueType >::assign(
       }
     }
 
-   this->stopTiming( "Face" );
-   this->startTiming( "Cell" );
+   this->getStorage()->getTimingTree()->stop( "Face" );
+   this->getStorage()->getTimingTree()->start( "Cell" );
    for( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
@@ -369,7 +369,7 @@ void VertexDoFFunction< ValueType >::assign(
          vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
-   this->stopTiming( "Cell" );
+   this->getStorage()->getTimingTree()->stop( "Cell" );
    this->stopTiming( "Assign" );
 }
 

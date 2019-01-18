@@ -371,6 +371,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
                                                                    const size_t level,
                                                                    const DoFType flag) const
 {
+   this->startTiming( "Gauss-Seidel" );
    dst.getVertexDoFFunction().communicate< Face, Edge >( level );
    dst.getVertexDoFFunction().communicate< Edge, Vertex >( level );
    dst.getEdgeDoFFunction().communicate< Face, Edge >( level );
@@ -438,6 +439,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
                                            rhs.getEdgeDoFFunction().getFaceDataID() );
       }
    }
+   this->stopTiming( "Gauss-Seidel" );
 }
 
 template < class UFCOperator2D, class UFCOperator3D >

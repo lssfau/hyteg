@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/timing/TimingTree.h"
 
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
@@ -53,6 +54,7 @@ public:
   , smoothIncrement_( smoothIncrementOnCoarserGrids )
   , flag_( hhg::Inner | hhg::NeumannBoundary )
   , cycleType_( CycleType::VCYCLE )
+  , timingTree_( storage->getTimingTree() )
   {
      zero_ = []( const hhg::Point3D& ) { return 0.0; };
   }
@@ -61,29 +63,36 @@ public:
 
   void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) override
   {
+    timingTree_->start( "Geometric Multigrid Solver" );
     solve(A,x,b,level,0);
+    timingTree_->stop( "Geometric Multigrid Solver" );
   }
 
   void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level,const uint_t currentIncrement) const
   {
-
     if (level == minLevel_)
     {
+      timingTree_->start( "Coarse Grid Solver" );
       coarseSolver_->solve(A, x, b, minLevel_);
+      timingTree_->stop( "Coarse Grid Solver" );
     }
     else
     {
       // pre-smooth
       for (size_t i = 0; i < preSmoothSteps_ + currentIncrement; ++i)
       {
+        timingTree_->start( "Smoother" );
         smoother_->solve(A, x, b, level );
+        timingTree_->stop( "Smoother" );
       }
 
       A.apply(x, ax_, level, flag_);
       tmp_.assign({1.0, -1.0}, { b, ax_ }, level, flag_);
 
       // restrict
+      timingTree_->start( "Restriction" );
       restrictionOperator_->restrict( tmp_, level, flag_ );
+      timingTree_->stop( "Restriction" );
 
       b.assign({1.0}, { tmp_ }, level - 1, flag_);
 
@@ -97,13 +106,17 @@ public:
 
       // prolongate
       tmp_.assign({1.0}, { x }, level, flag_);
+      timingTree_->start( "Prolongation" );
       prolongationOperator_->prolongate( x, level-1, flag_ );
+      timingTree_->stop( "Prolongation" );
       x.add({1.0}, { tmp_ }, level, flag_);
 
       // post-smooth
       for (size_t i = 0; i < postSmoothSteps_ + currentIncrement; ++i)
       {
+        timingTree_->start( "Smoother" );
         smoother_->solve(A, x, b, level );
+        timingTree_->stop( "Smoother" );
       }
     }
 
@@ -129,6 +142,8 @@ private:
   FunctionType tmp_;
 
   std::function<real_t(const hhg::Point3D&)> zero_;
+
+  std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
 };
 
