@@ -264,17 +264,17 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void macroFaceApply( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
 {
   vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID ); 
 }
 
 template<>
-void macroFaceApply< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
-                               const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                               const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+void macroFaceAssign< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
 {
   if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
   {
@@ -355,7 +355,7 @@ void VertexDoFFunction< ValueType >::assign(
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-        macroFaceApply< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+        macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
     }
 
