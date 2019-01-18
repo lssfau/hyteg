@@ -23,8 +23,6 @@ int main( int argc, char* argv[] )
    const std::string meshFile  = "../../data/meshes/quad_8el.msh";
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree(timingTree);
 
    hhg::P1Function< real_t > r( "r", storage, level, level );
    hhg::P1Function< real_t > f( "f", storage, level, level );
@@ -66,7 +64,7 @@ int main( int argc, char* argv[] )
    vtkOutput.add( u );
    vtkOutput.write( level );
 
-   walberla::WcTimingTree tt = timingTree->getReduced();
+   walberla::WcTimingTree tt = storage->getTimingTree()->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );
 
    return 0;

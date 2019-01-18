@@ -27,6 +27,9 @@ public:
   , Amat( localSize, globalSize )
   , xVec( localSize )
   , bVec( localSize )
+#if 0
+  , inKernel( localSize )
+#endif
   , flag_( hhg::All )
   {
      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
@@ -35,6 +38,17 @@ public:
   ~PETScLUSolver(){
     KSPDestroy(&ksp);
   }
+
+#if 0
+  void setNullSpace( FunctionType & inKernel, const uint_t & level )
+  {
+    inKernel.createVectorFromFunction( inKernel, *num, level, All );
+    VecNormalize(inKernel.get(), NULL);
+    MatNullSpace nullspace;
+    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &(inKernel.get()), &nullspace );
+    MatSetNullSpace( Amat.get(), nullspace );
+  }
+#endif
 
   void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) {
 
@@ -52,8 +66,6 @@ public:
       //PCFactorGetMatrix(pc,&F);
     }
 
-
-    //WALBERLA_LOG_INFO_ON_ROOT("Solving Linerar System")
     KSPSolve(ksp,bVec.get(),xVec.get());
 
     xVec.createFunctionFromVector(x,*num.get(),level,flag_);
@@ -68,6 +80,10 @@ private:
   PETScSparseMatrix<OperatorType,OperatorType::srcType::template FunctionType> Amat;
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> xVec;
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> bVec;
+#if 0
+  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
+#endif
+
   KSP ksp;
   PC pc;
   hhg::DoFType flag_;

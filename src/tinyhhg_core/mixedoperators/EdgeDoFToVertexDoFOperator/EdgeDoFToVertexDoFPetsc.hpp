@@ -169,7 +169,9 @@ inline void saveEdgeOperator3D( const uint_t & level,  const Edge & edge,
           const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
           const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
-          const auto leafIndexOnEdge = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+          const auto leafIndexOnEdge = leafOrientationOnEdge == edgedof::EdgeDoFOrientation::XYZ
+                                       ? edgedof::macrocell::getIndexInNeighboringMacroEdgeXYZ( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level )
+                                       : edgedof::macrocell::getIndexInNeighboringMacroEdge( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level );
 
           const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
           const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );

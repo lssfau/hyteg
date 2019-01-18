@@ -23,8 +23,17 @@ namespace hhg {
 
 using walberla::uint_t;
 
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
-  primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
+std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const std::string & meshFilePath )
+{
+  const MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFilePath );
+  const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  return std::make_shared< PrimitiveStorage >( setupStorage );
+}
+
+
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,
+                                    const std::shared_ptr< walberla::WcTimingTree > & timingTree ) :
+primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), timingTree_( timingTree ), hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
 {
   if ( setupStorage.getNumberOfPrimitives() < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
   {
@@ -254,22 +263,9 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage )
 #endif
 }
 
-
-std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const std::string & meshFilePath )
-{
-  const MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFilePath );
-  const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  return std::make_shared< PrimitiveStorage >( setupStorage );
-}
-
-
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,
-                                    const std::shared_ptr< walberla::WcTimingTree > & timingTree ) :
-  PrimitiveStorage(setupStorage)
-{
-  timingTree_ = timingTree;
-}
-
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
+  PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >() )
+{}
 
 void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {

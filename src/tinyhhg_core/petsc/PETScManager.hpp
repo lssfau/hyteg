@@ -4,12 +4,13 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-class PETScManager {
-public:
+class PETScManager
+{
+ public:
+   PETScManager() { PetscInitializeNoArguments(); }
+   PETScManager( int* argc, char*** argv ) { PetscInitialize( argc, argv, NULL, NULL ); }
 
-  PETScManager() {   PetscInitializeNoArguments(); }
-
-  ~PETScManager(){  PetscFinalize();  }
+   ~PETScManager() { PetscFinalize(); }
 };
 
 #endif

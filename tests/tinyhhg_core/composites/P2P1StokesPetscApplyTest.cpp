@@ -9,8 +9,8 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "tinyhhg_core/petsc/PETScSparseMatrix.hpp"
 #include "tinyhhg_core/petsc/PETScVector.hpp"
 #include "tinyhhg_core/FunctionTraits.hpp"
@@ -23,7 +23,7 @@ using walberla::real_t;
 
 namespace hhg {
 
-void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const DoFType & location, const real_t & eps )
+void p2p1StokesPetscApplyTest( const uint_t & level, const std::string & meshFile, const DoFType & location, const real_t & eps )
 {
   WALBERLA_LOG_INFO_ON_ROOT( "level: " << level << ", mesh file: " << meshFile );
 
@@ -35,14 +35,14 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   loadbalancing::roundRobin( setupStorage );
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
-  writeDomainPartitioningVTK( storage, "../../output", "P2PetscApplyTestDomain" );
+  writeDomainPartitioningVTK( storage, "../../output", "P2P1StokesPetscApplyTestDomain" );
 
-  P2Function< real_t >   src      ( "src",       storage, level, level );
-  P2Function< real_t >   hhgDst   ( "hhgDst",    storage, level, level );
-  P2Function< real_t >   petscDst ( "petscDst",  storage, level, level );
-  P2Function< real_t >   err      ( "error",     storage, level, level );
-  P2Function< real_t >   ones     ( "ones",      storage, level, level );
-  P2Function< PetscInt > numerator( "numerator", storage, level, level );
+  P2P1TaylorHoodFunction< real_t >   src      ( "src",       storage, level, level );
+  P2P1TaylorHoodFunction< real_t >   hhgDst   ( "hhgDst",    storage, level, level );
+  P2P1TaylorHoodFunction< real_t >   petscDst ( "petscDst",  storage, level, level );
+  P2P1TaylorHoodFunction< real_t >   err      ( "error",     storage, level, level );
+  P2P1TaylorHoodFunction< real_t >   ones     ( "ones",      storage, level, level );
+  P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
 
   std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
   std::function<real_t(const hhg::Point3D&)> one   = [](const hhg::Point3D&) { return 1.0; };
@@ -54,12 +54,12 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   petscDst.interpolate( rand, level, location );
   ones.interpolate( one, level, location );
 
-  P2ConstantLaplaceOperator L( storage, level, level );
+  P2P1TaylorHoodStokesOperator L( storage, level, level );
 
   numerator.enumerate( level );
 
-  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
-  const uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2FunctionTag >( *storage, level );
+  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, level );
+  const uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -67,9 +67,9 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   L.apply( src, hhgDst, level, location );
 
   // PETSc apply
-  PETScVector< real_t, P2Function > srcPetscVec( localDoFs );
-  PETScVector< real_t, P2Function > dstPetscVec( localDoFs );
-  PETScSparseMatrix< P2ConstantLaplaceOperator, P2Function > petscMatrix( localDoFs, globalDoFs );
+  PETScVector< real_t, P2P1TaylorHoodFunction > srcPetscVec( localDoFs );
+  PETScVector< real_t, P2P1TaylorHoodFunction > dstPetscVec( localDoFs );
+  PETScSparseMatrix< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction > petscMatrix( localDoFs, globalDoFs );
 
   srcPetscVec.createVectorFromFunction( src, numerator, level, All );
   dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -88,11 +88,26 @@ void p2PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
 
   // VTK
-  VTKOutput vtkOutput( "../../output", "P2PetscApplyTest", storage );
-  vtkOutput.add( src );
-  vtkOutput.add( hhgDst );
-  vtkOutput.add( petscDst );
-  vtkOutput.add( err );
+  VTKOutput vtkOutput( "../../output", "P2P1StokesPetscApplyTest", storage );
+  vtkOutput.add( src.u );
+  vtkOutput.add( src.v );
+
+  vtkOutput.add( hhgDst.u );
+  vtkOutput.add( hhgDst.v );
+
+  vtkOutput.add( petscDst.u );
+  vtkOutput.add( petscDst.v );
+
+  vtkOutput.add( err.u );
+  vtkOutput.add( err.v );
+
+  if ( storage->hasGlobalCells() )
+  {
+    vtkOutput.add( src.w );
+    vtkOutput.add( hhgDst.w );
+    vtkOutput.add( petscDst.w );
+    vtkOutput.add( err.w );
+  }
   vtkOutput.write( level, 0 );
 
   WALBERLA_CHECK_LESS( absScalarProd, eps );
@@ -106,13 +121,13 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",                  hhg::All,   4.3e-15 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh",            hhg::All,   1.5e-13 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",                hhg::Inner, 1.8e-17 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh",            hhg::Inner, 9.6e-16 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh",            hhg::Inner, 1.5e-15 );
-  hhg::p2PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::Inner, 3.1e-15 );
-  hhg::p2PetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh",              hhg::All, 3.1e-15 );
+  hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All, 8.7e-15 );
+  hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All, 2.6e-13 );
+  hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::All, 7.1e-17 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hhg::All, 6.4e-16 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hhg::All, 1.2e-15 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 2.8e-15 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hhg::All, 3.5e-15 );
 
   return EXIT_SUCCESS;
 }

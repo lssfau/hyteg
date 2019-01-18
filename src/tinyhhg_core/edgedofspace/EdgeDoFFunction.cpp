@@ -428,6 +428,11 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
+   if( isDummy() )
+   {
+      return;
+   }
+
    for( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;

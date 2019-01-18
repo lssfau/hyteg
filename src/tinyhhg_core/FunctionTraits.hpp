@@ -89,6 +89,7 @@ template< typename VType >
 struct FunctionTrait< DGFunction< VType > >
 {
   typedef VType ValueType;
+  typedef DGFunctionTag Tag;
 
   static std::string getTypeName() { return "DGFunction"; }
 };
