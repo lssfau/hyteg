@@ -6,6 +6,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFPackInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
 
 namespace hhg {
 
@@ -245,6 +246,43 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    this->stopTiming( "Interpolate" );
 }
 
+
+template< typename ValueType >
+void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
+                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
+                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+{
+   edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template<>
+void macroFaceAssign< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
+                               const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
+                               const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+{
+   if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      auto dstData = face.getData( dstFaceID )->getPointer( level );
+      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      edgedof::macroface::generated::assign_2D_macroface_edgedof_1_rhs_function( dstData, srcData, scalar, static_cast< int64_t >( level ) );
+   }
+   else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      edgedof::macroface::generated::assign_2D_macroface_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+   }
+   else
+   {
+      edgedof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+   }
+}
+
+
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                    scalars,
@@ -284,7 +322,7 @@ void EdgeDoFFunction< ValueType >::assign(
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+         macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 
