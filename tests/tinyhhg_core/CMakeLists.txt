@@ -42,7 +42,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_compile_test(FILES convergence/P1Stokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
   waLBerla_execute_test(NAME P1Stokes3DMinResConvergenceTest)
 
-  waLBerla_compile_test(FILES convergence/P2P1TaylorHoodStokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_compile_test(FILES convergence/P2P1Stokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
   waLBerla_execute_test(NAME P2P1TaylorHoodStokes3DMinResConvergenceTest)
 endif()
 
@@ -243,6 +243,11 @@ waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS tinyhhg_co
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
 
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES P2/P2LaplacePetscSymmetryTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P2LaplacePetscSymmetryTest)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
     waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
@@ -267,6 +272,48 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2PetscApplyTest1 COMMAND $<TARGET_FILE:P2PetscApplyTest> )
   waLBerla_execute_test(NAME P2PetscApplyTest2 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 2)
   waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
+endif()
+
+## composites ##
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P1P1StokesPetscApplyTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P1P1StokesPetscApplyTest1 COMMAND $<TARGET_FILE:P1P1StokesPetscApplyTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P1P1StokesPetscApplyTest2 COMMAND $<TARGET_FILE:P1P1StokesPetscApplyTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P1P1Stokes2DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P1P1Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P1Stokes2DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P1P1Stokes2DPetscSolveTest2 COMMAND $<TARGET_FILE:P1P1Stokes2DPetscSolveTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P2P1StokesPetscApplyTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P2P1StokesPetscApplyTest1 COMMAND $<TARGET_FILE:P2P1StokesPetscApplyTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P2P1StokesPetscApplyTest2 COMMAND $<TARGET_FILE:P2P1StokesPetscApplyTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P2P1Stokes2DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P2P1Stokes2DPetscSolveTest1 COMMAND $<TARGET_FILE:P2P1Stokes2DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P2P1Stokes2DPetscSolveTest2 COMMAND $<TARGET_FILE:P2P1Stokes2DPetscSolveTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P1P1Stokes3DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P1P1Stokes3DPetscSolveTest1 COMMAND $<TARGET_FILE:P1P1Stokes3DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P1P1Stokes3DPetscSolveTest2 COMMAND $<TARGET_FILE:P1P1Stokes3DPetscSolveTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P2P1Stokes3DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P2P1Stokes3DPetscSolveTest1 COMMAND $<TARGET_FILE:P2P1Stokes3DPetscSolveTest> PROCESSES 1)
+  waLBerla_execute_test(NAME P2P1Stokes3DPetscSolveTest2 COMMAND $<TARGET_FILE:P2P1Stokes3DPetscSolveTest> PROCESSES 2)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES composites/P2P1StokesPetscSymmetryTest.cpp DEPENDS tinyhhg_core core )
+    waLBerla_execute_test(NAME P2P1StokesPetscSymmetryTest)
 endif()
 
 ## Other ##
@@ -332,6 +379,11 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME PetscTest COMMAND $<TARGET_FILE:PetscTest> )
   waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
 endif()
+
+waLBerla_compile_test(FILES FunctionIteratorTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FunctionIteratorTest1 COMMAND $<TARGET_FILE:FunctionIteratorTest> )
+waLBerla_execute_test(NAME FunctionIteratorTest2 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 2 )
+waLBerla_execute_test(NAME FunctionIteratorTest8 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 8 )
 
 waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )

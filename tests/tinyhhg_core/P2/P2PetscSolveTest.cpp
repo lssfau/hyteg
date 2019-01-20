@@ -128,7 +128,9 @@ int main( int argc, char* argv[] )
    petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",                3.0e-07 );
    petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh",            2.7e-06 );
    petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh",            3.2e-07 );
+   petscSolveTest( 2, "../../data/meshes/3D/pyramid_tilted_4el.msh",     7.3e-06 );
    petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", 1.7e-06 );
+   petscSolveTest( 2, "../../data/meshes/3D/cube_24el.msh",              1.4e-05 );
 
    return EXIT_SUCCESS;
 }

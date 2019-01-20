@@ -171,14 +171,12 @@ int main( int argc, char* argv[] )
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hhg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
       return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
    };
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    ///// Functions / operators / allocation /////
 

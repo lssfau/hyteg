@@ -1,6 +1,8 @@
+
 #pragma once
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 namespace hhg
 {
@@ -103,10 +105,21 @@ public:
 
   void enumerate( uint_t level )
   {
-    u.enumerate( level );
-    v.enumerate( level );
-    w.enumerate( level );
-    p.enumerate( level );
+    uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+
+    std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
+
+    ValueType offset = 0;
+
+    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+    {
+      offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
+    }
+
+    u.enumerate( level, offset );
+    v.enumerate( level, offset );
+    w.enumerate( level, offset );
+    p.enumerate( level, offset );
   }
 
   P1Function< ValueType > u;
