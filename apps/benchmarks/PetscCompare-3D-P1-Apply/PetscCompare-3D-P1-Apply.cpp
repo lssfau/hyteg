@@ -70,7 +70,8 @@ int main( int argc, char* argv[] )
 
    hhg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
    wcTimingTreeApp.stop( "Mesh setup + load balancing" );
 
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
@@ -79,9 +80,6 @@ int main( int argc, char* argv[] )
       return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    wcTimingTreeApp.start( "Function allocation" );
    hhg::P1Function< double >   oneFunc( "x", storage, level, level );
