@@ -105,19 +105,19 @@ public:
 
       eta = -s_new * eta;
 
-      p_tmp.assign( {1.0}, {p_vp}, level );
-      p_vp.assign( {1.0}, {p_vm}, level );
-      p_vm.assign( {1.0}, {p_v}, level );
-      p_v.assign( {1.0}, {p_tmp}, level );
+      p_tmp.swap( p_vp, level );
+      p_vp.swap( p_vm, level );
+      p_vm.swap( p_v, level );
+      p_v.swap( p_tmp, level );
 
-      p_tmp.assign( {1.0}, {p_wp}, level );
-      p_wp.assign( {1.0}, {p_wm}, level );
-      p_wm.assign( {1.0}, {p_w}, level );
-      p_w.assign( {1.0}, {p_tmp}, level );
+      p_tmp.swap( p_wp, level );
+      p_wp.swap( p_wm, level );
+      p_wm.swap( p_w, level );
+      p_w.swap( p_tmp, level );
 
-      p_tmp.assign( {1.0}, {p_zp}, level );
-      p_zp.assign( {1.0}, {p_z}, level );
-      p_z.assign( {1.0}, {p_tmp}, level );
+      p_tmp.swap( p_zp, level );
+      p_zp.swap( p_z, level );
+      p_z.swap( p_tmp, level );
 
       if (printInfo_)
       {
