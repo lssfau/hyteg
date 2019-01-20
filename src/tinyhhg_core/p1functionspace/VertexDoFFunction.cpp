@@ -347,6 +347,17 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      auto scalar1  = scalars.at( 1 );
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
   }
+  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  {
+     auto dstData  = face.getData( dstFaceID )->getPointer( level );
+     auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+     auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+     auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+     auto scalar0  = scalars.at( 0 );
+     auto scalar1  = scalars.at( 1 );
+     auto scalar2  = scalars.at( 2 );
+     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+  }
   else
   {
      vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
