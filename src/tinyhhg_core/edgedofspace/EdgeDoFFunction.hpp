@@ -47,6 +47,10 @@ public:
 
   EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
 
+  void swap( const EdgeDoFFunction< ValueType > & other,
+             const uint_t & level,
+             const DoFType & flag = All ) const;
+
   void assign( const std::vector< ValueType >&                                                    scalars,
                const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
                uint_t                                                                             level,

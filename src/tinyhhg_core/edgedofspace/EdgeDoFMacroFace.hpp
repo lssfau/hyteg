@@ -158,6 +158,16 @@ inline void interpolate(const uint_t & Level, Face & face,
 }
 
 
+template< typename ValueType >
+inline void swap( const uint_t & level, Face & face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstID )
+{
+  auto srcData = face.getData( srcID );
+  auto dstData = face.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
 
 template< typename ValueType >
 inline void add( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,

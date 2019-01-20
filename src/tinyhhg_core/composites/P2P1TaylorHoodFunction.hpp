@@ -47,6 +47,16 @@ public:
     p.interpolate(expr, level, flag);
   }
 
+  void swap( const P2P1TaylorHoodFunction< ValueType > & other,
+             const uint_t & level,
+             const DoFType & flag = All ) const
+  {
+    u.swap( other.u, level, flag );
+    v.swap( other.v, level, flag );
+    w.swap( other.w, level, flag );
+    p.swap( other.p, level, flag );
+  }
+
   void assign( const std::vector< walberla::real_t >                                                     scalars,
                const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
                size_t                                                                                    level,

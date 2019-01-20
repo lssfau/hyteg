@@ -248,6 +248,51 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 
 
 template< typename ValueType >
+void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType > & other,
+                                         const uint_t & level,
+                                         const DoFType & flag ) const
+{
+  if( isDummy() )
+  {
+    return;
+  }
+  this->startTiming( "Swap" );
+
+  for( auto& it : this->getStorage()->getEdges() )
+  {
+    Edge& edge = *it.second;
+
+    if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+    {
+      edgedof::macroedge::swap< ValueType >( level, edge, other.getEdgeDataID(), edgeDataID_ );
+    }
+  }
+
+  for( auto& it : this->getStorage()->getFaces() )
+  {
+    Face& face = *it.second;
+
+    if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+    {
+       edgedof::macroface::swap< ValueType >( level, face, other.getFaceDataID(), faceDataID_ );
+    }
+  }
+
+  for( auto& it : this->getStorage()->getCells() )
+  {
+    Cell& cell = *it.second;
+
+    if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+    {
+       edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+    }
+  }
+
+  this->stopTiming( "Swap" );
+}
+
+
+template< typename ValueType >
 void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )

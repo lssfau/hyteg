@@ -43,6 +43,16 @@ inline void interpolate(Vertex &vertex,
 }
 
 template< typename ValueType >
+inline void swap( const uint_t & level, Vertex & vertex,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & dstID )
+{
+  auto srcData = vertex.getData( srcID );
+  auto dstData = vertex.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+template< typename ValueType >
 inline void assign(Vertex &vertex,
                    const std::vector<ValueType> &scalars,
                    const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,

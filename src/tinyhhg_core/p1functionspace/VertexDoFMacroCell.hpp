@@ -100,6 +100,16 @@ inline void interpolate( const uint_t & level,
 }
 
 template< typename ValueType >
+inline void swap( const uint_t & level, Cell & cell,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstID )
+{
+  auto srcData = cell.getData( srcID );
+  auto dstData = cell.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+template< typename ValueType >
 inline void assign( const uint_t & level,
                     const Cell & cell,
                     const std::vector< ValueType > & scalars,

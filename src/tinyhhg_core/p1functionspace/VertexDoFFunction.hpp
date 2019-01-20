@@ -63,6 +63,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
+    void swap( const VertexDoFFunction< ValueType > & other,
+               const uint_t & level,
+               const DoFType & flag = All ) const;
+
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level,
