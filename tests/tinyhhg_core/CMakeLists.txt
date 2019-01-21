@@ -141,6 +141,9 @@ waLBerla_execute_test(NAME VertexDoFLinearProlongation3DTest)
 
 ## EdgeDoFSpace ##
 
+waLBerla_compile_test(FILES edgedofspace/EdgeDoFAdditiveCommunicationTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME EdgeDoFAdditiveCommunicationTest)
+
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME EdgeDoFMemoryTest)
 
