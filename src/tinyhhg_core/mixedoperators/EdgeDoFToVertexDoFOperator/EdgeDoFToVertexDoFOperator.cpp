@@ -1,6 +1,6 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
-#include "generatedKernels/GeneratedKernels.hpp"
+#include "generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
@@ -149,7 +149,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                                                                        UpdateType updateType) const
 {
   using namespace EdgeDoFToVertexDoF;
-  this->startTiming( "EdgeDoFToVertexDoFOperator - Apply" );
+  this->startTiming( "Apply" );
 
   ///there might be room for optimization in the communication. i.e. splitting communicate into start and end to overlap comm and calc
 
@@ -236,7 +236,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
       }
     }
   }
-  this->stopTiming( "EdgeDoFToVertexDoFOperator - Apply" );
+  this->stopTiming( "Apply" );
 }
 
 template< class UFCOperator2D, class UFCOperator3D >

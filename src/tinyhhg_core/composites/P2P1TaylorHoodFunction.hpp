@@ -8,7 +8,7 @@ namespace hhg
 {
 
 template <typename ValueType>
-class P2P1TaylorHoodFunction : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+class P2P1TaylorHoodFunction 
 {
 public:
 
@@ -25,8 +25,7 @@ public:
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel )
-  : Operator( storage, minLevel, maxLevel )
-  , u( _name + "_u", storage, minLevel, maxLevel )
+  : u( _name + "_u", storage, minLevel, maxLevel )
   , v( _name + "_v", storage, minLevel, maxLevel )
   , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                    P2Function< ValueType >( _name + "_w_dummy", storage ) )
@@ -34,8 +33,7 @@ public:
   {}
 
   P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel, BoundaryCondition velocityBC)
-      : Operator( storage, minLevel, maxLevel )
-        , u(_name+"_u", storage, minLevel, maxLevel, velocityBC)
+        : u(_name+"_u", storage, minLevel, maxLevel, velocityBC)
         , v(_name+"_v", storage, minLevel, maxLevel, velocityBC)
         , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel, velocityBC ) :  P2Function< ValueType >( _name+"_w_dummy", storage ))
         , p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
@@ -47,6 +45,16 @@ public:
     v.interpolate(expr, level, flag);
     w.interpolate(expr, level, flag);
     p.interpolate(expr, level, flag);
+  }
+
+  void swap( const P2P1TaylorHoodFunction< ValueType > & other,
+             const uint_t & level,
+             const DoFType & flag = All ) const
+  {
+    u.swap( other.u, level, flag );
+    v.swap( other.v, level, flag );
+    w.swap( other.w, level, flag );
+    p.swap( other.p, level, flag );
   }
 
   void assign( const std::vector< walberla::real_t >                                                     scalars,

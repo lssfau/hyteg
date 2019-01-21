@@ -11,9 +11,9 @@ namespace hhg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-void apply_2D_macroface_edgedof_to_vertexdof_replace(double * fd_edgeFaceSrc, double * fd_edgeToVertexFaceStencil, double * fd_p1FaceDst, int64_t level);
+void apply_2D_macroface_edgedof_to_vertexdof_replace(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst, int64_t level);
 
-void apply_2D_macroface_edgedof_to_vertexdof_add(double * fd_edgeFaceSrc, double * fd_edgeToVertexFaceStencil, double * fd_p1FaceDst, int64_t level);
+void apply_2D_macroface_edgedof_to_vertexdof_add(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst, int64_t level);
 
 } // namespace generated
 } // namespace EdgeDoFToVertexDoF

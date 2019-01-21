@@ -95,6 +95,14 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
    }
 
+   inline void swap( const P2Function< ValueType > & other,
+                     const uint_t & level,
+                     const DoFType & dofType = All) const
+   {
+      vertexDoFFunction_.swap( other.getVertexDoFFunction(), level, dofType );
+      edgeDoFFunction_.swap( other.getEdgeDoFFunction(), level, dofType );
+   }
+
    inline void assign( const std::vector< ValueType >&                                               scalars,
                        const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                        uint_t                                                                        level,

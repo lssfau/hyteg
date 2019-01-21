@@ -7,7 +7,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernels.hpp"
+#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;
@@ -105,12 +105,12 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "interpolate runtime: " << timer.last() );
 
    LIKWID_MARKER_START( "apply" );
-   timer.reset();
    if( hhg::globalDefines::useGeneratedKernels ){
       WALBERLA_LOG_INFO_ON_ROOT("Using generated 2D apply kernel");
       real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
       real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
       real_t* dst_data      = face->getData( dst->getFaceDataID() )->getPointer( level );
+      timer.reset();
       vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
    } else {
       vertexdof::macroface::apply< real_t >(
@@ -138,7 +138,7 @@ int main( int argc, char** argv )
    kernel( dstPtr, srcPtr, opr_data, level );
    timer.end();
    LIKWID_MARKER_STOP( "apply_gen" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply_gen runtime: " << timer.last() );
+   // WALBERLA_LOG_INFO_ON_ROOT( "apply_gen runtime: " << timer.last() );
 
    /// do something with the result to prevent the compiler from removing all the computations
    real_t check2 = vertexdof::macroface::dot< real_t >( level, *face, dst->getFaceDataID(), dst->getFaceDataID() );

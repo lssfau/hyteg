@@ -75,6 +75,16 @@ inline void interpolate(const uint_t & Level, Edge & edge,
 }
 
 
+template< typename ValueType >
+inline void swap( const uint_t & level, Edge & edge,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstID )
+{
+  auto srcData = edge.getData( srcID );
+  auto dstData = edge.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
 
 template< typename ValueType >
 inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType > & scalars,

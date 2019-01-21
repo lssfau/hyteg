@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Abort.h"
+#include "core/timing/TimingTree.h"
 
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
@@ -37,6 +38,7 @@ class CGSolver : public Solver< OperatorType >
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
    , maxIter_( maxIter )
+   , timingTree_( storage->getTimingTree() )
    {
       if( !std::is_same< FunctionType, typename OperatorType::dstType >::value )
       {
@@ -46,6 +48,7 @@ class CGSolver : public Solver< OperatorType >
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      timingTree_->start( "CG Solver" );
       real_t prsold = 0;
       init( A, x, b, level, prsold );
       real_t res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );
@@ -56,6 +59,7 @@ class CGSolver : public Solver< OperatorType >
          {
             WALBERLA_LOG_INFO_ON_ROOT( "[CG] converged" );
          }
+         timingTree_->stop( "CG Solver" );
          return;
       }
       real_t pAp, alpha, rsnew, sqrsnew, prsnew, beta;
@@ -101,6 +105,7 @@ class CGSolver : public Solver< OperatorType >
             }
          }
       }
+      timingTree_->stop( "CG Solver" );
    }
 
  private:
@@ -124,6 +129,8 @@ class CGSolver : public Solver< OperatorType >
    real_t       tolerance_;
    uint_t       restartFrequency_;
    uint_t       maxIter_;
+
+   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
 } // namespace hhg

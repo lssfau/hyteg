@@ -28,7 +28,8 @@
 #pragma warning( pop )
 #endif
 
-#include "generatedKernels/GeneratedKernels.hpp"
+#include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
+#include "generatedKernels/GeneratedKernelsVertexToVertexMacroCell3D.hpp"
 #include "P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -479,7 +480,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                                                                                                size_t level,
                                                                                                DoFType flag,
                                                                                                UpdateType updateType) const{
-   this->startTiming( "P1ConstantOperator - Apply" );
+   this->startTiming( "Apply" );
    src.communicate< Vertex, Edge >( level );
    src.communicate< Edge, Face >( level );
    src.communicate< Face, Cell >( level );
@@ -546,11 +547,28 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if( testFlag( cellBC, flag ) )
       {
-         vertexdof::macrocell::apply< real_t >(
-                 level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+         if ( hhg::globalDefines::useGeneratedKernels )
+         {
+            real_t* opr_data = cell.getData( cellStencilID_ )->getPointer( level );
+            real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
+            real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
+            if ( updateType == Replace )
+            {
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+            }
+            else if ( updateType == Add )
+            {
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+            }
+         }
+         else
+         {
+            vertexdof::macrocell::apply< real_t >( level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+         }
+
       }
    }
-   this->stopTiming( "P1ConstantOperator - Apply" );
+   this->stopTiming( "Apply" );
 }
 
 template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>

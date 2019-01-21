@@ -236,6 +236,9 @@ waLBerla_execute_test(NAME P2ProlongateTest)
 waLBerla_compile_test(FILES P2/P2BasicFunctionsTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2BasicFunctionsTest)
 
+waLBerla_compile_test(FILES P2/P2SwapTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2SwapTest)
+
 waLBerla_compile_test(FILES P2/P2FunctionTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2FunctionTest)
 

@@ -4,6 +4,7 @@
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/FunctionTraits.hpp"
 
 #include <memory>
 
@@ -47,7 +48,7 @@ public:
   {
     if ( timingTree_ )
     {
-      timingTree_->start( "Operator" );
+      timingTree_->start( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " + FunctionTrait< DestinationFunction >::getTypeName() );
       timingTree_->start( timerString );
     }
   }
@@ -57,7 +58,7 @@ public:
     if ( timingTree_ )
     {
       timingTree_->stop( timerString );
-      timingTree_->stop( "Operator" );
+      timingTree_->stop( "Operator " + FunctionTrait< SourceFunction >::getTypeName() + " to " + FunctionTrait< DestinationFunction >::getTypeName() );
     }
   }
 };
