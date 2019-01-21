@@ -50,6 +50,12 @@ public:
 
   void communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const override;
 
+  void packFaceForVertex(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+  void unpackVertexFromFace(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+  void communicateLocalFaceToVertex(const Face *sender, Vertex *receiver) const override;
+
   void packFaceForCell(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
 
   void unpackCellFromFace(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
@@ -162,21 +168,135 @@ template< typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::packFaceForEdge(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
 {
   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-  WALBERLA_ABORT( "Additive communication Face -> Edge not implemented." );
+
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
+  uint_t edgeIndexOnFace = sender->edge_index(receiver);
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0, 1 ) )
+  {
+    buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+  }
 }
 
 template< typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
 {
   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-  WALBERLA_ABORT( "Additive communication Face -> Edge not implemented." );
+
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
+  const auto storage = storage_.lock();
+  WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
+  WALBERLA_CHECK( storage->faceExistsLocally( sender ) || storage->faceExistsInNeighborhood( sender ) );
+
+  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+  {
+    for ( const auto & it : vertexdof::macroedge::Iterator( level_, 1 ) )
+    {
+      WALBERLA_UNUSED( it );
+      ValueType tmp;
+      buffer >> tmp;
+    }
+  }
+  else
+  {
+    for ( const auto & it : vertexdof::macroedge::Iterator( level_, 1 ) )
+    {
+      ValueType tmp;
+      buffer >> tmp;
+      edgeData[ vertexdof::macroedge::index( level_, it.x() ) ] += tmp;
+    }
+  }
 }
 
 template< typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
 {
   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-  WALBERLA_ABORT( "Additive communication Face -> Edge not implemented." );
+
+  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+    return;
+
+  ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
+  ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
+  uint_t edgeIdOnFace = sender->edge_index(receiver->getID());
+  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
+  vertexdof::macroedge::Iterator edgeIterator( level_, 1 );
+  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0, 1 ) )
+  {
+    edgeData[ vertexdof::macroedge::index( level_, edgeIterator->x() ) ] += faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
+    edgeIterator++;
+  }
+}
+
+///@}
+/// @name Face to Vertex
+///@{
+
+template< typename ValueType >
+void VertexDoFAdditivePackInfo< ValueType >::packFaceForVertex(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+{
+  WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
+  ValueType *faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+  const uint_t maxIndex = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+  const uint_t localVertexID = sender->vertex_index( receiver );
+  switch ( localVertexID )
+  {
+    case 0:
+      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, 0, 0, stencilDirection::VERTEX_C ) ];
+      break;
+    case 1:
+      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
+      break;
+    case 2:
+      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
+      break;
+    default:
+      WALBERLA_ABORT( "Invalid local vertex ID." );
+      break;
+  }
+}
+
+template< typename ValueType >
+void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromFace(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+{
+  WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
+  ValueType * vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+  ValueType tmp;
+  buffer >> tmp;
+  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) != boundaryTypeToSkip_ )
+  {
+    vertexData[ 0 ] += tmp;
+  }
+}
+
+template< typename ValueType >
+void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex(const Face *sender, Vertex *receiver) const
+{
+  WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
+
+  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+    return;
+
+  ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+  ValueType * vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
+  const uint_t maxIndex = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+  const uint_t localVertexID = sender->vertex_index( receiver->getID() );
+  switch ( localVertexID )
+  {
+    case 0:
+      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, 0, 0, stencilDirection::VERTEX_C ) ];
+      break;
+    case 1:
+      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
+      break;
+    case 2:
+      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
+      break;
+    default:
+      WALBERLA_ABORT( "Invalid local vertex ID." );
+      break;
+  }
 }
 
 ///@}
