@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::All, 1.0e-16 );
   hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hhg::All, 7.3e-16 );
   hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hhg::All, 1.4e-15 );
-  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 2.8e-15 );
+  hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 4.0e-15 );
   hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hhg::All, 3.5e-15 );
 
   return EXIT_SUCCESS;
