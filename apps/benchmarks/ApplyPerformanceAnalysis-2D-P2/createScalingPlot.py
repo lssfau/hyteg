@@ -1,82 +1,61 @@
 import csv
-import subprocess
-import socket
 import collections
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 
 def main():
-    totalProcs = range(2,20)
-    likwidRegions = collections.OrderedDict()
+    for messure in ['Memory bandwidth [MBytes/s] STAT','DP MFLOP/s STAT']:
+        likwidRegions = collections.OrderedDict()
 
-    with open('scalingData.txt','r') as csvfile:
-        lines = csv.reader(csvfile, delimiter=',')
-        region = 'walberla'
-        likwidRegions[region] = {}
-        for l in lines:
-            if(l[0] == 'Region'):
-                region = l[1]
-                likwidRegions[region] = {}
-            else:
-                likwidRegions[region][l[0]] = l[1:]
+        with open('scalingData.txt', 'r') as csvfile:
+            lines = csv.reader(csvfile, delimiter=',')
+            region = 'walberla'
+            likwidRegions[region] = {}
+            for l in lines:
+                if (l[0] == 'Region'):
+                    region = l[1]
+                    likwidRegions[region] = {}
+                else:
+                    likwidRegions[region][l[0]] = l[1:]
 
-    json_body = []
+        del likwidRegions['walberla']
 
-    del likwidRegions['walberla']
+        numberOfProcessors = []
+        outputData = collections.defaultdict(list)
 
-    #print(likwidRegions)
-    #client.write_points(json_body, time_precision='s')
+        for region in likwidRegions:
+            print(region)
+            procs = int(likwidRegions[region]['Region calls STAT'][1]) / int(likwidRegions[region]['Region calls STAT'][2])
+            numberOfProcessors.append(procs)
 
+            # outputData[region.split("-level")[0]].append(
+            #     float(likwidRegions[region]['Memory bandwidth [MBytes/s] STAT'][0]))
 
-    numberOfProcessors = []
-    outputData = collections.defaultdict(list)
+            outputData[region.split("-level")[0]].append(
+                float(likwidRegions[region][messure][0]))
 
-    for region in likwidRegions:
-        print(region)
-        procs = int(likwidRegions[region]['Region calls STAT'][1]) / int(likwidRegions[region]['Region calls STAT'][2])
-        numberOfProcessors.append(procs)
+        totalProcs = list(set(numberOfProcessors))
 
-        outputData[region.split("-level")[0]].append(float(likwidRegions[region]['Memory bandwidth [MBytes/s] STAT'][0]))
+        for region in outputData:
+            plt.plot(totalProcs, outputData[region], '--o', label=region)
+        plt.xlabel('Procs')
 
-        # json_body += [
-        #     {
-        #         'measurement': 'P2_Apply_Benchmark',
-        #         'tags': {
-        #             'host': os.uname()[1],
-        #             'project': 'terraneo',
-        #             #'image': os.environ["DOCKER_IMAGE_NAME"],
-        #             'Processes': int(procs),
-        #             #'commit': commit,
-        #             'region': region,
-        #         },
-        #         'time': int(time.time()) - int(procs),
-        #         'fields': {'DP MFLOP/s': float(likwidRegions[region]['DP MFLOP/s STAT'][0])}
-        #                    #'Memory bandwidth [MBytes/s]': float(likwidRegions[region]['Memory bandwidth [MBytes/s] STAT'][0])}
-        #     }
-        # ]
+        plt.ylabel(messure)
+        # plt.ylabel('Bandwidth [MByte/s]')
 
-    print(numberOfProcessors)
-    print(outputData)
-    #client.write_points(json_body, time_precision='s')
+        plt.ylim(bottom=0)
+        plt.xlim(left=0, right=totalProcs[-1] + 1)
+        plt.xticks(range(2, int(totalProcs[-1] + 1), 2))
+        plt.grid(True)
+        plt.tight_layout()
+        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
-    for region in outputData:
-        print(region)
-        print(totalProcs)
-        print(outputData[region])
-        plt.plot(totalProcs,outputData[region], '--o', label=region)
-    # plt.ylabel('petsc / hyteg (speedup)')
-    plt.xlabel('Procs')
-    plt.ylabel('Bandwidth [MByte/s]')
-    plt.ylim(bottom=0)
-    plt.xlim(left=0,right=totalProcs[-1]+1)
-    plt.xticks(totalProcs)
-
-    plt.legend()
-    savename = 'scaling.png'
-    plt.savefig(savename)
-
-    #plt.show()
-
+        plt.legend()
+        namepart = messure.split('[')[0].replace(' ', '_').replace('/', '-')
+        savename = 'scaling_' + namepart + '.png'
+        plt.savefig(savename)
+        plt.clf()
 
 
 if __name__ == "__main__":
