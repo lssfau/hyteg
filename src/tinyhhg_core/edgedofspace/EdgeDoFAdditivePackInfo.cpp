@@ -89,7 +89,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
    using hhg::edgedof::macroface::BorderIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
-   indexing::FaceBorderDirection faceBorderDir =
+   indexing::FaceBoundaryDirection faceBorderDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;
@@ -147,7 +147,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    ValueType*                    edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver->getID() );
-   indexing::FaceBorderDirection faceBorderDir =
+   indexing::FaceBoundaryDirection faceBorderDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
 
    edgedof::EdgeDoFOrientation orientation;

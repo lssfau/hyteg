@@ -351,11 +351,11 @@ Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter )
 : FaceIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
 {}
 
-BorderIterator::BorderIterator( const uint_t&                             level,
-                                const hhg::indexing::FaceBorderDirection& direction,
+BoundaryIterator::BoundaryIterator( const uint_t&                             level,
+                                const hhg::indexing::FaceBoundaryDirection& direction,
                                 const uint_t&                             offsetToCenter,
                                 const uint_t&                             offsetFromVertices )
-: FaceBorderIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
+: FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
 {}
 } // namespace macroface
 
