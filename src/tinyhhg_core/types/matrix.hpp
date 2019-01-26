@@ -10,6 +10,8 @@
 #include <array>
 #include <iomanip>
 
+#include "tinyhhg_core/types/pointnd.hpp"
+
 namespace hhg {
 
 using walberla::real_t;
@@ -133,6 +135,19 @@ public:
         for (uint_t k = 0; k < N; ++k) {
           out(i, j) += (*this)(i, k) * rhs(k, j);
         }
+      }
+    }
+    return out;
+  }
+
+  PointND<T, M> mul(const PointND<T, N>& rhs)
+  {
+    PointND<T, M> out;
+    for (uint_t i = 0; i < M; ++i)
+    {
+      for (uint_t j = 0; j < N; ++j)
+      {
+        out[i] += (*this)(i, j) * rhs[j];
       }
     }
     return out;
