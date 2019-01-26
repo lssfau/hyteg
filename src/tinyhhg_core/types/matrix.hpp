@@ -148,7 +148,7 @@ public:
       out(1,1) = (*this)(0,0);
       return out;
     }
-    WALBERLA_ABORT("Determinant computation not implemented for matrix dimensions " << M << " x " << N)
+    WALBERLA_ABORT("Adjugate computation not implemented for matrix dimensions " << M << " x " << N)
   }
 
   T det() const
