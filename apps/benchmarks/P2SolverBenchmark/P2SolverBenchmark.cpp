@@ -1,4 +1,5 @@
 #include "core/Environment.h"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
