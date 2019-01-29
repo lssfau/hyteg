@@ -246,10 +246,10 @@ void VertexDoFAdditivePackInfo< ValueType >::packFaceForVertex(const Face *sende
       buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, 0, 0, stencilDirection::VERTEX_C ) ];
       break;
     case 1:
-      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
+      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
       break;
     case 2:
-      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
+      buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
       break;
     default:
       WALBERLA_ABORT( "Invalid local vertex ID." );
@@ -288,10 +288,10 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex(const 
       vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, 0, 0, stencilDirection::VERTEX_C ) ];
       break;
     case 1:
-      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
+      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
       break;
     case 2:
-      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, maxIndex, 0, stencilDirection::VERTEX_C ) ];
+      vertexData[ 0 ] += faceData[ vertexdof::macroface::indexFromVertex( level_, 0, maxIndex, stencilDirection::VERTEX_C ) ];
       break;
     default:
       WALBERLA_ABORT( "Invalid local vertex ID." );
