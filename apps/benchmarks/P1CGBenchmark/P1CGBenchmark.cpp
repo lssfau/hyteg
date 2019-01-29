@@ -3,7 +3,7 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 #include "core/timing/TimingNode.h"
-#include "core/extern/json.hpp"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
