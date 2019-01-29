@@ -12,9 +12,9 @@ namespace edgedof {
 namespace macroface {
 namespace generated {
 
-void apply_2D_macroface_edgedof_to_edgedof_replace(double * _data_edgeFaceDst, double * _data_edgeFaceSrc, double * const _data_edgeFaceStencil, int64_t level);
+void apply_2D_macroface_edgedof_to_edgedof_replace(double * _data_edgeFaceDst, double * _data_edgeFaceSrc, double * const _data_edgeToDiagonalEdgeFaceStencil, double * const _data_edgeToHorizontalEdgeFaceStencil, double * const _data_edgeToVerticalEdgeFaceStencil, int64_t level);
 
-void apply_2D_macroface_edgedof_to_edgedof_add(double * _data_edgeFaceDst, double * _data_edgeFaceSrc, double * const _data_edgeFaceStencil, int64_t level);
+void apply_2D_macroface_edgedof_to_edgedof_add(double * _data_edgeFaceDst, double * _data_edgeFaceSrc, double * const _data_edgeToDiagonalEdgeFaceStencil, double * const _data_edgeToHorizontalEdgeFaceStencil, double * const _data_edgeToVerticalEdgeFaceStencil, int64_t level);
 
 void assign_2D_macroface_edgedof_1_rhs_function(double * _data_edgeFaceDst, double * _data_edgeFaceSrc, double c, int64_t level);
 
