@@ -33,10 +33,11 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                const uint_t&                              minLevel,
                                                const uint_t&                              maxLevel,
-                                               const BoundaryCondition&                   boundaryCondition )
+                                               const BoundaryCondition&                   boundaryCondition,
+                                               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
-, boundaryTypeToSkipDuringAdditiveCommunication_( DoFType::DirichletBoundary )
+, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    std::shared_ptr< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > > vertexDataHandling =
        std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >(

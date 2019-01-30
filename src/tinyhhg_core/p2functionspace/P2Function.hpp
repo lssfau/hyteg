@@ -39,11 +39,12 @@ class P2Function : public Function< P2Function< ValueType > >
                const std::shared_ptr< PrimitiveStorage >& storage,
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
-               BoundaryCondition                          boundaryCondition )
+               BoundaryCondition                          boundaryCondition,
+               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary )
    : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
    , vertexDoFFunction_(
-         vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
-   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+         vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition, boundaryTypeToSkipDuringAdditiveCommunication ) )
+   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition, boundaryTypeToSkipDuringAdditiveCommunication ) )
    {
       for( uint_t level = minLevel; level <= maxLevel; level++ )
       {

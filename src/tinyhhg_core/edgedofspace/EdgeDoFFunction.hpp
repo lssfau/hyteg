@@ -40,12 +40,19 @@ template< typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 {
 public:
+  EdgeDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
 
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage );
+  EdgeDoFFunction( const std::string&                         name,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const uint_t&                              minLevel,
+                   const uint_t&                              maxLevel );
 
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel );
-
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
+  EdgeDoFFunction( const std::string&                         name,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const uint_t&                              minLevel,
+                   const uint_t&                              maxLevel,
+                   const BoundaryCondition&                   boundaryCondition,
+                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
 
   void swap( const EdgeDoFFunction< ValueType > & other,
              const uint_t & level,
