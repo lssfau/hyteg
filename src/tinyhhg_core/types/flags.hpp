@@ -14,6 +14,7 @@ enum UpdateType
 
 enum DoFType:size_t
 {
+  None = 0,
   All = 1+2+4,
   Boundary = 2+4,
   Inner = 1,
