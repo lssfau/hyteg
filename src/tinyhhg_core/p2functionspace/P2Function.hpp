@@ -412,65 +412,6 @@ class P2Function : public Function< P2Function< ValueType > >
       }
    }
 
-   inline void restrict( uint_t sourceLevel, DoFType flag = All ) const
-   {
-      edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
-      edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
-
-      for( const auto& it : this->getStorage()->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
-         {
-            P2::macroface::restrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-         }
-      }
-
-      /// sync the vertex dofs which contain the missing edge dofs
-      edgeDoFFunction_.template communicate< Face, Edge >( sourceLevel );
-
-      /// remove the temporary updates
-      for( const auto& it : this->getStorage()->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
-         {
-            P2::macroface::postRestrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-         }
-      }
-
-      for( const auto& it : this->getStorage()->getEdges() )
-      {
-         const Edge& edge = *it.second;
-
-         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if( testFlag( edgeBC, flag ) )
-         {
-            P2::macroedge::restrict< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
-         }
-      }
-
-      //TODO: add real vertex restrict
-      for( const auto& it : this->getStorage()->getVertices() )
-      {
-         const Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertexBC, flag ) )
-         {
-            P2::macrovertex::restrictInjection< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
-         }
-      }
-   }
-
    inline real_t getMaxValue( uint_t level, DoFType flag = All ) const
    {
       auto localMax = -std::numeric_limits< ValueType >::max();
