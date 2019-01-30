@@ -46,7 +46,7 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       P2::macroface::generated::restrict_2D_macroface_P2_update_vertexdofs( edgeFineData,
                                                                             vertexCoarseData,
                                                                             vertexFineData,
-                                                                            coarseLevel,
+                                                                            static_cast< int64_t >( coarseLevel ),
                                                                             numNeighborFacesEdge0,
                                                                             numNeighborFacesEdge1,
                                                                             numNeighborFacesEdge2,
@@ -57,7 +57,7 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( edgeCoarseData,
                                                                           edgeFineData,
                                                                           vertexFineData,
-                                                                          coarseLevel,
+                                                                          static_cast< int64_t >( coarseLevel ),
                                                                           numNeighborFacesEdge0,
                                                                           numNeighborFacesEdge1,
                                                                           numNeighborFacesEdge2 );
