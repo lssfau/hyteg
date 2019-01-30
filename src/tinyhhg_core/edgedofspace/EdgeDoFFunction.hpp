@@ -40,12 +40,19 @@ template< typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 {
 public:
+  EdgeDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
 
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage );
+  EdgeDoFFunction( const std::string&                         name,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const uint_t&                              minLevel,
+                   const uint_t&                              maxLevel );
 
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel );
-
-  EdgeDoFFunction( const std::string & name, const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & minLevel, const uint_t & maxLevel, const BoundaryCondition & boundaryCondition );
+  EdgeDoFFunction( const std::string&                         name,
+                   const std::shared_ptr< PrimitiveStorage >& storage,
+                   const uint_t&                              minLevel,
+                   const uint_t&                              maxLevel,
+                   const BoundaryCondition&                   boundaryCondition,
+                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
 
   void swap( const EdgeDoFFunction< ValueType > & other,
              const uint_t & level,
@@ -117,10 +124,48 @@ public:
     communicators_.at( level )->template communicate< SenderType, ReceiverType >();
   }
 
+  template < typename SenderType, typename ReceiverType >
+  inline void startAdditiveCommunication( const uint_t& level ) const
+  {
+    if( isDummy() )
+    {
+      return;
+    }
+    interpolateByPrimitiveType< ReceiverType >(
+    real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+    additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+  }
+
+  template < typename SenderType, typename ReceiverType >
+  inline void endAdditiveCommunication( const uint_t& level ) const
+  {
+    if( isDummy() )
+    {
+      return;
+    }
+    additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
+  }
+
+  template < typename SenderType, typename ReceiverType >
+  inline void communicateAdditively( const uint_t& level ) const
+  {
+    if( isDummy() )
+    {
+      return;
+    }
+    interpolateByPrimitiveType< ReceiverType >(
+    real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+    additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
+  }
+
   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
   {
     if ( isDummy() ) { return; }
     for ( auto & communicator : communicators_ )
+    {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+    }
+    for( auto & communicator : additiveCommunicators_ )
     {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
     }
@@ -130,9 +175,13 @@ public:
 
 private:
 
+   template < typename PrimitiveType >
+   void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
+
    void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
+   using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;
 
    PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
    PrimitiveDataID< FunctionMemory< ValueType >, Edge > edgeDataID_;
@@ -140,6 +189,8 @@ private:
    PrimitiveDataID< FunctionMemory< ValueType >, Cell > cellDataID_;
 
    BoundaryCondition boundaryCondition_;
+
+   DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 
    /// friend P2Function for usage of enumerate
    friend class P2Function< ValueType >;

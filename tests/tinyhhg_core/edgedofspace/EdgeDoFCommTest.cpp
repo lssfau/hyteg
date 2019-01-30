@@ -304,19 +304,19 @@ void checkComm3d( const uint_t level )
       Face& face      = *faceIt.second;
       int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
       int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
-      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 0 ) )
+      for( const auto& it : BorderIterator( level , indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT, 0 ) )
       {
          WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 14);
          WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_HO_C )], 26);
       }
 
-      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 0 ) )
+      for( const auto& it : BorderIterator( level , indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 0 ) )
       {
          WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 14);
          WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_DI_N )], 26);
       }
 
-      for( const auto& it : BorderIterator( level , indexing::FaceBorderDirection::LEFT_BOTTOM_TO_TOP, 0 ) )
+      for( const auto& it : BorderIterator( level , indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP, 0 ) )
       {
          WALBERLA_CHECK_EQUAL( faceData[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 14);
          WALBERLA_CHECK_EQUAL( faceDataY[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), stencilDirection::EDGE_VE_NW )], 26);

@@ -5,6 +5,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFPackInfo.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
 
@@ -32,9 +33,11 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                const uint_t&                              minLevel,
                                                const uint_t&                              maxLevel,
-                                               const BoundaryCondition&                   boundaryCondition )
+                                               const BoundaryCondition&                   boundaryCondition,
+                                               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
+, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    std::shared_ptr< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > > vertexDataHandling =
        std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >(
@@ -62,6 +65,15 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo( std::make_shared< EdgeDoFPackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
+      additiveCommunicators_[level]->addPackInfo(
+          std::make_shared< EdgeDoFAdditivePackInfo< ValueType > >( level,
+                                                                    vertexDataID_,
+                                                                    edgeDataID_,
+                                                                    faceDataID_,
+                                                                    cellDataID_,
+                                                                    this->getStorage(),
+                                                                    boundaryCondition_,
+                                                                    boundaryTypeToSkipDuringAdditiveCommunication_ ) );
    }
 }
 
@@ -73,36 +85,9 @@ void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_
       return;
    }
    this->startTiming( "Interpolate" );
-
-   for( auto& it : this->getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, constant );
-      }
-   }
-
-   for( auto& it : this->getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
-         edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, constant );
-      }
-   }
-
-   for( auto& it : this->getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-      {
-         edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, constant );
-      }
-   }
+   interpolateByPrimitiveType< Edge >( constant, level, flag );
+   interpolateByPrimitiveType< Face >( constant, level, flag );
+   interpolateByPrimitiveType< Cell >( constant, level, flag );
    this->stopTiming( "Interpolate" );
 }
 
@@ -678,6 +663,56 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
 
    return localMax;
 }
+
+
+template < typename ValueType >
+template < typename PrimitiveType >
+void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+
+   if( std::is_same< PrimitiveType, Edge >::value )
+   {
+      for( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macroedge::interpolate( level, edge, edgeDataID_, constant );
+         }
+      }
+   } else if( std::is_same< PrimitiveType, Face >::value )
+   {
+      for( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macroface::interpolate( level, face, faceDataID_, constant );
+         }
+      }
+   } else if( std::is_same< PrimitiveType, Cell >::value )
+   {
+      for( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::interpolate( level, cell, cellDataID_, constant );
+         }
+      }
+   }
+
+   this->stopTiming( "Interpolate" );
+}
+
 
 template class EdgeDoFFunction< float >;
 template class EdgeDoFFunction< double >;

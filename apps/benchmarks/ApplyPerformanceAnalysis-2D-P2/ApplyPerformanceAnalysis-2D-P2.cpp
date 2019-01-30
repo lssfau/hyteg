@@ -98,7 +98,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
          auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
          auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
-         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dstPtr, srcPtr, stencilPtr, static_cast< int64_t  >( level ) );
+         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dstPtr, srcPtr, &stencilPtr[5], &stencilPtr[0], &stencilPtr[10], static_cast< int64_t  >( level ) );
       } else
       {
          hhg::edgedof::macroface::apply( level,

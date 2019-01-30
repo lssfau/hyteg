@@ -55,8 +55,8 @@ int main (int argc, char ** argv )
                                       maxLevel);
       for(; it != P1Face::indexIterator(); ++it){
 #endif
-      const indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( face.edge_index(edge->getID()), face.edge_orientation[face.edge_index(edge->getID())] );
-      for ( const auto & it : vertexdof::macroface::BorderIterator( maxLevel, faceBorderDirection, 1 ) )
+      const indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( face.edge_index(edge->getID()), face.edge_orientation[face.edge_index(edge->getID())] );
+      for ( const auto & it : vertexdof::macroface::BoundaryIterator( maxLevel, faceBorderDirection, 1 ) )
       {
         if(faceIdOnEdge == 0) {
           WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex( maxLevel, idxCounter, stencilDirection::VERTEX_SE )],
@@ -82,7 +82,7 @@ int main (int argc, char ** argv )
                                  maxLevel);
       for(; it != P1Face::indexIterator(); ++it){
 #endif
-      for ( const auto & it : vertexdof::macroface::BorderIterator( maxLevel, faceBorderDirection, 0 )  )
+      for ( const auto & it : vertexdof::macroface::BoundaryIterator( maxLevel, faceBorderDirection, 0 )  )
       {
         WALBERLA_CHECK_EQUAL(edgeData[vertexdof::macroedge::indexFromVertex( maxLevel, idxCounter, stencilDirection::VERTEX_C )],
                              faceData[vertexdof::macroface::indexFromVertex(

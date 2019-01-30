@@ -186,9 +186,9 @@ void restrict(const uint_t sourceLevel,
   typedef hhg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBorderDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
-  indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
-  indexing::FaceBorderDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
+  indexing::FaceBoundaryDirection firstFaceBorderDirection  = indexing::getFaceBorderDirection( 0, face.edge_orientation[0] );
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection( 1, face.edge_orientation[1] );
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection  = indexing::getFaceBorderDirection( 2, face.edge_orientation[2] );
 
   real_t tmp;
 
@@ -296,7 +296,7 @@ void restrict(const uint_t sourceLevel,
   ///put edge dofs which cant be reached from edge onto vertexdof
   ///first edge
   ///use ghost layer as temp storage
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, firstFaceBorderDirection, 0, 1) ) {
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, firstFaceBorderDirection, 0, 1) ) {
     ///ignore every second entry
     if(it.col()%2 == 1){
       continue;
@@ -310,7 +310,7 @@ void restrict(const uint_t sourceLevel,
   }
 
   ///second edge
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, secondFaceBorderDirection, 0, 1) ){
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, secondFaceBorderDirection, 0, 1) ){
     ///ignore every second entry
     if(it.col()%2 == 1){
       continue;
@@ -324,7 +324,7 @@ void restrict(const uint_t sourceLevel,
   }
 
   ///third edge
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, thirdFaceBorderDirection, 0, 1) ){
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, thirdFaceBorderDirection, 0, 1) ){
     ///ignore every second entry
     if(it.col()%2 == 1){
       continue;
@@ -343,7 +343,7 @@ void restrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_DI_NW;
   }
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, firstFaceBorderDirection, 0, 1) ){
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, firstFaceBorderDirection, 0, 1) ){
     ///ignore every second entry
     if(it.col()%2 == 1){
       continue;
@@ -360,7 +360,7 @@ void restrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_VE_S;
   }
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, secondFaceBorderDirection, 0, 1) ){
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, secondFaceBorderDirection, 0, 1) ){
     ///ignore every second entry
     if(it.col()%2 == 1){
       continue;
@@ -377,7 +377,7 @@ void restrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_HO_E;
   }
-  for( const auto & it : hhg::vertexdof::macroface::BorderIterator( sourceLevel, thirdFaceBorderDirection, 0, 1) ){
+  for( const auto & it : hhg::vertexdof::macroface::BoundaryIterator( sourceLevel, thirdFaceBorderDirection, 0, 1) ){
     ///ignore every second entry
     if(it.row()%2 == 1){
       continue;
@@ -399,9 +399,9 @@ void postRestrict(const uint_t sourceLevel,
   typedef hhg::stencilDirection sD;
   sD targetDirection;
 
-  indexing::FaceBorderDirection firstFaceBorderDirection = indexing::getFaceBorderDirection(0, face.edge_orientation[0]);
-  indexing::FaceBorderDirection secondFaceBorderDirection = indexing::getFaceBorderDirection(1, face.edge_orientation[1]);
-  indexing::FaceBorderDirection thirdFaceBorderDirection = indexing::getFaceBorderDirection(2, face.edge_orientation[2]);
+  indexing::FaceBoundaryDirection firstFaceBorderDirection = indexing::getFaceBorderDirection(0, face.edge_orientation[0]);
+  indexing::FaceBoundaryDirection secondFaceBorderDirection = indexing::getFaceBorderDirection(1, face.edge_orientation[1]);
+  indexing::FaceBoundaryDirection thirdFaceBorderDirection = indexing::getFaceBorderDirection(2, face.edge_orientation[2]);
 
   ValueType *vertexDofFineData = face.getData(vertexDoFMemoryID)->getPointer(sourceLevel);
   ValueType *edgeDofFineData = face.getData(edgeDoFMemoryID)->getPointer(sourceLevel);
@@ -411,7 +411,7 @@ void postRestrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_DI_NW;
   }
-  for (const auto &it : hhg::vertexdof::macroface::BorderIterator(sourceLevel, firstFaceBorderDirection, 0, 1)) {
+  for (const auto &it : hhg::vertexdof::macroface::BoundaryIterator(sourceLevel, firstFaceBorderDirection, 0, 1)) {
     ///ignore every second entry
     if (it.col() % 2 == 1) {
       continue;
@@ -428,7 +428,7 @@ void postRestrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_VE_S;
   }
-  for (const auto &it : hhg::vertexdof::macroface::BorderIterator(sourceLevel, secondFaceBorderDirection, 0, 1)) {
+  for (const auto &it : hhg::vertexdof::macroface::BoundaryIterator(sourceLevel, secondFaceBorderDirection, 0, 1)) {
     ///ignore every second entry
     if (it.col() % 2 == 1) {
       continue;
@@ -446,7 +446,7 @@ void postRestrict(const uint_t sourceLevel,
   } else {
     targetDirection = sD::EDGE_HO_E;
   }
-  for (const auto &it : hhg::vertexdof::macroface::BorderIterator(sourceLevel, thirdFaceBorderDirection, 0, 1)) {
+  for (const auto &it : hhg::vertexdof::macroface::BoundaryIterator(sourceLevel, thirdFaceBorderDirection, 0, 1)) {
     ///ignore every second entry
     if (it.row() % 2 == 1) {
       continue;

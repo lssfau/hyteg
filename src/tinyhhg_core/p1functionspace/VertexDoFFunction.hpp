@@ -57,7 +57,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
-                      BoundaryCondition                          boundaryCondition );
+                      BoundaryCondition                          boundaryCondition,
+                      const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }

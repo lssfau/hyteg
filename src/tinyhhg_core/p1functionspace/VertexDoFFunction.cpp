@@ -41,10 +41,11 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
-                                                   BoundaryCondition                          boundaryCondition )
+                                                   BoundaryCondition                          boundaryCondition,
+                                                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
-, boundaryTypeToSkipDuringAdditiveCommunication_( DoFType::DirichletBoundary )
+, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
        minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );

@@ -202,10 +202,10 @@ public:
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-class BorderIterator : public hhg::indexing::FaceBorderIterator
+class BoundaryIterator : public hhg::indexing::FaceBoundaryIterator
 {
 public:
-  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
+  BoundaryIterator( const uint_t & level, const hhg::indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
 };
 
 bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);
