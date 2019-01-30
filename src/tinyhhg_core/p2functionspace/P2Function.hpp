@@ -59,7 +59,14 @@ class P2Function : public Function< P2Function< ValueType > >
    const vertexdof::VertexDoFFunction< ValueType > & getVertexDoFFunction() const { return vertexDoFFunction_; }
    const EdgeDoFFunction< ValueType > &              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
-   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
+    template < typename SenderType, typename ReceiverType >
+    inline void communicate( const uint_t& level ) const
+    {
+      vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
+      edgeDoFFunction_  .template communicate< SenderType, ReceiverType >( level );
+    }
+
+    inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
    {
       vertexDoFFunction_.interpolate( constant, level, flag );
       edgeDoFFunction_.interpolate( constant, level, flag );
