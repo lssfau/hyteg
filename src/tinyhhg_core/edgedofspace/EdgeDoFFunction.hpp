@@ -102,6 +102,7 @@ public:
   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+  inline DoFType           getBoundaryTypeToSkipDuringAdditiveCommunication() const { return boundaryTypeToSkipDuringAdditiveCommunication_; }
 
   template< typename SenderType, typename ReceiverType >
   inline void startCommunication( const uint_t & level ) const
