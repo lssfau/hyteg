@@ -141,13 +141,13 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
    timer.end();
    timeError = timer.last();
 
+   timer.reset();
    if ( outputVTK )
    {
-      timer.reset();
       vtkOutput.write( maxLevel, 0 );
-      timer.end();
-      timeVTK = timer.last();
    }
+   timer.end();
+   timeVTK = timer.last();
 
    WALBERLA_LOG_INFO_ON_ROOT(
        " After cycle... ||     l2 error |     L2 error | L2 error reduction ||  l2 residual |  L2 residual | L2 residual reduction || time cycle [s] | time error calculation [s] | time VTK [s] |" );
