@@ -20,6 +20,8 @@
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 
+#include "postprocessing/sqlite/SQLite.h"
+
 namespace hhg {
 
 #if 0
@@ -68,15 +70,19 @@ void calculateErrorAndResidual( const uint_t&          level,
 }
 
 template < typename Function, typename LaplaceOperator, typename MassOperator, typename Restriction, typename Prolongation >
-void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
-                       const uint_t&                              minLevel,
-                       const uint_t&                              maxLevel,
-                       const uint_t&                              numVCycles,
-                       const real_t&                              L2residualTolerance,
-                       const uint_t&                              preSmoothingSteps,
-                       const uint_t&                              postSmoothingSteps,
-                       const bool&                                outputVTK,
-                       const uint_t&                              skipCyclesForAvgConvRate )
+void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           storage,
+                       const uint_t&                                        minLevel,
+                       const uint_t&                                        maxLevel,
+                       const uint_t&                                        numVCycles,
+                       const real_t&                                        L2residualTolerance,
+                       const uint_t&                                        preSmoothingSteps,
+                       const uint_t&                                        postSmoothingSteps,
+                       const bool&                                          outputVTK,
+                       const uint_t&                                        skipCyclesForAvgConvRate,
+                       std::map< std::string, walberla::int64_t >&          sqlIntegerProperties,
+                       std::map< std::string, double >&                     sqlRealProperties,
+                       std::map< std::string, std::string >&                sqlStringProperties,
+                       std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
 {
    Function u( "u", storage, minLevel, maxLevel );
    Function f( "f", storage, minLevel, maxLevel );
@@ -131,6 +137,8 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
    WALBERLA_LOG_INFO_ON_ROOT( "  total:    " << std::setw( 15 ) << totalDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
+   sqlIntegerProperties["total_dofs"] = totalDoFs;
+
    walberla::WcTimer timer;
    double            timeError;
    double            timeVTK;
@@ -161,6 +169,14 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
 
    real_t avgL2ErrorConvergenceRate    = 0;
    real_t avgL2ResidualConvergenceRate = 0;
+
+   real_t L2ErrorReduction    = 0;
+   real_t L2ResidualReduction = 0;
+
+   sqlRealPropertiesMG[0]["L2_error"]              = L2Error;
+   sqlRealPropertiesMG[0]["L2_error_reduction"]    = L2ErrorReduction;
+   sqlRealPropertiesMG[0]["L2_residual"]           = L2Residual;
+   sqlRealPropertiesMG[0]["L2_residual_reduction"] = L2ResidualReduction;
 
    ///////////
    // Solve //
@@ -206,8 +222,8 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
       timer.end();
       timeVTK = timer.last();
 
-      const real_t L2ErrorReduction    = L2Error / lastL2Error;
-      const real_t L2ResidualReduction = L2Residual / lastL2Residual;
+      L2ErrorReduction    = L2Error / lastL2Error;
+      L2ResidualReduction = L2Residual / lastL2Residual;
 
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
                                                  << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
@@ -221,6 +237,11 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
          avgL2ResidualConvergenceRate += L2ResidualReduction;
       }
 
+      sqlRealPropertiesMG[cycle]["L2_error"]              = L2Error;
+      sqlRealPropertiesMG[cycle]["L2_error_reduction"]    = L2ErrorReduction;
+      sqlRealPropertiesMG[cycle]["L2_residual"]           = L2Residual;
+      sqlRealPropertiesMG[cycle]["L2_residual_reduction"] = L2ResidualReduction;
+
       if ( L2Residual < L2residualTolerance )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "L2 residual dropped below tolerance." )
@@ -230,6 +251,9 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
 
    avgL2ErrorConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
    avgL2ResidualConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
+
+   sqlRealProperties["avg_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
+   sqlRealProperties["avg_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
@@ -269,7 +293,8 @@ void setup( int argc, char** argv )
    const uint_t      numProcesses             = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
    const uint_t      numFacesPerSide          = mainConf.getParameter< uint_t >( "numFacesPerSide" );
    const std::string discretization           = mainConf.getParameter< std::string >( "discretization" );
-   const uint_t      numVCycles               = mainConf.getParameter< uint_t >( "numVCycles" );
+   const uint_t      numCycles                = mainConf.getParameter< uint_t >( "numCycles" );
+   const std::string cycleType                = mainConf.getParameter< std::string >( "cycleType" );
    const real_t      L2residualTolerance      = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
@@ -278,24 +303,47 @@ void setup( int argc, char** argv )
    const bool        outputVTK                = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming             = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON         = mainConf.getParameter< bool >( "outputTimingJSON" );
+   const bool        outputSQL                = mainConf.getParameter< bool >( "outputSQL" );
+   const std::string sqlTag                   = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
 
    // parameter checks
    WALBERLA_CHECK( discretization == "P1" || discretization == "P2" );
+   WALBERLA_CHECK( cycleType == "V" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                 " << numProcesses );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:            " << numFacesPerSide );
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - num v-cycles:                  " << numVCycles );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                    " << numCycles );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:            " << ( outputTimingJSON ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                    " << ( outputSQL ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                       " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   // prepare SQL output
+   std::map< std::string, walberla::int64_t >          sqlIntegerProperties;
+   std::map< std::string, double >                     sqlRealProperties;
+   std::map< std::string, std::string >                sqlStringProperties;
+   std::map< uint_t, std::map< std::string, double > > sqlRealPropertiesMG;
+
+   sqlStringProperties["tag"] = sqlTag;
+
+   sqlIntegerProperties["num_processes"]      = numProcesses;
+   sqlIntegerProperties["num_faces_per_side"] = numFacesPerSide;
+   sqlStringProperties["discretization"]      = discretization;
+   sqlIntegerProperties["num_cycles"]         = numCycles;
+   sqlStringProperties["cycle_type"]          = cycleType;
+   sqlIntegerProperties["pre_smoothing"]      = preSmoothingSteps;
+   sqlIntegerProperties["post_smoothing"]     = postSmoothingSteps;
+   sqlIntegerProperties["min_level"]          = minLevel;
+   sqlIntegerProperties["max_level"]          = maxLevel;
 
    ////////////
    // Domain //
@@ -306,6 +354,10 @@ void setup( int argc, char** argv )
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   sqlIntegerProperties["num_macro_vertices"] = setupStorage.getNumberOfVertices();
+   sqlIntegerProperties["num_macro_edges"]    = setupStorage.getNumberOfEdges();
+   sqlIntegerProperties["num_macro_faces"]    = setupStorage.getNumberOfFaces();
 
    if ( outputVTK )
    {
@@ -324,12 +376,16 @@ void setup( int argc, char** argv )
                         P1toP1LinearProlongation >( storage,
                                                     minLevel,
                                                     maxLevel,
-                                                    numVCycles,
+                                                    numCycles,
                                                     L2residualTolerance,
                                                     preSmoothingSteps,
                                                     postSmoothingSteps,
                                                     outputVTK,
-                                                    skipCyclesForAvgConvRate );
+                                                    skipCyclesForAvgConvRate,
+                                                    sqlIntegerProperties,
+                                                    sqlRealProperties,
+                                                    sqlStringProperties,
+                                                    sqlRealPropertiesMG );
    }
    else if ( discretization == "P2" )
    {
@@ -340,12 +396,16 @@ void setup( int argc, char** argv )
                         P2toP2QuadraticProlongation >( storage,
                                                        minLevel,
                                                        maxLevel,
-                                                       numVCycles,
+                                                       numCycles,
                                                        L2residualTolerance,
                                                        preSmoothingSteps,
                                                        postSmoothingSteps,
                                                        outputVTK,
-                                                       skipCyclesForAvgConvRate );
+                                                       skipCyclesForAvgConvRate,
+                                                       sqlIntegerProperties,
+                                                       sqlRealProperties,
+                                                       sqlStringProperties,
+                                                       sqlRealPropertiesMG );
    }
 
    auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
@@ -362,6 +422,26 @@ void setup( int argc, char** argv )
       jsonOutput.open( "MultigridStudies.json" );
       jsonOutput << ttJson.dump( 4 );
       jsonOutput.close();
+   }
+
+   if ( outputSQL )
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         const std::string                  dbFile = "MultigridStudies.db";
+         walberla::postprocessing::SQLiteDB db( dbFile );
+         auto                               runId = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )
+         {
+            if ( sqlRealPropertiesMG.count( cycle ) > 0 )
+            {
+               std::map< std::string, int64_t > runIdMap;
+               runIdMap["conv_table_for_run"] = runId;
+               runIdMap["cycle"]              = cycle;
+               db.storeRun( runIdMap, std::map< std::string, std::string >(), sqlRealPropertiesMG[cycle] );
+            }
+         }
+      }
    }
 }
 

@@ -1,16 +1,18 @@
 Parameters
 {
     numFacesPerSide 4;
-    discretization P1;
-    numVCycles 10;
+    discretization P2;
+    numCycles 10;
+    cycleType V;
     preSmoothingSteps 3;
     postSmoothingSteps 3;
     minLevel 2;
-    maxLevel 7;
+    maxLevel 6;
     skipCyclesForAvgConvRate 3;
     L2residualTolerance 1e-15;
 
-    outputVTK false;
+    outputVTK true;
     outputTiming false;
     outputTimingJSON true;
+    outputSQL true;
 }

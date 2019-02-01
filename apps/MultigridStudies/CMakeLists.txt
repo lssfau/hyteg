@@ -6,4 +6,4 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME MultigridLaplace
         FILES MultigridLaplace.cpp
-        DEPENDS tinyhhg_core)
+        DEPENDS tinyhhg_core core postprocessing)
