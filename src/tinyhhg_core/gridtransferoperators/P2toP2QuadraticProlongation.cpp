@@ -22,8 +22,6 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
    function.communicate< Vertex, Edge >( coarseLevel );
    function.communicate< Edge, Face >( coarseLevel );
 
-   function.interpolate( real_c( 0 ), fineLevel, flag );
-
    for ( const auto& faceIt : function.getStorage()->getFaces() )
    {
       const auto face = faceIt.second;
@@ -33,6 +31,18 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
 
       const auto vertexCoarseData = face->getData( function.getVertexDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
       const auto edgeCoarseData   = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
+
+      // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
+      for ( const auto & it : vertexdof::macroface::Iterator( fineLevel, 0 ) )
+      {
+         vertexFineData[ vertexdof::macroface::index( fineLevel, it.x(), it.y() ) ] = real_c( 0 );
+      }
+      for ( const auto & it : edgedof::macroface::Iterator( fineLevel, 0 ) )
+      {
+         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::X ) ] = real_c( 0 );
+         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY ) ] = real_c( 0 );
+         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y ) ] = real_c( 0 );
+      }
 
       const double numNeighborFacesEdge0 =
           static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
