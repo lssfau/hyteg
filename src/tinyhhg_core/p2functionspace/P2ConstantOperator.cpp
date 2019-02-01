@@ -39,6 +39,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 
 namespace hhg {
 
@@ -372,10 +373,8 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
                                                                    const DoFType flag) const
 {
    this->startTiming( "Gauss-Seidel" );
-   dst.getVertexDoFFunction().communicate< Face, Edge >( level );
-   dst.getVertexDoFFunction().communicate< Edge, Vertex >( level );
-   dst.getEdgeDoFFunction().communicate< Face, Edge >( level );
-   dst.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
+
+   communication::syncP2FunctionBetweenPrimitives( dst, level );
 
    for( auto& it : storage_->getVertices() )
    {
