@@ -1,0 +1,14 @@
+Parameters
+{
+    numFacesPerSide 4;
+    discretization P2;
+    numVCycles 10;
+    preSmoothingSteps 2;
+    postSmoothingSteps 1;
+    minLevel 2;
+    maxLevel 5;
+    skipCyclesForAvgConvRate 3;
+
+    outputVTK true;
+
+}
