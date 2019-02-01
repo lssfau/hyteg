@@ -1,6 +1,7 @@
 
 #include "core/Environment.h"
 #include "core/config/Config.h"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
@@ -107,24 +108,49 @@ void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
    tmp.interpolate( rhs, maxLevel, All );
    M.apply( tmp, f, maxLevel, All );
 
-   ////////////////
-   // Misc setup //
-   ////////////////
+   /////////////////////////
+   // Misc setup and info //
+   /////////////////////////
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of unknowns (including boundary):" )
+   uint_t totalDoFs = 0;
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      const uint_t dofsThisLevel = numberOfGlobalDoFs< P2Function< real_t >::Tag >( *storage, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel );
+      totalDoFs += dofsThisLevel;
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( " ----------------------------- " );
+   WALBERLA_LOG_INFO_ON_ROOT( "  total:    " << std::setw( 15 ) << totalDoFs );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   walberla::WcTimer timer;
+   double            timeError;
+   double            timeVTK;
+   double            timeCycle;
+
+   timer.reset();
    calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, l2Error, L2Error, l2Residual, L2Residual );
-
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " After vCycle... ||     l2 error |     L2 error | L2 error reduction ||  l2 residual |  L2 residual | L2 residual reduction |" );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " ----------------++--------------+--------------+--------------------++--------------+--------------+-----------------------+" );
-   WALBERLA_LOG_INFO_ON_ROOT( "         initial || " << std::scientific << l2Error << " | " << L2Error << " | "
-                                                     << "               --- || " << l2Residual << " | " << L2Residual
-                                                     << " |                   --- |" );
+   timer.end();
+   timeError = timer.last();
 
    if ( outputVTK )
    {
+      timer.reset();
       vtkOutput.write( maxLevel, 0 );
+      timer.end();
+      timeVTK = timer.last();
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " After cycle... ||     l2 error |     L2 error | L2 error reduction ||  l2 residual |  L2 residual | L2 residual reduction || time cycle [s] | time error calculation [s] | time VTK [s] |" );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------|" );
+   WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << l2Error << " | " << L2Error << " | "
+                                                    << "               --- || " << l2Residual << " | " << L2Residual
+                                                    << " |                   --- ||            --- | " << std::fixed
+                                                    << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
+                                                    << std::setw( 12 ) << timeVTK << " |" );
 
    real_t avgL2ErrorConvergenceRate    = 0;
    real_t avgL2ResidualConvergenceRate = 0;
@@ -149,24 +175,39 @@ void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                           preSmoothingSteps,
                                                                           postSmoothingSteps,
                                                                           0 );
+
    for ( uint_t cycle = 1; cycle <= numVCycles; cycle++ )
    {
       const real_t lastL2Error    = L2Error;
       const real_t lastL2Residual = L2Residual;
 
+      timer.reset();
       multigridSolver.solve( A, u, f, maxLevel );
+      timer.end();
+      timeCycle = timer.last();
+
+      timer.reset();
       calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, l2Error, L2Error, l2Residual, L2Residual );
+      timer.end();
+      timeError = timer.last();
 
-      const real_t L2ErrorReduction    = L2Error / lastL2Error;
-      const real_t L2ResidualReduction = L2Residual / lastL2Residual;
-
-      WALBERLA_LOG_INFO_ON_ROOT( std::setw(16) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
-                                                        << "      " << L2ErrorReduction << " || " << l2Residual << " | "
-                                                        << L2Residual << " |          " << L2ResidualReduction << " |" );
+      timer.reset();
       if ( outputVTK )
       {
          vtkOutput.write( maxLevel, cycle );
       }
+      timer.end();
+      timeVTK = timer.last();
+
+      const real_t L2ErrorReduction    = L2Error / lastL2Error;
+      const real_t L2ResidualReduction = L2Residual / lastL2Residual;
+
+      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
+                                                 << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
+                                                 << " |          " << L2ResidualReduction << " || " << std::fixed
+                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | " << std::setw( 26 ) << timeError << " | "
+                                                                                                  << std::setw( 12 ) << timeVTK << " |" );
+
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
@@ -213,15 +254,16 @@ void setup( int argc, char** argv )
    // Parameters //
    ////////////////
 
-   const uint_t      numProcesses       = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-   const uint_t      numFacesPerSide    = mainConf.getParameter< uint_t >( "numFacesPerSide" );
-   const std::string discretization     = mainConf.getParameter< std::string >( "discretization" );
-   const uint_t      numVCycles         = mainConf.getParameter< uint_t >( "numVCycles" );
-   const uint_t      preSmoothingSteps  = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
-   const uint_t      postSmoothingSteps = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
-   const uint_t      minLevel           = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t      maxLevel           = mainConf.getParameter< uint_t >( "maxLevel" );
-   const bool        outputVTK          = mainConf.getParameter< bool >( "outputVTK" );
+   const uint_t      numProcesses             = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   const uint_t      numFacesPerSide          = mainConf.getParameter< uint_t >( "numFacesPerSide" );
+   const std::string discretization           = mainConf.getParameter< std::string >( "discretization" );
+   const uint_t      numVCycles               = mainConf.getParameter< uint_t >( "numVCycles" );
+   const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
+   const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
+   const uint_t      minLevel                 = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t      maxLevel                 = mainConf.getParameter< uint_t >( "maxLevel" );
+   const bool        outputVTK                = mainConf.getParameter< bool >( "outputVTK" );
+   const bool        outputTiming             = mainConf.getParameter< bool >( "outputTiming" );
    const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
 
    // parameter checks
@@ -234,7 +276,8 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - num v-cycles:                  " << numVCycles );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << outputVTK ? "yes" : "no" );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << (outputVTK ? "yes" : "no") );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << (outputTiming ? "yes" : "no") );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -258,7 +301,21 @@ void setup( int argc, char** argv )
 
    if ( discretization == "P2" )
    {
-      P2MultigridLaplace( storage, minLevel, maxLevel, numVCycles, preSmoothingSteps, postSmoothingSteps, outputVTK, skipCyclesForAvgConvRate );
+      P2MultigridLaplace(
+          storage, minLevel, maxLevel, numVCycles, preSmoothingSteps, postSmoothingSteps, outputVTK, skipCyclesForAvgConvRate );
+   }
+
+   if ( outputTiming )
+   {
+      auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
+      WALBERLA_LOG_INFO_ON_ROOT( tt );
+
+      nlohmann::json ttJson;
+      walberla::timing::to_json( ttJson, tt );
+      std::ofstream jsonOutput;
+      jsonOutput.open( "MultigridStudies.json" );
+      jsonOutput << ttJson.dump( 4 );
+      jsonOutput.close();
    }
 }
 
