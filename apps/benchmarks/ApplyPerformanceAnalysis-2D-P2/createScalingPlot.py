@@ -25,12 +25,8 @@ def main():
         outputData = collections.defaultdict(list)
 
         for region in likwidRegions:
-            print(region)
             procs = int(likwidRegions[region]['Region calls STAT'][1]) / int(likwidRegions[region]['Region calls STAT'][2])
             numberOfProcessors.append(procs)
-
-            # outputData[region.split("-level")[0]].append(
-            #     float(likwidRegions[region]['Memory bandwidth [MBytes/s] STAT'][0]))
 
             outputData[region.split("-level")[0]].append(
                 float(likwidRegions[region][messure][0]))
@@ -42,18 +38,17 @@ def main():
         plt.xlabel('Procs')
 
         plt.ylabel(messure)
-        # plt.ylabel('Bandwidth [MByte/s]')
 
         plt.ylim(bottom=0)
         plt.xlim(left=0, right=totalProcs[-1] + 1)
         plt.xticks(range(2, int(totalProcs[-1] + 1), 2))
         plt.grid(True)
-        plt.tight_layout()
         plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
         plt.legend()
         namepart = messure.split('[')[0].replace(' ', '_').replace('/', '-')
-        savename = 'scaling_' + namepart + '.png'
+        savename = 'scaling_' + namepart + '.pdf'
+        plt.tight_layout()
         plt.savefig(savename)
         plt.clf()
 
