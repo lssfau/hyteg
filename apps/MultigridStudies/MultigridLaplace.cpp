@@ -4,9 +4,13 @@
 #include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -34,19 +38,20 @@ std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x
 std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& ) { return 0; };
 #endif
 
-void calculateErrorAndResidual( const uint_t&                    level,
-                                const P2ConstantLaplaceOperator& A,
-                                const P2ConstantMassOperator&    M,
-                                const P2Function< real_t >&      u,
-                                const P2Function< real_t >&      f,
-                                const P2Function< real_t >&      uExact,
-                                const P2Function< real_t >&      error,
-                                const P2Function< real_t >&      residual,
-                                const P2Function< real_t >&      tmp,
-                                real_t&                          l2Error,
-                                real_t&                          L2Error,
-                                real_t&                          l2Residual,
-                                real_t&                          L2Residual )
+template < typename Function, typename LaplaceOperator, typename MassOperator >
+void calculateErrorAndResidual( const uint_t&          level,
+                                const LaplaceOperator& A,
+                                const MassOperator&    M,
+                                const Function&        u,
+                                const Function&        f,
+                                const Function&        uExact,
+                                const Function&        error,
+                                const Function&        residual,
+                                const Function&        tmp,
+                                real_t&                l2Error,
+                                real_t&                L2Error,
+                                real_t&                l2Residual,
+                                real_t&                L2Residual )
 {
    error.assign( {1.0, -1.0}, {uExact, u}, level, All );
 
@@ -62,25 +67,27 @@ void calculateErrorAndResidual( const uint_t&                    level,
    L2Residual = std::sqrt( residual.dotGlobal( tmp, level, Inner ) );
 }
 
-void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
-                         const uint_t&                              minLevel,
-                         const uint_t&                              maxLevel,
-                         const uint_t&                              numVCycles,
-                         const uint_t&                              preSmoothingSteps,
-                         const uint_t&                              postSmoothingSteps,
-                         const bool&                                outputVTK,
-                         const uint_t&                              skipCyclesForAvgConvRate )
+template < typename Function, typename LaplaceOperator, typename MassOperator, typename Restriction, typename Prolongation >
+void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
+                       const uint_t&                              minLevel,
+                       const uint_t&                              maxLevel,
+                       const uint_t&                              numVCycles,
+                       const real_t&                              L2residualTolerance,
+                       const uint_t&                              preSmoothingSteps,
+                       const uint_t&                              postSmoothingSteps,
+                       const bool&                                outputVTK,
+                       const uint_t&                              skipCyclesForAvgConvRate )
 {
-   P2Function< real_t > u( "u", storage, minLevel, maxLevel );
-   P2Function< real_t > f( "f", storage, minLevel, maxLevel );
+   Function u( "u", storage, minLevel, maxLevel );
+   Function f( "f", storage, minLevel, maxLevel );
 
-   P2Function< real_t > uExact( "uExact", storage, minLevel, maxLevel );
-   P2Function< real_t > residual( "residual", storage, minLevel, maxLevel );
-   P2Function< real_t > error( "error", storage, minLevel, maxLevel );
-   P2Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   Function uExact( "uExact", storage, minLevel, maxLevel );
+   Function residual( "residual", storage, minLevel, maxLevel );
+   Function error( "error", storage, minLevel, maxLevel );
+   Function tmp( "tmp", storage, minLevel, maxLevel );
 
-   P2ConstantLaplaceOperator A( storage, minLevel, maxLevel );
-   P2ConstantMassOperator    M( storage, minLevel, maxLevel );
+   LaplaceOperator A( storage, minLevel, maxLevel );
+   MassOperator    M( storage, minLevel, maxLevel );
 
    real_t l2Error;
    real_t L2Error;
@@ -116,7 +123,7 @@ void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
    uint_t totalDoFs = 0;
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      const uint_t dofsThisLevel = numberOfGlobalDoFs< P2Function< real_t >::Tag >( *storage, level );
+      const uint_t dofsThisLevel = numberOfGlobalDoFs< typename Function::Tag >( *storage, level );
       WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel );
       totalDoFs += dofsThisLevel;
    }
@@ -159,22 +166,22 @@ void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
    // Solve //
    ///////////
 
-   auto smoother         = std::make_shared< GaussSeidelSmoother< P2ConstantLaplaceOperator > >();
-   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+   auto smoother         = std::make_shared< GaussSeidelSmoother< LaplaceOperator > >();
+   auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
 
-   auto prolongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
-   auto restrictionOperator  = std::make_shared< P2toP2QuadraticRestriction >();
+   auto prolongationOperator = std::make_shared< Prolongation >();
+   auto restrictionOperator  = std::make_shared< Restriction >();
 
-   GeometricMultigridSolver< P2ConstantLaplaceOperator > multigridSolver( storage,
-                                                                          smoother,
-                                                                          coarseGridSolver,
-                                                                          restrictionOperator,
-                                                                          prolongationOperator,
-                                                                          minLevel,
-                                                                          maxLevel,
-                                                                          preSmoothingSteps,
-                                                                          postSmoothingSteps,
-                                                                          0 );
+   GeometricMultigridSolver< LaplaceOperator > multigridSolver( storage,
+                                                                smoother,
+                                                                coarseGridSolver,
+                                                                restrictionOperator,
+                                                                prolongationOperator,
+                                                                minLevel,
+                                                                maxLevel,
+                                                                preSmoothingSteps,
+                                                                postSmoothingSteps,
+                                                                0 );
 
    for ( uint_t cycle = 1; cycle <= numVCycles; cycle++ )
    {
@@ -205,14 +212,19 @@ void P2MultigridLaplace( const std::shared_ptr< PrimitiveStorage >& storage,
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
                                                  << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
                                                  << " |          " << L2ResidualReduction << " || " << std::fixed
-                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | " << std::setw( 26 ) << timeError << " | "
-                                                                                                  << std::setw( 12 ) << timeVTK << " |" );
-
+                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
+                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " |" );
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
          avgL2ErrorConvergenceRate += L2ErrorReduction;
          avgL2ResidualConvergenceRate += L2ResidualReduction;
+      }
+
+      if ( L2Residual < L2residualTolerance )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "L2 residual dropped below tolerance." )
+         break;
       }
    }
 
@@ -258,12 +270,14 @@ void setup( int argc, char** argv )
    const uint_t      numFacesPerSide          = mainConf.getParameter< uint_t >( "numFacesPerSide" );
    const std::string discretization           = mainConf.getParameter< std::string >( "discretization" );
    const uint_t      numVCycles               = mainConf.getParameter< uint_t >( "numVCycles" );
+   const real_t      L2residualTolerance      = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
    const uint_t      minLevel                 = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t      maxLevel                 = mainConf.getParameter< uint_t >( "maxLevel" );
    const bool        outputVTK                = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming             = mainConf.getParameter< bool >( "outputTiming" );
+   const bool        outputTimingJSON         = mainConf.getParameter< bool >( "outputTimingJSON" );
    const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
 
    // parameter checks
@@ -274,10 +288,12 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:            " << numFacesPerSide );
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num v-cycles:                  " << numVCycles );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << (outputVTK ? "yes" : "no") );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << (outputTiming ? "yes" : "no") );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << ( outputTiming ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:            " << ( outputTimingJSON ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -299,17 +315,47 @@ void setup( int argc, char** argv )
    auto globalInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
 
-   if ( discretization == "P2" )
+   if ( discretization == "P1" )
    {
-      P2MultigridLaplace(
-          storage, minLevel, maxLevel, numVCycles, preSmoothingSteps, postSmoothingSteps, outputVTK, skipCyclesForAvgConvRate );
+      MultigridLaplace< P1Function< real_t >,
+                        P1ConstantLaplaceOperator,
+                        P1MassOperator,
+                        P1toP1LinearRestriction,
+                        P1toP1LinearProlongation >( storage,
+                                                    minLevel,
+                                                    maxLevel,
+                                                    numVCycles,
+                                                    L2residualTolerance,
+                                                    preSmoothingSteps,
+                                                    postSmoothingSteps,
+                                                    outputVTK,
+                                                    skipCyclesForAvgConvRate );
+   }
+   else if ( discretization == "P2" )
+   {
+      MultigridLaplace< P2Function< real_t >,
+                        P2ConstantLaplaceOperator,
+                        P2ConstantMassOperator,
+                        P2toP2QuadraticRestriction,
+                        P2toP2QuadraticProlongation >( storage,
+                                                       minLevel,
+                                                       maxLevel,
+                                                       numVCycles,
+                                                       L2residualTolerance,
+                                                       preSmoothingSteps,
+                                                       postSmoothingSteps,
+                                                       outputVTK,
+                                                       skipCyclesForAvgConvRate );
    }
 
+   auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
    if ( outputTiming )
    {
-      auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
       WALBERLA_LOG_INFO_ON_ROOT( tt );
+   }
 
+   if ( outputTimingJSON )
+   {
       nlohmann::json ttJson;
       walberla::timing::to_json( ttJson, tt );
       std::ofstream jsonOutput;
