@@ -74,6 +74,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
                        const uint_t&                                        minLevel,
                        const uint_t&                                        maxLevel,
                        const uint_t&                                        numVCycles,
+                       const CycleType                                      cycleType,
                        const real_t&                                        L2residualTolerance,
                        const uint_t&                                        preSmoothingSteps,
                        const uint_t&                                        postSmoothingSteps,
@@ -84,6 +85,8 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
                        std::map< std::string, std::string >&                sqlStringProperties,
                        std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
 {
+   WALBERLA_UNUSED( sqlStringProperties );
+
    Function u( "u", storage, minLevel, maxLevel );
    Function f( "f", storage, minLevel, maxLevel );
 
@@ -169,14 +172,23 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
 
    real_t avgL2ErrorConvergenceRate    = 0;
    real_t avgL2ResidualConvergenceRate = 0;
+   real_t avgl2ErrorConvergenceRate    = 0;
+   real_t avgl2ResidualConvergenceRate = 0;
 
    real_t L2ErrorReduction    = 0;
    real_t L2ResidualReduction = 0;
+   real_t l2ErrorReduction    = 0;
+   real_t l2ResidualReduction = 0;
 
-   sqlRealPropertiesMG[0]["L2_error"]              = L2Error;
-   sqlRealPropertiesMG[0]["L2_error_reduction"]    = L2ErrorReduction;
-   sqlRealPropertiesMG[0]["L2_residual"]           = L2Residual;
-   sqlRealPropertiesMG[0]["L2_residual_reduction"] = L2ResidualReduction;
+   sqlRealPropertiesMG[0]["capital_L2_error"]              = L2Error;
+   sqlRealPropertiesMG[0]["capital_L2_error_reduction"]    = L2ErrorReduction;
+   sqlRealPropertiesMG[0]["capital_L2_residual"]           = L2Residual;
+   sqlRealPropertiesMG[0]["capital_L2_residual_reduction"] = L2ResidualReduction;
+
+   sqlRealPropertiesMG[0]["lowercase_l2_error"]              = l2Error;
+   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction"]    = l2ErrorReduction;
+   sqlRealPropertiesMG[0]["lowercase_l2_residual"]           = l2Residual;
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction"] = l2ResidualReduction;
 
    ///////////
    // Solve //
@@ -197,12 +209,16 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
                                                                 maxLevel,
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
-                                                                0 );
+                                                                0,
+                                                                cycleType );
 
    for ( uint_t cycle = 1; cycle <= numVCycles; cycle++ )
    {
       const real_t lastL2Error    = L2Error;
       const real_t lastL2Residual = L2Residual;
+
+      const real_t lastl2Error    = l2Error;
+      const real_t lastl2Residual = l2Residual;
 
       timer.reset();
       multigridSolver.solve( A, u, f, maxLevel );
@@ -224,6 +240,8 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
 
       L2ErrorReduction    = L2Error / lastL2Error;
       L2ResidualReduction = L2Residual / lastL2Residual;
+      l2ErrorReduction    = l2Error / lastl2Error;
+      l2ResidualReduction = l2Residual / lastl2Residual;
 
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
                                                  << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
@@ -235,12 +253,19 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       {
          avgL2ErrorConvergenceRate += L2ErrorReduction;
          avgL2ResidualConvergenceRate += L2ResidualReduction;
+         avgl2ErrorConvergenceRate += l2ErrorReduction;
+         avgl2ResidualConvergenceRate += l2ResidualReduction;
       }
 
-      sqlRealPropertiesMG[cycle]["L2_error"]              = L2Error;
-      sqlRealPropertiesMG[cycle]["L2_error_reduction"]    = L2ErrorReduction;
-      sqlRealPropertiesMG[cycle]["L2_residual"]           = L2Residual;
-      sqlRealPropertiesMG[cycle]["L2_residual_reduction"] = L2ResidualReduction;
+      sqlRealPropertiesMG[cycle]["capital_L2_error"]              = L2Error;
+      sqlRealPropertiesMG[cycle]["capital_L2_error_reduction"]    = L2ErrorReduction;
+      sqlRealPropertiesMG[cycle]["capital_L2_residual"]           = L2Residual;
+      sqlRealPropertiesMG[cycle]["capital_L2_residual_reduction"] = L2ResidualReduction;
+
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error"]              = l2Error;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction"]    = l2ErrorReduction;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual"]           = l2Residual;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction"] = l2ResidualReduction;
 
       if ( L2Residual < L2residualTolerance )
       {
@@ -252,13 +277,21 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    avgL2ErrorConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
    avgL2ResidualConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
 
-   sqlRealProperties["avg_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
-   sqlRealProperties["avg_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
+   avgl2ErrorConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
+
+   sqlRealProperties["avg_capital_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
+   sqlRealProperties["avg_capital_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
+
+   sqlRealProperties["avg_lowercase_l2_error_conv_rate"]    = avgl2ErrorConvergenceRate;
+   sqlRealProperties["avg_lowercase_l2_residual_conv_rate"] = avgl2ResidualConvergenceRate;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 error:    " << std::scientific << avgL2ErrorConvergenceRate );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual: " << std::scientific << avgL2ResidualConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error:    " << std::scientific << avgl2ErrorConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual: " << std::scientific << avgl2ResidualConvergenceRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
@@ -294,7 +327,7 @@ void setup( int argc, char** argv )
    const uint_t      numFacesPerSide          = mainConf.getParameter< uint_t >( "numFacesPerSide" );
    const std::string discretization           = mainConf.getParameter< std::string >( "discretization" );
    const uint_t      numCycles                = mainConf.getParameter< uint_t >( "numCycles" );
-   const std::string cycleType                = mainConf.getParameter< std::string >( "cycleType" );
+   const std::string cycleTypeString          = mainConf.getParameter< std::string >( "cycleType" );
    const real_t      L2residualTolerance      = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
@@ -309,13 +342,16 @@ void setup( int argc, char** argv )
 
    // parameter checks
    WALBERLA_CHECK( discretization == "P1" || discretization == "P2" );
-   WALBERLA_CHECK( cycleType == "V" );
+   WALBERLA_CHECK( cycleTypeString == "V" || cycleTypeString == "W" );
+
+   const CycleType cycleType = ( cycleTypeString == "V" ? CycleType::VCYCLE : CycleType::WCYCLE );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                 " << numProcesses );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:            " << numFacesPerSide );
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                    " << numCycles );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                    " << cycleTypeString );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
@@ -327,7 +363,10 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   // prepare SQL output
+   /////////
+   // SQL //
+   /////////
+
    std::map< std::string, walberla::int64_t >          sqlIntegerProperties;
    std::map< std::string, double >                     sqlRealProperties;
    std::map< std::string, std::string >                sqlStringProperties;
@@ -339,7 +378,7 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["num_faces_per_side"] = numFacesPerSide;
    sqlStringProperties["discretization"]      = discretization;
    sqlIntegerProperties["num_cycles"]         = numCycles;
-   sqlStringProperties["cycle_type"]          = cycleType;
+   sqlStringProperties["cycle_type"]          = cycleTypeString;
    sqlIntegerProperties["pre_smoothing"]      = preSmoothingSteps;
    sqlIntegerProperties["post_smoothing"]     = postSmoothingSteps;
    sqlIntegerProperties["min_level"]          = minLevel;
@@ -377,6 +416,7 @@ void setup( int argc, char** argv )
                                                     minLevel,
                                                     maxLevel,
                                                     numCycles,
+                                                    cycleType,
                                                     L2residualTolerance,
                                                     preSmoothingSteps,
                                                     postSmoothingSteps,
@@ -397,6 +437,7 @@ void setup( int argc, char** argv )
                                                        minLevel,
                                                        maxLevel,
                                                        numCycles,
+                                                       cycleType,
                                                        L2residualTolerance,
                                                        preSmoothingSteps,
                                                        postSmoothingSteps,
