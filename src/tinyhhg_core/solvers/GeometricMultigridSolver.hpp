@@ -15,16 +15,16 @@ namespace hhg
 using walberla::uint_t;
 using walberla::real_t;
 
+enum class CycleType
+{
+    VCYCLE,
+    WCYCLE
+};
+
 template< class OperatorType >
 class GeometricMultigridSolver : public Solver< OperatorType >
 {
 public:
-
-  enum class CycleType
-  {
-    VCYCLE,
-    WCYCLE
-  };
 
   typedef typename OperatorType::srcType FunctionType;
 
@@ -40,7 +40,9 @@ public:
                             uint_t                                                  maxLevel,
                             uint_t                                                  preSmoothSteps                = 3,
                             uint_t                                                  postSmoothSteps               = 3,
-                            uint_t                                                  smoothIncrementOnCoarserGrids = 0 )
+                            uint_t                                                  smoothIncrementOnCoarserGrids = 0,
+                            CycleType                                               cycleType = CycleType::VCYCLE
+                            )
   : minLevel_( minLevel )
   , maxLevel_( maxLevel )
   , smoother_( smoother )
@@ -53,7 +55,7 @@ public:
   , postSmoothSteps_( postSmoothSteps )
   , smoothIncrement_( smoothIncrementOnCoarserGrids )
   , flag_( hhg::Inner | hhg::NeumannBoundary )
-  , cycleType_( CycleType::VCYCLE )
+  , cycleType_( cycleType )
   , timingTree_( storage->getTimingTree() )
   {
      zero_ = []( const hhg::Point3D& ) { return 0.0; };
