@@ -2,13 +2,14 @@ Parameters
 {
     numFacesPerSide 4;
     discretization P2;
-    numCycles 10;
+    numCycles 100;
     cycleType V;
-    preSmoothingSteps 3;
-    postSmoothingSteps 3;
+    fmgInnerCycles 2; // 0 == no fmg
+    preSmoothingSteps 1;
+    postSmoothingSteps 1;
     minLevel 2;
-    maxLevel 6;
-    skipCyclesForAvgConvRate 3;
+    maxLevel 5;
+    skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-15;
 
     outputVTK true;

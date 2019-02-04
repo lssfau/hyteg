@@ -6,6 +6,7 @@
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
@@ -17,12 +18,15 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "tinyhhg_core/solvers/FullMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 
 #include "postprocessing/sqlite/SQLite.h"
 
 namespace hhg {
+
+using walberla::int64_c;
 
 #if 0
 std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x )
@@ -69,12 +73,18 @@ void calculateErrorAndResidual( const uint_t&          level,
    L2Residual = std::sqrt( residual.dotGlobal( tmp, level, Inner ) );
 }
 
-template < typename Function, typename LaplaceOperator, typename MassOperator, typename Restriction, typename Prolongation >
+template < typename Function,
+           typename LaplaceOperator,
+           typename MassOperator,
+           typename Restriction,
+           typename Prolongation,
+           typename FMGProlongation >
 void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           storage,
                        const uint_t&                                        minLevel,
                        const uint_t&                                        maxLevel,
-                       const uint_t&                                        numVCycles,
+                       const uint_t&                                        numCycles,
                        const CycleType                                      cycleType,
+                       const uint_t&                                          fmgInnerCycles,
                        const real_t&                                        L2residualTolerance,
                        const uint_t&                                        preSmoothingSteps,
                        const uint_t&                                        postSmoothingSteps,
@@ -118,11 +128,14 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    // Initialize functions and right-hand side //
    //////////////////////////////////////////////
 
-   u.interpolate( exact, maxLevel, DirichletBoundary );
-   uExact.interpolate( exact, maxLevel, All );
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      u.interpolate( exact, level, DirichletBoundary );
+      uExact.interpolate( exact, level, All );
 
-   tmp.interpolate( rhs, maxLevel, All );
-   M.apply( tmp, f, maxLevel, All );
+      tmp.interpolate( rhs, level, All );
+      M.apply( tmp, f, level, All );
+   }
 
    /////////////////////////
    // Misc setup and info //
@@ -200,19 +213,23 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >();
 
-   GeometricMultigridSolver< LaplaceOperator > multigridSolver( storage,
-                                                                smoother,
-                                                                coarseGridSolver,
-                                                                restrictionOperator,
-                                                                prolongationOperator,
-                                                                minLevel,
-                                                                maxLevel,
-                                                                preSmoothingSteps,
-                                                                postSmoothingSteps,
-                                                                0,
-                                                                cycleType );
+   auto multigridSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator > >( storage,
+                                                                                           smoother,
+                                                                                           coarseGridSolver,
+                                                                                           restrictionOperator,
+                                                                                           prolongationOperator,
+                                                                                           minLevel,
+                                                                                           maxLevel,
+                                                                                           preSmoothingSteps,
+                                                                                           postSmoothingSteps,
+                                                                                           0,
+                                                                                           cycleType );
 
-   for ( uint_t cycle = 1; cycle <= numVCycles; cycle++ )
+   auto fmgProlongation = std::make_shared< FMGProlongation >();
+
+   FullMultigridSolver< LaplaceOperator > fullMultigridSolver( storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles );
+
+   for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
       const real_t lastL2Error    = L2Error;
       const real_t lastL2Residual = L2Residual;
@@ -221,7 +238,14 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       const real_t lastl2Residual = l2Residual;
 
       timer.reset();
-      multigridSolver.solve( A, u, f, maxLevel );
+      if ( cycle == 1 && fmgInnerCycles > 0 )
+      {
+         fullMultigridSolver.solve( A, u, f, maxLevel );
+      }
+      else
+      {
+         multigridSolver->solve( A, u, f, maxLevel );
+      }
       timer.end();
       timeCycle = timer.last();
 
@@ -274,11 +298,11 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       }
    }
 
-   avgL2ErrorConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
-   avgL2ResidualConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
+   avgL2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgL2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
 
-   avgl2ErrorConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRate /= real_c( numVCycles - skipCyclesForAvgConvRate );
+   avgl2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
 
    sqlRealProperties["avg_capital_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
    sqlRealProperties["avg_capital_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
@@ -328,6 +352,7 @@ void setup( int argc, char** argv )
    const std::string discretization           = mainConf.getParameter< std::string >( "discretization" );
    const uint_t      numCycles                = mainConf.getParameter< uint_t >( "numCycles" );
    const std::string cycleTypeString          = mainConf.getParameter< std::string >( "cycleType" );
+   const uint_t      fmgInnerCycles           = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance      = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
@@ -352,6 +377,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                    " << numCycles );
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                    " << cycleTypeString );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - full multigrid:                " << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
@@ -379,6 +405,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["discretization"]      = discretization;
    sqlIntegerProperties["num_cycles"]         = numCycles;
    sqlStringProperties["cycle_type"]          = cycleTypeString;
+   sqlIntegerProperties["fmgInnerCycles"]     = fmgInnerCycles;
    sqlIntegerProperties["pre_smoothing"]      = preSmoothingSteps;
    sqlIntegerProperties["post_smoothing"]     = postSmoothingSteps;
    sqlIntegerProperties["min_level"]          = minLevel;
@@ -412,20 +439,22 @@ void setup( int argc, char** argv )
                         P1ConstantLaplaceOperator,
                         P1MassOperator,
                         P1toP1LinearRestriction,
-                        P1toP1LinearProlongation >( storage,
-                                                    minLevel,
-                                                    maxLevel,
-                                                    numCycles,
-                                                    cycleType,
-                                                    L2residualTolerance,
-                                                    preSmoothingSteps,
-                                                    postSmoothingSteps,
-                                                    outputVTK,
-                                                    skipCyclesForAvgConvRate,
-                                                    sqlIntegerProperties,
-                                                    sqlRealProperties,
-                                                    sqlStringProperties,
-                                                    sqlRealPropertiesMG );
+                        P1toP1LinearProlongation,
+                        P1toP1QuadraticProlongation >( storage,
+                                                       minLevel,
+                                                       maxLevel,
+                                                       numCycles,
+                                                       cycleType,
+                                                       fmgInnerCycles,
+                                                       L2residualTolerance,
+                                                       preSmoothingSteps,
+                                                       postSmoothingSteps,
+                                                       outputVTK,
+                                                       skipCyclesForAvgConvRate,
+                                                       sqlIntegerProperties,
+                                                       sqlRealProperties,
+                                                       sqlStringProperties,
+                                                       sqlRealPropertiesMG );
    }
    else if ( discretization == "P2" )
    {
@@ -433,11 +462,13 @@ void setup( int argc, char** argv )
                         P2ConstantLaplaceOperator,
                         P2ConstantMassOperator,
                         P2toP2QuadraticRestriction,
+                        P2toP2QuadraticProlongation,
                         P2toP2QuadraticProlongation >( storage,
                                                        minLevel,
                                                        maxLevel,
                                                        numCycles,
                                                        cycleType,
+                                                       fmgInnerCycles,
                                                        L2residualTolerance,
                                                        preSmoothingSteps,
                                                        postSmoothingSteps,
@@ -471,7 +502,8 @@ void setup( int argc, char** argv )
       {
          const std::string                  dbFile = "MultigridStudies.db";
          walberla::postprocessing::SQLiteDB db( dbFile );
-         auto                               runId = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         sqlIntegerProperties["conv_table_for_run"] = -1;
+         auto runId                                 = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )
          {
             if ( sqlRealPropertiesMG.count( cycle ) > 0 )
