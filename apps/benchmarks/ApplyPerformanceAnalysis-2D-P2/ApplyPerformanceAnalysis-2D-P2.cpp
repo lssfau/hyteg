@@ -35,7 +35,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                        "sampleSize" + std::to_string( sampleSize ) + "numProcs" +
                                        std::to_string( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   double      time, mlups, mflops;
+   double      time    = 0, events, mlups, mflops;
+   int         nevents = 0, count;
    std::string vvname, vename, eename, evname;
    vvname = "Vertex-to-Vertex-Apply-" + benchInfoString;
    evname = "Edge-to-Vertex-Apply-" + benchInfoString;
@@ -66,7 +67,12 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    LIKWID_MARKER_STOP( vvname.c_str() );
    timingTree.stop( vvname );
 
-   time  = timingTree[vvname].average();
+   LIKWID_MARKER_GET( vvname.c_str(), &nevents, &events, &time, &count );
+   if( time <= 0 )
+   {
+      /// if run without likwid marker we use timing tree timing
+      time = timingTree[vvname].average();
+   }
    mlups = real_t( innerIterationsVertex * sampleSize ) / time / 1e6;
    /// 13 Flops: 7 Mults and 6 Adds
    mflops = real_t( innerIterationsVertex * sampleSize * 13 ) / time / 1e6;
