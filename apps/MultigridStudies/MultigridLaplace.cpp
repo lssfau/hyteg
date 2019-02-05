@@ -19,7 +19,7 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/FullMultigridSolver.hpp"
-#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
+#include "tinyhhg_core/solvers/SORSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 
 #include "postprocessing/sqlite/SQLite.h"
@@ -84,8 +84,9 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
                        const uint_t&                                        maxLevel,
                        const uint_t&                                        numCycles,
                        const CycleType                                      cycleType,
-                       const uint_t&                                          fmgInnerCycles,
+                       const uint_t&                                        fmgInnerCycles,
                        const real_t&                                        L2residualTolerance,
+                       const real_t&                                        sorRelax,
                        const uint_t&                                        preSmoothingSteps,
                        const uint_t&                                        postSmoothingSteps,
                        const bool&                                          outputVTK,
@@ -207,7 +208,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    // Solve //
    ///////////
 
-   auto smoother         = std::make_shared< GaussSeidelSmoother< LaplaceOperator > >();
+   auto smoother         = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
    auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -354,6 +355,7 @@ void setup( int argc, char** argv )
    const std::string cycleTypeString          = mainConf.getParameter< std::string >( "cycleType" );
    const uint_t      fmgInnerCycles           = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance      = mainConf.getParameter< real_t >( "L2residualTolerance" );
+   const real_t      sorRelax                 = mainConf.getParameter< real_t >( "sorRelax" );
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
    const uint_t      minLevel                 = mainConf.getParameter< uint_t >( "minLevel" );
@@ -379,6 +381,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                    " << cycleTypeString );
    WALBERLA_LOG_INFO_ON_ROOT( "  - full multigrid:                " << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                     " << sorRelax );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
@@ -406,6 +409,7 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["num_cycles"]         = int64_c( numCycles );
    sqlStringProperties["cycle_type"]          = cycleTypeString;
    sqlIntegerProperties["fmgInnerCycles"]     = int64_c( fmgInnerCycles );
+   sqlRealProperties["sor_relax"]             = sorRelax;
    sqlIntegerProperties["pre_smoothing"]      = int64_c( preSmoothingSteps );
    sqlIntegerProperties["post_smoothing"]     = int64_c( postSmoothingSteps );
    sqlIntegerProperties["min_level"]          = int64_c( minLevel );
@@ -447,6 +451,7 @@ void setup( int argc, char** argv )
                                                        cycleType,
                                                        fmgInnerCycles,
                                                        L2residualTolerance,
+                                                       sorRelax,
                                                        preSmoothingSteps,
                                                        postSmoothingSteps,
                                                        outputVTK,
@@ -470,6 +475,7 @@ void setup( int argc, char** argv )
                                                        cycleType,
                                                        fmgInnerCycles,
                                                        L2residualTolerance,
+                                                       sorRelax,
                                                        preSmoothingSteps,
                                                        postSmoothingSteps,
                                                        outputVTK,

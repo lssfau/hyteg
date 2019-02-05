@@ -4,9 +4,10 @@ Parameters
     discretization P2;
     numCycles 100;
     cycleType V;
-    fmgInnerCycles 2; // 0 == no fmg
-    preSmoothingSteps 1;
-    postSmoothingSteps 1;
+    fmgInnerCycles 1; // 0 == no fmg
+    sorRelax 1.05;
+    preSmoothingSteps 2;
+    postSmoothingSteps 2;
     minLevel 2;
     maxLevel 5;
     skipCyclesForAvgConvRate 0;
