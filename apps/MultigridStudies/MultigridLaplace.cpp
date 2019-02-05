@@ -153,7 +153,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    WALBERLA_LOG_INFO_ON_ROOT( "  total:    " << std::setw( 15 ) << totalDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   sqlIntegerProperties["total_dofs"] = totalDoFs;
+   sqlIntegerProperties["total_dofs"] = int64_c( totalDoFs );
 
    walberla::WcTimer timer;
    double            timeError;
@@ -400,16 +400,16 @@ void setup( int argc, char** argv )
 
    sqlStringProperties["tag"] = sqlTag;
 
-   sqlIntegerProperties["num_processes"]      = numProcesses;
-   sqlIntegerProperties["num_faces_per_side"] = numFacesPerSide;
+   sqlIntegerProperties["num_processes"]      = int64_c( numProcesses );
+   sqlIntegerProperties["num_faces_per_side"] = int64_c( numFacesPerSide );
    sqlStringProperties["discretization"]      = discretization;
-   sqlIntegerProperties["num_cycles"]         = numCycles;
+   sqlIntegerProperties["num_cycles"]         = int64_c( numCycles );
    sqlStringProperties["cycle_type"]          = cycleTypeString;
-   sqlIntegerProperties["fmgInnerCycles"]     = fmgInnerCycles;
-   sqlIntegerProperties["pre_smoothing"]      = preSmoothingSteps;
-   sqlIntegerProperties["post_smoothing"]     = postSmoothingSteps;
-   sqlIntegerProperties["min_level"]          = minLevel;
-   sqlIntegerProperties["max_level"]          = maxLevel;
+   sqlIntegerProperties["fmgInnerCycles"]     = int64_c( fmgInnerCycles );
+   sqlIntegerProperties["pre_smoothing"]      = int64_c( preSmoothingSteps );
+   sqlIntegerProperties["post_smoothing"]     = int64_c( postSmoothingSteps );
+   sqlIntegerProperties["min_level"]          = int64_c( minLevel );
+   sqlIntegerProperties["max_level"]          = int64_c( maxLevel );
 
    ////////////
    // Domain //
@@ -421,9 +421,9 @@ void setup( int argc, char** argv )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   sqlIntegerProperties["num_macro_vertices"] = setupStorage.getNumberOfVertices();
-   sqlIntegerProperties["num_macro_edges"]    = setupStorage.getNumberOfEdges();
-   sqlIntegerProperties["num_macro_faces"]    = setupStorage.getNumberOfFaces();
+   sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+   sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+   sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
 
    if ( outputVTK )
    {
@@ -509,8 +509,8 @@ void setup( int argc, char** argv )
             if ( sqlRealPropertiesMG.count( cycle ) > 0 )
             {
                std::map< std::string, int64_t > runIdMap;
-               runIdMap["conv_table_for_run"] = runId;
-               runIdMap["cycle"]              = cycle;
+               runIdMap["conv_table_for_run"] = int64_c( runId );
+               runIdMap["cycle"]              = int64_c( cycle );
                db.storeRun( runIdMap, std::map< std::string, std::string >(), sqlRealPropertiesMG[cycle] );
             }
          }
