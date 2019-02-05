@@ -1,9 +1,10 @@
-
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "core/timing/TimingJSON.h"
 
+#include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
@@ -18,8 +19,6 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-
-const int USE_GENERATED_KERNELS = 1;
 
 using walberla::real_t;
 using namespace hhg;
@@ -36,6 +35,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                        "sampleSize" + std::to_string( sampleSize ) + "numProcs" +
                                        std::to_string( walberla::mpi::MPIManager::instance()->numProcesses() );
 
+   double      time, mlups, mflops;
    std::string vvname, vename, eename, evname;
    vvname = "Vertex-to-Vertex-Apply-" + benchInfoString;
    evname = "Edge-to-Vertex-Apply-" + benchInfoString;
@@ -47,116 +47,90 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    LIKWID_MARKER_REGISTER( eename.c_str() );
    LIKWID_MARKER_REGISTER( vename.c_str() );
 
+   uint_t innerIterationsVertex =
+       levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 2 );
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%18s|%10s|%10s|%10s", "kernel", "Time (s)", "MLUPs", "MFLOPs" ) );
+
    /// Vertex to Vertex
+   timingTree.start( vvname );
+   LIKWID_MARKER_START( vvname.c_str() );
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      timingTree.start( vvname );
-      LIKWID_MARKER_START( vvname.c_str() );
-      if( USE_GENERATED_KERNELS )
-      {
-         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-         hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-             dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
-      } else
-      {
-         hhg::vertexdof::macroface::apply( level,
-                                           face,
-                                           laplace.getVertexToVertexOpr().getFaceStencilID(),
-                                           src.getVertexDoFFunction().getFaceDataID(),
-                                           dst.getVertexDoFFunction().getFaceDataID(),
-                                           hhg::Replace );
-      }
-      LIKWID_MARKER_STOP( vvname.c_str() );
-      timingTree.stop( vvname );
+      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+      hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
+          dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+      hhg::misc::dummy( srcPtr, dstPtr );
    }
+   LIKWID_MARKER_STOP( vvname.c_str() );
+   timingTree.stop( vvname );
+
+   time  = timingTree[vvname].average();
+   mlups = real_t( innerIterationsVertex * sampleSize ) / time / 1e6;
+   /// 13 Flops: 7 Mults and 6 Adds
+   mflops = real_t( innerIterationsVertex * sampleSize * 13 ) / time / 1e6;
+
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%18s|%10.3e|%10.3e|%10.3e", "vertex to vertex", time, mlups, mflops ) );
 
    /// Edge to Vertex
+
+   timingTree.start( evname );
+   LIKWID_MARKER_START( evname.c_str() );
+
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      timingTree.start( evname );
-      LIKWID_MARKER_START( evname.c_str() );
-      if( USE_GENERATED_KERNELS )
-      {
-         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
-         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
-             srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
-      } else
-      {
-         hhg::EdgeDoFToVertexDoF::applyFace( level,
-                                             face,
-                                             laplace.getEdgeToVertexOpr().getFaceStencilID(),
-                                             src.getEdgeDoFFunction().getFaceDataID(),
-                                             dst.getVertexDoFFunction().getFaceDataID(),
-                                             hhg::Replace );
-      }
-      LIKWID_MARKER_STOP( evname.c_str() );
-      timingTree.stop( evname );
+      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
+      hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
+          srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
+      hhg::misc::dummy( srcPtr, dstPtr );
    }
+   LIKWID_MARKER_STOP( evname.c_str() );
+   timingTree.stop( evname );
 
    /// Edge to Edge
+
+   timingTree.start( eename );
+   LIKWID_MARKER_START( eename.c_str() );
+
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      timingTree.start( eename );
-      LIKWID_MARKER_START( eename.c_str() );
-      if( USE_GENERATED_KERNELS )
-      {
-         auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
-         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
-             dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
-      } else
-      {
-         hhg::edgedof::macroface::apply( level,
-                                         face,
-                                         laplace.getEdgeToEdgeOpr().getFaceStencilID(),
-                                         src.getEdgeDoFFunction().getFaceDataID(),
-                                         dst.getEdgeDoFFunction().getFaceDataID(),
-                                         hhg::Replace );
-      }
-      LIKWID_MARKER_STOP( eename.c_str() );
-      timingTree.stop( eename );
+      auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
+          dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+      hhg::misc::dummy( srcPtr, dstPtr );
    }
 
+   LIKWID_MARKER_STOP( eename.c_str() );
+   timingTree.stop( eename );
+
    /// Vertex to Edge
+
+   LIKWID_MARKER_STOP( vename.c_str() );
+   timingTree.stop( vename );
+
    for( uint_t i = 0; i < sampleSize; i++ )
    {
-      timingTree.start( vename );
-      LIKWID_MARKER_START( vename.c_str() );
-      if( USE_GENERATED_KERNELS )
-      {
-         auto dstPtr                      = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr                      = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr                  = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
-         auto vertexToDiagonalEdgeStencil = &stencilPtr[4];
-         auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
-         auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
-         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr,
-                                                                                              srcPtr,
-                                                                                              vertexToDiagonalEdgeStencil,
-                                                                                              vertexToHorizontalEdgeStencil,
-                                                                                              vertexToVerticalEdgeStencil,
-                                                                                              static_cast< int64_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
-      } else
-      {
-         hhg::VertexDoFToEdgeDoF::applyFace( level,
-                                             face,
-                                             laplace.getEdgeToVertexOpr().getFaceStencilID(),
-                                             src.getVertexDoFFunction().getFaceDataID(),
-                                             dst.getEdgeDoFFunction().getFaceDataID(),
-                                             hhg::Replace );
-      }
-      LIKWID_MARKER_STOP( vename.c_str() );
-      timingTree.stop( vename );
+      auto dstPtr                        = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr                        = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr                    = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      auto vertexToDiagonalEdgeStencil   = &stencilPtr[4];
+      auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
+      auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
+      hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr,
+                                                                                           srcPtr,
+                                                                                           vertexToDiagonalEdgeStencil,
+                                                                                           vertexToHorizontalEdgeStencil,
+                                                                                           vertexToVerticalEdgeStencil,
+                                                                                           static_cast< int64_t >( level ) );
+      hhg::misc::dummy( srcPtr, dstPtr );
    }
+   LIKWID_MARKER_STOP( vename.c_str() );
+   timingTree.stop( vename );
 }
 
 int main( int argc, char* argv[] )

@@ -4,6 +4,6 @@
 
 namespace hhg {
 namespace misc {
-void dummy( double* a, double* b );
+void dummy( double*, double* );
 } // namespace misc
 } // namespace hhg
