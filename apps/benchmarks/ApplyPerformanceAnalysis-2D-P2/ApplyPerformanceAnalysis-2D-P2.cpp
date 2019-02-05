@@ -110,8 +110,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
    /// Vertex to Edge
 
-   LIKWID_MARKER_STOP( vename.c_str() );
-   timingTree.stop( vename );
+   LIKWID_MARKER_START( vename.c_str() );
+   timingTree.start( vename );
 
    for( uint_t i = 0; i < sampleSize; i++ )
    {
