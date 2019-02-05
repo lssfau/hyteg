@@ -9,16 +9,17 @@ namespace hhg {
 namespace P2 {
 namespace macroedge {
 
-void smoothGaussSeidel( const uint_t&                                            level,
-                       const Edge&                                              edge,
-                       const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToVertexStencilID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToVertexStencilID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstVertexDoFID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToEdgeStencilID,
-                       const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToEdgeStencilID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstEdgeDoFID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsVertexDoFID,
-                       const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsEdgeDoFID )
+void smoothSOR( const uint_t&                                            level,
+                const Edge&                                              edge,
+                const real_t&                                            relax,
+                const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToVertexStencilID,
+                const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToVertexStencilID,
+                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstVertexDoFID,
+                const PrimitiveDataID< StencilMemory< real_t >, Edge >&  vertexToEdgeStencilID,
+                const PrimitiveDataID< StencilMemory< real_t >, Edge >&  edgeToEdgeStencilID,
+                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstEdgeDoFID,
+                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsVertexDoFID,
+                const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsEdgeDoFID )
 {
    real_t* vertexToVertexStencil = edge.getData( vertexToVertexStencilID )->getPointer( level );
    real_t* edgeToVertexStencil   = edge.getData( edgeToVertexStencilID )->getPointer( level );
@@ -30,6 +31,10 @@ void smoothGaussSeidel( const uint_t&                                           
    real_t* rhsEdgeDoF            = edge.getData( rhsEdgeDoFID )->getPointer( level );
 
    real_t tmpVertex = 0, tmpEdgeHO = 0;
+
+   const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
+
    for( const auto& it : hhg::edgedof::macroedge::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
@@ -76,7 +81,8 @@ void smoothGaussSeidel( const uint_t&                                           
             }
          }
          dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] =
-             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+             (1.0 - relax) * dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )] +
+             relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
       tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )];
@@ -113,9 +119,11 @@ void smoothGaussSeidel( const uint_t&                                           
          }
       }
       dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] =
-          tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
+          (1.0 - relax) * dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )] +
+          relax * invEdgeXCenter * tmpEdgeHO;
    }
 }
+
 
 } // namespace macroedge
 } // namespace P2

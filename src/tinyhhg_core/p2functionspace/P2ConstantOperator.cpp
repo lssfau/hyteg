@@ -372,7 +372,17 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
                                                                    const size_t level,
                                                                    const DoFType flag) const
 {
-   this->startTiming( "Gauss-Seidel" );
+  smooth_sor( dst, rhs, 1.0, level, flag );
+}
+
+template < class UFCOperator2D, class UFCOperator3D >
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Function <real_t> &dst,
+                                                                    const P2Function <real_t> &rhs,
+                                                                    const real_t& relax,
+                                                                    const size_t level,
+                                                                    const DoFType flag) const
+{
+   this->startTiming( "SOR" );
 
    communication::syncP2FunctionBetweenPrimitives( dst, level );
 
@@ -383,13 +393,14 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if( testFlag( vertexBC, flag ) )
       {
-         P2::macrovertex::smoothGSvertexDoF( level,
-                                             vertex,
-                                             vertexToVertex.getVertexStencilID(),
-                                             dst.getVertexDoFFunction().getVertexDataID(),
-                                             edgeToVertex.getVertexStencilID(),
-                                             dst.getEdgeDoFFunction().getVertexDataID(),
-                                             rhs.getVertexDoFFunction().getVertexDataID() );
+         P2::macrovertex::smoothSORVertexDoF( level,
+                                              vertex,
+                                              relax,
+                                              vertexToVertex.getVertexStencilID(),
+                                              dst.getVertexDoFFunction().getVertexDataID(),
+                                              edgeToVertex.getVertexStencilID(),
+                                              dst.getEdgeDoFFunction().getVertexDataID(),
+                                              rhs.getVertexDoFFunction().getVertexDataID() );
       }
    }
 
@@ -403,16 +414,17 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if( testFlag( edgeBC, flag ) )
       {
-         P2::macroedge::smoothGaussSeidel( level,
-                                           edge,
-                                           vertexToVertex.getEdgeStencilID(),
-                                           edgeToVertex.getEdgeStencilID(),
-                                           dst.getVertexDoFFunction().getEdgeDataID(),
-                                           vertexToEdge.getEdgeStencilID(),
-                                           edgeToEdge.getEdgeStencilID(),
-                                           dst.getEdgeDoFFunction().getEdgeDataID(),
-                                           rhs.getVertexDoFFunction().getEdgeDataID(),
-                                           rhs.getEdgeDoFFunction().getEdgeDataID() );
+         P2::macroedge::smoothSOR( level,
+                                   edge,
+                                   relax,      
+                                   vertexToVertex.getEdgeStencilID(),
+                                   edgeToVertex.getEdgeStencilID(),
+                                   dst.getVertexDoFFunction().getEdgeDataID(),
+                                   vertexToEdge.getEdgeStencilID(),
+                                   edgeToEdge.getEdgeStencilID(),
+                                   dst.getEdgeDoFFunction().getEdgeDataID(),
+                                   rhs.getVertexDoFFunction().getEdgeDataID(),
+                                   rhs.getEdgeDoFFunction().getEdgeDataID() );
       }
    }
 
@@ -426,19 +438,20 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if( testFlag( faceBC, flag ) )
       {
-         P2::macroface::smoothGaussSeidel( level,
-                                           face,
-                                           vertexToVertex.getFaceStencilID(),
-                                           edgeToVertex.getFaceStencilID(),
-                                           dst.getVertexDoFFunction().getFaceDataID(),
-                                           vertexToEdge.getFaceStencilID(),
-                                           edgeToEdge.getFaceStencilID(),
-                                           dst.getEdgeDoFFunction().getFaceDataID(),
-                                           rhs.getVertexDoFFunction().getFaceDataID(),
-                                           rhs.getEdgeDoFFunction().getFaceDataID() );
+         P2::macroface::smoothSOR( level,
+                                   face,
+                                   relax,
+                                   vertexToVertex.getFaceStencilID(),
+                                   edgeToVertex.getFaceStencilID(),
+                                   dst.getVertexDoFFunction().getFaceDataID(),
+                                   vertexToEdge.getFaceStencilID(),
+                                   edgeToEdge.getFaceStencilID(),
+                                   dst.getEdgeDoFFunction().getFaceDataID(),
+                                   rhs.getVertexDoFFunction().getFaceDataID(),
+                                   rhs.getEdgeDoFFunction().getFaceDataID() );
       }
    }
-   this->stopTiming( "Gauss-Seidel" );
+   this->stopTiming( "SOR" );
 }
 
 template < class UFCOperator2D, class UFCOperator3D >

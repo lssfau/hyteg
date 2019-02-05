@@ -147,8 +147,10 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
    }
 }
 
-void smoothGaussSeidel(const uint_t &level,
+
+void smoothSOR(const uint_t &level,
                        const Face &face,
+                       const real_t & relax,
                        const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexToVertexStencilID,
                        const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeToVertexStencilID,
                        const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
@@ -171,6 +173,12 @@ void smoothGaussSeidel(const uint_t &level,
 
    real_t tmpVertex = 0, tmpEdgeHO = 0, tmpEdgeDI = 0, tmpEdgeVE = 0;
 
+   // invert center weights
+   const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
+   const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
+   const real_t invEdgeXYCenter = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
+   const real_t invEdgeYCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
+
    /// sum up weighted values first for vertex and edges and write to corresponding dof
    for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
    {
@@ -191,7 +199,8 @@ void smoothGaussSeidel(const uint_t &level,
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] =
-             tmpVertex / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( sD::VERTEX_C )];
+             (1.0 - relax) * dstVertexDoF[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )] +
+             relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
       if( !edgedof::isHorizontalEdgeOnBoundary( level, it ) )
@@ -210,7 +219,8 @@ void smoothGaussSeidel(const uint_t &level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] =
-             tmpEdgeHO / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
+             (1.0 - relax) * dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )] +
+             relax * invEdgeXCenter * tmpEdgeHO;      
       }
       ////////// VERTICAL EDGE //////////
       if( !edgedof::isVerticalEdgeOnBoundary( level, it ) )
@@ -229,7 +239,8 @@ void smoothGaussSeidel(const uint_t &level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] =
-             tmpEdgeVE / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
+             (1.0 - relax) * dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )] +
+             relax * invEdgeYCenter * tmpEdgeVE;      
       }
       ////////// DIAGONAL EDGE //////////
       if( !edgedof::isDiagonalEdgeOnBoundary( level, it ) )
@@ -248,9 +259,34 @@ void smoothGaussSeidel(const uint_t &level,
                          edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( dir )];
          }
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] =
-             tmpEdgeDI / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
+             (1.0 - relax) * dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] +
+             relax * invEdgeXYCenter * tmpEdgeDI;
       }
    }
+}
+
+void smoothGaussSeidel(const uint_t &level,
+                       const Face &face,
+                       const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexToVertexStencilID,
+                       const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeToVertexStencilID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstVertexDoFID,
+                       const PrimitiveDataID<StencilMemory<real_t>, Face> &vertexToEdgeStencilID,
+                       const PrimitiveDataID<StencilMemory<real_t>, Face> &edgeToEdgeStencilID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &dstEdgeDoFID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsVertexDoFID,
+                       const PrimitiveDataID<FunctionMemory<real_t>, Face> &rhsEdgeDoFID)
+{
+  smoothSOR(level,
+            face,
+            1.0,
+           vertexToVertexStencilID,
+           edgeToVertexStencilID,
+           dstVertexDoFID,
+           vertexToEdgeStencilID,
+           edgeToEdgeStencilID,
+           dstEdgeDoFID,
+           rhsVertexDoFID,
+           rhsEdgeDoFID);
 }
 
 } // namespace macroface
