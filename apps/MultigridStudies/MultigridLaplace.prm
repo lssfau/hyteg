@@ -1,19 +1,19 @@
 Parameters
 {
     numFacesPerSide 4;
-    discretization P2;
+    discretization P1;
     numCycles 100;
     cycleType V;
-    fmgInnerCycles 1; // 0 == no fmg
-    sorRelax 1.05;
+    fmgInnerCycles 0; // 0 == no fmg
+    sorRelax 1.0;
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     minLevel 2;
-    maxLevel 5;
+    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-15;
 
-    outputVTK true;
+    outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputSQL true;

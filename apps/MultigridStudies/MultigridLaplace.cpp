@@ -19,8 +19,8 @@
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 #include "tinyhhg_core/solvers/FullMultigridSolver.hpp"
-#include "tinyhhg_core/solvers/SORSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/solvers/SORSmoother.hpp"
 
 #include "postprocessing/sqlite/SQLite.h"
 
@@ -71,6 +71,38 @@ void calculateErrorAndResidual( const uint_t&          level,
    M.apply( residual, tmp, level, Inner );
    l2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) );
    L2Residual = std::sqrt( residual.dotGlobal( tmp, level, Inner ) );
+}
+
+template < typename Function, typename LaplaceOperator, typename MassOperator >
+void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& storage,
+                                   const uint_t&                              level,
+                                   real_t&                                    l2DiscretizationError )
+{
+   Function u( "u", storage, level, level );
+   Function f( "f", storage, level, level );
+
+   Function uExact( "uExact", storage, level, level );
+   Function residual( "residual", storage, level, level );
+   Function error( "error", storage, level, level );
+   Function tmp( "tmp", storage, level, level );
+
+   LaplaceOperator A( storage, level, level );
+   MassOperator    M( storage, level, level );
+
+   u.interpolate( exact, level, DirichletBoundary );
+   uExact.interpolate( exact, level, All );
+
+   tmp.interpolate( rhs, level, All );
+   M.apply( tmp, f, level, All );
+
+   auto solver = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
+   solver->solve( A, u, f, level );
+
+   real_t L2Error;
+   real_t l2Residual;
+   real_t L2Residual;
+   calculateErrorAndResidual(
+       level, A, M, u, f, uExact, error, residual, tmp, l2DiscretizationError, L2Error, l2Residual, L2Residual );
 }
 
 template < typename Function,
@@ -141,6 +173,16 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    /////////////////////////
    // Misc setup and info //
    /////////////////////////
+
+   WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error per level:" );
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+     real_t discretizationError;
+     calculateDiscretizationError< Function, LaplaceOperator, MassOperator >( storage, level, discretizationError );
+     WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationError );
+     sqlRealProperties["l2_discr_error_level_" + std::to_string(level)] = discretizationError;
+   }
+   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Number of unknowns (including boundary):" )
    uint_t totalDoFs = 0;
@@ -228,7 +270,16 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
 
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
-   FullMultigridSolver< LaplaceOperator > fullMultigridSolver( storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles );
+   auto postCycle = [&]( uint_t currentLevel )
+   {
+      real_t _l2Error, _L2Error, _l2Residual, _L2Residual;
+      calculateErrorAndResidual( currentLevel, A, M, u, f, uExact, error, residual, tmp, _l2Error, _L2Error, _l2Residual, _L2Residual );
+      sqlRealProperties["fmg_l2_error_level_" + std::to_string(currentLevel)] = _l2Error;
+      WALBERLA_LOG_INFO_ON_ROOT("    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2Error );
+   };
+
+   FullMultigridSolver< LaplaceOperator > fullMultigridSolver(
+       storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
    for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
@@ -359,7 +410,8 @@ void setup( int argc, char** argv )
    const uint_t      preSmoothingSteps        = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps       = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
    const uint_t      minLevel                 = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t      maxLevel                 = mainConf.getParameter< uint_t >( "maxLevel" );
+   const uint_t      maxLevel                 = ( discretization == "P1" ? mainConf.getParameter< uint_t >( "maxLevel" ) :
+                                                      mainConf.getParameter< uint_t >( "maxLevel" ) - 1 );
    const bool        outputVTK                = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming             = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON         = mainConf.getParameter< bool >( "outputTimingJSON" );
@@ -379,7 +431,9 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                    " << numCycles );
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                    " << cycleTypeString );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - full multigrid:                " << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "  - full multigrid:                "
+       << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                     " << sorRelax );
    WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
