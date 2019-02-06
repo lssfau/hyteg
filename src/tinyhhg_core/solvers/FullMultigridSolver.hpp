@@ -17,7 +17,8 @@ class FullMultigridSolver : public Solver< OperatorType >
                         const std::shared_ptr< ProlongationOperator< FunctionType > >&     fmgProlongation,
                         const uint_t&                                                      minLevel,
                         const uint_t&                                                      maxLevel,
-                        const uint_t&                                                      cyclesPerLevel = 1 )
+                        const uint_t&                                                      cyclesPerLevel = 1,
+                        const std::function< void( uint_t currentLevel ) >&                postCycleCallback = []( uint_t ){} )
    : gmgSolver_( gmgSolver )
    , fmgProlongation_( fmgProlongation )
    , minLevel_( minLevel )
@@ -25,20 +26,23 @@ class FullMultigridSolver : public Solver< OperatorType >
    , cyclesPerLevel_( cyclesPerLevel )
    , Ax_( "Ax", storage, minLevel, maxLevel )
    , flag_( Inner | NeumannBoundary )
+   , postCycleCallback_( postCycleCallback )
    {}
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
-      for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+      for ( uint_t currentLevel = minLevel_; currentLevel <= level; currentLevel++ )
       {
          for ( uint_t cycle = 0; cycle < cyclesPerLevel_; cycle++ )
          {
-            gmgSolver_->solve( A, x, b, level );
+            gmgSolver_->solve( A, x, b, currentLevel );
          }
 
-         if ( level < maxLevel_ )
+         postCycleCallback_( currentLevel );
+
+         if ( currentLevel < maxLevel_ )
          {
-            fmgProlongation_->prolongate( x, level, flag_ );
+            fmgProlongation_->prolongate( x, currentLevel, flag_ );
          }
       }
    }
@@ -54,6 +58,8 @@ class FullMultigridSolver : public Solver< OperatorType >
 
    FunctionType Ax_;
    DoFType      flag_;
+
+   std::function< void( uint_t currentLevel ) > postCycleCallback_;
 };
 
 } // namespace hhg
