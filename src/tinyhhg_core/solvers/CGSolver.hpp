@@ -48,6 +48,12 @@ class CGSolver : public Solver< OperatorType >
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      if ( maxIter_ == 0 )
+         return;
+
+      if ( x.isDummy() || b.isDummy() )
+         return;
+
       timingTree_->start( "CG Solver" );
       real_t prsold = 0;
       init( A, x, b, level, prsold );
