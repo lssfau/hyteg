@@ -318,6 +318,19 @@ inline real_t dot( const uint_t&                                               L
 }
 
 template < typename ValueType >
+inline real_t sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID )
+{
+   ValueType* faceData = face.getData( dataID )->getPointer( level );
+   real_t     sum      = real_c( 0 );
+   for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
+      sum += faceData[idx];
+   }
+   return sum;
+}
+
+template < typename ValueType >
 inline void apply( const uint_t&                                               Level,
                    Face&                                                       face,
                    const PrimitiveDataID< StencilMemory< ValueType >, Face >&  operatorId,

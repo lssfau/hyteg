@@ -218,6 +218,21 @@ inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Funct
   return scalarProduct.get();
 }
 
+template< typename ValueType >
+inline real_t sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID)
+{
+  real_t sum = real_c(0);
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  auto data = edge.getData( dataID )->getPointer( level );
+
+  for (size_t i = 1; i < rowsize - 1; ++i) {
+    sum += data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+  }
+
+  return sum;
+}
+
 
 template< typename ValueType >
 inline void apply( const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,

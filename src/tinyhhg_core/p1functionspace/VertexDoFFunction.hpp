@@ -6,7 +6,7 @@
 
 
 #include "core/DataTypes.h"
-
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
@@ -87,6 +87,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    real_t dotLocal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    real_t dotGlobal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+
+   real_t sumLocal( const uint_t & level, const DoFType & flag = All) const;
+   real_t sumGlobal( const uint_t & level, const DoFType & flag = All) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
