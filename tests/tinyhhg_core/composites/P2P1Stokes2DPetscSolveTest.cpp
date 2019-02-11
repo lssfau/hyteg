@@ -95,8 +95,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hhg::vertexdof::projectMean( x.p, err.p, level );
-  hhg::vertexdof::projectMean( x_exact.p, err.p, level );
+  hhg::vertexdof::projectMean( x.p, level );
+  hhg::vertexdof::projectMean( x_exact.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );

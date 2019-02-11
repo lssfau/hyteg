@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     auto start = walberla::timing::getWcTime();
     solver.solve(L, u, f, maxLevel);
     auto end = walberla::timing::getWcTime();
-    hhg::vertexdof::projectMean(u.p, *tmp, maxLevel);
+    hhg::vertexdof::projectMean(u.p, maxLevel);
 
 
     L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);

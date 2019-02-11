@@ -171,8 +171,8 @@ int main( int argc, char* argv[] )
 
   solver.solve( L, u, f, maxLevel );
 
-  hhg::vertexdof::projectMean( u.p, err.p, maxLevel );
-  hhg::vertexdof::projectMean( uExact.p, err.p, maxLevel );
+  hhg::vertexdof::projectMean( u.p, maxLevel );
+  hhg::vertexdof::projectMean( uExact.p, maxLevel );
 
   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 

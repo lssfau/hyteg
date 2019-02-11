@@ -216,21 +216,17 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
-inline void projectMean( const VertexDoFFunction< real_t >& pressure, const VertexDoFFunction< real_t >& tmp, uint_t level )
+inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t & level )
 {
-   if( pressure.isDummy() )
-   {
-      return;
-   }
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
-
-   tmp.interpolate( ones, level );
-
-   real_t numGlobalVertices = tmp.dotGlobal( tmp, level, hhg::All );
-   real_t mean              = pressure.dotGlobal( tmp, level, hhg::All );
-
-   pressure.assign( {1.0, -mean / numGlobalVertices}, {pressure, tmp}, level, hhg::All );
+  if( pressure.isDummy() )
+  {
+    return;
+  }
+  const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >( *pressure.getStorage(), level );
+  const real_t sum = pressure.sumGlobal( level, All );
+  pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
+
 
 } // namespace vertexdof
 } // namespace hhg
