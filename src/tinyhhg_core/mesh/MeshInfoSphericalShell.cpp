@@ -14,6 +14,14 @@ namespace hhg
 using walberla::real_t;
 using walberla::real_c;
 
+
+// Precise type of meshing approach
+typedef enum {
+  SHELLMESH_ON_THE_FLY,  //!< meshing is done on-the-fly
+  SHELLMESH_CLASSIC      //!< meshing by midpoint refinement
+} shellMeshType;
+
+   
 static void elemIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jelem, 
                            uint_t & it, uint_t & is1, uint_t & is2, uint_t & id, uint_t & ir )
 {
@@ -180,7 +188,7 @@ static uint_t tuple2VertIdx( uint_t ntan_, uint_t nrad_, uint_t is1, uint_t is2,
 
 
 
-static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t id, double iNode_[12][3], uint_t dNode_[10][4] )
+static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t id, double iNode[12][3], uint_t dNode[10][4] )
 {
 
   Point3D resultingCoordinates;
@@ -188,21 +196,21 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
   // get coords of four vertices of diamond
   double vT[3], vL[3], vR[3], vB[3];
 
-  vT[0] = iNode_[ dNode_[id][0] ][0];
-  vT[1] = iNode_[ dNode_[id][0] ][1];
-  vT[2] = iNode_[ dNode_[id][0] ][2];
+  vT[0] = iNode[ dNode[id][0] ][0];
+  vT[1] = iNode[ dNode[id][0] ][1];
+  vT[2] = iNode[ dNode[id][0] ][2];
 
-  vL[0] = iNode_[ dNode_[id][1] ][0];
-  vL[1] = iNode_[ dNode_[id][1] ][1];
-  vL[2] = iNode_[ dNode_[id][1] ][2];
+  vL[0] = iNode[ dNode[id][1] ][0];
+  vL[1] = iNode[ dNode[id][1] ][1];
+  vL[2] = iNode[ dNode[id][1] ][2];
 
-  vB[0] = iNode_[ dNode_[id][2] ][0];
-  vB[1] = iNode_[ dNode_[id][2] ][1];
-  vB[2] = iNode_[ dNode_[id][2] ][2];
+  vB[0] = iNode[ dNode[id][2] ][0];
+  vB[1] = iNode[ dNode[id][2] ][1];
+  vB[2] = iNode[ dNode[id][2] ][2];
 
-  vR[0] = iNode_[ dNode_[id][3] ][0];
-  vR[1] = iNode_[ dNode_[id][3] ][1];
-  vR[2] = iNode_[ dNode_[id][3] ][2];
+  vR[0] = iNode[ dNode[id][3] ][0];
+  vR[1] = iNode[ dNode[id][3] ][1];
+  vR[2] = iNode[ dNode[id][3] ][2];
 
   // account for different meaning of is1, is2 on hemispheres
   uint_t js1 = id < 5 ? is1 : is2;
@@ -278,7 +286,8 @@ static Point3D compCoordsOnTheFly( uint_t ntan, uint_t is1, uint_t is2, uint_t i
 
 
 
-static Point3D getVertex( uint_t idx, uint_t ntan, uint_t nrad, double iNode_[12][3], uint_t dNode_[10][4], std::vector< double > layers )
+static Point3D getVertex( uint_t idx, uint_t ntan, uint_t nrad, double iNode[12][3], uint_t dNode[10][4], std::vector< double > layers,
+                          double**** nodeCoords, shellMeshType flavour )
 {
   // Find address tuple of vertex
   uint_t is1, is2, id, ir;
@@ -286,14 +295,33 @@ static Point3D getVertex( uint_t idx, uint_t ntan, uint_t nrad, double iNode_[12
 
   WALBERLA_ASSERT_LESS( ir, nrad );
 
-  //  Compute vertex coordinates
-  const Point3D vertexCoordinates = compCoordsOnTheFly( ntan, is1, is2, id, iNode_, dNode_ ) * layers[ir];
+  // Compute vertex coordinates
+  Point3D vertex;
+  switch( flavour ) {
 
-  return vertexCoordinates;
+  case SHELLMESH_ON_THE_FLY:
+    vertex = compCoordsOnTheFly( ntan, is1, is2, id, iNode, dNode ) * layers[ir];
+    break;
+
+  case SHELLMESH_CLASSIC:
+    {
+      WALBERLA_ASSERT_NOT_NULLPTR( nodeCoords );
+      double x = nodeCoords[is1][is2][id][0] * layers[ir];
+      double y = nodeCoords[is1][is2][id][1] * layers[ir];
+      double z = nodeCoords[is1][is2][id][2] * layers[ir];
+      vertex = Point3D( { x, y, z } );
+      break;
+    }
+
+  default:
+    WALBERLA_ABORT( "Unreachable branch reached!" );
+  }
+
+  return vertex;
 }
 
 
-static std::vector< uint_t > getCell( uint_t ntan, uint_t nrad, uint_t idx, uint_t offset_[8][3], uint_t tNode_[6][4], uint_t sNode_[6][4] )
+static std::vector< uint_t > getCell( uint_t ntan, uint_t nrad, uint_t idx, uint_t offset[8][3], uint_t tNode[6][4], uint_t sNode[6][4] )
 {
   // Find address tuple of element
   uint_t it, is1, is2, id, ir;
@@ -305,16 +333,16 @@ static std::vector< uint_t > getCell( uint_t ntan, uint_t nrad, uint_t idx, uint
 
     // compute address tuple of vertex (Northern hemisphere)
     if( id <= 4 ) {
-      ks1 = is1 + offset_[k][0];
-      ks2 = is2 + offset_[k][1];
-      kr  = ir  + offset_[k][2];
+      ks1 = is1 + offset[k][0];
+      ks2 = is2 + offset[k][1];
+      kr  = ir  + offset[k][2];
     }
 
     // compute address tuple of vertex (Southern hemisphere)
     else {
-      ks1 = is1 + offset_[k][1];
-      ks2 = is2 + offset_[k][0];
-      kr  = ir  + offset_[k][2];
+      ks1 = is1 + offset[k][1];
+      ks2 = is2 + offset[k][0];
+      kr  = ir  + offset[k][2];
     }
 
     // convert to global index
@@ -325,21 +353,174 @@ static std::vector< uint_t > getCell( uint_t ntan, uint_t nrad, uint_t idx, uint
   std::vector< uint_t > vertexIDs( 4 );
   if( id <= 4 ) {
     // Northern hemisphere
-    vertexIDs[0] = vIdx[ tNode_[it][0] ];
-    vertexIDs[1] = vIdx[ tNode_[it][1] ];
-    vertexIDs[2] = vIdx[ tNode_[it][2] ];
-    vertexIDs[3] = vIdx[ tNode_[it][3] ];
+    vertexIDs[0] = vIdx[ tNode[it][0] ];
+    vertexIDs[1] = vIdx[ tNode[it][1] ];
+    vertexIDs[2] = vIdx[ tNode[it][2] ];
+    vertexIDs[3] = vIdx[ tNode[it][3] ];
   } else {
     // Southern hemisphere
-    vertexIDs[0] = vIdx[ sNode_[it][0] ];
-    vertexIDs[1] = vIdx[ sNode_[it][1] ];
-    vertexIDs[2] = vIdx[ sNode_[it][2] ];
-    vertexIDs[3] = vIdx[ sNode_[it][3] ];
+    vertexIDs[0] = vIdx[ sNode[it][0] ];
+    vertexIDs[1] = vIdx[ sNode[it][1] ];
+    vertexIDs[2] = vIdx[ sNode[it][2] ];
+    vertexIDs[3] = vIdx[ sNode[it][3] ];
   }
 
   return vertexIDs;
 }
 
+
+static void setupCoordsClassic( uint_t ntan, double iNode[12][3], uint_t dNode[10][4], double***** coords ) {
+
+  double**** nodeCoords;
+
+  // -------------------
+  //  Consistency Check
+  // -------------------
+  uint_t lvl = (uint_t)log2( ntan - 1 );
+  if( 1u << lvl != ntan - 1 ) {
+    WALBERLA_ABORT( "ERROR: For SHELLMESH_CLASSIC (ntan-1) must be a power of 2, but ntan is " << ntan );
+  }
+
+  // --------------------------
+  //  Allocate 4D memory array
+  // --------------------------
+  assert( *coords == nullptr );
+
+  size_t memsize;
+
+  memsize = ntan;
+  nodeCoords = new double*** [memsize];
+
+  memsize *= ntan;
+  nodeCoords[0] = new double** [memsize];
+ 
+  memsize *= 10;
+  nodeCoords[0][0] = new double* [memsize];
+
+  memsize *= 3;
+  nodeCoords[0][0][0] = new double[memsize];
+
+  // set pointers
+  for( uint_t k = 1; k < ntan; ++k ) {
+    nodeCoords[k] = nodeCoords[0] + k * ntan;
+  }
+  for( uint_t  k = 1; k < ntan * ntan; ++k ) {
+    nodeCoords[0][k] = nodeCoords[0][0] + k * 10;
+  }
+  for( uint_t  k = 1; k < 10 * ntan * ntan; ++k ) {
+    nodeCoords[0][0][k] = nodeCoords[0][0][0] + k * 3;
+  }
+
+  // ------------------------
+  //  Meshing of unit sphere
+  // ------------------------
+  for( uint_t  id = 0; id < 10; ++id ) {
+
+    // "left" and "right" w.r.t. dNode depend on hemisphere
+    uint_t  L, R;
+    if( id < 5 ) {
+      L = 1;
+      R = 3;
+    }
+    else {
+      R = 1;
+      L = 3;
+    }
+
+    // Insert coordinates of four nodes of this icosahedral diamond
+    nodeCoords[   0  ][   0  ][id][0] = iNode[ dNode[id][0] ][0];
+    nodeCoords[   0  ][   0  ][id][1] = iNode[ dNode[id][0] ][1];
+    nodeCoords[   0  ][   0  ][id][2] = iNode[ dNode[id][0] ][2];
+    
+    nodeCoords[ntan-1][   0  ][id][0] = iNode[ dNode[id][L] ][0];
+    nodeCoords[ntan-1][   0  ][id][1] = iNode[ dNode[id][L] ][1];
+    nodeCoords[ntan-1][   0  ][id][2] = iNode[ dNode[id][L] ][2];
+
+    nodeCoords[ntan-1][ntan-1][id][0] = iNode[ dNode[id][2] ][0];
+    nodeCoords[ntan-1][ntan-1][id][1] = iNode[ dNode[id][2] ][1];
+    nodeCoords[ntan-1][ntan-1][id][2] = iNode[ dNode[id][2] ][2];
+
+    nodeCoords[   0  ][ntan-1][id][0] = iNode[ dNode[id][R] ][0];
+    nodeCoords[   0  ][ntan-1][id][1] = iNode[ dNode[id][R] ][1];
+    nodeCoords[   0  ][ntan-1][id][2] = iNode[ dNode[id][R] ][2];
+
+    // Loop over refinement levels
+    uint_t  m, l, l2, j1, j2, i1, i2;
+    double x, y, z, scl;
+    for( m = 1; m < ntan-1; m *= 2 ) {
+
+      l  = (ntan-1) / m;
+      l2 = l / 2;
+
+      // rows of diamond
+      for( j1 = 0; j1 <= m; ++j1 ) {
+        for( j2 = 0; j2 < m; ++j2 ) {
+
+          // compute coordinates of new node
+          i1 = j1 * l;
+          i2 = j2 * l + l2;
+
+          // compute new node as midpoint of arc
+          x = nodeCoords[i1][i2-l2][id][0] + nodeCoords[i1][i2+l2][id][0];
+          y = nodeCoords[i1][i2-l2][id][1] + nodeCoords[i1][i2+l2][id][1];
+          z = nodeCoords[i1][i2-l2][id][2] + nodeCoords[i1][i2+l2][id][2];
+
+          scl = sqrt( x*x + y*y + z*z );
+
+          nodeCoords[i1][i2][id][0] = x / scl;
+          nodeCoords[i1][i2][id][1] = y / scl;
+          nodeCoords[i1][i2][id][2] = z / scl;
+        }
+      }
+
+      // columns of diamond
+      for( j1 = 0; j1 <= m; ++j1 ) {
+        for( j2 = 0; j2 < m; ++j2 ) {
+
+          // compute coordinates of new node
+          i1 = j2 * l + l2;
+          i2 = j1 * l;
+
+          // compute new node as midpoint of arc
+          x = nodeCoords[i1-l2][i2][id][0] + nodeCoords[i1+l2][i2][id][0];
+          y = nodeCoords[i1-l2][i2][id][1] + nodeCoords[i1+l2][i2][id][1];
+          z = nodeCoords[i1-l2][i2][id][2] + nodeCoords[i1+l2][i2][id][2];
+
+          scl = sqrt( x*x + y*y + z*z );
+
+          nodeCoords[i1][i2][id][0] = x / scl;
+          nodeCoords[i1][i2][id][1] = y / scl;
+          nodeCoords[i1][i2][id][2] = z / scl;
+        }
+      }
+
+      // diagonals of diamond
+      for( j1 = 0; j1 < m; ++j1 ) {
+        for( j2 = 0; j2 < m; ++j2 ) {
+
+          // compute coordinates of new node
+          i1 = j1 * l + l2;
+          i2 = j2 * l + l2;
+
+          // compute new node as midpoint of arc
+          x = nodeCoords[i1-l2][i2+l2][id][0] + nodeCoords[i1+l2][i2-l2][id][0];
+          y = nodeCoords[i1-l2][i2+l2][id][1] + nodeCoords[i1+l2][i2-l2][id][1];
+          z = nodeCoords[i1-l2][i2+l2][id][2] + nodeCoords[i1+l2][i2-l2][id][2];
+
+          scl = sqrt( x*x + y*y + z*z );
+
+          nodeCoords[i1][i2][id][0] = x / scl;
+          nodeCoords[i1][i2][id][1] = y / scl;
+          nodeCoords[i1][i2][id][2] = z / scl;
+        }
+      }
+    }
+  }
+
+  // hand back 4D Array
+  *coords = nodeCoords;
+
+}
 
 
 MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax )
@@ -352,30 +533,44 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, do
   return meshSphericalShell( ntan, layers );
 }
 
+
 MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > & layers )
 {
   uint_t nrad = layers.size();
 
+  /// Flavour for generation of the spherical mesh
+  ///
+  /// The two possible choices for the flavour for generation of the spherical mesh
+  /// are
+  /// - SHELLMESH_ON_THE_FLY
+  /// - SHELLMESH_CLASSIC
+  /// Note: The variant SHELLMESH_CLASSIC employs midpoint refinement on the icosahedral
+  /// mesh, while the SHELLMESH_ON_THE_FLY variant has a lower memory footprint, but
+  /// introduces a bias in the meshing and is _not_ equivalent to midpoint refinement.
+  /// The resulting meshes are also not nested!
+  shellMeshType meshFlavour = SHELLMESH_CLASSIC;
+  // shellMeshType meshFlavour = SHELLMESH_ON_THE_FLY;
+
   /// Coordinates of the twelve icosahedral nodes of the base grid
-  double iNode_[12][3];
+  double iNode[12][3];
 
   /// Association of the ten diamonds to the twelve icosahedral nodes
   ///
   /// For each diamond we store the indices of its vertices on the
   /// icosahedral base grid in this map. Ordering: We start with the
   /// pole and proceed in counter-clockwise fashion.
-  uint_t dNode_[10][4];
+  uint_t dNode[10][4];
 
   /// Assign vertices of local cell to its six tetrahedrons on the northern
   /// hemisphere
-  uint_t tNode_[6][4];
+  uint_t tNode[6][4];
 
   /// Assign vertices of local cell to its six tetrahedrons on the southern
   /// hemisphere
-  uint_t sNode_[6][4];
+  uint_t sNode[6][4];
 
   /// Index offsets (is1, is2, ir) for computing vertex addresses
-  uint_t offset_[8][3];
+  uint_t offset[8][3];
 
 
   ////////////////
@@ -400,29 +595,29 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > 
   double phi     = 0.0;
 
   // north pole
-  iNode_[ 0][0] =  0.0;
-  iNode_[ 0][1] =  0.0;
-  iNode_[ 0][2] = +1.0;
+  iNode[ 0][0] =  0.0;
+  iNode[ 0][1] =  0.0;
+  iNode[ 0][2] = +1.0;
 
   // south pole
-  iNode_[11][0] =  0.0;
-  iNode_[11][1] =  0.0;
-  iNode_[11][2] = -1.0;
+  iNode[11][0] =  0.0;
+  iNode[11][1] =  0.0;
+  iNode[11][2] = -1.0;
 
   // upper ring
   for ( uint_t k = 1; k <= 5; k++ ) {
     phi = 2.0 * ((double)k - 0.5) * fifthpi;
-    iNode_[k][0] = sinw * std::cos(phi);
-    iNode_[k][1] = sinw * std::sin(phi);
-    iNode_[k][2] = cosw;
+    iNode[k][0] = sinw * std::cos(phi);
+    iNode[k][1] = sinw * std::sin(phi);
+    iNode[k][2] = cosw;
   }
 
   // lower ring
   for ( uint_t k = 1; k <= 5; k++ ) {
     phi = 2.0 * ((double)k - 1) * fifthpi;
-    iNode_[k+5][0] =  sinw * std::cos(phi);
-    iNode_[k+5][1] =  sinw * std::sin(phi);
-    iNode_[k+5][2] = -cosw;
+    iNode[k+5][0] =  sinw * std::cos(phi);
+    iNode[k+5][1] =  sinw * std::sin(phi);
+    iNode[k+5][2] = -cosw;
   }
 
   // ----------------------------------------------
@@ -431,45 +626,50 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > 
 
   // Determine offsets for computing address tuples for the
   // eight vertices of a local cell (is1, is2, ir)
-  offset_[0][0] = 0; offset_[0][1] = 0; offset_[0][2] = 1;
-  offset_[1][0] = 1; offset_[1][1] = 0; offset_[1][2] = 1;
-  offset_[2][0] = 1; offset_[2][1] = 1; offset_[2][2] = 1;
-  offset_[3][0] = 0; offset_[3][1] = 1; offset_[3][2] = 1;
-  offset_[4][0] = 0; offset_[4][1] = 0; offset_[4][2] = 0;
-  offset_[5][0] = 1; offset_[5][1] = 0; offset_[5][2] = 0;
-  offset_[6][0] = 1; offset_[6][1] = 1; offset_[6][2] = 0;
-  offset_[7][0] = 0; offset_[7][1] = 1; offset_[7][2] = 0;
+  offset[0][0] = 0; offset[0][1] = 0; offset[0][2] = 1;
+  offset[1][0] = 1; offset[1][1] = 0; offset[1][2] = 1;
+  offset[2][0] = 1; offset[2][1] = 1; offset[2][2] = 1;
+  offset[3][0] = 0; offset[3][1] = 1; offset[3][2] = 1;
+  offset[4][0] = 0; offset[4][1] = 0; offset[4][2] = 0;
+  offset[5][0] = 1; offset[5][1] = 0; offset[5][2] = 0;
+  offset[6][0] = 1; offset[6][1] = 1; offset[6][2] = 0;
+  offset[7][0] = 0; offset[7][1] = 1; offset[7][2] = 0;
 
   // Map icosahedral node indices to diamonds (northern hemisphere)
-  dNode_[0][0] =  0; dNode_[0][1] =  5; dNode_[0][2] =  6; dNode_[0][3] =  1;
-  dNode_[1][0] =  0; dNode_[1][1] =  1; dNode_[1][2] =  7; dNode_[1][3] =  2;
-  dNode_[2][0] =  0; dNode_[2][1] =  2; dNode_[2][2] =  8; dNode_[2][3] =  3;
-  dNode_[3][0] =  0; dNode_[3][1] =  3; dNode_[3][2] =  9; dNode_[3][3] =  4;
-  dNode_[4][0] =  0; dNode_[4][1] =  4; dNode_[4][2] = 10; dNode_[4][3] =  5;
+  dNode[0][0] =  0; dNode[0][1] =  5; dNode[0][2] =  6; dNode[0][3] =  1;
+  dNode[1][0] =  0; dNode[1][1] =  1; dNode[1][2] =  7; dNode[1][3] =  2;
+  dNode[2][0] =  0; dNode[2][1] =  2; dNode[2][2] =  8; dNode[2][3] =  3;
+  dNode[3][0] =  0; dNode[3][1] =  3; dNode[3][2] =  9; dNode[3][3] =  4;
+  dNode[4][0] =  0; dNode[4][1] =  4; dNode[4][2] = 10; dNode[4][3] =  5;
 
   // Map icosahedral node indices to diamonds (southern hemisphere)
-  dNode_[5][0] = 11; dNode_[5][1] =  7; dNode_[5][2] =  1; dNode_[5][3] =  6;
-  dNode_[6][0] = 11; dNode_[6][1] =  8; dNode_[6][2] =  2; dNode_[6][3] =  7;
-  dNode_[7][0] = 11; dNode_[7][1] =  9; dNode_[7][2] =  3; dNode_[7][3] =  8;
-  dNode_[8][0] = 11; dNode_[8][1] = 10; dNode_[8][2] =  4; dNode_[8][3] =  9;
-  dNode_[9][0] = 11; dNode_[9][1] =  6; dNode_[9][2] =  5; dNode_[9][3] = 10;
+  dNode[5][0] = 11; dNode[5][1] =  7; dNode[5][2] =  1; dNode[5][3] =  6;
+  dNode[6][0] = 11; dNode[6][1] =  8; dNode[6][2] =  2; dNode[6][3] =  7;
+  dNode[7][0] = 11; dNode[7][1] =  9; dNode[7][2] =  3; dNode[7][3] =  8;
+  dNode[8][0] = 11; dNode[8][1] = 10; dNode[8][2] =  4; dNode[8][3] =  9;
+  dNode[9][0] = 11; dNode[9][1] =  6; dNode[9][2] =  5; dNode[9][3] = 10;
 
   // Mapping of northern tetrahedron to vertices of local cell
-  tNode_[0][0] = 0;  tNode_[0][1] = 1;  tNode_[0][2] = 3;  tNode_[0][3] = 7;
-  tNode_[1][0] = 4;  tNode_[1][1] = 7;  tNode_[1][2] = 5;  tNode_[1][3] = 0;
-  tNode_[2][0] = 0;  tNode_[2][1] = 5;  tNode_[2][2] = 1;  tNode_[2][3] = 7;
-  tNode_[3][0] = 1;  tNode_[3][1] = 2;  tNode_[3][2] = 3;  tNode_[3][3] = 6;
-  tNode_[4][0] = 5;  tNode_[4][1] = 7;  tNode_[4][2] = 6;  tNode_[4][3] = 1;
-  tNode_[5][0] = 3;  tNode_[5][1] = 6;  tNode_[5][2] = 7;  tNode_[5][3] = 1;
+  tNode[0][0] = 0;  tNode[0][1] = 1;  tNode[0][2] = 3;  tNode[0][3] = 7;
+  tNode[1][0] = 4;  tNode[1][1] = 7;  tNode[1][2] = 5;  tNode[1][3] = 0;
+  tNode[2][0] = 0;  tNode[2][1] = 5;  tNode[2][2] = 1;  tNode[2][3] = 7;
+  tNode[3][0] = 1;  tNode[3][1] = 2;  tNode[3][2] = 3;  tNode[3][3] = 6;
+  tNode[4][0] = 5;  tNode[4][1] = 7;  tNode[4][2] = 6;  tNode[4][3] = 1;
+  tNode[5][0] = 3;  tNode[5][1] = 6;  tNode[5][2] = 7;  tNode[5][3] = 1;
 
   // Mapping of southern tetrahedron to vertices of local cell
-  sNode_[0][0] = 4;  sNode_[0][1] = 7;  sNode_[0][2] = 5;  sNode_[0][3] = 1;
-  sNode_[1][0] = 0;  sNode_[1][1] = 1;  sNode_[1][2] = 3;  sNode_[1][3] = 4;
-  sNode_[2][0] = 4;  sNode_[2][1] = 3;  sNode_[2][2] = 7;  sNode_[2][3] = 1;
-  sNode_[3][0] = 7;  sNode_[3][1] = 6;  sNode_[3][2] = 5;  sNode_[3][3] = 2;
-  sNode_[4][0] = 3;  sNode_[4][1] = 1;  sNode_[4][2] = 2;  sNode_[4][3] = 7;
-  sNode_[5][0] = 5;  sNode_[5][1] = 2;  sNode_[5][2] = 1;  sNode_[5][3] = 7;
+  sNode[0][0] = 4;  sNode[0][1] = 7;  sNode[0][2] = 5;  sNode[0][3] = 1;
+  sNode[1][0] = 0;  sNode[1][1] = 1;  sNode[1][2] = 3;  sNode[1][3] = 4;
+  sNode[2][0] = 4;  sNode[2][1] = 3;  sNode[2][2] = 7;  sNode[2][3] = 1;
+  sNode[3][0] = 7;  sNode[3][1] = 6;  sNode[3][2] = 5;  sNode[3][3] = 2;
+  sNode[4][0] = 3;  sNode[4][1] = 1;  sNode[4][2] = 2;  sNode[4][3] = 7;
+  sNode[5][0] = 5;  sNode[5][1] = 2;  sNode[5][2] = 1;  sNode[5][3] = 7;
 
+  // if required, run setup routine for meshing unit sphere
+  double**** nodeCoords = nullptr;
+  if( meshFlavour == SHELLMESH_CLASSIC ) {
+    setupCoordsClassic( ntan, iNode, dNode, &nodeCoords );
+  }
 
   ////////////////////////////
   // Create MeshInfo object //
@@ -479,13 +679,13 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > 
 
   for ( uint_t vertexID = 0; vertexID < nVerts_; vertexID++ )
   {
-    auto vertexCoordinates = getVertex( vertexID, ntan, nrad, iNode_, dNode_, layers );
+    auto vertexCoordinates = getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshFlavour );
     meshInfo.vertices_[ vertexID ] = MeshInfo::Vertex( vertexID, vertexCoordinates, 0 );
   }
 
   for ( uint_t cellID = 0; cellID < nElems_; cellID++ )
   {
-    auto vertexIDs = getCell( ntan, nrad, cellID, offset_, tNode_, sNode_ );
+    auto vertexIDs = getCell( ntan, nrad, cellID, offset, tNode, sNode );
     meshInfo.cells_[ vertexIDs ] = MeshInfo::Cell( vertexIDs, 0 );
   }
 
@@ -507,6 +707,14 @@ MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > 
     meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[1], cellCoordinates[3] }} ), 0 ) );
     meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[0], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
     meshInfo.addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
+  }
+
+  // De-allocate 4D array
+  if( nodeCoords != nullptr ) {
+    delete nodeCoords[0][0][0];
+    delete nodeCoords[0][0];
+    delete nodeCoords[0];
+    delete nodeCoords;
   }
 
   return meshInfo;
