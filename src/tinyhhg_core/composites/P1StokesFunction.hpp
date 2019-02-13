@@ -29,6 +29,8 @@ public:
   {
   }
 
+  std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
+
   bool isDummy() const { return false; }
 
   void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
