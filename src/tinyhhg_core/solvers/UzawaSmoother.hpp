@@ -110,18 +110,14 @@ class UzawaSmoother : public Solver< OperatorType >
    {
       A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
+
+      A.A.smooth_gs( x.u, r_.u, level, flag_ );
       A.A.smooth_gs( x.u, r_.u, level, flag_ );
 
       A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
       r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
+
       A.A.smooth_gs( x.v, r_.v, level, flag_ );
-
-      A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
-      r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
-      A.A.smooth_gs( x.u, r_.u, level, flag_ );
-
-      A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
-      r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
       A.A.smooth_gs( x.v, r_.v, level, flag_ );
 
       A.div_x.apply( x.u, r_.p, level, flag_ | DirichletBoundary, Replace );
