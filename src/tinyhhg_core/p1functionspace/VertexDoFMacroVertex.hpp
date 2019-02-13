@@ -136,6 +136,28 @@ inline void apply(Vertex &vertex,
   }
 }
 
+template< typename ValueType >
+inline void applyPointwise(const uint_t & level,
+                  const Vertex &vertex,
+                  const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
+                  UpdateType update) {
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+
+  if (update==Replace) {
+    dst[0] = opr_data[0]*src[0];
+  } else if (update==Add) {
+    dst[0] += opr_data[0]*src[0];
+  }
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    dst[0] += opr_data[i + 1]*src[i + 1];
+  }
+}
+
 /// Apply function in the case of a coefficient
 template< typename ValueType >
 inline void applyCoefficient(Vertex &vertex,

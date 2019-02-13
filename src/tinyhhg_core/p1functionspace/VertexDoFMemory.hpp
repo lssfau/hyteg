@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/Abort.h"
+
 #include "tinyhhg_core/primitives/Vertex.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
@@ -52,6 +54,8 @@ inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const 
 // Stencil memory //
 ////////////////////
 
+// constant stencils
+
 inline uint_t vertexDoFMacroVertexStencilMemorySize( const uint_t & level, const Primitive & primitive )
 {
   return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges();
@@ -77,6 +81,33 @@ inline uint_t vertexDoFMacroCellStencilMemorySize( const uint_t & level, const P
   return 27;
 }
 
+// pointwise stencils
+
+inline uint_t vertexDoFMacroVertexPointwiseStencilMemorySize( const uint_t & level, const Primitive & primitive )
+{
+  return levelinfo::num_microvertices_per_vertex( level ) + primitive.getNumNeighborEdges(); 
+}
+
+inline uint_t vertexDoFMacroEdgePointwiseStencilMemorySize( const uint_t & level, const Primitive & primitive )
+{
+  if ( primitive.getNumNeighborCells() == 0 )
+  {
+    const uint_t numDoFs = levelinfo::num_microvertices_per_edge( level ) - 2;
+    return numDoFs * (3 + 2 * primitive.getNumNeighborFaces());
+  }
+  WALBERLA_ABORT( "Point-wise stencils not implemented for 3D." );
+}
+
+inline uint_t vertexDoFMacroFacePointwiseStencilMemorySize( const uint_t & level, const Primitive & primitive )
+{
+  if ( primitive.getNumNeighborCells() == 0 )
+  {
+    const uint_t numDoFs = levelinfo::num_microvertices_per_face( level ) - 
+      3 * (levelinfo::num_microvertices_per_edge( level ) - 1);
+    return numDoFs * 7;
+  }
+  WALBERLA_ABORT( "Point-wise stencils not implemented for 3D." );
+}
 
 class VertexP1LocalMatrixMemory
 {

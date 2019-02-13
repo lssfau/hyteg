@@ -275,6 +275,64 @@ inline void apply( const uint_t & level, Edge &edge, const PrimitiveDataID< Sten
 
 
 template< typename ValueType >
+inline void applyPointwise( const uint_t & level, const Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId, UpdateType update) {
+
+  typedef stencilDirection sD;
+  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+  auto opr_data = edge.getData(operatorId)->getPointer( level );
+  auto src = edge.getData(srcId)->getPointer( level );
+  auto dst = edge.getData(dstId)->getPointer( level );
+
+  ValueType tmp;
+
+  const auto stencilSize = 3 + 2 * edge.getNumNeighborFaces();
+
+  for (size_t i = 1; i < rowsize - 1; ++i)
+  {
+    const auto offset = vertexdof::macroedge::innerIndex( level, i ) * stencilSize;
+    const auto stencilIdxW = offset + vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_W );
+    const auto stencilIdxC = offset + vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_C );
+    const auto stencilIdxE = offset + vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_E );
+
+    const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
+    const auto dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
+    const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
+
+    tmp = opr_data[ stencilIdxW ] * src[ dofIdxW ]
+      + opr_data[ stencilIdxC ] * src[ dofIdxC ]
+      + opr_data[ stencilIdxE ] * src[ dofIdxE ];
+
+    for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
+    {
+      const auto stencilIdxWNeighborFace = offset + vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
+      const auto stencilIdxENeighborFace = offset + vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
+      const auto stencilWeightW = opr_data[ stencilIdxWNeighborFace ];
+      const auto stencilWeightE = opr_data[ stencilIdxENeighborFace ];
+      const auto dofIdxWNeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_W );
+      const auto dofIdxENeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, sD::VERTEX_E );
+      tmp += stencilWeightW * src[dofIdxWNeighborFace] + stencilWeightE * src[dofIdxENeighborFace];
+    }
+
+    for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
+    {
+      const auto stencilIdx = vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() );
+      const auto dofIdx = vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCell, edge.getNumNeighborFaces() );
+      tmp += opr_data[ stencilIdx ] * src[ dofIdx ];
+    }
+
+    if (update == Replace) {
+      dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] = tmp;
+    } else if (update == Add) {
+      dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] += tmp;
+    }
+  }
+}
+
+
+template< typename ValueType >
 inline void applyCoefficient( const uint_t & level, Edge &edge,
                                  const std::shared_ptr< PrimitiveStorage >& storage,
                                  const std::vector<PrimitiveDataID<EdgeP1LocalMatrixMemory, Edge>> &operatorIds,
