@@ -239,12 +239,16 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.u, f.u, level, All );
    M.apply( tmp.v, f.v, level, All );
 
+#ifdef HHG_BUILD_WITH_PETSC
+   auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
+#else
    auto cgVelocity =
        std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >( storage, level, level, 0, 1e-14 );
    auto preconditioner = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
        storage, level, level, 1, cgVelocity );
    auto solver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, level, level, std::numeric_limits< uint_t >::max(), 1e-16, preconditioner );
+#endif
    solver->solve( A, u, f, level );
 
    vertexdof::projectMean( u.p, level );
@@ -556,6 +560,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const real_t&                                        sorRelax,
                       const uint_t&                                        preSmoothingSteps,
                       const uint_t&                                        postSmoothingSteps,
+                      const uint_t&                                        smoothingIncrement,
                       const bool&                                          projectPressureAfterRestriction,
                       const uint_t&                                        coarseGridMaxIterations,
                       const bool&                                          outputVTK,
@@ -718,8 +723,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, maxLevel, coarseGridMaxIterations, 1e-16, preconditioner );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   const uint_t petscLevel = ( numCycles == 0 ? maxLevel : minLevel );
-   auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, petscLevel );
+   const uint_t petscLevel  = ( numCycles == 0 ? maxLevel : minLevel );
+   auto         petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, petscLevel );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -738,7 +743,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                                           maxLevel,
                                                                                           preSmoothingSteps,
                                                                                           postSmoothingSteps,
-                                                                                          2,
+                                                                                          smoothingIncrement,
                                                                                           cycleType );
 
    auto fmgProlongation = std::make_shared< FMGProlongation >();
@@ -910,6 +915,7 @@ void setup( int argc, char** argv )
    const real_t      sorRelax                        = mainConf.getParameter< real_t >( "sorRelax" );
    const uint_t      preSmoothingSteps               = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps              = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
+   const uint_t      smoothingIncrement              = mainConf.getParameter< uint_t >( "smoothingIncrement" );
    const bool        projectPressureAfterRestriction = mainConf.getParameter< bool >( "projectPressureAfterRestriction" );
    const uint_t      minLevel                        = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t      maxLevel                        = ( discretization == "P1" ? mainConf.getParameter< uint_t >( "maxLevel" ) :
@@ -942,7 +948,8 @@ void setup( int argc, char** argv )
        << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                     " << sorRelax );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post- / incr-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps
+                                                                            << " / " << smoothingIncrement );
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "  - project pressure after restriction: " << ( projectPressureAfterRestriction ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - calculate discretization error: " << ( calculateDiscretizationError ? "yes" : "no" ) );
@@ -976,6 +983,7 @@ void setup( int argc, char** argv )
    sqlRealProperties["sor_relax"]                     = sorRelax;
    sqlIntegerProperties["pre_smoothing"]              = int64_c( preSmoothingSteps );
    sqlIntegerProperties["post_smoothing"]             = int64_c( postSmoothingSteps );
+   sqlIntegerProperties["incr_smoothing"]             = int64_c( smoothingIncrement );
    sqlIntegerProperties["min_level"]                  = int64_c( minLevel );
    sqlIntegerProperties["max_level"]                  = int64_c( maxLevel );
    sqlIntegerProperties["coarse_grid_max_iterations"] = int64_c( coarseGridMaxIterations );
@@ -1102,6 +1110,7 @@ void setup( int argc, char** argv )
                                                                 sorRelax,
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
+                                                                smoothingIncrement,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 outputVTK,
@@ -1130,6 +1139,7 @@ void setup( int argc, char** argv )
                                                                 sorRelax,
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
+                                                                smoothingIncrement,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 outputVTK,
