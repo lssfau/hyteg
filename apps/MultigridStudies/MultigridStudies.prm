@@ -3,20 +3,21 @@ Parameters
     equation stokes;
     numFacesPerSide 4;
     discretization P2;
-    numCycles 10;
+    numCycles 5;
     cycleType V;
     fmgInnerCycles 1; // 0 == no fmg
-    sorRelax 0.3;
+    sorRelax 0.4;
     preSmoothingSteps 6;
     postSmoothingSteps 6;
     minLevel 2;
-    maxLevel 4; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-15;
-    projectPressureAfterRestriction false;
+    projectPressureAfterRestriction true;
     calculateDiscretizationError false;
+    coarseGridMaxIterations 1000;
 
-    outputVTK true;
+    outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputSQL true;

@@ -557,6 +557,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        preSmoothingSteps,
                       const uint_t&                                        postSmoothingSteps,
                       const bool&                                          projectPressureAfterRestriction,
+                      const uint_t&                                        coarseGridMaxIterations,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -681,20 +682,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                     << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
                                                     << std::setw( 12 ) << timeVTK << " |" );
 
-   real_t avgL2ErrorConvergenceRate    = 0;
-   real_t avgL2ResidualConvergenceRate = 0;
-   real_t avgl2ErrorConvergenceRate    = 0;
-   real_t avgl2ResidualConvergenceRate = 0;
+   real_t avgl2ErrorConvergenceRateU    = 0;
+   real_t avgl2ResidualConvergenceRateU = 0;
+   real_t avgl2ErrorConvergenceRateP    = 0;
+   real_t avgl2ResidualConvergenceRateP = 0;
 
    real_t l2ErrorReductionU    = 0;
    real_t l2ResidualReductionU = 0;
    real_t l2ErrorReductionP    = 0;
    real_t l2ResidualReductionP = 0;
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error"]              = l2ErrorU;
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction"]    = l2ErrorReductionU;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual"]           = l2ResidualU;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction"] = l2ResidualReductionU;
+   sqlRealPropertiesMG[0]["lowercase_l2_error_u"]              = l2ErrorU;
+   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_u"]    = l2ErrorReductionU;
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_u"]           = l2ResidualU;
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_u"] = l2ResidualReductionU;
 
    sqlRealPropertiesMG[0]["lowercase_l2_error_p"]              = l2ErrorP;
    sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_p"]    = l2ErrorReductionP;
@@ -707,18 +708,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, false, sorRelax );
 
-   uint_t coarseGridMaxIterations;
-   uint_t preconditionerCGIterations;
-   if ( projectPressureAfterRestriction )
-   {
-      preconditionerCGIterations = 10;
-      coarseGridMaxIterations    = 1000;
-   }
-   else
-   {
-      preconditionerCGIterations = 0;
-      coarseGridMaxIterations    = 200;
-   }
+   const uint_t preconditionerCGIterations = 0;
 
    auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
        storage, minLevel, maxLevel, preconditionerCGIterations, 1e-14 );
@@ -728,12 +718,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, maxLevel, coarseGridMaxIterations, 1e-16, preconditioner );
 
 #if 0
-   auto numerator   = std::make_shared< StokesFunctionNumerator >( "numerator", storage, minLevel, maxLevel );
-   const uint_t petscLevel = (numCycles == 0 ? maxLevel : minLevel);
-   numerator->enumerate( petscLevel );
-   auto localDoFs   = numberOfLocalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
-   auto globalDoFs  = numberOfGlobalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
-   auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( numerator, localDoFs, globalDoFs );
+  auto numerator   = std::make_shared< StokesFunctionNumerator >( "numerator", storage, minLevel, maxLevel );
+  const uint_t petscLevel = (numCycles == 0 ? maxLevel : minLevel);
+  numerator->enumerate( petscLevel );
+  auto localDoFs   = numberOfLocalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
+  auto globalDoFs  = numberOfGlobalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
+  auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( numerator, localDoFs, globalDoFs );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -829,16 +819,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
-         avgL2ErrorConvergenceRate += l2ErrorReductionU;
-         avgL2ResidualConvergenceRate += l2ResidualReductionU;
-         avgl2ErrorConvergenceRate += l2ErrorReductionP;
-         avgl2ResidualConvergenceRate += l2ResidualReductionP;
+         avgl2ErrorConvergenceRateU += l2ErrorReductionU;
+         avgl2ResidualConvergenceRateU += l2ResidualReductionU;
+         avgl2ErrorConvergenceRateP += l2ErrorReductionP;
+         avgl2ResidualConvergenceRateP += l2ResidualReductionP;
       }
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error"]              = l2ErrorU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction"]    = l2ErrorReductionU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual"]           = l2ResidualU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction"] = l2ResidualReductionU;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_u"]              = l2ErrorU;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_u"]    = l2ErrorReductionU;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_u"]           = l2ResidualU;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_u"] = l2ResidualReductionU;
 
       sqlRealPropertiesMG[cycle]["lowercase_l2_error_p"]              = l2ErrorP;
       sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_p"]    = l2ErrorReductionP;
@@ -852,24 +842,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
-   avgL2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgL2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ErrorConvergenceRateU /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRateU /= real_c( numCycles - skipCyclesForAvgConvRate );
 
-   avgl2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ErrorConvergenceRateP /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRateP /= real_c( numCycles - skipCyclesForAvgConvRate );
 
-   sqlRealProperties["avg_capital_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
-   sqlRealProperties["avg_capital_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
+   sqlRealProperties["avg_lowercase_l2_error_conv_rate_u"]    = avgl2ErrorConvergenceRateU;
+   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_u"] = avgl2ResidualConvergenceRateU;
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate"]    = avgl2ErrorConvergenceRate;
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate"] = avgl2ResidualConvergenceRate;
+   sqlRealProperties["avg_lowercase_l2_error_conv_rate_p"]    = avgl2ErrorConvergenceRateP;
+   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_p"] = avgl2ResidualConvergenceRateP;
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 error:    " << std::scientific << avgL2ErrorConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual: " << std::scientific << avgL2ResidualConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error:    " << std::scientific << avgl2ErrorConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual: " << std::scientific << avgl2ResidualConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error u:    " << std::scientific << avgl2ErrorConvergenceRateU );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual u: " << std::scientific << avgl2ResidualConvergenceRateU );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
@@ -919,6 +909,7 @@ void setup( int argc, char** argv )
    const uint_t      maxLevel                        = ( discretization == "P1" ? mainConf.getParameter< uint_t >( "maxLevel" ) :
                                                       mainConf.getParameter< uint_t >( "maxLevel" ) - 1 );
    const bool        calculateDiscretizationError    = mainConf.getParameter< bool >( "calculateDiscretizationError" );
+   const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
@@ -949,6 +940,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "  - project pressure after restriction: " << ( projectPressureAfterRestriction ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - calculate discretization error: " << ( calculateDiscretizationError ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid max itertions (stokes only): " << coarseGridMaxIterations );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:            " << ( outputTimingJSON ? "yes" : "no" ) );
@@ -969,17 +961,19 @@ void setup( int argc, char** argv )
    sqlStringProperties["tag"]      = sqlTag;
    sqlStringProperties["equation"] = equation;
 
-   sqlIntegerProperties["num_processes"]      = int64_c( numProcesses );
-   sqlIntegerProperties["num_faces_per_side"] = int64_c( numFacesPerSide );
-   sqlStringProperties["discretization"]      = discretization;
-   sqlIntegerProperties["num_cycles"]         = int64_c( numCycles );
-   sqlStringProperties["cycle_type"]          = cycleTypeString;
-   sqlIntegerProperties["fmgInnerCycles"]     = int64_c( fmgInnerCycles );
-   sqlRealProperties["sor_relax"]             = sorRelax;
-   sqlIntegerProperties["pre_smoothing"]      = int64_c( preSmoothingSteps );
-   sqlIntegerProperties["post_smoothing"]     = int64_c( postSmoothingSteps );
-   sqlIntegerProperties["min_level"]          = int64_c( minLevel );
-   sqlIntegerProperties["max_level"]          = int64_c( maxLevel );
+   sqlIntegerProperties["num_processes"]              = int64_c( numProcesses );
+   sqlIntegerProperties["num_faces_per_side"]         = int64_c( numFacesPerSide );
+   sqlStringProperties["discretization"]              = discretization;
+   sqlIntegerProperties["num_cycles"]                 = int64_c( numCycles );
+   sqlStringProperties["cycle_type"]                  = cycleTypeString;
+   sqlIntegerProperties["fmgInnerCycles"]             = int64_c( fmgInnerCycles );
+   sqlRealProperties["sor_relax"]                     = sorRelax;
+   sqlIntegerProperties["pre_smoothing"]              = int64_c( preSmoothingSteps );
+   sqlIntegerProperties["post_smoothing"]             = int64_c( postSmoothingSteps );
+   sqlIntegerProperties["min_level"]                  = int64_c( minLevel );
+   sqlIntegerProperties["max_level"]                  = int64_c( maxLevel );
+   sqlIntegerProperties["coarse_grid_max_iterations"] = int64_c( coarseGridMaxIterations );
+   sqlIntegerProperties["project_after_restriction"]  = int64_c( projectPressureAfterRestriction );
 
    ////////////
    // Domain //
@@ -1103,6 +1097,7 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 projectPressureAfterRestriction,
+                                                                coarseGridMaxIterations,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1130,6 +1125,7 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 projectPressureAfterRestriction,
+                                                                coarseGridMaxIterations,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
