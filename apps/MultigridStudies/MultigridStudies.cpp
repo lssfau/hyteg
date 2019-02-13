@@ -717,13 +717,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, maxLevel, coarseGridMaxIterations, 1e-16, preconditioner );
 
-#if 0
-  auto numerator   = std::make_shared< StokesFunctionNumerator >( "numerator", storage, minLevel, maxLevel );
-  const uint_t petscLevel = (numCycles == 0 ? maxLevel : minLevel);
-  numerator->enumerate( petscLevel );
-  auto localDoFs   = numberOfLocalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
-  auto globalDoFs  = numberOfGlobalDoFs< typename StokesFunction::Tag >( *storage, petscLevel );
-  auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( numerator, localDoFs, globalDoFs );
+#ifdef HHG_BUILD_WITH_PETSC
+   const uint_t petscLevel = ( numCycles == 0 ? maxLevel : minLevel );
+   auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, petscLevel );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -731,7 +727,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
                                                                                           smoother,
+#ifdef HHG_BUILD_WITH_PETSC
+                                                                                          petscSolver,
+#else
                                                                                           coarseGridSolver,
+#endif
                                                                                           restrictionOperator,
                                                                                           prolongationOperator,
                                                                                           minLevel,
@@ -758,7 +758,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    if ( numCycles == 0 )
    {
+#ifdef HHG_BUILD_WITH_PETSC
+      petscSolver->solve( A, u, f, maxLevel );
+#else
       coarseGridSolver->solve( A, u, f, maxLevel );
+#endif
       vertexdof::projectMean( u.p, maxLevel );
       calculateErrorAndResidualStokes(
           maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
@@ -868,7 +872,9 @@ void setup( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   // PETScManager petscManager;
+#ifdef HHG_BUILD_WITH_PETSC
+   PETScManager petscManager;
+#endif
 
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "// Multigrid Studies //" );
