@@ -2,19 +2,21 @@ Parameters
 {
     equation stokes;
     numFacesPerSide 4;
-    discretization P1;
-    numCycles 100;
+    discretization P2;
+    numCycles 10;
     cycleType V;
-    fmgInnerCycles 0; // 0 == no fmg
-    sorRelax 1.0;
-    preSmoothingSteps 2;
-    postSmoothingSteps 2;
+    fmgInnerCycles 1; // 0 == no fmg
+    sorRelax 0.3;
+    preSmoothingSteps 6;
+    postSmoothingSteps 6;
     minLevel 2;
     maxLevel 4; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-15;
+    projectPressureAfterRestriction false;
+    calculateDiscretizationError false;
 
-    outputVTK false;
+    outputVTK true;
     outputTiming false;
     outputTimingJSON true;
     outputSQL true;
