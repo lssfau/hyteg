@@ -379,7 +379,7 @@ namespace hhg
       // -------------------
       //  Consistency Check
       // -------------------
-      uint_t lvl = (uint_t)log2( ntan - 1 );
+      uint_t lvl = static_cast<uint_t>( log2( ntan - 1 ) );
       if( 1u << lvl != ntan - 1 ) {
         WALBERLA_ABORT( "ERROR: For SHELLMESH_CLASSIC (ntan-1) must be a power of 2, but ntan is " << ntan );
       }
@@ -387,7 +387,7 @@ namespace hhg
       // --------------------------
       //  Allocate 4D memory array
       // --------------------------
-      assert( *coords == nullptr );
+      WALBERLA_ASSERT_NULLPTR( *coords );
 
       size_t memsize;
 
@@ -715,10 +715,10 @@ namespace hhg
 
     // De-allocate 4D array
     if( nodeCoords != nullptr ) {
-      delete nodeCoords[0][0][0];
-      delete nodeCoords[0][0];
-      delete nodeCoords[0];
-      delete nodeCoords;
+      delete[] nodeCoords[0][0][0];
+      delete[] nodeCoords[0][0];
+      delete[] nodeCoords[0];
+      delete[] nodeCoords;
     }
 
     return meshInfo;
