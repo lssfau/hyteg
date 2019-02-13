@@ -552,7 +552,7 @@ namespace hhg
     /// mesh, while the SHELLMESH_ON_THE_FLY variant has a lower memory footprint, but
     /// introduces a bias in the meshing and is _not_ equivalent to midpoint refinement.
     /// The resulting meshes are also not nested!
-    meshGenSphShell::shellMeshType meshFlavour = meshGenSphShell::SHELLMESH_CLASSIC;
+    meshGenSphShell::shellMeshType shellmeshFlavour = meshGenSphShell::SHELLMESH_CLASSIC;
     // shellMeshType meshFlavour = meshGenSphShell::SHELLMESH_ON_THE_FLY;
 
     /// Coordinates of the twelve icosahedral nodes of the base grid
@@ -671,7 +671,7 @@ namespace hhg
 
     // if required, run setup routine for meshing unit sphere
     double**** nodeCoords = nullptr;
-    if( meshFlavour == meshGenSphShell::SHELLMESH_CLASSIC ) {
+    if( shellmeshFlavour == meshGenSphShell::SHELLMESH_CLASSIC ) {
       meshGenSphShell::setupCoordsClassic( ntan, iNode, dNode, &nodeCoords );
     }
 
@@ -683,7 +683,7 @@ namespace hhg
  
     for ( uint_t vertexID = 0; vertexID < nVerts_; vertexID++ )
       {
-        auto vertexCoordinates = meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshFlavour );
+        auto vertexCoordinates = meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, shellmeshFlavour );
         meshInfo.vertices_[ vertexID ] = MeshInfo::Vertex( vertexID, vertexCoordinates, 0 );
       }
 
