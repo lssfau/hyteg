@@ -4,6 +4,6 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 
-waLBerla_add_executable( NAME MultigridLaplace
-        FILES MultigridLaplace.cpp
+waLBerla_add_executable( NAME MultigridStudies
+        FILES MultigridStudies.cpp
         DEPENDS tinyhhg_core core postprocessing)

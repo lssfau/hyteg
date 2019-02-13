@@ -889,7 +889,7 @@ void setup( int argc, char** argv )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      auto defaultFile = "./MultigridLaplace.prm";
+      auto defaultFile = "./MultigridStudies.prm";
       cfg->readParameterFile( defaultFile );
    }
    else
