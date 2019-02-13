@@ -44,7 +44,6 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   hhg::P1StokesFunction< real_t >                      b( "b", storage, level, level );
   hhg::P1StokesFunction< real_t >                      err( "err", storage, level, level );
   hhg::P1StokesFunction< real_t >                      residuum( "res", storage, level, level );
-  auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
 
   hhg::P1StokesOperator A( storage, level, level );
 
@@ -82,14 +81,12 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
-  numerator->enumerate( level );
-
   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P1StokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+  PETScLUSolver< P1StokesOperator > solver_1( storage, level );
 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );
