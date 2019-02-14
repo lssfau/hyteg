@@ -65,11 +65,13 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       ///only works with likwid 4.3.3 and higher
       LIKWID_MARKER_RESET( vvname.c_str() );
       LIKWID_MARKER_START( vvname.c_str() );
+
+      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+
       for( uint_t i = 0; i < iterations; ++i )
       {
-         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
          hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
@@ -105,11 +107,12 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_RESET( evname.c_str() );
       LIKWID_MARKER_START( evname.c_str() );
 
+      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
+
       for( uint_t i = 0; i < iterations; i++ )
       {
-         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
          hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
              srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
@@ -142,11 +145,12 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_RESET( eename.c_str() );
       LIKWID_MARKER_START( eename.c_str() );
 
+      auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
+
       for( uint_t i = 0; i < iterations; i++ )
       {
-         auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
          hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
@@ -182,14 +186,15 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_RESET( vename.c_str() );
       LIKWID_MARKER_START( vename.c_str() );
 
+      auto dstPtr                        = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+      auto srcPtr                        = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto stencilPtr                    = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
+      auto vertexToDiagonalEdgeStencil   = &stencilPtr[4];
+      auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
+      auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
+
       for( uint_t i = 0; i < iterations; i++ )
       {
-         auto dstPtr                      = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-         auto srcPtr                      = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-         auto stencilPtr                  = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
-         auto vertexToDiagonalEdgeStencil = &stencilPtr[4];
-         auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
-         auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
          hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr,
                                                                                               srcPtr,
                                                                                               vertexToDiagonalEdgeStencil,
