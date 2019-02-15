@@ -379,7 +379,13 @@ namespace hhg
       // -------------------
       //  Consistency Check
       // -------------------
-      uint_t lvl = static_cast<uint_t>( log2( ntan - 1 ) );
+      uint_t power = ntan - 1;
+      uint_t lvl = 0;
+      while( power > 0 ) {
+        ++lvl;
+        power /= 2;
+      }
+      --lvl;
       if( 1u << lvl != ntan - 1 ) {
         WALBERLA_ABORT( "ERROR: For SHELLMESH_CLASSIC (ntan-1) must be a power of 2, but ntan is " << ntan );
       }
