@@ -23,7 +23,7 @@ int main( int argc, char** argv )
    for( size_t level = 9; level < 10; ++level )
    {
       size_t edgeSize = (size_t) std::pow( 2u, level ) + 1;
-      size_t faceSize = ( size_t )( edgeSize * ( edgeSize + 1u ) ) / 2;
+      //size_t faceSize = ( size_t )( edgeSize * ( edgeSize + 1u ) ) / 2;
       size_t tetSize  = ( size_t )( ( edgeSize + 2 ) * ( edgeSize + 1 ) * edgeSize ) / 6;
 
       std::vector< double > src( tetSize );

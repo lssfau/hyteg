@@ -53,7 +53,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    LIKWID_MARKER_REGISTER( vename.c_str() );
 
    uint_t innerIterationsVertex =
-       levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 2 );
+       levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
    WALBERLA_LOG_INFO_ON_ROOT(
        hhg::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
 
