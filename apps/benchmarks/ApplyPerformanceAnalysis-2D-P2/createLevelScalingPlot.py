@@ -2,13 +2,14 @@ import csv
 import collections
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import argparse
 
 
-def main():
+def main(datafile,outputfile,minLevel,maxLevel):
     for messure in ['MFLOP/s STAT']:
         likwidRegions = collections.OrderedDict()
 
-        with open('levelScalingData.txt', 'r') as csvfile:
+        with open(datafile, 'r') as csvfile:
             lines = csv.reader(csvfile, delimiter=',')
             region = 'walberla'
             likwidRegions[region] = {}
@@ -21,7 +22,7 @@ def main():
 
         del likwidRegions['walberla']
 
-        levelRange = range(2,15)
+        levelRange = range(minLevel,maxLevel+1)
         outputData = collections.defaultdict(list)
 
         for region in likwidRegions:
@@ -30,7 +31,7 @@ def main():
         print(outputData)
 
         for region in outputData:
-            plt.plot(levelRange[4:], outputData[region][4:], '--o', label=region)
+            plt.plot(levelRange, outputData[region][minLevel-2:], '--o', label=region)
         plt.xlabel('Refinement Level')
 
         plt.ylabel("Performance (Mflops/s)")
@@ -43,11 +44,18 @@ def main():
 
         plt.legend()
         namepart = messure.split('[')[0].replace(' ', '_').replace('/', '-')
-        savename = 'scaling_' + namepart + '.pdf'
+        savename = namepart + outputfile
         plt.tight_layout()
         plt.savefig(savename)
         plt.clf()
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("datafile", help="file to read input from")
+    parser.add_argument("outputfile", help="filename for output including the ending; something will be added")
+    parser.add_argument("minLevel", help="first level to plot", type=int)
+    parser.add_argument("maxLevel", help="last level to plot", type=int)
+    args = parser.parse_args()
+
+    main(args.datafile,args.outputfile,args.minLevel,args.maxLevel)
