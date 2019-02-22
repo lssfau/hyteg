@@ -3,6 +3,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -165,7 +166,7 @@ int main( int argc, char* argv[] )
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput("./output", "PetscCompare-2D-P2-Apply", storage);
+      hhg::VTKOutput vtkOutput( "./output", "PetscCompare-2D-P2-Apply", storage );
       vtkOutput.add( x );
       vtkOutput.add( z );
       vtkOutput.add( y );

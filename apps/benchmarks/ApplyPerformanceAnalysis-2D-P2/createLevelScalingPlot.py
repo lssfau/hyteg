@@ -30,10 +30,10 @@ def main():
         print(outputData)
 
         for region in outputData:
-            plt.plot(levelRange, outputData[region], '--o', label=region)
-        plt.xlabel('Procs')
+            plt.plot(levelRange[4:], outputData[region][4:], '--o', label=region)
+        plt.xlabel('Refinement Level')
 
-        plt.ylabel(messure)
+        plt.ylabel("Performance (Mflops/s)")
 
         plt.ylim(bottom=0)
         # plt.xlim(left=0, right=totalProcs[-1] + 1)
