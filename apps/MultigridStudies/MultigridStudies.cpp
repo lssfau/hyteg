@@ -169,6 +169,8 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
    A.apply( u, tmp, level, Inner | NeumannBoundary );
    residual.assign( {1.0, -1.0}, {f, tmp}, level, All );
 
+   vertexdof::projectMean( error.p, level );
+
    l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) );
    l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) );
    l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) );
@@ -614,6 +616,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       uExact.u.interpolate( exactU, level, All );
       uExact.v.interpolate( exactV, level, All );
       uExact.p.interpolate( exactP, level, All );
+      vertexdof::projectMean( uExact.p, level );
 
       tmp.u.interpolate( rhsU, level, All );
       tmp.v.interpolate( rhsV, level, All );
@@ -749,13 +752,23 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-      WALBERLA_UNUSED( currentLevel );
-#if 0
-      real_t _l2Error, _L2Error, _l2Residual, _L2Residual;
-      calculateErrorAndResidualStokes( currentLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
-      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = _l2Error;
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2Error );
-#endif
+      real_t _l2ErrorU, _l2ErrorV, _l2ErrorP, _l2ResidualU, _l2ResidualV, _l2ResidualP;
+      calculateErrorAndResidualStokes( currentLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       uExact,
+                                       error,
+                                       residual,
+                                       tmp,
+                                       _l2ErrorU,
+                                       _l2ErrorV,
+                                       _l2ErrorP,
+                                       _l2ResidualU,
+                                       _l2ResidualV,
+                                       _l2ResidualP );
+      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = _l2ErrorU;
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2ErrorU );
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
@@ -799,7 +812,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timer.end();
       timeCycle = timer.last();
 
-      vertexdof::projectMean( u.p, maxLevel );
+      if (!NEUMANN_PROBLEM)
+         vertexdof::projectMean( u.p, maxLevel );
 
       timer.reset();
       calculateErrorAndResidualStokes(
