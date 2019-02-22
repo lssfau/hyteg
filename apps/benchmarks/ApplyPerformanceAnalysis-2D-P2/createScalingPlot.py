@@ -5,7 +5,7 @@ import matplotlib.ticker as ticker
 
 
 def main():
-    for messure in ['Memory bandwidth [MBytes/s] STAT','DP MFLOP/s STAT']:
+    for messure in ['Memory bandwidth [MBytes/s] STAT','MFLOP/s STAT']:
         likwidRegions = collections.OrderedDict()
 
         with open('scalingData.txt', 'r') as csvfile:
