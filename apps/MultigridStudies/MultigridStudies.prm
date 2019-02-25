@@ -4,13 +4,16 @@ Parameters
     numFacesPerSide 4;
     discretization P2;
     meshLayout CRISS;
-    numCycles 10;
+    numCycles 20;
     cycleType V;
-    fmgInnerCycles 1; // 0 == no fmg
-    sorRelax 0.4;
+    fmgInnerCycles 0; // 0 == no fmg
 
-    preSmoothingSteps 2;
-    postSmoothingSteps 2;
+    // CRISSCROSS: ~0.4
+    // CRISS:    : P1: ? , P2: ~0.72
+    sorRelax 0.72;
+
+    preSmoothingSteps 6;
+    postSmoothingSteps 6;
     smoothingIncrement 2;
     minLevel 2;
     maxLevel 5; // P1 level, P2 level is automatically reduced by 1
