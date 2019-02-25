@@ -1024,7 +1024,7 @@ void setup( int argc, char** argv )
      WALBERLA_ABORT( "Invalid mesh layout." );
 
    const auto meshInfo =
-       MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide + 1, numFacesPerSide + 1 );
+       MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
