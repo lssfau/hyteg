@@ -942,6 +942,7 @@ void setup( int argc, char** argv )
    const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
    const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
+   const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
 
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || cycleTypeString == "poisson" );
@@ -974,6 +975,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                    " << ( outputSQL ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                       " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                   " << meshLayout );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    /////////
@@ -1013,8 +1015,16 @@ void setup( int argc, char** argv )
       leftBottom = Point2D( {-1, -1} );
    }
 
+   MeshInfo::meshFlavour meshFlavour;
+   if ( meshLayout == "CRISS" )
+     meshFlavour = MeshInfo::CRISS;
+   else if ( meshLayout == "CRISSCROSS" )
+     meshFlavour = MeshInfo::CRISSCROSS;
+   else
+     WALBERLA_ABORT( "Invalid mesh layout." );
+
    const auto meshInfo =
-       MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), MeshInfo::CRISSCROSS, numFacesPerSide + 1, numFacesPerSide + 1 );
+       MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide + 1, numFacesPerSide + 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 

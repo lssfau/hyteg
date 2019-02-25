@@ -3,10 +3,12 @@ Parameters
     equation stokes;
     numFacesPerSide 4;
     discretization P2;
+    meshLayout CRISS;
     numCycles 10;
     cycleType V;
     fmgInnerCycles 1; // 0 == no fmg
     sorRelax 0.4;
+
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     smoothingIncrement 2;
