@@ -628,14 +628,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Misc setup and info //
    /////////////////////////
 
+   real_t discretizationErrorU;
+   real_t discretizationErrorV;
+   real_t discretizationErrorP;
    if ( calcDiscretizationError )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | v | p ) per level:" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         real_t discretizationErrorU;
-         real_t discretizationErrorV;
-         real_t discretizationErrorP;
          calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >(
              storage, level, discretizationErrorU, discretizationErrorV, discretizationErrorP );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
@@ -838,7 +838,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
                                                  << " |          " << l2ResidualReductionU << " || " << std::fixed
                                                  << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " |" );
+                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | ratio discr.err: " << (calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0) );
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
