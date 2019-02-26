@@ -5,7 +5,13 @@ import matplotlib.ticker as ticker
 import argparse
 
 
-def main(datafile,outputfile,minLevel,maxLevel):
+def main(datafile, outputfile, minLevel, maxLevel):
+    #ecmPredictionFixed = [12.04, 12.04, 12.04, 12.04, 12.04, 8.46, 7.54, 7.26, 6.44]
+    ecmPrediction = [12.04, 12.04, 12.04, 12.04, 12.04, 7.26, 7.26, 7.26, 6.44]
+    ecmPrediction = [i * 1000 for i in ecmPrediction]
+
+    print(ecmPrediction)
+
     for messure in ['MFLOP/s STAT']:
         likwidRegions = collections.OrderedDict()
 
@@ -22,7 +28,7 @@ def main(datafile,outputfile,minLevel,maxLevel):
 
         del likwidRegions['walberla']
 
-        levelRange = range(minLevel,maxLevel+1)
+        levelRange = range(minLevel, maxLevel + 1)
         outputData = collections.defaultdict(list)
 
         for region in likwidRegions:
@@ -30,13 +36,23 @@ def main(datafile,outputfile,minLevel,maxLevel):
 
         print(outputData)
 
-        for region in outputData:
-            plt.plot(levelRange, outputData[region][minLevel-2:], '--o', label=region)
+        plt.plot(levelRange, ecmPrediction, '--', label="ecm prediction v to v", color='black')
+
+        # for region in outputData:
+        plt.plot(levelRange, outputData["Region Vertex-to-Vertex-Apply"][minLevel - 2:], '--o',
+                 label="Vertex to Vertex")
+        plt.plot(levelRange, outputData["Region Edge-to-Vertex-Apply"][minLevel - 2:], '--o', label="Edge to Vertex",
+                 alpha=0.5)
+        plt.plot(levelRange, outputData["Region Vertex-to-Edge-Apply"][minLevel - 2:], '--o', label="Vertex to Edge",
+                 alpha=0.5)
+        plt.plot(levelRange, outputData["Region Edge-to-Edge-Apply"][minLevel - 2:], '--o', label="Edge to Edge",
+                 alpha=0.5)
+
         plt.xlabel('Refinement Level')
 
         plt.ylabel("Performance (Mflops/s)")
 
-        plt.ylim(bottom=0)
+        # plt.ylim(bottom=0)
         # plt.xlim(left=0, right=totalProcs[-1] + 1)
         # plt.xticks(range(2, int(totalProcs[-1] + 1), 2))
         plt.grid(True)
@@ -58,4 +74,4 @@ if __name__ == "__main__":
     parser.add_argument("maxLevel", help="last level to plot", type=int)
     args = parser.parse_args()
 
-    main(args.datafile,args.outputfile,args.minLevel,args.maxLevel)
+    main(args.datafile, args.outputfile, args.minLevel, args.maxLevel)
