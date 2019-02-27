@@ -37,11 +37,16 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
       {
          vertexFineData[ vertexdof::macroface::index( fineLevel, it.x(), it.y() ) ] = real_c( 0 );
       }
-      for ( const auto & it : edgedof::macroface::Iterator( fineLevel, 0 ) )
+
+      // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
+      // Therefore we use a plain for loop here.
+      //
+      // See issue #94.
+      //
+      const uint_t edgedofFieldSize = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getSize( fineLevel );
+      for ( uint_t i = 0; i < edgedofFieldSize; i++ )
       {
-         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::X ) ] = real_c( 0 );
-         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY ) ] = real_c( 0 );
-         edgeFineData[ edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y ) ] = real_c( 0 );
+         edgeFineData[i] = real_c( 0 );
       }
 
       const double numNeighborFacesEdge0 =
