@@ -22,13 +22,14 @@ namespace P2 {
 
 namespace macrovertex {
 
-void smoothGSvertexDoF( uint_t                                                     level,
-                        Vertex&                                                    vertex,
-                        const PrimitiveDataID< StencilMemory< real_t >, Vertex >&  vertexDoFStencilID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
-                        const PrimitiveDataID< StencilMemory< real_t >, Vertex >&  edgeDoFStencilID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstEdgeDoFID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID );
+void smoothSORVertexDoF( uint_t                                                     level,
+                         Vertex&                                                    vertex,
+                         const real_t&                                              relax,
+                         const PrimitiveDataID< StencilMemory< real_t >, Vertex >&  vertexDoFStencilID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
+                         const PrimitiveDataID< StencilMemory< real_t >, Vertex >&  edgeDoFStencilID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstEdgeDoFID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID );
 
 } // namespace vertex
 

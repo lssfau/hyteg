@@ -48,7 +48,6 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
   hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
   hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
-  auto numerator = std::make_shared< hhg::P2P1TaylorHoodFunction< PetscInt > >( "numerator", storage, level, level );
 
   hhg::P2P1TaylorHoodStokesOperator A( storage, level, level );
 
@@ -82,21 +81,19 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
-  numerator->enumerate( level );
-
   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+  PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hhg::vertexdof::projectMean( x.p, err.p, level );
-  hhg::vertexdof::projectMean( x_exact.p, err.p, level );
+  hhg::vertexdof::projectMean( x.p, level );
+  hhg::vertexdof::projectMean( x_exact.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );

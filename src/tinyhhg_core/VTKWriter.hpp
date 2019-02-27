@@ -9,6 +9,8 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/composites/P1StokesFunction.hpp"
+#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
 
 #include "core/DataTypes.h"
 
@@ -36,6 +38,9 @@ class VTKOutput
    void add( DGFunction< real_t > function );
 
    void add( P2Function< real_t > function );
+
+   void add( P1StokesFunction< real_t > function );
+   void add( P2P1TaylorHoodFunction< real_t > function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.

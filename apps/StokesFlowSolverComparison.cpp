@@ -97,10 +97,7 @@ public:
        //tmpRHS_->v.interpolate(velocityVBC_, level, hhg::DirichletBoundary);
        tmpRHS_->u.assign( {1.0}, {x.u}, level, hhg::DirichletBoundary);
        tmpRHS_->v.assign( {1.0}, {x.v}, level, hhg::DirichletBoundary);
-       const uint_t localSize = hhg::numberOfLocalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
-       const uint_t globalSize = hhg::numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *(this->storage_), level );
-       numerator_->enumerate( level );
-       PETScLUSolver< Operator_T> solver(numerator_, localSize, globalSize);
+       PETScLUSolver< Operator_T> solver( storage_, level );
        solver.solve(A, x, *tmpRHS_, level );
     }
 

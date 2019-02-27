@@ -236,6 +236,25 @@ inline real_t dot( const uint_t & level,
 
 
 template< typename ValueType >
+inline real_t sum( const uint_t & level,
+                   const Cell & cell,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dataID )
+{
+  real_t sum = 0.0;
+
+  const ValueType * data = cell.getData( dataID )->getPointer( level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    sum += data[ idx ];
+  }
+
+  return sum;
+}
+
+
+template< typename ValueType >
 inline void apply( const uint_t & level,
                    Cell & cell,
                    const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,

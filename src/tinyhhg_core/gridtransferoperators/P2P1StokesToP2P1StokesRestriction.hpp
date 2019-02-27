@@ -1,30 +1,42 @@
 #pragma once
 
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
 
 namespace hhg {
 
 class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1TaylorHoodFunction< real_t > >
 {
-public:
+ public:
+   typedef P2toP2QuadraticRestriction VelocityRestriction_T;
+   typedef P1toP1LinearRestriction    PressureRestriction_T;
 
-    typedef P2toP2QuadraticRestriction VelocityRestriction_T;
-    typedef P1toP1LinearRestriction    PressureRestriction_T;
+   P2P1StokesToP2P1StokesRestriction()
+   : projectMeanAfterRestriction_( false )
+   {}
+   P2P1StokesToP2P1StokesRestriction( bool projectMeanAfterRestriction )
+   : projectMeanAfterRestriction_( projectMeanAfterRestriction )
+   {}
 
-    void restrict ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
-    {
+   void
+       restrict( const P2P1TaylorHoodFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
+   {
       quadraticRestrictionOperator_.restrict( function.u, sourceLevel, flag );
       quadraticRestrictionOperator_.restrict( function.v, sourceLevel, flag );
       linearRestrictionOperator_.restrict( function.p, sourceLevel, flag );
-    }
 
-private:
+      if ( projectMeanAfterRestriction_ )
+      {
+         vertexdof::projectMean( function.p, sourceLevel - 1 );
+      }
+   }
 
-    P2toP2QuadraticRestriction quadraticRestrictionOperator_;
-    P1toP1LinearRestriction    linearRestrictionOperator_;
+ private:
+   P2toP2QuadraticRestriction quadraticRestrictionOperator_;
+   P1toP1LinearRestriction    linearRestrictionOperator_;
 
+   bool projectMeanAfterRestriction_;
 };
-}
+} // namespace hhg

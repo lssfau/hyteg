@@ -114,6 +114,13 @@ inline real_t dot(Vertex &vertex,
   return vertex.getData(lhsMemoryId)->getPointer( level )[0]*vertex.getData(rhsMemoryId)->getPointer( level )[0];
 }
 
+template < typename ValueType >
+inline real_t
+    sum( const uint_t& level, const Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID )
+{
+   return vertex.getData( dataID )->getPointer( level )[0];
+}
+
 template< typename ValueType >
 inline void apply(Vertex &vertex,
                   const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,

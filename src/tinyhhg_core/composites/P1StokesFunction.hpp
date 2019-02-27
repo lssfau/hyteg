@@ -29,12 +29,24 @@ public:
   {
   }
 
+  std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
+
+  bool isDummy() const { return false; }
+
   void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
     w.interpolate(expr, level, flag);
     p.interpolate(expr, level, flag);
+  }
+
+  void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
+  {
+     u.interpolate( constant, level, flag );
+     v.interpolate( constant, level, flag );
+     w.interpolate( constant, level, flag );
+     p.interpolate( constant, level, flag );
   }
 
   void swap( const P1StokesFunction< ValueType > & other,
