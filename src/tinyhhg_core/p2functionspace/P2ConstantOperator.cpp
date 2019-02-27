@@ -36,6 +36,7 @@
 #endif
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroCell.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
@@ -482,6 +483,31 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
          }
       }
    }
+
+   dst.getVertexDoFFunction().communicate< Face, Cell >( level );
+   dst.getEdgeDoFFunction().communicate< Face, Cell >( level );
+
+  for( auto& it : storage_->getCells() )
+  {
+    Cell& cell = *it.second;
+
+    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+    if( testFlag( cellBC, flag ) )
+    {
+      P2::macrocell::smoothSOR( level,
+                                cell,
+                                relax,
+                                vertexToVertex.getCellStencilID(),
+                                edgeToVertex.getCellStencilID(),
+                                vertexToEdge.getCellStencilID(),
+                                edgeToEdge.getCellStencilID(),
+                                dst.getVertexDoFFunction().getCellDataID(),
+                                rhs.getVertexDoFFunction().getCellDataID(),
+                                dst.getEdgeDoFFunction().getCellDataID(),
+                                rhs.getEdgeDoFFunction().getCellDataID() );
+    }
+  }
+
    this->stopTiming( "SOR" );
 }
 
