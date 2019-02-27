@@ -18,6 +18,7 @@ static void testP2SmoothConvergence( const uint_t & level, const std::string & m
 {
   MeshInfo mesh  = MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   P2Function< real_t > x  ( "x",   storage, level, level );
@@ -63,6 +64,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::MPIManager::instance()->useWorldComm();
    hhg::testP2SmoothConvergence( 3, "../../data/meshes/3D/tet_1el.msh", 50, 1.2e-02 );
+   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_2el.msh", 50, 9.0e-07 );
 
    return EXIT_SUCCESS;
 }
