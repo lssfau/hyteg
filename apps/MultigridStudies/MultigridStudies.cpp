@@ -776,11 +776,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    if ( numCycles == 0 )
    {
+      timer.reset();
 #ifdef HHG_BUILD_WITH_PETSC
       petscSolver->solve( A, u, f, maxLevel );
 #else
       coarseGridSolver->solve( A, u, f, maxLevel );
 #endif
+      timer.end();
+      timeCycle = timer.last();
       vertexdof::projectMean( u.p, maxLevel );
       calculateErrorAndResidualStokes(
           maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
@@ -812,7 +815,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timer.end();
       timeCycle = timer.last();
 
-      if (!NEUMANN_PROBLEM)
+      if ( !NEUMANN_PROBLEM )
          vertexdof::projectMean( u.p, maxLevel );
 
       timer.reset();
@@ -834,11 +837,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       l2ErrorReductionP    = l2ErrorP / lastl2ErrorP;
       l2ResidualReductionP = l2ResidualP / lastl2ResidualP;
 
-      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
-                                                 << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
-                                                 << " |          " << l2ResidualReductionU << " || " << std::fixed
-                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | ratio discr.err: " << (calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
+                          << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP << " |          "
+                          << l2ResidualReductionU << " || " << std::fixed << std::setprecision( 2 ) << std::setw( 14 )
+                          << timeCycle << " | " << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
+                          << " | ratio discr.err: " << ( calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0 ) );
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
@@ -1017,14 +1021,13 @@ void setup( int argc, char** argv )
 
    MeshInfo::meshFlavour meshFlavour;
    if ( meshLayout == "CRISS" )
-     meshFlavour = MeshInfo::CRISS;
+      meshFlavour = MeshInfo::CRISS;
    else if ( meshLayout == "CRISSCROSS" )
-     meshFlavour = MeshInfo::CRISSCROSS;
+      meshFlavour = MeshInfo::CRISSCROSS;
    else
-     WALBERLA_ABORT( "Invalid mesh layout." );
+      WALBERLA_ABORT( "Invalid mesh layout." );
 
-   const auto meshInfo =
-       MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
+   const auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
