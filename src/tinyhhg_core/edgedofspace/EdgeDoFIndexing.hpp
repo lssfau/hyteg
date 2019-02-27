@@ -521,7 +521,7 @@ inline uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, c
   }
 }
 
-/// Index of a vertex DoF on a ghost layer of a macro face.
+/// Index of a edge DoF on a ghost layer of a macro face.
 /// EXAMPLE: number of DoFs in each direction for level 2:
 /// - X  on face:  start  0; size 10; last 9
 /// - Y  on face:  start 10; size 10; last 19
