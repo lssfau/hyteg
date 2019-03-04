@@ -28,7 +28,9 @@ void test2D( int argc, char** argv )
 
    const uint_t numRandomEvaluations = 1000;
 
-   auto testFunc = []( const Point3D& x ) { return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 7.0 * x[1] * x[1] + 10.0 * x[0] + 3.0 * x[1] + 1.0; };
+   auto testFunc = []( const Point3D& x ) {
+      return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 7.0 * x[1] * x[1] + 10.0 * x[0] + 3.0 * x[1] + 1.0;
+   };
    auto testFuncDerivativeX = []( const Point3D& x ) { return 10.0 * x[0] + 2.0 * x[1] + 10.0; };
    auto testFuncDerivativeY = []( const Point3D& x ) { return 14.0 * x[1] + 2.0 * x[0] + 3.0; };
 
@@ -40,42 +42,42 @@ void test2D( int argc, char** argv )
    Point3D coordinates( {0.0, 0.5, 0.0} );
    real_t  eval = x.evaluate( coordinates, maxLevel );
    Point3D gradient;
-   //   x.evaluateGradient( coordinates, maxLevel, gradient );
+   x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
    coordinates[0] = 2.0;
    coordinates[1] = 0.0;
    eval           = x.evaluate( coordinates, maxLevel );
-//   x.evaluateGradient( coordinates, maxLevel, gradient );
+   x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
    coordinates[0] = 2.0;
    coordinates[1] = 1.0;
    eval           = x.evaluate( coordinates, maxLevel );
-//   x.evaluateGradient( coordinates, maxLevel, gradient );
+   x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
    coordinates[0] = 0.0;
    coordinates[1] = 1.0;
    eval           = x.evaluate( coordinates, maxLevel );
-//   x.evaluateGradient( coordinates, maxLevel, gradient );
+   x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
    coordinates[0] = 0.5;
    coordinates[1] = 0.5;
    eval           = x.evaluate( coordinates, maxLevel );
-//   x.evaluateGradient( coordinates, maxLevel, gradient );
+   x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-   //   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
 
    for ( uint_t i = 0; i < numRandomEvaluations; ++i )
    {
@@ -88,10 +90,10 @@ void test2D( int argc, char** argv )
       }
 
       eval = x.evaluate( coordinates, maxLevel );
-//      x.evaluateGradient( coordinates, maxLevel, gradient );
+      x.evaluateGradient( coordinates, maxLevel, gradient );
       WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
-      //      WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
-      //      WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
+      WALBERLA_CHECK_FLOAT_EQUAL( gradient[1], testFuncDerivativeY( coordinates ) );
    }
 }
 

@@ -4,8 +4,8 @@
 
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hhg {
 namespace P2 {
@@ -50,7 +50,40 @@ void evaluateGradient( const uint_t&                                            
                        const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
                        Point3D&                                                 gradient )
 {
-   WALBERLA_ABORT( "Not implemented." );
+   Point2D  localCoordinates; // Coordinates in local element
+   Matrix2r transform;        // Temporary transformation matrix
+
+   Point3D localVertexDoFs; // DoFs at the local elements vertices
+   Point3D localEdgeDoFs;   // DoFs at the local elements edges
+
+   vertexdof::macroface::getLocalElementDoFIndicesFromCoordinates< real_t >(
+       level, face, coordinates, srcVertexDoFID, localCoordinates, transform, localVertexDoFs );
+
+   real_t x = localCoordinates[0];
+   real_t y = localCoordinates[1];
+
+   Point2D gradient_;
+
+   gradient_[0] = ( 4.0 * x + 4.0 * y - 3.0 ) * localVertexDoFs[0];
+   gradient_[0] += ( 4.0 * x - 1.0 ) * localVertexDoFs[1];
+
+   gradient_[1] = ( 4.0 * x + 4.0 * y - 3.0 ) * localVertexDoFs[0];
+   gradient_[1] += ( 4.0 * y - 1.0 ) * localVertexDoFs[2];
+
+   edgedof::macroface::getLocalElementDoFIndicesFromCoordinates< real_t >(
+       level, face, coordinates, srcEdgeDoFID, localCoordinates, transform, localEdgeDoFs );
+
+   gradient_[0] += ( 4.0 * y ) * localEdgeDoFs[0];
+   gradient_[0] += ( -4.0 * y ) * localEdgeDoFs[1];
+   gradient_[0] += ( -8.0 * x - 4.0 * y + 4.0 ) * localEdgeDoFs[2];
+
+   gradient_[1] += ( 4.0 * x ) * localEdgeDoFs[0];
+   gradient_[1] += ( -4.0 * x - 8.0 * y + 4.0 ) * localEdgeDoFs[1];
+   gradient_[1] += ( -4.0 * x ) * localEdgeDoFs[2];
+
+   gradient_   = transform.mul( gradient_ );
+   gradient[0] = gradient_[0];
+   gradient[1] = gradient_[1];
 }
 
 void smoothJacobiVertexDoF( const uint_t&                                            level,
