@@ -172,7 +172,7 @@ public:
         for ( uint_t i = 0; i < maxIterations_; i++ )
         {
             // rescale pressure
-            vertexdof::projectMean( u.p, Au.p, level );
+            vertexdof::projectMean( u.p, level );
 
             // check residual
             stokesOperator.apply( u, Au, level, flag_ );

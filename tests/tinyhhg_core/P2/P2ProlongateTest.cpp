@@ -5,6 +5,8 @@
 
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
 
 namespace hhg {
@@ -17,11 +19,13 @@ static void testP2Prolongate() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 2);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 2, BoundaryCondition::create012BC(), None);
   typedef stencilDirection sD;
   std::function<real_t(const hhg::Point3D &)> values = [](const hhg::Point3D &) { return 13; };
   x->interpolate(values, sourceLevel, hhg::All);
-  x->prolongate(sourceLevel, hhg::All);
+
+  P2toP2QuadraticProlongation prolongationOperator;
+  prolongationOperator.prolongate( *x, sourceLevel, All );
 
   real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
   real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
@@ -77,8 +81,7 @@ static void testP2Prolongate() {
     }
   }
 
-
-  x->prolongate(sourceLevel + 1, hhg::All);
+  prolongationOperator.prolongate( *x, sourceLevel + 1, All );
 
   edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
   vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
@@ -144,8 +147,10 @@ static void testP2Prolongate2() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1, BoundaryCondition::create012BC(), None);
   typedef stencilDirection sD;
+
+  P2toP2QuadraticProlongation prolongationOperator;
 
   /// this should not be necessary but just to be save
   std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 0; };
@@ -171,7 +176,7 @@ static void testP2Prolongate2() {
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 16.0;
 
-    x->prolongate(sourceLevel, hhg::All);
+    prolongationOperator.prolongate( *x, sourceLevel, All );
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_N)], 12.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_S)], 12.);
@@ -199,7 +204,7 @@ static void testP2Prolongate2() {
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 16.0;
 
-    x->prolongate(sourceLevel, hhg::All);
+    prolongationOperator.prolongate( *x, sourceLevel, All );
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_N)], 8.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_S)], 8.);
@@ -227,7 +232,7 @@ static void testP2Prolongate2() {
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 16.0;
 
-    x->prolongate(sourceLevel, hhg::All);
+    prolongationOperator.prolongate( *x, sourceLevel, All );
 
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_N)], 8.);
     WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_S)], 8.);
@@ -254,8 +259,7 @@ static void testP2Prolongate2() {
     storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
       sourceLevel)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
 
-
-    x->prolongate(sourceLevel, hhg::All);
+    prolongationOperator.prolongate( *x, sourceLevel, All );
 
     WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 , p.second * 2 , sD::VERTEX_C)],
                                16.,
@@ -299,17 +303,19 @@ static void testP2InterpolateAndProlongate() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = P2Function<real_t> ("x", storage, sourceLevel, targetLevel);
-  auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel);
-  auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel);
+  auto x = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
+  auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
+  auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
 
   std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
   x.interpolate(exact,sourceLevel    ,hhg::All);
   y.interpolate(exact,targetLevel,hhg::All);
 
-  x.prolongate(sourceLevel    ,hhg::All);
-  x.prolongate(sourceLevel + 1,hhg::All);
-  x.prolongate(sourceLevel + 2,hhg::All);
+  P2toP2QuadraticProlongation prolongationOperator;
+
+  prolongationOperator.prolongate( x, sourceLevel    , All );
+  prolongationOperator.prolongate( x, sourceLevel + 1, All );
+  prolongationOperator.prolongate( x, sourceLevel + 2, All );
 
   error.assign({1.0, -1.0}, {x, y}, targetLevel, hhg::All);
 

@@ -46,9 +46,6 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > x_exact( "x_exact", storage, level, level );
    hhg::P1Function< real_t > err( "err", storage, level, level );
 
-   std::shared_ptr< hhg::P1Function< PetscInt > > numerator =
-       std::make_shared< hhg::P1Function< PetscInt > >( "numerator", storage, level, level );
-
    hhg::P1ConstantLaplaceOperator A( storage, level, level );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
@@ -61,11 +58,9 @@ int main( int argc, char* argv[] )
    x_exact.interpolate( exact, level );
 
    uint_t globalDoFs = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
-   uint_t localDoFs  = hhg::numberOfLocalDoFs< P1FunctionTag >( *storage, level );
-   numerator->enumerate( level );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( globalDoFs ) )
 
-   PETScLUSolver< hhg::P1ConstantLaplaceOperator > solver( numerator, localDoFs, globalDoFs );
+   PETScLUSolver< hhg::P1ConstantLaplaceOperator > solver( storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving System" )
    walberla::WcTimer timer;

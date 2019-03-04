@@ -14,13 +14,14 @@ namespace P2 {
 
 namespace macrovertex {
 
-void smoothGSvertexDoF( uint_t                                                     level,
-                        Vertex&                                                    vertex,
-                        const PrimitiveDataID< StencilMemory< double >, Vertex >&  vertexDoFStencilID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
-                        const PrimitiveDataID< StencilMemory< double >, Vertex >&  edgeDoFStencilID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstEdgeDoFID,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID )
+void smoothSORVertexDoF( uint_t                                                     level,
+                         Vertex&                                                    vertex,
+                         const real_t&                                              relax,
+                         const PrimitiveDataID< StencilMemory< double >, Vertex >&  vertexDoFStencilID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
+                         const PrimitiveDataID< StencilMemory< double >, Vertex >&  edgeDoFStencilID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstEdgeDoFID,
+                         const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID )
 {
    real_t* vertexDoFStencil = vertex.getData( vertexDoFStencilID )->getPointer( level );
    real_t* dstVertexDoF     = vertex.getData( dstVertexDoFID )->getPointer( level );
@@ -39,7 +40,7 @@ void smoothGSvertexDoF( uint_t                                                  
       tmp -= dstVertexDoF[i] * vertexDoFStencil[i];
    }
 
-   dstVertexDoF[0] = tmp / vertexDoFStencil[0];
+   dstVertexDoF[0] = (1.0 - relax) * dstVertexDoF[0] + (relax * tmp) / vertexDoFStencil[0];
 }
 } // namespace vertex
 

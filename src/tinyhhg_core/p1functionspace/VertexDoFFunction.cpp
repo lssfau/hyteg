@@ -42,10 +42,11 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
-                                                   BoundaryCondition                          boundaryCondition )
+                                                   BoundaryCondition                          boundaryCondition,
+                                                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
-, boundaryTypeToSkipDuringAdditiveCommunication_( DoFType::DirichletBoundary )
+, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
        minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
@@ -759,6 +760,68 @@ real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueTy
    }
    this->stopTiming( "Dot (local)" );
    return scalarProduct;
+}
+
+template < typename ValueType >
+real_t VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+{
+  real_t sum = sumLocal( level, flag );
+  this->startTiming( "Sum (reduce)" );
+  walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+  this->stopTiming( "Sum (reduce)" );
+  return sum;
+}
+
+template < typename ValueType >
+real_t VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+{
+   if( isDummy() )
+   {
+      return real_c( 0 );
+   }
+   this->startTiming( "Sum (local)" );
+   real_t sum = 0.0;
+
+   for( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += vertexdof::macrovertex::sum( level, vertex, vertexDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += vertexdof::macroedge::sum< ValueType >( level, edge, edgeDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += vertexdof::macroface::sum< ValueType >( level, face, faceDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += vertexdof::macrocell::sum< ValueType >( level, cell, cellDataID_ );
+      }
+   }
+   this->stopTiming( "Sum (local)" );
+   return sum;
 }
 
 template < typename ValueType >

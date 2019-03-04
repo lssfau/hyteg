@@ -91,6 +91,24 @@ void VTKOutput::add(EdgeDoFFunction<real_t> function) { edgeDoFFunctions_.push_b
 
 void VTKOutput::add(DGFunction<real_t> function) { dgFunctions_.push_back( function ); }
 
+void VTKOutput::add( P1StokesFunction< real_t > function )
+{
+   add( function.u );
+   add( function.v );
+   if ( !write2D_ )
+      add( function.w );
+   add( function.p );
+}
+
+void VTKOutput::add( P2P1TaylorHoodFunction< real_t > function )
+{
+   add( function.u );
+   add( function.v );
+   if ( !write2D_ )
+      add( function.w );
+   add( function.p );
+}
+
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,
                                     const vertexdof::VertexDoFFunction< real_t >& function,
                                     const std::shared_ptr< PrimitiveStorage >&    storage,

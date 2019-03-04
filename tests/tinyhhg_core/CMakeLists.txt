@@ -43,7 +43,7 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_execute_test(NAME P1Stokes3DMinResConvergenceTest)
 
   waLBerla_compile_test(FILES convergence/P2P1Stokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
-  waLBerla_execute_test(NAME P2P1TaylorHoodStokes3DMinResConvergenceTest)
+  waLBerla_execute_test(NAME P2P1Stokes3DMinResConvergenceTest)
 endif()
 
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
@@ -78,7 +78,7 @@ waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_
 waLBerla_execute_test(NAME P2GSConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P2P1UzawaConvergenceTest.cpp DEPENDS tinyhhg_core core )
-waLBerla_execute_test(NAME P2P1UzawaConvergenceTest.cpp)
+waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)
 
 ## Indexing ##
 
@@ -140,6 +140,9 @@ waLBerla_compile_test(FILES vertexdofspace/VertexDoFLinearProlongation3DTest.cpp
 waLBerla_execute_test(NAME VertexDoFLinearProlongation3DTest)
 
 ## EdgeDoFSpace ##
+
+waLBerla_compile_test(FILES edgedofspace/EdgeDoFAdditiveCommunicationTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME EdgeDoFAdditiveCommunicationTest)
 
 waLBerla_compile_test(FILES edgedofspace/EdgeDoFMemoryTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME EdgeDoFMemoryTest)

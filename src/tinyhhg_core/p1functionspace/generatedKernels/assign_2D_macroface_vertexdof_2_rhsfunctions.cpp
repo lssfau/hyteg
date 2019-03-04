@@ -181,13 +181,13 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_14(double * _dat
 
 static void assign_2D_macroface_vertexdof_2_rhs_functions_level_any(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1, int64_t level)
 {
-   for (int ctr_2 = 1; ctr_2 < (1 << level); ctr_2 += 1)
+   for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << level); ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*((1 << level) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*((1 << level) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + ctr_2*((1 << level) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
       }
    }
 }

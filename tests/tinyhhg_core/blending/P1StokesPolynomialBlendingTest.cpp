@@ -118,7 +118,7 @@ int main( int argc, char* argv[] )
    u_exact.v.interpolate( exact_v, maxLevel, hhg::All );
    u_exact.p.interpolate( exact_p, maxLevel, hhg::All );
 
-   hhg::vertexdof::projectMean(u_exact.p, tmp.p, maxLevel);
+   hhg::vertexdof::projectMean(u_exact.p, maxLevel);
 
    // Integrate RHS for u
    tmp.u.interpolate(rhs_u, maxLevel, hhg::All);
@@ -182,7 +182,7 @@ int main( int argc, char* argv[] )
       start = walberla::timing::getWcTime();
       solver.solve( L, u, f, maxLevel );
       end = walberla::timing::getWcTime();
-      hhg::vertexdof::projectMean(u.p, tmp.p, maxLevel);
+      hhg::vertexdof::projectMean(u.p, maxLevel);
 
 
       L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);

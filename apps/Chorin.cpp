@@ -183,7 +183,7 @@ int main( int argc, char* argv[] )
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p_rhs, tmp, maxLevel - 1 );
+         hhg::vertexdof::projectMean( p_rhs, maxLevel - 1 );
       }
 
       for( uint_t outer = 0; outer < outerIterations; ++outer )
@@ -196,7 +196,7 @@ int main( int argc, char* argv[] )
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p, tmp, maxLevel - 1 );
+         hhg::vertexdof::projectMean( p, maxLevel - 1 );
       }
 
       prolongationOperator->prolongate( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
