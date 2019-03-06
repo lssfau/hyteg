@@ -1,0 +1,7 @@
+Parameters
+{
+    maxLevel 3;
+    numDCIterations 3;
+    useGMG false;
+    withDC true;
+}
