@@ -15,6 +15,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -438,6 +439,88 @@ void VertexDoFFunction< ValueType >::assign(
    }
    this->getStorage()->getTimingTree()->stop( "Cell" );
    this->stopTiming( "Assign" );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
+                                             const uint_t&                  P1Level,
+                                             const DoFType&                 flag ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Assign (P2 -> P1)" );
+
+   const auto P2Level = P1Level - 1;
+
+   WALBERLA_CHECK_GREATER_EQUAL( P2Level, src.getMinLevel() );
+   WALBERLA_CHECK_LESS_EQUAL( P2Level, src.getMaxLevel() );
+   WALBERLA_CHECK( !this->getStorage()->hasGlobalCells() );
+
+   for ( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         auto P1Data = vertex.getData( vertexDataID_ )->getPointer( P1Level );
+         auto P2Data = vertex.getData( src.getVertexDoFFunction().getVertexDataID() )->getPointer( P2Level );
+         P1Data[0]   = P2Data[0];
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         auto P1Data   = edge.getData( edgeDataID_ )->getPointer( P1Level );
+         auto P2Data_v = edge.getData( src.getVertexDoFFunction().getEdgeDataID() )->getPointer( P2Level );
+         auto P2Data_e = edge.getData( src.getEdgeDoFFunction().getEdgeDataID() )->getPointer( P2Level );
+
+         for ( auto itIdx : vertexdof::macroedge::Iterator( P2Level ) )
+         {
+            P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 )] =
+                P2Data_v[vertexdof::macroedge::index( P2Level, itIdx.x() )];
+         }
+         for ( auto itIdx : edgedof::macroedge::Iterator( P2Level ) )
+         {
+            P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 + 1 )] =
+                P2Data_e[edgedof::macroedge::index( P2Level, itIdx.x() )];
+         }
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         auto P1Data   = face.getData( faceDataID_ )->getPointer( P1Level );
+         auto P2Data_v = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( P2Level );
+         auto P2Data_e = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( P2Level );
+
+         for ( auto itIdx : vertexdof::macroface::Iterator( P2Level ) )
+         {
+            P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 )] =
+                P2Data_v[vertexdof::macroface::index( P2Level, itIdx.x(), itIdx.y() )];
+         }
+         for ( auto itIdx : edgedof::macroface::Iterator( P2Level ) )
+         {
+            P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 )] =
+                P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::X )];
+            P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1 )] =
+                P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::XY )];
+            P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1 )] =
+                P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::Y )];
+         }
+      }
+   }
+
+   this->stopTiming( "Assign (P2 -> P1)" );
 }
 
 template < typename ValueType >
