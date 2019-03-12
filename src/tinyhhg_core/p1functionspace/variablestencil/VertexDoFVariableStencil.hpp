@@ -33,11 +33,11 @@ inline void assembleLocalStencil( const P1Form&                            form,
 namespace macroface {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                      Level,
-                           const Face&                                                 face,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
-                           UpdateType                                                  update )
+inline void applyVariableStencil(uint_t Level,
+                                 const Face &face,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                                 UpdateType update)
 {
    typedef stencilDirection SD;
 
@@ -118,10 +118,10 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                      Level,
-                              const Face&                                                 face,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+inline void smoothGSVariableStencil(uint_t Level,
+                                    const Face &face,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Face> &rhsId)
 {
    typedef stencilDirection SD;
 
@@ -194,12 +194,12 @@ inline void smoothGSBlending( uint_t                                            
 namespace macroedge {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                      Level,
-                           const Edge&                                                 edge,
-                           const std::shared_ptr< PrimitiveStorage >&                  storage,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
-                           UpdateType                                                  update )
+inline void applyVariableStencil(uint_t Level,
+                                 const Edge &edge,
+                                 const std::shared_ptr<PrimitiveStorage> &storage,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &dstId,
+                                 UpdateType update)
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
 
@@ -306,11 +306,11 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                      Level,
-                              const Edge&                                                 edge,
-                              const std::shared_ptr< PrimitiveStorage >&                  storage,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
+inline void smoothGSVariableStencil(uint_t Level,
+                                    const Edge &edge,
+                                    const std::shared_ptr<PrimitiveStorage> &storage,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &rhsId)
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
 
@@ -415,12 +415,12 @@ inline void smoothGSBlending( uint_t                                            
 namespace macrovertex {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                        level,
-                           const Vertex&                                                 vertex,
-                           const std::shared_ptr< PrimitiveStorage >&                    storage,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                           UpdateType                                                    update )
+inline void applyVariableStencil(uint_t level,
+                                 const Vertex &vertex,
+                                 const std::shared_ptr<PrimitiveStorage> &storage,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstId,
+                                 UpdateType update)
 {
    auto src = vertex.getData( srcId )->getPointer( level );
    auto dst = vertex.getData( dstId )->getPointer( level );
@@ -487,11 +487,11 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                        level,
-                              Vertex&                                                       vertex,
-                              const std::shared_ptr< PrimitiveStorage >&                    storage,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsId )
+inline void smoothGSVariableStencil(uint_t level,
+                                    Vertex &vertex,
+                                    const std::shared_ptr<PrimitiveStorage> &storage,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &rhsId)
 {
    auto rhs = vertex.getData( rhsId )->getPointer( level );
    auto dst = vertex.getData( dstId )->getPointer( level );

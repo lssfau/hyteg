@@ -302,7 +302,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+            vertexdof::blending::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                   src.getVertexDataID(),
+                                                                                   dst.getVertexDataID(), updateType);
          }
       }
 
@@ -312,7 +314,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+            vertexdof::blending::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                 src.getEdgeDataID(),
+                                                                                 dst.getEdgeDataID(), updateType);
          }
       }
 
@@ -350,7 +354,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::smoothGSBlending< real_t, P1Form >(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+            vertexdof::blending::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                      dst.getVertexDataID(),
+                                                                                      rhs.getVertexDataID());
          }
       }
 
@@ -365,7 +371,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form >(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+            vertexdof::blending::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                    dst.getEdgeDataID(),
+                                                                                    rhs.getEdgeDataID());
          }
       }
 

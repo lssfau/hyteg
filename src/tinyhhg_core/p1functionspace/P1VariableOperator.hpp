@@ -19,7 +19,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
-#include <tinyhhg_core/p1functionspace/blending/VertexDoFBlending.hpp>
+#include <tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
 namespace hhg
 {
@@ -55,7 +55,9 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::blending::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                               src.getVertexDataID(),
+                                                                               dst.getVertexDataID(), updateType);
       }
     }
 
@@ -65,7 +67,8 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::blending::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_, src.getEdgeDataID(),
+                                                                             dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -75,7 +78,8 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::blending::macroface::applyVariableStencil<real_t, P1Form>(level, face, src.getFaceDataID(),
+                                                                             dst.getFaceDataID(), updateType);
       }
     }
 
@@ -98,7 +102,9 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::smoothGSBlending<real_t, P1Form>(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::blending::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                  dst.getVertexDataID(),
+                                                                                  rhs.getVertexDataID());
       }
     }
 
@@ -113,7 +119,9 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form>(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::blending::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                dst.getEdgeDataID(),
+                                                                                rhs.getEdgeDataID());
       }
     }
 
@@ -127,7 +135,8 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::smoothGSBlending<real_t, P1Form>(level, face, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::blending::macroface::smoothGSVariableStencil<real_t, P1Form>(level, face, dst.getFaceDataID(),
+                                                                                rhs.getFaceDataID());
       }
     }
 
