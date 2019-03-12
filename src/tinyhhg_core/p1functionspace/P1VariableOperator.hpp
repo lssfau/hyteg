@@ -25,17 +25,17 @@ namespace hhg
 {
 
 template<class P1Form>
-class P1BlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  P1BlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+  P1VariableOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                         size_t minLevel,
                         size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
   }
 
-  ~P1BlendingOperator() override = default;
+  ~P1VariableOperator() override = default;
 
 
   void apply( const P1Function< real_t >& src,
@@ -233,21 +233,21 @@ public:
 #endif
 };
 
-typedef P1BlendingOperator<P1Form_laplace> P1BlendingLaplaceOperator;
-typedef P1BlendingOperator<P1Form_mass> P1BlendingMassOperator;
+typedef P1VariableOperator<P1Form_laplace> P1BlendingLaplaceOperator;
+typedef P1VariableOperator<P1Form_mass> P1BlendingMassOperator;
 
-typedef P1BlendingOperator<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
-typedef P1BlendingOperator<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
-typedef P1BlendingOperator<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
-typedef P1BlendingOperator<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
+typedef P1VariableOperator<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
+typedef P1VariableOperator<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
+typedef P1VariableOperator<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
+typedef P1VariableOperator<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
 
-typedef P1BlendingOperator<P1Form_divT_1> P1BlendingDivTOperator_1;
-typedef P1BlendingOperator<P1Form_divT_2> P1BlendingDivTOperator_2;
+typedef P1VariableOperator<P1Form_divT_1> P1BlendingDivTOperator_1;
+typedef P1VariableOperator<P1Form_divT_2> P1BlendingDivTOperator_2;
 
-typedef P1BlendingOperator<P1Form_div_1> P1BlendingDivOperator_1;
-typedef P1BlendingOperator<P1Form_div_2> P1BlendingDivOperator_2;
+typedef P1VariableOperator<P1Form_div_1> P1BlendingDivOperator_1;
+typedef P1VariableOperator<P1Form_div_2> P1BlendingDivOperator_2;
 
-typedef P1BlendingOperator<P1Form_pspg> P1BlendingPSPGOperator;
+typedef P1VariableOperator<P1Form_pspg> P1BlendingPSPGOperator;
 
 }
 

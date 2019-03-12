@@ -20,14 +20,14 @@ waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG
 waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1StokesBlockCGTest)
 
-waLBerla_compile_test(FILES convergence/P1CGTensorVarcoeffConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1CGTensorVarcoeffConvergenceTest)
+#waLBerla_compile_test(FILES convergence/P1CGTensorVarcoeffConvergenceTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1CGTensorVarcoeffConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P1CGVarcoeffConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
+#waLBerla_compile_test(FILES convergence/P1CGVarcoeffConvergenceTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1CGVarcoeffConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
+#waLBerla_compile_test(FILES convergence/P1CGVarcoordsConvergenceTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1CGVarcoordsConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1GSConvergenceTest)
@@ -179,14 +179,14 @@ waLBerla_compile_test(FILES P1/P1MassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1MassOperatorTest )
 waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES P1/P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
+#waLBerla_compile_test(FILES P1/P1ElementwiseMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
 
-waLBerla_compile_test(FILES P1/P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
+#waLBerla_compile_test(FILES P1/P1ElementwisePolarMassOperatorTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
 
-waLBerla_compile_test(FILES P1/P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1SmoothingTest )
+#waLBerla_compile_test(FILES P1/P1SmoothingTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1SmoothingTest )
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
@@ -397,17 +397,17 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FIL
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
 
 # Blending
-waLBerla_compile_test(FILES blending/P1StokesBlendingTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P1StokesBlendingTest1 COMMAND $<TARGET_FILE:P1StokesBlendingTest> )
-waLBerla_execute_test(NAME P1StokesBlendingTest2 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 2 )
-waLBerla_execute_test(NAME P1StokesBlendingTest8 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 8 )
-
-if( HHG_BUILD_WITH_EIGEN )
-  waLBerla_compile_test(FILES blending/P1StokesPolynomialBlendingTest.cpp DEPENDS tinyhhg_core core)
-  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest1 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> )
-  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
-  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
-endif()
+#waLBerla_compile_test(FILES blending/P1StokesBlendingTest.cpp DEPENDS tinyhhg_core core)
+#waLBerla_execute_test(NAME P1StokesBlendingTest1 COMMAND $<TARGET_FILE:P1StokesBlendingTest> )
+#waLBerla_execute_test(NAME P1StokesBlendingTest2 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 2 )
+#waLBerla_execute_test(NAME P1StokesBlendingTest8 COMMAND $<TARGET_FILE:P1StokesBlendingTest> PROCESSES 8 )
+#
+#if( HHG_BUILD_WITH_EIGEN )
+#  waLBerla_compile_test(FILES blending/P1StokesPolynomialBlendingTest.cpp DEPENDS tinyhhg_core core)
+#  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest1 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> )
+#  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
+#  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
+#endif()
 
 # Test some basic auxiliary stuff for application layer
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)

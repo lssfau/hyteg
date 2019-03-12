@@ -11,8 +11,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
 
 using walberla::real_t;
