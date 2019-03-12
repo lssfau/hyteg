@@ -55,7 +55,7 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
+        vertexdof::variablestencil::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
                                                                                src.getVertexDataID(),
                                                                                dst.getVertexDataID(), updateType);
       }
@@ -67,7 +67,7 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_, src.getEdgeDataID(),
+        vertexdof::variablestencil::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_, src.getEdgeDataID(),
                                                                              dst.getEdgeDataID(), updateType);
       }
     }
@@ -78,7 +78,7 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::applyVariableStencil<real_t, P1Form>(level, face, src.getFaceDataID(),
+        vertexdof::variablestencil::macroface::applyVariableStencil<real_t, P1Form>(level, face, src.getFaceDataID(),
                                                                              dst.getFaceDataID(), updateType);
       }
     }
@@ -102,7 +102,7 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
+        vertexdof::variablestencil::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
                                                                                   dst.getVertexDataID(),
                                                                                   rhs.getVertexDataID());
       }
@@ -119,7 +119,7 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
+        vertexdof::variablestencil::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
                                                                                 dst.getEdgeDataID(),
                                                                                 rhs.getEdgeDataID());
       }
@@ -135,7 +135,7 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::smoothGSVariableStencil<real_t, P1Form>(level, face, dst.getFaceDataID(),
+        vertexdof::variablestencil::macroface::smoothGSVariableStencil<real_t, P1Form>(level, face, dst.getFaceDataID(),
                                                                                 rhs.getFaceDataID());
       }
     }

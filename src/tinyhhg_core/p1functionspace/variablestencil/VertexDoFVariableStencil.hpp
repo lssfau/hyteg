@@ -13,13 +13,13 @@
 
 namespace hhg {
 namespace vertexdof {
-namespace blending {
+namespace variablestencil {
 
 template < class P1Form >
 inline void assembleLocalStencil( const P1Form&                            form,
                                   const std::array< Point3D, 3 >&          coords,
                                   const std::array< stencilDirection, 3 >& directions,
-                                  std::vector< real_t >&                   opr_data )
+                                  real_t*                                  opr_data )
 {
    Point3D matrixRow;
 
@@ -555,6 +555,6 @@ inline void smoothGSVariableStencil(uint_t level,
 
 } // namespace macrovertex
 
-} // namespace blending
+} // namespace variablestencil
 } // namespace vertexdof
 } // namespace hhg
