@@ -95,12 +95,12 @@ static void defectCorrection( int argc, char** argv )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-#if 1
-   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
-      return sin( x[0] ) * sinh( x[1] );
-   };
-   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& ) { return 0; };
-#else
+
+//   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
+//      return sin( x[0] ) * sinh( x[1] );
+//   };
+//   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& ) { return 0; };
+
    std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
@@ -108,7 +108,12 @@ static void defectCorrection( int argc, char** argv )
    std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
-#endif
+
+//   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
+//      return sin( x[0] ) * sinh( x[1] ) + 1.0 + x[0] * x[0] + 2.0 * x[1] * x[1];
+//   };
+//   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& ) { return -6.0; };
+
 
    P1Function< real_t > u( "u", storage, minLevel, maxLevel );
    P1Function< real_t > f( "f", storage, minLevel, maxLevel );
@@ -118,6 +123,7 @@ static void defectCorrection( int argc, char** argv )
    P1Function< real_t > error( "error", storage, minLevel, maxLevel );
    P1Function< real_t > Au_P1( "Au_P1", storage, minLevel, maxLevel );
    P1Function< real_t > Au_P2_converted_to_P2( "Au_P1", storage, minLevel, maxLevel );
+   P1Function< real_t > f_P2_on_P1_space( "f_P2_on_p1_space", storage, minLevel, maxLevel );
 
    P2Function< real_t > u_P2( "u_P2", storage, maxLevel - 1, maxLevel - 1 );
    P2Function< real_t > Au_P2( "Au_P2", storage, maxLevel - 1, maxLevel - 1 );
@@ -145,7 +151,11 @@ static void defectCorrection( int argc, char** argv )
 
    tmp_P2.interpolate( rhsAnalytical, maxLevel - 1, All );
    M_P2.apply( tmp_P2, f_P2, maxLevel - 1, All );
-   f.assign( f_P2, maxLevel, All );
+   f_P2_on_P1_space.assign( f_P2, maxLevel, All );
+
+   tmp.interpolate( rhsAnalytical, maxLevel, All );
+   M_P1.apply( tmp, f, maxLevel, All );
+
 
    // solver
    auto petscSolver           = std::make_shared< PETScLUSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
@@ -189,7 +199,7 @@ static void defectCorrection( int argc, char** argv )
 
       // defect correction
       // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
-      fCorrection.assign( {1.0, -1.0, 1.0}, {f, Au_P2_converted_to_P2, Au_P1}, maxLevel, All );
+      fCorrection.assign( {1.0, -1.0, 1.0}, {f_P2_on_P1_space, Au_P2_converted_to_P2, Au_P1}, maxLevel, All );
 
       // solve
       // A * u = f_correction
