@@ -141,7 +141,6 @@ class P2Function : public Function< P2Function< ValueType > >
 
       WALBERLA_CHECK_GREATER_EQUAL( P1Level, src.getMinLevel() );
       WALBERLA_CHECK_LESS_EQUAL( P1Level, src.getMaxLevel() );
-      WALBERLA_CHECK( !this->getStorage()->hasGlobalCells() );
 
       for ( const auto& it : this->getStorage()->getVertices() )
       {
@@ -206,6 +205,51 @@ class P2Function : public Function< P2Function< ValueType > >
             }
          }
       }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            auto P1Data   = cell.getData( src.getCellDataID() )->getPointer( P1Level );
+            auto P2Data_v = cell.getData( getVertexDoFFunction().getCellDataID() )->getPointer( P2Level );
+            auto P2Data_e = cell.getData( getEdgeDoFFunction().getCellDataID() )->getPointer( P2Level );
+
+            for ( auto itIdx : vertexdof::macrocell::Iterator( P2Level ) )
+            {
+               P2Data_v[vertexdof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z() )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 )];
+            }
+            for ( auto itIdx : edgedof::macrocell::Iterator( P2Level ) )
+            {
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::X )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Y )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Z )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 + 1 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XY )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 + 1 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::YZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )];
+            }
+
+            for ( auto itIdx : edgedof::macrocell::IteratorXYZ( P2Level ) )
+            {
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XYZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )];
+            }
+         }
+      }
+
       this->stopTiming( "Assign (P1 -> P2)" );
    }
 
