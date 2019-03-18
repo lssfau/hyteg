@@ -13,6 +13,7 @@ namespace hhg
 {
 
 using walberla::real_t;
+using walberla::uint_t;
 
 /// \brief  N-dimensional vector
 /// \author Daniel Drzisga (drzisga@ma.tum.de)
@@ -150,7 +151,7 @@ public:
   /// Reference to component of vector at position \p index
   /// \param index The index of the component to access
   /// \returns Reference to component at position \p index
-  T& operator[](const int index)
+  T& operator[](const uint_t index)
   {
     return x_[index];
   }
@@ -158,7 +159,7 @@ public:
   /// Value of component of vector at position \p index
   /// \param index The index of the component to access
   /// \returns Value of component at position \p index
-  T operator[](const int index) const
+  T operator[](const uint_t index) const
   {
     return x_[index];
   }

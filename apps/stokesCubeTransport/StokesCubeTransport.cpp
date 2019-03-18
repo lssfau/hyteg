@@ -128,7 +128,7 @@ int main( int argc, char* argv[] )
    }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
-   hhg::P1MassOperator   M( storage, minLevel, maxLevel );
+   hhg::P1ConstantMassOperator   M( storage, minLevel, maxLevel );
 
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {

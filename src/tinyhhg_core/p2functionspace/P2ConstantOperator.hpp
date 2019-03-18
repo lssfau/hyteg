@@ -24,7 +24,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
  public:
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
-   const P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >& getVertexToVertexOpr() const { return vertexToVertex; }
+   const P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, UFCOperator3D > >& getVertexToVertexOpr() const { return vertexToVertex; }
 
    const EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D >& getEdgeToVertexOpr() const { return edgeToVertex; }
 
@@ -57,7 +57,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
    void assembleStencils3D();
 
-   P1ConstantOperator< fenics::NoAssemble, UFCOperator3D >         vertexToVertex;
+   P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, UFCOperator3D > > vertexToVertex;
    EdgeDoFToVertexDoFOperator< fenics::NoAssemble, UFCOperator3D > edgeToVertex;
    VertexDoFToEdgeDoFOperator< fenics::NoAssemble, UFCOperator3D > vertexToEdge;
    EdgeDoFOperator                                                 edgeToEdge;

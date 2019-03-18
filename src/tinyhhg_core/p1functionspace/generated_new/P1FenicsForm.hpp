@@ -1,10 +1,46 @@
 #pragma once
 
-#include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/form/Form.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
 
-class p1_diffusion_cell_integral_0_otherwise;
+#include "tinyhhg_core/fenics/fenics.hpp"
+#include "tinyhhg_core/fenics/ufc_traits.hpp"
+
+
+// P1
+#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_div.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_div_K_grad.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_polar_laplacian.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_polar_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_div_tet.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_divt_tet.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_mass.h"
+#include "tinyhhg_core/p1functionspace/generated/p1_tet_pspg_tet.h"
+
+
+// P2
+#include "tinyhhg_core/p2functionspace/generated/p2_diffusion.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_div.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_mass.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
+
+// P1 to P2
+#include "tinyhhg_core/mixedoperators/generated/p1_to_p2_divt.h"
+#include "tinyhhg_core/mixedoperators/generated/p1_to_p2_tet_divt_tet.h"
+
+// P2 to P1
+#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_div.h"
+#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
 
 namespace hhg {
 
@@ -29,13 +65,36 @@ class P1FenicsForm : public Form
       out[2] = localStiffnessMatrix( 0, 2 );
    }
 
-   bool assemble2D() const { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
+   {
+      typename fenics::UFCTrait< UFCOperator3D >::LocalStiffnessMatrix_T localStiffnessMatrix;
 
-   bool assemble3D() const { return !std::is_same< UFCOperator3D, hhg::fenics::NoAssemble >::value; }
+      // Flattening the offset array to be able to pass it to the fenics routines.
+      double geometricOffsetsArray[12];
+      for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ )
+      {
+         for ( int coordinate = 0; coordinate < 3; coordinate++ )
+         {
+            geometricOffsetsArray[cellVertex * 3 + uint_c( coordinate )] = coords[cellVertex][coordinate];
+         }
+      }
 
-   bool assembly2DDefined() const { return !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value; }
+      UFCOperator3D gen;
+      gen.tabulate_tensor( localStiffnessMatrix.data(), NULL, geometricOffsetsArray, 0 );
 
-   bool assembly3DDefined() const { return !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value; }
+      out[0] = localStiffnessMatrix( 0, 0 );
+      out[1] = localStiffnessMatrix( 0, 1 );
+      out[2] = localStiffnessMatrix( 0, 2 );
+      out[3] = localStiffnessMatrix( 0, 3 );
+   }
+
+   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
+
+   bool assemble3D() const override { return !std::is_same< UFCOperator3D, hhg::fenics::NoAssemble >::value; }
+
+   bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value; }
+
+   bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value; }
 };
 
 } // namespace hhg

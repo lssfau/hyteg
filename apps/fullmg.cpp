@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
 
    hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
-   hhg::P1MassOperator    M( storage, minLevel, maxLevel );
+   hhg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
 
    hhg::P1toP1LinearRestriction restrictionOperator;
    hhg::P1toP1LinearProlongation prolongationOperator;

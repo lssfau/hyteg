@@ -997,7 +997,7 @@ int main( int argc, char* argv[] )
   switch ( discretizationType )
   {
     case hhg::P1P1:
-      hhg::run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, hhg::P1MassOperator >(
+      hhg::run< hhg::P1StokesFunction, hhg::P1StokesOperator, hhg::P1P1StokesToP1P1StokesRestriction, hhg::P1P1StokesToP1P1StokesProlongation, hhg::P1ConstantMassOperator >(
         meshInfo, minLevel, maxLevel, solverType, coarseGridSolver, numMGCycles, preSmooth, postSmooth, incrementSmooth, uzawaRelaxParam, targetResidual, maxIterations,
         setMeshBoundaryFlags, setUVelocityBC, setVVelocityBC, setUVelocityRHS, setVVelocityRHS,
         compareWithAnalyticalSolution, solutionU, solutionV, solutionP,

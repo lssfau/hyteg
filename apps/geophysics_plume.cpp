@@ -100,7 +100,7 @@ int main( int argc, char* argv[] )
         std::shared_ptr< hhg::P1Function< real_t > >( &u->v, boost::null_deleter() )}};
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
-   hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
+   hhg::P1ConstantMassOperator                        M( storage, minLevel, maxLevel );
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );

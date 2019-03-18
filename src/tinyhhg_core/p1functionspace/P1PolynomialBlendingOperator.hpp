@@ -12,7 +12,7 @@
 #pragma warning( push, 0 )
 #endif
 
-#include "blending/VertexDoFBlending.hpp"
+#include "variablestencil/VertexDoFVariableStencil.hpp"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -130,12 +130,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                   std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil );
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil );
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil );
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil );
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil );
-                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                   //if (i == 1 && j == 1) {
                   //   PointND<real_t, 7> test(faceStencil.data());
@@ -244,12 +244,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                  std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil );
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil );
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil );
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil );
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil );
-                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                  //if (i == 1 && j == 1) {
                  //   PointND<real_t, 7> test(faceStencil.data());

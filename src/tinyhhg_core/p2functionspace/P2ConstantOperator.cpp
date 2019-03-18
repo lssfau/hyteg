@@ -241,7 +241,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
                                                   getEdgeToVertexOpr().getFaceStencil3DID(),
                                                   getEdgeToVertexOpr().getCellStencilID() );
 
-   UFCOperator3D ufcOperator;
+   P1FenicsForm< UFCOperator2D, UFCOperator3D > form;
 
    // Assemble vertex -> vertex stencils on all levels
    for( uint_t level = minLevel_; level <= maxLevel_; ++level )
@@ -258,7 +258,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          auto          stencilMemory = vertex.getData( getVertexToVertexOpr().getVertexStencilID() )->getPointer( level );
 
          auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil(
-            storage_, vertex, indexing::Index( 0, 0, 0 ), level, ufcOperator );
+            storage_, vertex, indexing::Index( 0, 0, 0 ), level, form );
 
          WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
          for( uint_t i = 0; i < stencilSize; i++ )
@@ -280,7 +280,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          auto          stencilMemory = edge.getData( getVertexToVertexOpr().getEdgeStencilID() )->getPointer( level );
 
          auto stencil =
-         P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, edge, indexing::Index( 1, 0, 0 ), level, ufcOperator );
+         P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, edge, indexing::Index( 1, 0, 0 ), level, form );
 
          WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
          for( uint_t i = 0; i < stencilSize; i++ )
@@ -302,7 +302,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          auto stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
 
          auto stencil =
-             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
+             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, face, indexing::Index( 1, 1, 0 ), level, form );
 
          if( face.getNumNeighborCells() == 1 )
          {
@@ -342,7 +342,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          // vertex to vertex
          auto       vertexToVertexStencilMemory = cell.getData( getVertexToVertexOpr().getCellStencilID() )->getPointer( level );
          const auto vertexToVertexStencilMap    = P1Elements::P1Elements3D::assembleP1LocalStencil(
-             getStorage(), cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
+             getStorage(), cell, indexing::Index( 1, 1, 1 ), level, form );
 
          for( const auto stencilIt : vertexToVertexStencilMap )
          {

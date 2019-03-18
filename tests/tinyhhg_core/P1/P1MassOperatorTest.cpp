@@ -15,7 +15,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
   const size_t minLevel = 2;
   const size_t maxLevel = 4;
 
-  P1MassOperator massOp( storage, minLevel, maxLevel );
+  P1ConstantMassOperator massOp( storage, minLevel, maxLevel );
 
   P1Function< real_t > aux( "aux", storage, minLevel, maxLevel );
   P1Function< real_t > vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
