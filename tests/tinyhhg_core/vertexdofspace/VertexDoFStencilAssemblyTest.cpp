@@ -31,7 +31,7 @@ static void testVertexDoFStencilAssembly()
 
   auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
 
-  typedef P1FenicsForm< p1_tet_diffusion_cell_integral_0_otherwise > P1TestForm;
+  typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1TestForm;
   P1TestForm form;
 
   for ( const auto & it : storage->getVertices() )
