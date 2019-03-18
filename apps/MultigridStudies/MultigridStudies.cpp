@@ -1070,7 +1070,7 @@ void setup( int argc, char** argv )
       {
          MultigridLaplace< P1Function< real_t >,
                            P1ConstantLaplaceOperator,
-                           P1MassOperator,
+                           P1ConstantMassOperator,
                            P1toP1LinearRestriction,
                            P1toP1LinearProlongation,
                            P1toP1QuadraticProlongation >( storage,
@@ -1124,7 +1124,7 @@ void setup( int argc, char** argv )
          MultigridStokes< P1StokesFunction< real_t >,
                           P1StokesFunction< int >,
                           P1StokesOperator,
-                          P1MassOperator,
+                          P1ConstantMassOperator,
                           P1P1StokesToP1P1StokesRestriction,
                           P1P1StokesToP1P1StokesProlongation,
                           P1P1StokesToP1P1StokesProlongation >( storage,
