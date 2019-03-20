@@ -3,6 +3,7 @@
 #include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 #include "generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
 
+#include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
 namespace hhg{
@@ -72,68 +73,171 @@ EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator
 
 template< class EdgeDoFToVertexDoFForm >
 void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
-   WALBERLA_ABORT("Not implemented.");
-//  using namespace P2Elements;
-//
-//  // Initialize memory for local 6x6 matrices
-//  Matrix6r local_stiffness_gray;
-//  Matrix6r local_stiffness_blue;
-//
-//  // Assemble stencils on all levels
-//  for (uint_t level = minLevel_; level <= maxLevel_; ++level)
-//  {
-//
-//    // Assemble face stencils
-//    for (auto& it : storage_->getFaces()) {
-//      Face& face = *it.second;
-//
-//      // Compute both local stiffness matrices
-//      compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
-//      compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
-//
-//      // Assemble edgeToVertex stencil
-//      real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
-//      P2Face::EdgeToVertex::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-////        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
-//    }
-//
-//    // Assemble edge stencils
-//    for (auto& it : storage_->getEdges()) {
-//      Edge &edge = *it.second;
-//
-//      // Assemble edgeToVertex
-//      Face* face = storage_->getFace(edge.neighborFaces()[0]);
-//      real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
-//      compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-//      compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
-//      P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
-//
-//      if (edge.getNumNeighborFaces() == 2) {
-//        face = storage_->getFace(edge.neighborFaces()[1]);
-//        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-//        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
-//        P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
-//      }
-//
-////        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Edge = {}", PointND<real_t, 7>(&vStencil[0])));
-//    }
-//
-//    for (auto& it : storage_->getVertices()) {
-//      Vertex &vertex = *it.second;
-//
-//      // Assemble EdgeToVertex
-//      real_t* vStencil = storage_->getVertex(vertex.getID())->getData(vertexStencilID_)->getPointer(level);
-//      for (auto& faceId : vertex.neighborFaces())
-//      {
-//        Face* face = storage_->getFace(faceId);
-//        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-//        P2Vertex::EdgeToVertex::assembleStencil(vertex, *face, local_stiffness_gray, vStencil, storage_);
-//      }
-//
-////        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Vertex = {}", PointND<real_t, 5>(&vStencil[0])));
-//    }
-//
-//  }
+  using namespace P2Elements;
+
+  // Assemble stencils on all levels
+  for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+  {
+
+    // Assemble face stencils
+    for (auto& it : storage_->getFaces()) {
+      Face& face = *it.second;
+
+       uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+
+       Point3D x( face.coords[0] );
+       real_t  h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+
+       Point3D d0 = h * ( face.coords[1] - face.coords[0] );
+       Point3D d2 = h * ( face.coords[2] - face.coords[0] );
+
+       form.geometryMap = face.getGeometryMap();
+
+       Point3D dirS  = -1.0 * d2;
+       Point3D dirSE = d0 - 1.0 * d2;
+       Point3D dirE  = d0;
+       Point3D dirW  = -1.0 * d0;
+       Point3D dirNW = -1.0 * d0 + d2;
+       Point3D dirN  = d2;
+
+       std::vector< real_t > vertexToVertex( 7 );
+       std::vector< real_t > edgeToVertex( 12 );
+
+       real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
+
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirW, x + dirS}, P2Elements::P2Face::elementSW_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirS, x + dirSE}, P2Elements::P2Face::elementS_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirSE, x + dirE}, P2Elements::P2Face::elementSE_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirE, x + dirN}, P2Elements::P2Face::elementNE_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirN, x + dirNW}, P2Elements::P2Face::elementN_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirNW, x + dirW}, P2Elements::P2Face::elementNW_reord, vStencil );
+    }
+
+    // Assemble edge stencils
+    for (auto& it : storage_->getEdges()) {
+      Edge &edge = *it.second;
+      real_t *vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
+
+      size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+      Face *faceS = storage_->getFace(edge.neighborFaces()[0]);
+      Face *faceN;
+      uint_t s_south = faceS->vertex_index(edge.neighborVertices()[0]);
+      uint_t e_south = faceS->vertex_index(edge.neighborVertices()[1]);
+      uint_t o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
+
+      real_t h = 1.0 / (walberla::real_c(rowsize - 1));
+
+      Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
+      Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
+      Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
+
+      Point3D dir_S = -1.0 * dS_oe;
+      Point3D dir_E = dS_se;
+      Point3D dir_SE = dS_so;
+      Point3D dir_W = -1.0 * dS_se;
+
+      Point3D x = edge.getCoordinates()[0];
+      Point3D dx = h * edge.getDirection();
+      x += dx;
+
+      uint_t s_north, e_north, o_north;
+      Point3D dir_N;
+      Point3D dir_NW;
+
+      if (edge.getNumNeighborFaces() == 2) {
+        faceN = storage_->getFace(edge.neighborFaces()[1]);
+        s_north = faceN->vertex_index(edge.neighborVertices()[0]);
+        e_north = faceN->vertex_index(edge.neighborVertices()[1]);
+        o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
+
+        Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
+        Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
+
+        dir_N = dN_so;
+        dir_NW = -1.0 * dN_oe;
+      }
+
+     // assemble south
+     form.geometryMap = faceS->getGeometryMap();
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_W, x + dir_S},
+                                                         P2Elements::P2Face::elementSW_reord, vStencil);
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_S, x + dir_SE},
+                                                         P2Elements::P2Face::elementS_reord, vStencil);
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+         form, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil);
+
+     if (edge.getNumNeighborFaces() == 2) {
+       form.geometryMap = faceN->getGeometryMap();
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil);
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_N, x + dir_NW}, P2Elements::P2Face::elementN_reord, vStencil);
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_NW, x + dir_W}, P2Elements::P2Face::elementNW_reord, vStencil);
+        }
+    }
+
+    for (auto& it : storage_->getVertices()) {
+      Vertex &vertex = *it.second;
+
+      // Assemble EdgeToVertex
+      real_t* vStencil = storage_->getVertex(vertex.getID())->getData(vertexStencilID_)->getPointer(level);
+
+       uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+       std::vector< real_t > vertexToVertex( 1 + vertex.getNumNeighborEdges() );
+       std::vector< real_t > edgeToVertex( vertex.getNumNeighborEdges() + vertex.getNumNeighborFaces() );
+       std::fill( vertexToVertex.begin(), vertexToVertex.end(), 0.0 );
+       std::fill( edgeToVertex.begin(), edgeToVertex.end(), 0.0 );
+       Point3D x;
+       Point3D d0;
+       Point3D d2;
+
+       real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+
+       uint_t neighborId = 0;
+       for( auto& faceId : vertex.neighborFaces() )
+       {
+          Face* face       = storage_->getFace( faceId );
+          form.geometryMap = face->getGeometryMap();
+
+          uint_t                     v_i       = face->vertex_index( vertex.getID() );
+          std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
+
+          x = face->coords[v_i];
+          d0 =
+              ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          d2 =
+              ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+
+          Point3D matrixRow;
+          form.integrateEdgeToVertex( {{x, x + d0, x + d2}}, matrixRow );
+
+          uint_t i = 1;
+          // iterate over adjacent edges
+          for( auto& edgeId : adj_edges )
+          {
+             uint_t edge_idx = vertex.edge_index( edgeId );
+             Edge*  edge     = storage_->getEdge( edgeId );
+
+             edgeToVertex[edge_idx] += matrixRow[3 - i];
+             i += 1;
+          }
+
+          uint face_idx = vertex.getNumNeighborEdges() + vertex.face_index( face->getID() );
+          vStencil[face_idx] += matrixRow[0];
+
+          ++neighborId;
+       }
+    }
+  }
 }
 
 template< class EdgeDoFToVertexDoFForm >
