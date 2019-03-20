@@ -17,6 +17,8 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
 
+#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+
 #include "P1Elements.hpp"
 #include "generatedKernels/GeneratedKernelsVertexToVertexMacroCell3D.hpp"
 #include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
@@ -956,4 +958,5 @@ template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_divt_cel
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_div_cell_integral_0_otherwise> >;
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_div_cell_integral_1_otherwise> >;
 
+template class P1ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 } // namespace hhg

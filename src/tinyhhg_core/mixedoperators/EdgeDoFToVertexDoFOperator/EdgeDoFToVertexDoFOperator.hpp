@@ -23,7 +23,7 @@
 
 namespace hhg {
 
-template< class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
+template< class EdgeDoFToVertexDoFForm >
 class EdgeDoFToVertexDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t >, hhg::P1Function < real_t > >
 {
 public:
@@ -45,8 +45,6 @@ private:
 
   void assembleStencils();
 
-  void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
-
   PrimitiveDataID<StencilMemory< real_t >, Vertex> vertexStencilID_;
   PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > vertexStencil3DID_;
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
@@ -54,6 +52,8 @@ private:
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
   PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > faceStencil3DID_;
   PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > cellStencilID_;
+
+  EdgeDoFToVertexDoFForm form;
 
 };
 
@@ -212,12 +212,12 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 
 }/// namespace EdgeDoFToVertexDoF
 
-typedef EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > GenericEdgeDoFToVertexDoFOperator;
-typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise> EdgeToVertexDivxOperator;
-typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise> EdgeToVertexDivyOperator;
-
-typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > P2ToP1DivxEdgeToVertexOperator;
-typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > P2ToP1DivyEdgeToVertexOperator;
-typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > P2ToP1DivzEdgeToVertexOperator;
+//typedef EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > GenericEdgeDoFToVertexDoFOperator;
+//typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise> EdgeToVertexDivxOperator;
+//typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise> EdgeToVertexDivyOperator;
+//
+//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > P2ToP1DivxEdgeToVertexOperator;
+//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > P2ToP1DivyEdgeToVertexOperator;
+//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > P2ToP1DivzEdgeToVertexOperator;
 
 }/// namespace hhg

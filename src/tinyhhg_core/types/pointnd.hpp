@@ -240,6 +240,7 @@ inline std::ostream& operator<<(std::ostream &os, const PointND<T, N> &pointnd)
 typedef PointND<real_t, 2> Point2D;
 typedef PointND<real_t, 3> Point3D;
 typedef PointND<real_t, 4> Point4D;
+typedef PointND<real_t, 6> Point6D;
 
 }
 
