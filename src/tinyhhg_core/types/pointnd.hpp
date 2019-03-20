@@ -148,11 +148,19 @@ public:
     return *this;
   }
 
+  /// Return negated copy of \p this
+  /// \returns Copy of \p this with negated components
+  PointND operator-() const
+  {
+    return static_cast<T>(-1) * (*this);
+  }
+
   /// Reference to component of vector at position \p index
   /// \param index The index of the component to access
   /// \returns Reference to component at position \p index
   T& operator[](const uint_t index)
   {
+    WALBERLA_ASSERT(index < N, "PointND index out of bounds: index = " << index << " but N = " << N);
     return x_[index];
   }
 
@@ -161,6 +169,7 @@ public:
   /// \returns Value of component at position \p index
   T operator[](const uint_t index) const
   {
+    WALBERLA_ASSERT(index < N, "PointND index out of bounds: index = " << index << " but N = " << N);
     return x_[index];
   }
 
