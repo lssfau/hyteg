@@ -77,7 +77,6 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils() {
       // Assemble vertexToEdge stencil
       real_t * vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
 
-       typedef stencilDirection SD;
        form.geometryMap = face.getGeometryMap();
 
        const Point3D faceBottomLeftCoords  = face.coords[0];
