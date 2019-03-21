@@ -241,12 +241,12 @@ void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
    }
 }
 
-//template class P2ConstantOperator< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >;
+template class P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 template class P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 
-//template class P2ConstantOperator< p2_divt_cell_integral_0_otherwise >;
-//template class P2ConstantOperator< p2_divt_cell_integral_1_otherwise >;
-//template class P2ConstantOperator< p2_div_cell_integral_0_otherwise >;
-//template class P2ConstantOperator< p2_div_cell_integral_1_otherwise >;
+template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >;
 
 } // namespace hhg

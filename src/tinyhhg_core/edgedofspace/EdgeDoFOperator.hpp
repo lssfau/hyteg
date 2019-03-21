@@ -10,6 +10,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
+#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 
 namespace hhg{
 
@@ -173,5 +174,7 @@ void assembleEdgeToEdgeStencils( const std::shared_ptr< PrimitiveStorage > & sto
         }
     }
 }
+
+typedef EdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, fenics::NoAssemble > > GenericEdgeDoFOperator;
 
 }

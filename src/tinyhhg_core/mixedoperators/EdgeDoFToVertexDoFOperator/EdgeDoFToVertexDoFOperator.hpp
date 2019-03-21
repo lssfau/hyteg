@@ -6,6 +6,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
+#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
@@ -212,12 +213,12 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 
 }/// namespace EdgeDoFToVertexDoF
 
-//typedef EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > GenericEdgeDoFToVertexDoFOperator;
-//typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise> EdgeToVertexDivxOperator;
-//typedef EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise> EdgeToVertexDivyOperator;
-//
-//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > P2ToP1DivxEdgeToVertexOperator;
-//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > P2ToP1DivyEdgeToVertexOperator;
-//typedef EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > P2ToP1DivzEdgeToVertexOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > > GenericEdgeDoFToVertexDoFOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > > EdgeToVertexDivxOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > > EdgeToVertexDivyOperator;
+
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > > P2ToP1DivxEdgeToVertexOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > > P2ToP1DivyEdgeToVertexOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > > P2ToP1DivzEdgeToVertexOperator;
 
 }/// namespace hhg

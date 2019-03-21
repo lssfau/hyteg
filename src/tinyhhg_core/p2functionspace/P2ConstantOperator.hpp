@@ -58,13 +58,13 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
    P2Form form;
 };
 
-//typedef P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
-//    P2ConstantLaplaceOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
+    P2ConstantLaplaceOperator;
 typedef P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > P2ConstantMassOperator;
 
-//typedef P2ConstantOperator< p2_divt_cell_integral_0_otherwise > P2ConstantDivTxOperator;
-//typedef P2ConstantOperator< p2_divt_cell_integral_1_otherwise > P2ConstantDivTyOperator;
-//typedef P2ConstantOperator< p2_div_cell_integral_0_otherwise >  P2ConstantDivxOperator;
-//typedef P2ConstantOperator< p2_div_cell_integral_1_otherwise >  P2ConstantDivyOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > > P2ConstantDivTxOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > > P2ConstantDivTyOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >  P2ConstantDivxOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >  P2ConstantDivyOperator;
 
 } // namespace hhg
