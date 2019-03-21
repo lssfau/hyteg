@@ -99,9 +99,6 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        Point3D dirNW = -1.0 * d0 + d2;
        Point3D dirN  = d2;
 
-       std::vector< real_t > vertexToVertex( 7 );
-       std::vector< real_t > edgeToVertex( 12 );
-
        real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
 
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
