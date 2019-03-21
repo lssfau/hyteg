@@ -171,7 +171,6 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils() {
       Edge &edge = *it.second;
       real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
 
-       typedef stencilDirection SD;
        using namespace hhg::edgedof::macroedge;
        size_t rowsize = levelinfo::num_microedges_per_edge( level );
 
