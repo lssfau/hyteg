@@ -5,14 +5,18 @@
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/misc/ExactStencilWeights.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 
-#include "tinyhhg_core/solvers/SchurCGSolver.hpp"
+#include "tinyhhg_core/solvers/controlflow/SolverLoop.hpp"
+#include "tinyhhg_core/solvers/StokesPCGSolver.hpp"
+#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
+#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -26,19 +30,21 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
+  const uint_t minLevel = 2;
+
   hhg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
   writeDomainPartitioningVTK( storage, "../../output", "P2P1Stokes2DSchurCGConvergence_Domain" );
 
-  hhg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, minLevel, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, minLevel, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, minLevel, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, minLevel, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, minLevel, level );
+  hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, minLevel, level );
 
-  hhg::P2P1TaylorHoodStokesOperator A( storage, level, level );
+  hhg::P2P1TaylorHoodStokesOperator A( storage, minLevel, level );
 
   std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
   std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
@@ -74,8 +80,13 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  auto cgSolver = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, level, level );
-  SchurCGSolver< P2P1TaylorHoodStokesOperator > solver( storage, cgSolver, level, level, 1e-15, 100, Inner | NeumannBoundary );
+  auto coarseGrid     = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, minLevel, minLevel, std::numeric_limits< uint_t >::max(), 1e-16 );
+  auto smoother       = std::make_shared< GaussSeidelSmoother< P2ConstantLaplaceOperator > >();
+  auto prolongation   = std::make_shared< P2toP2QuadraticProlongation >();
+  auto restriction    = std::make_shared< P2toP2QuadraticRestriction >();
+  auto velocitySolver = std::make_shared< GeometricMultigridSolver< P2ConstantLaplaceOperator > >( storage, smoother, coarseGrid, restriction, prolongation, minLevel, level, 2, 2 );
+  auto loop           = std::make_shared< SolverLoop< P2ConstantLaplaceOperator > >( velocitySolver, 10 );
+  StokesPCGSolver< P2P1TaylorHoodStokesOperator > solver( storage, loop, minLevel, level, 1e-10, 100, Inner | NeumannBoundary );
 
   walberla::WcTimer timer;
   solver.solve( A, x, b, level );
@@ -99,12 +110,12 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-  vtkOutput.write( level, 1 );
+  vtkOutput.write( level, 3 );
 
   WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_v, 2.4e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_p, 2.9e-01 );
-  WALBERLA_CHECK_LESS( residuum_l2_1,  3.0e-14 );
+  WALBERLA_CHECK_LESS( residuum_l2_1,  2.0e-09 );
 }
 
 }

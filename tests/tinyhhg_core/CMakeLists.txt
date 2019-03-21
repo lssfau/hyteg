@@ -71,8 +71,10 @@ waLBerla_execute_test(NAME P2GMGPRefinementConvergenceTestMPI COMMAND $<TARGET_F
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 
-waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS tinyhhg_core core)
-waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
+endif()
 
 waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2GSConvergenceTest)
