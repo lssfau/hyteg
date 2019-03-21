@@ -65,6 +65,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    hhg::testP2SmoothConvergence( 3, "../../data/meshes/3D/tet_1el.msh", 50, 1.2e-02 );
    hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_2el.msh", 50, 9.0e-07 );
+   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_4el.msh", 50, 1.5e-03 );
 
    return EXIT_SUCCESS;
 }

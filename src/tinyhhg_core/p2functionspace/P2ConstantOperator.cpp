@@ -425,7 +425,18 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
       {
          if ( storage_->hasGlobalCells() )
          {
-
+            P2::macroedge::smoothSOR3D( level,
+                                        *storage_,
+                                        edge,
+                                        relax,
+                                        vertexToVertex.getEdgeStencilID(),
+                                        edgeToVertex.getEdgeStencil3DID(),
+                                        vertexToEdge.getEdgeStencil3DID(),
+                                        edgeToEdge.getEdgeStencil3DID(),
+                                        dst.getVertexDoFFunction().getEdgeDataID(),
+                                        rhs.getVertexDoFFunction().getEdgeDataID(),
+                                        dst.getEdgeDoFFunction().getEdgeDataID(),
+                                        rhs.getEdgeDoFFunction().getEdgeDataID() );
          }
          else
          {

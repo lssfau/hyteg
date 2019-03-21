@@ -45,6 +45,20 @@ inline void smoothGaussSeidel( const uint_t&                                    
                 rhsEdgeDoFID );
 }
 
+void smoothSOR3D(
+    const uint_t&                                                                                level,
+    const PrimitiveStorage&                                                                      storage,
+    Edge&                                                                                        edge,
+    const real_t&                                                                                relax,
+    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& edgeToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& vertexToEdgeOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >&          edgeToEdgeOperatorId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFRhsId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId );
+
 } // namespace macroedge
 } // namespace P2
 } // namespace hhg
