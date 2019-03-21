@@ -192,10 +192,6 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
 
        uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
-       std::vector< real_t > vertexToVertex( 1 + vertex.getNumNeighborEdges() );
-       std::vector< real_t > edgeToVertex( vertex.getNumNeighborEdges() + vertex.getNumNeighborFaces() );
-       std::fill( vertexToVertex.begin(), vertexToVertex.end(), 0.0 );
-       std::fill( edgeToVertex.begin(), edgeToVertex.end(), 0.0 );
        Point3D x;
        Point3D d0;
        Point3D d2;
@@ -225,13 +221,11 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
           for( auto& edgeId : adj_edges )
           {
              uint_t edge_idx = vertex.edge_index( edgeId );
-             Edge*  edge     = storage_->getEdge( edgeId );
-
-             edgeToVertex[edge_idx] += matrixRow[3 - i];
+             vStencil[edge_idx] += matrixRow[3 - i];
              i += 1;
           }
 
-          uint face_idx = vertex.getNumNeighborEdges() + vertex.face_index( face->getID() );
+          walberla::uint_t face_idx = vertex.getNumNeighborEdges() + vertex.face_index( face->getID() );
           vStencil[face_idx] += matrixRow[0];
 
           ++neighborId;

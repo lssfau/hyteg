@@ -23,7 +23,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
    const VertexDoFToEdgeDoFOperator< P2Form >& getVertexToEdgeOpr() const { return vertexToEdge; }
 
-   const EdgeDoFOperator& getEdgeToEdgeOpr() const { return edgeToEdge; }
+   const EdgeDoFOperator< P2Form >& getEdgeToEdgeOpr() const { return edgeToEdge; }
 
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -53,7 +53,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
    P1ConstantOperator< P2Form >         vertexToVertex;
    EdgeDoFToVertexDoFOperator< P2Form > edgeToVertex;
    VertexDoFToEdgeDoFOperator< P2Form > vertexToEdge;
-   EdgeDoFOperator                      edgeToEdge;
+   EdgeDoFOperator< P2Form >            edgeToEdge;
 
    P2Form form;
 };
