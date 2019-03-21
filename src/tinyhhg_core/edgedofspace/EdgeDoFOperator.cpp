@@ -168,7 +168,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          size_t rowsize = levelinfo::num_microedges_per_edge( level );
 
          Face*  faceS = storage_->getFace( edge.neighborFaces()[0] );
-         Face*  faceN;
+         Face*  faceN = nullptr;
          uint_t s_south = faceS->vertex_index( edge.neighborVertices()[0] );
          uint_t e_south = faceS->vertex_index( edge.neighborVertices()[1] );
          uint_t o_south = faceS->vertex_index( faceS->get_vertex_opposite_to_edge( edge.getID() ) );
