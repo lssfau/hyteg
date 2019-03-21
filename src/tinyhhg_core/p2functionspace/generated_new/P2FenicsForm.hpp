@@ -67,18 +67,18 @@ class P2FenicsForm : public P2Form
    {
       Matrix6r localStiffnessMatrix;
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
-      out[0] = localStiffnessMatrix( 3, 0 );
-      out[1] = localStiffnessMatrix( 3, 1 );
-      out[2] = localStiffnessMatrix( 3, 2 );
+      out[0] = localStiffnessMatrix( 5, 0 );
+      out[1] = localStiffnessMatrix( 5, 1 );
+      out[2] = localStiffnessMatrix( 5, 2 );
    }
 
    void integrateEdgeToEdge( const std::array< Point3D, 3 >& coords, Point3D& out ) const
    {
       Matrix6r localStiffnessMatrix;
       computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
-      out[0] = localStiffnessMatrix( 3, 3 );
-      out[1] = localStiffnessMatrix( 3, 4 );
-      out[2] = localStiffnessMatrix( 3, 5 );
+      out[0] = localStiffnessMatrix( 5, 3 );
+      out[1] = localStiffnessMatrix( 5, 4 );
+      out[2] = localStiffnessMatrix( 5, 5 );
    }
 
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override { WALBERLA_ABORT( "Not implemented." ); }
