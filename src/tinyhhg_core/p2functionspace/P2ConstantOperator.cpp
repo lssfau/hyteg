@@ -20,6 +20,7 @@
 #include "generated/p2_div.h"
 #include "generated/p2_divt.h"
 #include "generated/p2_mass.h"
+#include "generated/p2_pspg.h"
 #include "generated/p2_tet_diffusion.h"
 #include "generated/p2_tet_mass.h"
 
@@ -552,6 +553,8 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness
 
 template class P2ConstantOperator< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >;
 template class P2ConstantOperator< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >;
+
+template class P2ConstantOperator< p2_pspg_cell_integral_0_otherwise >;
 
 template class P2ConstantOperator< p2_divt_cell_integral_0_otherwise >;
 template class P2ConstantOperator< p2_divt_cell_integral_1_otherwise >;
