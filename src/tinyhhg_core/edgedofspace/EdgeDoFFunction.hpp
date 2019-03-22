@@ -63,6 +63,8 @@ public:
                uint_t                                                                             level,
                DoFType                                                                            flag = All ) const;
 
+  void add( const real_t& scalar, uint_t level, DoFType flag = All ) const;
+
   void add( const std::vector< ValueType >&                                                    scalars,
             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
             uint_t  level,
@@ -88,6 +90,9 @@ public:
                             BoundaryUID                                                                          boundaryUID ) const;
 
   real_t dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
+
+  real_t sumLocal( const uint_t& level, const DoFType& flag = All ) const;
+  real_t sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
 
   void enumerate( uint_t level ) const;
 
