@@ -253,6 +253,12 @@ class P2Function : public Function< P2Function< ValueType > >
       this->stopTiming( "Assign (P1 -> P2)" );
    }
 
+   inline void add( const real_t& scalar, uint_t level, DoFType flag = All ) const
+   {
+      vertexDoFFunction_.add( scalar, level, flag );
+      edgeDoFFunction_.add( scalar, level, flag );
+   }
+
    inline void add( const std::vector< ValueType >&                                               scalars,
                     const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                     uint_t                                                                        level,
@@ -285,6 +291,23 @@ class P2Function : public Function< P2Function< ValueType > >
       real_t sum = real_c( 0 );
       sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
       sum += edgeDoFFunction_.dotLocal( rhs.edgeDoFFunction_, level, flag );
+      return sum;
+   }
+
+   inline real_t sumGlobal( const uint_t level, const DoFType flag = All ) const
+   {
+      real_t sum = sumLocal( level, flag );
+      this->startTiming( "Sum (reduce)" );
+      walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+      this->stopTiming( "Sum (reduce)" );
+      return sum;
+   }
+
+   inline real_t sumLocal( const uint_t level, const DoFType flag = All ) const
+   {
+      real_t sum = real_c( 0 );
+      sum += vertexDoFFunction_.sumLocal( level, flag );
+      sum += edgeDoFFunction_.sumLocal( level, flag );
       return sum;
    }
 
@@ -563,5 +586,20 @@ class P2Function : public Function< P2Function< ValueType > >
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >               edgeDoFFunction_;
 };
+
+namespace p2function {
+
+inline void projectMean( const P2Function <real_t> & pressure, const uint_t & level )
+{
+   if ( pressure.isDummy())
+   {
+      return;
+   }
+   const uint_t numGlobalVertices = numberOfGlobalDoFs< P2FunctionTag >( *pressure.getStorage(), level );
+   const real_t sum = pressure.sumGlobal( level, All );
+   pressure.add( -sum / real_c( numGlobalVertices ), level, All );
+}
+
+}
 
 } //namespace hhg
