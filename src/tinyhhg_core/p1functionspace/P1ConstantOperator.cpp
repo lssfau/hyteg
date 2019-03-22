@@ -17,6 +17,8 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
 
+#include "tinyhhg_core/mixedoperators/P2ToP1FenicsForm.hpp"
+#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
 #include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 
 #include "P1Elements.hpp"
@@ -961,12 +963,12 @@ template class P1ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwi
 template class P1ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >;
 template class P1ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >;
 
-template class P1ConstantOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >;
-template class P1ConstantOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >;
-template class P1ConstantOperator< P2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
+template class P1ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >;
+template class P1ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >;
+template class P1ConstantOperator< P1ToP2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 
-template class P1ConstantOperator< P2FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >;
-template class P1ConstantOperator< P2FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >;
-template class P1ConstantOperator< P2FenicsForm< fenics::NoAssemble,                     p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
+template class P1ConstantOperator< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >;
+template class P1ConstantOperator< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >;
+template class P1ConstantOperator< P2ToP1FenicsForm< fenics::NoAssemble,                     p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
 } // namespace hhg

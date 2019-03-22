@@ -3,18 +3,19 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
-#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
 #endif
 
 #include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
 #endif
+
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hhg {
 
@@ -61,8 +62,8 @@ private:
 
 };
 
-typedef P1ToP2ConstantOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > > P1ToP2ConstantDivTxOperator;
-typedef P1ToP2ConstantOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > > P1ToP2ConstantDivTyOperator;
-typedef P1ToP2ConstantOperator< P2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > > P1ToP2ConstantDivTzOperator;
+typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > > P1ToP2ConstantDivTxOperator;
+typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > > P1ToP2ConstantDivTyOperator;
+typedef P1ToP2ConstantOperator< P1ToP2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > > P1ToP2ConstantDivTzOperator;
 
 }

@@ -4,6 +4,8 @@
 #include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 #include "generatedKernels/GeneratedKernelsVertexToEdgeMacroFace2D.hpp"
 
+#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
+
 namespace hhg {
 
 template< class VertexDoFToEdgeDoFForm >
@@ -354,8 +356,8 @@ template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_divt_cell_integral_1
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >;
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >;
 
-template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >;
-template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >;
-template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< fenics::NoAssemble,                      p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >;
 
 }/// namespace hhg
