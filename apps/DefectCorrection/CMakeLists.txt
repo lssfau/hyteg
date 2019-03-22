@@ -9,4 +9,8 @@ if ( HHG_BUILD_WITH_PETSC )
     waLBerla_add_executable( NAME DefectCorrection
             FILES DefectCorrection.cpp
             DEPENDS tinyhhg_core core postprocessing)
+
+    waLBerla_add_executable( NAME DefectCorrectionStokes
+            FILES DefectCorrectionStokes.cpp
+            DEPENDS tinyhhg_core core postprocessing)
 endif()
