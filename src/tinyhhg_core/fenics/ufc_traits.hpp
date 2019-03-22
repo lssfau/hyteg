@@ -23,11 +23,6 @@ class p1_to_p2_tet_divt_tet_cell_integral_0_otherwise;
 class p1_to_p2_tet_divt_tet_cell_integral_1_otherwise;
 class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
 
-class p2_divt_cell_integral_0_otherwise;
-class p2_divt_cell_integral_1_otherwise;
-class p2_div_cell_integral_0_otherwise;
-class p2_div_cell_integral_1_otherwise;
-
 namespace hhg {
 namespace fenics {
 
@@ -58,11 +53,6 @@ template<> struct UFCTrait< p2_to_p1_tet_div_tet_cell_integral_2_otherwise > { t
 template<> struct UFCTrait< p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > { typedef Matrixr<10, 4> LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > { typedef Matrixr<10, 4> LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > { typedef Matrixr<10, 4> LocalStiffnessMatrix_T; };
-
-template<> struct UFCTrait< p2_divt_cell_integral_0_otherwise > { typedef Matrixr<10, 10> LocalStiffnessMatrix_T; };
-template<> struct UFCTrait< p2_divt_cell_integral_1_otherwise > { typedef Matrixr<10, 10> LocalStiffnessMatrix_T; };
-template<> struct UFCTrait< p2_div_cell_integral_0_otherwise > { typedef Matrixr<10, 10> LocalStiffnessMatrix_T; };
-template<> struct UFCTrait< p2_div_cell_integral_1_otherwise > { typedef Matrixr<10, 10> LocalStiffnessMatrix_T; };
 
 template<> struct UFCTrait< UndefinedAssembly > { typedef Matrix10r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< NoAssemble > { typedef Matrix10r LocalStiffnessMatrix_T; };

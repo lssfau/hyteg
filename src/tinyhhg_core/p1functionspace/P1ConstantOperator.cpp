@@ -953,11 +953,6 @@ template class P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_t
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise> >;
 template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise> >;
 
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_divt_cell_integral_0_otherwise> >;
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_divt_cell_integral_1_otherwise> >;
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_div_cell_integral_0_otherwise> >;
-template class P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_div_cell_integral_1_otherwise> >;
-
 template class P1ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 template class P1ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 
