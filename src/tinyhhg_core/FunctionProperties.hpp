@@ -67,6 +67,12 @@ inline uint_t numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( const PrimitiveSto
           numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
 }
 
+template <>
+inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+}
+
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
