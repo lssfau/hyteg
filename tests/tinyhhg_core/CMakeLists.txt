@@ -412,6 +412,11 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 #endif()
 
+# Geometry map tests
+waLBerla_compile_test(FILES GeometryMaps/PolarCoordsMapTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME PolarCoordsMapTestSerial )
+waLBerla_execute_test(NAME PolarCoordsMapTestParallel COMMAND $<TARGET_FILE:PolarCoordsMapTest> PROCESSES 3 )
+
 # Test some basic auxiliary stuff for application layer
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
