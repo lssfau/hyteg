@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/math/Utility.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -39,12 +39,12 @@ class CircularMap : public GeometryMap
       real_t s3 = std::atan2( ( x3 - center )[1], ( x3 - center )[0] );
       s3bar_    = s3 - s1_;
 
-      if( s3bar_ < -0.5 * walberla::math::PI )
+      if( s3bar_ < -0.5 * walberla::math::M_PI )
       {
-         s3bar_ += 2.0 * walberla::math::PI;
-      } else if( s3bar_ > 0.5 * walberla::math::PI )
+         s3bar_ += 2.0 * walberla::math::M_PI;
+      } else if( s3bar_ > 0.5 * walberla::math::M_PI )
       {
-         s3bar_ -= 2.0 * walberla::math::PI;
+         s3bar_ -= 2.0 * walberla::math::M_PI;
       }
 
       invDet_ = 1.0 / ( x2bar_[0] * x3bar_[1] - x3bar_[0] * x2bar_[1] );
