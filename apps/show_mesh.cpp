@@ -1,6 +1,6 @@
 #include <sstream>
 
-#include "core/math/Utility.h"
+#include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -15,7 +15,7 @@
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 using namespace hhg;
 
@@ -184,7 +184,7 @@ int main( int argc, char* argv[] )
       break;
 
    case PARTIAL_ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25 * PI, 0.75 * PI, MeshInfo::CRISSCROSS, 4, 2 ) );
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25 * M_PI, 0.75 * M_PI, MeshInfo::CRISSCROSS, 4, 2 ) );
       break;
 
    case ANNULUS:

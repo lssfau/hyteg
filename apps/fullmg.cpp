@@ -1,7 +1,7 @@
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
-#include "core/math/Utility.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
@@ -17,7 +17,7 @@
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 int main( int argc, char* argv[] )
 {
@@ -88,10 +88,10 @@ int main( int argc, char* argv[] )
    M.enableTiming( timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-      return sin( PI * xx[0] ) * sin( PI * xx[1] );
+      return sin( M_PI * xx[0] ) * sin( M_PI * xx[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& xx ) {
-      return 2 * PI * PI * sin( PI * xx[0] ) * sin( PI * xx[1] );
+      return 2 * M_PI * M_PI * sin( M_PI * xx[0] ) * sin( M_PI * xx[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
