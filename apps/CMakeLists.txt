@@ -38,6 +38,10 @@ waLBerla_add_executable( NAME PolarLaplacian
         FILES  polar_laplacian.cpp
         DEPENDS tinyhhg_core)
 
+waLBerla_add_executable( NAME PrimitiveSizes
+        FILES  PrimitiveSizes.cpp
+        DEPENDS tinyhhg_core)
+
 if( HHG_BUILD_WITH_EIGEN )
     waLBerla_add_executable( NAME cg_P1_blending
             FILES cg_P1_blending.cpp
