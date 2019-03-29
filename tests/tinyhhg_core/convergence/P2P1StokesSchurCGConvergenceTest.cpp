@@ -12,7 +12,7 @@
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 
 #include "tinyhhg_core/solvers/controlflow/SolverLoop.hpp"
-#include "tinyhhg_core/solvers/StokesPCGSolver.hpp"
+#include "tinyhhg_core/solvers/StokesPCGSolverOld.hpp"
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
@@ -86,7 +86,7 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   auto restriction    = std::make_shared< P2toP2QuadraticRestriction >();
   auto velocitySolver = std::make_shared< GeometricMultigridSolver< P2ConstantLaplaceOperator > >( storage, smoother, coarseGrid, restriction, prolongation, minLevel, level, 2, 2 );
   auto loop           = std::make_shared< SolverLoop< P2ConstantLaplaceOperator > >( velocitySolver, 10 );
-  StokesPCGSolver< P2P1TaylorHoodStokesOperator > solver( storage, loop, minLevel, level, 1e-10, 100, Inner | NeumannBoundary );
+  StokesPCGSolverOld< P2P1TaylorHoodStokesOperator > solver( storage, loop, minLevel, level, 1e-10, 100, Inner | NeumannBoundary );
 
   walberla::WcTimer timer;
   solver.solve( A, x, b, level );
@@ -115,7 +115,7 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_v, 2.4e-03 );
   WALBERLA_CHECK_LESS( discr_l2_err_p, 2.9e-01 );
-  WALBERLA_CHECK_LESS( residuum_l2_1,  2.0e-09 );
+  WALBERLA_CHECK_LESS( residuum_l2_1,  2.5e-09 );
 }
 
 }
