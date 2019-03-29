@@ -2,6 +2,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -46,7 +47,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 /**
  * This application implements "defect correction" (DC) as described in Trottenberg et al (2001): Multigrid (sec. 5.4.1).
@@ -94,29 +95,33 @@ static void defectCorrection( int argc, char** argv )
    const uint_t numFacesPerSide = 4;
 
    // domain
-
+#if 1
    auto meshInfo =
        MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+#else
+   auto meshInfo =
+       MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+#endif
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
-      return std::sin( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+      return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
-      return -2.0 * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+      return -2.0 * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
-      return 2.5 * PI * std::cos( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+      return 2.5 * M_PI * std::cos( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
 
    std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
-      return -12.5 * PI * PI * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+      return -12.5 * M_PI * M_PI * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
    };
 
    P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
@@ -182,6 +187,9 @@ static void defectCorrection( int argc, char** argv )
        storage, smoother, petscCoarseGridSolver, restriction, prolongation, minLevel, maxLevel, 2, 2, 2 );
    // auto fmgSolver             = std::make_shared< FullMultigridSolver< P1StokesOperator > >( storage, gmgSolver, quadraticProlongation, minLevel, maxLevel );
 
+   auto minresPrec   = std::make_shared< StokesPressureBlockPreconditioner< P1StokesOperator, P1LumpedInvMassOperator > >( storage, minLevel, maxLevel );
+   auto minresSolver = std::make_shared< MinResSolver< P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, minresPrec );
+
 
    // solve w/o DC
    // A * u = f
@@ -197,7 +205,7 @@ static void defectCorrection( int argc, char** argv )
    }
    else
    {
-      petscSolver->solve( A_P1, u, f, maxLevel );
+      minresSolver->solve( A_P1, u, f, maxLevel );
       vertexdof::projectMean( u.p, maxLevel );
    }
 
@@ -206,10 +214,12 @@ static void defectCorrection( int argc, char** argv )
    const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
    auto       l2ErrorU  = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
    auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+   auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
    auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "error (u) (= discretization error) on level " << maxLevel << ": " << l2ErrorU );
    WALBERLA_LOG_INFO_ON_ROOT( "error (v) (= discretization error) on level " << maxLevel << ": " << l2ErrorV );
+   WALBERLA_LOG_INFO_ON_ROOT( "error (w) (= discretization error) on level " << maxLevel << ": " << l2ErrorW );
    WALBERLA_LOG_INFO_ON_ROOT( "error (p) (= discretization error) on level " << maxLevel << ": " << l2ErrorP );
 
    vtkP1.write( maxLevel, 0 );
@@ -226,12 +236,14 @@ static void defectCorrection( int argc, char** argv )
       // u_quadratic is given by direct injection of the linear coefficients
       u_P2.u.assign( u.u, maxLevel - 1, All );
       u_P2.v.assign( u.v, maxLevel - 1, All );
+      u_P2.w.assign( u.w, maxLevel - 1, All );
       u_P2.p.assign( u.p, maxLevel - 1, All );
 
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
 
       Au_P2_converted_to_P1.u.assign( Au_P2.u, maxLevel, All );
       Au_P2_converted_to_P1.v.assign( Au_P2.v, maxLevel, All );
+      Au_P2_converted_to_P1.w.assign( Au_P2.w, maxLevel, All );
       Au_P2_converted_to_P1.p.assign( Au_P2.p, maxLevel, All );
 
       // defect correction
@@ -244,7 +256,7 @@ static void defectCorrection( int argc, char** argv )
       {
          if ( withDC )
          {
-            for ( uint_t ii = 0; ii < 3; ii++ )
+            for ( uint_t ii = 0; ii < 1; ii++ )
             {
                gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
                vertexdof::projectMean( u.p, maxLevel );
@@ -257,7 +269,7 @@ static void defectCorrection( int argc, char** argv )
       }
       else
       {
-         petscSolver->solve( A_P1, u, fCorrection, maxLevel );
+         minresSolver->solve( A_P1, u, fCorrection, maxLevel );
          vertexdof::projectMean( u.p, maxLevel );
       }
 
@@ -267,9 +279,11 @@ static void defectCorrection( int argc, char** argv )
       vtkP2.write( maxLevel-1, i+1 );
       l2ErrorU = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+      l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
       WALBERLA_LOG_INFO_ON_ROOT( "error (u) after defect correction: " << l2ErrorU );
       WALBERLA_LOG_INFO_ON_ROOT( "error (v) after defect correction: " << l2ErrorV );
+      WALBERLA_LOG_INFO_ON_ROOT( "error (w) after defect correction: " << l2ErrorW );
       WALBERLA_LOG_INFO_ON_ROOT( "error (p) after defect correction: " << l2ErrorP );
    }
 }
