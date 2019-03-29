@@ -16,8 +16,7 @@ inline void createVectorFromFunction( const P2P2StokesFunction< PetscScalar >& f
    createVectorFromFunction( function.v, numerator.v, vec, level, flag );
    if ( function.u.getStorage()->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for 3D" );
-      // createVectorFromFunction( function.w, numerator.w, vec, level, flag );
+      createVectorFromFunction( function.w, numerator.w, vec, level, flag );
    }
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
@@ -32,8 +31,7 @@ inline void createFunctionFromVector( const P2P2StokesFunction< PetscScalar >& f
    createFunctionFromVector( function.v, numerator.v, vec, level, flag );
    if ( function.u.getStorage()->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for 3D" );
-      // createFunctionFromVector( function.w, numerator.w, vec, level, flag );
+      createFunctionFromVector( function.w, numerator.w, vec, level, flag );
    }
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
@@ -44,8 +42,7 @@ inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, s
    applyDirichletBC( numerator.v, mat, level );
    if ( numerator.u.getStorage()->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for 3D" );
-      // applyDirichletBC( numerator.w, mat, level );
+      applyDirichletBC( numerator.w, mat, level );
    }
    //  applyDirichletBC(numerator.p, mat, level);
 }
@@ -66,16 +63,15 @@ inline void createMatrix( const OperatorType&                   opr,
 
    if ( src.u.getStorage()->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "Not implemented for 3D" );
-      // createMatrix( opr.A, src.w, dst.w, mat, level, flag );
-      // createMatrix( opr.divT_z, src.p, dst.w, mat, level, flag );
+      createMatrix( opr.A, src.w, dst.w, mat, level, flag );
+      createMatrix( opr.divT_z, src.p, dst.w, mat, level, flag );
    }
 
    createMatrix( opr.div_x, src.u, dst.p, mat, level, flag | DirichletBoundary );
    createMatrix( opr.div_y, src.v, dst.p, mat, level, flag | DirichletBoundary );
    if ( src.u.getStorage()->hasGlobalCells() )
    {
-      // createMatrix( opr.div_z, src.w, dst.p, mat, level, flag | DirichletBoundary );
+      createMatrix( opr.div_z, src.w, dst.p, mat, level, flag | DirichletBoundary );
    }
    createMatrix( opr.pspg, src.p, dst.p, mat, level, flag | DirichletBoundary );
 }

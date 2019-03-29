@@ -332,6 +332,11 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2P2Stokes2DPetscSolveTest)
 endif()
 
+if( HHG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES composites/P2P2Stokes3DPetscSolveTest.cpp DEPENDS tinyhhg_core core )
+  waLBerla_execute_test(NAME P2P2Stokes3DPetscSolveTest)
+endif()
+
 ## Other ##
 
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS tinyhhg_core core)
