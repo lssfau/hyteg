@@ -2,6 +2,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -43,7 +44,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 /**
  * This application implements "defect correction" (DC) as described in Trottenberg et al (2001): Multigrid (sec. 5.4.1).
