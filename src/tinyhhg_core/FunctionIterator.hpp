@@ -9,6 +9,10 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 
 namespace hhg {
 
@@ -42,6 +46,9 @@ class FunctionIteratorDoF
    const PrimitiveID&                 primitiveID() const { return primitiveID_; }
    const uint_t&                      level() const { return level_; }
 
+   /// The absolute coordinates of the DoF
+   Point3D coordinates() const;
+
    /// The absolute (array-)index of a FunctionIteratorDoF object
    uint_t arrayIndex() const;
 
@@ -58,6 +65,34 @@ class FunctionIteratorDoF
    Index                       index_;
    edgedof::EdgeDoFOrientation edgeDoFOrientation_;
 };
+
+template < typename FunctionType >
+inline Point3D FunctionIteratorDoF< FunctionType >::coordinates() const
+{
+   if ( isVertexDoF() )
+   {
+      if ( isOnMacroVertex() )
+      {
+         return function_.getStorage()->getVertex( primitiveID_ )->getCoordinates();
+      }
+      if ( isOnMacroEdge() )
+      {
+         return vertexdof::macroedge::coordinateFromIndex( level_, *( function_.getStorage()->getEdge( primitiveID_ ) ), index_ );
+      }
+      if ( isOnMacroFace() )
+      {
+         return vertexdof::macroface::coordinateFromIndex( level_, *( function_.getStorage()->getFace( primitiveID_ ) ), index_ );
+      }
+      if ( isOnMacroCell() )
+      {
+         return vertexdof::macrocell::coordinateFromIndex( level_, *( function_.getStorage()->getCell( primitiveID_ ) ), index_ );
+      }
+   }
+   else if ( isEdgeDoF() )
+   {
+      WALBERLA_ABORT( "coordinates() not yet implemented for edgedofs" );
+   }
+}
 
 template < typename FunctionType >
 inline uint_t FunctionIteratorDoF< FunctionType >::arrayIndex() const
@@ -149,7 +184,6 @@ inline typename FunctionType::valueType& FunctionIteratorDoF< FunctionType >::va
           ->getPointer( level() )[arrayIndex()];
 }
 
-
 template < typename FunctionType >
 inline std::string FunctionIteratorDoF< FunctionType >::toString() const
 {
@@ -170,14 +204,12 @@ inline std::string FunctionIteratorDoF< FunctionType >::toString() const
    return os.str();
 }
 
-
 template < typename FunctionType >
 inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< FunctionType >& dof )
 {
    os << dof.toString();
    return os;
 }
-
 
 /// \brief Iterator that iterates over all DoFs of a function (process-locally).
 ///
