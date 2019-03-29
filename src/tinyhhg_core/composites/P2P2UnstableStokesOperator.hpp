@@ -19,10 +19,10 @@ public:
   , A( storage, minLevel, maxLevel )
   , div_x( storage, minLevel, maxLevel )
   , div_y( storage, minLevel, maxLevel )
-  // , div_z( storage, minLevel, maxLevel )
+  , div_z( storage, minLevel, maxLevel )
   , divT_x( storage, minLevel, maxLevel )
   , divT_y( storage, minLevel, maxLevel )
-  // , divT_z( storage, minLevel, maxLevel )
+  , divT_z( storage, minLevel, maxLevel )
   , hasGlobalCells_( storage->hasGlobalCells() )
   {}
 
@@ -36,9 +36,8 @@ public:
 
     if ( hasGlobalCells_ )
     {
-      WALBERLA_ABORT( "Not implemented for 3D" )
-      // A.apply(src.w, dst.w, level, flag, Replace);
-      // divT_z.apply(src.p, dst.w, level, flag, Add);
+      A.apply(src.w, dst.w, level, flag, Replace);
+      divT_z.apply(src.p, dst.w, level, flag, Add);
     }
 
     div_x.apply(src.u, dst.p, level, flag, Replace);
@@ -46,17 +45,17 @@ public:
 
     if ( hasGlobalCells_ )
     {
-      // div_z.apply(src.w, dst.p, level, flag, Add);
+      div_z.apply(src.w, dst.p, level, flag, Add);
     }
   }
 
   P2ConstantLaplaceOperator A;
   P2ConstantDivxOperator div_x;
   P2ConstantDivyOperator div_y;
-  // P2ConstantDivzOperator div_z;
+  P2ConstantDivzOperator div_z;
   P2ConstantDivTxOperator divT_x;
   P2ConstantDivTyOperator divT_y;
-  // P2ConstantDivTzOperator divT_z;
+  P2ConstantDivTzOperator divT_z;
   bool hasGlobalCells_;
 };
 
