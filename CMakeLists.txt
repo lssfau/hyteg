@@ -41,6 +41,7 @@ find_package( waLBerla )
 
 if(WALBERLA_CXX_COMPILER_IS_GNU)
     add_flag ( CMAKE_CXX_FLAGS "-Wno-comment" )
+    add_flag ( CMAKE_CXX_FLAGS "-Wno-stringop-overflow" )
 endif()
 
 # We need to add the c++14 flag since some older cmake versions do not work with intel and CXX_STANDARD

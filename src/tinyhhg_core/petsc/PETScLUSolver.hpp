@@ -54,6 +54,13 @@ public:
   }
 #endif
 
+  void setConstantNullSpace()
+  {
+    MatNullSpace nullspace;
+    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_TRUE, 0, NULL, &nullspace );
+    MatSetNullSpace( Amat.get(), nullspace );
+  }
+
   void solve(const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level)
   {
     WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );

@@ -9,6 +9,7 @@
 #include <core/mpi/SendBuffer.h>
 #include <core/mpi/RecvBuffer.h>
 #include <core/mpi/BufferSizeTrait.h>
+#include <core/debug/CheckFunctions.h>
 
 #include <map>
 #include <memory>
@@ -47,10 +48,10 @@ public:
   /// Returns true if data is allocated at the specified level, false otherwise.
   inline bool hasLevel( const uint_t & level ) const { return data_.count( level ) > 0; }
 
-  inline uint_t getSize( const uint_t & level ) const { WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->size(); }
+  inline uint_t getSize( const uint_t & level ) const { WALBERLA_CHECK( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->size(); }
 
   // Returns a pointer to the first entry of the allocated array
-  inline ValueType * getPointer( const uint_t & level ) const { WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->data(); }
+  inline ValueType * getPointer( const uint_t & level ) const { WALBERLA_CHECK( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->data(); }
 
   inline void swap( const FunctionMemory< ValueType > & other, const uint_t & level ) const
   {
