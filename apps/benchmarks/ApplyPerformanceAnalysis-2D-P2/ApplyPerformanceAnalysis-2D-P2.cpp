@@ -216,8 +216,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    time = timingTree[vename].last();
 #endif
    mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
-   /// 23 Flops: 12 Mults and 11 Adds
-   mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
+   /// 21 Flops: 12 Mults and 3 * 3 Adds
+   mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
 
    WALBERLA_LOG_INFO_ON_ROOT(
        hhg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
