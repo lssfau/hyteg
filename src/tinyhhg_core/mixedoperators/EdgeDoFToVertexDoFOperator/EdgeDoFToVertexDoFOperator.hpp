@@ -16,6 +16,9 @@
 #include "tinyhhg_core/p2functionspace/generated/p2_div.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
 #include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
 
 #ifdef _MSC_VER

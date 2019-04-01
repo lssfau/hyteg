@@ -244,9 +244,13 @@ void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
 template class P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 template class P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 
-template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > >;
-template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > >;
-template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >;
-template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise, p2_tet_divt_tet_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise > >;
+
+template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 } // namespace hhg

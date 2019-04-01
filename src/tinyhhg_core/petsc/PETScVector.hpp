@@ -9,6 +9,7 @@
 #include "tinyhhg_core/composites/petsc/P1StokesPetsc.hpp"
 #include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
 #include "tinyhhg_core/composites/petsc/P2P1TaylorHoodPetsc.hpp"
+#include "tinyhhg_core/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
 
 namespace hhg {
 

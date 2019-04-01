@@ -25,6 +25,7 @@
 #include "tinyhhg_core/p2functionspace/generated/p2_div.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_mass.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_pspg.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"

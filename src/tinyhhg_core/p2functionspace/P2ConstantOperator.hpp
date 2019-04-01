@@ -60,11 +60,22 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
 typedef P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
     P2ConstantLaplaceOperator;
-typedef P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > P2ConstantMassOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+    P2ConstantMassOperator;
 
-typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > > P2ConstantDivTxOperator;
-typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > > P2ConstantDivTyOperator;
-typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > >  P2ConstantDivxOperator;
-typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > >  P2ConstantDivyOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise > >
+    P2ConstantDivTxOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise, p2_tet_divt_tet_cell_integral_1_otherwise > >
+    P2ConstantDivTyOperator;
+typedef P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise > >
+    P2ConstantDivTzOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise > >
+    P2ConstantDivxOperator;
+typedef P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise > >
+                                                                                                           P2ConstantDivyOperator;
+typedef P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise > > P2ConstantDivzOperator;
+
+typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >
+    P2ConstantPSPGOperator;
 
 } // namespace hhg
