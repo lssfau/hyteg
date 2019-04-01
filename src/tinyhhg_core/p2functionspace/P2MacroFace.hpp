@@ -9,6 +9,19 @@ namespace hhg {
 namespace P2 {
 namespace macroface {
 
+real_t evaluate( const uint_t&                                            level,
+                 Face&                                                    face,
+                 const Point3D&                                           coordinates,
+                 const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcVertexDoFID,
+                 const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID );
+
+void evaluateGradient( const uint_t&                                            level,
+                       Face&                                                    face,
+                       const Point3D&                                           coordinates,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcVertexDoFID,
+                       const PrimitiveDataID< FunctionMemory< real_t >, Face >& srcEdgeDoFID,
+                       Point3D&                                                 gradient );
+
 void smoothJacobiVertexDoF( const uint_t&                                            level,
                             const Face&                                              face,
                             const PrimitiveDataID< StencilMemory< real_t >, Face >&  vertexDoFStencilID,

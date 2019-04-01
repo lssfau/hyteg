@@ -56,6 +56,71 @@ inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroCell( const 
   return orientationInMacroCell;
 }
 
+template < typename ValueType >
+inline void getLocalElementDoFIndicesFromCoordinates( const uint_t & level, Face & face, const Point3D coordinates,
+                                                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
+                                                      Point2D& localCoordinates, Matrix2r& transform, Point3D& dofs)
+{
+  // Get the element local coordinates and DoFs from physical coordinates
+  // The local DoFs are sorted in following order
+  // x
+  // | \
+  // 1  0
+  // |    \
+  // x--2--x
+
+  // Transform absolute coordinates to macro element relative coordinates
+  Matrix2r A;
+  A(0,0) = (face.getCoordinates()[1] - face.getCoordinates()[0])[0];
+  A(0,1) = (face.getCoordinates()[2] - face.getCoordinates()[0])[0];
+  A(1,0) = (face.getCoordinates()[1] - face.getCoordinates()[0])[1];
+  A(1,1) = (face.getCoordinates()[2] - face.getCoordinates()[0])[1];
+  transform = A.adj();
+  transform *= 1.0 / A.det();
+
+  Point2D x({coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1]});
+
+  Point2D xRelMacro = transform.mul(x);
+
+  // Determine lower-left corner index of the quad where the evaluation point lies in
+  uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+  real_t hInv = walberla::real_c(rowsize - 1);
+  real_t h = walberla::real_c(1.0 / hInv);
+
+  uint_t col = walberla::uint_c(std::floor(xRelMacro[0] * (rowsize-1)));
+  uint_t row = walberla::uint_c(std::floor(xRelMacro[1] * (rowsize-1)));
+
+  if (col == rowsize-1) {
+    --col;
+  }
+
+  if (row == rowsize-1) {
+    --row;
+  }
+
+  localCoordinates[0] = xRelMacro[0] - col * h;
+  localCoordinates[1] = xRelMacro[1] - row * h;
+  localCoordinates *= hInv;
+
+  auto srcData = face.getData( srcID )->getPointer( level );
+
+  transform *= hInv;
+  transform = transform.transpose();
+
+  // Up triangle
+  if (localCoordinates[0] + localCoordinates[1] <= 1.0) {
+     dofs[0] = srcData[edgedof::macroface::diagonalIndex( level, col, row )];
+     dofs[1] = srcData[edgedof::macroface::verticalIndex( level, col, row )];
+     dofs[2] = srcData[edgedof::macroface::horizontalIndex( level, col, row )];
+  } else { // Down triangle
+     localCoordinates[0] = 1.0 - localCoordinates[0];
+     localCoordinates[1] = 1.0 - localCoordinates[1];
+     transform *= -1.0;
+     dofs[0] = srcData[edgedof::macroface::diagonalIndex( level, col, row )];
+     dofs[1] = srcData[edgedof::macroface::verticalIndex( level, col + 1, row )];
+     dofs[2] = srcData[edgedof::macroface::horizontalIndex( level, col, row + 1 )];
+  }
+}
 
 template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,

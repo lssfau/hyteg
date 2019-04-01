@@ -15,6 +15,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/geometry/Intersection.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 namespace hhg {
@@ -263,6 +264,82 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
       }
    }
    this->stopTiming( "Interpolate" );
+}
+
+template < typename ValueType >
+real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
+{
+  // Check if 2D or 3D function
+  if ( !this->getStorage()->hasGlobalCells() )
+  {
+    for ( auto& it : this->getStorage()->getFaces() )
+    {
+      Face& face = *it.second;
+
+      if ( sphereTriangleIntersection(
+          coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+      {
+        return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
+      }
+    }
+  }
+  else
+  {
+    for ( auto& it : this->getStorage()->getCells() )
+    {
+      Cell& cell = *it.second;
+
+      if ( isPointInTetrahedron( coordinates,
+                                 cell.getCoordinates()[0],
+                                 cell.getCoordinates()[1],
+                                 cell.getCoordinates()[2],
+                                 cell.getCoordinates()[3] ) )
+      {
+        WALBERLA_ABORT("Not implemented.");
+      }
+    }
+  }
+
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level,
+                                                       Point3D& gradient ) const
+{
+  // Check if 2D or 3D function
+  if ( !this->getStorage()->hasGlobalCells() )
+  {
+    for ( auto& it : this->getStorage()->getFaces() )
+    {
+      Face& face = *it.second;
+
+      if ( sphereTriangleIntersection(
+          coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+      {
+        vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
+        return;
+      }
+    }
+  }
+  else
+  {
+    for ( auto& it : this->getStorage()->getCells() )
+    {
+      Cell& cell = *it.second;
+
+      if ( isPointInTetrahedron( coordinates,
+                                 cell.getCoordinates()[0],
+                                 cell.getCoordinates()[1],
+                                 cell.getCoordinates()[2],
+                                 cell.getCoordinates()[3] ) )
+      {
+        WALBERLA_ABORT("Not implemented.");
+      }
+    }
+  }
+
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
 template< typename ValueType >

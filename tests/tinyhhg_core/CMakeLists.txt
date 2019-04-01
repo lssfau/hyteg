@@ -202,6 +202,9 @@ waLBerla_execute_test(NAME P1CommTest)
 waLBerla_compile_test(FILES P1/P1DataHandlingTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1DataHandlingTest)
 
+waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1EvaluateTest)
+
 waLBerla_compile_test(FILES P1/P1PointwiseOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1PointwiseOperatorTest)
 
@@ -253,6 +256,9 @@ waLBerla_execute_test(NAME P2FunctionTest)
 waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES P2/P2EvaluateTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2EvaluateTest)
 
 if( HHG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2LaplacePetscSymmetryTest.cpp DEPENDS tinyhhg_core core)

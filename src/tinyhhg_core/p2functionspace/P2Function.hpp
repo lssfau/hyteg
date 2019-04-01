@@ -10,6 +10,8 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
+#include "tinyhhg_core/geometry/Intersection.hpp"
 
 namespace hhg {
 
@@ -66,6 +68,79 @@ class P2Function : public Function< P2Function< ValueType > >
       vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
       edgeDoFFunction_  .template communicate< SenderType, ReceiverType >( level );
     }
+
+   real_t evaluate( const Point3D& coordinates, uint_t level ) const
+   {
+      // Check if 2D or 3D function
+      if ( !this->getStorage()->hasGlobalCells() )
+      {
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( sphereTriangleIntersection(
+                coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+               return P2::macroface::evaluate( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
+            }
+         }
+      }
+      else
+      {
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( isPointInTetrahedron( coordinates,
+                                       cell.getCoordinates()[0],
+                                       cell.getCoordinates()[1],
+                                       cell.getCoordinates()[2],
+                                       cell.getCoordinates()[3] ) )
+            {
+               WALBERLA_ABORT("Not implemented.");
+            }
+         }
+      }
+
+      WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+   }
+
+   void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
+   {
+      // Check if 2D or 3D function
+      if ( !this->getStorage()->hasGlobalCells() )
+      {
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            if ( sphereTriangleIntersection(
+                coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+               P2::macroface::evaluateGradient( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
+               return;
+            }
+         }
+      }
+      else
+      {
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( isPointInTetrahedron( coordinates,
+                                       cell.getCoordinates()[0],
+                                       cell.getCoordinates()[1],
+                                       cell.getCoordinates()[2],
+                                       cell.getCoordinates()[3] ) )
+            {
+               WALBERLA_ABORT("Not implemented.");
+            }
+         }
+      }
+
+      WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+   }
 
     inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
    {

@@ -65,6 +65,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
+   real_t evaluate( const Point3D& coordinates, uint_t level ) const;
+
+   void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+
     void swap( const VertexDoFFunction< ValueType > & other,
                const uint_t & level,
                const DoFType & flag = All ) const;
