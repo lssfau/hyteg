@@ -78,6 +78,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                 uint_t                                                                               level,
                 DoFType                                                                              flag = All ) const;
 
+   void assign( const P2Function< ValueType >& src, const uint_t& P1Level, const DoFType& flag = All ) const;
+
    void add( const ValueType& scalar, const uint_t& level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                      scalars,

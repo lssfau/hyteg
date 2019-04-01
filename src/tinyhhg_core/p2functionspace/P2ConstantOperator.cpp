@@ -20,8 +20,12 @@
 #include "generated/p2_div.h"
 #include "generated/p2_divt.h"
 #include "generated/p2_mass.h"
+#include "generated/p2_pspg.h"
 #include "generated/p2_tet_diffusion.h"
+#include "generated/p2_tet_div_tet.h"
+#include "generated/p2_tet_divt_tet.h"
 #include "generated/p2_tet_mass.h"
+#include "generated/p2_tet_pspg_tet.h"
 
 #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic pop
@@ -553,9 +557,13 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness
 template class P2ConstantOperator< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >;
 template class P2ConstantOperator< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >;
 
-template class P2ConstantOperator< p2_divt_cell_integral_0_otherwise >;
-template class P2ConstantOperator< p2_divt_cell_integral_1_otherwise >;
-template class P2ConstantOperator< p2_div_cell_integral_0_otherwise >;
-template class P2ConstantOperator< p2_div_cell_integral_1_otherwise >;
+template class P2ConstantOperator< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise >;
+
+template class P2ConstantOperator< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class P2ConstantOperator< p2_divt_cell_integral_1_otherwise, p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class P2ConstantOperator< fenics::NoAssemble,                p2_tet_divt_tet_cell_integral_2_otherwise >;
+template class P2ConstantOperator< p2_div_cell_integral_0_otherwise,  p2_tet_div_tet_cell_integral_0_otherwise >;
+template class P2ConstantOperator< p2_div_cell_integral_1_otherwise,  p2_tet_div_tet_cell_integral_1_otherwise >;
+template class P2ConstantOperator< fenics::NoAssemble,                p2_tet_div_tet_cell_integral_2_otherwise >;
 
 } // namespace hhg

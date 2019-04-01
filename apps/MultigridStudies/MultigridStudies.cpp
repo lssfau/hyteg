@@ -2,6 +2,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -42,7 +43,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 #define NEUMANN_PROBLEM 0
 #define COLLIDING_FLOW 0
@@ -98,20 +99,20 @@ std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x 
 
 #else
 std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
-   return std::sin( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x ) {
-   return std::sin( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
-   return -2.0 * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+   return -2.0 * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
-   return 2.5 * PI * std::cos( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return 2.5 * M_PI * std::cos( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
 std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
-   return -12.5 * PI * PI * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+   return -12.5 * M_PI * M_PI * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
 };
 #endif
 #endif
@@ -119,7 +120,7 @@ std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
 void calculateErrorAndResidual( const uint_t&          level,
                                 const LaplaceOperator& A,
-                                const MassOperator&    M,
+                                const MassOperator&    ,
                                 const Function&        u,
                                 const Function&        f,
                                 const Function&        uExact,
@@ -137,12 +138,11 @@ void calculateErrorAndResidual( const uint_t&          level,
    A.apply( u, tmp, level, Inner );
    residual.assign( {1.0, -1.0}, {f, tmp}, level, All );
 
-   M.apply( error, tmp, level, Inner );
-   l2Error = std::sqrt( error.dotGlobal( error, level, Inner ) );
-   L2Error = std::sqrt( error.dotGlobal( tmp, level, Inner ) );
-   M.apply( residual, tmp, level, Inner );
-   l2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) );
-   L2Residual = std::sqrt( residual.dotGlobal( tmp, level, Inner ) );
+   auto num = numberOfGlobalDoFs< typename Function::Tag >( *u.getStorage(), level );
+
+   l2Error = std::sqrt( error.dotGlobal( error, level, Inner ) / real_c(num) );
+   l2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) / real_c(num) );
+
    L2Error    = l2Error;
    L2Residual = l2Residual;
 }
@@ -171,9 +171,12 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 
    vertexdof::projectMean( error.p, level );
 
-   l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) );
+   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.p.getStorage(), level );
+   auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.u.getStorage(), level );
+
+   l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) / real_c( numU ) );
    l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) );
-   l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) );
+   l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) / real_c( numP ) );
    l2ResidualU = std::sqrt( residual.u.dotGlobal( residual.u, level, Inner | NeumannBoundary ) );
    l2ResidualV = std::sqrt( residual.v.dotGlobal( residual.v, level, Inner | NeumannBoundary ) );
    l2ResidualP = std::sqrt( residual.p.dotGlobal( residual.p, level, Inner | NeumannBoundary ) );
@@ -201,7 +204,11 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
    tmp.interpolate( rhs, level, All );
    M.apply( tmp, f, level, All );
 
+#ifdef HHG_BUILD_WITH_PETSC
+   auto solver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, level );
+#else
    auto solver = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
+#endif
    solver->solve( A, u, f, level );
 
    real_t L2Error;
@@ -345,12 +352,12 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    // Misc setup and info //
    /////////////////////////
 
+   real_t discretizationError = 0.0;
    if ( calcDiscretizationError )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error per level:" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         real_t discretizationError;
          calculateDiscretizationError< Function, LaplaceOperator, MassOperator >( storage, level, discretizationError );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationError );
          sqlRealProperties["l2_discr_error_level_" + std::to_string( level )] = discretizationError;
@@ -497,7 +504,8 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
                                                  << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
                                                  << " |          " << L2ResidualReduction << " || " << std::fixed
                                                  << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " |" );
+                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | "
+                                                 << " | ratio discr.err: " << ( calcDiscretizationError ? l2Error / discretizationError : 0.0 ));
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
@@ -949,7 +957,7 @@ void setup( int argc, char** argv )
    const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
 
    // parameter checks
-   WALBERLA_CHECK( equation == "stokes" || cycleTypeString == "poisson" );
+   WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
    WALBERLA_CHECK( discretization == "P1" || discretization == "P2" );
    WALBERLA_CHECK( cycleTypeString == "V" || cycleTypeString == "W" );
 

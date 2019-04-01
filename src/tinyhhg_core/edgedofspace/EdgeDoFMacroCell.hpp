@@ -359,6 +359,37 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
   }
 }
 
+template < typename ValueType >
+inline void add( const uint_t&                                               Level,
+                 Cell&                                                       cell,
+                 const real_t&                                               scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId )
+{
+   auto dstData = cell.getData( dstId )->getPointer( Level );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
+   {
+      const uint_t idxX  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxY  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxZ  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxXY = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxXZ = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxYZ = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+
+      dstData[idxX] += scalar;
+      dstData[idxY] += scalar;
+      dstData[idxZ] += scalar;
+      dstData[idxXY] += scalar;
+      dstData[idxXZ] += scalar;
+      dstData[idxYZ] += scalar;
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+   {
+      const uint_t idxXYZ = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+      dstData[idxXYZ] += scalar;
+   }
+}
 
 template< typename ValueType >
 inline real_t dot( const uint_t & Level, Cell & cell,
@@ -417,6 +448,64 @@ inline real_t dot( const uint_t & Level, Cell & cell,
 
   return scalarProduct.get();
 }
+
+
+template< typename ValueType >
+inline real_t sum( const uint_t & Level, Cell & cell,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataId )
+{
+  auto data = cell.getData( dataId )->getPointer( Level );
+
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx  = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    scalarProduct += data[ idx ];
+  }
+
+  return scalarProduct.get();
+}
+
 
 inline void apply(const uint_t & Level, Cell &cell,
                   const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell> &operatorId,

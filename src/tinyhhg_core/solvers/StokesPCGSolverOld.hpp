@@ -9,16 +9,16 @@
 
 namespace hhg {
 
-///  \brief Preconditioned Schur CG solver for the Stokes system
+///  \brief Preconditioned CG solver for the Stokes system
 ///         compare w/ Elman (1996): Multigrid and Krylov subspace methods, sect. 2.2
 template< class OperatorType >
-class SchurCGSolver : public Solver< OperatorType >
+class StokesPCGSolverOld : public Solver< OperatorType >
 {
 public:
 
     typedef typename OperatorType::srcType FunctionType;  
 
-    SchurCGSolver( const std::shared_ptr< PrimitiveStorage > & storage, 
+    StokesPCGSolverOld( const std::shared_ptr< PrimitiveStorage > & storage,
                    const std::shared_ptr< Solver< typename OperatorType::VelocityOperator_T > > & velocityBlockSolver,
                    const uint_t & minLevel, 
                    const uint_t & maxLevel,
@@ -186,7 +186,19 @@ public:
             // beta //
             //////////
 
+
             beta_n = RTilde.p.dotGlobal( RHat.p, level, flag_ | DirichletBoundary );
+
+            if ( !solveExactly_ )
+            {
+              stokesOperator.A.apply( RHat.u, tmp.u, level, flag_ );
+              stokesOperator.A.apply( RHat.v, tmp.v, level, flag_ );
+              tmp.u.add( {-1.0}, {R.u}, level );
+              tmp.v.add( {-1.0}, {R.v}, level );
+              beta_n += RHat.u.dotGlobal( tmp.u, level, flag_ );
+              beta_n += RHat.v.dotGlobal( tmp.v, level, flag_ );
+            }
+
             beta_d = alpha_n;
 
             if ( clipBeta_ )
@@ -233,6 +245,11 @@ public:
             stokesOperator.div_y.apply( tmp_2.v, MP.p, level, flag_ | DirichletBoundary, Add );
 
             alpha_d = P.p.dotGlobal( MP.p, level, flag_ | DirichletBoundary );
+
+            if ( !solveExactly_ )
+            {
+
+            }
 
             if ( clipAlpha_ )
             {
@@ -296,6 +313,7 @@ private:
     FunctionType tmp, tmp_2, tmp_3, z, s, v, BTs, Bv,
             R, RHat, RTilde, P, MP, Au, residual;
     P1LumpedInvMassOperator invMass;
+    bool solveExactly_;
 };
 
 }

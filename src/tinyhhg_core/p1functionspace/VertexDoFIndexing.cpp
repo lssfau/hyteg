@@ -29,6 +29,13 @@ uint_t index( const uint_t& level, const uint_t& x )
    return hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
 }
 
+uint_t innerIndex( const uint_t & level, const uint_t & x )
+{
+  WALBERLA_ASSERT_GREATER( x, 0 );
+  const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 2;
+  return indexing::macroEdgeIndex( innerWidth, x - 1 );
+}
+
 uint_t indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor )
 {
    return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
@@ -175,6 +182,14 @@ namespace macroface {
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y )
 {
    return hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
+}
+
+uint_t innerIndex( const uint_t & level, const uint_t & x, const uint_t & y )
+{
+  WALBERLA_ASSERT_GREATER( x, 0 );
+  WALBERLA_ASSERT_GREATER( y, 0 );
+  const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 3;
+  return indexing::macroFaceIndex( innerWidth, x - 1, y - 1 );
 }
 
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& neighbor )
