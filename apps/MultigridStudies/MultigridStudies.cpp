@@ -2,6 +2,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -42,7 +43,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 #define NEUMANN_PROBLEM 0
 #define COLLIDING_FLOW 0
@@ -98,20 +99,20 @@ std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x 
 
 #else
 std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
-   return std::sin( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x ) {
-   return std::sin( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
-   return -2.0 * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+   return -2.0 * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
-   return 2.5 * PI * std::cos( 2 * PI * x[0] ) * std::cos( PI * x[1] );
+   return 2.5 * M_PI * std::cos( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
 };
 std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
 std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
-   return -12.5 * PI * PI * std::cos( 2 * PI * x[0] ) * std::sin( PI * x[1] );
+   return -12.5 * M_PI * M_PI * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
 };
 #endif
 #endif

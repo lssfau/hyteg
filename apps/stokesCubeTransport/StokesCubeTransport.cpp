@@ -4,6 +4,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -133,7 +134,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {
      real_t temp_ = 1.0 - std::pow(x[2], 0.5);
-     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) * std::sin(walberla::math::PI * x[1]));
+     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::M_PI * x[0]) * std::sin(walberla::math::M_PI * x[1]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };

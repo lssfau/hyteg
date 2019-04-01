@@ -2,6 +2,7 @@
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/Timer.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
@@ -799,7 +800,7 @@ int main( int argc, char* argv[] )
       {
         return []( const hhg::Point3D & x ) -> real_t
         {
-            return real_c( std::sin( walberla::math::PI * x[0] ) * std::sin( walberla::math::PI * x[1] ));
+            return real_c( std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ));
         };
       }
     }
@@ -834,7 +835,7 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( std::cos( walberla::math::PI * x[0] ) * std::cos( walberla::math::PI * x[1] ));
+              return real_c( std::cos( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] ));
           };
         }
 
@@ -865,9 +866,9 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( 2 ) * std::pow( walberla::math::PI, 2 ) *
-                     std::sin( walberla::math::PI * x[0] ) * std::sin( walberla::math::PI * x[1] ) +
-                     std::cos( walberla::math::PI * x[0] ) * std::sin( walberla::math::PI * x[1] );
+              return real_c( 2 ) * std::pow( walberla::math::M_PI, 2 ) *
+                     std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ) +
+                     std::cos( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] );
           };
         }
       }
@@ -895,9 +896,9 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( 2 ) * std::pow( walberla::math::PI, 2 ) *
-                     std::cos( walberla::math::PI * x[0] ) * std::cos( walberla::math::PI * x[1] ) +
-                     std::sin( walberla::math::PI * x[0] ) * std::cos( walberla::math::PI * x[1] );
+              return real_c( 2 ) * std::pow( walberla::math::M_PI, 2 ) *
+                     std::cos( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] ) +
+                     std::sin( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] );
           };
         }
       }
@@ -952,7 +953,7 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-             return real_c( std::sin( walberla::math::PI * x[0] ) * std::sin( walberla::math::PI * x[1] ));
+             return real_c( std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ));
           };
         }
       }
