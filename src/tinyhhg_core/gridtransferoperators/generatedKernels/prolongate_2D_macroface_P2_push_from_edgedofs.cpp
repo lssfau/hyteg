@@ -23,6 +23,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -47,6 +48,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9] = 0.5*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          _data_vertexFineDst[2*ctr_1 + 20*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 10] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 3; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -74,6 +76,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9] = 0.5*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          _data_vertexFineDst[2*ctr_1 + 20*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 10] = _data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 3; ctr_1 < 4; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -101,6 +104,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 3; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -128,6 +132,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9] = 0.5*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          _data_vertexFineDst[2*ctr_1 + 20*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 10] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 3; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -158,6 +163,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9] = 0.5*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          _data_vertexFineDst[2*ctr_1 + 20*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 10] = _data_edgeCoarseSrc[ctr_1 + 5*ctr_2 + 2*((20) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 3; ctr_1 < -ctr_2 + 4; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -188,6 +194,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_2(double * _data
    }
    for (int ctr_2 = 3; ctr_2 < 4; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -231,6 +238,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -255,6 +263,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17] = 0.5*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          _data_vertexFineDst[2*ctr_1 + 36*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 18] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 7; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -282,6 +291,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17] = 0.5*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          _data_vertexFineDst[2*ctr_1 + 36*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 18] = _data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 7; ctr_1 < 8; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -309,6 +319,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 7; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -336,6 +347,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17] = 0.5*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          _data_vertexFineDst[2*ctr_1 + 36*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 18] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 7; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -366,6 +378,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17] = 0.5*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          _data_vertexFineDst[2*ctr_1 + 36*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 18] = _data_edgeCoarseSrc[ctr_1 + 9*ctr_2 + 2*((72) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 7; ctr_1 < -ctr_2 + 8; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -396,6 +409,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_3(double * _data
    }
    for (int ctr_2 = 7; ctr_2 < 8; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -439,6 +453,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -463,6 +478,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33] = 0.5*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          _data_vertexFineDst[2*ctr_1 + 68*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 34] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 15; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -490,6 +506,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33] = 0.5*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          _data_vertexFineDst[2*ctr_1 + 68*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 34] = _data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 15; ctr_1 < 16; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -517,6 +534,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 15; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -544,6 +562,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33] = 0.5*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          _data_vertexFineDst[2*ctr_1 + 68*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 34] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 15; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -574,6 +593,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33] = 0.5*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          _data_vertexFineDst[2*ctr_1 + 68*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 34] = _data_edgeCoarseSrc[ctr_1 + 17*ctr_2 + 2*((272) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 15; ctr_1 < -ctr_2 + 16; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -604,6 +624,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_4(double * _data
    }
    for (int ctr_2 = 15; ctr_2 < 16; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -647,6 +668,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -671,6 +693,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65] = 0.5*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          _data_vertexFineDst[2*ctr_1 + 132*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 66] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 31; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -698,6 +721,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65] = 0.5*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          _data_vertexFineDst[2*ctr_1 + 132*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 66] = _data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 31; ctr_1 < 32; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -725,6 +749,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 31; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -752,6 +777,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65] = 0.5*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          _data_vertexFineDst[2*ctr_1 + 132*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 66] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 31; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -782,6 +808,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65] = 0.5*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          _data_vertexFineDst[2*ctr_1 + 132*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 66] = _data_edgeCoarseSrc[ctr_1 + 33*ctr_2 + 2*((1056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 31; ctr_1 < -ctr_2 + 32; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -812,6 +839,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_5(double * _data
    }
    for (int ctr_2 = 31; ctr_2 < 32; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -855,6 +883,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -879,6 +908,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129] = 0.5*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          _data_vertexFineDst[2*ctr_1 + 260*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 130] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 63; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -906,6 +936,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129] = 0.5*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          _data_vertexFineDst[2*ctr_1 + 260*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 130] = _data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 63; ctr_1 < 64; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -933,6 +964,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 63; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -960,6 +992,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129] = 0.5*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          _data_vertexFineDst[2*ctr_1 + 260*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 130] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 63; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -990,6 +1023,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129] = 0.5*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          _data_vertexFineDst[2*ctr_1 + 260*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 130] = _data_edgeCoarseSrc[ctr_1 + 65*ctr_2 + 2*((4160) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 63; ctr_1 < -ctr_2 + 64; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1020,6 +1054,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_6(double * _data
    }
    for (int ctr_2 = 63; ctr_2 < 64; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1063,6 +1098,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1087,6 +1123,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257] = 0.5*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          _data_vertexFineDst[2*ctr_1 + 516*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 258] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 127; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1114,6 +1151,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257] = 0.5*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          _data_vertexFineDst[2*ctr_1 + 516*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 258] = _data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 127; ctr_1 < 128; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1141,6 +1179,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 127; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1168,6 +1207,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257] = 0.5*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          _data_vertexFineDst[2*ctr_1 + 516*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 258] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 127; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1198,6 +1238,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257] = 0.5*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          _data_vertexFineDst[2*ctr_1 + 516*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 258] = _data_edgeCoarseSrc[ctr_1 + 129*ctr_2 + 2*((16512) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 127; ctr_1 < -ctr_2 + 128; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1228,6 +1269,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_7(double * _data
    }
    for (int ctr_2 = 127; ctr_2 < 128; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1271,6 +1313,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1295,6 +1338,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513] = 0.5*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          _data_vertexFineDst[2*ctr_1 + 1028*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 514] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 255; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1322,6 +1366,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513] = 0.5*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          _data_vertexFineDst[2*ctr_1 + 1028*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 514] = _data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 255; ctr_1 < 256; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1349,6 +1394,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 255; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1376,6 +1422,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513] = 0.5*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          _data_vertexFineDst[2*ctr_1 + 1028*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 514] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 255; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1406,6 +1453,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513] = 0.5*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          _data_vertexFineDst[2*ctr_1 + 1028*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 514] = _data_edgeCoarseSrc[ctr_1 + 257*ctr_2 + 2*((65792) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 255; ctr_1 < -ctr_2 + 256; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1436,6 +1484,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_8(double * _data
    }
    for (int ctr_2 = 255; ctr_2 < 256; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1479,6 +1528,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1503,6 +1553,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025] = 0.5*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          _data_vertexFineDst[2*ctr_1 + 2052*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1026] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 511; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1530,6 +1581,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025] = 0.5*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          _data_vertexFineDst[2*ctr_1 + 2052*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1026] = _data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 511; ctr_1 < 512; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1557,6 +1609,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
    }
    for (int ctr_2 = 1; ctr_2 < 511; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1584,6 +1637,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025] = 0.5*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          _data_vertexFineDst[2*ctr_1 + 2052*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1026] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 511; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1614,6 +1668,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025] = 0.5*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          _data_vertexFineDst[2*ctr_1 + 2052*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1026] = _data_edgeCoarseSrc[ctr_1 + 513*ctr_2 + 2*((262656) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 511; ctr_1 < -ctr_2 + 512; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1644,6 +1699,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_9(double * _data
    }
    for (int ctr_2 = 511; ctr_2 < 512; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1687,6 +1743,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1711,6 +1768,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049] = 0.5*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          _data_vertexFineDst[2*ctr_1 + 4100*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2050] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 1023; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1738,6 +1796,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049] = 0.5*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          _data_vertexFineDst[2*ctr_1 + 4100*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2050] = _data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 1023; ctr_1 < 1024; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1765,6 +1824,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
    }
    for (int ctr_2 = 1; ctr_2 < 1023; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1792,6 +1852,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049] = 0.5*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          _data_vertexFineDst[2*ctr_1 + 4100*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2050] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 1023; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1822,6 +1883,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049] = 0.5*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          _data_vertexFineDst[2*ctr_1 + 4100*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2050] = _data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 + 2*((1049600) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 1023; ctr_1 < -ctr_2 + 1024; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1852,6 +1914,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_10(double * _dat
    }
    for (int ctr_2 = 1023; ctr_2 < 1024; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1895,6 +1958,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1919,6 +1983,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097] = 0.5*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          _data_vertexFineDst[2*ctr_1 + 8196*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4098] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 2047; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1946,6 +2011,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097] = 0.5*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          _data_vertexFineDst[2*ctr_1 + 8196*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4098] = _data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 2047; ctr_1 < 2048; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -1973,6 +2039,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
    }
    for (int ctr_2 = 1; ctr_2 < 2047; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2000,6 +2067,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097] = 0.5*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          _data_vertexFineDst[2*ctr_1 + 8196*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4098] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 2047; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2030,6 +2098,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097] = 0.5*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          _data_vertexFineDst[2*ctr_1 + 8196*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4098] = _data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 + 2*((4196352) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 2047; ctr_1 < -ctr_2 + 2048; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2060,6 +2129,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_11(double * _dat
    }
    for (int ctr_2 = 2047; ctr_2 < 2048; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2103,6 +2173,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2127,6 +2198,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193] = 0.5*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          _data_vertexFineDst[2*ctr_1 + 16388*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8194] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 4095; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2154,6 +2226,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193] = 0.5*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          _data_vertexFineDst[2*ctr_1 + 16388*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8194] = _data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 4095; ctr_1 < 4096; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2181,6 +2254,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
    }
    for (int ctr_2 = 1; ctr_2 < 4095; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2208,6 +2282,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193] = 0.5*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          _data_vertexFineDst[2*ctr_1 + 16388*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8194] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4095; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2238,6 +2313,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193] = 0.5*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          _data_vertexFineDst[2*ctr_1 + 16388*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8194] = _data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 + 2*((16781312) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 4095; ctr_1 < -ctr_2 + 4096; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2268,6 +2344,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_12(double * _dat
    }
    for (int ctr_2 = 4095; ctr_2 < 4096; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2311,6 +2388,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2335,6 +2413,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385] = 0.5*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          _data_vertexFineDst[2*ctr_1 + 32772*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16386] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 8191; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2362,6 +2441,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385] = 0.5*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          _data_vertexFineDst[2*ctr_1 + 32772*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16386] = _data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 8191; ctr_1 < 8192; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2389,6 +2469,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
    }
    for (int ctr_2 = 1; ctr_2 < 8191; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2416,6 +2497,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385] = 0.5*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          _data_vertexFineDst[2*ctr_1 + 32772*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16386] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8191; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2446,6 +2528,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385] = 0.5*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          _data_vertexFineDst[2*ctr_1 + 32772*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16386] = _data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 + 2*((67117056) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 8191; ctr_1 < -ctr_2 + 8192; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2476,6 +2559,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_13(double * _dat
    }
    for (int ctr_2 = 8191; ctr_2 < 8192; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2519,6 +2603,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2543,6 +2628,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769] = 0.5*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          _data_vertexFineDst[2*ctr_1 + 65540*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32770] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < 16383; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2570,6 +2656,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769] = 0.5*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          _data_vertexFineDst[2*ctr_1 + 65540*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32770] = _data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = 16383; ctr_1 < 16384; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2597,6 +2684,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
    }
    for (int ctr_2 = 1; ctr_2 < 16383; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2624,6 +2712,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769] = 0.5*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          _data_vertexFineDst[2*ctr_1 + 65540*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32770] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16383; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2654,6 +2743,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769] = 0.5*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          _data_vertexFineDst[2*ctr_1 + 65540*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32770] = _data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 + 2*((268451840) / (2)) - ((ctr_2*(ctr_2 + 1)) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + 16383; ctr_1 < -ctr_2 + 16384; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2684,6 +2774,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_14(double * _dat
    }
    for (int ctr_2 = 16383; ctr_2 < 16384; ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2727,6 +2818,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
    const double xi_24 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
+      // bottom left vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_5*0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2751,6 +2843,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
          _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 0.5*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))] + _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          _data_vertexFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 1.0*xi_8*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))];
       }
+      // bottom edge
       for (int ctr_1 = 1; ctr_1 < (1 << (coarse_level)) - 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_40*0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2778,6 +2871,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
          _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 0.5*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))] + _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          _data_vertexFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = _data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))];
       }
+      // bottom right vertex
       for (int ctr_1 = (1 << (coarse_level)) - 1; ctr_1 < (1 << (coarse_level)); ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = xi_13*0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2805,6 +2899,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
    }
    for (int ctr_2 = 1; ctr_2 < (1 << (coarse_level)) - 1; ctr_2 += 1)
    {
+      // left edge
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2832,6 +2927,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
          _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 0.5*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))] + _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          _data_vertexFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 1.0*xi_50*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))];
       }
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (coarse_level)) - 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2862,6 +2958,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
          _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = 0.5*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))] + _data_edgeFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          _data_vertexFineDst[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))] = _data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level)) + 1)*(1 << (coarse_level))) / (2))];
       }
+      // diagonal edge
       for (int ctr_1 = -ctr_2 + (1 << (coarse_level)) - 1; ctr_1 < -ctr_2 + (1 << (coarse_level)); ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
@@ -2892,6 +2989,7 @@ static void prolongate_2D_macroface_P2_push_from_edgedofs_level_any(double * _da
    }
    for (int ctr_2 = (1 << (coarse_level)) - 1; ctr_2 < (1 << (coarse_level)); ctr_2 += 1)
    {
+      // top vertex
       for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
       {
          _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))] = 0.75*_data_edgeCoarseSrc[ctr_1 + ctr_2*((1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] + _data_edgeFineDst[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];

@@ -31,6 +31,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_2(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 4; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 4; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 6) + ((210) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6))];
@@ -76,6 +77,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_3(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 8; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 8; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 10) + ((990) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6))];
@@ -121,6 +123,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_4(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 16; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 16; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 18) + ((5814) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6))];
@@ -166,6 +169,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_5(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 32; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 32; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 34) + ((39270) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6))];
@@ -211,6 +215,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_6(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 64; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 64; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 66) + ((287430) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6))];
@@ -256,6 +261,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_7(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 128; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 128; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 130) + ((2196870) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6))];
@@ -301,6 +307,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_8(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 256; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 256; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 258) + ((17173254) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6))];
@@ -346,6 +353,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_9(double * _data
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 512; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 512; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 514) + ((135796230) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6))];
@@ -391,6 +399,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_10(double * _dat
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 1024; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 1024; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 1026) + ((1080044550) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 1025)*(-ctr_3 + 1026)*(-ctr_3 + 1027)) / (6))];
@@ -436,6 +445,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_11(double * _dat
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 2048; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 2048; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 2050) + ((8615122950) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 2049)*(-ctr_3 + 2050)*(-ctr_3 + 2051)) / (6))];
@@ -481,6 +491,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_12(double * _dat
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 4096; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 4096; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 4098) + ((68820185094) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 4097)*(-ctr_3 + 4098)*(-ctr_3 + 4099)) / (6))];
@@ -526,6 +537,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_13(double * _dat
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 8192; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 8192; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 8194) + ((550158557190) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 8193)*(-ctr_3 + 8194)*(-ctr_3 + 8195)) / (6))];
@@ -571,6 +583,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_14(double * _dat
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + 16384; ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 16384; ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + 16386) + ((4399657304070) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 16385)*(-ctr_3 + 16386)*(-ctr_3 + 16387)) / (6))];
@@ -616,6 +629,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_any(double * _da
    {
       for (int ctr_2 = 1; ctr_2 < -ctr_3 + (1 << (level)); ctr_2 += 1)
       {
+         // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (level)); ctr_1 += 1)
          {
             const double xi_32 = _data_p1CellDstAdd[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
