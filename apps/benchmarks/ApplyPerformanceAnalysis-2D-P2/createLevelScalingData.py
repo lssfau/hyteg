@@ -27,4 +27,4 @@ if __name__ == "__main__":
     parser.add_argument("maxLevel", help="maximal scaling Level", type=int)
     parser.add_argument("outputfile", help="filename for output including the ending; something will be added")
     args = parser.parse_args()
-    main(args.cores, args.minLevel, args.maxLevel)
+    main(args.cores, args.minLevel, args.maxLevel, args.outputfile)
