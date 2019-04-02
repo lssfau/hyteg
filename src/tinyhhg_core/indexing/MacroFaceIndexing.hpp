@@ -124,16 +124,16 @@ public:
 
 private:
 
-  const uint_t    width_;
-  const uint_t    offsetToCenter_;
-  const uint_t    totalNumberOfDoFs_;
-        uint_t    step_;
-        Index     coordinates_;
+  uint_t    width_;
+  uint_t    offsetToCenter_;
+  uint_t    totalNumberOfDoFs_;
+  uint_t    step_;
+  Index     coordinates_;
 
 };
 
 
-enum class FaceBorderDirection
+enum class FaceBoundaryDirection
 {
   BOTTOM_LEFT_TO_RIGHT,
   BOTTOM_RIGHT_TO_LEFT,
@@ -146,30 +146,30 @@ enum class FaceBorderDirection
 /// return
 /// \param localEdgeId local Id of the edge on the face
 /// \param orientation orientation of the edge; 1 for same as face; -1 for opposing
-inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
+inline FaceBoundaryDirection getFaceBorderDirection(uint_t localEdgeId, int orientation){
   if(localEdgeId == 0) {
     if (orientation == 1) {
-      return FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT;
+      return FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT;
     } else if(orientation == -1)
-      return FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT;
+      return FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT;
   } else if(localEdgeId == 1){
     if (orientation == 1) {
-      return FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP;
+      return FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP;
     } else if(orientation == -1)
-      return FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM;
+      return FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM;
   } else if(localEdgeId == 2){
     if (orientation == 1) {
-      return FaceBorderDirection::LEFT_TOP_TO_BOTTOM;
+      return FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM;
     } else if(orientation == -1)
-      return FaceBorderDirection::LEFT_BOTTOM_TO_TOP;
+      return FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP;
   } else {
     WALBERLA_ABORT("wrong EdgeId or orientation");
   }
-  return FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT;
+  return FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT;
 }
 
 
-/// Iterator over the borders of a face.
+/// Iterator over the boundaries of a face.
 /// Decoupled from the indexing function, it returns the logical coordinates
 /// which can then be inserted into the respective indexing function.
 /// Since it implements all necessary methods, you can do:
@@ -183,7 +183,7 @@ inline FaceBorderDirection getFaceBorderDirection(uint_t localEdgeId, int orient
 /// \param direction FaceBorderDirection indicating the face border of interest
 /// \param offsetToCenter if > 0, the iterator iterates parallel to the specified border, shifted to the center of the face by offsetToCenter
 /// \param offsetFromVertices the iterator skips the first and last offsetFromVertices points of the border
-class FaceBorderIterator
+class FaceBoundaryIterator
 {
 public:
 
@@ -193,7 +193,7 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  FaceBorderIterator( const uint_t & width, const FaceBorderDirection & direction,
+  FaceBoundaryIterator( const uint_t & width, const FaceBoundaryDirection & direction,
                       const uint_t & offsetToCenter = 0,
                       const uint_t & offsetFromVertices = 0, const bool & end = false ) :
     width_( width ), direction_( direction ), offsetToCenter_( offsetToCenter ),
@@ -206,27 +206,27 @@ public:
 
     switch( direction )
     {
-    case FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT:
+    case FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT:
       coordinates_.col() = 0 + offsetFromVertices;
       coordinates_.row() = 0 + offsetToCenter;
       break;
-    case FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT:
+    case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
       coordinates_.col() = width - 1 - offsetFromVertices;
       coordinates_.row() = 0 + offsetToCenter;
       break;
-    case FaceBorderDirection::LEFT_BOTTOM_TO_TOP:
+    case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
       coordinates_.col() = 0 + offsetToCenter;
       coordinates_.row() = 0 + offsetFromVertices;
       break;
-    case FaceBorderDirection::LEFT_TOP_TO_BOTTOM:
+    case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
       coordinates_.col() = 0 + offsetToCenter;
       coordinates_.row() = width - 1 - offsetFromVertices;
       break;
-    case FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP:
+    case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
       coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
       coordinates_.row() = 0 + offsetFromVertices;
       break;
-    case FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM:
+    case FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM:
       coordinates_.col() = 0 + offsetFromVertices;
       coordinates_.row() = width - 1 - offsetToCenter - offsetFromVertices;
       break;
@@ -241,16 +241,16 @@ public:
     }
   }
 
-  FaceBorderIterator begin() { return FaceBorderIterator( width_, direction_, offsetToCenter_, offsetFromVertices_ ); }
-  FaceBorderIterator end()   { return FaceBorderIterator( width_, direction_, offsetToCenter_, offsetFromVertices_, true ); }
+  FaceBoundaryIterator begin() { return FaceBoundaryIterator( width_, direction_, offsetToCenter_, offsetFromVertices_ ); }
+  FaceBoundaryIterator end()   { return FaceBoundaryIterator( width_, direction_, offsetToCenter_, offsetFromVertices_, true ); }
 
-  bool operator==( const FaceBorderIterator & other ) const
+  bool operator==( const FaceBoundaryIterator & other ) const
   {
     WALBERLA_ASSERT_EQUAL( direction_, other.direction_, "Comparing two iterators of different type!" );
     return other.step_ == step_;
   }
 
-  bool operator!=( const FaceBorderIterator & other ) const
+  bool operator!=( const FaceBoundaryIterator & other ) const
   {
     WALBERLA_ASSERT_EQUAL( direction_, other.direction_, "Comparing two iterators of different type!" );
     return other.step_ != step_;
@@ -259,7 +259,7 @@ public:
   reference operator*()  const { return  coordinates_; };
   pointer   operator->() const { return &coordinates_; };
 
-  FaceBorderIterator & operator++() // prefix
+  FaceBoundaryIterator & operator++() // prefix
   {
     WALBERLA_ASSERT_LESS_EQUAL( step_, width_, "Incrementing iterator beyond end!" );
 
@@ -267,23 +267,23 @@ public:
 
     switch( direction_ )
     {
-    case FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT:
+    case FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT:
       coordinates_.col()++;
       break;
-    case FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT:
+    case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
       coordinates_.col()--;
       break;
-    case FaceBorderDirection::LEFT_BOTTOM_TO_TOP:
+    case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
       coordinates_.row()++;
       break;
-    case FaceBorderDirection::LEFT_TOP_TO_BOTTOM:
+    case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
       coordinates_.row()--;
       break;
-    case FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP:
+    case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
       coordinates_.col()--;
       coordinates_.row()++;
       break;
-    case FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM:
+    case FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM:
       coordinates_.col()++;
       coordinates_.row()--;
       break;
@@ -295,9 +295,9 @@ public:
     return *this;
   }
 
-  FaceBorderIterator operator++( int ) // postfix
+  FaceBoundaryIterator operator++( int ) // postfix
   {
-    const FaceBorderIterator tmp( *this );
+    const FaceBoundaryIterator tmp( *this );
     ++*this;
     return tmp;
   }
@@ -305,7 +305,7 @@ public:
 private:
 
   const uint_t              width_;
-  const FaceBorderDirection direction_;
+  const FaceBoundaryDirection direction_;
   const uint_t              offsetToCenter_;
   const uint_t              offsetFromVertices_;
         uint_t              step_;

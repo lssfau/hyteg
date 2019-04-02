@@ -18,12 +18,12 @@
 
 namespace hhg {
 
-static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > > & expectedValues, const indexing::FaceBorderDirection & faceBorderDirection,
+static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > > & expectedValues, const indexing::FaceBoundaryDirection & faceBorderDirection,
                                     const uint_t & width, const uint_t & offsetToCenter, const uint_t & offsetFromVertices )
 {
   std::vector< std::array< uint_t, 2 > > iteratorResult;
 
-  for ( const auto & it : indexing::FaceBorderIterator( width, faceBorderDirection, offsetToCenter, offsetFromVertices ) )
+  for ( const auto & it : indexing::FaceBoundaryIterator( width, faceBorderDirection, offsetToCenter, offsetFromVertices ) )
   {
     iteratorResult.push_back( {{ it.col(), it.row() }} );
   }
@@ -129,14 +129,14 @@ static void testCommonIndexing()
   WALBERLA_CHECK_EQUAL( testRow, 2 );
   WALBERLA_CHECK_EQUAL( testCol, 2 );
 
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{0, 0}}, {{1, 0}}, {{2, 0}}, {{3, 0}} }} ),           indexing::FaceBorderDirection::BOTTOM_LEFT_TO_RIGHT, 4, 0, 0 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 0}}, {{1, 0}} }} ),                               indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 0, 1 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 1}}, {{2, 1}}, {{1, 1}} }} ),                     indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 0 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 1}} }} ),                                         indexing::FaceBorderDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 1 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{4, 0}}, {{3, 1}}, {{2, 2}}, {{1, 3}}, {{0, 4}} }} ), indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 0 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 1}}, {{2, 2}}, {{1, 3}} }} ),                     indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 1 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 0}}, {{2, 1}}, {{1, 2}}, {{0, 3}} }} ),           indexing::FaceBorderDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 1, 0 );
-  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 2}}, {{2, 1}} }} ),                               indexing::FaceBorderDirection::DIAGONAL_TOP_TO_BOTTOM, 5, 1, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{0, 0}}, {{1, 0}}, {{2, 0}}, {{3, 0}} }} ),           indexing::FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT, 4, 0, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 0}}, {{1, 0}} }} ),                               indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 0, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 1}}, {{2, 1}}, {{1, 1}} }} ),                     indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 1}} }} ),                                         indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{4, 0}}, {{3, 1}}, {{2, 2}}, {{1, 3}}, {{0, 4}} }} ), indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 1}}, {{2, 2}}, {{1, 3}} }} ),                     indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 0}}, {{2, 1}}, {{1, 2}}, {{0, 3}} }} ),           indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 1, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 2}}, {{2, 1}} }} ),                               indexing::FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM, 5, 1, 1 );
 
   // macro cell
 

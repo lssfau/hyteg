@@ -183,8 +183,8 @@ template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const {
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender);
-  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
-  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
+  indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
   {
     buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
@@ -197,8 +197,8 @@ void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *send
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
   uint_t idx = 0;
-  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
-  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 0 ) )
+  indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
+  for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 0 ) )
   {
     faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
@@ -214,9 +214,9 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
 {
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = sender->edge_index(receiver);
-  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
+  indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
 
-  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
   {
     buffer << faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
   }
@@ -225,7 +225,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
   // Top ghost-layer is sent if there are any neighboring cells
   if ( sender->getNumNeighborCells() > 0 )
   {
-    for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+    for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
     {
       buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
     }
@@ -233,7 +233,7 @@ void VertexDoFPackInfo< ValueType >::packFaceForEdge(const Face *sender, const P
     // Bottom ghost-layer is only sent if there is a second neighboring cell
     if ( sender->getNumNeighborCells() == 2 )
     {
-      for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+      for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
       {
         buffer << faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
       }
@@ -286,9 +286,9 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
   uint_t edgeIdOnFace = sender->edge_index(receiver->getID());
-  indexing::FaceBorderDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
+  indexing::FaceBoundaryDirection faceBorderDirection = indexing::getFaceBorderDirection( edgeIdOnFace, sender->edge_orientation[edgeIdOnFace] );
   uint_t idx = 0;
-  for( const auto & it : vertexdof::macroface::BorderIterator( level_, faceBorderDirection, 1 ) )
+  for( const auto & it : vertexdof::macroface::BoundaryIterator( level_, faceBorderDirection, 1 ) )
   {
     edgeData[ vertexdof::macroedge::indexOnNeighborFace( level_, idx, faceIdOnEdge ) ] = faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ];
     idx++;
@@ -301,7 +301,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
     const auto topCellPrimitiveID = sender->getCellID0();
     const auto localTopCellIDOnEdge = receiver->cell_index( topCellPrimitiveID );
     idx = 0;
-    for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+    for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
     {
       edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localTopCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 0 )];
       idx++;
@@ -312,7 +312,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
       const auto bottomCellPrimitiveID = sender->getCellID1();
       const auto localBottomCellIDOnEdge = receiver->cell_index( bottomCellPrimitiveID );
       idx = 0;
-      for ( const auto & it : indexing::FaceBorderIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
+      for ( const auto & it : indexing::FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level_ ) - 1, faceBorderDirection, 1 ))
       {
         edgeData[ vertexdof::macroedge::indexOnNeighborCell( level_, idx, localBottomCellIDOnEdge, receiver->getNumNeighborFaces() ) ] = faceData[vertexdof::macroface::index( level_, it.col(), it.row(), 1 )];
         idx++;

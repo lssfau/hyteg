@@ -43,6 +43,16 @@ inline void interpolate(Vertex &vertex,
 }
 
 template< typename ValueType >
+inline void swap( const uint_t & level, Vertex & vertex,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex > & dstID )
+{
+  auto srcData = vertex.getData( srcID );
+  auto dstData = vertex.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+template< typename ValueType >
 inline void assign(Vertex &vertex,
                    const std::vector<ValueType> &scalars,
                    const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
@@ -104,12 +114,41 @@ inline real_t dot(Vertex &vertex,
   return vertex.getData(lhsMemoryId)->getPointer( level )[0]*vertex.getData(rhsMemoryId)->getPointer( level )[0];
 }
 
+template < typename ValueType >
+inline real_t
+    sum( const uint_t& level, const Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID )
+{
+   return vertex.getData( dataID )->getPointer( level )[0];
+}
+
 template< typename ValueType >
 inline void apply(Vertex &vertex,
                   const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                   size_t level,
+                  UpdateType update) {
+  auto opr_data = vertex.getData(operatorId)->getPointer( level );
+  auto src = vertex.getData(srcId)->getPointer( level );
+  auto dst = vertex.getData(dstId)->getPointer( level );
+
+  if (update==Replace) {
+    dst[0] = opr_data[0]*src[0];
+  } else if (update==Add) {
+    dst[0] += opr_data[0]*src[0];
+  }
+
+  for (size_t i = 0; i < vertex.getNumNeighborEdges(); ++i) {
+    dst[0] += opr_data[i + 1]*src[i + 1];
+  }
+}
+
+template< typename ValueType >
+inline void applyPointwise(const uint_t & level,
+                  const Vertex &vertex,
+                  const PrimitiveDataID<StencilMemory< ValueType >, Vertex> &operatorId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &srcId,
+                  const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                   UpdateType update) {
   auto opr_data = vertex.getData(operatorId)->getPointer( level );
   auto src = vertex.getData(srcId)->getPointer( level );

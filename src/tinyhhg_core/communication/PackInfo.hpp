@@ -75,6 +75,24 @@ public:
   }
   ///@}
 
+  /// @name Face to Vertex
+  ///@{
+  virtual void packFaceForVertex(const Face *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+  {
+    WALBERLA_ABORT( "Macro-face to macro-vertex communication not implemented!" );
+  }
+
+  virtual void unpackVertexFromFace(Vertex *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+  {
+    WALBERLA_ABORT( "Macro-face to macro-vertex communication not implemented!" );
+  }
+
+  virtual void communicateLocalFaceToVertex(const Face *sender, Vertex *receiver) const
+  {
+    WALBERLA_ABORT( "Macro-face to macro-vertex communication not implemented!" );
+  }
+  ///@}
+
   /// @name Cell to Face
   ///@{
   virtual void packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
@@ -169,6 +187,11 @@ inline void PackInfo::pack< Face, Cell > ( const Face * sender, const PrimitiveI
   packFaceForCell( sender, receiverID, sendBuffer );
 }
 template<>
+inline void PackInfo::pack< Face, Vertex > ( const Face * sender, const PrimitiveID & receiverID, walberla::mpi::SendBuffer & sendBuffer ) const
+{
+  packFaceForVertex( sender, receiverID, sendBuffer );
+}
+template<>
 inline void PackInfo::pack< Cell, Face > ( const Cell * sender, const PrimitiveID & receiverID, walberla::mpi::SendBuffer & sendBuffer ) const
 {
   packCellForFace( sender, receiverID, sendBuffer );
@@ -211,6 +234,11 @@ inline void PackInfo::unpack< Face, Cell > ( Cell * receiver, const PrimitiveID 
   unpackCellFromFace( receiver, senderID, recvBuffer );
 }
 template<>
+inline void PackInfo::unpack< Face, Vertex > ( Vertex * receiver, const PrimitiveID & senderID, walberla::mpi::RecvBuffer & recvBuffer ) const
+{
+  unpackVertexFromFace( receiver, senderID, recvBuffer );
+}
+template<>
 inline void PackInfo::unpack< Cell, Face > ( Face * receiver, const PrimitiveID & senderID, walberla::mpi::RecvBuffer & recvBuffer ) const
 {
   unpackFaceFromCell( receiver, senderID, recvBuffer );
@@ -251,6 +279,11 @@ template<>
 inline void PackInfo::communicateLocal< Face, Cell >( const Face * sender, Cell * receiver ) const
 {
   communicateLocalFaceToCell( sender, receiver );
+}
+template<>
+inline void PackInfo::communicateLocal< Face, Vertex >( const Face * sender, Vertex * receiver ) const
+{
+  communicateLocalFaceToVertex( sender, receiver );
 }
 template<>
 inline void PackInfo::communicateLocal< Cell, Face >( const Cell * sender, Face * receiver ) const

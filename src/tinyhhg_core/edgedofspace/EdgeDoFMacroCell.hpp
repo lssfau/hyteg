@@ -19,6 +19,53 @@ namespace macrocell {
 using walberla::uint_t;
 using walberla::real_c;
 
+inline indexing::Index getIndexInNeighboringMacroEdge( const indexing::Index  & edgeDoFIndexInMacroCell,
+                                                       const Cell             & cell,
+                                                       const uint_t           & neighborEdgeID,
+                                                       const PrimitiveStorage & storage,
+                                                       const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto indexInMacroEdge = indexing::basisConversion( edgeDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) );
+  return indexInMacroEdge;
+}
+
+inline indexing::Index getIndexInNeighboringMacroEdgeXYZ( const indexing::Index  & edgeDoFIndexInMacroCell,
+                                                          const Cell             & cell,
+                                                          const uint_t           & neighborEdgeID,
+                                                          const PrimitiveStorage & storage,
+                                                          const uint_t           & level )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto indexInMacroEdge = indexing::basisConversion( edgeDoFIndexInMacroCell, {0, 1, 2, 3},
+                                                           localVertexIDsAtCell, levelinfo::num_microedges_per_edge( level ) - 1 );
+  return indexInMacroEdge;
+}
+
+inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroEdge( const EdgeDoFOrientation & orientationInMacroCell,
+                                                                          const Cell               & cell,
+                                                                          const uint_t             & neighborEdgeID,
+                                                                          const PrimitiveStorage   & storage )
+{
+  const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+  { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
+    cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
+
+  const auto orientationInMacroEdge = edgedof::convertEdgeDoFOrientationCellToFace( orientationInMacroCell,
+                                                                                    localVertexIDsAtCell.at(0),
+                                                                                    localVertexIDsAtCell.at(1),
+                                                                                    localVertexIDsAtCell.at(2) );
+  return orientationInMacroEdge;
+}
+
+
 inline indexing::Index getIndexInNeighboringMacroFace( const indexing::Index  & edgeDoFIndexInMacroCell,
                                                        const Cell             & cell,
                                                        const uint_t           & neighborFaceID,
@@ -173,6 +220,17 @@ inline void interpolate(const uint_t & Level, Cell & cell,
 
 
 template< typename ValueType >
+inline void swap( const uint_t & level, Cell & cell,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstID )
+{
+  auto srcData = cell.getData( srcID );
+  auto dstData = cell.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+
+template< typename ValueType >
 inline void assign(const uint_t & Level, Cell & cell, const std::vector< ValueType > & scalars,
                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
@@ -301,6 +359,37 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
   }
 }
 
+template < typename ValueType >
+inline void add( const uint_t&                                               Level,
+                 Cell&                                                       cell,
+                 const real_t&                                               scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId )
+{
+   auto dstData = cell.getData( dstId )->getPointer( Level );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
+   {
+      const uint_t idxX  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxY  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxZ  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxXY = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxXZ = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idxYZ = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+
+      dstData[idxX] += scalar;
+      dstData[idxY] += scalar;
+      dstData[idxZ] += scalar;
+      dstData[idxXY] += scalar;
+      dstData[idxXZ] += scalar;
+      dstData[idxYZ] += scalar;
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+   {
+      const uint_t idxXYZ = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+      dstData[idxXYZ] += scalar;
+   }
+}
 
 template< typename ValueType >
 inline real_t dot( const uint_t & Level, Cell & cell,
@@ -359,6 +448,64 @@ inline real_t dot( const uint_t & Level, Cell & cell,
 
   return scalarProduct.get();
 }
+
+
+template< typename ValueType >
+inline real_t sum( const uint_t & Level, Cell & cell,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataId )
+{
+  auto data = cell.getData( dataId )->getPointer( Level );
+
+  walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
+  {
+    if ( isInnerXEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerXYEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerXZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+
+    if ( isInnerYZEdgeDoF( Level, it ) )
+    {
+      const uint_t idx  = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      scalarProduct += data[ idx ];
+    }
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+  {
+    const uint_t idx  = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    scalarProduct += data[ idx ];
+  }
+
+  return scalarProduct.get();
+}
+
 
 inline void apply(const uint_t & Level, Cell &cell,
                   const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell> &operatorId,
@@ -444,72 +591,147 @@ inline void apply(const uint_t & Level, Cell &cell,
   }
 }
 
-template< typename ValueType >
-inline ValueType getMaxValue( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+template < typename ValueType >
+inline ValueType getMaxValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+   auto src      = cell.getData( srcId )->getPointer( level );
+   auto localMax = -std::numeric_limits< ValueType >::max();
 
-  auto src = cell.getData( srcId )->getPointer( level );
-  auto localMax = -std::numeric_limits< ValueType >::max();
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      if ( isInnerXEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
-    localMax = std::max( localMax, src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMax = std::max( localMax, src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMax = std::max( localMax, src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMax = std::max( localMax, src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMax = std::max( localMax, src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMax = std::max( localMax, src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] );
-  }
+      if ( isInnerYEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
-    localMax = std::max( localMax, src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] );
-  }
+      if ( isInnerZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  return localMax;
+      if ( isInnerXYEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerXZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerYZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, ( src[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      localMax = std::max( localMax, src[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] );
+   }
+
+   return localMax;
 }
 
-template< typename ValueType >
-inline ValueType getMinValue( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+template < typename ValueType >
+inline ValueType getMinValue( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+   auto src      = cell.getData( srcId )->getPointer( level );
+   auto localMin = std::numeric_limits< ValueType >::max();
 
-  auto src = cell.getData( srcId )->getPointer( level );
-  auto localMin = std::numeric_limits< ValueType >::max();
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      if ( isInnerXEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
-    localMin = std::min( localMin, src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMin = std::min( localMin, src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMin = std::min( localMin, src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMin = std::min( localMin, src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMin = std::min( localMin, src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] );
-    localMin = std::min( localMin, src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] );
-  }
+      if ( isInnerYEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
-    localMin = std::min( localMin, src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] );
-  }
+      if ( isInnerZEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  return localMin;
+      if ( isInnerXYEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerXZEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerYZEdgeDoF( level, it ) )
+      {
+         localMin = std::min( localMin, ( src[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      localMin = std::min( localMin, src[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] );
+   }
+
+   return localMin;
 }
 
-template< typename ValueType >
-inline ValueType getMaxMagnitude( const uint_t &level, Cell &cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId ) {
+template < typename ValueType >
+inline ValueType
+    getMaxMagnitude( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId )
+{
+   auto src      = cell.getData( srcId )->getPointer( level );
+   auto localMax = ValueType( 0.0 );
 
-  auto src = cell.getData( srcId )->getPointer( level );
-  auto localMax = ValueType(0.0);
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      if ( isInnerXEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) ) {
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() ) ] ) );
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() ) ] ) );
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() ) ] ) );
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() ) ] ) );
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() ) ] ) );
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() ) ] ) );
-  }
+      if ( isInnerYEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) ) {
-    localMax = std::max( localMax, std::abs( src[ edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() ) ] ) );
-  }
+      if ( isInnerZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
 
-  return localMax;
+      if ( isInnerXYEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerXZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+
+      if ( isInnerYZEdgeDoF( level, it ) )
+      {
+         localMax = std::max( localMax, std::abs( src[edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() )] ) );
+      }
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      localMax = std::max( localMax, std::abs( src[edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() )] ) );
+   }
+
+   return localMax;
 }
-
 
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Cell &cell,

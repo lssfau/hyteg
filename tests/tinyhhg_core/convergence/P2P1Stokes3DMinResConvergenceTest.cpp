@@ -18,9 +18,7 @@
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/petsc/PETScManager.hpp"
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
-#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+
 
 using walberla::real_c;
 using walberla::real_t;
@@ -35,15 +33,15 @@ int main( int argc, char* argv[] )
   const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
   const uint_t minLevel         =  2;
   const uint_t maxLevel         =  2;
-  const uint_t maxIterations    =  5;
-  const real_t tolerance = 1e-16;
+  const uint_t maxIterations    =  20;
+  const real_t tolerance = 1e-13;
 
   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-#if 1
+#if 0
   // Get all primitive IDs of primitives at the outflow boundary (z == 1)
   const real_t eps = 1e-8;
   const real_t zBoundary = 1.0;
@@ -96,17 +94,22 @@ int main( int argc, char* argv[] )
   hhg::P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
   hhg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
   hhg::P2P1TaylorHoodFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
+  hhg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
   hhg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
   hhg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
   vtkOutput.add( u.u );
   vtkOutput.add( u.v );
-  vtkOutput.add( u.w );
+  // vtkOutput.add( u.w );
   vtkOutput.add( u.p );
   vtkOutput.add( uExact.u );
   vtkOutput.add( uExact.v );
-  vtkOutput.add( uExact.w );
+  // vtkOutput.add( uExact.w );
   vtkOutput.add( uExact.p );
+  vtkOutput.add( err.u );
+  vtkOutput.add( err.v );
+  // vtkOutput.add( err.w );
+  vtkOutput.add( err.p );
 
 
   hhg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
@@ -139,11 +142,16 @@ int main( int argc, char* argv[] )
       return real_c(5) * x[0] * x[0] * x[0] * x[0] - real_c(5) * x[1] * x[1] * x[1] * x[1];
   };
 
+  std::function< real_t( const hhg::Point3D& ) > collidingFlow_p = []( const hhg::Point3D& xx )
+  {
+      return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 );
+  };
+
   std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
 
-#if 1
+#if 0
   u.w.interpolate( inflowPoiseuille, maxLevel, hhg::DirichletBoundary );
 #else
   u.u.interpolate( collidingFlow_x, maxLevel, hhg::DirichletBoundary );
@@ -151,53 +159,48 @@ int main( int argc, char* argv[] )
 
   uExact.u.interpolate( collidingFlow_x, maxLevel );
   uExact.v.interpolate( collidingFlow_y, maxLevel );
+  uExact.p.interpolate( collidingFlow_p, maxLevel );
 #endif
 
   vtkOutput.write( maxLevel, 0 );
-#if 1
 
-#if 0
-  typedef hhg::CGSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef hhg::GMultigridSolver< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator, CoarseGridSolver_T, hhg::P1toP1LinearRestriction, hhg::P1toP1LinearProlongation > GMGSolver_T;
-   typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1ConstantLaplaceOperator, GMGSolver_T, hhg::P1LumpedInvMassOperator > Preconditioner_T;
-   typedef hhg::StokesPressureBlockPreconditioner< hhg::P1StokesFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
+  typedef hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
+  auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-   auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
-   hhg::P1toP1LinearProlongation prolongationOperator;
-   hhg::P1toP1LinearRestriction restrictionOperator;
-   GMGSolver_T gmgSolver( storage, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-   hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
-   PressurePreconditioner_T pressurePrec( massOperator, storage, minLevel, maxLevel );
-   Preconditioner_T prec( L.A, gmgSolver, massOperator, storage, minLevel, maxLevel, 2 );
-#endif
-
-  typedef hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
-  PressurePreconditioner_T pressurePrec( storage, minLevel, maxLevel );
-
-  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance );
-  // auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodFunction< real_t >, hhg::P2P1TaylorHoodStokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
-  // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
+  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
 
   solver.solve( L, u, f, maxLevel );
-#else
-  auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
-   uint_t globalSize = 0;
-   const uint_t localSize = numerator->enumerate(level, globalSize);
-   PETScManager petscManager;
-   PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
-   f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
-   f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
-   f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
-   petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
-#endif
 
-   vtkOutput.write( maxLevel, 1 );
+  hhg::vertexdof::projectMean( u.p, maxLevel );
+  hhg::vertexdof::projectMean( uExact.p, maxLevel );
 
   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-  real_t final_residual = r.dotGlobal( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel ) );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual )
-  WALBERLA_CHECK_LESS( final_residual, 8e-11 );
+  err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
+
+  uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
+
+  real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, maxLevel ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, maxLevel ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_w = std::sqrt( err.w.dotGlobal( err.w, maxLevel ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / (real_t) globalDoFs1 );
+  real_t residuum_l2_1  = std::sqrt( r.dotGlobal( r, maxLevel ) / (real_t) globalDoFs1 );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error w = " << discr_l2_err_1_w );
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
+  WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
+
+  vtkOutput.write( maxLevel, 1 );
+
+  auto tt = storage->getTimingTree();
+  auto ttreduced = tt->getReduced().getCopyWithRemainder();
+  WALBERLA_LOG_INFO_ON_ROOT( ttreduced );
+
+  WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w, 0.6416 );
+  WALBERLA_CHECK_LESS( discr_l2_err_1_p, 4.003 );
+  WALBERLA_CHECK_LESS( residuum_l2_1, 0.01934 );
 
   return EXIT_SUCCESS;
 }

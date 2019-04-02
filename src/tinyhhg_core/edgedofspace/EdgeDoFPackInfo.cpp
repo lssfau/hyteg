@@ -146,7 +146,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
    using hhg::edgedof::macroface::BorderIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender );
-   indexing::FaceBorderDirection faceDir =
+   indexing::FaceBoundaryDirection faceDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
    for( const auto& it : BorderIterator( level_, faceDir, 0 ) )
    {
@@ -177,7 +177,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    ValueType*                    edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender->getID() );
-   indexing::FaceBorderDirection faceDir =
+   indexing::FaceBoundaryDirection faceDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
    uint_t indexOnEdge = 0;
    for( const auto& it : BorderIterator( level_, faceDir, 0 ) )
@@ -210,7 +210,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    using hhg::edgedof::macroface::BorderIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
-   indexing::FaceBorderDirection faceBorderDir =
+   indexing::FaceBoundaryDirection faceBorderDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, sender->edge_orientation[edgeIndexOnFace] );
    stencilDirection faceDirOne;
    stencilDirection faceDirTwo;
@@ -422,7 +422,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
    uint_t faceLocalVertexIDOfEdge0 = sender->vertex_index( receiver->getVertexID0() );
    uint_t faceLocalVertexIDOfEdge1 = sender->vertex_index( receiver->getVertexID1() );
 
-   indexing::FaceBorderDirection faceBorderDir =
+   indexing::FaceBoundaryDirection faceBorderDir =
        indexing::getFaceBorderDirection( faceLocalEdgeID, sender->edge_orientation[faceLocalEdgeID] );
 
    /////////// DoFs on Face ///////////

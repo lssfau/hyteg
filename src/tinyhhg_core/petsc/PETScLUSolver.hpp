@@ -4,6 +4,7 @@
 
 #include "PETScVector.hpp"
 #include "PETScSparseMatrix.hpp"
+#include "tinyhhg_core/solvers/Solver.hpp"
 
 #ifdef HHG_BUILD_WITH_PETSC
 
@@ -17,32 +18,62 @@ namespace hhg{
 
 
 template < class OperatorType >
-class PETScLUSolver {
+class PETScLUSolver : public Solver< OperatorType >
+{
 public:
 
   typedef typename OperatorType::srcType FunctionType;
 
-  PETScLUSolver( std::shared_ptr< typename OperatorType::srcType::template FunctionType< PetscInt > >& numerator, uint_t localSize, uint_t globalSize )
-  : num( numerator )
-  , Amat( localSize, globalSize )
-  , xVec( localSize )
-  , bVec( localSize )
+  PETScLUSolver( const std::shared_ptr< PrimitiveStorage > & storage, const uint_t & level )
+  : allocatedLevel_( level )
+  , num( "numerator", storage, level, level )
+  , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
+  , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+  , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+#if 0
+  , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+#endif
   , flag_( hhg::All )
   {
-     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+    num.enumerate( level );
+    KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
   }
 
   ~PETScLUSolver(){
     KSPDestroy(&ksp);
   }
 
-  void solve(const OperatorType& A,const FunctionType& x,const FunctionType& b,const uint_t level) {
+#if 0
+  void setNullSpace( FunctionType & inKernel, const uint_t & level )
+  {
+    inKernel.createVectorFromFunction( inKernel, *num, level, All );
+    VecNormalize(inKernel.get(), NULL);
+    MatNullSpace nullspace;
+    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &(inKernel.get()), &nullspace );
+    MatSetNullSpace( Amat.get(), nullspace );
+  }
+#endif
 
-    bVec.createVectorFromFunction(b,*num.get(),level,All);
+  void setConstantNullSpace()
+  {
+    MatNullSpace nullspace;
+    MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_TRUE, 0, NULL, &nullspace );
+    MatSetNullSpace( Amat.get(), nullspace );
+  }
 
-    if(Amat.createMatrixFromFunctionOnce(A, level, *num.get(), All))
+  void solve(const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level)
+  {
+    WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
+
+    x.getStorage()->getTimingTree()->start( "PETSc LU Solver" );
+
+    b.assign({1.0}, {x}, level, DirichletBoundary);
+
+    bVec.createVectorFromFunction(b,num,level,All);
+
+    if(Amat.createMatrixFromFunctionOnce(A, level, num, All))
     {
-      Amat.applyDirichletBC(*num.get(),level);
+      Amat.applyDirichletBC(num,level);
       KSPSetOperators(ksp,Amat.get(),Amat.get());
 
       KSPGetPC(ksp,&pc);
@@ -52,22 +83,26 @@ public:
       //PCFactorGetMatrix(pc,&F);
     }
 
-
-    //WALBERLA_LOG_INFO_ON_ROOT("Solving Linerar System")
     KSPSolve(ksp,bVec.get(),xVec.get());
 
-    xVec.createFunctionFromVector(x,*num.get(),level,flag_);
+    xVec.createFunctionFromVector(x,num,level,flag_);
 
+    x.getStorage()->getTimingTree()->stop( "PETSc LU Solver" );
   }
 
 
 
 
 private:
-  std::shared_ptr<typename OperatorType::srcType::template FunctionType<PetscInt>> num;
+  uint_t allocatedLevel_;
+  typename OperatorType::srcType::template FunctionType<PetscInt> num;
   PETScSparseMatrix<OperatorType,OperatorType::srcType::template FunctionType> Amat;
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> xVec;
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> bVec;
+#if 0
+  PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
+#endif
+
   KSP ksp;
   PC pc;
   hhg::DoFType flag_;

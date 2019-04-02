@@ -8,7 +8,7 @@ namespace hhg
 {
 
 template <typename ValueType>
-class P2P1TaylorHoodFunction : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+class P2P1TaylorHoodFunction 
 {
 public:
 
@@ -25,8 +25,7 @@ public:
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel )
-  : Operator( storage, minLevel, maxLevel )
-  , u( _name + "_u", storage, minLevel, maxLevel )
+  : u( _name + "_u", storage, minLevel, maxLevel )
   , v( _name + "_v", storage, minLevel, maxLevel )
   , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                    P2Function< ValueType >( _name + "_w_dummy", storage ) )
@@ -34,12 +33,15 @@ public:
   {}
 
   P2P1TaylorHoodFunction(const std::string& _name, const std::shared_ptr< PrimitiveStorage > & storage, size_t minLevel, size_t maxLevel, BoundaryCondition velocityBC)
-      : Operator( storage, minLevel, maxLevel )
-        , u(_name+"_u", storage, minLevel, maxLevel, velocityBC)
+        : u(_name+"_u", storage, minLevel, maxLevel, velocityBC)
         , v(_name+"_v", storage, minLevel, maxLevel, velocityBC)
         , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name+"_w", storage, minLevel, maxLevel, velocityBC ) :  P2Function< ValueType >( _name+"_w_dummy", storage ))
         , p(_name+"_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
   {}
+
+  std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
+
+  bool isDummy() const { return false; }
 
   void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
@@ -47,6 +49,24 @@ public:
     v.interpolate(expr, level, flag);
     w.interpolate(expr, level, flag);
     p.interpolate(expr, level, flag);
+  }
+
+  void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
+  {
+     u.interpolate( constant, level, flag );
+     v.interpolate( constant, level, flag );
+     w.interpolate( constant, level, flag );
+     p.interpolate( constant, level, flag );
+  }
+
+  void swap( const P2P1TaylorHoodFunction< ValueType > & other,
+             const uint_t & level,
+             const DoFType & flag = All ) const
+  {
+    u.swap( other.u, level, flag );
+    v.swap( other.v, level, flag );
+    w.swap( other.w, level, flag );
+    p.swap( other.p, level, flag );
   }
 
   void assign( const std::vector< walberla::real_t >                                                     scalars,
@@ -133,10 +153,21 @@ public:
 
   void enumerate( uint_t level ) const
   {
-    u.enumerate( level );
-    v.enumerate( level );
-    w.enumerate( level );
-    p.enumerate( level );
+    uint_t counterDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+
+    std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
+
+    ValueType offset = 0;
+
+    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+    {
+      offset += static_cast< ValueType >( doFsPerRank[i] );
+    }
+
+    u.enumerate( level, offset );
+    v.enumerate( level, offset );
+    w.enumerate( level, offset );
+    p.enumerate( level, offset );
   }
 
 

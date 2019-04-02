@@ -25,6 +25,7 @@ struct DGFunctionTag {};
 struct P2FunctionTag {};
 struct P1StokesFunctionTag {};
 struct P2P1TaylorHoodFunctionTag {};
+struct P2P2StokesFunctionTag {};
 
 
 //////////////////////////
@@ -54,6 +55,9 @@ class P1StokesFunction;
 
 template< typename VType >
 class P2P1TaylorHoodFunction;
+
+template< typename VType >
+class P2P2StokesFunction;
 
 
 ///////////////////////////////////////////////////////////////////
@@ -89,6 +93,7 @@ template< typename VType >
 struct FunctionTrait< DGFunction< VType > >
 {
   typedef VType ValueType;
+  typedef DGFunctionTag Tag;
 
   static std::string getTypeName() { return "DGFunction"; }
 };
@@ -121,6 +126,16 @@ struct FunctionTrait< P2P1TaylorHoodFunction< VType > >
     typedef P2P1TaylorHoodFunctionTag Tag;
 
     static std::string getTypeName() { return "P2P1TaylorHoodFunction"; }
+};
+
+/// P2P2Stokes specialization
+template< typename VType >
+struct FunctionTrait< P2P2StokesFunction< VType > >
+{
+    typedef VType ValueType;
+    typedef P2P2StokesFunctionTag Tag;
+
+    static std::string getTypeName() { return "P2P2StokesFunction"; }
 };
 
 }

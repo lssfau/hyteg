@@ -3,7 +3,7 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 #include "core/timing/TimingNode.h"
-#include "core/extern/json.hpp"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
@@ -38,10 +38,9 @@ int main( int argc, char* argv[] )
    MeshInfo                            meshInfo = MeshInfo::meshUnitSquare( 2 );
    SetupPrimitiveStorage               setupStorage( meshInfo, 1 );
    //auto storage = PrimitiveStorage( setupStorage );
-   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
-   //auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree(timingTree);
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+   //auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
    hhg::P1Function< double > r( "r", storage, level, level );
    hhg::P1Function< double > f( "f", storage, level, level );

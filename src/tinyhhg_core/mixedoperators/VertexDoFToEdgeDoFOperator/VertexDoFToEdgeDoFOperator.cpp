@@ -122,7 +122,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
                                                                         DoFType                          flag,
                                                                         UpdateType                       updateType ) const
 {
-  this->startTiming( "VertexDoFToEdgeDoFOperator - Apply" );
+  this->startTiming( "Apply" );
   ///the order of communication is crucial here.
   ///first the vertex dofs on the macro vertex need to be communicated to the edge since they are needed on the edge and the face
   src.communicate<Vertex, Edge>( level );
@@ -194,7 +194,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
       }
     }
   }
-  this->stopTiming( "VertexDoFToEdgeDoFOperator - Apply" );
+  this->stopTiming( "Apply" );
 }
 
 namespace VertexDoFToEdgeDoF {
@@ -228,6 +228,15 @@ template class VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_1_otherwise>;
 
 template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >;
 template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_pspg_tet_cell_integral_0_otherwise >;
+
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_0_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_1_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise >;
+
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise >;
 
 template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >;
 template class VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >;

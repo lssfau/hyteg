@@ -1,6 +1,8 @@
+
 #pragma once
 
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 
 namespace hhg
 {
@@ -27,12 +29,34 @@ public:
   {
   }
 
+  std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
+
+  bool isDummy() const { return false; }
+
   void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
     w.interpolate(expr, level, flag);
     p.interpolate(expr, level, flag);
+  }
+
+  void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
+  {
+     u.interpolate( constant, level, flag );
+     v.interpolate( constant, level, flag );
+     w.interpolate( constant, level, flag );
+     p.interpolate( constant, level, flag );
+  }
+
+  void swap( const P1StokesFunction< ValueType > & other,
+             const uint_t & level,
+             const DoFType & flag = All ) const
+  {
+    u.swap( other.u, level, flag );
+    v.swap( other.v, level, flag );
+    w.swap( other.w, level, flag );
+    p.swap( other.p, level, flag );
   }
 
   void assign( const std::vector< walberla::real_t >                                               scalars,
@@ -103,10 +127,21 @@ public:
 
   void enumerate( uint_t level )
   {
-    u.enumerate( level );
-    v.enumerate( level );
-    w.enumerate( level );
-    p.enumerate( level );
+    uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+
+    std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
+
+    ValueType offset = 0;
+
+    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+    {
+      offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
+    }
+
+    u.enumerate( level, offset );
+    v.enumerate( level, offset );
+    w.enumerate( level, offset );
+    p.enumerate( level, offset );
   }
 
   P1Function< ValueType > u;

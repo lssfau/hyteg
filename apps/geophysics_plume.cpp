@@ -171,10 +171,10 @@ int main( int argc, char* argv[] )
          for( uint_t outer = 0; outer < 2; ++outer )
          {
             solver.solve( L, *u, *f, maxLevel );
-            hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
+            hhg::vertexdof::projectMean( u->p, maxLevel );
 
             L.apply( *u, *r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-            hhg::vertexdof::projectMean( u->p, *tmp, maxLevel );
+            hhg::vertexdof::projectMean( u->p, maxLevel );
 
             r->assign( {1.0, -1.0}, { *f, *r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );

@@ -21,6 +21,9 @@ template< typename FunctionType >
 class Function {
 public:
 
+  typedef typename FunctionTrait< FunctionType >::Tag Tag;
+  typedef typename FunctionTrait< FunctionType >::ValueType valueType;
+
   Function( std::string name, const std::shared_ptr<PrimitiveStorage> & storage ) : functionName_(std::move(name)), storage_( storage ), minLevel_( 0 ), maxLevel_( 0 ), isDummy_( true ) {}
 
   Function(std::string name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
@@ -90,7 +93,6 @@ protected:
   {
     if ( timingTree_ )
     {
-      timingTree_->start( "Function" );
       timingTree_->start( FunctionTrait< FunctionType >::getTypeName() );
       timingTree_->start( timerString );
     }
@@ -102,7 +104,6 @@ protected:
     {
       timingTree_->stop( timerString );
       timingTree_->stop( FunctionTrait< FunctionType >::getTypeName() );
-      timingTree_->stop( "Function" );
     }
   }
 

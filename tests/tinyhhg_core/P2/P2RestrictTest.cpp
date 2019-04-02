@@ -6,6 +6,8 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
 
 namespace hhg {
@@ -20,8 +22,8 @@ static void testP2Restrict() {
 
   std::shared_ptr <PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel);
-  auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel);
+  auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
+  auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
   std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D&  ) {
      return 1;
   };
@@ -45,7 +47,8 @@ static void testP2Restrict() {
 //    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
-  x->restrict(sourceLevel,hhg::All);
+  P2toP2QuadraticRestriction restrictionOperator;
+  restrictionOperator.restrict( *x, sourceLevel, All );
 
 
 
@@ -119,12 +122,14 @@ static void testP2Restrict2() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 2, sourceLevel);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 2, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
   typedef stencilDirection sD;
   std::function<real_t(const hhg::Point3D &)> values = [](const hhg::Point3D &) { return 13; };
 
   x->interpolate(values, sourceLevel);
-  x->restrict(sourceLevel, hhg::All);
+
+  P2toP2QuadraticRestriction restrictionOperator;
+  restrictionOperator.restrict( *x, sourceLevel, All );
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
@@ -177,7 +182,7 @@ static void testP2Restrict2() {
     }
   }
 
-  x->restrict(sourceLevel - 1, hhg::All);
+  restrictionOperator.restrict( *x, sourceLevel - 1, All );
 
   edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
   vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);

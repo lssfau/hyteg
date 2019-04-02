@@ -6,7 +6,7 @@
 
 
 #include "core/DataTypes.h"
-
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
@@ -57,16 +57,24 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
-                      BoundaryCondition                          boundaryCondition );
+                      BoundaryCondition                          boundaryCondition,
+                      const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
+    void swap( const VertexDoFFunction< ValueType > & other,
+               const uint_t & level,
+               const DoFType & flag = All ) const;
+
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level,
                 DoFType                                                                              flag = All ) const;
+
+   void assign( const P2Function< ValueType >& src, const uint_t& P1Level, const DoFType& flag = All ) const;
 
    void add( const ValueType& scalar, const uint_t& level, DoFType flag = All ) const;
 
@@ -81,6 +89,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    real_t dotLocal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    real_t dotGlobal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+
+   real_t sumLocal( const uint_t & level, const DoFType & flag = All) const;
+   real_t sumGlobal( const uint_t & level, const DoFType & flag = All) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
@@ -113,6 +124,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
+   inline DoFType    getBoundaryTypeToSkipDuringAdditiveCommunication() const { return boundaryTypeToSkipDuringAdditiveCommunication_; }
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
@@ -200,25 +212,23 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 
-   /// friend P2Function for usage of enumerate
+   /// friend Stokes and P2Function for usage of enumerate
    friend class P2Function< ValueType >;
+   friend class P1StokesFunction< ValueType >;
+   friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
-inline void projectMean( VertexDoFFunction< real_t >& pressure, VertexDoFFunction< real_t >& tmp, uint_t level )
+inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t & level )
 {
-   if( pressure.isDummy() )
-   {
-      return;
-   }
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
-
-   tmp.interpolate( ones, level );
-
-   real_t numGlobalVertices = tmp.dotGlobal( tmp, level, hhg::All );
-   real_t mean              = pressure.dotGlobal( tmp, level, hhg::All );
-
-   pressure.assign( {1.0, -mean / numGlobalVertices}, {pressure, tmp}, level, hhg::All );
+  if( pressure.isDummy() )
+  {
+    return;
+  }
+  const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >( *pressure.getStorage(), level );
+  const real_t sum = pressure.sumGlobal( level, All );
+  pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
+
 
 } // namespace vertexdof
 } // namespace hhg

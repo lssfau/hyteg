@@ -3,6 +3,8 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
@@ -72,19 +74,18 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
       //return 5.0;
-      return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
+      return std::sin( walberla::math::M_PI * xx[0] ) + std::cos( walberla::math::M_PI * xx[1] );
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "writeDomain" ) )
    {
       hhg::writeDomainPartitioningVTK( storage, "./output", "domain" );
    }
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    hhg::P1Function< double > oneFunc( "x", storage, level, level );
    oneFunc.interpolate( ones, level );

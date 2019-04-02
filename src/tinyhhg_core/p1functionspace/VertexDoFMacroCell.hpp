@@ -100,6 +100,16 @@ inline void interpolate( const uint_t & level,
 }
 
 template< typename ValueType >
+inline void swap( const uint_t & level, Cell & cell,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstID )
+{
+  auto srcData = cell.getData( srcID );
+  auto dstData = cell.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+template< typename ValueType >
 inline void assign( const uint_t & level,
                     const Cell & cell,
                     const std::vector< ValueType > & scalars,
@@ -222,6 +232,25 @@ inline real_t dot( const uint_t & level,
   }
 
   return sp;
+}
+
+
+template< typename ValueType >
+inline real_t sum( const uint_t & level,
+                   const Cell & cell,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dataID )
+{
+  real_t sum = 0.0;
+
+  const ValueType * data = cell.getData( dataID )->getPointer( level );
+
+  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
+  {
+    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+    sum += data[ idx ];
+  }
+
+  return sum;
 }
 
 

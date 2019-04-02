@@ -158,6 +158,49 @@ inline void interpolate(const uint_t & Level, Face & face,
 }
 
 
+template< typename ValueType >
+inline void swap( const uint_t & level, Face & face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstID )
+{
+  auto srcData = face.getData( srcID );
+  auto dstData = face.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+template < typename ValueType >
+inline void add( const uint_t&                                               Level,
+                 Face&                                                       face,
+                 const real_t&                                               scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
+{
+   auto dstData = face.getData( dstId )->getPointer( Level );
+
+   for ( const auto& it : edgedof::macroface::Iterator( Level, 0 ) )
+   {
+      const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
+      const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
+      const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
+
+      // Do not update horizontal DoFs at bottom
+      if ( it.row() != 0 )
+      {
+         dstData[idxHorizontal] += scalar;
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.col() != 0 )
+      {
+         dstData[idxVertical] += scalar;
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      {
+         dstData[idxDiagonal] += scalar;
+      }
+   }
+}
 
 template< typename ValueType >
 inline void add( const uint_t & Level, Face & face, const std::vector< ValueType > & scalars,
@@ -327,6 +370,39 @@ inline real_t dot( const uint_t & Level, Face & face,
   return scalarProduct.get();
 }
 
+template < typename ValueType >
+inline real_t sum( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataId )
+{
+   auto data = face.getData( dataId )->getPointer( Level );
+
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   for ( const auto& it : edgedof::macroface::Iterator( Level, 0 ) )
+   {
+      // Do not read horizontal DoFs at bottom
+      if ( it.row() != 0 )
+      {
+         const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
+         scalarProduct += data[idx];
+      }
+
+      // Do not read vertical DoFs at left border
+      if ( it.col() != 0 )
+      {
+         const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
+         scalarProduct += data[idx];
+      }
+
+      // Do not read diagonal DoFs at diagonal border
+      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      {
+         const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
+         scalarProduct += data[idx];
+      }
+   }
+
+   return scalarProduct.get();
+}
 
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Face &face,

@@ -75,6 +75,16 @@ inline void interpolate(const uint_t & Level, Edge & edge,
 }
 
 
+template< typename ValueType >
+inline void swap( const uint_t & level, Edge & edge,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstID )
+{
+  auto srcData = edge.getData( srcID );
+  auto dstData = edge.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
 
 template< typename ValueType >
 inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType > & scalars,
@@ -104,7 +114,20 @@ inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType
   }
 }
 
+template < typename ValueType >
+inline void add( const uint_t&                                               Level,
+                 Edge&                                                       edge,
+                 const real_t&                                               scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
+{
+   auto dstData = edge.getData( dstId )->getPointer( Level );
 
+   for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
+   {
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      dstData[idx] += scalar;
+   }
+}
 
 template< typename ValueType >
 inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueType > & scalars,
@@ -154,7 +177,21 @@ inline real_t dot( const uint_t & Level, Edge & edge,
   return scalarProduct.get();
 }
 
+template < typename ValueType >
+inline real_t sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId )
+{
+   auto data = edge.getData( dataId )->getPointer( Level );
 
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
+   {
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
+      scalarProduct += data[idx];
+   }
+
+   return scalarProduct.get();
+}
 
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Edge &edge,

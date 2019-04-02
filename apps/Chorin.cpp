@@ -1,5 +1,5 @@
 #include <boost/core/null_deleter.hpp>
-
+#include <core/math/Constants.h>
 
 #include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
@@ -75,7 +75,7 @@ int main( int argc, char* argv[] )
 
          if( time < inflowBuildupTime )
          {
-            damping = 0.5 * ( 1.0 + std::cos( walberla::math::PI * ( time / inflowBuildupTime - 1.0 ) ) );
+            damping = 0.5 * ( 1.0 + std::cos( walberla::math::M_PI * ( time / inflowBuildupTime - 1.0 ) ) );
          } else
          {
             damping = 1.0;
@@ -183,7 +183,7 @@ int main( int argc, char* argv[] )
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p_rhs, tmp, maxLevel - 1 );
+         hhg::vertexdof::projectMean( p_rhs, maxLevel - 1 );
       }
 
       for( uint_t outer = 0; outer < outerIterations; ++outer )
@@ -196,7 +196,7 @@ int main( int argc, char* argv[] )
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p, tmp, maxLevel - 1 );
+         hhg::vertexdof::projectMean( p, maxLevel - 1 );
       }
 
       prolongationOperator->prolongate( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );

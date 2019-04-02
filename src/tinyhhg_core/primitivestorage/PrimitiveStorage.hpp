@@ -247,13 +247,10 @@ public:
   void getNeighboringRanks( std::set< uint_t >                 & neighboringRanks ) const;
   void getNeighboringRanks( std::set< walberla::mpi::MPIRank > & neighboringRanks ) const;
 
-  inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const{
+  inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const
+  {
     return timingTree_;
   }
-
-   inline void  setTimingTree(const std::shared_ptr< walberla::WcTimingTree >& timingTree){
-      timingTree_ = timingTree;
-   }
 
   /// Returns a formatted string that contains global information about the storage.
   /// Must be called by all processes!

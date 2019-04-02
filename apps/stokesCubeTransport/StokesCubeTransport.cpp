@@ -4,6 +4,7 @@
 #include "core/Environment.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -76,7 +77,9 @@ int main( int argc, char* argv[] )
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+
+   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "useParMETIS" ) )
    {
@@ -88,9 +91,6 @@ int main( int argc, char* argv[] )
       auto globalInfo = storage->getGlobalInfo();
       WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
    }
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
    {
@@ -134,7 +134,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {
      real_t temp_ = 1.0 - std::pow(x[2], 0.5);
-     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::PI * x[0]) * std::sin(walberla::math::PI * x[1]));
+     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::M_PI * x[0]) * std::sin(walberla::math::M_PI * x[1]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };

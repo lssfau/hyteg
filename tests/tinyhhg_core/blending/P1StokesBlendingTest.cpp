@@ -149,7 +149,7 @@ int main( int argc, char* argv[] )
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.v, maxLevel );
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
-   hhg::vertexdof::projectMean( u_exact.p, tmp.p, maxLevel );
+   hhg::vertexdof::projectMean( u_exact.p, maxLevel );
 
    // Integrate RHS for u
    tmp.u.interpolate( rhs_u, maxLevel, hhg::All );
@@ -201,7 +201,7 @@ int main( int argc, char* argv[] )
       solver.solve(L, u, f, maxLevel);
 
       end = walberla::timing::getWcTime();
-      hhg::vertexdof::projectMean( u.p, tmp.p, maxLevel );
+      hhg::vertexdof::projectMean( u.p, maxLevel );
 
       L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
 

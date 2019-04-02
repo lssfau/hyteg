@@ -38,7 +38,7 @@ EdgeDoFOperator::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storag
 
 void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunction<real_t> &dst, uint_t level, DoFType flag, UpdateType updateType) const {
 
-  this->startTiming( "EdgeDoFOperator - Apply" );
+  this->startTiming( "Apply" );
 
   src.startCommunication<Edge, Face>( level );
   src.endCommunication<Edge, Face>( level );
@@ -78,10 +78,10 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
         real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
         if( updateType == hhg::Replace )
         {
-          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dst_data, src_data, opr_data, static_cast< int64_t  >( level ) );
+          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dst_data, src_data, &opr_data[5], &opr_data[0], &opr_data[10], static_cast< int64_t  >( level ) );
         } else if( updateType == hhg::Add )
         {
-          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( dst_data, src_data, &opr_data[5], &opr_data[0], &opr_data[10], static_cast< int64_t >( level ) );
         }
       }
       else
@@ -118,7 +118,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
 
 
 
-  this->stopTiming( "EdgeDoFOperator - Apply" );
+  this->stopTiming( "Apply" );
 }
 
 

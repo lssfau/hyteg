@@ -28,6 +28,9 @@ uint_t neighborCellGhostLayerSize( const uint_t & level );
 /// Index of a vertex DoF on a macro edge (only access to owned DoFs, no ghost layers).
 uint_t index( const uint_t & level, const uint_t & x );
 
+/// 'Enumerates' the inner vertexdofs. x is still the index but must not be located on the boundary.
+uint_t innerIndex( const uint_t & level, const uint_t & x );
+
 /// Index of a vertex DoF on a ghost layer of a macro edge.
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
 uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor );
@@ -92,6 +95,9 @@ namespace macroface {
 
 /// Index of a vertex DoF on a macro face (only access to owned DoFs, no ghost layers).
 uint_t index( const uint_t & level, const uint_t & x, const uint_t & y );
+
+/// 'Enumerates' the inner vertexdofs. x and y are still the indices but must not be located on the boundary.
+uint_t innerIndex( const uint_t & level, const uint_t & x, const uint_t & y );
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
 /// \param neighbor 0 or 1 for the respective neighbor
@@ -202,10 +208,10 @@ public:
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-class BorderIterator : public hhg::indexing::FaceBorderIterator
+class BoundaryIterator : public hhg::indexing::FaceBoundaryIterator
 {
 public:
-  BorderIterator( const uint_t & level, const hhg::indexing::FaceBorderDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
+  BoundaryIterator( const uint_t & level, const hhg::indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
 };
 
 bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);

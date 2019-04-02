@@ -9,10 +9,17 @@
 class p2_diffusion_cell_integral_0_otherwise;
 class p2_tet_diffusion_cell_integral_0_otherwise;
 class p2_mass_cell_integral_0_otherwise;
+class p2_pspg_cell_integral_0_otherwise;
 class p2_divt_cell_integral_0_otherwise;
 class p2_divt_cell_integral_1_otherwise;
+class p2_tet_divt_tet_cell_integral_0_otherwise;
+class p2_tet_divt_tet_cell_integral_1_otherwise;
+class p2_tet_divt_tet_cell_integral_2_otherwise;
 class p2_div_cell_integral_0_otherwise;
 class p2_div_cell_integral_1_otherwise;
+class p2_tet_div_tet_cell_integral_0_otherwise;
+class p2_tet_div_tet_cell_integral_1_otherwise;
+class p2_tet_div_tet_cell_integral_2_otherwise;
 
 namespace hhg {
 
@@ -40,6 +47,12 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
   void smooth_gs(const P2Function <real_t> &dst, const P2Function <real_t> &rhs, size_t level, DoFType flag) const;
 
+   void smooth_sor( const P2Function< real_t >& dst,
+                    const P2Function< real_t >& rhs,
+                    const real_t &              relax,
+                    size_t                      level,
+                    DoFType                     flag ) const;
+
    void smooth_jac( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,
                     const P2Function< real_t >& src,
@@ -63,9 +76,13 @@ typedef P2ConstantOperator< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffu
                                                                                                        P2ConstantLaplaceOperator;
 typedef P2ConstantOperator< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > P2ConstantMassOperator;
 
-typedef P2ConstantOperator< p2_divt_cell_integral_0_otherwise > P2ConstantDivTxOperator;
-typedef P2ConstantOperator< p2_divt_cell_integral_1_otherwise > P2ConstantDivTyOperator;
-typedef P2ConstantOperator< p2_div_cell_integral_0_otherwise >  P2ConstantDivxOperator;
-typedef P2ConstantOperator< p2_div_cell_integral_1_otherwise >  P2ConstantDivyOperator;
+typedef P2ConstantOperator< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > P2ConstantPSPGOperator;
+
+typedef P2ConstantOperator< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise > P2ConstantDivTxOperator;
+typedef P2ConstantOperator< p2_divt_cell_integral_1_otherwise, p2_tet_divt_tet_cell_integral_1_otherwise > P2ConstantDivTyOperator;
+typedef P2ConstantOperator< fenics::NoAssemble,                p2_tet_divt_tet_cell_integral_2_otherwise > P2ConstantDivTzOperator;
+typedef P2ConstantOperator< p2_div_cell_integral_0_otherwise,  p2_tet_div_tet_cell_integral_0_otherwise >  P2ConstantDivxOperator;
+typedef P2ConstantOperator< p2_div_cell_integral_1_otherwise,  p2_tet_div_tet_cell_integral_1_otherwise >  P2ConstantDivyOperator;
+typedef P2ConstantOperator< fenics::NoAssemble,                p2_tet_div_tet_cell_integral_2_otherwise >  P2ConstantDivzOperator;
 
 } // namespace hhg

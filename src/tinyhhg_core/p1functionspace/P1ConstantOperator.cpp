@@ -19,6 +19,9 @@
 
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
 #include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
+#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
 
 #include "tinyhhg_core/mixedoperators/generated/p2_to_p1_div.h"
 #include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
@@ -480,7 +483,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                                                                                                size_t level,
                                                                                                DoFType flag,
                                                                                                UpdateType updateType) const{
-   this->startTiming( "P1ConstantOperator - Apply" );
+   this->startTiming( "Apply" );
    src.communicate< Vertex, Edge >( level );
    src.communicate< Edge, Face >( level );
    src.communicate< Face, Cell >( level );
@@ -568,7 +571,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
       }
    }
-   this->stopTiming( "P1ConstantOperator - Apply" );
+   this->stopTiming( "Apply" );
 }
 
 template<class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal>
@@ -852,6 +855,15 @@ template class P1ConstantOperator< p1_pspg_cell_integral_0_otherwise, p1_tet_psp
 
 template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_diffusion_cell_integral_0_otherwise >;
 template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_mass_cell_integral_0_otherwise >;
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_pspg_tet_cell_integral_0_otherwise >;
+
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_div_tet_cell_integral_0_otherwise >;
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_div_tet_cell_integral_1_otherwise >;
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_div_tet_cell_integral_2_otherwise >;
+
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class P1ConstantOperator< fenics::NoAssemble,        p2_tet_divt_tet_cell_integral_2_otherwise >;
 
 template class P1ConstantOperator< fenics::NoAssemble,        p2_to_p1_tet_div_tet_cell_integral_0_otherwise >;
 template class P1ConstantOperator< fenics::NoAssemble,        p2_to_p1_tet_div_tet_cell_integral_1_otherwise >;

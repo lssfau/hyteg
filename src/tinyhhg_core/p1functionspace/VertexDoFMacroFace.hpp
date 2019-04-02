@@ -159,6 +159,17 @@ inline void interpolate( const uint_t&                                          
    }
 }
 
+template< typename ValueType >
+inline void swap( const uint_t & level, Face & face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstID )
+{
+  auto srcData = face.getData( srcID );
+  auto dstData = face.getData( dstID );
+  srcData->swap( *dstData, level );
+}
+
+
 template < typename ValueType >
 inline void assign( const uint_t&                                                              Level,
                     Face&                                                                      face,
@@ -307,6 +318,19 @@ inline real_t dot( const uint_t&                                               L
 }
 
 template < typename ValueType >
+inline real_t sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID )
+{
+   ValueType* faceData = face.getData( dataID )->getPointer( level );
+   real_t     sum      = real_c( 0 );
+   for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
+      sum += faceData[idx];
+   }
+   return sum;
+}
+
+template < typename ValueType >
 inline void apply( const uint_t&                                               Level,
                    Face&                                                       face,
                    const PrimitiveDataID< StencilMemory< ValueType >, Face >&  operatorId,
@@ -345,6 +369,84 @@ inline void apply( const uint_t&                                               L
            tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[4] )] *
                   src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[4] )];
            tmp += opr_data[vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[5] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[5] )];
+        } else if( face.getNumNeighborCells() == 1 )
+        {
+           tmp = real_c( 0 );
+           for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
+           {
+              tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                     src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+           }
+        } else if( face.getNumNeighborCells() == 2 )
+        {
+           tmp = real_c( 0 );
+           for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
+           {
+              tmp += opr_data[vertexdof::stencilIndexFromVertex( direction )] *
+                     src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
+           }
+        }
+
+        WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
+
+        if ( update == Replace )
+        {
+          dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
+        }
+        else
+        {
+          dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] += tmp;
+        }
+     }
+     --inner_rowsize;
+  }
+}
+
+
+template < typename ValueType >
+inline void applyPointwise( const uint_t&                                               Level,
+                   Face&                                                       face,
+                   const PrimitiveDataID< StencilMemory< ValueType >, Face >&  operatorId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
+                   UpdateType                                                  update )
+{
+   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
+   uint_t inner_rowsize = rowsize;
+
+   ValueType* opr_data = face.getData( operatorId )->getPointer( Level );
+   ValueType* src      = face.getData( srcId )->getPointer( Level );
+   ValueType* dst      = face.getData( dstId )->getPointer( Level );
+
+   ValueType tmp = real_c( 0 );
+
+  const uint_t stencilSize = 7;
+
+  for( uint_t j = 1; j < rowsize - 2; ++j )
+  {
+     for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+     {
+        if( face.getNumNeighborCells() == 0 )
+        {
+          const auto offset = stencilSize * vertexdof::macroface::innerIndex( Level, i, j );
+
+           tmp = opr_data[offset + vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] *
+                 src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+
+           //strangely the intel compiler cant handle this if it is a loop
+           static_assert( vertexdof::macroface::neighborsWithoutCenter.size() == 6, "Neighbors array has wrong size" );
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[0] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[0] )];
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[1] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[1] )];
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[2] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[2] )];
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[3] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[3] )];
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[4] )] *
+                  src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[4] )];
+           tmp += opr_data[offset + vertexdof::stencilIndexFromVertex( vertexdof::macroface::neighborsWithoutCenter[5] )] *
                   src[vertexdof::macroface::indexFromVertex( Level, i, j, vertexdof::macroface::neighborsWithoutCenter[5] )];
         } else if( face.getNumNeighborCells() == 1 )
         {

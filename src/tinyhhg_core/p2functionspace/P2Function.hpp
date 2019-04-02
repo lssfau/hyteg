@@ -39,11 +39,12 @@ class P2Function : public Function< P2Function< ValueType > >
                const std::shared_ptr< PrimitiveStorage >& storage,
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
-               BoundaryCondition                          boundaryCondition )
+               BoundaryCondition                          boundaryCondition,
+               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary )
    : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
    , vertexDoFFunction_(
-         vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
-   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+         vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition, boundaryTypeToSkipDuringAdditiveCommunication ) )
+   , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition, boundaryTypeToSkipDuringAdditiveCommunication ) )
    {
       for( uint_t level = minLevel; level <= maxLevel; level++ )
       {
@@ -59,7 +60,14 @@ class P2Function : public Function< P2Function< ValueType > >
    const vertexdof::VertexDoFFunction< ValueType > & getVertexDoFFunction() const { return vertexDoFFunction_; }
    const EdgeDoFFunction< ValueType > &              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
-   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
+    template < typename SenderType, typename ReceiverType >
+    inline void communicate( const uint_t& level ) const
+    {
+      vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
+      edgeDoFFunction_  .template communicate< SenderType, ReceiverType >( level );
+    }
+
+    inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const
    {
       vertexDoFFunction_.interpolate( constant, level, flag );
       edgeDoFFunction_.interpolate( constant, level, flag );
@@ -95,6 +103,14 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
    }
 
+   inline void swap( const P2Function< ValueType > & other,
+                     const uint_t & level,
+                     const DoFType & dofType = All) const
+   {
+      vertexDoFFunction_.swap( other.getVertexDoFFunction(), level, dofType );
+      edgeDoFFunction_.swap( other.getEdgeDoFFunction(), level, dofType );
+   }
+
    inline void assign( const std::vector< ValueType >&                                               scalars,
                        const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                        uint_t                                                                        level,
@@ -111,6 +127,136 @@ class P2Function : public Function< P2Function< ValueType > >
 
       vertexDoFFunction_.assign( scalars, vertexDoFFunctions, level, flag );
       edgeDoFFunction_.assign( scalars, edgeDoFFunctions, level, flag );
+   }
+
+   inline void assign( const P1Function< ValueType >& src, const uint_t& P2Level, const DoFType& flag = All ) const
+   {
+      if ( this->isDummy() )
+      {
+         return;
+      }
+      this->startTiming( "Assign (P1 -> P2)" );
+
+      const auto P1Level = P2Level + 1;
+
+      WALBERLA_CHECK_GREATER_EQUAL( P1Level, src.getMinLevel() );
+      WALBERLA_CHECK_LESS_EQUAL( P1Level, src.getMaxLevel() );
+
+      for ( const auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         if ( testFlag( this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+         {
+            auto P1Data = vertex.getData( src.getVertexDataID() )->getPointer( P1Level );
+            auto P2Data = vertex.getData( getVertexDoFFunction().getVertexDataID() )->getPointer( P2Level );
+            P2Data[0]   = P1Data[0];
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if ( testFlag( this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            auto P1Data   = edge.getData( src.getEdgeDataID() )->getPointer( P1Level );
+            auto P2Data_v = edge.getData( getVertexDoFFunction().getEdgeDataID() )->getPointer( P2Level );
+            auto P2Data_e = edge.getData( getEdgeDoFFunction().getEdgeDataID() )->getPointer( P2Level );
+
+            for ( auto itIdx : vertexdof::macroedge::Iterator( P2Level ) )
+            {
+               P2Data_v[vertexdof::macroedge::index( P2Level, itIdx.x() )] =
+                   P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 )];
+            }
+            for ( auto itIdx : edgedof::macroedge::Iterator( P2Level ) )
+            {
+               P2Data_e[edgedof::macroedge::index( P2Level, itIdx.x() )] =
+                   P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 + 1 )];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            auto P1Data   = face.getData( src.getFaceDataID() )->getPointer( P1Level );
+            auto P2Data_v = face.getData( getVertexDoFFunction().getFaceDataID() )->getPointer( P2Level );
+            auto P2Data_e = face.getData( getEdgeDoFFunction().getFaceDataID() )->getPointer( P2Level );
+
+            for ( auto itIdx : vertexdof::macroface::Iterator( P2Level ) )
+            {
+               P2Data_v[vertexdof::macroface::index( P2Level, itIdx.x(), itIdx.y() )] =
+                   P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 )];
+            }
+            for ( auto itIdx : edgedof::macroface::Iterator( P2Level ) )
+            {
+               P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::X )] =
+                   P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 )];
+
+               P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::XY )] =
+                   P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1 )];
+
+               P2Data_e[edgedof::macroface::index( P2Level, itIdx.x(), itIdx.y(), edgedof::EdgeDoFOrientation::Y )] =
+                   P1Data[vertexdof::macroface::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1 )];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( this->getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            auto P1Data   = cell.getData( src.getCellDataID() )->getPointer( P1Level );
+            auto P2Data_v = cell.getData( getVertexDoFFunction().getCellDataID() )->getPointer( P2Level );
+            auto P2Data_e = cell.getData( getEdgeDoFFunction().getCellDataID() )->getPointer( P2Level );
+
+            for ( auto itIdx : vertexdof::macrocell::Iterator( P2Level ) )
+            {
+               P2Data_v[vertexdof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z() )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 )];
+            }
+            for ( auto itIdx : edgedof::macrocell::Iterator( P2Level ) )
+            {
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::X )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Y )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Z )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 + 1 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XY )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 + 1 )];
+
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::YZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )];
+            }
+
+            for ( auto itIdx : edgedof::macrocell::IteratorXYZ( P2Level ) )
+            {
+               P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XYZ )] =
+                   P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )];
+            }
+         }
+      }
+
+      this->stopTiming( "Assign (P1 -> P2)" );
+   }
+
+   inline void add( const real_t& scalar, uint_t level, DoFType flag = All ) const
+   {
+      vertexDoFFunction_.add( scalar, level, flag );
+      edgeDoFFunction_.add( scalar, level, flag );
    }
 
    inline void add( const std::vector< ValueType >&                                               scalars,
@@ -145,6 +291,23 @@ class P2Function : public Function< P2Function< ValueType > >
       real_t sum = real_c( 0 );
       sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
       sum += edgeDoFFunction_.dotLocal( rhs.edgeDoFFunction_, level, flag );
+      return sum;
+   }
+
+   inline real_t sumGlobal( const uint_t level, const DoFType flag = All ) const
+   {
+      real_t sum = sumLocal( level, flag );
+      this->startTiming( "Sum (reduce)" );
+      walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+      this->stopTiming( "Sum (reduce)" );
+      return sum;
+   }
+
+   inline real_t sumLocal( const uint_t level, const DoFType flag = All ) const
+   {
+      real_t sum = real_c( 0 );
+      sum += vertexDoFFunction_.sumLocal( level, flag );
+      sum += edgeDoFFunction_.sumLocal( level, flag );
       return sum;
    }
 
@@ -346,115 +509,6 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
    }
 
-   inline void prolongateQuadratic( uint_t sourceLevel, DoFType flag = All )
-   {
-      WALBERLA_ABORT( "P2Function - Prolongate (quadratic) not implemented!" );
-   }
-
-   inline void prolongate( uint_t sourceLevel, DoFType flag = All ) const
-   {
-      edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
-      edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
-
-      vertexDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
-      vertexDoFFunction_.template communicate< Edge, Face >( sourceLevel );
-
-      for( const auto& it : this->getStorage()->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
-         {
-            P2::macroface::prolongate< ValueType >(
-                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-         }
-      }
-
-      for( const auto& it : this->getStorage()->getEdges() )
-      {
-         const Edge& edge = *it.second;
-
-         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if( testFlag( edgeBC, flag ) )
-         {
-            P2::macroedge::prolongate< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
-         }
-      }
-
-      for( const auto& it : this->getStorage()->getVertices() )
-      {
-         const Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertexBC, flag ) )
-         {
-            P2::macrovertex::prolongate< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
-         }
-      }
-   }
-
-   inline void restrict( uint_t sourceLevel, DoFType flag = All ) const
-   {
-      edgeDoFFunction_.template communicate< Vertex, Edge >( sourceLevel );
-      edgeDoFFunction_.template communicate< Edge, Face >( sourceLevel );
-
-      for( const auto& it : this->getStorage()->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
-         {
-            P2::macroface::restrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-         }
-      }
-
-      /// sync the vertex dofs which contain the missing edge dofs
-      edgeDoFFunction_.template communicate< Face, Edge >( sourceLevel );
-
-      /// remove the temporary updates
-      for( const auto& it : this->getStorage()->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
-         {
-            P2::macroface::postRestrict< ValueType >(
-                sourceLevel, face, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-         }
-      }
-
-      for( const auto& it : this->getStorage()->getEdges() )
-      {
-         const Edge& edge = *it.second;
-
-         const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if( testFlag( edgeBC, flag ) )
-         {
-            P2::macroedge::restrict< ValueType >(
-                sourceLevel, edge, vertexDoFFunction_.getEdgeDataID(), edgeDoFFunction_.getEdgeDataID() );
-         }
-      }
-
-      //TODO: add real vertex restrict
-      for( const auto& it : this->getStorage()->getVertices() )
-      {
-         const Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertexBC, flag ) )
-         {
-            P2::macrovertex::restrictInjection< ValueType >(
-                sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
-         }
-      }
-   }
-
    inline real_t getMaxValue( uint_t level, DoFType flag = All ) const
    {
       auto localMax = -std::numeric_limits< ValueType >::max();
@@ -532,5 +586,20 @@ class P2Function : public Function< P2Function< ValueType > >
    vertexdof::VertexDoFFunction< ValueType > vertexDoFFunction_;
    EdgeDoFFunction< ValueType >               edgeDoFFunction_;
 };
+
+namespace p2function {
+
+inline void projectMean( const P2Function <real_t> & pressure, const uint_t & level )
+{
+   if ( pressure.isDummy())
+   {
+      return;
+   }
+   const uint_t numGlobalVertices = numberOfGlobalDoFs< P2FunctionTag >( *pressure.getStorage(), level );
+   const real_t sum = pressure.sumGlobal( level, All );
+   pressure.add( -sum / real_c( numGlobalVertices ), level, All );
+}
+
+}
 
 } //namespace hhg

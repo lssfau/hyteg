@@ -44,8 +44,6 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    hhg::P2Function< real_t >                      b( "x", storage, level, level + 1 );
    hhg::P2Function< real_t >                      err( "err", storage, level, level + 1 );
    hhg::P2Function< real_t >                      residuum( "err", storage, level, level + 1 );
-   std::shared_ptr< hhg::P2Function< PetscInt > > numerator =
-   std::make_shared< hhg::P2Function< PetscInt > >( "numerator", storage, level, level + 1 );
 
    hhg::P2ConstantLaplaceOperator A( storage, level, level + 1 );
 
@@ -63,9 +61,6 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
 //   b.interpolate( exact, level + 1, hhg::DirichletBoundary );
 //   x_exact.interpolate( exact, level + 1 );
 
-   numerator->enumerate( level );
-//   numerator->enumerate( level + 1 );
-
    uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
 //   uint_t localDoFs2 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
    uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
@@ -74,7 +69,7 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 //   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
 
-   PETScLUSolver< hhg::P2ConstantLaplaceOperator > solver_1( numerator, localDoFs1, globalDoFs1 );
+   PETScLUSolver< hhg::P2ConstantLaplaceOperator > solver_1( storage, level );
 //   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
@@ -128,7 +123,9 @@ int main( int argc, char* argv[] )
    petscSolveTest( 3, "../../data/meshes/3D/tet_1el.msh",                3.0e-07 );
    petscSolveTest( 3, "../../data/meshes/3D/pyramid_2el.msh",            2.7e-06 );
    petscSolveTest( 3, "../../data/meshes/3D/pyramid_4el.msh",            3.2e-07 );
+   petscSolveTest( 2, "../../data/meshes/3D/pyramid_tilted_4el.msh",     7.3e-06 );
    petscSolveTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", 1.7e-06 );
+   petscSolveTest( 2, "../../data/meshes/3D/cube_24el.msh",              1.4e-05 );
 
    return EXIT_SUCCESS;
 }
