@@ -12,6 +12,8 @@
 #include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
 #include "tinyhhg_core/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 
+#include "tinyhhg_core/petsc/PETScVector.hpp"
+
 namespace hhg {
 
 template <class OperatorType, template <class> class FunctionType>
@@ -78,6 +80,47 @@ public:
     MatAssemblyEnd(mat,MAT_FINAL_ASSEMBLY);
 
   }
+
+    /// \brief Applies Dirichlet BCs to a linear system without losing symmetry.
+    ///
+    /// Uses the PETSc function MatZeroRowsColumns() which does that automatically.
+    /// Still, we need to think how we can easily integrate this to use more efficient
+    /// solvers in HyTeG, because the RHS is modified depending on the original system.
+    ///
+    /// So far I do not know any solution to this without re-assembling the system every time
+    /// we solve it since we need to also rebuild the RHS.
+    /// It should be possible to store a copy of the original system and circumvent re-assembling by
+    /// copying it and applying only MatZeroRowsColumns() (without re-assembly) before calling the solver.
+    /// If PETSc is only used as a coarse grid solver this might be a good solution.
+    ///
+    /// \param dirichletSolution a function that has the respective values interpolated on the Dirichlet boundary
+    /// \param numerator an enumerated function
+    /// \param rhsVec RHS of the system as PETSc vector - NOTE THAT THIS IS MODIFIED IN PLACE
+    /// \param level the refinement level
+    ///
+    void applyDirichletBCSymmetrically( const FunctionType< real_t >&        dirichletSolution,
+                                        const FunctionType< PetscInt >&      numerator,
+                                        PETScVector< real_t, FunctionType >& rhsVec,
+                                        const uint_t&                        level )
+    {
+       std::vector< PetscInt > bcIndices;
+       hhg::petsc::applyDirichletBC( numerator, bcIndices, level );
+
+       PETScVector< real_t, FunctionType > dirichletSolutionVec( dirichletSolution, numerator, level );
+
+       WALBERLA_ASSERT(
+           isSymmetric(),
+           "PETSc: Dirichlet boundary conditions can only be applied symmetrically if the original system is symmetric." );
+
+       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
+       // if there are zero diagonals in the matrix. If there are, the function halts.
+       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
+       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+
+       MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
+
+       WALBERLA_ASSERT( isSymmetric() );
+    }
 
   inline void reset()  { assembled = false; }
 

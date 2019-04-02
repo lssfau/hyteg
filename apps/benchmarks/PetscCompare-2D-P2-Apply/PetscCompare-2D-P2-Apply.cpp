@@ -4,6 +4,7 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
@@ -79,7 +80,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
       //return 5.0;
-      return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
+      return std::sin( walberla::math::M_PI * xx[0] ) + std::cos( walberla::math::M_PI * xx[1] );
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 

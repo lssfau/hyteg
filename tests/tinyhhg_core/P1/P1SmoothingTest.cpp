@@ -8,12 +8,13 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "core/Environment.h"
+#include "core/math/Constants.h"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
-using walberla::math::PI;
+using walberla::math::M_PI;
 
 using namespace hhg;
 

@@ -381,6 +381,48 @@ void EdgeDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
+void EdgeDoFFunction< ValueType >::add( const real_t& scalar, uint_t level, DoFType flag ) const
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Add (scalar)" );
+
+   for( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroedge::add< ValueType >( level, edge, scalar, edgeDataID_ );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroface::add< ValueType >( level, face, scalar, faceDataID_ );
+      }
+   }
+
+   for( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
+      }
+   }
+
+   this->stopTiming( "Add (scalar)" );
+}
+
+template < typename ValueType >
 void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&                     scalars,
                                         const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
                                                size_t                                             level,
@@ -478,6 +520,59 @@ real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> 
    this->stopTiming( "Dot (local)" );
 
    return scalarProduct;
+}
+
+
+template < typename ValueType >
+real_t EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+{
+   real_t sum = sumLocal( level, flag );
+   this->startTiming( "Sum (reduce)" );
+   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   this->stopTiming( "Sum (reduce)" );
+   return sum;
+}
+
+template < typename ValueType >
+real_t EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+{
+   if( isDummy() )
+   {
+      return real_c( 0 );
+   }
+   this->startTiming( "Sum (local)" );
+   real_t sum = 0.0;
+
+   for( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += edgedof::macroedge::sum< ValueType >( level, edge, edgeDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += edgedof::macroface::sum< ValueType >( level, face, faceDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         sum += edgedof::macrocell::sum< ValueType >( level, cell, cellDataID_ );
+      }
+   }
+   this->stopTiming( "Sum (local)" );
+   return sum;
 }
 
 template < typename ValueType >

@@ -307,6 +307,15 @@ template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
 
 template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >;
 template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_pspg_tet_cell_integral_0_otherwise >;
+
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_1_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise >;
+
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_1_otherwise >;
+template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise >;
 
 template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >;
 template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >;
