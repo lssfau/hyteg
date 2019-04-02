@@ -3,9 +3,9 @@ import time
 import argparse
 
 
-def main(cores, minLevel, maxLevel):
+def main(cores, minLevel, maxLevel, outputfile):
     datestamp = time.strftime("%y_%m_%d-%I:%M:%S")
-    f = open(datestamp + 'levelScalingData.txt', 'w')
+    f = open(datestamp + outputfile, 'w')
 
     if cores is 1:
         for level in range(minLevel, maxLevel + 1):
@@ -22,8 +22,9 @@ def main(cores, minLevel, maxLevel):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("cores", help="number of cores to run with")
-    parser.add_argument("minLevel", default=2, help="minimal scaling Level")
-    parser.add_argument("maxLevel", default=15, help="maximal scaling Level")
+    parser.add_argument("cores", help="number of cores to run with", type=int)
+    parser.add_argument("minLevel", help="minimal scaling Level", type=int)
+    parser.add_argument("maxLevel", help="maximal scaling Level", type=int)
+    parser.add_argument("outputfile", help="filename for output including the ending; something will be added")
     args = parser.parse_args()
-    main()
+    main(args.cores, args.minLevel, args.maxLevel)

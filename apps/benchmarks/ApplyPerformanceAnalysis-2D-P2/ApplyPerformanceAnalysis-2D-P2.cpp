@@ -1,6 +1,7 @@
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/config/Config.h"
+#include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
 
@@ -70,7 +71,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
       auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
 
-      for( uint_t i = 0; i < iterations; ++i )
+      for ( uint_t i = 0; i < iterations; ++i )
       {
          hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
@@ -79,7 +80,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_STOP( vvname.c_str() );
       timingTree.stop( vvname );
       iterations *= 2;
-   } while( timingTree[vvname].last() < 0.5 );
+   } while ( timingTree[vvname].last() < 0.5 );
 
    iterations /= 2;
 
@@ -111,7 +112,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
       auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
 
-      for( uint_t i = 0; i < iterations; i++ )
+      for ( uint_t i = 0; i < iterations; i++ )
       {
          hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
              srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
@@ -120,7 +121,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_STOP( evname.c_str() );
       timingTree.stop( evname );
       iterations *= 2;
-   } while( timingTree[evname].last() < 0.5 );
+   } while ( timingTree[evname].last() < 0.5 );
 
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( evname.c_str(), &nevents, &events, &time, &count );
@@ -149,7 +150,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
       auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
 
-      for( uint_t i = 0; i < iterations; i++ )
+      for ( uint_t i = 0; i < iterations; i++ )
       {
          hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
              dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
@@ -159,7 +160,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_STOP( eename.c_str() );
       timingTree.stop( eename );
       iterations *= 2;
-   } while( timingTree[eename].last() < 0.5 );
+   } while ( timingTree[eename].last() < 0.5 );
 
    iterations /= 2;
 
@@ -193,7 +194,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
       auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
 
-      for( uint_t i = 0; i < iterations; i++ )
+      for ( uint_t i = 0; i < iterations; i++ )
       {
          hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr,
                                                                                               srcPtr,
@@ -206,7 +207,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       LIKWID_MARKER_STOP( vename.c_str() );
       timingTree.stop( vename );
       iterations *= 2;
-   } while( timingTree[vename].last() < 0.5 );
+   } while ( timingTree[vename].last() < 0.5 );
 
    iterations /= 2;
 
@@ -237,12 +238,13 @@ int main( int argc, char* argv[] )
    ///// Parameters /////
 
    auto cfg = std::make_shared< walberla::config::Config >();
-   if( env.config() == nullptr )
+   if ( env.config() == nullptr )
    {
       auto defaultFile = "./ApplyPerformanceAnalysis-2D-P2.prm";
       WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
-   } else
+   }
+   else
    {
       cfg = env.config();
    }
@@ -254,14 +256,12 @@ int main( int argc, char* argv[] )
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hhg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-      return std::sin( walberla::math::PI * xx[0] ) + std::cos( walberla::math::PI * xx[1] );
+      return std::sin( walberla::math::M_PI * xx[0] ) + std::cos( walberla::math::M_PI * xx[1] );
    };
-
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   storage->setTimingTree( timingTree );
 
    ///// Functions / operators / allocation /////
 
@@ -280,7 +280,7 @@ int main( int argc, char* argv[] )
 
    performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp );
 
-   if( mainConf.getParameter< bool >( "printTiming" ) )
+   if ( mainConf.getParameter< bool >( "printTiming" ) )
    {
       auto wcTPReduced = wcTimingTreeApp.getReduced();
       WALBERLA_LOG_INFO_ON_ROOT( wcTPReduced );
@@ -297,7 +297,7 @@ int main( int argc, char* argv[] )
       jsonOutput.close();
    }
 
-   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK output" );
       hhg::VTKOutput vtkOutput( "./output", "ApplyPerformanceAnalysis-2D-P2.cpp", storage );
