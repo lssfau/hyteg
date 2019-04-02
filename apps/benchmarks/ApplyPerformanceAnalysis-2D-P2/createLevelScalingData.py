@@ -4,7 +4,7 @@ import argparse
 
 
 def main(cores, minLevel, maxLevel, outputfile):
-    datestamp = time.strftime("%y_%m_%d-%I:%M:%S")
+    datestamp = time.strftime("%y_%m_%d-%I.%M.%S")
     f = open(datestamp + outputfile, 'w')
 
     if cores is 1:
@@ -23,8 +23,8 @@ def main(cores, minLevel, maxLevel, outputfile):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("cores", help="number of cores to run with", type=int)
-    parser.add_argument("minLevel", help="minimal scaling Level", type=int)
-    parser.add_argument("maxLevel", help="maximal scaling Level", type=int)
     parser.add_argument("outputfile", help="filename for output including the ending; something will be added")
+    parser.add_argument("--minLevel", default=2, help="minimal scaling Level", type=int)
+    parser.add_argument("--maxLevel", default=15, help="maximal scaling Level", type=int)
     args = parser.parse_args()
     main(args.cores, args.minLevel, args.maxLevel, args.outputfile)
