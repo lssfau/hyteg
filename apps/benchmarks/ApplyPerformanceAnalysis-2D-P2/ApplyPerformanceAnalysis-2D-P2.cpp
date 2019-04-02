@@ -153,7 +153,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       for ( uint_t i = 0; i < iterations; i++ )
       {
          hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
-             dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+             dstPtr, srcPtr, &stencilPtr[5], &stencilPtr[0], &stencilPtr[10], static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
 
